@@ -128,18 +128,18 @@ function OAuthState({
           </div>
           <div className="grid gap-2 border-t pt-4 text-sm">
             <div className="flex items-center justify-between gap-4">
-              <span className="text-muted-foreground">Capability</span>
+              <span className="text-muted-foreground">Tipo de canal</span>
               <span className="font-medium">{capability.label}</span>
             </div>
             <div className="flex items-center justify-between gap-4">
-              <span className="text-muted-foreground">OAuth state</span>
-              <Badge variant="neutral">mock session</Badge>
+              <span className="text-muted-foreground">Estado de OAuth</span>
+              <Badge variant="neutral">sesión simulada</Badge>
             </div>
             {usesPkce ? (
               <div className="flex items-center justify-between gap-4">
                 <span className="text-muted-foreground">PKCE</span>
                 <span className="font-medium">
-                  challenge local · verifier no expuesto
+                  desafío local · verificador no expuesto
                 </span>
               </div>
             ) : null}
@@ -226,10 +226,10 @@ function CreatorInfo({ onContinue }: { onContinue: () => void }) {
               <ShieldCheck aria-hidden="true" className="size-5" />
             </span>
             <div className="grid gap-1">
-              <p className="font-medium">Información de creator</p>
+              <p className="font-medium">Información del creador</p>
               <p className="text-sm leading-relaxed text-muted-foreground">
                 En Laravel, TikTok resuelve el perfil autorizado y permite
-                consultar información de creator para los perfiles conectados.
+                consultar información del creador para los perfiles conectados.
               </p>
             </div>
           </div>
@@ -239,7 +239,7 @@ function CreatorInfo({ onContinue }: { onContinue: () => void }) {
               <span className="font-medium">@anatorres.creates</span>
             </div>
             <div className="flex items-center justify-between gap-4">
-              <span className="text-muted-foreground">Estado de creator</span>
+              <span className="text-muted-foreground">Estado del creador</span>
               <Badge variant="success">Disponible</Badge>
             </div>
           </div>
@@ -329,7 +329,7 @@ function WhatsAppConnection({
             <div className="grid gap-1">
               <p className="font-medium">Crear dispositivo temporal</p>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                El flujo real crea un device, solicita un QR y consulta su
+                El flujo real crea un dispositivo, solicita un QR y consulta su
                 estado hasta completar el vínculo.
               </p>
             </div>
@@ -337,7 +337,7 @@ function WhatsAppConnection({
         </Card>
         <div className="flex justify-end">
           <Button onClick={onStart} type="button">
-            Crear device y generar QR mock
+            Crear dispositivo y generar QR simulado
           </Button>
         </div>
       </div>
@@ -354,9 +354,9 @@ function WhatsAppConnection({
               className="mt-0.5 size-5 text-success"
             />
             <div className="grid gap-1">
-              <p className="font-medium">WhatsApp Status conectado</p>
+              <p className="font-medium">Historias de WhatsApp conectadas</p>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                El polling mock confirmó la sesión del device{" "}
+                La consulta simulada confirmó la sesión del dispositivo{" "}
                 <span className="font-medium text-foreground">{deviceId}</span>.
               </p>
             </div>
@@ -382,9 +382,9 @@ function WhatsAppConnection({
               className="mt-0.5 size-5 text-warning"
             />
             <div className="grid gap-1">
-              <p className="font-medium">El QR mock expiró</p>
+              <p className="font-medium">El QR simulado expiró</p>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                Genera un QR nuevo para continuar. El device anterior no se usa
+                Genera un QR nuevo para continuar. El dispositivo anterior no se usa
                 para esta simulación.
               </p>
             </div>
@@ -426,7 +426,7 @@ function WhatsAppConnection({
               Escanea el QR desde dispositivos vinculados
             </p>
             <p className="text-sm text-muted-foreground">
-              Device mock: {deviceId}
+              Dispositivo simulado: {deviceId}
             </p>
           </div>
         </CardContent>
@@ -438,7 +438,7 @@ function WhatsAppConnection({
         </Button>
         <Button onClick={onPoll} type="button" variant="brand-secondary">
           <LoaderCircle aria-hidden="true" className="animate-spin" />
-          Simular polling
+          Simular consulta
         </Button>
         <Button onClick={onPoll} type="button">
           <ScanLine aria-hidden="true" />
@@ -528,7 +528,7 @@ export function ChannelConnectionDialog({
   const title = capability ? `Conectar ${capability.label}` : "Conectar canal"
   const description = capability
     ? "Flujo local de Fase A basado en el módulo Laravel. No se abrirá ningún proveedor ni se guardará información."
-    : "Elige una capability. Esta vista usa datos sintéticos y modela el flujo de conexión sin llamadas API."
+    : "Elige un tipo de canal. Esta vista usa datos sintéticos y modela el flujo de conexión sin llamadas a la API."
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -548,10 +548,10 @@ export function ChannelConnectionDialog({
           {step === "capability" ? (
             <>
               <p className="text-xs text-muted-foreground">
-                Dashboard actual: {configuredProviderCount} integración
+                Panel actual: {configuredProviderCount} integración
                 {configuredProviderCount === 1 ? "" : "es"} lista
-                {configuredProviderCount === 1 ? "" : "s"}. Las capabilities
-                restantes se presentan para validar el diseño mock.
+                {configuredProviderCount === 1 ? "" : "s"}. Los tipos de canal
+                restantes se presentan para validar el diseño simulado.
               </p>
               <ScrollArea className="max-h-[calc(100dvh-17rem)] pr-3">
                 <div

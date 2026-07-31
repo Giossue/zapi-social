@@ -135,7 +135,7 @@ export function IntegrationsPage() {
       <EmptyState
         icon={PlugZap}
         title="No hay proveedores configurables"
-        description="Añade un fixture local de provider para continuar."
+        description="Añade un dato de ejemplo local de proveedor para continuar."
       />
     )
   }
@@ -227,15 +227,15 @@ export function IntegrationsPage() {
             </div>
             <div className="space-y-1">
               <p className="text-xs font-medium tracking-wide text-muted-foreground">
-                Workspace de plataforma
+                Espacio de trabajo de plataforma
               </p>
               <CardTitle>Configuración de proveedores</CardTitle>
             </div>
           </div>
           <CardDescription className="max-w-3xl">
-            Credenciales y capacidades compartidas para los workspaces. Los
+            Credenciales y tipos de canal compartidos para los espacios de trabajo. Los
             canales se conectan después desde su propio flujo; esta Fase A usa
-            fixtures locales.
+            datos de ejemplo locales.
           </CardDescription>
         </CardHeader>
       </Card>
@@ -264,7 +264,7 @@ export function IntegrationsPage() {
                   <Badge variant="neutral">
                     {activeProvider.authMode === "oauth"
                       ? "OAuth 2.0"
-                      : "Basic Auth · GOWA"}
+                      : "Conector"}
                   </Badge>
                 </div>
                 <CardDescription>{activeProvider.description}</CardDescription>
@@ -286,7 +286,7 @@ export function IntegrationsPage() {
                   aria-hidden="true"
                 />
                 <h2 id="capabilities-title" className="text-sm font-semibold">
-                  Capabilities
+                  Tipos de canal
                 </h2>
               </div>
               <div className="grid gap-3 md:grid-cols-2">
@@ -354,7 +354,7 @@ export function IntegrationsPage() {
             <CardHeader>
               <CardTitle className="text-base">Disponibilidad</CardTitle>
               <CardDescription>
-                Controla si este provider aparece para los workspaces.
+                Controla si este proveedor aparece para los espacios de trabajo.
               </CardDescription>
             </CardHeader>
             <CardContent className="flex items-center justify-between gap-4">
@@ -478,7 +478,7 @@ export function IntegrationsPage() {
                         id="callbacks-title"
                         className="text-sm font-semibold"
                       >
-                        Callbacks OAuth · solo lectura
+                        URLs de retorno OAuth · solo lectura
                       </h2>
                     </div>
                     {configuringProvider.capabilities.map((capability) => (
@@ -492,7 +492,7 @@ export function IntegrationsPage() {
                     {configuringProvider.dataDeletionCallbackUrl ? (
                       <label className="grid gap-1.5">
                         <span className="text-sm font-medium">
-                          Data deletion callback · Meta
+                          URL de eliminación de datos · Meta
                         </span>
                         <Input
                           readOnly
@@ -509,7 +509,7 @@ export function IntegrationsPage() {
                     role="status"
                   >
                     <CheckCircle2 className="size-4" aria-hidden="true" />
-                    Configuración mock guardada localmente.
+                    Configuración simulada guardada localmente.
                   </div>
                 ) : null}
 

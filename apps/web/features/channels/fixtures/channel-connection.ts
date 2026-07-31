@@ -17,7 +17,7 @@ export const channelConnectionCapabilities: readonly ChannelConnectionCapability
     {
       key: "facebook_page",
       provider: "meta",
-      label: "Facebook Page",
+      label: "Página de Facebook",
       description: "Selecciona una página de Facebook que administras.",
       icon: LayoutPanelTop,
       flow: "oauth-picker",
@@ -39,7 +39,7 @@ export const channelConnectionCapabilities: readonly ChannelConnectionCapability
     {
       key: "instagram_profile",
       provider: "meta",
-      label: "Instagram Profile",
+      label: "Perfil de Instagram",
       description: "Selecciona un perfil profesional de Instagram vinculado.",
       icon: AtSign,
       flow: "oauth-picker",
@@ -61,7 +61,7 @@ export const channelConnectionCapabilities: readonly ChannelConnectionCapability
     {
       key: "linkedin_page",
       provider: "linkedin",
-      label: "LinkedIn Page",
+      label: "Página de LinkedIn",
       description: "Elige una organización que administras en LinkedIn.",
       icon: Building2,
       flow: "oauth-picker",
@@ -83,7 +83,7 @@ export const channelConnectionCapabilities: readonly ChannelConnectionCapability
     {
       key: "linkedin_profile",
       provider: "linkedin",
-      label: "LinkedIn Profile",
+      label: "Perfil de LinkedIn",
       description: "Conecta directamente el perfil que autorices en LinkedIn.",
       icon: UserRound,
       flow: "oauth-direct",
@@ -91,7 +91,7 @@ export const channelConnectionCapabilities: readonly ChannelConnectionCapability
     {
       key: "x_profile",
       provider: "x",
-      label: "X Profile",
+      label: "Perfil de X",
       description: "Autoriza un perfil de X mediante OAuth 2.0 con PKCE.",
       icon: AtSign,
       flow: "pkce-direct",
@@ -99,16 +99,16 @@ export const channelConnectionCapabilities: readonly ChannelConnectionCapability
     {
       key: "tiktok_profile",
       provider: "tiktok",
-      label: "TikTok Profile",
+      label: "Perfil de TikTok",
       description:
-        "Autoriza un perfil y revisa la información pública de creator.",
+        "Autoriza un perfil y revisa la información pública del creador.",
       icon: Music2,
       flow: "creator-info",
     },
     {
       key: "whatsapp_status",
       provider: "whatsapp",
-      label: "WhatsApp Status",
+      label: "Historias de WhatsApp",
       description: "Vincula un dispositivo escaneando un QR desde WhatsApp.",
       icon: QrCode,
       flow: "qr",
@@ -134,7 +134,7 @@ export const directConnectionResources: Partial<
     id: "tt-profile-ana",
     label: "@anatorres.creates",
     description: "Perfil de TikTok",
-    metadata: "Cuenta de creator",
+    metadata: "Cuenta de creador",
   },
 }
 
