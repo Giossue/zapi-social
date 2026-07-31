@@ -31,3 +31,15 @@ No modificar Laravel para tareas V2 salvo solicitud explícita. No implementar b
 - Next no accede directamente a PostgreSQL ni Redis.
 - No leer, mostrar, versionar ni registrar secretos, `.env`, tokens o credenciales.
 - No importar bloques 21st en lote ni sin auditoría conforme a `docs/reglas/design.md`.
+
+## PostgreSQL remoto
+
+- Para consultas de PostgreSQL remoto, usar exclusivamente el perfil local:
+
+  ```bash
+  psql "service=zapi_v2"
+  ```
+
+- Se permiten consultas de solo lectura (`SELECT`, inspección de schema, conteos y `EXPLAIN`) sin pedir aprobación adicional.
+- No ejecutar mutaciones remotas (`INSERT`, `UPDATE`, `DELETE`, `TRUNCATE`, `ALTER`, `CREATE`, `DROP`, `GRANT`, `REVOKE`), migraciones ni cambios de permisos sin aprobación explícita del usuario para esa operación.
+- No incluir host, usuario, contraseña, URI de conexión ni otros secretos de base de datos en código, documentación, comandos visibles, logs o commits.
