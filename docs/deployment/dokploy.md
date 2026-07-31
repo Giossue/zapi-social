@@ -129,6 +129,29 @@ Migraciones actuales:
 
 No ejecutar SQL destructivo ni aplicar migraciones sobre una base remota sin autorización explícita.
 
+## Seed inicial de usuarios
+
+La seed es manual e idempotente: crea o reutiliza un owner y un member en el mismo workspace, sin escribir credenciales al repositorio.
+
+Agregar temporalmente como secretos en API:
+
+```dotenv
+SEED_ADMIN_EMAIL=admin@example.com
+SEED_ADMIN_PASSWORD=CHOOSE_A_STRONG_PASSWORD
+SEED_ADMIN_DISPLAY_NAME=Zapi Admin
+SEED_MEMBER_EMAIL=member@example.com
+SEED_MEMBER_PASSWORD=CHOOSE_A_STRONG_PASSWORD
+SEED_MEMBER_DISPLAY_NAME=Zapi Member
+```
+
+Ejecutar una vez en la consola del contenedor API:
+
+```bash
+bun run --filter api seed:users
+```
+
+Después de confirmar el login, borrar las seis variables `SEED_*` de Dokploy. La seed nunca imprime emails ni contraseñas.
+
 ## OAuth
 
 Los callbacks externos usan el dominio API:
