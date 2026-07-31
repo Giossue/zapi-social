@@ -5,12 +5,12 @@ WORKDIR /app
 COPY package.json bun.lock turbo.json tsconfig.json ./
 COPY apps/api/package.json apps/api/package.json
 COPY apps/web/package.json apps/web/package.json
-COPY packages/api-client/package.json packages/api-client/package.json
+COPY apps/worker/package.json apps/worker/package.json
 COPY packages/api-client/package.json packages/api-client/package.json
 COPY packages/contracts/package.json packages/contracts/package.json
-COPY packages/ui/package.json packages/ui/package.json
-COPY packages/eslint-config/package.json packages/eslint-config/package.json
 COPY packages/database/package.json packages/database/package.json
+COPY packages/eslint-config/package.json packages/eslint-config/package.json
+COPY packages/typescript-config/package.json packages/typescript-config/package.json
 COPY packages/ui/package.json packages/ui/package.json
 
 RUN bun install --frozen-lockfile
@@ -18,9 +18,9 @@ RUN bun install --frozen-lockfile
 COPY apps/web apps/web
 COPY packages/api-client packages/api-client
 COPY packages/contracts packages/contracts
+COPY packages/database packages/database
 COPY packages/eslint-config packages/eslint-config
 COPY packages/typescript-config packages/typescript-config
-COPY packages/database packages/database
 COPY packages/ui packages/ui
 
 RUN bun --filter web build
