@@ -1,0 +1,297 @@
+import { z } from "zod"
+
+const passwordPolicy = z
+  .string()
+  .min(8, "La contraseña debe tener al menos 8 caracteres.")
+  .max(128)
+  .regex(/[A-Z]/, "La contraseña debe incluir una mayúscula.")
+  .regex(/[a-z]/, "La contraseña debe incluir una minúscula.")
+  .regex(/[0-9]/, "La contraseña debe incluir un número.")
+  .regex(/[^A-Za-z0-9]/, "La contraseña debe incluir un carácter especial.")
+
+export const registerSchema = z.object({
+  email: z.string().trim().email().max(320),
+  password: passwordPolicy,
+  displayName: z.string().trim().min(2).max(160),
+})
+
+export const loginSchema = z.object({
+  email: z.string().trim().email().max(320),
+  password: z.string().min(1).max(128),
+})
+
+export const authUserSchema = z.object({
+  id: z.uuid(),
+  email: z.string().email(),
+  displayName: z.string(),
+})
+
+export const activeWorkspaceSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  slug: z.string(),
+  role: z.string(),
+})
+
+export const authSessionSchema = z.object({
+  user: authUserSchema,
+  workspace: activeWorkspaceSchema,
+})
+
+const dashboardActionSchema = z.object({
+  label: z.string(),
+  href: z.string(),
+})
+
+const dashboardMetricSchema = z.object({
+  label: z.string(),
+  value: z.string(),
+  description: z.string().optional(),
+  icon: z.enum(["ai", "calendar", "channels", "files", "storage", "templates"]),
+})
+
+const dashboardToolSchema = dashboardActionSchema.extend({
+  uses: z.number().int().nonnegative(),
+  icon: z.enum(["content", "image", "repurpose", "timing"]),
+})
+
+const dashboardAttentionSchema = dashboardActionSchema.extend({
+  description: z.string(),
+  icon: z.enum(["ai", "channels", "credits", "publishing"]),
+})
+
+export const portalDashboardSchema = z.object({
+  welcome: z.object({ name: z.string() }),
+  primaryAction: dashboardActionSchema,
+  workspace: z.array(dashboardMetricSchema),
+  tools: z.array(dashboardToolSchema),
+  publishing: z.array(dashboardMetricSchema),
+  library: z.array(dashboardMetricSchema),
+  attention: z.array(dashboardAttentionSchema),
+})
+
+export const channelStatusSchema = z.enum(["active", "paused"])
+
+export const channelOAuthProviderKeySchema = z.enum(["facebook", "linkedin"])
+
+export const channelAccountSchema = z.object({
+  id: z.uuid(),
+  providerKey: z.string(),
+  capabilityKey: z.string(),
+  displayName: z.string(),
+  handle: z.string().nullable(),
+  profileUrl: z.string().nullable(),
+  status: channelStatusSchema,
+  createdAt: z.string(),
+  updatedAt: z.string(),
+})
+
+export const channelMetricsSchema = z.object({
+  total: z.number().int().nonnegative(),
+  active: z.number().int().nonnegative(),
+  paused: z.number().int().nonnegative(),
+  recent: z.number().int().nonnegative(),
+})
+
+export const channelListSchema = z.object({
+  canManage: z.boolean(),
+  canConnect: z.boolean(),
+  readyProviders: z.array(channelOAuthProviderKeySchema),
+  metrics: channelMetricsSchema,
+  providers: z.array(z.string()),
+  accounts: z.array(channelAccountSchema),
+})
+
+export const channelListQuerySchema = z.object({
+  q: z.string().trim().max(255).optional(),
+  status: channelStatusSchema.optional(),
+  provider: z.string().trim().min(1).max(64).optional(),
+  sort: z.enum(["latest", "name"]).optional(),
+})
+
+export const createChannelSchema = z.object({
+  providerKey: z.string().trim().min(2).max(64),
+  capabilityKey: z.string().trim().min(2).max(64),
+  displayName: z.string().trim().min(2).max(255),
+  handle: z.string().trim().max(255).optional(),
+  profileUrl: z.string().trim().url().max(2048).optional(),
+})
+
+export const updateChannelSchema = z
+  .object({
+    displayName: z.string().trim().min(2).max(255).optional(),
+    status: channelStatusSchema.optional(),
+  })
+  .refine(
+    (value) => value.displayName !== undefined || value.status !== undefined,
+    {
+      message: "Incluye al menos un campo para actualizar.",
+    }
+  )
+
+export const integrationProviderKeySchema = z.enum([
+  "facebook",
+  "linkedin",
+  "tiktok",
+  "x",
+  "whatsapp-status",
+])
+
+export const providerConfigurationFieldSchema = z.object({
+  key: z.string(),
+  label: z.string(),
+  secret: z.boolean(),
+})
+
+export const providerIntegrationReadinessSchema = z.enum([
+  "ready",
+  "incomplete",
+  "disabled",
+])
+
+export const providerIntegrationSchema = z.object({
+  providerKey: integrationProviderKeySchema,
+  label: z.string(),
+  description: z.string(),
+  capabilities: z.array(z.string()),
+  configurationFields: z.array(providerConfigurationFieldSchema),
+  configuredFields: z.number().int().nonnegative(),
+  requiredFields: z.number().int().nonnegative(),
+  enabled: z.boolean(),
+  readiness: providerIntegrationReadinessSchema,
+})
+
+export const providerIntegrationsSchema = z.array(providerIntegrationSchema)
+
+const configurationValueSchema = z.string().trim().min(1).max(4096)
+
+export const updateProviderIntegrationSchema = z
+  .object({
+    enabled: z.boolean().optional(),
+    configuration: z
+      .record(z.string().regex(/^[a-z][a-zA-Z0-9]*$/), configurationValueSchema)
+      .optional(),
+  })
+  .strict()
+  .refine(
+    (input) => input.enabled !== undefined || input.configuration !== undefined,
+    {
+      message: "Se requiere al menos un campo para actualizar la integración.",
+    }
+  )
+
+export type RegisterInput = z.infer<typeof registerSchema>
+export type LoginInput = z.infer<typeof loginSchema>
+export type AuthSession = z.infer<typeof authSessionSchema>
+export type PortalDashboard = z.infer<typeof portalDashboardSchema>
+export type ChannelStatus = z.infer<typeof channelStatusSchema>
+export type ChannelAccount = z.infer<typeof channelAccountSchema>
+export type ChannelMetrics = z.infer<typeof channelMetricsSchema>
+export type ChannelList = z.infer<typeof channelListSchema>
+export type ChannelListQuery = z.infer<typeof channelListQuerySchema>
+export type CreateChannelInput = z.infer<typeof createChannelSchema>
+export type UpdateChannelInput = z.infer<typeof updateChannelSchema>
+export type IntegrationProviderKey = z.infer<
+  typeof integrationProviderKeySchema
+>
+export type ProviderIntegration = z.infer<typeof providerIntegrationSchema>
+export type UpdateProviderIntegrationInput = z.infer<
+  typeof updateProviderIntegrationSchema
+>
+
+export const channelOAuthContextSchema = z
+  .record(
+    z
+      .string()
+      .trim()
+      .min(1)
+      .max(64)
+      .regex(/^[a-z][a-zA-Z0-9]*$/),
+    z.string().max(1024)
+  )
+  .refine((context) => Object.keys(context).length <= 20, {
+    message: "El contexto OAuth admite hasta 20 valores.",
+  })
+
+export const channelOAuthStartSchema = z
+  .object({
+    providerKey: z.string().trim().min(2).max(64),
+    capabilityKey: z.string().trim().min(2).max(64),
+    reconnectAccountId: z.uuid().optional(),
+    context: channelOAuthContextSchema.optional(),
+  })
+  .strict()
+
+export const channelOAuthStateTokenSchema = z
+  .string()
+  .min(64)
+  .max(128)
+  .regex(/^[A-Za-z0-9_-]+$/)
+
+export const channelOAuthStateStatusSchema = z.enum([
+  "pending",
+  "consumed",
+  "expired",
+])
+
+export const channelOAuthStartResponseSchema = z.object({
+  state: channelOAuthStateTokenSchema,
+  providerKey: z.string(),
+  capabilityKey: z.string(),
+  status: z.literal("pending"),
+  expiresAt: z.string().datetime(),
+})
+
+export const channelOAuthStateResponseSchema = z.object({
+  providerKey: z.string(),
+  capabilityKey: z.string(),
+  status: channelOAuthStateStatusSchema,
+  expiresAt: z.string().datetime(),
+})
+
+export const channelOAuthConnectQuerySchema = z
+  .object({
+    capabilityKey: z.string().trim().min(2).max(64),
+    reconnectAccountId: z.uuid().optional(),
+    context: channelOAuthContextSchema.optional(),
+  })
+  .strict()
+
+export const channelOAuthCallbackQuerySchema = z
+  .object({
+    state: channelOAuthStateTokenSchema,
+    code: z.string().trim().min(1).max(8192).optional(),
+    error: z.string().trim().min(1).max(256).optional(),
+    error_description: z.string().trim().max(1024).optional(),
+  })
+  .passthrough()
+
+export const channelOAuthCallbackOutcomeSchema = z.enum([
+  "authorized",
+  "denied",
+  "failed",
+])
+
+export type ChannelOAuthContext = z.infer<typeof channelOAuthContextSchema>
+export type ChannelOAuthStart = z.infer<typeof channelOAuthStartSchema>
+export type ChannelOAuthStateStatus = z.infer<
+  typeof channelOAuthStateStatusSchema
+>
+export type ChannelOAuthStartResponse = z.infer<
+  typeof channelOAuthStartResponseSchema
+>
+export type ChannelOAuthStateResponse = z.infer<
+  typeof channelOAuthStateResponseSchema
+>
+export type ChannelOAuthProviderKey = z.infer<
+  typeof channelOAuthProviderKeySchema
+>
+export type ChannelOAuthConnectQuery = z.infer<
+  typeof channelOAuthConnectQuerySchema
+>
+export type ChannelOAuthCallbackQuery = z.infer<
+  typeof channelOAuthCallbackQuerySchema
+>
+export type ChannelOAuthCallbackOutcome = z.infer<
+  typeof channelOAuthCallbackOutcomeSchema
+>
