@@ -19,8 +19,22 @@
     {
       "idx": 2,
       "version": "7",
+      "when": 1785499900000,
+      "tag": "0002_channel_oauth_state_context",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
       "when": 1785500000000,
       "tag": "0003_platform_admin_portal_separation",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1785500100000,
+      "tag": "0004_fix_platform_admin_workspace_trigger",
       "breakpoints": true
     }
   ]
