@@ -350,16 +350,22 @@ export function LiveChannelsPage() {
           </p>
         </div>
         {dashboard.canManage ? (
-          <Button
-            disabled={
-              !dashboard.canConnect || dashboard.readyProviders.length === 0
-            }
-            onClick={() => setIsConnectOpen(true)}
-            size="lg"
-          >
-            <Plus data-icon="inline-start" />
-            Conectar canal
-          </Button>
+          <div className="grid justify-items-end gap-1.5">
+            <Button
+              aria-describedby="channel-connection-mock-note"
+              onClick={() => setIsConnectOpen(true)}
+              size="lg"
+            >
+              <Plus data-icon="inline-start" />
+              Conectar canal
+            </Button>
+            <p
+              className="text-xs text-muted-foreground"
+              id="channel-connection-mock-note"
+            >
+              Wizard Fase A mock: no guarda canales ni usa APIs externas.
+            </p>
+          </div>
         ) : null}
       </div>
 
@@ -369,8 +375,8 @@ export function LiveChannelsPage() {
         </p>
       ) : !dashboard.canConnect || dashboard.readyProviders.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          Configura y habilita Meta o LinkedIn en Integraciones antes de
-          conectar un canal.
+          Meta y LinkedIn requieren configuración en Integraciones para la
+          disponibilidad real de canales existentes.
         </p>
       ) : null}
 

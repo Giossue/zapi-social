@@ -1,263 +1,529 @@
-'use client'
+"use client"
 
-import { ApiError, integrationsApi } from '@workspace/api-client'
-import type { UpdateProviderIntegrationInput } from '@workspace/contracts'
-import { Badge } from '@workspace/ui/components/badge'
-import { Button } from '@workspace/ui/components/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@workspace/ui/components/card'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@workspace/ui/components/dialog'
-import { EmptyState } from '@workspace/ui/components/empty-state'
-import { Input } from '@workspace/ui/components/input'
-import { Skeleton } from '@workspace/ui/components/skeleton'
-import { Switch } from '@workspace/ui/components/switch'
-import { toast } from '@workspace/ui/components/toast'
-import { CheckCircle2, CircleAlert, PlugZap, Settings2, TriangleAlert } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import { useCallback, useEffect, useState, type FormEvent } from 'react'
-import type { IntegrationProvider, IntegrationStatus } from '../types/integrations'
+import { Badge } from "@workspace/ui/components/badge"
+import { Button } from "@workspace/ui/components/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog"
+import { EmptyState } from "@workspace/ui/components/empty-state"
+import { Input } from "@workspace/ui/components/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
+import { Switch } from "@workspace/ui/components/switch"
+import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
+import {
+  CheckCircle2,
+  Circle,
+  CircleAlert,
+  KeyRound,
+  LockKeyhole,
+  PlugZap,
+  Save,
+  Settings2,
+  ShieldCheck,
+  XCircle,
+} from "lucide-react"
+import { useState, type FormEvent } from "react"
+import { providerIntegrations } from "../fixtures/provider-integrations"
+import type {
+  IntegrationField,
+  IntegrationReadiness,
+} from "../types/integrations"
 
-const statusCopy: Record<IntegrationStatus, { label: string; variant: 'success' | 'warning' | 'neutral' }> = {
-  ready: { label: 'Listo', variant: 'success' },
-  incomplete: { label: 'Incompleto', variant: 'warning' },
-  disabled: { label: 'Deshabilitado', variant: 'neutral' },
+const statusCopy: Record<
+  IntegrationReadiness,
+  { label: string; variant: "success" | "warning" | "neutral" }
+> = {
+  ready: { label: "Listo", variant: "success" },
+  incomplete: { label: "Incompleto", variant: "warning" },
+  disabled: { label: "Deshabilitado", variant: "neutral" },
 }
 
-const updateErrorMessages: Record<string, string> = {
-  AUTH_WORKSPACE_UNAVAILABLE: 'No tienes permiso para administrar integraciones.',
-  VALIDATION_FAILED: 'Revisa los datos de configuración e inténtalo de nuevo.',
+function ProviderStatus({ readiness }: { readiness: IntegrationReadiness }) {
+  const status = statusCopy[readiness]
+  const Icon =
+    readiness === "ready"
+      ? CheckCircle2
+      : readiness === "incomplete"
+        ? CircleAlert
+        : Circle
+
+  return (
+    <Badge variant={status.variant}>
+      <Icon aria-hidden="true" />
+      {status.label}
+    </Badge>
+  )
+}
+
+function FieldControl({
+  field,
+  error,
+}: {
+  field: IntegrationField
+  error?: string
+}) {
+  if (field.id === "graphVersion") {
+    return (
+      <Select
+        defaultValue={field.value}
+        name={field.id}
+        required={field.required}
+      >
+        <SelectTrigger aria-invalid={Boolean(error)}>
+          <SelectValue placeholder="Selecciona una versión" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="v24.0">v24.0</SelectItem>
+          <SelectItem value="v25.0">v25.0</SelectItem>
+        </SelectContent>
+      </Select>
+    )
+  }
+
+  return (
+    <Input
+      aria-invalid={Boolean(error)}
+      defaultValue={field.type === "password" ? "" : field.value}
+      name={field.id}
+      placeholder={
+        field.type === "password" && field.hasStoredSecret
+          ? "••••••••••••"
+          : undefined
+      }
+      required={field.required && !field.hasStoredSecret}
+      type={field.type ?? "text"}
+    />
+  )
 }
 
 export function IntegrationsPage() {
-  const router = useRouter()
-  const [providers, setProviders] = useState<IntegrationProvider[]>([])
-  const [selectedProvider, setSelectedProvider] = useState<IntegrationProvider | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [hasError, setHasError] = useState(false)
-  const [updatingProviderKey, setUpdatingProviderKey] = useState<string | null>(null)
+  const [providers, setProviders] = useState(providerIntegrations)
+  const [activeProviderId, setActiveProviderId] = useState(
+    providerIntegrations[0]?.id ?? ""
+  )
+  const [configuringProviderId, setConfiguringProviderId] = useState<
+    string | null
+  >(null)
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
+  const [savedProviderId, setSavedProviderId] = useState<string | null>(null)
 
-  const loadProviders = useCallback(async () => {
-    setIsLoading(true)
-    setHasError(false)
+  const activeProvider = providers.find(
+    (provider) => provider.id === activeProviderId
+  )
+  const configuringProvider =
+    providers.find((provider) => provider.id === configuringProviderId) ?? null
 
-    try {
-      setProviders(await integrationsApi.list())
-    } catch (error) {
-      if (error instanceof ApiError && error.code === 'AUTH_SESSION_EXPIRED') {
-        router.replace('/login')
-        return
-      }
-
-      console.error('Integrations request failed', error)
-      toast.error('No pudimos cargar las integraciones. Inténtalo de nuevo.')
-      setHasError(true)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [router])
-
-  useEffect(() => {
-    void loadProviders()
-  }, [loadProviders])
-
-  const updateProvider = useCallback(async (
-    provider: IntegrationProvider,
-    input: UpdateProviderIntegrationInput,
-    successMessage: string,
-  ) => {
-    setUpdatingProviderKey(provider.providerKey)
-
-    try {
-      const updatedProvider = await integrationsApi.update(provider.providerKey, input)
-      setProviders((current) => current.map((item) => (
-        item.providerKey === updatedProvider.providerKey ? updatedProvider : item
-      )))
-      setSelectedProvider((current) => (
-        current?.providerKey === updatedProvider.providerKey ? updatedProvider : current
-      ))
-      toast.success(successMessage)
-      return true
-    } catch (error) {
-      if (error instanceof ApiError && error.code === 'AUTH_SESSION_EXPIRED') {
-        router.replace('/login')
-        return false
-      }
-
-      console.error('Integration update failed', error)
-      toast.error(
-        error instanceof ApiError
-          ? (updateErrorMessages[error.code] ?? 'No pudimos guardar la integración. Inténtalo de nuevo.')
-          : 'No pudimos guardar la integración. Inténtalo de nuevo.',
-      )
-      return false
-    } finally {
-      setUpdatingProviderKey(null)
-    }
-  }, [router])
-
-  async function toggleProvider(provider: IntegrationProvider, enabled: boolean) {
-    await updateProvider(
-      provider,
-      { enabled },
-      enabled ? 'Proveedor habilitado.' : 'Proveedor deshabilitado.',
-    )
-  }
-
-  async function saveConfiguration(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (!selectedProvider) return
-
-    const values = new FormData(event.currentTarget)
-    const configuration: Record<string, string> = {}
-
-    for (const field of selectedProvider.configurationFields) {
-      const value = values.get(field.key)
-      if (typeof value !== 'string' || !value.trim()) {
-        toast.error(`Ingresa ${field.label}.`)
-        return
-      }
-      configuration[field.key] = value.trim()
-    }
-
-    const saved = await updateProvider(
-      selectedProvider,
-      { enabled: selectedProvider.enabled, configuration },
-      'Configuración guardada de forma segura.',
-    )
-
-    if (saved) {
-      event.currentTarget.reset()
-      setSelectedProvider(null)
-    }
-  }
-
-  if (isLoading) return <IntegrationsLoading />
-
-  if (hasError) {
-    return (
-      <EmptyState
-        icon={TriangleAlert}
-        title="No pudimos cargar las integraciones"
-        description="Comprueba tu conexión e inténtalo de nuevo."
-        action={<Button onClick={() => void loadProviders()}>Reintentar</Button>}
-      />
-    )
-  }
-
-  if (providers.length === 0) {
+  if (!activeProvider) {
     return (
       <EmptyState
         icon={PlugZap}
         title="No hay proveedores configurables"
-        description="Vuelve a intentarlo más tarde o contacta al equipo de plataforma."
+        description="Añade un fixture local de provider para continuar."
       />
     )
+  }
+
+  function toggleProvider(providerId: string, enabled: boolean) {
+    setProviders((current) =>
+      current.map((provider) => {
+        if (provider.id !== providerId) return provider
+
+        return {
+          ...provider,
+          enabled,
+          readiness: enabled
+            ? provider.checklist.every((item) => item.complete)
+              ? "ready"
+              : "incomplete"
+            : "disabled",
+        }
+      })
+    )
+    setSavedProviderId(null)
+  }
+
+  function openConfiguration(providerId: string) {
+    setFormErrors({})
+    setSavedProviderId(null)
+    setConfiguringProviderId(providerId)
+  }
+
+  function saveConfiguration(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!configuringProvider) return
+
+    const formData = new FormData(event.currentTarget)
+    const nextErrors: Record<string, string> = {}
+
+    for (const field of configuringProvider.fields) {
+      const value = String(formData.get(field.id) ?? "").trim()
+      const hasValue = value.length > 0 || field.hasStoredSecret
+
+      if (field.required && !hasValue)
+        nextErrors[field.id] = `${field.label} es obligatorio.`
+      if (field.type === "url" && value && !URL.canParse(value))
+        nextErrors[field.id] = "Introduce una URL válida."
+    }
+
+    if (Object.keys(nextErrors).length > 0) {
+      setFormErrors(nextErrors)
+      return
+    }
+
+    setProviders((current) =>
+      current.map((provider) => {
+        if (provider.id !== configuringProvider.id) return provider
+
+        const fields = provider.fields.map((field) => {
+          const submittedValue = String(formData.get(field.id) ?? "").trim()
+          if (field.type === "password")
+            return {
+              ...field,
+              hasStoredSecret:
+                field.hasStoredSecret || submittedValue.length > 0,
+            }
+          return { ...field, value: submittedValue }
+        })
+        const checklist = provider.checklist.map((item) =>
+          item.complete ? item : { ...item, complete: true }
+        )
+
+        return {
+          ...provider,
+          fields,
+          checklist,
+          readiness: provider.enabled ? "ready" : "disabled",
+        }
+      })
+    )
+    setFormErrors({})
+    setSavedProviderId(configuringProvider.id)
   }
 
   return (
     <div className="space-y-6">
       <Card variant="surface">
-        <CardHeader>
-          <CardTitle>Proveedores de canales</CardTitle>
-          <CardDescription>
-            Configura qué proveedores pueden conectarse desde los workspaces. Los secretos no se muestran después de guardarlos.
+        <CardHeader className="gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex size-10 items-center justify-center rounded-lg border border-border bg-muted text-primary">
+              <PlugZap className="size-5" aria-hidden="true" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-medium tracking-wide text-muted-foreground">
+                Workspace de plataforma
+              </p>
+              <CardTitle>Configuración de proveedores</CardTitle>
+            </div>
+          </div>
+          <CardDescription className="max-w-3xl">
+            Credenciales y capacidades compartidas para los workspaces. Los
+            canales se conectan después desde su propio flujo; esta Fase A usa
+            fixtures locales.
           </CardDescription>
         </CardHeader>
       </Card>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3" aria-label="Proveedores configurables">
-        {providers.map((provider) => {
-          const status = statusCopy[provider.readiness]
-          const StatusIcon = provider.readiness === 'ready' ? CheckCircle2 : CircleAlert
-          const isUpdating = updatingProviderKey === provider.providerKey
+      <Tabs onValueChange={setActiveProviderId} value={activeProvider.id}>
+        <TabsList
+          aria-label="Directorio de proveedores"
+          className="h-auto w-full flex-wrap justify-start gap-1 rounded-xl p-2"
+        >
+          {providers.map((provider) => (
+            <TabsTrigger key={provider.id} value={provider.id}>
+              {provider.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
-          return (
-            <Card key={provider.providerKey} variant="surface" className="h-full">
-              <CardHeader className="flex flex-row items-start justify-between gap-4">
-                <div className="min-w-0 space-y-1.5">
-                  <CardTitle className="flex items-center gap-2"><PlugZap className="size-4 text-muted-foreground" />{provider.label}</CardTitle>
-                  <CardDescription>{provider.description}</CardDescription>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
+        <Card variant="surface">
+          <CardHeader className="gap-4 border-b border-border pb-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0 space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <CardTitle>{activeProvider.label}</CardTitle>
+                  <ProviderStatus readiness={activeProvider.readiness} />
+                  <Badge variant="neutral">
+                    {activeProvider.authMode === "oauth"
+                      ? "OAuth 2.0"
+                      : "Basic Auth · GOWA"}
+                  </Badge>
                 </div>
-                <Badge variant={status.variant}><StatusIcon aria-hidden="true" />{status.label}</Badge>
-              </CardHeader>
-              <CardContent className="mt-auto space-y-4">
-                <div className="space-y-1 text-sm text-muted-foreground">
-                  <p>{provider.capabilities.join(' · ')}</p>
-                  <p>{provider.configuredFields} de {provider.requiredFields} campos configurados</p>
-                </div>
-                <div className="flex items-center justify-between border-t border-border pt-4">
-                  <span className="text-sm font-medium">Habilitado</span>
-                  <Switch
-                    aria-label={`Habilitar ${provider.label}`}
-                    checked={provider.enabled}
-                    disabled={isUpdating}
-                    onCheckedChange={(enabled) => void toggleProvider(provider, enabled)}
-                  />
-                </div>
-                <Dialog
-                  onOpenChange={(open) => setSelectedProvider(open ? provider : null)}
-                  open={selectedProvider?.providerKey === provider.providerKey}
-                >
-                  <DialogTrigger asChild>
-                    <Button className="w-full" variant="brand-secondary"><Settings2 data-icon="inline-start" />Configurar</Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Configurar {provider.label}</DialogTitle>
-                      <DialogDescription>
-                        Los secretos se envían una sola vez, se cifran al guardarse y nunca se devuelven al navegador.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <form className="grid gap-4" onSubmit={saveConfiguration}>
-                      {provider.configurationFields.map((field) => (
-                        <label key={field.key} className="grid gap-1.5 text-sm font-medium">
-                          {field.label}
-                          <Input
-                            autoComplete={field.secret ? 'new-password' : 'off'}
-                            disabled={isUpdating}
-                            name={field.key}
-                            required
-                            type={field.secret ? 'password' : 'text'}
-                          />
-                        </label>
-                      ))}
-                      <Button disabled={isUpdating} type="submit">
-                        {isUpdating ? 'Guardando…' : 'Guardar configuración'}
-                      </Button>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-              </CardContent>
-            </Card>
-          )
-        })}
-      </section>
-    </div>
-  )
-}
+                <CardDescription>{activeProvider.description}</CardDescription>
+              </div>
+              <Button
+                onClick={() => openConfiguration(activeProvider.id)}
+                variant="brand-secondary"
+              >
+                <Settings2 data-icon="inline-start" />
+                Ver y configurar
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6 pt-6">
+            <section aria-labelledby="capabilities-title" className="space-y-3">
+              <div className="flex items-center gap-2">
+                <KeyRound
+                  className="size-4 text-muted-foreground"
+                  aria-hidden="true"
+                />
+                <h2 id="capabilities-title" className="text-sm font-semibold">
+                  Capabilities
+                </h2>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                {activeProvider.capabilities.map((capability) => (
+                  <div
+                    key={capability.id}
+                    className="rounded-lg border border-border bg-background p-4"
+                  >
+                    <p className="text-sm font-medium">{capability.label}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                      {capability.description}
+                    </p>
+                    {capability.callbackUrl ? (
+                      <p className="mt-3 font-mono text-xs break-all text-muted-foreground">
+                        {capability.callbackUrl}
+                      </p>
+                    ) : (
+                      <p className="mt-3 text-xs text-muted-foreground">
+                        Sin OAuth ni callback.
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </section>
 
-function IntegrationsLoading() {
-  return (
-    <div className="space-y-6" aria-label="Cargando integraciones" aria-busy="true">
-      <Card variant="surface">
-        <CardHeader className="space-y-3">
-          <Skeleton className="h-6 w-56" />
-          <Skeleton className="h-4 w-full max-w-xl" />
-        </CardHeader>
-      </Card>
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {[0, 1, 2].map((index) => (
-          <Card key={index} variant="surface">
-            <CardHeader className="space-y-3">
-              <Skeleton className="h-5 w-32" />
-              <Skeleton className="h-4 w-full" />
+            <section
+              aria-labelledby="configuration-title"
+              className="space-y-3"
+            >
+              <div className="flex items-center gap-2">
+                <LockKeyhole
+                  className="size-4 text-muted-foreground"
+                  aria-hidden="true"
+                />
+                <h2 id="configuration-title" className="text-sm font-semibold">
+                  Resumen de configuración
+                </h2>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {activeProvider.fields.map((field) => (
+                  <div
+                    key={field.id}
+                    className="rounded-lg border border-border bg-background p-4"
+                  >
+                    <p className="text-xs font-medium text-muted-foreground">
+                      {field.label}
+                    </p>
+                    <p className="mt-1 text-sm break-all">
+                      {field.type === "password"
+                        ? field.hasStoredSecret
+                          ? "••••••••••••"
+                          : "Sin configurar"
+                        : field.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </CardContent>
+        </Card>
+
+        <div className="space-y-6">
+          <Card variant="surface">
+            <CardHeader>
+              <CardTitle className="text-base">Disponibilidad</CardTitle>
+              <CardDescription>
+                Controla si este provider aparece para los workspaces.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <Skeleton className="h-9 w-full" />
-              <Skeleton className="h-8 w-full" />
+            <CardContent className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium">Habilitado</p>
+                <p className="text-xs text-muted-foreground">
+                  {activeProvider.enabled
+                    ? "Disponible para nuevas conexiones"
+                    : "No disponible para nuevas conexiones"}
+                </p>
+              </div>
+              <Switch
+                aria-label={`Habilitar ${activeProvider.label}`}
+                checked={activeProvider.enabled}
+                onCheckedChange={(enabled) =>
+                  toggleProvider(activeProvider.id, enabled)
+                }
+              />
             </CardContent>
           </Card>
-        ))}
+
+          <Card variant="surface">
+            <CardHeader>
+              <CardTitle className="text-base">
+                Checklist de preparación
+              </CardTitle>
+              <CardDescription>
+                {
+                  activeProvider.checklist.filter((item) => item.complete)
+                    .length
+                }{" "}
+                de {activeProvider.checklist.length} verificados
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3">
+                {activeProvider.checklist.map((item) => (
+                  <li key={item.id} className="flex items-start gap-2 text-sm">
+                    {item.complete ? (
+                      <CheckCircle2
+                        className="mt-0.5 size-4 shrink-0 text-success"
+                        aria-hidden="true"
+                      />
+                    ) : (
+                      <XCircle
+                        className="mt-0.5 size-4 shrink-0 text-warning"
+                        aria-hidden="true"
+                      />
+                    )}
+                    <span>{item.label}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
       </div>
+
+      <Dialog
+        onOpenChange={(open) => !open && setConfiguringProviderId(null)}
+        open={configuringProvider !== null}
+      >
+        <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto">
+          {configuringProvider ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>
+                  Configurar {configuringProvider.label}
+                </DialogTitle>
+                <DialogDescription>
+                  Formulario local de la Fase A. Los valores secretos se
+                  representan enmascarados y no se envían a ningún servicio.
+                </DialogDescription>
+              </DialogHeader>
+
+              <form
+                className="space-y-5"
+                onSubmit={saveConfiguration}
+                noValidate
+              >
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {configuringProvider.fields.map((field) => (
+                    <label
+                      key={field.id}
+                      className={
+                        field.id === "scopes"
+                          ? "grid gap-1.5 sm:col-span-2"
+                          : "grid gap-1.5"
+                      }
+                    >
+                      <span className="text-sm font-medium">{field.label}</span>
+                      <FieldControl
+                        error={formErrors[field.id]}
+                        field={field}
+                      />
+                      {formErrors[field.id] ? (
+                        <span className="text-xs text-destructive">
+                          {formErrors[field.id]}
+                        </span>
+                      ) : null}
+                      {field.helper ? (
+                        <span className="text-xs leading-relaxed text-muted-foreground">
+                          {field.helper}
+                        </span>
+                      ) : null}
+                    </label>
+                  ))}
+                </div>
+
+                {configuringProvider.authMode === "oauth" ? (
+                  <section
+                    className="space-y-3 border-t border-border pt-5"
+                    aria-labelledby="callbacks-title"
+                  >
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck
+                        className="size-4 text-muted-foreground"
+                        aria-hidden="true"
+                      />
+                      <h2
+                        id="callbacks-title"
+                        className="text-sm font-semibold"
+                      >
+                        Callbacks OAuth · solo lectura
+                      </h2>
+                    </div>
+                    {configuringProvider.capabilities.map((capability) => (
+                      <label key={capability.id} className="grid gap-1.5">
+                        <span className="text-sm font-medium">
+                          {capability.label}
+                        </span>
+                        <Input readOnly value={capability.callbackUrl} />
+                      </label>
+                    ))}
+                    {configuringProvider.dataDeletionCallbackUrl ? (
+                      <label className="grid gap-1.5">
+                        <span className="text-sm font-medium">
+                          Data deletion callback · Meta
+                        </span>
+                        <Input
+                          readOnly
+                          value={configuringProvider.dataDeletionCallbackUrl}
+                        />
+                      </label>
+                    ) : null}
+                  </section>
+                ) : null}
+
+                {savedProviderId === configuringProvider.id ? (
+                  <div
+                    className="flex items-center gap-2 rounded-lg border border-success/25 bg-success/10 p-3 text-sm text-success"
+                    role="status"
+                  >
+                    <CheckCircle2 className="size-4" aria-hidden="true" />
+                    Configuración mock guardada localmente.
+                  </div>
+                ) : null}
+
+                <div className="flex justify-end border-t border-border pt-5">
+                  <Button type="submit">
+                    <Save data-icon="inline-start" />
+                    Guardar configuración
+                  </Button>
+                </div>
+              </form>
+            </>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
