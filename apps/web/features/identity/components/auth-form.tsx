@@ -22,6 +22,8 @@ import {
   X,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
+
+import { getAreaDestination, getSessionArea } from "@/features/identity/session-area"
 import {
   useEffect,
   useLayoutEffect,
@@ -163,16 +165,24 @@ export function AuthForm({ initialMode }: { initialMode: AuthMode }) {
 
     setIsSubmitting(true)
     try {
+      const session = mode === "register"
+        ? await authApi.register({
+            displayName: String(form.get("displayName") ?? ""),
+            email,
+            password: submittedPassword,
+          })
+        : await authApi.login({ email, password: submittedPassword })
+      const area = getSessionArea(session)
+
       if (mode === "register") {
-        await authApi.register({
-          displayName: String(form.get("displayName") ?? ""),
-          email,
-          password: submittedPassword,
-        })
+        router.replace(getAreaDestination("portal"))
       } else {
-        await authApi.login({ email, password: submittedPassword })
+        if (!area) {
+          toast.error("Tu sesión no incluye el área de acceso requerida. Vuelve a iniciar sesión.")
+          return
+        }
+        router.replace(getAreaDestination(area))
       }
-      router.replace("/portal/dashboard")
       router.refresh()
     } catch (caught) {
       if (caught instanceof ApiError) {
@@ -442,7 +452,7 @@ export function AuthForm({ initialMode }: { initialMode: AuthMode }) {
                 {isSubmitting
                   ? "Comprobando…"
                   : mode === "login"
-                    ? "Entrar al portal"
+                    ? "Entrar"
                     : "Crear cuenta"}
               </Button>
             </form>

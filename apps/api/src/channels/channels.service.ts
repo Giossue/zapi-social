@@ -9,7 +9,7 @@ import {
   channelListQuerySchema,
   createChannelSchema,
   updateChannelSchema,
-  type AuthSession,
+  type PortalAuthSession,
   type ChannelAccount,
   type ChannelList,
   type ChannelOAuthProviderKey,
@@ -25,7 +25,7 @@ type SocialAccountRow = typeof socialAccounts.$inferSelect;
 export class ChannelsService {
   constructor(private readonly database: DatabaseService) {}
 
-  async list(session: AuthSession, query: unknown): Promise<ChannelList> {
+  async list(session: PortalAuthSession, query: unknown): Promise<ChannelList> {
     const filters = this.parse(channelListQuerySchema.safeParse(query));
     const where = this.listWhere(session.workspace.id, filters);
 
@@ -85,7 +85,7 @@ export class ChannelsService {
     };
   }
 
-  async create(session: AuthSession, input: unknown): Promise<ChannelAccount> {
+  async create(session: PortalAuthSession, input: unknown): Promise<ChannelAccount> {
     this.requireManager(session);
     const values = this.parse(createChannelSchema.safeParse(input));
     const [account] = await this.database.db
@@ -105,7 +105,7 @@ export class ChannelsService {
   }
 
   async update(
-    session: AuthSession,
+    session: PortalAuthSession,
     id: string,
     input: unknown,
   ): Promise<ChannelAccount> {
@@ -126,7 +126,7 @@ export class ChannelsService {
     return this.serialize(account);
   }
 
-  async remove(session: AuthSession, id: string): Promise<void> {
+  async remove(session: PortalAuthSession, id: string): Promise<void> {
     this.requireManager(session);
     const [account] = await this.database.db
       .delete(socialAccounts)
@@ -164,11 +164,11 @@ export class ChannelsService {
     return and(...conditions) ?? eq(socialAccounts.workspaceId, workspaceId);
   }
 
-  private canManage(session: AuthSession) {
+  private canManage(session: PortalAuthSession) {
     return managerRoles.has(session.workspace.role);
   }
 
-  private requireManager(session: AuthSession) {
+  private requireManager(session: PortalAuthSession) {
     if (!this.canManage(session)) throw new ForbiddenException();
   }
 

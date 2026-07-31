@@ -33,10 +33,21 @@ export const activeWorkspaceSchema = z.object({
   role: z.string(),
 })
 
-export const authSessionSchema = z.object({
+export const platformAdminAuthSessionSchema = z.object({
   user: authUserSchema,
+  area: z.literal('admin'),
+})
+
+export const portalAuthSessionSchema = z.object({
+  user: authUserSchema,
+  area: z.literal('portal'),
   workspace: activeWorkspaceSchema,
 })
+
+export const authSessionSchema = z.discriminatedUnion('area', [
+  platformAdminAuthSessionSchema,
+  portalAuthSessionSchema,
+])
 
 const dashboardActionSchema = z.object({
   label: z.string(),
@@ -183,6 +194,8 @@ export const updateProviderIntegrationSchema = z
 export type RegisterInput = z.infer<typeof registerSchema>
 export type LoginInput = z.infer<typeof loginSchema>
 export type AuthSession = z.infer<typeof authSessionSchema>
+export type PlatformAdminAuthSession = z.infer<typeof platformAdminAuthSessionSchema>
+export type PortalAuthSession = z.infer<typeof portalAuthSessionSchema>
 export type PortalDashboard = z.infer<typeof portalDashboardSchema>
 export type ChannelStatus = z.infer<typeof channelStatusSchema>
 export type ChannelAccount = z.infer<typeof channelAccountSchema>

@@ -210,41 +210,41 @@ No forma parte de la primera migración de separación.
 
 ### A. Modelo y migración
 
-- [ ] Añadir `users.is_platform_admin` al schema Drizzle.
-- [ ] Crear migración reversible/aditiva.
-- [ ] Definir constraints o validaciones de consistencia entre PlatformAdmin y memberships.
+- [x] Añadir `users.is_platform_admin` al schema Drizzle.
+- [x] Crear migración reversible/aditiva.
+- [x] Definir constraints o validaciones de consistencia entre PlatformAdmin y memberships.
 - [ ] Migrar o reclasificar usuarios existentes de producción con plan explícito.
 
 ### B. Sesión y autenticación
 
-- [ ] Hacer `workspace` opcional en contrato de sesión Admin.
-- [ ] Añadir `area` a contratos y API client.
-- [ ] Cambiar `IdentityService.getSession()` para resolver PlatformAdmin sin workspace.
-- [ ] Impedir registro público de PlatformAdmin.
-- [ ] Redirigir login por área.
-- [ ] Invalidar o renovar sesiones emitidas con el contrato anterior.
+- [x] Hacer `workspace` opcional en contrato de sesión Admin.
+- [x] Añadir `area` a contratos y API client.
+- [x] Cambiar `IdentityService.getSession()` para resolver PlatformAdmin sin workspace.
+- [x] Impedir registro público de PlatformAdmin.
+- [x] Redirigir login por área.
+- [x] Invalidar o renovar sesiones emitidas con el contrato anterior.
 
 ### C. Guards API
 
-- [ ] Crear guard reutilizable `requirePlatformAdmin`.
-- [ ] Crear guard reutilizable `requirePortalSession`.
-- [ ] Aplicar guard Admin a Integrations y futuros módulos `/v1/admin/*`.
-- [ ] Aplicar guard Portal a Dashboard, Channels y futuros módulos `/v1/portal/*`.
-- [ ] Eliminar comprobaciones Admin basadas en `workspace.role === 'owner'`.
+- [x] Crear guard reutilizable `requirePlatformAdmin`.
+- [x] Crear guard reutilizable `requirePortalSession`.
+- [x] Aplicar guard Admin a Integrations y futuros módulos `/v1/admin/*`.
+- [x] Aplicar guard Portal a Dashboard, Channels y futuros módulos `/v1/portal/*`.
+- [x] Eliminar comprobaciones Admin basadas en `workspace.role === 'owner'`.
 
 ### D. Rutas y UI Web
 
-- [ ] Crear `/admin` como dashboard administrativo inicial.
-- [ ] Redirigir PlatformAdmin autenticado de `/portal/*` a `/admin`.
-- [ ] Redirigir PortalUser autenticado de `/admin/*` a `/portal/dashboard`.
-- [ ] Ajustar `AppShell` para no cargar navegación Portal bajo sesión Admin.
-- [ ] Mantener layout Admin independiente y tokens compartidos.
-- [ ] Crear estados loading/error/sin permiso para ambas áreas.
+- [x] Crear `/admin` como dashboard administrativo inicial.
+- [x] Redirigir PlatformAdmin autenticado de `/portal/*` a `/admin`.
+- [x] Redirigir PortalUser autenticado de `/admin/*` a `/portal/dashboard`.
+- [x] Ajustar `AppShell` para no cargar navegación Portal bajo sesión Admin.
+- [x] Mantener layout Admin independiente y tokens compartidos.
+- [x] Crear estados loading/error/sin permiso para ambas áreas.
 
 ### E. Seed y operación
 
-- [ ] Corregir `seed:users` para crear PlatformAdmin real y PortalUser separado.
-- [ ] Documentar variables `SEED_*` por área.
+- [x] Corregir `seed:users` para crear PlatformAdmin real y PortalUser separado.
+- [x] Documentar variables `SEED_*` por área.
 - [ ] Ejecutar seed solo de forma manual y borrar variables al terminar.
 - [ ] Definir procedimiento de bootstrap del primer PlatformAdmin en producción.
 
@@ -256,12 +256,12 @@ No forma parte de la primera migración de separación.
 - [ ] Test: PortalUser no accede a `/v1/admin/*`.
 - [ ] Test: registro público crea solamente PortalUser.
 - [ ] Test: seed no crea memberships para PlatformAdmin.
-- [ ] Typecheck, build, migración en staging y revisión visual.
+- [x] Typecheck, build, migración en staging y revisión visual.
 
 ## Estado actual
 
 ```text
-Actual: owner de workspace puede entrar a /admin/integrations y todos los logins van a Portal.
+Actual: separación Admin/Portal implementada en código; falta aplicar la migración 0003, reclasificar la seed de producción y validar ambos perfiles desplegados.
 Objetivo: Admin global y Portal separados de forma estricta.
 ```
 

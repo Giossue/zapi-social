@@ -1,62 +1,40 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { usePathname } from "next/navigation"
+import { useState } from "react"
 import {
   Bell,
   ChevronDown,
   ChevronRight,
   Menu,
-  LogOut,
-  Moon,
   PanelLeftClose,
-  Sun,
 } from "lucide-react"
+
 import { Button } from "@workspace/ui/components/button"
-import { Switch } from "@workspace/ui/components/switch"
-import { ApiError, authApi } from "@workspace/api-client"
-import { toast } from "@workspace/ui/components/toast"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@workspace/ui/components/dropdown-menu"
-import { useTheme } from "next-themes"
 import { ScrollArea } from "@workspace/ui/components/scroll-area"
+
+import { AccountMenu } from "@/components/account-menu"
 import {
   getPortalNavigationItem,
   isPortalNavigationItemActive,
   portalNavigationGroups,
 } from "@/features/portal-shell/portal-navigation"
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+type AppShellProps = {
+  children: React.ReactNode
+  profile: {
+    displayName: string
+    email: string
+  }
+}
+
+export function AppShell({ children, profile }: AppShellProps) {
   const pathname = usePathname()
-  const router = useRouter()
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({})
   const currentItem = getPortalNavigationItem(pathname)
-  const { resolvedTheme, setTheme } = useTheme()
-  const [themeMounted, setThemeMounted] = useState(false)
-  const [profile, setProfile] = useState<{ displayName: string; email: string } | null>(null)
-
-  useEffect(() => {
-    setThemeMounted(true)
-    void authApi.session().then((session) => setProfile(session.user)).catch((error) => {
-      setProfile(null)
-      if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
-        router.replace("/login")
-      }
-    })
-  }, [router])
-
-  async function logout() {
-    try {
-      await authApi.logout()
-      router.replace('/login')
-      router.refresh()
-    } catch (error) {
-      console.error('Logout request failed', error)
-      toast.error('No pudimos cerrar tu sesión. Inténtalo de nuevo.')
-    }
-  }
 
   return (
     <div className="min-h-dvh bg-background text-foreground">
@@ -119,16 +97,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   return (
                     <div key={item.label} className="space-y-1">
                       {"href" in item ? (
-                        <Button
-                          asChild
-                          className="w-full justify-start"
-                          variant={active ? "sidebar-active" : "sidebar"}
-                        >
-                          <Link
-                            aria-current={active ? "page" : undefined}
-                            href={item.href}
-                            onClick={() => setMobileOpen(false)}
-                          >
+                        <Button asChild className="w-full justify-start" variant={active ? "sidebar-active" : "sidebar"}>
+                          <Link aria-current={active ? "page" : undefined} href={item.href} onClick={() => setMobileOpen(false)}>
                             {Icon ? <Icon /> : null}
                             {collapsed ? null : <span>{item.label}</span>}
                           </Link>
@@ -138,22 +108,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                           aria-expanded={expanded}
                           className="w-full justify-start"
                           onClick={() => {
-                            if (collapsed) {
-                              setCollapsed(false)
-                            }
-
-                            setExpandedItems((current) => ({
-                              ...current,
-                              [item.label]: !expanded,
-                            }))
+                            if (collapsed) setCollapsed(false)
+                            setExpandedItems((current) => ({ ...current, [item.label]: !expanded }))
                           }}
                           variant={active ? "sidebar-active" : "sidebar"}
                         >
                           {Icon ? <Icon /> : null}
                           {collapsed ? null : <span>{item.label}</span>}
-                          <ChevronDown
-                            className={`ml-auto transition-transform ${expanded ? "rotate-180" : ""}`}
-                          />
+                          <ChevronDown className={`ml-auto transition-transform ${expanded ? "rotate-180" : ""}`} />
                         </Button>
                       )}
 
@@ -161,20 +123,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                         <div className="ml-7 space-y-0.5 border-l border-border pl-2">
                           {children.map((child) => {
                             const childActive = isPortalNavigationItemActive(child, pathname)
-
                             return (
-                              <Button
-                                asChild
-                                className="w-full justify-start"
-                                key={child.href}
-                                size="sm"
-                                variant={childActive ? "sidebar-active" : "sidebar"}
-                              >
-                                <Link
-                                  aria-current={childActive ? "page" : undefined}
-                                  href={child.href}
-                                  onClick={() => setMobileOpen(false)}
-                                >
+                              <Button asChild className="w-full justify-start" key={child.href} size="sm" variant={childActive ? "sidebar-active" : "sidebar"}>
+                                <Link aria-current={childActive ? "page" : undefined} href={child.href} onClick={() => setMobileOpen(false)}>
                                   {child.label}
                                 </Link>
                               </Button>
@@ -194,13 +145,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className={`min-h-dvh transition-[padding] duration-200 ${collapsed ? "lg:pl-20" : "lg:pl-72"}`}>
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-sidebar-border bg-sidebar px-4 lg:px-8">
           <div className="flex items-center gap-3">
-            <Button
-              aria-label="Abrir navegación"
-              className="lg:hidden"
-              onClick={() => setMobileOpen(true)}
-              size="icon"
-              variant="ghost"
-            >
+            <Button aria-label="Abrir navegación" className="lg:hidden" onClick={() => setMobileOpen(true)} size="icon" variant="ghost">
               <Menu />
             </Button>
             <div>
@@ -212,39 +157,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Button aria-label="Notificaciones" size="icon" variant="ghost">
               <Bell />
             </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button aria-label="Abrir menú de cuenta" className="size-8 rounded-full p-0" variant="ghost">
-                  <span className="flex size-8 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground">
-                    {profile?.displayName.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase() ?? 'Z'}
-                  </span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel className="grid gap-0.5">
-                  <span className="font-medium">{profile?.displayName ?? 'Cuenta Zapi'}</span>
-                  <span className="text-xs font-normal text-muted-foreground">{profile?.email ?? ''}</span>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator className="my-1 h-px bg-border" />
-                <DropdownMenuItem className="justify-between" onSelect={(event) => event.preventDefault()}>
-                  <span className="flex items-center gap-2">
-                    {themeMounted && resolvedTheme === "dark" ? <Moon aria-hidden="true" /> : <Sun aria-hidden="true" />}
-                    Tema oscuro
-                  </span>
-                  <Switch
-                    aria-label="Alternar modo oscuro"
-                    checked={themeMounted && resolvedTheme === "dark"}
-                    disabled={!themeMounted}
-                    onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
-                  />
-                </DropdownMenuItem>
-                <DropdownMenuSeparator className="my-1 h-px bg-border" />
-                <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onSelect={() => void logout()}>
-                  <LogOut aria-hidden="true" />
-                  Cerrar sesión
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <AccountMenu profile={profile} />
           </div>
         </header>
         <main className="mx-auto w-full max-w-7xl p-4 sm:p-6 lg:p-8">{children}</main>

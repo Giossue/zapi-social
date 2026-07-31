@@ -4,7 +4,7 @@ import {
   channelOAuthCallbackQuerySchema,
   channelOAuthConnectQuerySchema,
   channelOAuthProviderKeySchema,
-  type AuthSession,
+  type PortalAuthSession,
   type ChannelOAuthCallbackOutcome,
   type ChannelOAuthCallbackQuery,
   type ChannelOAuthConnectQuery,
@@ -76,7 +76,7 @@ export class ChannelOAuthAuthorizationService {
   ) {}
 
   async start(
-    session: AuthSession,
+    session: PortalAuthSession,
     providerKeyInput: string,
     input: unknown,
   ): Promise<ChannelOAuthAuthorizationStart> {

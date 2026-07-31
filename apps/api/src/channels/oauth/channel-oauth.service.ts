@@ -5,7 +5,7 @@ import {
   channelOAuthContextSchema,
   channelOAuthStartSchema,
   channelOAuthStateTokenSchema,
-  type AuthSession,
+  type PortalAuthSession,
   type ChannelOAuthContext,
   type ChannelOAuthStart,
   type ChannelOAuthStartResponse,
@@ -41,7 +41,7 @@ export class ChannelOAuthService {
   ) {}
 
   async start(
-    session: AuthSession,
+    session: PortalAuthSession,
     input: unknown,
   ): Promise<ChannelOAuthStartResponse> {
     this.requireManager(session);
@@ -96,7 +96,7 @@ export class ChannelOAuthService {
   }
 
   async status(
-    session: AuthSession,
+    session: PortalAuthSession,
     state: unknown,
   ): Promise<ChannelOAuthStateResponse> {
     const token = this.parseState(state);
@@ -168,7 +168,7 @@ export class ChannelOAuthService {
   }
 
   private async assertReconnectAccount(
-    session: AuthSession,
+    session: PortalAuthSession,
     input: ChannelOAuthStart,
   ) {
     if (!input.reconnectAccountId) return;
@@ -280,7 +280,7 @@ export class ChannelOAuthService {
     return createHash('sha256').update(state).digest('hex');
   }
 
-  private requireManager(session: AuthSession) {
+  private requireManager(session: PortalAuthSession) {
     if (!managerRoles.has(session.workspace.role)) {
       throw new AppException(
         'AUTH_WORKSPACE_UNAVAILABLE',

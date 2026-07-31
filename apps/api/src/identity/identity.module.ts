@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
 import { IdentityController } from './identity.controller'
 import { IdentityService } from './identity.service'
+import { SessionAccessService } from './session-access.service'
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { IdentityService } from './identity.service'
     }),
   ],
   controllers: [IdentityController],
-  providers: [IdentityService],
-  exports: [IdentityService],
+  providers: [IdentityService, SessionAccessService],
+  exports: [IdentityService, SessionAccessService],
 })
 export class IdentityModule {}

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { workspaceMemberships } from '@workspace/database'
-import type { AuthSession, PortalDashboard } from '@workspace/contracts'
+import type { PortalAuthSession, PortalDashboard } from '@workspace/contracts'
 import { and, count, eq } from '@workspace/database/query'
 import { DatabaseService } from '../database/database.service'
 
@@ -8,7 +8,7 @@ import { DatabaseService } from '../database/database.service'
 export class DashboardService {
   constructor(private readonly database: DatabaseService) {}
 
-  async getDashboard(session: AuthSession): Promise<PortalDashboard> {
+  async getDashboard(session: PortalAuthSession): Promise<PortalDashboard> {
     const [membershipTotal] = await this.database.db
       .select({ value: count() })
       .from(workspaceMemberships)

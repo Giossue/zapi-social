@@ -26,6 +26,7 @@ export const users = pgTable(
     passwordHash: text('password_hash'),
     emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true }),
     status: varchar('status', { length: 24 }).notNull().default('active'),
+    isPlatformAdmin: boolean('is_platform_admin').notNull().default(false),
     ...timestamps,
   },
   (table) => [

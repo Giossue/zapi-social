@@ -14,7 +14,7 @@ export function AuthPage({ initialMode }: { initialMode: AuthMode }) {
       <section className="grid min-h-[calc(100svh-4rem)] place-items-center px-4 py-10 sm:px-6">
         <div className="grid w-full max-w-5xl gap-10 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-center">
           <div className="hidden max-w-md space-y-5 lg:block">
-            <p className="text-sm font-medium text-primary">Portal Zapi</p>
+            <p className="text-sm font-medium text-primary">Acceso Zapi</p>
             <h1 className="text-4xl font-semibold tracking-tight">
               Planifica, publica y mide desde un solo lugar.
             </h1>
