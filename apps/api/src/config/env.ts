@@ -11,6 +11,8 @@ const schema = z.object({
   COOKIE_SECURE: z.enum(['true', 'false']).default('false'),
   REDIS_HOST: z.string().default('127.0.0.1'),
   REDIS_PORT: z.coerce.number().int().positive().default(6379),
+  REDIS_USERNAME: z.string().min(1).optional(),
+  REDIS_PASSWORD: z.string().min(1).optional(),
 });
 
 export type Env = z.infer<typeof schema>;

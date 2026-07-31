@@ -1,7 +1,7 @@
-import { Controller, Get, ServiceUnavailableException } from '@nestjs/common'
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger'
-import { Redis } from 'ioredis'
-import { DatabaseService } from '../database/database.service'
+import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
+import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { Redis } from 'ioredis';
+import { DatabaseService } from '../database/database.service';
 
 @ApiTags('health')
 @Controller('v1/health')
@@ -11,15 +11,29 @@ export class HealthController {
   @Get()
   @ApiOkResponse()
   async getHealth() {
-    const redis = new Redis({ host: process.env.REDIS_HOST, port: Number(process.env.REDIS_PORT) })
+    const redis = new Redis({
+      host: process.env.REDIS_HOST,
+      port: Number(process.env.REDIS_PORT),
+      username: process.env.REDIS_USERNAME,
+      password: process.env.REDIS_PASSWORD,
+    });
 
     try {
-      await Promise.all([this.database.client.unsafe('select 1'), redis.ping()])
-      return { status: 'ok' as const, database: 'ok' as const, redis: 'ok' as const }
+      await Promise.all([
+        this.database.client.unsafe('select 1'),
+        redis.ping(),
+      ]);
+      return {
+        status: 'ok' as const,
+        database: 'ok' as const,
+        redis: 'ok' as const,
+      };
     } catch {
-      throw new ServiceUnavailableException('Infrastructure dependency unavailable')
+      throw new ServiceUnavailableException(
+        'Infrastructure dependency unavailable',
+      );
     } finally {
-      await redis.quit()
+      await redis.quit();
     }
   }
 }
