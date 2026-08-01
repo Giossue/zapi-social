@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@workspace/ui/components/toast"
 import { CheckCircle2, CircleAlert, Link2, LockKeyhole, LoaderCircle, MoreVertical, Pencil, Plus, RefreshCw, Search, Trash2, TriangleAlert } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { channelsFixture } from "../fixtures/channels"
 import type { ChannelCapabilityKey, PortalChannelAccount, PortalChannelCapability } from "../types/channels"
 import { ChannelConnectionDialog, type MetaPickerSession } from "./channel-connection-dialog"
@@ -52,13 +52,24 @@ function capabilityInitials(account: PortalChannelAccount) {
   return account.displayName.split(" ").map((part) => part.slice(0, 1)).join("").slice(0, 2).toUpperCase()
 }
 
+function normalizedHandle(handle?: string) {
+  const value = handle?.replace(/^@+/, "").trim()
+  return value || null
+}
+
+function AccountAvatar({ account }: { account: PortalChannelAccount }) {
+  return <span className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent text-sm font-semibold text-accent-foreground"><span aria-hidden="true">{capabilityInitials(account)}</span>{account.avatarUrl ? <img alt={`Avatar de ${account.displayName}`} className="absolute inset-0 size-full object-cover" loading="lazy" onError={(event) => { event.currentTarget.style.display = "none" }} src={account.avatarUrl} /> : null}</span>
+}
+
 function toPortalAccount(account: Awaited<ReturnType<typeof channelsApi.update>>): PortalChannelAccount {
   return {
     id: account.id,
     capabilityKey: account.capabilityKey,
     provider: account.provider,
     displayName: account.displayName,
+    externalName: account.externalName,
     handle: account.handle ?? undefined,
+    avatarUrl: account.avatarUrl,
     status: account.status,
     connectedAt: account.createdAt.slice(0, 10),
   }
@@ -74,6 +85,15 @@ function metaOAuthPickerCapability(capabilityKey: ChannelCapabilityKey): PortalC
   const reference = channelsFixture.capabilities.find((item) => item.key === capabilityKey)
   if (!reference || reference.provider !== "meta") return null
   return { ...reference, connectionKind: "oauth_picker", candidates: undefined }
+}
+
+function clearMetaOAuthReturnUrl() {
+  const canonicalPath = "/portal/channels"
+  const hasFacebookReturnHash = window.location.hash === "#_=_"
+
+  if (window.location.pathname !== canonicalPath || window.location.search || hasFacebookReturnHash) {
+    window.history.replaceState(window.history.state, "", canonicalPath)
+  }
 }
 
 function readMetaOAuthSession(): MetaOAuthSession | null {
@@ -94,7 +114,10 @@ function ChannelMetric({ description, icon: Icon, value }: { description: string
 
 function ChannelAccountCard({ account, onDelete, onEdit, onReconnect, pending }: { account: PortalChannelAccount; onDelete: (account: PortalChannelAccount) => void; onEdit: (account: PortalChannelAccount) => void; onReconnect: (account: PortalChannelAccount) => void; pending: boolean }) {
   const disconnected = account.status === "disconnected"
-  return <Card variant="subtle"><CardContent className="flex flex-col gap-5"><div className="flex items-start justify-between gap-3"><div className="flex min-w-0 items-center gap-3"><span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground">{capabilityInitials(account)}</span><div className="min-w-0"><p className="truncate font-semibold">{account.displayName}</p>{account.handle ? <p className="truncate text-sm text-muted-foreground">@{account.handle}</p> : null}<p className="truncate text-sm text-muted-foreground">{capabilityLabels[account.capabilityKey]}</p></div></div><div className="flex items-center gap-1"><Badge variant={disconnected ? "warning" : "success"}>{disconnected ? "Desconectado" : "Conectado"}</Badge><DropdownMenu><DropdownMenuTrigger asChild><Button aria-label={`Acciones para ${account.displayName}`} size="icon" variant="brand-secondary"><MoreVertical /></Button></DropdownMenuTrigger><DropdownMenuContent align="end" size="compact"><DropdownMenuItem onSelect={() => onEdit(account)} size="compact"><Pencil />Editar</DropdownMenuItem><DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={() => onDelete(account)} size="compact"><Trash2 />Eliminar</DropdownMenuItem></DropdownMenuContent></DropdownMenu></div></div>{disconnected ? <div className="flex items-start gap-2 rounded-lg border border-warning/25 bg-warning/10 p-3 text-sm text-warning"><CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><span>Este canal no puede publicar hasta reconectarse.</span></div> : null}<div className="grid grid-cols-2 gap-3 border-t border-border pt-4 text-sm"><div><p className="text-xs text-muted-foreground">Proveedor</p><p className="mt-1 font-medium">{providerLabels[account.provider]}</p></div><div><p className="text-xs text-muted-foreground">Conectado el</p><p className="mt-1 font-medium">{formatConnectionDate(account.connectedAt)}</p></div></div>{disconnected ? <div className="mt-auto flex gap-2"><Button className="flex-1" disabled={pending} onClick={() => onReconnect(account)}>{pending ? <LoaderCircle className="animate-spin" data-icon="inline-start" /> : <RefreshCw data-icon="inline-start" />}Reconectar</Button></div> : null}</CardContent></Card>
+  const handle = normalizedHandle(account.handle)
+  const externalIdentity = account.capabilityKey === "facebook_page" ? account.externalName : handle ? `@${handle}` : null
+
+  return <Card className="min-h-72" variant="subtle"><CardContent className="flex h-full flex-col gap-5"><div className="flex items-start justify-between gap-3"><div className="flex min-w-0 items-center gap-3"><AccountAvatar account={account} /><div className="min-h-16 min-w-0"><p className="truncate font-semibold">{account.displayName}</p><p className="min-h-5 truncate text-sm text-muted-foreground">{externalIdentity ?? <span aria-hidden="true">&nbsp;</span>}</p><p className="truncate text-sm text-muted-foreground">{capabilityLabels[account.capabilityKey]}</p></div></div><div className="flex items-center gap-1"><Badge variant={disconnected ? "warning" : "success"}>{disconnected ? "Desconectado" : "Conectado"}</Badge><DropdownMenu><DropdownMenuTrigger asChild><Button aria-label={`Acciones para ${account.displayName}`} size="icon" variant="brand-secondary"><MoreVertical /></Button></DropdownMenuTrigger><DropdownMenuContent align="end" size="compact"><DropdownMenuItem onSelect={() => onEdit(account)} size="compact"><Pencil />Editar</DropdownMenuItem><DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={() => onDelete(account)} size="compact"><Trash2 />Eliminar</DropdownMenuItem></DropdownMenuContent></DropdownMenu></div></div>{disconnected ? <div className="flex items-start gap-2 rounded-lg border border-warning/25 bg-warning/10 p-3 text-sm text-warning"><CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" /><span>Este canal no puede publicar hasta reconectarse.</span></div> : null}<div className="grid grid-cols-2 gap-3 border-t border-border pt-4 text-sm"><div><p className="text-xs text-muted-foreground">Proveedor</p><p className="mt-1 font-medium">{providerLabels[account.provider]}</p></div><div><p className="text-xs text-muted-foreground">Conectado el</p><p className="mt-1 font-medium">{formatConnectionDate(account.connectedAt)}</p></div></div>{disconnected ? <div className="mt-auto flex gap-2"><Button className="flex-1" disabled={pending} onClick={() => onReconnect(account)}>{pending ? <LoaderCircle className="animate-spin" data-icon="inline-start" /> : <RefreshCw data-icon="inline-start" />}Reconectar</Button></div> : null}</CardContent></Card>
 }
 
 function EditChannelDialog({ account, onOpenChange, onSave, pending }: { account: PortalChannelAccount | null; onOpenChange: (open: boolean) => void; onSave: (displayName: string) => void; pending: boolean }) {
@@ -113,7 +136,6 @@ function DeleteChannelDialog({ account, onConfirm, onOpenChange, pending }: { ac
 
 export function LiveChannelsPage() {
   const router = useRouter()
-  const pathname = usePathname()
   const searchParams = useSearchParams()
   const [accounts, setAccounts] = useState<PortalChannelAccount[]>([])
   const [capabilities, setCapabilities] = useState<PortalChannelCapability[]>([])
@@ -167,22 +189,34 @@ export function LiveChannelsPage() {
 
   useEffect(() => {
     const outcome = searchParams.get("oauth")
-    if (!outcome) { handledOAuthOutcome.current = null; return }
+    if (!outcome) {
+      handledOAuthOutcome.current = null
+      if (window.location.hash === "#_=_") {
+        clearMetaOAuthReturnUrl()
+        router.replace("/portal/channels")
+      }
+      return
+    }
     if (handledOAuthOutcome.current === outcome) return
     handledOAuthOutcome.current = outcome
+    clearMetaOAuthReturnUrl()
+    router.replace("/portal/channels")
 
     if (outcome === "denied" || outcome === "failed") {
       window.sessionStorage.removeItem(META_OAUTH_SESSION_KEY)
       toast.error(outcome === "denied" ? "La autorización con Meta fue cancelada." : "No pudimos completar la autorización con Meta.")
-      router.replace(pathname)
       return
     }
 
-    if (outcome !== "authorized") return
+    if (outcome !== "authorized") {
+      window.sessionStorage.removeItem(META_OAUTH_SESSION_KEY)
+      toast.error("No pudimos completar la autorización con Meta.")
+      return
+    }
+
     const session = readMetaOAuthSession()
     if (!session) {
       toast.error("No encontramos la conexión de Meta para completar la autorización.")
-      router.replace(pathname)
       return
     }
 
@@ -191,16 +225,15 @@ export function LiveChannelsPage() {
         const response = await channelConnectionsApi.candidates(session.connectionId)
         const capability = capabilities.find((item) => item.key === session.capabilityKey) ?? metaOAuthPickerCapability(session.capabilityKey)
         if (!capability || capability.provider !== "meta") throw new Error("Missing Meta capability")
-        setMetaPickerSession({ capability, connectionId: response.connectionId, candidates: response.candidates.map((candidate) => ({ ...candidate, metadata: candidate.metadata ?? undefined })) })
+        setMetaPickerSession({ capability, connectionId: response.connectionId, candidates: response.candidates.map((candidate) => ({ ...candidate, avatarUrl: candidate.avatarUrl ?? null, metadata: candidate.metadata ?? undefined })) })
         setIsConnectOpen(true)
       } catch (error) {
+        window.sessionStorage.removeItem(META_OAUTH_SESSION_KEY)
         console.error("Meta candidates request failed", error)
         toast.error("No pudimos recuperar las cuentas de Meta autorizadas. Inténtalo de nuevo.")
-      } finally {
-        router.replace(pathname)
       }
     })()
-  }, [capabilities, pathname, router, searchParams])
+  }, [capabilities, router, searchParams])
 
   const visibleAccounts = accounts.filter((account) => {
     const value = `${account.displayName} ${account.handle ?? ""} ${capabilityLabels[account.capabilityKey]}`.toLowerCase()
@@ -261,9 +294,10 @@ export function LiveChannelsPage() {
   }
 
   async function completeMetaConnection() {
+    await loadChannels()
     window.sessionStorage.removeItem(META_OAUTH_SESSION_KEY)
     setMetaPickerSession(null)
-    await loadChannels()
+    setIsConnectOpen(false)
   }
 
   function cancelMetaConnection() {

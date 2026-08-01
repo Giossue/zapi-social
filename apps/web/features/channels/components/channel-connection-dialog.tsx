@@ -111,6 +111,36 @@ function QrMock() {
   )
 }
 
+function candidateInitials(label: string) {
+  return label
+    .replace(/^@/, "")
+    .split(/[.\s]+/)
+    .filter(Boolean)
+    .map((part) => part.slice(0, 1))
+    .join("")
+    .slice(0, 2)
+    .toUpperCase()
+}
+
+function CandidateAvatar({ candidate }: { candidate: ChannelCandidate }) {
+  return (
+    <span className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent text-xs font-semibold text-accent-foreground">
+      <span aria-hidden="true">{candidateInitials(candidate.label)}</span>
+      {candidate.avatarUrl ? (
+        <img
+          alt={`Avatar de ${candidate.label}`}
+          className="absolute inset-0 size-full object-cover"
+          loading="lazy"
+          onError={(event) => {
+            event.currentTarget.style.display = "none"
+          }}
+          src={candidate.avatarUrl}
+        />
+      ) : null}
+    </span>
+  )
+}
+
 function toPortalAccount(
   account: Awaited<ReturnType<typeof channelConnectionsApi.select>>["account"],
 ): PortalChannelAccount {
@@ -119,7 +149,9 @@ function toPortalAccount(
     capabilityKey: account.capabilityKey,
     provider: account.provider,
     displayName: account.displayName,
+    externalName: account.externalName,
     handle: account.handle ?? undefined,
+    avatarUrl: account.avatarUrl,
     status: account.status,
     connectedAt: account.createdAt.slice(0, 10),
   }
@@ -166,6 +198,10 @@ export function ChannelConnectionDialog({
     setIsAuthorizing(false)
     setIsSelecting(false)
   }
+
+  useEffect(() => {
+    if (!open) reset()
+  }, [open])
 
   function handleOpenChange(nextOpen: boolean) {
     if (!nextOpen) reset()
@@ -235,7 +271,6 @@ export function ChannelConnectionDialog({
       })
       onConnected(toPortalAccount(result.account))
       await onMetaConnectionCompleted()
-      setStep("connected")
       toast.success(`${metaPickerSession.capability.label} conectado.`)
     } catch (error) {
       console.error("Meta candidate selection failed", error)
@@ -324,8 +359,9 @@ export function ChannelConnectionDialog({
                 <p className="text-sm text-muted-foreground">Elige un único recurso devuelto para esta conexión.</p>
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {pickerCandidates.map((item) => (
-                    <Button aria-pressed={candidate?.id === item.id} className="h-auto justify-start px-4 py-3 text-left whitespace-normal" key={item.id} onClick={() => setCandidate(item)} type="button" variant={candidate?.id === item.id ? "brand-secondary" : "surface"}>
-                      <span className="grid gap-0.5"><span>{item.label}</span><span className="text-sm font-normal text-muted-foreground">{item.description}</span>{item.metadata ? <span className="text-xs font-normal text-muted-foreground">{item.metadata}</span> : null}</span>
+                    <Button aria-pressed={candidate?.id === item.id} className="h-auto justify-start gap-3 px-4 py-3 text-left whitespace-normal" key={item.id} onClick={() => setCandidate(item)} type="button" variant={candidate?.id === item.id ? "brand-secondary" : "surface"}>
+                      <CandidateAvatar candidate={item} />
+                      <span className="grid min-w-0 gap-0.5"><span>{item.label}</span><span className="text-sm font-normal text-muted-foreground">{item.description}</span>{item.metadata ? <span className="text-xs font-normal text-muted-foreground">{item.metadata}</span> : null}</span>
                     </Button>
                   ))}
                 </div>

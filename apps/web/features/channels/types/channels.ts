@@ -26,6 +26,8 @@ export type ChannelCandidate = {
   label: string
   description: string
   metadata?: string
+  /** OAuth candidates return this nullable field; it remains optional for approved local fixtures. */
+  avatarUrl?: string | null
 }
 
 export type PortalChannelCapability = {
@@ -44,7 +46,10 @@ export type PortalChannelAccount = {
   capabilityKey: ChannelCapabilityKey
   provider: ChannelProviderKey
   displayName: string
+  /** Provider identity, independent from the editable local display name. */
+  externalName?: string | null
   handle?: string
+  avatarUrl?: string | null
   status: ChannelAccountStatus
   connectedAt: string
 }

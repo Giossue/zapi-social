@@ -196,6 +196,7 @@ export class ChannelsService {
       provider,
       capabilityKey,
       displayName: account.displayName,
+      externalName: this.externalName(account.metadata),
       handle: account.handle,
       profileUrl: account.profileUrl,
       avatarUrl: account.avatarUrl,
@@ -203,6 +204,11 @@ export class ChannelsService {
       createdAt: account.createdAt.toISOString(),
       updatedAt: account.updatedAt.toISOString(),
     }
+  }
+
+  private externalName(metadata: Record<string, unknown>) {
+    const value = metadata.externalDisplayName
+    return typeof value === 'string' && value.length > 0 && value.length <= 255 ? value : null
   }
 
   private providerFor(providerKey: string): PortalChannelAccount['provider'] | null {

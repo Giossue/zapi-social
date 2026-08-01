@@ -50,6 +50,7 @@ export const portalChannelAccountSchema = z.object({
   provider: portalChannelProviderKeySchema,
   capabilityKey: portalChannelCapabilityKeySchema,
   displayName: z.string().min(1).max(255),
+  externalName: z.string().min(1).max(255).nullable(),
   handle: z.string().max(255).nullable(),
   profileUrl: z.url().max(2048).nullable(),
   avatarUrl: z.url().max(2048).nullable(),
@@ -110,6 +111,7 @@ export const portalChannelCandidateSchema = z.object({
   label: z.string().min(1).max(255),
   description: z.string().min(1).max(500),
   metadata: z.string().max(500).nullable(),
+  avatarUrl: z.url().max(2048).nullable().optional(),
 })
 
 export const portalChannelCandidatesResponseSchema = z.object({

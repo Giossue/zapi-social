@@ -134,6 +134,7 @@ export class ChannelConnectionsService {
         label: candidate.displayName,
         description: candidate.description,
         metadata: this.publicMetadata(candidate.metadata),
+        avatarUrl: this.publicAvatarUrl(candidate.metadata),
       })),
     }
   }
@@ -232,7 +233,10 @@ export class ChannelConnectionsService {
                 externalId: candidate.externalId,
                 displayName: candidate.displayName,
                 description: candidate.description,
-                metadata: candidate.publicMetadata,
+                metadata: {
+                  ...candidate.publicMetadata,
+                  avatarUrl: candidate.context.avatarUrl,
+                },
               })),
             )
             .returning({ id: channelConnectionCandidates.id, externalId: channelConnectionCandidates.externalId })
@@ -280,10 +284,10 @@ export class ChannelConnectionsService {
       )
       .limit(1)
     const values = {
-      displayName: selected.displayName,
       handle: selected.handle,
       profileUrl: selected.profileUrl,
       avatarUrl: selected.avatarUrl,
+      metadata: { ...existing?.metadata, externalDisplayName: selected.displayName },
       status: 'active',
       connectedAt: new Date(),
       disconnectedAt: null,
@@ -296,6 +300,7 @@ export class ChannelConnectionsService {
           providerKey: 'meta',
           capabilityKey: connection.capabilityKey,
           externalId: selected.externalId,
+          displayName: selected.displayName,
           ...values,
         }).returning())[0]
     await this.database.db
@@ -371,7 +376,7 @@ export class ChannelConnectionsService {
         context: {
           externalId: instagram.id,
           displayName: instagram.username ?? page.name,
-          handle: instagram.username ? `@${instagram.username}` : null,
+          handle: instagram.username ? instagram.username.replace(/^@+/, '') || null : null,
           profileUrl: instagram.username ? `https://www.instagram.com/${instagram.username}/` : null,
           avatarUrl: instagram.profile_picture_url ?? null,
           accessToken: page.access_token,
@@ -476,6 +481,7 @@ export class ChannelConnectionsService {
       provider: 'meta',
       capabilityKey: account.capabilityKey as PortalChannelAccount['capabilityKey'],
       displayName: account.displayName,
+      externalName: this.externalName(account.metadata),
       handle: account.handle,
       profileUrl: account.profileUrl,
       avatarUrl: account.avatarUrl,
@@ -487,6 +493,22 @@ export class ChannelConnectionsService {
 
   private publicMetadata(metadata: Record<string, unknown>) {
     return typeof metadata.kind === 'string' ? metadata.kind : null
+  }
+
+  private externalName(metadata: Record<string, unknown>) {
+    const value = metadata.externalDisplayName
+    return typeof value === 'string' && value.length > 0 && value.length <= 255 ? value : null
+  }
+
+  private publicAvatarUrl(metadata: Record<string, unknown>) {
+    const value = metadata.avatarUrl
+    if (typeof value !== 'string' || value.length > 2048) return null
+    try {
+      const url = new URL(value)
+      return url.protocol === 'http:' || url.protocol === 'https:' ? value : null
+    } catch {
+      return null
+    }
   }
 
   private parseCallback(value: unknown) {
