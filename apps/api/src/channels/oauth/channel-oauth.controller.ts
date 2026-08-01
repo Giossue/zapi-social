@@ -9,9 +9,11 @@ import {
   Req,
   Res,
 } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { ApiTags } from '@nestjs/swagger'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { SessionAccessService } from '../../identity/session-access.service'
+import { ChannelConnectionsService } from '../channel-connections.service'
 import { ChannelOAuthAuthorizationService } from './channel-oauth-adapters'
 import { ChannelOAuthService } from './channel-oauth.service'
 
@@ -62,7 +64,9 @@ export class ChannelOAuthRedirectController {
 @Controller('v1/oauth/channels')
 export class ChannelOAuthCallbackController {
   constructor(
+    private readonly config: ConfigService,
     private readonly authorization: ChannelOAuthAuthorizationService,
+    private readonly connections: ChannelConnectionsService,
   ) {}
 
   @Get(':provider/callback')
@@ -71,6 +75,17 @@ export class ChannelOAuthCallbackController {
     @Param('provider') provider: string,
     @Query() query: unknown,
   ) {
+    if (provider === 'meta') {
+      const result = await this.connections.callback(query)
+      const redirect = new URL(
+        '/portal/channels',
+        this.config.getOrThrow<string>('WEB_ORIGIN'),
+      )
+      redirect.searchParams.set('oauth', result.outcome)
+      redirect.searchParams.set('provider', 'meta')
+      redirect.searchParams.set('capability', result.capabilityKey)
+      return response.redirect(redirect.toString(), HttpStatus.FOUND)
+    }
     const result = await this.authorization.callback(provider, query)
     return response.redirect(result.redirectUrl, HttpStatus.FOUND)
   }

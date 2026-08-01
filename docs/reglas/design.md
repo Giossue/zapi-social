@@ -16,6 +16,8 @@ Portal y Admin usan mismos tokens. Diferencia entre áreas vive en composición,
 - No usar colores raw (`bg-blue-500`, hex, `dark:bg-*`) en features o rutas.
 - No redefinir `:root`, `.dark`, radios, sombras ni tipografía fuera de `packages/ui/src/styles/globals.css`.
 - `className` compone layout, ancho, posición, grid y spacing. No reescribe estilo visual de una primitive.
+- No usar hero cards: evitar cards introductorias grandes con eyebrow, icono y descripción que duplican el contexto de la ruta. La pantalla empieza con su contenido operativo.
+- No duplicar el título ni la descripción de una ruta cuando el shell ya los muestra en su encabezado. La ruta empieza por acciones o contenido operativo.
 
 ## Primitives
 

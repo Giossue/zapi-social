@@ -308,3 +308,7 @@ export type ChannelOAuthCallbackQuery = z.infer<
 export type ChannelOAuthCallbackOutcome = z.infer<
   typeof channelOAuthCallbackOutcomeSchema
 >
+
+export * from "./channels-v2.js"
+
+export * from "./admin-integrations.js"

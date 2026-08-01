@@ -29,6 +29,19 @@ SocialAccount
 
 No implementar una UI o API genérica que reduzca todos los proveedores a `clientId` + `clientSecret`.
 
+## Decisiones de producto confirmadas
+
+- Meta comparte una configuración global, pero Facebook Page e Instagram Profile se habilitan y conectan de forma independiente. El cliente puede tener una, otra o ambas; nunca se le obliga a conectar las dos.
+- Cada provider tiene un switch global y cada capability tiene su propio switch. Ambos deben estar activos para permitir una conexión.
+- Un cambio de configuración activa solo puede guardarse después de una prueba satisfactoria contra el provider o conector usando los valores que están en edición. Esto incluye credenciales, scopes y switches de capability. Deshabilitar el provider global se guarda de inmediato, sin requerir prueba.
+- El Portal inicia directamente desde una capability, como Laravel; no obliga al usuario a elegir primero un provider.
+- Una operación conecta o elige un único recurso elegible. Los pickers solo muestran recursos devueltos por el provider para esa conexión.
+- Al alcanzar un límite de plan se bloquean conexiones nuevas, pero se permite reconectar una cuenta existente.
+- Un canal desconectado muestra aviso y no puede publicar hasta reconectarse. Borrarlo es una operación simple para todos los providers, incluido WhatsApp.
+- Las capabilities no listas aparecen en el Portal bloqueadas con **Próximamente**. Si están listas pero el plan no las incluye, aparecen bloqueadas con **No incluido en tu plan**.
+- Los errores del Portal son simples y accionables; el diagnóstico técnico queda limitado a PlatformAdmin y logs redactados.
+- Prioridad de entrega: Meta, después Historias de WhatsApp; LinkedIn, X y TikTok quedan planificados sin anticipar su backend.
+
 ## Regla de migración
 
 ```text
@@ -207,11 +220,12 @@ Las definiciones de proveedor y capability son código versionado, no filas edit
 
 ```ts
 type ProviderDefinition = {
-  key: "meta" | "linkedin_profile" | "linkedin_page" | "x" | "tiktok" | "whatsapp_status"
+  key: "meta" | "linkedin" | "x" | "tiktok" | "whatsapp_status"
   configSchema: ZodSchema
   secretFields: readonly string[]
   requiredFields: readonly string[]
-  readiness: (config: ProviderConfigValues) => ProviderReadiness
+  callbacks: readonly CallbackDefinition[]
+  testDraft: (config: ProviderConfigValues) => ProviderTestResult
   capabilities: readonly ChannelCapabilityDefinition[]
 }
 
@@ -222,9 +236,20 @@ type ChannelCapabilityDefinition = {
   supportsPublishing: boolean
   requiredPlanFeature: string
 }
+
+type ProviderIntegrationState = {
+  providerEnabled: boolean
+  enabledCapabilityKeys: ChannelCapabilityKey[]
+  readinessStatus: "incomplete" | "untested" | "ready" | "failed"
+  testedConfigFingerprint: string | null
+}
 ```
 
 Los callbacks se calculan a partir de `API_PUBLIC_ORIGIN` y no son editables desde Admin. El frontend los muestra como valores copiables junto a una explicación de dónde registrarlos en el proveedor externo.
+
+`providerEnabled` controla toda la infraestructura. `enabledCapabilityKeys` permite publicar solo las capabilities preparadas de un provider compartido, por ejemplo Facebook Page sin Instagram Profile. La disponibilidad efectiva requiere: configuración completa, último test correcto para la configuración exacta, provider activo y capability activa.
+
+El test se ejecuta con el borrador en memoria, no con una configuración previamente guardada. La API devuelve un comprobante de prueba de vida corta asociado al fingerprint del borrador; `PATCH` exige ese comprobante y rechaza cualquier diferencia posterior. Así una prueba correcta no puede autorizar el guardado de valores distintos.
 
 ### PostgreSQL
 
@@ -232,10 +257,14 @@ Los callbacks se calculan a partir de `API_PUBLIC_ORIGIN` y no son editables des
 provider_integrations
   provider_key unique
   enabled
+  enabled_capability_keys jsonb
   config_ciphertext
   config_version
   readiness_status
   readiness_issues jsonb
+  tested_config_fingerprint nullable
+  last_tested_at nullable
+  last_tested_by_platform_admin_id nullable
   updated_by_platform_admin_id
   updated_at
 
@@ -305,7 +334,7 @@ POST  /v1/admin/integrations/:providerKey/test
 GET   /v1/admin/integrations/:providerKey/callbacks
 ```
 
-`PATCH` acepta únicamente los campos de la definición de ese provider. Un secreto omitido conserva el existente; una respuesta nunca devuelve secretos. `test` verifica conectividad segura cuando la API externa lo permita y persiste un resultado seguro, no el payload remoto completo.
+`POST /test` recibe el borrador validado, incluidos switches y scopes, y prueba ese estado sin persistir credenciales. Devuelve solo un resultado seguro y un comprobante temporal vinculado al fingerprint del borrador. `PATCH` acepta únicamente campos de la definición y exige ese comprobante; un secreto omitido conserva el existente y una respuesta nunca devuelve secretos. No se guarda ningún cambio si el test falla, expira o corresponde a otro borrador.
 
 ### Portal: inventario y operación
 
@@ -362,6 +391,15 @@ secreto existente no revelado / secreto reemplazado
 La pantalla muestra instrucciones específicas de cada provider: scopes, callback(s), versión Graph para Meta y requisitos del conector GOWA para WhatsApp. No mostrará campos de OAuth para WhatsApp.
 
 ### Portal Channels
+
+Regla de bloqueo de conexión nueva:
+
+| Estado efectivo | Acción y etiqueta Portal |
+| --- | --- |
+| Provider incompleto, sin test vigente, apagado o capability apagada | Bloqueado · **Próximamente** |
+| Provider listo + capability activa + feature de plan permitida | **Conectar** |
+| Feature de plan ausente o límite de una conexión nueva alcanzado | Bloqueado · **No incluido en tu plan** o límite alcanzado |
+| Cuenta existente desconectada | **Reconectar**, incluso si el límite ya está alcanzado |
 
 ```text
 loading
@@ -421,92 +459,125 @@ Cada conexión comprueba:
 
 Los errores públicos usan `code` + `requestId`; los detalles técnicos quedan en logs redactados. Nunca registrar query strings OAuth con `code` o `state`.
 
-## Orden de implementación
+## Plan de ejecución y checklist de progreso
 
-### Fase 0 — Corrección del alcance actual
+**Estado del plan:** diseño Admin parcialmente aprobado. No se implementará una conexión externa real ni persistencia nueva hasta cerrar los estados mock de Admin y Portal y aprobar sus contratos.
 
-- [x] Auditar el Hub Admin y los módulos Laravel por provider.
-- [x] Identificar que WhatsApp Status es QR/GOWA, no OAuth.
-- [x] Identificar pickers Meta y LinkedIn Page.
-- [x] Identificar X PKCE y TikTok creator info.
-- [ ] Sustituir la simplificación de provider genérico en el plan, contratos y UI pendiente por definitions/capabilities específicas.
-- [ ] No presentar el OAuth actual de Meta/LinkedIn como conexión funcional: falta exchange, picker y persistencia.
+### Fase 0 — Referencia Laravel y alcance `[en curso]`
 
-### Fase A — Diseño mock y contrato, sin backend nuevo
+- [x] Auditar Hub Admin, catálogo, Portal, límites y scope de workspace de Laravel.
+- [x] Separar configuración global, capability de canal y cuenta conectada.
+- [x] Identificar Meta con picker, LinkedIn Page con picker, X con PKCE y TikTok con creator info.
+- [x] Identificar Historias de WhatsApp como flujo QR/GOWA, no OAuth.
+- [x] Registrar las decisiones de producto confirmadas en este documento.
+- [ ] Cerrar la equivalencia exacta por capability para cualquier permiso o acción Laravel aún no descrito durante la implementación.
 
-- [ ] Crear fixture `ProviderDefinition` con Meta, LinkedIn Profile/Page, X, TikTok y WhatsApp Status.
-- [ ] Rediseñar `/admin/integrations` desde schemas específicos de provider y primitives de `packages/ui`.
-- [ ] Diseñar el wizard reusable de conexión por capability en `features/channels`.
-- [ ] Diseñar pickers mock para Facebook Page, Instagram Profile y LinkedIn Page.
-- [ ] Diseñar flujo mock de QR/polling/reconexión de WhatsApp Status.
-- [ ] Validar normal/loading/empty/error/permisos/móvil/claro/oscuro.
-- [ ] Acordar contratos Zod antes de Nest.
+### Fase A — Mock de administración `[en curso]`
 
-### Fase B — Base de datos, seguridad y API Admin
+**Qué se hará:** terminar `/admin/integrations` usando fixtures, sin almacenar secretos ni llamar a providers.
 
-- [x] Base inicial de `provider_integrations`, `social_accounts`, credenciales y OAuth states creada.
-- [ ] Añadir `config_version`, `readiness_issues` y `channel_connection_sessions` si aún no existen.
-- [ ] Definir y versionar schemas Zod por provider/capability.
-- [ ] Validar y cifrar configuración por schema.
-- [ ] Mantener secretos write-only en DTOs y UI.
-- [ ] Implementar diagnóstico/test seguro por provider.
+- [x] Crear catálogo mock de Meta, LinkedIn Profile/Page, X, TikTok y Historias de WhatsApp.
+- [x] Mostrar configuración específica, scopes de selección múltiple y callbacks calculados/copiables.
+- [x] Mantener el selector de scopes abierto al marcar o desmarcar opciones.
+- [x] Documentar que no se usarán hero cards ni logos externos como dependencia UI.
+- [x] Añadir switch global por provider.
+- [x] Añadir switch independiente por capability; Meta debe permitir activar solo Facebook Page o solo Instagram Profile.
+- [x] Añadir estado `incompleto`, `sin probar`, `probando`, `prueba correcta` y `prueba fallida`.
+- [x] Modelar el botón **Probar configuración** con valores draft y bloquear **Guardar** hasta éxito.
+- [x] Invalidar la prueba mock cuando cambia cualquier campo, scope o switch.
+- [ ] Diseñar permisos, loading, error seguro, secreto existente write-only y responsive claro/oscuro.
+- [ ] Obtener aprobación visual explícita del mock Admin.
 
-### Fase C — Meta: Facebook Page e Instagram Profile
+**Criterio de salida:** el Admin puede representar de forma inequívoca qué capability está disponible, qué cambio requiere prueba y por qué un provider no está listo, sin guardar ni exponer valores sensibles.
 
-- [ ] Implementar exchange de código Meta y validación de state.
-- [ ] Consultar páginas y perfiles elegibles con scopes aprobados.
-- [ ] Persistir candidatos efímeros para picker, no confiar en IDs enviados por el navegador.
-- [ ] Confirmar selección con `updateOrCreate` idempotente.
-- [ ] Implementar callback de eliminación de datos Meta y auditoría.
-- [ ] Probar sandbox Meta y casos de scopes insuficientes, lista vacía y reconnect.
+### Fase B — Mock del Portal `[aprobado; estados complementarios pendientes]`
 
-### Fase D — LinkedIn
+**Qué se hará:** construir `/portal/channels` con repositorio mock y fixtures sintéticas; el usuario inicia por capability, como en Laravel.
 
-- [ ] Implementar exchange/profile para `linkedin_profile`.
-- [ ] Implementar discovery + picker de organizaciones para `linkedin_page`.
-- [ ] Persistir credenciales cifradas, expiración y scopes.
-- [ ] Probar límites, permisos organizacionales y reconnect.
+- [x] Crear inventario mock de cuentas conectadas y desconectadas, limitado a las cuentas accesibles del workspace.
+- [x] Crear selector directo de capabilities, no selector previo de provider.
+- [x] Representar capacidades no listas como bloqueadas con **Próximamente**.
+- [x] Representar bloqueo de plan separado como **No incluido en tu plan**.
+- [x] Permitir **Reconectar** una cuenta existente aunque el límite de altas nuevas esté alcanzado.
+- [ ] Diseñar OAuth mock para conexión directa, callback válido/expirado, cancelación y error recuperable.
+- [x] Diseñar pickers mock de un recurso por operación para Facebook Page e Instagram Profile.
+- [x] Diseñar mock de Historias de WhatsApp: generar QR, espera, expiración, regeneración y conexión.
+- [x] Bloquear publicación de canales desconectados y mostrar aviso de reconexión.
+- [ ] Diseñar estados empty, búsqueda vacía, permisos, móvil, claro y oscuro.
+- [x] Obtener aprobación visual y funcional de los flujos mock del Portal.
 
-### Fase E — X y TikTok
+**Criterio de salida:** cada botón del Portal tiene un estado, permiso, resultado y mensaje mock definido antes de crear endpoints o adapters.
 
-- [ ] Implementar X OAuth 2.0 PKCE, exchange, refresh y revocación segura.
-- [ ] Implementar TikTok OAuth, creator info y persistencia de capacidades de publicación.
-- [ ] Bloquear en UI las opciones no permitidas por cada creator/profile.
-- [ ] Probar callbacks, state expirado, refresh y errores de provider.
+### Fase C — Contratos y persistencia `[pendiente; después de aprobar A y B]`
 
-### Fase F — WhatsApp Status GOWA
+**Cómo se hará:** contratos Zod específicos por provider/capability compartidos entre `packages/contracts`, API y cliente; Nest no expondrá entidades ni secretos.
 
-- [ ] Implementar adapter GOWA con URL base y Basic Auth cifrados.
-- [ ] Crear sesión de conexión QR efímera cifrada.
-- [ ] Proxificar QR sin cache y polling idempotente.
-- [ ] Resolver perfil/dispositivo al conectar y persistir SocialAccount.
-- [ ] Purgar device remoto de manera segura en reconnect/delete.
-- [ ] Añadir lock, timeout, reintentos y observabilidad con `channel_sync_runs`.
-- [ ] Probar con un conector sandbox sin registrar QR, número o credenciales en logs.
+- [ ] Versionar `ProviderDefinition`, schemas de configuración y schemas de respuestas públicas.
+- [ ] Definir `ProviderIntegrationState` con provider activo, capabilities activas, readiness y test vigente.
+- [ ] Definir el contrato de prueba draft: request validado → resultado seguro + comprobante temporal por fingerprint.
+- [ ] Hacer que el contrato de guardado exija el comprobante; rechazar prueba vencida, fallida o de otro borrador.
+- [ ] Añadir migraciones necesarias: capabilities activas, fingerprint/fecha/autor de prueba y sesiones efímeras de conexión.
+- [ ] Cifrar configuraciones y credenciales; conservar secretos omitidos y devolverlos siempre redactados.
+- [ ] Definir códigos de error públicos y `requestId`; prohibir payload OAuth/QR técnico en respuestas y logs.
+- [ ] Revisar y aprobar OpenAPI/REST antes de implementar llamadas externas.
 
-### Fase G — Workers y consumidores
+**Criterio de salida:** el frontend mock puede cambiar al API client sin reescribir sus componentes, y el API conoce el estado de readiness exacto por capability.
 
-- [ ] BullMQ para refresh de tokens, sync de perfiles y operaciones largas.
-- [ ] Locks por cuenta/dispositivo y claves de idempotencia.
-- [ ] Propagar solo canales activos/accesibles a Publishing, AI, RSS, Groups y Automation.
-- [ ] Registrar run seguro con `requestId`, `jobId`, código de error y timestamps.
+### Fase D — Administración real y seguridad `[pendiente]`
 
-### Fase H — Validación final
+- [ ] Implementar autorización `PlatformAdmin + integrations.manage`.
+- [ ] Implementar `GET/PATCH /v1/admin/integrations/:providerKey` mediante definitions versionadas.
+- [ ] Implementar `POST /test` por provider sin persistir el borrador durante la prueba.
+- [ ] Persistir solo cambios asociados a una prueba vigente y correcta.
+- [ ] Calcular callbacks desde origen público seguro y exponerlos en lectura sin permitir edición.
+- [ ] Auditar cambios de configuración sin registrar secretos.
+- [ ] Probar validación local, fallo remoto seguro, comprobante expirado, modificación posterior a prueba y autorización.
 
-- [ ] Tests de autorización Admin/Portal.
-- [ ] Tests de schemas y redacción de secretos.
-- [ ] Tests OAuth state, callback, PKCE y selector con providers mock.
-- [ ] Tests QR/polling/cancel/reconnect de WhatsApp con GOWA mock.
-- [ ] Tests de idempotencia por external ID/device ID.
-- [ ] Typecheck, lint/build disponibles, revisión responsive y visual.
-- [ ] Prueba sandbox por proveedor tras configurar credenciales autorizadas.
+### Fase E — Meta: Facebook Page e Instagram Profile `[prioridad 1]`
 
-## Decisiones explícitas respecto a Laravel
+- [ ] Implementar inicio OAuth por capability con state de un uso y expiración.
+- [ ] Intercambiar código de forma segura y consultar exclusivamente recursos elegibles.
+- [ ] Persistir candidatos efímeros de la conexión y permitir seleccionar una sola página o perfil.
+- [ ] Crear/actualizar `social_accounts` de forma idempotente por workspace, capability y external ID.
+- [ ] Implementar reconnect sin consumir cupo de plan; validar ownership y limpiar credenciales obsoletas de forma segura.
+- [ ] Implementar callback Meta de eliminación de datos y estado de confirmación auditado.
+- [ ] Probar sandbox: scopes insuficientes, picker vacío, callback expirado, selección duplicada, disconnect y reconnect.
 
-- Mantener la arquitectura de registro modular: provider global + capability de canal.
-- Mantener campos y flujos específicos; no transformar WhatsApp en OAuth ni Meta en un formulario mínimo.
-- No replicar el alta manual de tokens en claro.
-- No usar `created_by_user_id` como scope: V2 usa `workspace_id` explícito.
-- No usar sesiones PHP para OAuth/QR: V2 usa estados y sesiones efímeras cifradas, consumibles e idempotentes.
-- No implementar un inventario global Admin de cuentas de clientes.
-- No introducir workers o llamadas externas antes de aprobar los mocks y contratos de la capability correspondiente.
+### Fase F — Historias de WhatsApp `[prioridad 2]`
+
+- [ ] Implementar adapter del conector con configuración cifrada y prueba de conectividad Admin.
+- [ ] Crear una sesión QR efímera cifrada y un lock por workspace/dispositivo.
+- [ ] Proxificar QR con `Cache-Control: no-store`; nunca persistir imagen, URL original ni contenido QR en logs.
+- [ ] Hacer polling idempotente hasta conectar, cancelar, vencer o fallar con mensaje seguro.
+- [ ] Resolver perfil/dispositivo y persistir la cuenta con `device_id` y metadata mínima necesaria.
+- [ ] En reconnect/delete, purgar de forma segura el dispositivo remoto y la cuenta/credenciales locales según corresponda.
+- [ ] Probar con entorno autorizado sin registrar número, QR o credenciales.
+
+### Fase G — Providers restantes `[pendiente]`
+
+- [ ] LinkedIn Profile: OAuth, perfil, credenciales cifradas y reconnect.
+- [ ] LinkedIn Page: discovery y picker solo de organizaciones administrables devueltas por LinkedIn.
+- [ ] X: OAuth 2.0 PKCE, verifier cifrado, refresh y revocación segura.
+- [ ] TikTok: OAuth, creator info, persistencia de restricciones y conexión permitida aunque publicar no esté habilitado.
+- [ ] Mantener para todos los estados de bloqueo, plan, permisos, delete y reconnect definidos en A/B.
+
+### Fase H — Workers, consumidores y validación final `[pendiente]`
+
+- [ ] Añadir BullMQ para refresh, sincronización y operaciones largas después de cada adapter aprobado.
+- [ ] Usar locks e idempotencia por cuenta/dispositivo; registrar operaciones seguras en `channel_sync_runs`.
+- [ ] Entregar a Publishing, AI, RSS, Groups y Automation solo canales activos y accesibles por membership.
+- [ ] Tests de autorización PlatformAdmin/Portal, scope por `managed_account_ids` y límites de plan.
+- [ ] Tests de schemas, redacción de secretos, state OAuth, PKCE, pickers y comprobantes de prueba.
+- [ ] Tests QR/polling/cancel/reconnect/delete con conector mock.
+- [ ] Ejecutar typecheck, lint/build disponibles y revisión responsive/visual.
+- [ ] Ejecutar pruebas sandbox por provider solo con credenciales autorizadas.
+
+## Reglas de implementación permanentes
+
+- Mantener registro modular: provider global + capability de canal; no convertirlo en un formulario OAuth universal.
+- No implementar backend ni llamadas reales de una capability mientras su mock, estados y contrato no estén aprobados.
+- El Portal no ve capabilities operables si falta configuración o prueba: las ve bloqueadas como **Próximamente**. El bloqueo de plan no se disfraza como disponibilidad técnica.
+- Owner conserva acceso total según el modelo Laravel; miembros solo ven/gestionan canales dentro de sus permisos y `managed_account_ids`.
+- `channel.view` permite inventario; `channel.manage` permite conectar, reconectar, editar o borrar. Toda acción verifica workspace, plan, readiness y ownership.
+- Nunca exponer `config_ciphertext`, secretos, access/refresh tokens, PKCE verifier, QR o query strings OAuth con `code`/`state`.
+- No crear inventario global Admin de cuentas de clientes sin decisión de producto explícita.

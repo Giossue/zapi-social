@@ -5,11 +5,13 @@ import type {
   ChannelListQuery,
   CreateChannelInput,
   LoginInput,
+  MetaIntegration,
   PortalDashboard,
-  ProviderIntegration,
   RegisterInput,
+  TestMetaIntegrationInput,
+  TestMetaIntegrationResponse,
   UpdateChannelInput,
-  UpdateProviderIntegrationInput,
+  UpdateMetaIntegrationInput,
 } from "@workspace/contracts"
 
 const apiBaseUrl =
@@ -112,13 +114,15 @@ export const channelsApi = {
 }
 
 export const integrationsApi = {
-  list: () =>
-    request<ProviderIntegration[]>("/v1/admin/integrations", { method: "GET" }),
-  update: (
-    providerKey: ProviderIntegration["providerKey"],
-    input: UpdateProviderIntegrationInput
-  ) =>
-    request<ProviderIntegration>(`/v1/admin/integrations/${providerKey}`, {
+  getMeta: () =>
+    request<MetaIntegration>("/v1/admin/integrations/meta", { method: "GET" }),
+  testMeta: (input: TestMetaIntegrationInput) =>
+    request<TestMetaIntegrationResponse>("/v1/admin/integrations/meta/test", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  saveMeta: (input: UpdateMetaIntegrationInput) =>
+    request<MetaIntegration>("/v1/admin/integrations/meta", {
       method: "PATCH",
       body: JSON.stringify(input),
     }),

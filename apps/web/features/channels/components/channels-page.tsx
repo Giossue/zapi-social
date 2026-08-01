@@ -1,74 +1,63 @@
 "use client"
 
-import { ApiError, channelsApi } from "@workspace/api-client"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@workspace/ui/components/dialog"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@workspace/ui/components/dropdown-menu"
 import { Input } from "@workspace/ui/components/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
+import { Skeleton } from "@workspace/ui/components/skeleton"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
 import { toast } from "@workspace/ui/components/toast"
 import {
-  CalendarClock,
   CheckCircle2,
-  CirclePause,
-  Inbox,
+  CircleAlert,
   Link2,
+  LockKeyhole,
   LoaderCircle,
-  Pause,
+  MoreVertical,
   Pencil,
-  Play,
   Plus,
+  RefreshCw,
   Search,
   Trash2,
-  TriangleAlert,
 } from "lucide-react"
-import { useCallback, useEffect, useState, type FormEvent } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useRef, useState } from "react"
+import { channelsFixture } from "../fixtures/channels"
+import type {
+  PortalChannelAccount,
+} from "../types/channels"
 import { ChannelConnectionDialog } from "./channel-connection-dialog"
 import { ChannelsLoading } from "./channels-loading"
-import type {
-  ChannelAccount,
-  ChannelList,
-  ChannelStatus,
-} from "../types/channels"
 
-type Filters = {
-  q: string
-  status: "all" | ChannelStatus
-  provider: string
-  sort: "latest" | "name"
+const providerLabels = {
+  meta: "Meta",
+  linkedin: "LinkedIn",
+  x: "X",
+  tiktok: "TikTok",
+  whatsapp: "Historias de WhatsApp",
+} as const
+
+const capabilityLabels = {
+  facebook_page: "Página de Facebook",
+  instagram_profile: "Perfil de Instagram",
+  linkedin_page: "Página de LinkedIn",
+  linkedin_profile: "Perfil de LinkedIn",
+  x_profile: "Perfil de X",
+  tiktok_profile: "Perfil de TikTok",
+  whatsapp_status: "Historias de WhatsApp",
+} as const
+
+function formatConnectionDate(value: string) {
+  return new Intl.DateTimeFormat("es", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(`${value}T12:00:00`))
 }
 
-const initialFilters: Filters = {
-  q: "",
-  status: "all",
-  provider: "all",
-  sort: "latest",
-}
-
-function errorMessage(error: unknown, fallback: string) {
-  if (error instanceof ApiError && error.status === 403)
-    return "No tienes permiso para administrar canales."
-  if (error instanceof ApiError && error.status === 404)
-    return "El canal ya no está disponible en este espacio."
-  return fallback
-}
-
-function channelInitials(account: ChannelAccount) {
+function capabilityInitials(account: PortalChannelAccount) {
   return account.displayName
     .split(" ")
     .map((part) => part.slice(0, 1))
@@ -77,24 +66,22 @@ function channelInitials(account: ChannelAccount) {
     .toUpperCase()
 }
 
+
 function ChannelMetric({
-  icon: Icon,
-  label,
-  value,
   description,
+  icon: Icon,
+  value,
 }: {
-  icon: typeof Link2
-  label: string
-  value: number
   description: string
+  icon: typeof Link2
+  value: number
 }) {
   return (
-    <Card>
+    <Card variant="subtle">
       <CardContent className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-3xl font-semibold tracking-tight">{value}</p>
-          <p className="mt-4 text-sm font-medium">{label}</p>
-          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+          <p className="text-2xl font-semibold tracking-tight">{value}</p>
+          <p className="mt-2 text-sm text-muted-foreground">{description}</p>
         </div>
         <Icon aria-hidden="true" className="size-5 text-muted-foreground" />
       </CardContent>
@@ -102,65 +89,133 @@ function ChannelMetric({
   )
 }
 
+function ChannelAccountCard({
+  account,
+  onDelete,
+  onEdit,
+  onReconnect,
+  pending,
+}: {
+  account: PortalChannelAccount
+  onDelete: (account: PortalChannelAccount) => void
+  onEdit: (account: PortalChannelAccount) => void
+  onReconnect: (accountId: string) => void
+  pending: boolean
+}) {
+  const disconnected = account.status === "disconnected"
+
+  return (
+    <Card variant="subtle">
+      <CardContent className="flex flex-col gap-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground">
+              {capabilityInitials(account)}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate font-semibold">{account.displayName}</p>
+              {account.handle ? (
+                <p className="truncate text-sm text-muted-foreground">@{account.handle}</p>
+              ) : null}
+              <p className="truncate text-sm text-muted-foreground">
+                {capabilityLabels[account.capabilityKey]}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            <Badge variant={disconnected ? "warning" : "success"}>
+              {disconnected ? "Desconectado" : "Conectado"}
+            </Badge>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button aria-label={`Acciones para ${account.displayName}`} size="icon" variant="brand-secondary">
+                  <MoreVertical />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" size="compact">
+                <DropdownMenuItem onSelect={() => onEdit(account)} size="compact">
+                  <Pencil />
+                  Editar
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={() => onDelete(account)} size="compact">
+                  <Trash2 />
+                  Eliminar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {disconnected ? (
+          <div className="flex items-start gap-2 rounded-lg border border-warning/25 bg-warning/10 p-3 text-sm text-warning">
+            <CircleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+            <span>Este canal no puede publicar hasta reconectarse.</span>
+          </div>
+        ) : null}
+
+        <div className="grid grid-cols-2 gap-3 border-t border-border pt-4 text-sm">
+          <div>
+            <p className="text-xs text-muted-foreground">Proveedor</p>
+            <p className="mt-1 font-medium">{providerLabels[account.provider]}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Conectado el</p>
+            <p className="mt-1 font-medium">{formatConnectionDate(account.connectedAt)}</p>
+          </div>
+        </div>
+
+        <div className="mt-auto flex gap-2">
+          {disconnected ? (
+            <Button className="flex-1" disabled={pending} onClick={() => onReconnect(account.id)}>
+              {pending ? <LoaderCircle className="animate-spin" data-icon="inline-start" /> : <RefreshCw data-icon="inline-start" />}
+              Reconectar
+            </Button>
+          ) : null}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+
 function EditChannelDialog({
   account,
   onOpenChange,
-  onSubmit,
-  submitting,
+  onSave,
+  pending,
 }: {
-  account: ChannelAccount | null
+  account: PortalChannelAccount | null
   onOpenChange: (open: boolean) => void
-  onSubmit: (displayName: string) => Promise<void>
-  submitting: boolean
+  onSave: (displayName: string) => void
+  pending: boolean
 }) {
-  async function submit(event: FormEvent<HTMLFormElement>) {
+  function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const form = new FormData(event.currentTarget)
-    await onSubmit(String(form.get("displayName") ?? "").trim())
+    const displayName = String(new FormData(event.currentTarget).get("displayName") ?? "").trim()
+    if (!displayName) {
+      toast.error("Introduce un nombre visible para el canal.")
+      return
+    }
+    onSave(displayName)
   }
 
   return (
-    <Dialog open={account !== null} onOpenChange={onOpenChange}>
+    <Dialog onOpenChange={onOpenChange} open={account !== null}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Editar nombre del canal</DialogTitle>
-          <DialogDescription>
-            El proveedor y el tipo de canal se conservan sin cambios.
-          </DialogDescription>
+          <DialogTitle>Editar canal</DialogTitle>
+          <DialogDescription>Este cambio solo actualiza el nombre visible en Zapi.</DialogDescription>
         </DialogHeader>
-        <form className="grid gap-4" onSubmit={(event) => void submit(event)}>
-          <label
-            className="grid gap-1.5 text-sm font-medium"
-            htmlFor="edit-channel-display-name"
-          >
-            Nombre visible
-            <Input
-              defaultValue={account?.displayName}
-              id="edit-channel-display-name"
-              key={account?.id}
-              name="displayName"
-              required
-              maxLength={255}
-            />
+        <form className="grid gap-5" onSubmit={submit}>
+          <label className="grid gap-1.5 text-sm font-medium">
+            <span>
+              Nombre visible<span aria-hidden="true" className="ml-0.5 text-destructive">*</span>
+            </span>
+            <Input defaultValue={account?.displayName} key={account?.id} maxLength={255} name="displayName" required />
           </label>
           <div className="flex justify-end gap-2">
-            <Button
-              disabled={submitting}
-              onClick={() => onOpenChange(false)}
-              type="button"
-              variant="ghost"
-            >
-              Cancelar
-            </Button>
-            <Button disabled={submitting} type="submit">
-              {submitting ? (
-                <LoaderCircle
-                  className="animate-spin"
-                  data-icon="inline-start"
-                />
-              ) : null}
-              Guardar cambios
-            </Button>
+            <Button disabled={pending} onClick={() => onOpenChange(false)} type="button" variant="brand-secondary">Cancelar</Button>
+            <Button disabled={pending} type="submit">{pending ? <LoaderCircle className="animate-spin" data-icon="inline-start" /> : null}Guardar cambios</Button>
           </div>
         </form>
       </DialogContent>
@@ -168,47 +223,34 @@ function EditChannelDialog({
   )
 }
 
+
 function DeleteChannelDialog({
   account,
-  onOpenChange,
   onConfirm,
-  submitting,
+  onOpenChange,
+  pending,
 }: {
-  account: ChannelAccount | null
+  account: PortalChannelAccount | null
+  onConfirm: () => void
+  pending: boolean
   onOpenChange: (open: boolean) => void
-  onConfirm: () => Promise<void>
-  submitting: boolean
 }) {
   return (
-    <Dialog open={account !== null} onOpenChange={onOpenChange}>
+    <Dialog onOpenChange={onOpenChange} open={account !== null}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Eliminar canal</DialogTitle>
           <DialogDescription>
             {account
-              ? `Eliminarás “${account.displayName}” de este espacio. Esta acción no se puede deshacer.`
+              ? `Eliminarás “${account.displayName}” de este espacio de trabajo. Esta acción no se puede deshacer.`
               : ""}
           </DialogDescription>
         </DialogHeader>
         <div className="flex justify-end gap-2">
-          <Button
-            disabled={submitting}
-            onClick={() => onOpenChange(false)}
-            variant="ghost"
-          >
-            Cancelar
-          </Button>
-          <Button
-            disabled={submitting}
-            onClick={() => void onConfirm()}
-            variant="destructive"
-          >
-            {submitting ? (
-              <LoaderCircle className="animate-spin" data-icon="inline-start" />
-            ) : (
-              <Trash2 data-icon="inline-start" />
-            )}
-            Eliminar canal
+          <Button disabled={pending} onClick={() => onOpenChange(false)} type="button" variant="brand-secondary">Cancelar</Button>
+          <Button disabled={pending} onClick={onConfirm} type="button" variant="destructive">
+            {pending ? <LoaderCircle className="animate-spin" data-icon="inline-start" /> : <Trash2 data-icon="inline-start" />}
+            Eliminar
           </Button>
         </div>
       </DialogContent>
@@ -217,400 +259,170 @@ function DeleteChannelDialog({
 }
 
 export function LiveChannelsPage() {
-  const router = useRouter()
-  const [dashboard, setDashboard] = useState<ChannelList | null>(null)
-  const [filters, setFilters] = useState<Filters>(initialFilters)
+  const [accounts, setAccounts] = useState<PortalChannelAccount[]>(
+    () => [...channelsFixture.accounts]
+  )
   const [isLoading, setIsLoading] = useState(true)
-  const [hasError, setHasError] = useState(false)
+  const [query, setQuery] = useState("")
+  const [providerFilter, setProviderFilter] = useState("all")
+  const [capabilityFilter, setCapabilityFilter] = useState("all")
+  const [statusFilter, setStatusFilter] = useState("all")
   const [isConnectOpen, setIsConnectOpen] = useState(false)
-  const [editingAccount, setEditingAccount] = useState<ChannelAccount | null>(
-    null
-  )
-  const [deletingAccount, setDeletingAccount] = useState<ChannelAccount | null>(
-    null
-  )
-  const [pendingAction, setPendingAction] = useState<string | null>(null)
-  const hasActiveFilters =
-    filters.q.trim().length > 0 ||
-    filters.status !== "all" ||
-    filters.provider !== "all"
-
-  const loadChannels = useCallback(
-    async (nextFilters: Filters) => {
-      setIsLoading(true)
-      setHasError(false)
-      try {
-        const nextDashboard = await channelsApi.list({
-          q: nextFilters.q || undefined,
-          status: nextFilters.status === "all" ? undefined : nextFilters.status,
-          provider:
-            nextFilters.provider === "all" ? undefined : nextFilters.provider,
-          sort: nextFilters.sort,
-        })
-        setDashboard(nextDashboard)
-      } catch (error) {
-        if (
-          error instanceof ApiError &&
-          error.code === "AUTH_SESSION_EXPIRED"
-        ) {
-          router.replace("/login")
-          return
-        }
-        console.error("Channels request failed", error)
-        toast.error(
-          errorMessage(
-            error,
-            "No pudimos cargar los canales. Inténtalo de nuevo."
-          )
-        )
-        setHasError(true)
-      } finally {
-        setIsLoading(false)
-      }
-    },
-    [router]
-  )
+  const [editingAccount, setEditingAccount] = useState<PortalChannelAccount | null>(null)
+  const [deletingAccount, setDeletingAccount] = useState<PortalChannelAccount | null>(null)
+  const [pendingAccountId, setPendingAccountId] = useState<string | null>(null)
+  const [isFiltering, setIsFiltering] = useState(false)
+  const hasMountedFilters = useRef(false)
 
   useEffect(() => {
-    void loadChannels(filters)
-  }, [filters, loadChannels])
+    const timer = window.setTimeout(() => setIsLoading(false), 500)
+    return () => window.clearTimeout(timer)
+  }, [])
 
-  async function saveName(displayName: string) {
-    if (!editingAccount) return
-    setPendingAction(editingAccount.id)
-    try {
-      await channelsApi.update(editingAccount.id, { displayName })
-      setEditingAccount(null)
-      toast.success("Nombre del canal actualizado.")
-      await loadChannels(filters)
-    } catch (error) {
-      toast.error(errorMessage(error, "No pudimos actualizar el canal."))
-    } finally {
-      setPendingAction(null)
+  useEffect(() => {
+    if (!hasMountedFilters.current) {
+      hasMountedFilters.current = true
+      return
     }
+    setIsFiltering(true)
+    const timer = window.setTimeout(() => setIsFiltering(false), 250)
+    return () => window.clearTimeout(timer)
+  }, [query, providerFilter, capabilityFilter, statusFilter])
+
+  const visibleAccounts = accounts.filter((account) => {
+    const value = `${account.displayName} ${account.handle ?? ""} ${capabilityLabels[account.capabilityKey]}`.toLowerCase()
+    return (
+      value.includes(query.trim().toLowerCase()) &&
+      (providerFilter === "all" || account.provider === providerFilter) &&
+      (capabilityFilter === "all" || account.capabilityKey === capabilityFilter) &&
+      (statusFilter === "all" || account.status === statusFilter)
+    )
+  })
+  const connectedAccounts = accounts.filter((account) => account.status === "connected")
+  const disconnectedAccounts = accounts.filter((account) => account.status === "disconnected")
+
+  function openConnection() {
+    setIsConnectOpen(true)
   }
 
-  async function changeStatus(account: ChannelAccount) {
-    setPendingAction(account.id)
-    try {
-      if (account.status === "active") {
-        await channelsApi.pause(account.id)
-        toast.success("Canal pausado.")
-      } else {
-        await channelsApi.resume(account.id)
-        toast.success("Canal reanudado.")
-      }
-      await loadChannels(filters)
-    } catch (error) {
-      toast.error(
-        errorMessage(error, "No pudimos cambiar el estado del canal.")
+  function addAccount(account: PortalChannelAccount) {
+    setAccounts((current) => [
+      ...current.filter((item) => item.id !== account.id),
+      account,
+    ])
+  }
+
+  async function reconnect(accountId: string) {
+    setPendingAccountId(accountId)
+    await new Promise((resolve) => window.setTimeout(resolve, 350))
+    setAccounts((current) =>
+      current.map((account) =>
+        account.id === accountId ? { ...account, status: "connected" } : account
       )
-    } finally {
-      setPendingAction(null)
-    }
+    )
+    setPendingAccountId(null)
+    toast.success("Canal reconectado en el mock.")
   }
 
-  async function deleteChannel() {
+  async function renameAccount(displayName: string) {
+    if (!editingAccount) return
+    setPendingAccountId(editingAccount.id)
+    await new Promise((resolve) => window.setTimeout(resolve, 350))
+    setAccounts((current) => current.map((account) => account.id === editingAccount.id ? { ...account, displayName } : account))
+    setPendingAccountId(null)
+    setEditingAccount(null)
+    toast.success("Nombre del canal actualizado en el mock.")
+  }
+
+  async function confirmDelete() {
     if (!deletingAccount) return
-    setPendingAction(deletingAccount.id)
-    try {
-      await channelsApi.remove(deletingAccount.id)
-      setDeletingAccount(null)
-      toast.success("Canal eliminado.")
-      await loadChannels(filters)
-    } catch (error) {
-      toast.error(errorMessage(error, "No pudimos eliminar el canal."))
-    } finally {
-      setPendingAction(null)
-    }
+    setPendingAccountId(deletingAccount.id)
+    await new Promise((resolve) => window.setTimeout(resolve, 350))
+    removeAccount(deletingAccount.id)
+    setPendingAccountId(null)
+    setDeletingAccount(null)
   }
 
-  if (isLoading && !dashboard) return <ChannelsLoading />
+  function removeAccount(accountId: string) {
+    setAccounts((current) => current.filter((account) => account.id !== accountId))
+    toast.success("Canal eliminado en el mock.")
+  }
 
-  if (hasError || !dashboard) {
+  if (isLoading) return <ChannelsLoading />
+
+  if (!channelsFixture.canView) {
     return (
       <EmptyState
-        action={
-          <Button onClick={() => void loadChannels(filters)}>Reintentar</Button>
-        }
-        description="Comprueba tu conexión e inténtalo de nuevo. No se modificó ningún canal."
-        icon={TriangleAlert}
-        title="No pudimos cargar los canales"
+        description="Pide acceso a un administrador del espacio de trabajo."
+        icon={LockKeyhole}
+        title="No tienes acceso a los canales"
       />
     )
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight">Canales</h1>
-          <p className="text-sm text-muted-foreground">
-            Gestiona los destinos conectados de este espacio de trabajo.
-          </p>
+    <div className="space-y-7">
+      {channelsFixture.canManage ? (
+        <div className="flex justify-end">
+          <Button onClick={() => openConnection()} size="lg">
+            <Plus data-icon="inline-start" />
+            Conectar canal
+          </Button>
         </div>
-        {dashboard.canManage ? (
-          <div className="grid justify-items-end gap-1.5">
-            <Button
-              aria-describedby="channel-connection-mock-note"
-              onClick={() => setIsConnectOpen(true)}
-              size="lg"
-            >
-              <Plus data-icon="inline-start" />
-              Conectar canal
-            </Button>
-            <p
-              className="text-xs text-muted-foreground"
-              id="channel-connection-mock-note"
-            >
-              Wizard Fase A mock: no guarda canales ni usa APIs externas.
-            </p>
-          </div>
-        ) : null}
-      </div>
-
-      {!dashboard.canManage ? (
-        <p className="text-sm text-muted-foreground">
-          Solo propietarios y administradores pueden administrar canales.
-        </p>
-      ) : !dashboard.canConnect || dashboard.readyProviders.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Meta y LinkedIn requieren configuración en Integraciones para la
-          disponibilidad real de canales existentes.
-        </p>
       ) : null}
 
-      <section
-        aria-label="Resumen de canales"
-        className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"
-      >
-        <ChannelMetric
-          description="Destinos registrados en este espacio"
-          icon={Link2}
-          label="Total"
-          value={dashboard.metrics.total}
-        />
-        <ChannelMetric
-          description="Canales disponibles"
-          icon={CheckCircle2}
-          label="Activos"
-          value={dashboard.metrics.active}
-        />
-        <ChannelMetric
-          description="Canales detenidos temporalmente"
-          icon={CirclePause}
-          label="En pausa"
-          value={dashboard.metrics.paused}
-        />
-        <ChannelMetric
-          description="Añadidos durante los últimos 30 días"
-          icon={CalendarClock}
-          label="Recientes"
-          value={dashboard.metrics.recent}
-        />
-      </section>
 
-      <section aria-label="Inventario de canales" className="space-y-4">
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_auto_auto]">
+      <section aria-label="Inventario de canales" className="space-y-4 border-t border-border pt-7">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <ChannelMetric description="Canales registrados" icon={Link2} value={accounts.length} />
+          <ChannelMetric description="Listos para publicar" icon={CheckCircle2} value={connectedAccounts.length} />
+          <ChannelMetric description="Requieren reconexión" icon={CircleAlert} value={disconnectedAccounts.length} />
+        </div>
+
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_12rem_14rem_12rem]">
           <div className="relative">
-            <Search
-              aria-hidden="true"
-              className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-            />
-            <Input
-              aria-label="Buscar canales"
-              className="pl-9"
-              onChange={(event) =>
-                setFilters((current) => ({ ...current, q: event.target.value }))
-              }
-              placeholder="Buscar por nombre, usuario o proveedor"
-              value={filters.q}
-            />
+            <Search aria-hidden="true" className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input aria-label="Buscar canales" className="pl-9" onChange={(event) => setQuery(event.target.value)} placeholder="Buscar canales" value={query} />
           </div>
-          <Select
-            onValueChange={(value) =>
-              setFilters((current) => ({
-                ...current,
-                status: value as Filters["status"],
-              }))
-            }
-            value={filters.status}
-          >
-            <SelectTrigger aria-label="Estado" className="w-full lg:w-44">
-              <SelectValue placeholder="Todos los estados" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los estados</SelectItem>
-              <SelectItem value="active">Activos</SelectItem>
-              <SelectItem value="paused">En pausa</SelectItem>
-            </SelectContent>
+          <Select onValueChange={setProviderFilter} value={providerFilter}>
+            <SelectTrigger aria-label="Proveedor"><SelectValue placeholder="Proveedor" /></SelectTrigger>
+            <SelectContent><SelectItem value="all">Todos los proveedores</SelectItem>{Object.entries(providerLabels).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent>
           </Select>
-          <Select
-            onValueChange={(value) =>
-              setFilters((current) => ({ ...current, provider: value }))
-            }
-            value={filters.provider}
-          >
-            <SelectTrigger aria-label="Proveedor" className="w-full lg:w-44">
-              <SelectValue placeholder="Todos los proveedores" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los proveedores</SelectItem>
-              {dashboard.providers.map((provider) => (
-                <SelectItem key={provider} value={provider}>
-                  {provider}
-                </SelectItem>
-              ))}
-            </SelectContent>
+          <Select onValueChange={setCapabilityFilter} value={capabilityFilter}>
+            <SelectTrigger aria-label="Tipo de canal"><SelectValue placeholder="Tipo de canal" /></SelectTrigger>
+            <SelectContent><SelectItem value="all">Todos los tipos</SelectItem>{Object.entries(capabilityLabels).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent>
           </Select>
-          <Select
-            onValueChange={(value) =>
-              setFilters((current) => ({
-                ...current,
-                sort: value as Filters["sort"],
-              }))
-            }
-            value={filters.sort}
-          >
-            <SelectTrigger
-              aria-label="Ordenar canales"
-              className="w-full lg:w-40"
-            >
-              <SelectValue placeholder="Más recientes" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="latest">Más recientes</SelectItem>
-              <SelectItem value="name">Nombre</SelectItem>
-            </SelectContent>
+          <Select onValueChange={setStatusFilter} value={statusFilter}>
+            <SelectTrigger aria-label="Estado"><SelectValue placeholder="Estado" /></SelectTrigger>
+            <SelectContent><SelectItem value="all">Todos los estados</SelectItem><SelectItem value="connected">Conectados</SelectItem><SelectItem value="disconnected">Desconectados</SelectItem></SelectContent>
           </Select>
         </div>
 
-        {dashboard.accounts.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-            {dashboard.accounts.map((account) => {
-              const pending = pendingAction === account.id
-              return (
-                <Card key={account.id}>
-                  <CardContent className="space-y-5">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex min-w-0 items-center gap-3">
-                        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground">
-                          {channelInitials(account)}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="truncate font-semibold">
-                            {account.displayName}
-                          </p>
-                          <p className="truncate text-sm text-muted-foreground">
-                            {account.handle ? `@${account.handle} · ` : ""}
-                            {account.capabilityKey}
-                          </p>
-                        </div>
-                      </div>
-                      <Badge
-                        variant={
-                          account.status === "active" ? "success" : "warning"
-                        }
-                      >
-                        {account.status === "active" ? "Activo" : "En pausa"}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {account.providerKey}
-                    </p>
-                    {dashboard.canManage ? (
-                      <div className="grid grid-cols-3 gap-2">
-                        <Button
-                          aria-label={`Editar ${account.displayName}`}
-                          disabled={pending}
-                          onClick={() => setEditingAccount(account)}
-                          size="icon"
-                          variant="brand-secondary"
-                        >
-                          <Pencil />
-                        </Button>
-                        <Button
-                          aria-label={
-                            account.status === "active"
-                              ? `Pausar ${account.displayName}`
-                              : `Reanudar ${account.displayName}`
-                          }
-                          disabled={pending}
-                          onClick={() => void changeStatus(account)}
-                          size="icon"
-                          variant="brand-secondary"
-                        >
-                          {pending ? (
-                            <LoaderCircle className="animate-spin" />
-                          ) : account.status === "active" ? (
-                            <Pause />
-                          ) : (
-                            <Play />
-                          )}
-                        </Button>
-                        <Button
-                          aria-label={`Eliminar ${account.displayName}`}
-                          disabled={pending}
-                          onClick={() => setDeletingAccount(account)}
-                          size="icon"
-                          variant="destructive"
-                        >
-                          <Trash2 />
-                        </Button>
-                      </div>
-                    ) : null}
-                  </CardContent>
-                </Card>
-              )
-            })}
+        {isFiltering ? (
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {["one", "two", "three"].map((item) => <Skeleton className="h-64" key={item} />)}
+          </div>
+        ) : visibleAccounts.length > 0 ? (
+          <div className="grid items-start gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {visibleAccounts.map((account) => (
+              <ChannelAccountCard account={account} key={account.id} onDelete={setDeletingAccount} onEdit={setEditingAccount} onReconnect={(accountId) => void reconnect(accountId)} pending={pendingAccountId === account.id} />
+            ))}
           </div>
         ) : (
-          <Card>
-            <CardContent>
-              <EmptyState
-                action={
-                  hasActiveFilters ? (
-                    <Button
-                      onClick={() => setFilters(initialFilters)}
-                      variant="brand-secondary"
-                    >
-                      Limpiar filtros
-                    </Button>
-                  ) : undefined
-                }
-                description={
-                  hasActiveFilters
-                    ? "Ajusta los filtros para ver otros canales."
-                    : "Conecta un canal para empezar a gestionar destinos."
-                }
-                icon={Inbox}
-                title={
-                  hasActiveFilters
-                    ? "Ningún canal coincide con esta vista"
-                    : "Aún no hay canales"
-                }
-              />
-            </CardContent>
-          </Card>
+          <Card variant="surface"><CardContent><EmptyState description={query ? "Prueba con otro término de búsqueda." : "Conecta un tipo de canal para empezar."} icon={Link2} title={query ? "No encontramos canales" : "Aún no hay canales"} /></CardContent></Card>
         )}
       </section>
 
+      <EditChannelDialog account={editingAccount} onOpenChange={(open) => !open && setEditingAccount(null)} onSave={(displayName) => void renameAccount(displayName)} pending={pendingAccountId === editingAccount?.id} />
+      <DeleteChannelDialog account={deletingAccount} onConfirm={() => void confirmDelete()} onOpenChange={(open) => !open && setDeletingAccount(null)} pending={pendingAccountId === deletingAccount?.id} />
+
       <ChannelConnectionDialog
-        onOpenChange={setIsConnectOpen}
+        capabilities={channelsFixture.capabilities}
+        onConnected={addAccount}
+        onOpenChange={(open) => {
+          setIsConnectOpen(open)
+        }}
         open={isConnectOpen}
-        readyProviders={dashboard.readyProviders}
-      />
-      <EditChannelDialog
-        account={editingAccount}
-        onOpenChange={(open) => !open && setEditingAccount(null)}
-        onSubmit={saveName}
-        submitting={pendingAction === editingAccount?.id}
-      />
-      <DeleteChannelDialog
-        account={deletingAccount}
-        onConfirm={deleteChannel}
-        onOpenChange={(open) => !open && setDeletingAccount(null)}
-        submitting={pendingAction === deletingAccount?.id}
       />
     </div>
   )

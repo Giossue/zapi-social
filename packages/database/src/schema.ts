@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm'
 import {
   boolean,
   index,
+  integer,
   jsonb,
   pgTable,
   text,
@@ -148,7 +149,18 @@ export const providerIntegrations = pgTable(
     enabled: boolean('enabled').notNull().default(false),
     readiness: varchar('readiness', { length: 24 }).notNull().default('unconfigured'),
     capabilities: jsonb('capabilities').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    enabledCapabilityKeys: jsonb('enabled_capability_keys')
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
     configurationCiphertext: text('configuration_ciphertext'),
+    configVersion: integer('config_version').notNull().default(1),
+    readinessIssues: jsonb('readiness_issues').$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    testedConfigFingerprint: varchar('tested_config_fingerprint', { length: 128 }),
+    lastTestedAt: timestamp('last_tested_at', { withTimezone: true }),
+    lastTestedByPlatformAdminId: uuid('last_tested_by_platform_admin_id').references(() => users.id, {
+      onDelete: 'set null',
+    }),
     updatedByUserId: uuid('updated_by_user_id').references(() => users.id, { onDelete: 'set null' }),
     ...timestamps,
   },
@@ -173,6 +185,8 @@ export const socialAccounts = pgTable(
     profileUrl: text('profile_url'),
     avatarUrl: text('avatar_url'),
     status: varchar('status', { length: 24 }).notNull().default('active'),
+    connectedAt: timestamp('connected_at', { withTimezone: true }),
+    disconnectedAt: timestamp('disconnected_at', { withTimezone: true }),
     metadata: jsonb('metadata').$type<Record<string, unknown>>().notNull().default(sql`'{}'::jsonb`),
     ...timestamps,
   },
@@ -259,6 +273,54 @@ export const channelOauthStates = pgTable(
       table.providerKey,
       table.capabilityKey,
     ),
+  ],
+)
+
+export const channelConnectionSessions = pgTable(
+  'channel_connection_sessions',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    workspaceId: uuid('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
+    capabilityKey: varchar('capability_key', { length: 64 }).notNull(),
+    userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    reconnectAccountId: uuid('reconnect_account_id').references(() => socialAccounts.id, { onDelete: 'set null' }),
+    socialAccountId: uuid('social_account_id').references(() => socialAccounts.id, {
+      onDelete: 'set null',
+    }),
+    status: varchar('status', { length: 24 }).notNull().default('authorizing'),
+    externalConnectionId: varchar('external_connection_id', { length: 255 }),
+    contextCiphertext: text('context_ciphertext'),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    index('channel_connection_sessions_workspace_status_index').on(table.workspaceId, table.status),
+    index('channel_connection_sessions_expiry_index').on(table.expiresAt),
+    index('channel_connection_sessions_social_account_index').on(table.socialAccountId),
+  ],
+)
+
+export const channelConnectionCandidates = pgTable(
+  'channel_connection_candidates',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    channelConnectionSessionId: uuid('channel_connection_session_id')
+      .notNull()
+      .references(() => channelConnectionSessions.id, { onDelete: 'cascade' }),
+    externalId: varchar('external_id', { length: 512 }).notNull(),
+    displayName: varchar('display_name', { length: 255 }).notNull(),
+    description: varchar('description', { length: 500 }).notNull(),
+    metadata: jsonb('metadata').$type<Record<string, unknown>>().notNull().default(sql`'{}'::jsonb`),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex('channel_connection_candidates_session_external_unique').on(
+      table.channelConnectionSessionId,
+      table.externalId,
+    ),
+    index('channel_connection_candidates_session_index').on(table.channelConnectionSessionId),
   ],
 )
 

@@ -1,6 +1,6 @@
 import { channelsFixture } from "@/features/channels/fixtures/channels"
-import type { ChannelsDashboard } from "@/features/channels/types/channels"
+import type { PortalChannelsDashboard } from "@/features/channels/types/channels"
 
-export async function getChannelsMock(): Promise<ChannelsDashboard> {
+export async function getChannelsMock(): Promise<PortalChannelsDashboard> {
   return channelsFixture
 }

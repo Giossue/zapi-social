@@ -66,13 +66,13 @@ export function AccountMenu({ profile }: AccountMenuProps) {
           </span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel className="grid gap-0.5">
+      <DropdownMenuContent align="end" size="compact">
+        <DropdownMenuLabel className="grid gap-0.5" size="compact">
           <span className="font-medium">{profile.displayName}</span>
           <span className="text-xs font-normal text-muted-foreground">{profile.email}</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="my-1 h-px bg-border" />
-        <DropdownMenuItem className="justify-between" onSelect={(event) => event.preventDefault()}>
+        <DropdownMenuItem className="justify-between" size="compact" onSelect={(event) => event.preventDefault()}>
           <span className="flex items-center gap-2">
             {themeMounted && resolvedTheme === "dark" ? <Moon aria-hidden="true" /> : <Sun aria-hidden="true" />}
             Tema oscuro
@@ -85,7 +85,7 @@ export function AccountMenu({ profile }: AccountMenuProps) {
           />
         </DropdownMenuItem>
         <DropdownMenuSeparator className="my-1 h-px bg-border" />
-        <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onSelect={() => void logout()}>
+        <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" size="compact" onSelect={() => void logout()}>
           <LogOut aria-hidden="true" />
           Cerrar sesión
         </DropdownMenuItem>

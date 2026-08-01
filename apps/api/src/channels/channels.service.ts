@@ -3,191 +3,233 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
-} from '@nestjs/common';
-import { providerIntegrations, socialAccounts } from '@workspace/database';
+} from '@nestjs/common'
+import { socialAccounts } from '@workspace/database'
 import {
-  channelListQuerySchema,
-  createChannelSchema,
-  updateChannelSchema,
+  portalChannelsQuerySchema,
+  updatePortalChannelSchema,
   type PortalAuthSession,
-  type ChannelAccount,
-  type ChannelList,
-  type ChannelOAuthProviderKey,
-} from '@workspace/contracts';
-import { and, asc, desc, eq, sql } from '@workspace/database/query';
-import { DatabaseService } from '../database/database.service';
+  type PortalChannelAccount,
+  type PortalChannelCapability,
+  type PortalChannelsQuery,
+  type PortalChannelsResponse,
+} from '@workspace/contracts'
+import { and, asc, desc, eq } from '@workspace/database/query'
+import { DatabaseService } from '../database/database.service'
 
-const managerRoles = new Set(['owner', 'admin']);
+const managerRoles = new Set(['owner', 'admin'])
+const capabilities: PortalChannelCapability[] = [
+  {
+    key: 'facebook_page',
+    provider: 'meta',
+    label: 'Página de Facebook',
+    description: 'Publica en una página administrada de Facebook.',
+    availability: 'ready',
+    connectionKind: 'oauth_picker',
+  },
+  {
+    key: 'instagram_profile',
+    provider: 'meta',
+    label: 'Perfil profesional de Instagram',
+    description: 'Publica en un perfil profesional vinculado a una página.',
+    availability: 'ready',
+    connectionKind: 'oauth_picker',
+  },
+  {
+    key: 'linkedin_page',
+    provider: 'linkedin',
+    label: 'Página de LinkedIn',
+    description: 'Próximamente.',
+    availability: 'coming_soon',
+    connectionKind: 'oauth_picker',
+  },
+  {
+    key: 'linkedin_profile',
+    provider: 'linkedin',
+    label: 'Perfil de LinkedIn',
+    description: 'Próximamente.',
+    availability: 'coming_soon',
+    connectionKind: 'oauth_direct',
+  },
+  {
+    key: 'x_profile',
+    provider: 'x',
+    label: 'Perfil de X',
+    description: 'Próximamente.',
+    availability: 'coming_soon',
+    connectionKind: 'oauth_direct',
+  },
+  {
+    key: 'tiktok_profile',
+    provider: 'tiktok',
+    label: 'Perfil de TikTok',
+    description: 'Próximamente.',
+    availability: 'coming_soon',
+    connectionKind: 'oauth_direct',
+  },
+  {
+    key: 'whatsapp_status',
+    provider: 'whatsapp',
+    label: 'Estados de WhatsApp',
+    description: 'Próximamente.',
+    availability: 'coming_soon',
+    connectionKind: 'qr_device',
+  },
+]
 
-type SocialAccountRow = typeof socialAccounts.$inferSelect;
+type SocialAccountRow = typeof socialAccounts.$inferSelect
 
 @Injectable()
 export class ChannelsService {
   constructor(private readonly database: DatabaseService) {}
 
-  async list(session: PortalAuthSession, query: unknown): Promise<ChannelList> {
-    const filters = this.parse(channelListQuerySchema.safeParse(query));
-    const where = this.listWhere(session.workspace.id, filters);
-
-    const [accounts, metricRows, readyProviderRows] = await Promise.all([
-      this.database.db
-        .select()
-        .from(socialAccounts)
-        .where(where)
-        .orderBy(
-          filters.sort === 'name'
-            ? asc(socialAccounts.displayName)
+  async list(
+    session: PortalAuthSession,
+    query: unknown,
+  ): Promise<PortalChannelsResponse> {
+    const filters = this.parse(portalChannelsQuerySchema.safeParse(query))
+    const rows = await this.database.db
+      .select()
+      .from(socialAccounts)
+      .where(eq(socialAccounts.workspaceId, session.workspace.id))
+      .orderBy(
+        filters.sort === 'display_name_asc'
+          ? asc(socialAccounts.displayName)
+          : filters.sort === 'updated_at_desc'
+            ? desc(socialAccounts.updatedAt)
             : desc(socialAccounts.createdAt),
-        ),
-      this.database.db
-        .select()
-        .from(socialAccounts)
-        .where(eq(socialAccounts.workspaceId, session.workspace.id)),
-      this.database.db
-        .select({ providerKey: providerIntegrations.providerKey })
-        .from(providerIntegrations)
-        .where(
-          and(
-            eq(providerIntegrations.enabled, true),
-            eq(providerIntegrations.readiness, 'ready'),
-          ),
-        ),
-    ]);
-
-    const readyProviders = readyProviderRows
-      .map(({ providerKey }) => providerKey)
-      .filter(
-        (providerKey): providerKey is ChannelOAuthProviderKey =>
-          providerKey === 'facebook' || providerKey === 'linkedin',
-      );
-
-    const recentBoundary = Date.now() - 30 * 24 * 60 * 60 * 1000;
-    const providers = [
-      ...new Set(metricRows.map((account) => account.providerKey)),
-    ].sort((a, b) => a.localeCompare(b));
+      )
 
     return {
       canManage: this.canManage(session),
-      canConnect: readyProviders.length > 0,
-      readyProviders,
-      metrics: {
-        total: metricRows.length,
-        active: metricRows.filter((account) => account.status === 'active')
-          .length,
-        paused: metricRows.filter((account) => account.status === 'paused')
-          .length,
-        recent: metricRows.filter(
-          (account) => account.createdAt.getTime() >= recentBoundary,
-        ).length,
-      },
-      providers,
-      accounts: accounts.map((account) => this.serialize(account)),
-    };
+      capabilities,
+      accounts: rows
+        .filter((account) => this.providerFor(account.providerKey) !== null)
+        .map((account) => this.serialize(account))
+        .filter((account) => this.matches(account, filters)),
+    }
   }
 
-  async create(session: PortalAuthSession, input: unknown): Promise<ChannelAccount> {
-    this.requireManager(session);
-    const values = this.parse(createChannelSchema.safeParse(input));
-    const [account] = await this.database.db
-      .insert(socialAccounts)
-      .values({
-        workspaceId: session.workspace.id,
-        providerKey: values.providerKey,
-        capabilityKey: values.capabilityKey,
-        displayName: values.displayName,
-        handle: values.handle || null,
-        profileUrl: values.profileUrl || null,
-        status: 'active',
-      })
-      .returning();
-
-    return this.serialize(account);
-  }
-
-  async update(
+  async updateDisplayName(
     session: PortalAuthSession,
     id: string,
     input: unknown,
-  ): Promise<ChannelAccount> {
-    this.requireManager(session);
-    const values = this.parse(updateChannelSchema.safeParse(input));
+  ): Promise<PortalChannelAccount> {
+    this.requireManager(session)
+    const accountId = this.parseId(id)
+    const values = this.parse(updatePortalChannelSchema.safeParse(input))
     const [account] = await this.database.db
       .update(socialAccounts)
-      .set({ ...values, updatedAt: new Date() })
+      .set({ displayName: values.displayName, updatedAt: new Date() })
       .where(
         and(
-          eq(socialAccounts.id, id),
+          eq(socialAccounts.id, accountId),
           eq(socialAccounts.workspaceId, session.workspace.id),
         ),
       )
-      .returning();
+      .returning()
 
-    if (!account) throw new NotFoundException();
-    return this.serialize(account);
+    if (!account) throw new NotFoundException()
+    return this.serialize(account)
   }
 
   async remove(session: PortalAuthSession, id: string): Promise<void> {
-    this.requireManager(session);
+    this.requireManager(session)
+    const accountId = this.parseId(id)
     const [account] = await this.database.db
       .delete(socialAccounts)
       .where(
         and(
-          eq(socialAccounts.id, id),
+          eq(socialAccounts.id, accountId),
           eq(socialAccounts.workspaceId, session.workspace.id),
         ),
       )
-      .returning({ id: socialAccounts.id });
+      .returning({ id: socialAccounts.id })
 
-    if (!account) throw new NotFoundException();
+    if (!account) throw new NotFoundException()
   }
 
-  private listWhere(
-    workspaceId: string,
-    filters: { q?: string; status?: 'active' | 'paused'; provider?: string },
-  ) {
-    const conditions = [eq(socialAccounts.workspaceId, workspaceId)];
-    if (filters.status)
-      conditions.push(eq(socialAccounts.status, filters.status));
-    if (filters.provider)
-      conditions.push(eq(socialAccounts.providerKey, filters.provider));
-    if (filters.q) {
-      const search = `%${filters.q.toLowerCase()}%`;
-      conditions.push(
-        sql`(
-          lower(${socialAccounts.displayName}) like ${search}
-          or lower(coalesce(${socialAccounts.handle}, '')) like ${search}
-          or lower(${socialAccounts.providerKey}) like ${search}
-          or lower(${socialAccounts.capabilityKey}) like ${search}
-        )`,
-      );
-    }
-    return and(...conditions) ?? eq(socialAccounts.workspaceId, workspaceId);
+  assertReconnectAccount(
+    session: PortalAuthSession,
+    id: string,
+  ): Promise<PortalChannelAccount> {
+    return this.findMetaAccount(session, id)
   }
 
-  private canManage(session: PortalAuthSession) {
-    return managerRoles.has(session.workspace.role);
+  private async findMetaAccount(
+    session: PortalAuthSession,
+    id: string,
+  ): Promise<PortalChannelAccount> {
+    const accountId = this.parseId(id)
+    const [account] = await this.database.db
+      .select()
+      .from(socialAccounts)
+      .where(
+        and(
+          eq(socialAccounts.id, accountId),
+          eq(socialAccounts.workspaceId, session.workspace.id),
+          eq(socialAccounts.providerKey, 'meta'),
+        ),
+      )
+      .limit(1)
+    if (!account) throw new BadRequestException()
+    return this.serialize(account)
   }
 
-  private requireManager(session: PortalAuthSession) {
-    if (!this.canManage(session)) throw new ForbiddenException();
+  private matches(account: PortalChannelAccount, filters: PortalChannelsQuery) {
+    if (filters.provider && account.provider !== filters.provider) return false
+    if (filters.capability && account.capabilityKey !== filters.capability) return false
+    if (filters.status && account.status !== filters.status) return false
+    if (!filters.q) return true
+    const search = filters.q.toLocaleLowerCase()
+    return [account.displayName, account.handle, account.provider, account.capabilityKey]
+      .filter((value): value is string => value !== null)
+      .some((value) => value.toLocaleLowerCase().includes(search))
   }
 
-  private parse<T>(result: { success: true; data: T } | { success: false }): T {
-    if (!result.success) throw new BadRequestException();
-    return result.data;
-  }
-
-  private serialize(account: SocialAccountRow): ChannelAccount {
+  private serialize(account: SocialAccountRow): PortalChannelAccount {
+    const provider = this.providerFor(account.providerKey)
+    if (!provider) throw new BadRequestException()
+    const capabilityKey = account.capabilityKey as PortalChannelAccount['capabilityKey']
     return {
       id: account.id,
-      providerKey: account.providerKey,
-      capabilityKey: account.capabilityKey,
+      provider,
+      capabilityKey,
       displayName: account.displayName,
       handle: account.handle,
       profileUrl: account.profileUrl,
-      status: account.status === 'paused' ? 'paused' : 'active',
+      avatarUrl: account.avatarUrl,
+      status: account.status === 'active' && !account.disconnectedAt ? 'connected' : 'disconnected',
       createdAt: account.createdAt.toISOString(),
       updatedAt: account.updatedAt.toISOString(),
-    };
+    }
+  }
+
+  private providerFor(providerKey: string): PortalChannelAccount['provider'] | null {
+    if (providerKey === 'facebook') return 'meta'
+    if (providerKey === 'meta' || providerKey === 'linkedin' || providerKey === 'x' || providerKey === 'tiktok') return providerKey
+    if (providerKey === 'whatsapp-status') return 'whatsapp'
+    return null
+  }
+
+  private parseId(id: string) {
+    // Validate at the boundary to avoid driver errors.
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) {
+      throw new BadRequestException()
+    }
+    return id
+  }
+
+  private canManage(session: PortalAuthSession) {
+    return managerRoles.has(session.workspace.role)
+  }
+
+  private requireManager(session: PortalAuthSession) {
+    if (!this.canManage(session)) throw new ForbiddenException()
+  }
+
+  private parse<T>(result: { success: true; data: T } | { success: false }): T {
+    if (!result.success) throw new BadRequestException()
+    return result.data
   }
 }

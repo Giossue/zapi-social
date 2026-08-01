@@ -1,34 +1,42 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpStatus,
+  Injectable,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
-  integrationProviderKeySchema,
-  updateProviderIntegrationSchema,
+  metaIntegrationProviderKey,
+  testMetaIntegrationSchema,
+  updateMetaIntegrationSchema,
   type AuthSession,
   type ChannelOAuthProviderKey,
-  type IntegrationProviderKey,
-  type ProviderIntegration,
-  type UpdateProviderIntegrationInput,
+  type MetaCapabilityKey,
+  type MetaIntegration,
+  type MetaIntegrationConfiguration,
+  type TestMetaIntegrationInput,
+  type TestMetaIntegrationResponse,
+  type UpdateMetaIntegrationInput,
 } from '@workspace/contracts';
 import { providerIntegrations } from '@workspace/database';
 import { eq } from '@workspace/database/query';
+import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { DatabaseService } from '../database/database.service';
 import { Aes256GcmService } from '../platform/crypto/aes-256-gcm.service';
 import { AppException } from '../platform/errors/app-exception';
 
-type ProviderDefinition = Pick<
-  ProviderIntegration,
-  | 'providerKey'
-  | 'label'
-  | 'description'
-  | 'capabilities'
-  | 'configurationFields'
->;
-
-type StoredProvider = {
-  enabled: boolean;
-  configurationCiphertext: string | null;
-};
+const metaCapabilities = [
+  {
+    key: 'facebook_page' as const,
+    label: 'Página de Facebook',
+    description: 'Lectura y publicación en páginas administradas.',
+  },
+  {
+    key: 'instagram_profile' as const,
+    label: 'Perfil de Instagram',
+    description: 'Conexión de perfiles Business y Creator.',
+  },
+];
 
 const oauthProviderConfigurationSchema = z
   .object({
@@ -41,57 +49,14 @@ export type OAuthProviderConfiguration = z.infer<
   typeof oauthProviderConfigurationSchema
 >;
 
-const providerDefinitions: ProviderDefinition[] = [
-  {
-    providerKey: 'facebook',
-    label: 'Meta',
-    description: 'Facebook Pages e Instagram Professional.',
-    capabilities: ['Facebook Page', 'Instagram Profile'],
-    configurationFields: [
-      { key: 'clientId', label: 'Client ID', secret: false },
-      { key: 'clientSecret', label: 'Client secret', secret: true },
-    ],
-  },
-  {
-    providerKey: 'linkedin',
-    label: 'LinkedIn',
-    description: 'Perfiles personales y páginas de organización.',
-    capabilities: ['LinkedIn Profile', 'LinkedIn Page'],
-    configurationFields: [
-      { key: 'clientId', label: 'Client ID', secret: false },
-      { key: 'clientSecret', label: 'Client secret', secret: true },
-    ],
-  },
-  {
-    providerKey: 'tiktok',
-    label: 'TikTok',
-    description: 'Perfiles de creador para publicación.',
-    capabilities: ['TikTok Profile'],
-    configurationFields: [
-      { key: 'clientId', label: 'Client ID', secret: false },
-      { key: 'clientSecret', label: 'Client secret', secret: true },
-    ],
-  },
-  {
-    providerKey: 'x',
-    label: 'X',
-    description: 'Perfiles X con OAuth 2.0 y PKCE.',
-    capabilities: ['X Profile'],
-    configurationFields: [
-      { key: 'clientId', label: 'Client ID', secret: false },
-      { key: 'clientSecret', label: 'Client secret', secret: true },
-    ],
-  },
-  {
-    providerKey: 'whatsapp-status',
-    label: 'WhatsApp Status',
-    description: 'Conexión mediante código QR y dispositivo dedicado.',
-    capabilities: ['WhatsApp Status'],
-    configurationFields: [
-      { key: 'deviceToken', label: 'Token de dispositivo', secret: true },
-    ],
-  },
-];
+type MetaRow = Pick<
+  typeof providerIntegrations.$inferSelect,
+  | 'enabled'
+  | 'enabledCapabilityKeys'
+  | 'configurationCiphertext'
+  | 'testedConfigFingerprint'
+  | 'lastTestedAt'
+>;
 
 @Injectable()
 export class IntegrationsService {
@@ -100,89 +65,176 @@ export class IntegrationsService {
     private readonly database: DatabaseService,
   ) {}
 
-  async list(): Promise<ProviderIntegration[]> {
-    const rows = await this.database.db
-      .select({
-        providerKey: providerIntegrations.providerKey,
-        enabled: providerIntegrations.enabled,
-        configurationCiphertext: providerIntegrations.configurationCiphertext,
-      })
-      .from(providerIntegrations);
-
-    const storedByKey = new Map(rows.map((row) => [row.providerKey, row]));
-
-    return providerDefinitions.map((definition) =>
-      this.toResponse(definition, storedByKey.get(definition.providerKey)),
-    );
+  async getMeta(): Promise<MetaIntegration> {
+    const row = await this.metaRow();
+    return this.toMetaResponse(row);
   }
 
-  async update(
-    providerKeyInput: string,
+  /**
+   * Validates the draft against Meta before it is stored. Only its SHA-256
+   * fingerprint and audit timestamp are persisted; the draft itself is never logged.
+   */
+  async testMeta(
     input: unknown,
     session: AuthSession,
-  ): Promise<ProviderIntegration> {
-    const parsedInput = updateProviderIntegrationSchema.safeParse(input);
-    if (!parsedInput.success) {
-      throw new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
-    }
-    const validatedInput: UpdateProviderIntegrationInput = parsedInput.data;
-
-    const providerKey =
-      integrationProviderKeySchema.safeParse(providerKeyInput);
-    if (!providerKey.success) {
+  ): Promise<TestMetaIntegrationResponse> {
+    const parsed = testMetaIntegrationSchema.safeParse(input);
+    if (!parsed.success) {
       throw new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
     }
 
-    const definition = this.findDefinition(providerKey.data);
-    this.assertConfigurationFields(definition, validatedInput.configuration);
+    const row = await this.metaRow();
+    const configuration = this.resolveDraftConfiguration(
+      parsed.data.configuration,
+      row,
+    );
+    await this.verifyMetaConfiguration(configuration);
 
-    const [existing] = await this.database.db
-      .select({
-        enabled: providerIntegrations.enabled,
-        configurationCiphertext: providerIntegrations.configurationCiphertext,
+    const testedAt = new Date();
+    const fingerprint = this.configurationFingerprint(configuration);
+    await this.database.db
+      .insert(providerIntegrations)
+      .values({
+        providerKey: metaIntegrationProviderKey,
+        enabled: row?.enabled ?? false,
+        readiness: this.readiness(
+          row?.enabled ?? false,
+          Boolean(row?.configurationCiphertext),
+          false,
+        ),
+        capabilities: metaCapabilities.map((capability) => capability.key),
+        enabledCapabilityKeys: row?.enabledCapabilityKeys ?? [],
+        configurationCiphertext: row?.configurationCiphertext ?? null,
+        testedConfigFingerprint: fingerprint,
+        lastTestedAt: testedAt,
+        lastTestedByPlatformAdminId: session.user.id,
+        updatedByUserId: row ? undefined : session.user.id,
       })
-      .from(providerIntegrations)
-      .where(eq(providerIntegrations.providerKey, definition.providerKey))
-      .limit(1);
+      .onConflictDoUpdate({
+        target: providerIntegrations.providerKey,
+        set: {
+          testedConfigFingerprint: fingerprint,
+          lastTestedAt: testedAt,
+          lastTestedByPlatformAdminId: session.user.id,
+          updatedAt: testedAt,
+        },
+      });
 
-    const enabled = validatedInput.enabled ?? existing?.enabled ?? false;
-    const configurationCiphertext = validatedInput.configuration
+    return { testedAt: testedAt.toISOString() };
+  }
+
+  async saveMeta(
+    input: unknown,
+    session: AuthSession,
+  ): Promise<MetaIntegration> {
+    const parsed = updateMetaIntegrationSchema.safeParse(input);
+    if (!parsed.success) {
+      throw new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
+    }
+
+    const row = await this.metaRow();
+    const values = parsed.data;
+    const configuration = values.configuration
+      ? this.resolveDraftConfiguration(values.configuration, row)
+      : this.decryptConfiguration(row?.configurationCiphertext);
+    const fingerprint = configuration
+      ? this.configurationFingerprint(configuration)
+      : null;
+    const tested = Boolean(
+      fingerprint && row?.testedConfigFingerprint === fingerprint,
+    );
+    const configured = Boolean(configuration);
+    const readiness = this.readiness(values.enabled, configured, tested);
+    const readinessIssues = this.readinessIssues(
+      values.enabled,
+      configured,
+      tested,
+    );
+    const configurationCiphertext = values.configuration
       ? this.encryption().encrypt(
-          JSON.stringify(validatedInput.configuration),
-          definition.providerKey,
+          JSON.stringify(configuration),
+          metaIntegrationProviderKey,
         )
-      : (existing?.configurationCiphertext ?? null);
-    const readiness = this.readiness(enabled, Boolean(configurationCiphertext));
+      : (row?.configurationCiphertext ?? null);
 
     await this.database.db
       .insert(providerIntegrations)
       .values({
-        providerKey: definition.providerKey,
-        enabled,
+        providerKey: metaIntegrationProviderKey,
+        enabled: values.enabled,
         readiness,
-        capabilities: definition.capabilities,
+        capabilities: metaCapabilities.map((capability) => capability.key),
+        enabledCapabilityKeys: values.enabledCapabilityKeys,
         configurationCiphertext,
+        readinessIssues,
+        testedConfigFingerprint: row?.testedConfigFingerprint ?? null,
+        lastTestedAt: row?.lastTestedAt ?? null,
         updatedByUserId: session.user.id,
       })
       .onConflictDoUpdate({
         target: providerIntegrations.providerKey,
         set: {
-          enabled,
+          enabled: values.enabled,
           readiness,
-          capabilities: definition.capabilities,
+          capabilities: metaCapabilities.map((capability) => capability.key),
+          enabledCapabilityKeys: values.enabledCapabilityKeys,
           configurationCiphertext,
+          readinessIssues,
           updatedByUserId: session.user.id,
           updatedAt: new Date(),
         },
       });
 
-    return this.toResponse(definition, { enabled, configurationCiphertext });
+    return this.toMetaResponse({
+      enabled: values.enabled,
+      enabledCapabilityKeys: values.enabledCapabilityKeys,
+      configurationCiphertext,
+      testedConfigFingerprint: row?.testedConfigFingerprint ?? null,
+      lastTestedAt: row?.lastTestedAt ?? null,
+    });
   }
 
   async readOAuthConfiguration(
     providerKey: ChannelOAuthProviderKey,
   ): Promise<OAuthProviderConfiguration> {
-    const [integration] = await this.database.db
+    if (providerKey !== metaIntegrationProviderKey) {
+      throw new AppException(
+        'OAUTH_PROVIDER_NOT_READY',
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
+    }
+
+    const row = await this.metaRow();
+    const configuration = this.decryptConfiguration(
+      row?.configurationCiphertext,
+    );
+    const fingerprint = configuration
+      ? this.configurationFingerprint(configuration)
+      : null;
+
+    if (
+      !row ||
+      !row.enabled ||
+      !configuration ||
+      !fingerprint ||
+      row.testedConfigFingerprint !== fingerprint
+    ) {
+      throw new AppException(
+        'OAUTH_PROVIDER_NOT_READY',
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
+    }
+
+    return configuration;
+  }
+
+  private async readStoredOAuthConfiguration(
+    providerKey: Exclude<
+      ChannelOAuthProviderKey,
+      typeof metaIntegrationProviderKey
+    >,
+  ): Promise<OAuthProviderConfiguration> {
+    const [row] = await this.database.db
       .select({
         enabled: providerIntegrations.enabled,
         readiness: providerIntegrations.readiness,
@@ -192,97 +244,177 @@ export class IntegrationsService {
       .where(eq(providerIntegrations.providerKey, providerKey))
       .limit(1);
 
-    if (
-      !integration ||
-      !integration.enabled ||
-      integration.readiness !== 'ready' ||
-      !integration.configurationCiphertext
-    ) {
+    if (!row || !row.enabled || row.readiness !== 'ready') {
       throw new AppException(
         'OAUTH_PROVIDER_NOT_READY',
         HttpStatus.SERVICE_UNAVAILABLE,
       );
     }
 
-    try {
-      const configuration = oauthProviderConfigurationSchema.safeParse(
-        JSON.parse(
-          this.encryption().decrypt(
-            integration.configurationCiphertext,
-            providerKey,
-          ),
-        ),
-      );
-      if (!configuration.success)
-        throw new Error('Invalid OAuth configuration.');
-      return configuration.data;
-    } catch {
+    const configuration = this.decryptConfiguration(
+      row.configurationCiphertext,
+    );
+    if (!configuration) {
       throw new AppException(
         'OAUTH_PROVIDER_CONFIGURATION_INVALID',
         HttpStatus.SERVICE_UNAVAILABLE,
       );
     }
+
+    return configuration;
+  }
+
+  private async metaRow(): Promise<MetaRow | undefined> {
+    const [row] = await this.database.db
+      .select({
+        enabled: providerIntegrations.enabled,
+        enabledCapabilityKeys: providerIntegrations.enabledCapabilityKeys,
+        configurationCiphertext: providerIntegrations.configurationCiphertext,
+        testedConfigFingerprint: providerIntegrations.testedConfigFingerprint,
+        lastTestedAt: providerIntegrations.lastTestedAt,
+      })
+      .from(providerIntegrations)
+      .where(eq(providerIntegrations.providerKey, metaIntegrationProviderKey))
+      .limit(1);
+    return row;
+  }
+
+  private toMetaResponse(row: MetaRow | undefined): MetaIntegration {
+    const configuration = this.decryptConfiguration(
+      row?.configurationCiphertext,
+    );
+    const fingerprint = configuration
+      ? this.configurationFingerprint(configuration)
+      : null;
+    const tested = Boolean(
+      fingerprint && row?.testedConfigFingerprint === fingerprint,
+    );
+    const enabled = row?.enabled ?? false;
+    const enabledCapabilityKeys = new Set(row?.enabledCapabilityKeys ?? []);
+
+    return {
+      providerKey: metaIntegrationProviderKey,
+      label: 'Meta',
+      description:
+        'Configuración compartida de Graph para páginas de Facebook y perfiles de Instagram.',
+      enabled,
+      readiness: this.readiness(enabled, Boolean(configuration), tested),
+      capabilities: metaCapabilities.map((capability) => ({
+        ...capability,
+        enabled: enabledCapabilityKeys.has(capability.key),
+        callbackUrl: this.callbackUrl(),
+      })),
+      clientId: configuration?.clientId ?? null,
+      secretConfigured: Boolean(configuration),
+      lastTestedAt: row?.lastTestedAt?.toISOString() ?? null,
+    };
+  }
+
+  private resolveDraftConfiguration(
+    configuration: { clientId: string; clientSecret?: string },
+    row: MetaRow | undefined,
+  ): MetaIntegrationConfiguration {
+    const stored = this.decryptConfiguration(row?.configurationCiphertext);
+    const candidate = configuration.clientSecret
+      ? configuration
+      : { ...configuration, clientSecret: stored?.clientSecret };
+    const parsed = oauthProviderConfigurationSchema.safeParse(candidate);
+    if (!parsed.success) {
+      throw new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
+    }
+    return parsed.data;
+  }
+
+  private decryptConfiguration(
+    ciphertext: string | null | undefined,
+  ): MetaIntegrationConfiguration | null {
+    if (!ciphertext) return null;
+
+    try {
+      const parsed = oauthProviderConfigurationSchema.safeParse(
+        JSON.parse(
+          this.encryption().decrypt(ciphertext, metaIntegrationProviderKey),
+        ),
+      );
+      return parsed.success ? parsed.data : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private async verifyMetaConfiguration(
+    configuration: MetaIntegrationConfiguration,
+  ): Promise<void> {
+    const url = new URL(
+      `https://graph.facebook.com/v22.0/${encodeURIComponent(configuration.clientId)}`,
+    );
+    url.searchParams.set('fields', 'id');
+    url.searchParams.set(
+      'access_token',
+      `${configuration.clientId}|${configuration.clientSecret}`,
+    );
+
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        signal: AbortSignal.timeout(10_000),
+      });
+      const body: unknown = await response.json().catch(() => null);
+      if (
+        !response.ok ||
+        !this.isVerifiedMetaApp(body, configuration.clientId)
+      ) {
+        throw new Error('Meta app verification failed.');
+      }
+    } catch {
+      throw new ServiceUnavailableException();
+    }
+  }
+
+  private isVerifiedMetaApp(value: unknown, clientId: string): boolean {
+    return (
+      typeof value === 'object' &&
+      value !== null &&
+      'id' in value &&
+      typeof value.id === 'string' &&
+      value.id === clientId
+    );
+  }
+
+  private configurationFingerprint(
+    configuration: MetaIntegrationConfiguration,
+  ): string {
+    return createHash('sha256')
+      .update(`${configuration.clientId}\u0000${configuration.clientSecret}`)
+      .digest('hex');
+  }
+
+  private readiness(enabled: boolean, configured: boolean, tested: boolean) {
+    if (!enabled) return 'disabled' as const;
+    if (!configured) return 'incomplete' as const;
+    return tested ? ('ready' as const) : ('untested' as const);
+  }
+
+  private readinessIssues(
+    enabled: boolean,
+    configured: boolean,
+    tested: boolean,
+  ): string[] {
+    if (!enabled) return [];
+    if (!configured) return ['configuration_required'];
+    return tested ? [] : ['configuration_requires_test'];
+  }
+
+  private callbackUrl(): string {
+    return new URL(
+      '/v1/oauth/channels/meta/callback',
+      this.config.getOrThrow<string>('API_PUBLIC_ORIGIN'),
+    ).toString();
   }
 
   private encryption() {
     return new Aes256GcmService(
       this.config.getOrThrow<string>('PROVIDER_INTEGRATIONS_ENCRYPTION_KEY'),
     );
-  }
-
-  private findDefinition(
-    providerKey: IntegrationProviderKey,
-  ): ProviderDefinition {
-    const definition = providerDefinitions.find(
-      (provider) => provider.providerKey === providerKey,
-    );
-    if (!definition) {
-      throw new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
-    }
-
-    return definition;
-  }
-
-  private assertConfigurationFields(
-    definition: ProviderDefinition,
-    configuration: UpdateProviderIntegrationInput['configuration'],
-  ) {
-    if (!configuration) return;
-
-    const expectedKeys = definition.configurationFields
-      .map((field) => field.key)
-      .sort();
-    const receivedKeys = Object.keys(configuration).sort();
-    const isExactMatch =
-      expectedKeys.length === receivedKeys.length &&
-      expectedKeys.every((key, index) => key === receivedKeys[index]);
-
-    if (!isExactMatch) {
-      throw new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
-    }
-  }
-
-  private toResponse(
-    definition: ProviderDefinition,
-    stored: StoredProvider | undefined,
-  ): ProviderIntegration {
-    const enabled = stored?.enabled ?? false;
-    const configured = Boolean(stored?.configurationCiphertext);
-
-    return {
-      ...definition,
-      enabled,
-      readiness: this.readiness(enabled, configured),
-      configuredFields: configured ? definition.configurationFields.length : 0,
-      requiredFields: definition.configurationFields.length,
-    };
-  }
-
-  private readiness(
-    enabled: boolean,
-    configured: boolean,
-  ): ProviderIntegration['readiness'] {
-    if (!enabled) return 'disabled';
-    return configured ? 'ready' : 'incomplete';
   }
 }

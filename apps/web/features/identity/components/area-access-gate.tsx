@@ -4,7 +4,6 @@ import { ApiError, authApi } from "@workspace/api-client"
 import { Button } from "@workspace/ui/components/button"
 import { Card } from "@workspace/ui/components/card"
 import { EmptyState } from "@workspace/ui/components/empty-state"
-import { Skeleton } from "@workspace/ui/components/skeleton"
 import { ShieldAlert } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useState, type ReactNode } from "react"
@@ -33,17 +32,7 @@ const areaLabels: Record<ProductArea, string> = {
 }
 
 function AccessLoading() {
-  return (
-    <main className="mx-auto flex min-h-dvh w-full max-w-7xl items-center p-4 sm:p-6 lg:p-8" aria-busy="true">
-      <Card variant="surface" className="w-full max-w-lg gap-5 py-6">
-        <div className="space-y-3 px-6">
-          <Skeleton className="h-5 w-36" />
-          <Skeleton className="h-8 w-64 max-w-full" />
-          <Skeleton className="h-4 w-full" />
-        </div>
-      </Card>
-    </main>
-  )
+  return <div aria-busy="true" className="min-h-dvh bg-background" />
 }
 
 export function AreaAccessGate({ area, children }: AreaAccessGateProps) {

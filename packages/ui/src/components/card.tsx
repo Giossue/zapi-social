@@ -7,6 +7,7 @@ const cardVariants = cva("flex flex-col gap-6 rounded-xl py-6 text-card-foregrou
   variants: {
     variant: {
       default: "border bg-card shadow-sm",
+      subtle: "border bg-card shadow-xs",
       surface: "border bg-card shadow-none",
       outline: "border bg-transparent shadow-none",
       interactive: "border bg-background shadow-none transition-colors group-hover:border-primary/50 group-hover:bg-primary/15 group-hover:text-primary group-hover:[&_p]:text-primary group-hover:[&_svg]:text-primary",

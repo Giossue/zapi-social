@@ -36,6 +36,13 @@
       "when": 1785500100000,
       "tag": "0004_fix_platform_admin_workspace_trigger",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1785500200000,
+      "tag": "0005_meta_channels_v2",
+      "breakpoints": true
     }
   ]
 }

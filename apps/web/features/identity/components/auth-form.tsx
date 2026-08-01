@@ -23,7 +23,10 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 
-import { getAreaDestination, getSessionArea } from "@/features/identity/session-area"
+import {
+  getAreaDestination,
+  getSessionArea,
+} from "@/features/identity/session-area"
 import {
   useEffect,
   useLayoutEffect,
@@ -165,20 +168,23 @@ export function AuthForm({ initialMode }: { initialMode: AuthMode }) {
 
     setIsSubmitting(true)
     try {
-      const session = mode === "register"
-        ? await authApi.register({
-            displayName: String(form.get("displayName") ?? ""),
-            email,
-            password: submittedPassword,
-          })
-        : await authApi.login({ email, password: submittedPassword })
+      const session =
+        mode === "register"
+          ? await authApi.register({
+              displayName: String(form.get("displayName") ?? ""),
+              email,
+              password: submittedPassword,
+            })
+          : await authApi.login({ email, password: submittedPassword })
       const area = getSessionArea(session)
 
       if (mode === "register") {
         router.replace(getAreaDestination("portal"))
       } else {
         if (!area) {
-          toast.error("Tu sesión no incluye el área de acceso requerida. Vuelve a iniciar sesión.")
+          toast.error(
+            "Tu sesión no incluye el área de acceso requerida. Vuelve a iniciar sesión."
+          )
           return
         }
         router.replace(getAreaDestination(area))
@@ -186,10 +192,12 @@ export function AuthForm({ initialMode }: { initialMode: AuthMode }) {
       router.refresh()
     } catch (caught) {
       if (caught instanceof ApiError) {
-        console.error("Auth request failed", {
-          code: caught.code,
-          requestId: caught.requestId,
-        })
+        if (caught.status >= 500) {
+          console.error("Auth request failed", {
+            code: caught.code,
+            requestId: caught.requestId,
+          })
+        }
         toast.error(
           authErrorMessages[caught.code] ??
             "No pudimos completar la solicitud. Inténtalo de nuevo."

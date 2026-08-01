@@ -10,11 +10,13 @@ export const providerIntegrations: IntegrationProvider[] = [
     authMode: "oauth",
     enabled: true,
     readiness: "ready",
+    testState: "passed",
     capabilities: [
       {
         id: "facebook-page",
         label: "Página de Facebook",
         description: "Lectura y publicación en páginas administradas.",
+        enabled: true,
         callbackUrl:
           "https://admin.zapi.test/integrations/meta/facebook-page/callback",
       },
@@ -22,6 +24,7 @@ export const providerIntegrations: IntegrationProvider[] = [
         id: "instagram-profile",
         label: "Perfil de Instagram",
         description: "Conexión de perfiles Business y Creator.",
+        enabled: true,
         callbackUrl:
           "https://admin.zapi.test/integrations/meta/instagram-profile/callback",
       },
@@ -40,7 +43,6 @@ export const providerIntegrations: IntegrationProvider[] = [
         type: "password",
         required: true,
         hasStoredSecret: true,
-        helper: "Guardado como valor enmascarado.",
       },
       {
         id: "graphVersion",
@@ -53,12 +55,21 @@ export const providerIntegrations: IntegrationProvider[] = [
         label: "Permisos",
         value:
           "public_profile, pages_read_engagement, pages_manage_posts, pages_show_list, business_management, instagram_basic, instagram_content_publish",
+        type: "multiselect",
         required: true,
       },
     ],
     checklist: [
-      { id: "app", label: "ID y secreto de la aplicación configurados", complete: true },
-      { id: "version", label: "Versión de Graph API establecida", complete: true },
+      {
+        id: "app",
+        label: "ID y secreto de la aplicación configurados",
+        complete: true,
+      },
+      {
+        id: "version",
+        label: "Versión de Graph API establecida",
+        complete: true,
+      },
       {
         id: "callbacks",
         label: "URLs de retorno OAuth registradas por tipo de canal",
@@ -80,11 +91,13 @@ export const providerIntegrations: IntegrationProvider[] = [
     authMode: "oauth",
     enabled: true,
     readiness: "incomplete",
+    testState: "not-tested",
     capabilities: [
       {
         id: "linkedin-profile",
         label: "Perfil",
         description: "Autorización de miembros de LinkedIn.",
+        enabled: true,
         callbackUrl:
           "https://admin.zapi.test/integrations/linkedin/profile/callback",
       },
@@ -102,19 +115,27 @@ export const providerIntegrations: IntegrationProvider[] = [
         value: "",
         type: "password",
         required: true,
-        helper: "Añade el secreto emitido para esta aplicación.",
       },
       {
         id: "scopes",
         label: "Permisos",
         value: "openid profile email w_member_social",
+        type: "multiselect",
         required: true,
       },
     ],
     checklist: [
       { id: "app", label: "ID de cliente configurado", complete: true },
-      { id: "secret", label: "Secreto de cliente configurado", complete: false },
-      { id: "callback", label: "URL de retorno OAuth registrada", complete: true },
+      {
+        id: "secret",
+        label: "Secreto de cliente configurado",
+        complete: false,
+      },
+      {
+        id: "callback",
+        label: "URL de retorno OAuth registrada",
+        complete: true,
+      },
     ],
   },
   {
@@ -124,11 +145,13 @@ export const providerIntegrations: IntegrationProvider[] = [
     authMode: "oauth",
     enabled: true,
     readiness: "ready",
+    testState: "passed",
     capabilities: [
       {
         id: "linkedin-page",
         label: "Página",
         description: "Publicación para organizaciones autorizadas.",
+        enabled: true,
         callbackUrl:
           "https://admin.zapi.test/integrations/linkedin/page/callback",
       },
@@ -147,13 +170,13 @@ export const providerIntegrations: IntegrationProvider[] = [
         type: "password",
         required: true,
         hasStoredSecret: true,
-        helper: "Guardado como valor enmascarado.",
       },
       {
         id: "scopes",
         label: "Permisos",
         value:
           "w_organization_social r_organization_social rw_organization_admin",
+        type: "multiselect",
         required: true,
       },
     ],
@@ -163,7 +186,11 @@ export const providerIntegrations: IntegrationProvider[] = [
         label: "Credenciales OAuth configuradas",
         complete: true,
       },
-      { id: "callback", label: "URL de retorno OAuth registrada", complete: true },
+      {
+        id: "callback",
+        label: "URL de retorno OAuth registrada",
+        complete: true,
+      },
       {
         id: "scopes",
         label: "Permisos de organización revisados",
@@ -178,11 +205,13 @@ export const providerIntegrations: IntegrationProvider[] = [
     authMode: "oauth",
     enabled: false,
     readiness: "disabled",
+    testState: "not-tested",
     capabilities: [
       {
         id: "x-profile",
         label: "Perfil",
         description: "Conexión de perfiles y publicación.",
+        enabled: true,
         callbackUrl: "https://admin.zapi.test/integrations/x/profile/callback",
       },
     ],
@@ -200,12 +229,12 @@ export const providerIntegrations: IntegrationProvider[] = [
         type: "password",
         required: true,
         hasStoredSecret: true,
-        helper: "Guardado como valor enmascarado.",
       },
       {
         id: "scopes",
         label: "Permisos",
         value: "tweet.read tweet.write users.read offline.access media.write",
+        type: "multiselect",
         required: true,
       },
     ],
@@ -215,7 +244,11 @@ export const providerIntegrations: IntegrationProvider[] = [
         label: "Credenciales OAuth configuradas",
         complete: true,
       },
-      { id: "callback", label: "URL de retorno OAuth registrada", complete: true },
+      {
+        id: "callback",
+        label: "URL de retorno OAuth registrada",
+        complete: true,
+      },
       {
         id: "enabled",
         label: "Proveedor habilitado para espacios de trabajo",
@@ -230,11 +263,13 @@ export const providerIntegrations: IntegrationProvider[] = [
     authMode: "oauth",
     enabled: true,
     readiness: "ready",
+    testState: "passed",
     capabilities: [
       {
         id: "tiktok-profile",
         label: "Perfil",
         description: "Conexión de perfil y acceso a vídeos.",
+        enabled: true,
         callbackUrl:
           "https://admin.zapi.test/integrations/tiktok/profile/callback",
       },
@@ -253,13 +288,13 @@ export const providerIntegrations: IntegrationProvider[] = [
         type: "password",
         required: true,
         hasStoredSecret: true,
-        helper: "Guardado como valor enmascarado.",
       },
       {
         id: "scopes",
         label: "Permisos",
         value:
           "user.info.basic,user.info.profile,user.info.stats,video.list,video.publish,video.upload",
+        type: "multiselect",
         required: true,
       },
     ],
@@ -269,7 +304,11 @@ export const providerIntegrations: IntegrationProvider[] = [
         label: "Clave y secreto de cliente configurados",
         complete: true,
       },
-      { id: "callback", label: "URL de retorno OAuth registrada", complete: true },
+      {
+        id: "callback",
+        label: "URL de retorno OAuth registrada",
+        complete: true,
+      },
       { id: "scopes", label: "Permisos de vídeo revisados", complete: true },
     ],
   },
@@ -281,11 +320,13 @@ export const providerIntegrations: IntegrationProvider[] = [
     authMode: "basic",
     enabled: true,
     readiness: "ready",
+    testState: "passed",
     capabilities: [
       {
         id: "whatsapp-status",
         label: "Historias de WhatsApp",
         description: "Publicación mediante el conector.",
+        enabled: true,
       },
     ],
     fields: [
@@ -295,7 +336,7 @@ export const providerIntegrations: IntegrationProvider[] = [
         value: "https://conector-sandbox.zapi.test",
         type: "url",
         required: true,
-        helper: "URL base del conector, sin barra final.",
+        placeholder: "https://conector.ejemplo.com",
       },
       {
         id: "basicAuthUsername",
@@ -310,13 +351,16 @@ export const providerIntegrations: IntegrationProvider[] = [
         type: "password",
         required: true,
         hasStoredSecret: true,
-        helper: "Guardado como valor enmascarado.",
       },
     ],
     checklist: [
       { id: "base-url", label: "URL del conector configurada", complete: true },
       { id: "auth", label: "Conector configurado", complete: true },
-      { id: "oauth", label: "No requiere OAuth ni URL de retorno", complete: true },
+      {
+        id: "oauth",
+        label: "No requiere OAuth ni URL de retorno",
+        complete: true,
+      },
     ],
   },
 ]

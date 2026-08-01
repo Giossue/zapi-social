@@ -11,12 +11,13 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { ScrollArea } from "@workspace/ui/components/scroll-area"
+import { toast } from "@workspace/ui/components/toast"
 import {
   CheckCircle2,
   ChevronLeft,
   CircleAlert,
-  KeyRound,
   LoaderCircle,
+  Plus,
   QrCode,
   RefreshCw,
   ScanLine,
@@ -25,20 +26,14 @@ import {
   Unplug,
 } from "lucide-react"
 import { useState } from "react"
-import {
-  channelConnectionCapabilities,
-  directConnectionResources,
-  mockWhatsAppDevices,
-} from "../fixtures/channel-connection"
 import type {
-  ChannelConnectionCapability,
-  ConnectionResource,
-} from "../types/channel-connection"
-import type { ChannelOAuthProviderKey } from "../types/channels"
+  ChannelCandidate,
+  PortalChannelAccount,
+  PortalChannelCapability,
+} from "../types/channels"
 
-type ConnectionStep =
-  "capability" | "oauth" | "picker" | "review" | "connected" | "whatsapp"
-type WhatsAppState = "idle" | "waiting" | "connected" | "expired"
+type DialogStep = "capabilities" | "authorizing" | "picker" | "whatsapp" | "connected"
+type WhatsAppState = "start" | "waiting" | "expired" | "connected"
 
 const providerLabels = {
   meta: "Meta",
@@ -48,604 +43,287 @@ const providerLabels = {
   whatsapp: "WhatsApp",
 } as const
 
-function StepBackButton({ onClick }: { onClick: () => void }) {
-  return (
-    <Button
-      className="w-fit"
-      onClick={onClick}
-      size="sm"
-      type="button"
-      variant="ghost"
-    >
-      <ChevronLeft aria-hidden="true" />
-      Volver
-    </Button>
-  )
-}
-
-function CapabilityOption({
+function CapabilityCard({
   capability,
   onSelect,
 }: {
-  capability: ChannelConnectionCapability
-  onSelect: (capability: ChannelConnectionCapability) => void
+  capability: PortalChannelCapability
+  onSelect: (capability: PortalChannelCapability) => void
 }) {
   const Icon = capability.icon
+  const blocked = capability.availability !== "ready"
+  const label = blocked
+    ? capability.availability === "plan_locked"
+      ? "No incluido en tu plan"
+      : "Próximamente"
+    : "Disponible"
 
   return (
-    <Button
-      className="h-auto w-full items-start justify-start gap-3 px-4 py-3 text-left whitespace-normal"
-      onClick={() => onSelect(capability)}
-      type="button"
-      variant="surface"
-    >
-      <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-        <Icon aria-hidden="true" className="size-4" />
-      </span>
-      <span className="grid min-w-0 flex-1 gap-1">
-        <span className="flex flex-wrap items-center gap-2">
-          <span>{capability.label}</span>
-          <Badge variant="neutral">{providerLabels[capability.provider]}</Badge>
-        </span>
-        <span className="text-sm leading-relaxed font-normal text-muted-foreground">
-          {capability.description}
-        </span>
-      </span>
-    </Button>
-  )
-}
-
-function OAuthState({
-  capability,
-  onAuthorized,
-}: {
-  capability: ChannelConnectionCapability
-  onAuthorized: () => void
-}) {
-  const usesPkce = capability.flow === "pkce-direct"
-
-  return (
-    <div className="grid gap-5">
-      <Card variant="inset">
-        <CardContent className="grid gap-4 py-5">
-          <div className="flex items-start gap-3">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              {usesPkce ? (
-                <KeyRound aria-hidden="true" className="size-5" />
-              ) : (
-                <ShieldCheck aria-hidden="true" className="size-5" />
-              )}
-            </span>
-            <div className="grid gap-1">
-              <p className="font-medium">
-                Autorización simulada de {providerLabels[capability.provider]}
-              </p>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                En producción se abrirá la autorización del proveedor y se
-                validará el estado al volver.
-              </p>
-            </div>
-          </div>
-          <div className="grid gap-2 border-t pt-4 text-sm">
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-muted-foreground">Tipo de canal</span>
-              <span className="font-medium">{capability.label}</span>
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-muted-foreground">Estado de OAuth</span>
-              <Badge variant="neutral">sesión simulada</Badge>
-            </div>
-            {usesPkce ? (
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-muted-foreground">PKCE</span>
-                <span className="font-medium">
-                  desafío local · verificador no expuesto
-                </span>
-              </div>
-            ) : null}
-          </div>
-        </CardContent>
-      </Card>
-      <div className="flex flex-wrap justify-end gap-2">
-        <Button onClick={onAuthorized} type="button">
-          Simular autorización aceptada
-        </Button>
-      </div>
-    </div>
-  )
-}
-
-function ResourcePicker({
-  capability,
-  selectedResourceId,
-  onSelect,
-  onContinue,
-}: {
-  capability: ChannelConnectionCapability
-  selectedResourceId: string | null
-  onSelect: (resource: ConnectionResource) => void
-  onContinue: () => void
-}) {
-  const resources = capability.resources ?? []
-
-  return (
-    <div className="grid gap-5">
-      <p className="text-sm text-muted-foreground">
-        Recursos sintéticos devueltos por {providerLabels[capability.provider]}.
-        Elige el destino que quieres administrar.
-      </p>
-      <ScrollArea className="max-h-72 pr-3">
-        <div className="grid gap-2">
-          {resources.map((resource) => {
-            const selected = resource.id === selectedResourceId
-            return (
-              <Button
-                aria-pressed={selected}
-                className="h-auto w-full justify-start px-4 py-3 text-left whitespace-normal"
-                key={resource.id}
-                onClick={() => onSelect(resource)}
-                type="button"
-                variant={selected ? "brand-secondary" : "surface"}
-              >
-                <span className="grid gap-0.5">
-                  <span>{resource.label}</span>
-                  <span className="text-sm font-normal text-muted-foreground">
-                    {resource.description}
-                  </span>
-                  {resource.metadata ? (
-                    <span className="text-xs font-normal text-muted-foreground">
-                      {resource.metadata}
-                    </span>
-                  ) : null}
-                </span>
-              </Button>
-            )
-          })}
+    <Card variant="surface">
+      <CardContent className="flex h-full flex-col gap-4">
+        <div className="flex items-start justify-between gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <Icon aria-hidden="true" className="size-5" />
+          </span>
+          {!blocked ? <Badge variant="success">{label}</Badge> : null}
         </div>
-      </ScrollArea>
-      <div className="flex justify-end">
+        <div className="space-y-1">
+          <p className="font-semibold">{capability.label}</p>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            {blocked ? label : capability.description}
+          </p>
+        </div>
         <Button
-          disabled={!selectedResourceId}
-          onClick={onContinue}
+          className="mt-auto w-full"
+          disabled={blocked}
+          onClick={() => onSelect(capability)}
           type="button"
+          variant={blocked ? "surface" : "brand-secondary"}
         >
-          Continuar con el destino
+          {blocked ? <Unplug data-icon="inline-start" /> : <Plus data-icon="inline-start" />}
+          {blocked ? label : "Conectar"}
         </Button>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }
 
-function CreatorInfo({ onContinue }: { onContinue: () => void }) {
+function QrMock() {
   return (
-    <div className="grid gap-5">
-      <Card variant="inset">
-        <CardContent className="grid gap-4 py-5">
-          <div className="flex items-start gap-3">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <ShieldCheck aria-hidden="true" className="size-5" />
-            </span>
-            <div className="grid gap-1">
-              <p className="font-medium">Información del creador</p>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                En Laravel, TikTok resuelve el perfil autorizado y permite
-                consultar información del creador para los perfiles conectados.
-              </p>
-            </div>
-          </div>
-          <div className="grid gap-2 border-t pt-4 text-sm">
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-muted-foreground">Perfil mock</span>
-              <span className="font-medium">@anatorres.creates</span>
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-muted-foreground">Estado del creador</span>
-              <Badge variant="success">Disponible</Badge>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      <div className="flex justify-end">
-        <Button onClick={onContinue} type="button">
-          Revisar conexión
-        </Button>
-      </div>
-    </div>
-  )
-}
-
-function ConnectionReview({
-  capability,
-  resource,
-  onConfirm,
-}: {
-  capability: ChannelConnectionCapability
-  resource: ConnectionResource
-  onConfirm: () => void
-}) {
-  return (
-    <div className="grid gap-5">
-      <Card variant="inset">
-        <CardContent className="grid gap-4 py-5">
-          <div className="flex items-start gap-3">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-success/10 text-success">
-              <CheckCircle2 aria-hidden="true" className="size-5" />
-            </span>
-            <div className="grid gap-1">
-              <p className="font-medium">Listo para confirmar</p>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                Esta acción sólo actualiza el estado local de la Fase A; no crea
-                un canal ni guarda tokens.
-              </p>
-            </div>
-          </div>
-          <div className="grid gap-2 border-t pt-4 text-sm">
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-muted-foreground">Canal</span>
-              <span className="font-medium">{capability.label}</span>
-            </div>
-            <div className="flex items-center justify-between gap-4">
-              <span className="text-muted-foreground">Destino</span>
-              <span className="font-medium">{resource.label}</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-      <div className="flex justify-end">
-        <Button onClick={onConfirm} type="button">
-          Confirmar conexión mock
-        </Button>
-      </div>
-    </div>
-  )
-}
-
-function WhatsAppConnection({
-  state,
-  deviceId,
-  onStart,
-  onPoll,
-  onExpire,
-  onRetry,
-  onReconnect,
-}: {
-  state: WhatsAppState
-  deviceId: string | null
-  onStart: () => void
-  onPoll: () => void
-  onExpire: () => void
-  onRetry: () => void
-  onReconnect: () => void
-}) {
-  if (state === "idle") {
-    return (
-      <div className="grid gap-5">
-        <Card variant="inset">
-          <CardContent className="flex items-start gap-3 py-5">
-            <Smartphone
-              aria-hidden="true"
-              className="mt-0.5 size-5 text-primary"
-            />
-            <div className="grid gap-1">
-              <p className="font-medium">Crear dispositivo temporal</p>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                El flujo real crea un dispositivo, solicita un QR y consulta su
-                estado hasta completar el vínculo.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        <div className="flex justify-end">
-          <Button onClick={onStart} type="button">
-            Crear dispositivo y generar QR simulado
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
-  if (state === "connected") {
-    return (
-      <div className="grid gap-5">
-        <Card variant="inset">
-          <CardContent className="flex items-start gap-3 py-5">
-            <CheckCircle2
-              aria-hidden="true"
-              className="mt-0.5 size-5 text-success"
-            />
-            <div className="grid gap-1">
-              <p className="font-medium">Historias de WhatsApp conectadas</p>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                La consulta simulada confirmó la sesión del dispositivo{" "}
-                <span className="font-medium text-foreground">{deviceId}</span>.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        <div className="flex justify-end">
-          <Button onClick={onReconnect} type="button" variant="brand-secondary">
-            <RefreshCw aria-hidden="true" />
-            Reconectar dispositivo
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
-  if (state === "expired") {
-    return (
-      <div className="grid gap-5">
-        <Card variant="inset">
-          <CardContent className="flex items-start gap-3 py-5">
-            <CircleAlert
-              aria-hidden="true"
-              className="mt-0.5 size-5 text-warning"
-            />
-            <div className="grid gap-1">
-              <p className="font-medium">El QR simulado expiró</p>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                Genera un QR nuevo para continuar. El dispositivo anterior no se usa
-                para esta simulación.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        <div className="flex justify-end">
-          <Button onClick={onRetry} type="button">
-            <RefreshCw aria-hidden="true" />
-            Reintentar QR
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="grid gap-5">
-      <Card variant="inset">
-        <CardContent className="grid justify-items-center gap-4 py-5 text-center">
-          <div
-            className="grid size-40 grid-cols-5 gap-1 rounded-lg border bg-card p-3"
-            role="img"
-            aria-label="Código QR sintético para WhatsApp"
-          >
-            {Array.from({ length: 25 }, (_, index) => (
-              <span
-                className={
-                  index % 3 === 0 || index % 5 === 0
-                    ? "bg-foreground"
-                    : "bg-muted"
-                }
-                key={index}
-              />
-            ))}
-          </div>
-          <div className="grid gap-1">
-            <p className="flex items-center justify-center gap-2 font-medium">
-              <QrCode aria-hidden="true" className="size-4 text-primary" />
-              Escanea el QR desde dispositivos vinculados
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Dispositivo simulado: {deviceId}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-      <div className="flex flex-wrap justify-end gap-2">
-        <Button onClick={onExpire} type="button" variant="ghost">
-          <Unplug aria-hidden="true" />
-          Simular expiración
-        </Button>
-        <Button onClick={onPoll} type="button" variant="brand-secondary">
-          <LoaderCircle aria-hidden="true" className="animate-spin" />
-          Simular consulta
-        </Button>
-        <Button onClick={onPoll} type="button">
-          <ScanLine aria-hidden="true" />
-          Marcar como conectado
-        </Button>
-      </div>
+    <div
+      aria-label="Código QR sintético para Historias de WhatsApp"
+      className="grid size-40 grid-cols-5 gap-1 rounded-lg border border-border bg-card p-3"
+      role="img"
+    >
+      {Array.from({ length: 25 }, (_, index) => (
+        <span
+          className={index % 3 === 0 || index % 5 === 0 ? "bg-foreground" : "bg-muted"}
+          key={index}
+        />
+      ))}
     </div>
   )
 }
 
 export function ChannelConnectionDialog({
+  capabilities,
   open,
+  onConnected,
   onOpenChange,
-  readyProviders,
 }: {
+  capabilities: readonly PortalChannelCapability[]
   open: boolean
+  onConnected: (account: PortalChannelAccount) => void
   onOpenChange: (open: boolean) => void
-  readyProviders: readonly ChannelOAuthProviderKey[]
 }) {
-  const [capability, setCapability] =
-    useState<ChannelConnectionCapability | null>(null)
-  const [selectedResource, setSelectedResource] =
-    useState<ConnectionResource | null>(null)
-  const [step, setStep] = useState<ConnectionStep>("capability")
-  const [whatsAppState, setWhatsAppState] = useState<WhatsAppState>("idle")
-  const [whatsAppDeviceId, setWhatsAppDeviceId] = useState<string | null>(null)
+  const [capability, setCapability] = useState<PortalChannelCapability | null>(null)
+  const [candidate, setCandidate] = useState<ChannelCandidate | null>(null)
+  const [step, setStep] = useState<DialogStep>("capabilities")
+  const [whatsAppState, setWhatsAppState] = useState<WhatsAppState>("start")
 
-  const reset = () => {
+  function reset() {
     setCapability(null)
-    setSelectedResource(null)
-    setStep("capability")
-    setWhatsAppState("idle")
-    setWhatsAppDeviceId(null)
+    setCandidate(null)
+    setStep("capabilities")
+    setWhatsAppState("start")
   }
 
-  const handleOpenChange = (nextOpen: boolean) => {
+  function handleOpenChange(nextOpen: boolean) {
     if (!nextOpen) reset()
     onOpenChange(nextOpen)
   }
 
-  const selectCapability = (nextCapability: ChannelConnectionCapability) => {
+  function selectCapability(nextCapability: PortalChannelCapability) {
     setCapability(nextCapability)
-    setSelectedResource(null)
-    if (nextCapability.flow === "qr") {
+    setCandidate(null)
+    if (nextCapability.connectionKind === "qr") {
       setStep("whatsapp")
-      setWhatsAppState("idle")
       return
     }
-    setStep("oauth")
+    setStep("authorizing")
   }
 
-  const handleAuthorized = () => {
+  function finishConnection(selected: ChannelCandidate) {
     if (!capability) return
-    if (capability.flow === "oauth-picker") {
-      setStep("picker")
-      return
-    }
-    if (capability.flow === "creator-info") {
-      setStep("picker")
-      return
-    }
-    setSelectedResource(directConnectionResources[capability.key] ?? null)
-    setStep("review")
+    onConnected({
+      id: `mock-${capability.key}-${selected.id}`,
+      capabilityKey: capability.key,
+      provider: capability.provider,
+      displayName: selected.label,
+      handle: selected.label.startsWith("@") ? selected.label.slice(1) : undefined,
+      status: "connected",
+      connectedAt: "2026-07-31",
+    })
+    setStep("connected")
+    toast.success(`${capability.label} conectado en el mock.`)
   }
 
-  const handleBack = () => {
-    if (step === "capability") return
-    if (step === "oauth" || step === "whatsapp") {
-      reset()
+  function authorize() {
+    if (!capability) return
+    if (capability.connectionKind === "picker") {
+      setStep("picker")
       return
     }
+    finishConnection({
+      id: `${capability.key}-direct`,
+      label: `Cuenta de ${providerLabels[capability.provider]}`,
+      description: capability.label,
+    })
+  }
+
+  function back() {
+    if (step === "capabilities") return
     if (step === "picker") {
-      setStep("oauth")
-      return
-    }
-    if (step === "review") {
-      setStep(capability?.flow === "oauth-picker" ? "picker" : "oauth")
+      setStep("authorizing")
       return
     }
     reset()
   }
 
-  const currentResource =
-    selectedResource ??
-    (capability ? directConnectionResources[capability.key] : null)
-  const configuredProviderCount = readyProviders.length
-  const title = capability ? `Conectar ${capability.label}` : "Conectar canal"
-  const description = capability
-    ? "Flujo local de Fase A basado en el módulo Laravel. No se abrirá ningún proveedor ni se guardará información."
-    : "Elige un tipo de canal. Esta vista usa datos sintéticos y modela el flujo de conexión sin llamadas a la API."
+  const title = capability ? `Conectar ${capability.label}` : "Conectar un canal"
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-h-[calc(100dvh-2rem)] max-w-xl gap-0 overflow-hidden p-0">
-        <DialogHeader className="border-b px-6 py-5">
-          <div className="flex flex-wrap items-center gap-2">
-            <DialogTitle>{title}</DialogTitle>
-            <Badge variant="neutral">Fase A mock</Badge>
-          </div>
-          <DialogDescription>{description}</DialogDescription>
+    <Dialog onOpenChange={handleOpenChange} open={open}>
+      <DialogContent className="max-h-[calc(100dvh-2rem)] max-w-5xl overflow-hidden p-0">
+        <DialogHeader className="px-6 pt-6">
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>
+            Flujo simulado del Portal. No abre proveedores ni guarda credenciales.
+          </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-5 p-6">
-          {step !== "capability" && step !== "connected" ? (
-            <StepBackButton onClick={handleBack} />
-          ) : null}
+        <ScrollArea
+          className="max-h-[calc(100dvh-10rem)]"
+          scrollbarClassName="translate-x-6"
+          type="always"
+        >
+          <div className="grid gap-5 px-6 pt-5 pr-12 pb-6">
+        {step !== "capabilities" && step !== "connected" ? (
+          <Button className="w-fit" onClick={back} size="sm" type="button" variant="brand-secondary">
+            <ChevronLeft aria-hidden="true" />
+            Volver
+          </Button>
+        ) : null}
 
-          {step === "capability" ? (
-            <>
-              <p className="text-xs text-muted-foreground">
-                Panel actual: {configuredProviderCount} integración
-                {configuredProviderCount === 1 ? "" : "es"} lista
-                {configuredProviderCount === 1 ? "" : "s"}. Los tipos de canal
-                restantes se presentan para validar el diseño simulado.
-              </p>
-              <ScrollArea className="max-h-[calc(100dvh-17rem)] pr-3">
-                <div
-                  aria-label="Tipos de canal disponibles"
-                  className="grid gap-2"
-                >
-                  {channelConnectionCapabilities.map((option) => (
-                    <CapabilityOption
-                      capability={option}
-                      key={option.key}
-                      onSelect={selectCapability}
-                    />
-                  ))}
-                </div>
-              </ScrollArea>
-            </>
-          ) : null}
+        {step === "capabilities" ? (
+          <ScrollArea
+            className="max-h-[calc(100dvh-18rem)] overflow-visible pr-3"
+            scrollbarClassName="translate-x-8"
+            type="always"
+          >
+            <div aria-label="Tipos de canal" className="grid gap-3 pb-6 sm:grid-cols-2 xl:grid-cols-3">
+              {capabilities.map((item) => (
+                <CapabilityCard capability={item} key={item.key} onSelect={selectCapability} />
+              ))}
+            </div>
+          </ScrollArea>
+        ) : null}
 
-          {step === "oauth" && capability ? (
-            <OAuthState
-              capability={capability}
-              onAuthorized={handleAuthorized}
-            />
-          ) : null}
-
-          {step === "picker" && capability?.flow === "oauth-picker" ? (
-            <ResourcePicker
-              capability={capability}
-              onContinue={() => setStep("review")}
-              onSelect={setSelectedResource}
-              selectedResourceId={selectedResource?.id ?? null}
-            />
-          ) : null}
-
-          {step === "picker" && capability?.flow === "creator-info" ? (
-            <CreatorInfo
-              onContinue={() => {
-                setSelectedResource(
-                  directConnectionResources.tiktok_profile ?? null
-                )
-                setStep("review")
-              }}
-            />
-          ) : null}
-
-          {step === "review" && capability && currentResource ? (
-            <ConnectionReview
-              capability={capability}
-              onConfirm={() => setStep("connected")}
-              resource={currentResource}
-            />
-          ) : null}
-
-          {step === "connected" && capability ? (
+        {step === "authorizing" && capability ? (
+          <div className="grid gap-5">
             <Card variant="inset">
               <CardContent className="flex items-start gap-3 py-5">
-                <CheckCircle2
-                  aria-hidden="true"
-                  className="mt-0.5 size-5 text-success"
-                />
+                <ShieldCheck aria-hidden="true" className="mt-0.5 size-5 text-primary" />
                 <div className="grid gap-1">
-                  <p className="font-medium">
-                    {capability.label} conectado en el mock
-                  </p>
+                  <p className="font-medium">Autorización simulada de {providerLabels[capability.provider]}</p>
                   <p className="text-sm leading-relaxed text-muted-foreground">
-                    La UI está lista para sustituir este estado local por el
-                    contrato REST en una fase posterior.
+                    En producción se abrirá el proveedor, se validará el retorno y se mostrarán solo los recursos elegibles.
                   </p>
                 </div>
               </CardContent>
             </Card>
-          ) : null}
+            <div className="flex justify-end">
+              <Button onClick={authorize} type="button">Simular autorización aceptada</Button>
+            </div>
+          </div>
+        ) : null}
 
-          {step === "whatsapp" ? (
-            <WhatsAppConnection
-              deviceId={whatsAppDeviceId}
-              onExpire={() => setWhatsAppState("expired")}
-              onPoll={() => setWhatsAppState("connected")}
-              onReconnect={() => {
-                setWhatsAppDeviceId(mockWhatsAppDevices.reconnect)
-                setWhatsAppState("waiting")
-              }}
-              onRetry={() => {
-                setWhatsAppDeviceId(mockWhatsAppDevices.retry)
-                setWhatsAppState("waiting")
-              }}
-              onStart={() => {
-                setWhatsAppDeviceId(mockWhatsAppDevices.initial)
-                setWhatsAppState("waiting")
-              }}
-              state={whatsAppState}
-            />
-          ) : null}
-        </div>
+        {step === "picker" && capability ? (
+          <div className="grid gap-4">
+            <p className="text-sm text-muted-foreground">Elige un único recurso devuelto para esta conexión.</p>
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              {(capability.candidates ?? []).map((item) => (
+                <Button
+                  aria-pressed={candidate?.id === item.id}
+                  className="h-auto justify-start px-4 py-3 text-left whitespace-normal"
+                  key={item.id}
+                  onClick={() => setCandidate(item)}
+                  type="button"
+                  variant={candidate?.id === item.id ? "brand-secondary" : "surface"}
+                >
+                  <span className="grid gap-0.5">
+                    <span>{item.label}</span>
+                    <span className="text-sm font-normal text-muted-foreground">{item.description}</span>
+                    {item.metadata ? <span className="text-xs font-normal text-muted-foreground">{item.metadata}</span> : null}
+                  </span>
+                </Button>
+              ))}
+            </div>
+            <div className="flex justify-end">
+              <Button disabled={!candidate} onClick={() => candidate && finishConnection(candidate)} type="button">
+                Conectar selección
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
+        {step === "whatsapp" ? (
+          <div className="grid gap-5">
+            {whatsAppState === "start" ? (
+              <Card variant="inset">
+                <CardContent className="flex items-start gap-3 py-5">
+                  <Smartphone aria-hidden="true" className="mt-0.5 size-5 text-primary" />
+                  <div className="grid gap-1">
+                    <p className="font-medium">Preparar vínculo por QR</p>
+                    <p className="text-sm leading-relaxed text-muted-foreground">El conector real crea un dispositivo temporal y consulta su estado.</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : null}
+            {whatsAppState === "waiting" ? (
+              <Card variant="inset">
+                <CardContent className="grid justify-items-center gap-4 py-5 text-center">
+                  <QrMock />
+                  <div>
+                    <p className="flex items-center justify-center gap-2 font-medium"><QrCode aria-hidden="true" className="size-4 text-primary" />Escanea el QR desde WhatsApp</p>
+                    <p className="mt-1 text-sm text-muted-foreground">Esperando confirmación del dispositivo.</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : null}
+            {whatsAppState === "expired" ? (
+              <Card variant="inset">
+                <CardContent className="flex items-start gap-3 py-5">
+                  <CircleAlert aria-hidden="true" className="mt-0.5 size-5 text-warning" />
+                  <div className="grid gap-1"><p className="font-medium">El QR expiró</p><p className="text-sm text-muted-foreground">Genera uno nuevo para continuar.</p></div>
+                </CardContent>
+              </Card>
+            ) : null}
+            {whatsAppState === "connected" ? (
+              <Card variant="inset">
+                <CardContent className="flex items-start gap-3 py-5">
+                  <CheckCircle2 aria-hidden="true" className="mt-0.5 size-5 text-success" />
+                  <div className="grid gap-1"><p className="font-medium">Historias de WhatsApp conectadas</p><p className="text-sm text-muted-foreground">La sesión simulada quedó vinculada.</p></div>
+                </CardContent>
+              </Card>
+            ) : null}
+            <div className="flex flex-wrap justify-end gap-2">
+              {whatsAppState === "start" ? <Button onClick={() => setWhatsAppState("waiting")} type="button">Generar QR</Button> : null}
+              {whatsAppState === "waiting" ? <><Button onClick={() => setWhatsAppState("expired")} type="button" variant="brand-secondary"><Unplug />Simular expiración</Button><Button onClick={() => { setWhatsAppState("connected"); finishConnection({ id: "whatsapp-device-01", label: "WhatsApp de Northstar", description: "Historias de WhatsApp" }) }} type="button"><ScanLine />Marcar como conectado</Button></> : null}
+              {whatsAppState === "expired" ? <Button onClick={() => setWhatsAppState("waiting")} type="button"><RefreshCw />Generar otro QR</Button> : null}
+            </div>
+          </div>
+        ) : null}
+
+        {step === "connected" && capability ? (
+          <Card variant="inset">
+            <CardContent className="flex items-start gap-3 py-5">
+              <CheckCircle2 aria-hidden="true" className="mt-0.5 size-5 text-success" />
+              <div className="grid gap-1"><p className="font-medium">{capability.label} conectado</p><p className="text-sm text-muted-foreground">La cuenta aparece solo en este mock local.</p></div>
+            </CardContent>
+          </Card>
+        ) : null}
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   )
