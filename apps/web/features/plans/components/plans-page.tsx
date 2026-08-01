@@ -48,6 +48,7 @@ import {
 } from "@workspace/ui/components/select"
 import { Switch } from "@workspace/ui/components/switch"
 import { Textarea } from "@workspace/ui/components/textarea"
+import { ScrollArea } from "@workspace/ui/components/scroll-area"
 import { toast } from "@workspace/ui/components/toast"
 
 import { planPermissionGroups } from "../fixtures/plans"
@@ -406,8 +407,8 @@ function PlanEditorDialog({
 
   return (
     <Dialog onOpenChange={onOpenChange} open>
-      <DialogContent className="max-h-[calc(100dvh-2rem)] max-w-3xl overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-h-[calc(100dvh-2rem)] max-w-3xl overflow-hidden p-0">
+        <DialogHeader className="px-6 pt-6">
           <DialogTitle>
             {isEditing ? `Editar ${plan.name}` : "Crear plan"}
           </DialogTitle>
@@ -416,156 +417,162 @@ function PlanEditorDialog({
             afectan suscripciones ni usuarios.
           </DialogDescription>
         </DialogHeader>
-        <form className="grid gap-6" onSubmit={submit}>
-          <div className="grid gap-4 sm:grid-cols-2">
+        <ScrollArea
+          className="max-h-[calc(100dvh-10rem)]"
+          scrollbarClassName="translate-x-6"
+          type="always"
+        >
+          <form className="grid gap-6 px-6 pt-5 pr-12 pb-6" onSubmit={submit}>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="grid gap-1.5 text-sm font-medium">
+                Nombre
+                <Input
+                  defaultValue={plan.name}
+                  maxLength={80}
+                  name="name"
+                  required
+                />
+              </label>
+              <label className="grid gap-1.5 text-sm font-medium">
+                Slug
+                <Input
+                  defaultValue={plan.slug}
+                  maxLength={80}
+                  name="slug"
+                  placeholder="mi-plan"
+                  required
+                />
+              </label>
+              <label className="grid gap-1.5 text-sm font-medium">
+                Estado
+                <Select defaultValue={plan.status} name="status">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Activo</SelectItem>
+                    <SelectItem value="inactive">Inactivo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </label>
+              <label className="grid gap-1.5 text-sm font-medium">
+                Moneda
+                <Select defaultValue={plan.currency} name="currency">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USD">USD</SelectItem>
+                    <SelectItem value="EUR">EUR</SelectItem>
+                  </SelectContent>
+                </Select>
+              </label>
+              <label className="grid gap-1.5 text-sm font-medium">
+                Precio
+                <Input
+                  defaultValue={plan.price}
+                  disabled={isFree}
+                  min="0"
+                  name="price"
+                  step="0.01"
+                  type="number"
+                />
+              </label>
+              <label className="grid gap-1.5 text-sm font-medium">
+                Tipo de cobro
+                <Select defaultValue={plan.billingType} name="billingType">
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="monthly">Mensual</SelectItem>
+                    <SelectItem value="yearly">Anual</SelectItem>
+                  </SelectContent>
+                </Select>
+              </label>
+              <label className="grid gap-1.5 text-sm font-medium">
+                Días de prueba
+                <Input
+                  defaultValue={plan.trialDays}
+                  min="0"
+                  name="trialDays"
+                  type="number"
+                />
+              </label>
+              <label className="grid gap-1.5 text-sm font-medium">
+                Posición
+                <Input
+                  defaultValue={plan.position}
+                  min="1"
+                  name="position"
+                  type="number"
+                />
+              </label>
+            </div>
             <label className="grid gap-1.5 text-sm font-medium">
-              Nombre
-              <Input
-                defaultValue={plan.name}
-                maxLength={80}
-                name="name"
-                required
+              Descripción
+              <Textarea
+                defaultValue={plan.description}
+                maxLength={500}
+                name="description"
+                placeholder="Describe para quién es este plan."
               />
             </label>
-            <label className="grid gap-1.5 text-sm font-medium">
-              Slug
-              <Input
-                defaultValue={plan.slug}
-                maxLength={80}
-                name="slug"
-                placeholder="mi-plan"
-                required
-              />
-            </label>
-            <label className="grid gap-1.5 text-sm font-medium">
-              Estado
-              <Select defaultValue={plan.status} name="status">
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Activo</SelectItem>
-                  <SelectItem value="inactive">Inactivo</SelectItem>
-                </SelectContent>
-              </Select>
-            </label>
-            <label className="grid gap-1.5 text-sm font-medium">
-              Moneda
-              <Select defaultValue={plan.currency} name="currency">
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="USD">USD</SelectItem>
-                  <SelectItem value="EUR">EUR</SelectItem>
-                </SelectContent>
-              </Select>
-            </label>
-            <label className="grid gap-1.5 text-sm font-medium">
-              Precio
-              <Input
-                defaultValue={plan.price}
-                disabled={isFree}
-                min="0"
-                name="price"
-                step="0.01"
-                type="number"
-              />
-            </label>
-            <label className="grid gap-1.5 text-sm font-medium">
-              Tipo de cobro
-              <Select defaultValue={plan.billingType} name="billingType">
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="monthly">Mensual</SelectItem>
-                  <SelectItem value="yearly">Anual</SelectItem>
-                </SelectContent>
-              </Select>
-            </label>
-            <label className="grid gap-1.5 text-sm font-medium">
-              Días de prueba
-              <Input
-                defaultValue={plan.trialDays}
-                min="0"
-                name="trialDays"
-                type="number"
-              />
-            </label>
-            <label className="grid gap-1.5 text-sm font-medium">
-              Posición
-              <Input
-                defaultValue={plan.position}
-                min="1"
-                name="position"
-                type="number"
-              />
-            </label>
-          </div>
-          <label className="grid gap-1.5 text-sm font-medium">
-            Descripción
-            <Textarea
-              defaultValue={plan.description}
-              maxLength={500}
-              name="description"
-              placeholder="Describe para quién es este plan."
+            <div className="grid gap-3 sm:grid-cols-3">
+              <label className="flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-border p-4">
+                <span className="grid gap-0.5">
+                  <span className="text-sm font-medium">Plan gratuito</span>
+                  <span className="text-xs leading-relaxed text-muted-foreground">
+                    No cobra a los suscriptores.
+                  </span>
+                </span>
+                <Switch checked={isFree} onCheckedChange={setIsFree} />
+              </label>
+              <label className="flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-border p-4">
+                <span className="grid gap-0.5">
+                  <span className="text-sm font-medium">Destacado</span>
+                  <span className="text-xs leading-relaxed text-muted-foreground">
+                    Se resalta en el catálogo.
+                  </span>
+                </span>
+                <Switch checked={featured} onCheckedChange={setFeatured} />
+              </label>
+              <label className="flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-border p-4">
+                <span className="grid gap-0.5">
+                  <span className="text-sm font-medium">Predeterminado</span>
+                  <span className="text-xs leading-relaxed text-muted-foreground">
+                    Se asigna al registrarse.
+                  </span>
+                </span>
+                <Switch
+                  checked={isDefaultSignup}
+                  onCheckedChange={setIsDefaultSignup}
+                />
+              </label>
+            </div>
+            <PermissionGroups
+              selectedIds={permissionIds}
+              setSelectedIds={setPermissionIds}
             />
-          </label>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <label className="flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-border p-4">
-              <span className="grid gap-0.5">
-                <span className="text-sm font-medium">Plan gratuito</span>
-                <span className="text-xs leading-relaxed text-muted-foreground">
-                  No cobra a los suscriptores.
-                </span>
-              </span>
-              <Switch checked={isFree} onCheckedChange={setIsFree} />
-            </label>
-            <label className="flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-border p-4">
-              <span className="grid gap-0.5">
-                <span className="text-sm font-medium">Destacado</span>
-                <span className="text-xs leading-relaxed text-muted-foreground">
-                  Se resalta en el catálogo.
-                </span>
-              </span>
-              <Switch checked={featured} onCheckedChange={setFeatured} />
-            </label>
-            <label className="flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-border p-4">
-              <span className="grid gap-0.5">
-                <span className="text-sm font-medium">Predeterminado</span>
-                <span className="text-xs leading-relaxed text-muted-foreground">
-                  Se asigna al registrarse.
-                </span>
-              </span>
-              <Switch
-                checked={isDefaultSignup}
-                onCheckedChange={setIsDefaultSignup}
-              />
-            </label>
-          </div>
-          <PermissionGroups
-            selectedIds={permissionIds}
-            setSelectedIds={setPermissionIds}
-          />
-          <div className="flex flex-col-reverse justify-end gap-2 sm:flex-row">
-            <Button
-              onClick={() => onOpenChange(false)}
-              type="button"
-              variant="brand-secondary"
-            >
-              Cancelar
-            </Button>
-            <Button type="submit">
-              {isEditing ? (
-                <Check data-icon="inline-start" />
-              ) : (
-                <Plus data-icon="inline-start" />
-              )}
-              {isEditing ? "Guardar cambios" : "Crear plan"}
-            </Button>
-          </div>
-        </form>
+            <div className="flex flex-col-reverse justify-end gap-2 sm:flex-row">
+              <Button
+                onClick={() => onOpenChange(false)}
+                type="button"
+                variant="brand-secondary"
+              >
+                Cancelar
+              </Button>
+              <Button type="submit">
+                {isEditing ? (
+                  <Check data-icon="inline-start" />
+                ) : (
+                  <Plus data-icon="inline-start" />
+                )}
+                {isEditing ? "Guardar cambios" : "Crear plan"}
+              </Button>
+            </div>
+          </form>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   )
@@ -837,9 +844,7 @@ export function PlansPage() {
                 <Button onClick={resetFilters} variant="brand-secondary">
                   Restablecer filtros
                 </Button>
-              ) : (
-                <Button onClick={() => setEditor("create")}>Crear plan</Button>
-              )
+              ) : undefined
             }
             description={
               hasActiveFilters
