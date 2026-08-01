@@ -1,5 +1,8 @@
 import type {
+  AdminPlan,
+  AdminPlansList,
   AuthSession,
+  CreateAdminPlanInput,
   LoginInput,
   MetaIntegration,
   PortalChannelAccount,
@@ -12,6 +15,7 @@ import type {
   StartPortalChannelConnectionInput,
   TestMetaIntegrationInput,
   TestMetaIntegrationResponse,
+  UpdateAdminPlanInput,
   UpdateMetaIntegrationInput,
   UpdatePortalChannelInput,
 } from "@workspace/contracts"
@@ -67,6 +71,22 @@ function portalChannelsQueryString(query: Partial<PortalChannelsQuery> = {}) {
   if (query.sort) params.set("sort", query.sort)
   if (query.limit) params.set("limit", String(query.limit))
   if (query.cursor) params.set("cursor", query.cursor)
+  const serialized = params.toString()
+  return serialized ? `?${serialized}` : ""
+}
+
+function adminPlansQueryString(query?: {
+  q?: string
+  status?: "active" | "inactive"
+  billingType?: "monthly" | "yearly"
+  featured?: boolean
+}) {
+  const params = new URLSearchParams()
+  if (query?.q) params.set("q", query.q)
+  if (query?.status) params.set("status", query.status)
+  if (query?.billingType) params.set("billingType", query.billingType)
+  if (query?.featured !== undefined)
+    params.set("featured", String(query.featured))
   const serialized = params.toString()
   return serialized ? `?${serialized}` : ""
 }
@@ -173,4 +193,28 @@ export const integrationsApi = {
       method: "PATCH",
       body: JSON.stringify(input),
     }),
+}
+
+export const plansApi = {
+  list: (query?: {
+    q?: string
+    status?: "active" | "inactive"
+    billingType?: "monthly" | "yearly"
+    featured?: boolean
+  }) =>
+    request<AdminPlansList>(`/v1/admin/plans${adminPlansQueryString(query)}`, {
+      method: "GET",
+    }),
+  create: (input: CreateAdminPlanInput) =>
+    request<AdminPlan>("/v1/admin/plans", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  update: (id: string, input: UpdateAdminPlanInput) =>
+    request<AdminPlan>(`/v1/admin/plans/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) =>
+    request<void>(`/v1/admin/plans/${id}`, { method: "DELETE" }),
 }

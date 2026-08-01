@@ -9,6 +9,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { HealthController } from './health/health.controller';
 import { IdentityModule } from './identity/identity.module';
 import { IntegrationsModule } from './integrations/integrations.module';
+import { PlansModule } from './plans/plans.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { IntegrationsModule } from './integrations/integrations.module';
     ChannelsModule,
     DashboardModule,
     IntegrationsModule,
+    PlansModule,
     IdentityModule,
     BullModule.forRoot({
       connection: {

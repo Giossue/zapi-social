@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Menu, PlugZap, ShieldCheck } from "lucide-react"
+import { LayoutDashboard, Menu, PackageCheck, PlugZap, ShieldCheck } from "lucide-react"
 
 import { Button } from "@workspace/ui/components/button"
 
@@ -10,11 +10,13 @@ import { AccountMenu } from "@/components/account-menu"
 
 const adminNavigation = [
   { href: "/admin", label: "Resumen", icon: LayoutDashboard },
+  { href: "/admin/plans", label: "Planes", icon: PackageCheck },
   { href: "/admin/integrations", label: "Integraciones", icon: PlugZap },
 ] as const
 
 const adminPageLabels: Record<string, string> = {
   "/admin": "Resumen",
+  "/admin/plans": "Planes",
   "/admin/integrations": "Integraciones",
 }
 

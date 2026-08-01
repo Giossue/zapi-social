@@ -35,16 +35,16 @@ export const activeWorkspaceSchema = z.object({
 
 export const platformAdminAuthSessionSchema = z.object({
   user: authUserSchema,
-  area: z.literal('admin'),
+  area: z.literal("admin"),
 })
 
 export const portalAuthSessionSchema = z.object({
   user: authUserSchema,
-  area: z.literal('portal'),
+  area: z.literal("portal"),
   workspace: activeWorkspaceSchema,
 })
 
-export const authSessionSchema = z.discriminatedUnion('area', [
+export const authSessionSchema = z.discriminatedUnion("area", [
   platformAdminAuthSessionSchema,
   portalAuthSessionSchema,
 ])
@@ -194,7 +194,9 @@ export const updateProviderIntegrationSchema = z
 export type RegisterInput = z.infer<typeof registerSchema>
 export type LoginInput = z.infer<typeof loginSchema>
 export type AuthSession = z.infer<typeof authSessionSchema>
-export type PlatformAdminAuthSession = z.infer<typeof platformAdminAuthSessionSchema>
+export type PlatformAdminAuthSession = z.infer<
+  typeof platformAdminAuthSessionSchema
+>
 export type PortalAuthSession = z.infer<typeof portalAuthSessionSchema>
 export type PortalDashboard = z.infer<typeof portalDashboardSchema>
 export type ChannelStatus = z.infer<typeof channelStatusSchema>
@@ -312,3 +314,5 @@ export type ChannelOAuthCallbackOutcome = z.infer<
 export * from "./channels-v2.js"
 
 export * from "./admin-integrations.js"
+
+export * from "./admin-plans.js"

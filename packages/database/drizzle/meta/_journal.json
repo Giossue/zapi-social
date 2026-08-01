@@ -43,6 +43,13 @@
       "when": 1785500200000,
       "tag": "0005_meta_channels_v2",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1785620123000,
+      "tag": "0006_admin_plans",
+      "breakpoints": true
     }
   ]
 }

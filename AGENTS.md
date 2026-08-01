@@ -49,3 +49,8 @@ No modificar Laravel para tareas V2 salvo solicitud explícita. No implementar b
 - Se permiten consultas de solo lectura (`SELECT`, inspección de schema, conteos y `EXPLAIN`) sin pedir aprobación adicional.
 - No ejecutar mutaciones remotas (`INSERT`, `UPDATE`, `DELETE`, `TRUNCATE`, `ALTER`, `CREATE`, `DROP`, `GRANT`, `REVOKE`), migraciones ni cambios de permisos sin aprobación explícita del usuario para esa operación.
 - No incluir host, usuario, contraseña, URI de conexión ni otros secretos de base de datos en código, documentación, comandos visibles, logs o commits.
+
+## PostgreSQL local
+
+- PostgreSQL local es una instalación nativa del equipo, no un contenedor.
+- Para consultas o migraciones locales que requieran el rol postgres, solicitar y usar pkexec con runuser -u postgres; no asumir el nombre de la base antes de inspeccionarlo.
