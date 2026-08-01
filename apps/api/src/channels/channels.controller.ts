@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  NotFoundException,
   Delete,
   Get,
   HttpCode,
@@ -10,12 +11,14 @@ import {
   Post,
   Query,
   Req,
+  Res,
 } from '@nestjs/common'
 import { ApiTags } from '@nestjs/swagger'
-import type { FastifyRequest } from 'fastify'
+import type { FastifyReply, FastifyRequest } from 'fastify'
 import { SessionAccessService } from '../identity/session-access.service'
 import { ChannelConnectionsService } from './channel-connections.service'
 import { ChannelsService } from './channels.service'
+import { WhatsAppStatusConnectionsService } from './whatsapp-status-connections.service'
 
 @ApiTags('portal-channels-v2')
 @Controller('v1/portal/channels')
@@ -32,16 +35,8 @@ export class ChannelsController {
   }
 
   @Patch(':id')
-  async update(
-    @Req() request: FastifyRequest,
-    @Param('id') id: string,
-    @Body() body: unknown,
-  ) {
-    return this.channels.updateDisplayName(
-      await this.access.requirePortalSession(request),
-      id,
-      body,
-    )
+  async update(@Req() request: FastifyRequest, @Param('id') id: string, @Body() body: unknown) {
+    return this.channels.updateDisplayName(await this.access.requirePortalSession(request), id, body)
   }
 
   @Delete(':id')
@@ -61,6 +56,7 @@ export class ChannelsController {
 export class ChannelConnectionsController {
   constructor(
     private readonly connections: ChannelConnectionsService,
+    private readonly whatsapp: WhatsAppStatusConnectionsService,
     private readonly access: SessionAccessService,
   ) {}
 
@@ -69,22 +65,42 @@ export class ChannelConnectionsController {
     return this.connections.start(await this.access.requirePortalSession(request), body)
   }
 
+  @Post('whatsapp-status/start')
+  async startWhatsApp(@Req() request: FastifyRequest, @Body() body: unknown) {
+    return this.whatsapp.start(await this.access.requirePortalSession(request), body)
+  }
+
+  @Get(':id/qr')
+  async qr(@Req() request: FastifyRequest, @Param('id') id: string, @Res() reply: FastifyReply) {
+    const qr = await this.whatsapp.qr(await this.access.requirePortalSession(request), id)
+    reply.header('cache-control', 'no-store, no-cache, must-revalidate, max-age=0')
+    reply.header('content-type', qr.contentType)
+    return reply.send(qr.body)
+  }
+
+  @Get(':id/status')
+  async status(@Req() request: FastifyRequest, @Param('id') id: string) {
+    return this.whatsapp.status(await this.access.requirePortalSession(request), id)
+  }
+
   @Get(':id/candidates')
   async candidates(@Req() request: FastifyRequest, @Param('id') id: string) {
     return this.connections.candidates(await this.access.requirePortalSession(request), id)
   }
 
   @Post(':id/select')
-  async select(
-    @Req() request: FastifyRequest,
-    @Param('id') id: string,
-    @Body() body: unknown,
-  ) {
+  async select(@Req() request: FastifyRequest, @Param('id') id: string, @Body() body: unknown) {
     return this.connections.select(await this.access.requirePortalSession(request), id, body)
   }
 
   @Post(':id/cancel')
   async cancel(@Req() request: FastifyRequest, @Param('id') id: string) {
-    return this.connections.cancel(await this.access.requirePortalSession(request), id)
+    const session = await this.access.requirePortalSession(request)
+    try {
+      return await this.whatsapp.cancel(session, id)
+    } catch (error) {
+      if (error instanceof NotFoundException) return this.connections.cancel(session, id)
+      throw error
+    }
   }
 }

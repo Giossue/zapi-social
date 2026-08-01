@@ -106,7 +106,7 @@ export const metaIntegrationConfigurationSchema = z
     clientId: z.string().trim().min(1).max(4096),
     clientSecret: z.string().trim().min(1).max(4096),
     capabilityScopes: metaCapabilityScopesSchema.default(
-      metaCapabilityScopeDefaults,
+      metaCapabilityScopeDefaults
     ),
   })
   .strict()
@@ -174,4 +174,85 @@ export type UpdateMetaIntegrationInput = z.infer<
 >
 export type MetaIntegrationConfiguration = z.infer<
   typeof metaIntegrationConfigurationSchema
+>
+
+export const whatsappStatusIntegrationProviderKey = "whatsapp-status" as const
+
+const whatsappStatusBaseUrlSchema = z.url().max(2048).superRefine((value, context) => {
+  const url = new URL(value)
+  if (url.protocol !== "http:" && url.protocol !== "https:") {
+    context.addIssue({ code: "custom", message: "La URL de GOWA debe usar HTTP o HTTPS." })
+  }
+  if (url.username || url.password || url.search || url.hash) {
+    context.addIssue({ code: "custom", message: "La URL de GOWA no puede incluir credenciales, parámetros ni fragmentos." })
+  }
+})
+
+export const whatsappStatusCapabilityKeySchema = z.literal("whatsapp_status")
+
+export const whatsappStatusIntegrationConfigurationSchema = z
+  .object({
+    baseUrl: whatsappStatusBaseUrlSchema,
+    basicAuthUsername: z.string().trim().min(1).max(4096),
+    basicAuthPassword: z.string().trim().min(1).max(4096),
+  })
+  .strict()
+
+const whatsappStatusConfigurationDraftSchema = z
+  .object({
+    baseUrl: whatsappStatusBaseUrlSchema,
+    basicAuthUsername: z.string().trim().min(1).max(4096),
+    basicAuthPassword: z.string().trim().min(1).max(4096).optional(),
+  })
+  .strict()
+
+export const whatsappStatusIntegrationCapabilitySchema = z.object({
+  key: whatsappStatusCapabilityKeySchema,
+  label: z.string().min(1).max(120),
+  description: z.string().min(1).max(500),
+  enabled: z.boolean(),
+})
+
+export const whatsappStatusIntegrationSchema = z.object({
+  providerKey: z.literal(whatsappStatusIntegrationProviderKey),
+  label: z.literal("WhatsApp Status"),
+  description: z.string().min(1).max(500),
+  enabled: z.boolean(),
+  readiness: metaIntegrationReadinessSchema,
+  capabilities: z.array(whatsappStatusIntegrationCapabilitySchema).length(1),
+  baseUrl: whatsappStatusBaseUrlSchema.nullable(),
+  basicAuthUsername: z.string().nullable(),
+  basicAuthPasswordConfigured: z.boolean(),
+  lastTestedAt: z.string().datetime().nullable(),
+})
+
+export const testWhatsAppStatusIntegrationSchema = z
+  .object({ configuration: whatsappStatusConfigurationDraftSchema })
+  .strict()
+
+export const testWhatsAppStatusIntegrationResponseSchema = z.object({
+  testedAt: z.string().datetime(),
+})
+
+export const updateWhatsAppStatusIntegrationSchema = z
+  .object({
+    enabled: z.boolean(),
+    configuration: whatsappStatusConfigurationDraftSchema.optional(),
+  })
+  .strict()
+
+export type WhatsAppStatusIntegration = z.infer<
+  typeof whatsappStatusIntegrationSchema
+>
+export type WhatsAppStatusIntegrationConfiguration = z.infer<
+  typeof whatsappStatusIntegrationConfigurationSchema
+>
+export type TestWhatsAppStatusIntegrationInput = z.infer<
+  typeof testWhatsAppStatusIntegrationSchema
+>
+export type TestWhatsAppStatusIntegrationResponse = z.infer<
+  typeof testWhatsAppStatusIntegrationResponseSchema
+>
+export type UpdateWhatsAppStatusIntegrationInput = z.infer<
+  typeof updateWhatsAppStatusIntegrationSchema
 >

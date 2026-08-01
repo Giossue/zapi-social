@@ -26,6 +26,8 @@ import {
   sql,
 } from '@workspace/database/query';
 import { DatabaseService } from '../database/database.service';
+import { IntegrationsService } from '../integrations/integrations.service';
+import { WhatsAppStatusConnectionsService } from './whatsapp-status-connections.service';
 
 const managerRoles = new Set(['owner', 'admin']);
 const capabilities: PortalChannelCapability[] = [
@@ -99,7 +101,11 @@ type ChannelCursor = {
 
 @Injectable()
 export class ChannelsService {
-  constructor(private readonly database: DatabaseService) {}
+  constructor(
+    private readonly database: DatabaseService,
+    private readonly integrations: IntegrationsService,
+    private readonly whatsapp: WhatsAppStatusConnectionsService,
+  ) {}
 
   async list(
     session: PortalAuthSession,
@@ -140,9 +146,11 @@ export class ChannelsService {
     const connected = Number(connectedTotals[0]?.connected ?? 0);
     const lastAccount = pageRows.at(-1);
 
+    const portalCapabilities = await this.portalCapabilities();
+
     return {
       canManage: this.canManage(session),
-      capabilities,
+      capabilities: portalCapabilities,
       accounts: pageRows.map((account) => this.serialize(account)),
       pagination: {
         limit: filters.limit,
@@ -185,17 +193,20 @@ export class ChannelsService {
   async remove(session: PortalAuthSession, id: string): Promise<void> {
     this.requireManager(session);
     const accountId = this.parseId(id);
-    const [account] = await this.database.db
-      .delete(socialAccounts)
+    const [existing] = await this.database.db
+      .select()
+      .from(socialAccounts)
       .where(
         and(
           eq(socialAccounts.id, accountId),
           eq(socialAccounts.workspaceId, session.workspace.id),
         ),
       )
-      .returning({ id: socialAccounts.id });
+      .limit(1);
+    if (!existing) throw new NotFoundException();
 
-    if (!account) throw new NotFoundException();
+    await this.whatsapp.purgeAccountDevice(existing);
+    await this.database.db.delete(socialAccounts).where(eq(socialAccounts.id, existing.id));
   }
 
   assertReconnectAccount(
@@ -223,6 +234,22 @@ export class ChannelsService {
       .limit(1);
     if (!account) throw new BadRequestException();
     return this.serialize(account);
+  }
+
+  private async portalCapabilities(): Promise<PortalChannelCapability[]> {
+    const whatsApp = await this.integrations.getWhatsAppStatus();
+    const whatsAppReady = whatsApp.enabled && whatsApp.readiness === 'ready' && whatsApp.capabilities[0]?.enabled;
+    return capabilities.map((capability) =>
+      capability.key === 'whatsapp_status'
+        ? {
+            ...capability,
+            description: whatsAppReady
+              ? 'Conecta un dispositivo para publicar estados de WhatsApp.'
+              : 'Próximamente.',
+            availability: whatsAppReady ? 'ready' : 'coming_soon',
+          }
+        : capability,
+    );
   }
 
   private listWhere(

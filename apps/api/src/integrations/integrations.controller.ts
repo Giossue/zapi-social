@@ -30,3 +30,30 @@ export class IntegrationsController {
     return this.integrations.saveMeta(input, session);
   }
 }
+
+@ApiTags('admin-integrations')
+@Controller('v1/admin/integrations/whatsapp-status')
+export class WhatsAppStatusIntegrationsController {
+  constructor(
+    private readonly access: SessionAccessService,
+    private readonly integrations: IntegrationsService,
+  ) {}
+
+  @Get()
+  async get(@Req() request: FastifyRequest) {
+    await this.access.requirePlatformAdmin(request);
+    return this.integrations.getWhatsAppStatus();
+  }
+
+  @Post('test')
+  async test(@Body() input: unknown, @Req() request: FastifyRequest) {
+    const session = await this.access.requirePlatformAdmin(request);
+    return this.integrations.testWhatsAppStatus(input, session);
+  }
+
+  @Patch()
+  async save(@Body() input: unknown, @Req() request: FastifyRequest) {
+    const session = await this.access.requirePlatformAdmin(request);
+    return this.integrations.saveWhatsAppStatus(input, session);
+  }
+}

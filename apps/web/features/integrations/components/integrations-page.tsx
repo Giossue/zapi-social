@@ -1,6 +1,7 @@
 "use client"
 
 import { ApiError, integrationsApi } from "@workspace/api-client"
+import { WhatsAppStatusIntegrationCard } from "./whatsapp-status-integration-card"
 import type { MetaIntegration } from "@workspace/contracts"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -522,6 +523,8 @@ export function IntegrationsPage() {
           </section>
         </CardContent>
       </Card>
+
+      <WhatsAppStatusIntegrationCard />
 
       <Dialog
         onOpenChange={(open) => !open && closeConfiguration()}

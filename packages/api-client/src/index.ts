@@ -5,6 +5,10 @@ import type {
   CreateAdminPlanInput,
   LoginInput,
   MetaIntegration,
+  TestWhatsAppStatusIntegrationInput,
+  TestWhatsAppStatusIntegrationResponse,
+  UpdateWhatsAppStatusIntegrationInput,
+  WhatsAppStatusIntegration,
   PortalChannelAccount,
   PortalChannelCandidate,
   PortalChannelConnection,
@@ -13,6 +17,7 @@ import type {
   PortalDashboard,
   RegisterInput,
   StartPortalChannelConnectionInput,
+  StartWhatsAppStatusConnectionInput,
   TestMetaIntegrationInput,
   TestMetaIntegrationResponse,
   UpdateAdminPlanInput,
@@ -102,6 +107,17 @@ type PortalChannelCandidatesResponse = {
   candidates: PortalChannelCandidate[]
 }
 
+type StartWhatsAppStatusConnectionResponse = {
+  connection: PortalChannelConnection & { state: "qr_ready" | "waiting_for_scan" }
+  qrEndpoint: string
+}
+
+type PortalChannelConnectionStatusResponse = {
+  connection: PortalChannelConnection
+  account: PortalChannelAccount | null
+  publicError: { code: string; requestId: string } | null
+}
+
 type SelectPortalChannelCandidateInput = {
   candidateId: PortalChannelCandidate["id"]
 }
@@ -160,6 +176,16 @@ export const channelConnectionsApi = {
         body: JSON.stringify(input),
       }
     ),
+  startWhatsAppStatus: (input: StartWhatsAppStatusConnectionInput = {}) =>
+    request<StartWhatsAppStatusConnectionResponse>(
+      "/v1/portal/channel-connections/whatsapp-status/start",
+      { method: "POST", body: JSON.stringify(input) }
+    ),
+  status: (connectionId: string) =>
+    request<PortalChannelConnectionStatusResponse>(
+      `/v1/portal/channel-connections/${connectionId}/status`,
+      { method: "GET" }
+    ),
   candidates: (connectionId: string) =>
     request<PortalChannelCandidatesResponse>(
       `/v1/portal/channel-connections/${connectionId}/candidates`,
@@ -193,6 +219,27 @@ export const integrationsApi = {
       method: "PATCH",
       body: JSON.stringify(input),
     }),
+  getWhatsAppStatus: () =>
+    request<WhatsAppStatusIntegration>(
+      "/v1/admin/integrations/whatsapp-status",
+      { method: "GET" }
+    ),
+  testWhatsAppStatus: (input: TestWhatsAppStatusIntegrationInput) =>
+    request<TestWhatsAppStatusIntegrationResponse>(
+      "/v1/admin/integrations/whatsapp-status/test",
+      {
+        method: "POST",
+        body: JSON.stringify(input),
+      }
+    ),
+  saveWhatsAppStatus: (input: UpdateWhatsAppStatusIntegrationInput) =>
+    request<WhatsAppStatusIntegration>(
+      "/v1/admin/integrations/whatsapp-status",
+      {
+        method: "PATCH",
+        body: JSON.stringify(input),
+      }
+    ),
 }
 
 export const plansApi = {

@@ -531,14 +531,9 @@ export function LiveChannelsPage() {
       })
       if (requestId !== requestSequence.current) return
 
-      const metaCapabilities = response.capabilities
-        .filter((capability) => capability.provider === "meta")
-        .map(toPortalCapability)
-      const mockNonMetaCapabilities = channelsFixture.capabilities.filter(
-        (capability) => capability.provider !== "meta"
-      )
+      const portalCapabilities = response.capabilities.map(toPortalCapability)
       setAccounts(response.accounts.map(toPortalAccount))
-      setCapabilities([...metaCapabilities, ...mockNonMetaCapabilities])
+      setCapabilities(portalCapabilities)
       setSummary(response.summary)
       setPagination(response.pagination)
       setCanManage(response.canManage)
@@ -944,6 +939,7 @@ export function LiveChannelsPage() {
         onMetaAuthorizationStart={beginMetaAuthorization}
         onMetaConnectionCancelled={cancelMetaConnection}
         onMetaConnectionCompleted={completeMetaConnection}
+        onWhatsAppConnectionCompleted={async () => { await loadChannels() }}
         onOpenChange={setIsConnectOpen}
         open={isConnectOpen}
       />

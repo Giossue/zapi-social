@@ -31,6 +31,7 @@ import type {
   PortalChannelAccount,
   PortalChannelCapability,
 } from "../types/channels"
+import { WhatsAppStatusConnection } from "./whatsapp-status-connection"
 
 type DialogStep = "capabilities" | "authorizing" | "picker" | "whatsapp" | "connected"
 type WhatsAppState = "start" | "waiting" | "expired" | "connected"
@@ -165,6 +166,7 @@ export function ChannelConnectionDialog({
   onMetaAuthorizationStart,
   onMetaConnectionCompleted,
   onMetaConnectionCancelled,
+  onWhatsAppConnectionCompleted,
   onOpenChange,
 }: {
   capabilities: readonly PortalChannelCapability[]
@@ -174,6 +176,7 @@ export function ChannelConnectionDialog({
   onMetaAuthorizationStart: (result: Awaited<ReturnType<typeof channelConnectionsApi.startMeta>>, capability: PortalChannelCapability) => void
   onMetaConnectionCompleted: () => Promise<void>
   onMetaConnectionCancelled: () => void
+  onWhatsAppConnectionCompleted: () => Promise<void>
   onOpenChange: (open: boolean) => void
 }) {
   const [capability, setCapability] = useState<PortalChannelCapability | null>(null)
@@ -376,17 +379,14 @@ export function ChannelConnectionDialog({
             ) : null}
 
             {step === "whatsapp" ? (
-              <div className="grid gap-5">
-                {whatsAppState === "start" ? <Card variant="inset"><CardContent className="flex items-start gap-3 py-5"><Smartphone aria-hidden="true" className="mt-0.5 size-5 text-primary" /><div className="grid gap-1"><p className="font-medium">Preparar vínculo por QR</p><p className="text-sm leading-relaxed text-muted-foreground">El conector real crea un dispositivo temporal y consulta su estado.</p></div></CardContent></Card> : null}
-                {whatsAppState === "waiting" ? <Card variant="inset"><CardContent className="grid justify-items-center gap-4 py-5 text-center"><QrMock /><div><p className="flex items-center justify-center gap-2 font-medium"><QrCode aria-hidden="true" className="size-4 text-primary" />Escanea el QR desde WhatsApp</p><p className="mt-1 text-sm text-muted-foreground">Esperando confirmación del dispositivo.</p></div></CardContent></Card> : null}
-                {whatsAppState === "expired" ? <Card variant="inset"><CardContent className="flex items-start gap-3 py-5"><CircleAlert aria-hidden="true" className="mt-0.5 size-5 text-warning" /><div className="grid gap-1"><p className="font-medium">El QR expiró</p><p className="text-sm text-muted-foreground">Genera uno nuevo para continuar.</p></div></CardContent></Card> : null}
-                {whatsAppState === "connected" ? <Card variant="inset"><CardContent className="flex items-start gap-3 py-5"><CheckCircle2 aria-hidden="true" className="mt-0.5 size-5 text-success" /><div className="grid gap-1"><p className="font-medium">Historias de WhatsApp conectadas</p><p className="text-sm text-muted-foreground">La sesión simulada quedó vinculada.</p></div></CardContent></Card> : null}
-                <div className="flex flex-wrap justify-end gap-2">
-                  {whatsAppState === "start" ? <Button onClick={() => setWhatsAppState("waiting")} type="button">Generar QR</Button> : null}
-                  {whatsAppState === "waiting" ? <><Button onClick={() => setWhatsAppState("expired")} type="button" variant="brand-secondary"><Unplug />Simular expiración</Button><Button onClick={() => { setWhatsAppState("connected"); finishMockConnection({ id: "whatsapp-device-01", label: "WhatsApp de Northstar", description: "Historias de WhatsApp" }) }} type="button"><ScanLine />Marcar como conectado</Button></> : null}
-                  {whatsAppState === "expired" ? <Button onClick={() => setWhatsAppState("waiting")} type="button"><RefreshCw />Generar otro QR</Button> : null}
-                </div>
-              </div>
+              <WhatsAppStatusConnection
+                onConnected={async (account) => {
+                  onConnected(account)
+                  await onWhatsAppConnectionCompleted()
+                  reset()
+                  onOpenChange(false)
+                }}
+              />
             ) : null}
 
             {step === "connected" && capability ? <Card variant="inset"><CardContent className="flex items-start gap-3 py-5"><CheckCircle2 aria-hidden="true" className="mt-0.5 size-5 text-success" /><div className="grid gap-1"><p className="font-medium">{capability.label} conectado</p><p className="text-sm text-muted-foreground">La cuenta ya está disponible para publicar.</p></div></CardContent></Card> : null}

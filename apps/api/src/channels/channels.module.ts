@@ -3,14 +3,15 @@ import { IdentityModule } from '../identity/identity.module'
 import { IntegrationsModule } from '../integrations/integrations.module'
 import { ChannelConnectionsService } from './channel-connections.service'
 import { ChannelConnectionsController, ChannelsController } from './channels.controller'
+import { ChannelsService } from './channels.service'
+import { ChannelOAuthAuthorizationService } from './oauth/channel-oauth-adapters'
 import {
   ChannelOAuthCallbackController,
   ChannelOAuthController,
   ChannelOAuthRedirectController,
 } from './oauth/channel-oauth.controller'
-import { ChannelOAuthAuthorizationService } from './oauth/channel-oauth-adapters'
 import { ChannelOAuthService } from './oauth/channel-oauth.service'
-import { ChannelsService } from './channels.service'
+import { WhatsAppStatusConnectionsService } from './whatsapp-status-connections.service'
 
 @Module({
   imports: [IdentityModule, IntegrationsModule],
@@ -24,6 +25,7 @@ import { ChannelsService } from './channels.service'
   providers: [
     ChannelsService,
     ChannelConnectionsService,
+    WhatsAppStatusConnectionsService,
     ChannelOAuthService,
     ChannelOAuthAuthorizationService,
   ],
