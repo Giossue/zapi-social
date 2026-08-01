@@ -1,5 +1,6 @@
 "use client"
 
+import { channelConnectionsApi } from "@workspace/api-client"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
@@ -25,7 +26,7 @@ import {
   Smartphone,
   Unplug,
 } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import type {
   ChannelCandidate,
   PortalChannelAccount,
@@ -42,6 +43,12 @@ const providerLabels = {
   tiktok: "TikTok",
   whatsapp: "WhatsApp",
 } as const
+
+export type MetaPickerSession = {
+  capability: PortalChannelCapability
+  connectionId: string
+  candidates: readonly ChannelCandidate[]
+}
 
 function CapabilityCard({
   capability,
@@ -105,27 +112,58 @@ function QrMock() {
   )
 }
 
+function toPortalAccount(
+  account: Awaited<ReturnType<typeof channelConnectionsApi.select>>["account"],
+): PortalChannelAccount {
+  return {
+    id: account.id,
+    capabilityKey: account.capabilityKey,
+    provider: account.provider,
+    displayName: account.displayName,
+    handle: account.handle ?? undefined,
+    status: account.status,
+    connectedAt: account.createdAt.slice(0, 10),
+  }
+}
+
 export function ChannelConnectionDialog({
   capabilities,
   open,
+  metaPickerSession,
   onConnected,
+  onMetaAuthorizationStart,
+  onMetaConnectionCompleted,
   onOpenChange,
 }: {
   capabilities: readonly PortalChannelCapability[]
   open: boolean
+  metaPickerSession: MetaPickerSession | null
   onConnected: (account: PortalChannelAccount) => void
+  onMetaAuthorizationStart: (result: Awaited<ReturnType<typeof channelConnectionsApi.startMeta>>, capability: PortalChannelCapability) => void
+  onMetaConnectionCompleted: () => Promise<void>
   onOpenChange: (open: boolean) => void
 }) {
   const [capability, setCapability] = useState<PortalChannelCapability | null>(null)
   const [candidate, setCandidate] = useState<ChannelCandidate | null>(null)
   const [step, setStep] = useState<DialogStep>("capabilities")
   const [whatsAppState, setWhatsAppState] = useState<WhatsAppState>("start")
+  const [isAuthorizing, setIsAuthorizing] = useState(false)
+  const [isSelecting, setIsSelecting] = useState(false)
+
+  useEffect(() => {
+    if (!metaPickerSession || !open) return
+    setCapability(metaPickerSession.capability)
+    setCandidate(null)
+    setStep("picker")
+  }, [metaPickerSession, open])
 
   function reset() {
     setCapability(null)
     setCandidate(null)
     setStep("capabilities")
     setWhatsAppState("start")
+    setIsAuthorizing(false)
+    setIsSelecting(false)
   }
 
   function handleOpenChange(nextOpen: boolean) {
@@ -133,9 +171,25 @@ export function ChannelConnectionDialog({
     onOpenChange(nextOpen)
   }
 
-  function selectCapability(nextCapability: PortalChannelCapability) {
+  async function selectCapability(nextCapability: PortalChannelCapability) {
     setCapability(nextCapability)
     setCandidate(null)
+
+    if (nextCapability.provider === "meta") {
+      setIsAuthorizing(true)
+      try {
+        const result = await channelConnectionsApi.startMeta({ capabilityKey: nextCapability.key })
+        onMetaAuthorizationStart(result, nextCapability)
+      } catch (error) {
+        console.error("Meta authorization start failed", error)
+        toast.error("No pudimos iniciar la autorización con Meta. Inténtalo de nuevo.")
+        setStep("capabilities")
+      } finally {
+        setIsAuthorizing(false)
+      }
+      return
+    }
+
     if (nextCapability.connectionKind === "qr") {
       setStep("whatsapp")
       return
@@ -143,8 +197,8 @@ export function ChannelConnectionDialog({
     setStep("authorizing")
   }
 
-  function finishConnection(selected: ChannelCandidate) {
-    if (!capability) return
+  function finishMockConnection(selected: ChannelCandidate) {
+    if (!capability || capability.provider === "meta") return
     onConnected({
       id: `mock-${capability.key}-${selected.id}`,
       capabilityKey: capability.key,
@@ -158,22 +212,41 @@ export function ChannelConnectionDialog({
     toast.success(`${capability.label} conectado en el mock.`)
   }
 
-  function authorize() {
-    if (!capability) return
+  function authorizeMock() {
+    if (!capability || capability.provider === "meta") return
     if (capability.connectionKind === "picker") {
       setStep("picker")
       return
     }
-    finishConnection({
+    finishMockConnection({
       id: `${capability.key}-direct`,
       label: `Cuenta de ${providerLabels[capability.provider]}`,
       description: capability.label,
     })
   }
 
+  async function selectMetaCandidate() {
+    if (!candidate || !metaPickerSession) return
+    setIsSelecting(true)
+    try {
+      const result = await channelConnectionsApi.select(metaPickerSession.connectionId, {
+        candidateId: candidate.id,
+      })
+      onConnected(toPortalAccount(result.account))
+      await onMetaConnectionCompleted()
+      setStep("connected")
+      toast.success(`${metaPickerSession.capability.label} conectado.`)
+    } catch (error) {
+      console.error("Meta candidate selection failed", error)
+      toast.error("No pudimos conectar la cuenta seleccionada. Inténtalo de nuevo.")
+    } finally {
+      setIsSelecting(false)
+    }
+  }
+
   function back() {
     if (step === "capabilities") return
-    if (step === "picker") {
+    if (step === "picker" && !metaPickerSession) {
       setStep("authorizing")
       return
     }
@@ -181,6 +254,8 @@ export function ChannelConnectionDialog({
   }
 
   const title = capability ? `Conectar ${capability.label}` : "Conectar un canal"
+  const isMetaPicker = capability?.provider === "meta" && capability.connectionKind === "oauth_picker"
+  const pickerCandidates = isMetaPicker ? metaPickerSession?.candidates ?? [] : capability?.candidates ?? []
 
   return (
     <Dialog onOpenChange={handleOpenChange} open={open}>
@@ -188,140 +263,88 @@ export function ChannelConnectionDialog({
         <DialogHeader className="px-6 pt-6">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            Flujo simulado del Portal. No abre proveedores ni guarda credenciales.
+            {capability?.provider === "meta"
+              ? "Autoriza Meta para ver y conectar los recursos elegibles de tu cuenta."
+              : "Los conectores disponibles fuera de Meta permanecen en modo de referencia."}
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea
-          className="max-h-[calc(100dvh-10rem)]"
-          scrollbarClassName="translate-x-6"
-          type="always"
-        >
+        <ScrollArea className="max-h-[calc(100dvh-10rem)]" scrollbarClassName="translate-x-6" type="always">
           <div className="grid gap-5 px-6 pt-5 pr-12 pb-6">
-        {step !== "capabilities" && step !== "connected" ? (
-          <Button className="w-fit" onClick={back} size="sm" type="button" variant="brand-secondary">
-            <ChevronLeft aria-hidden="true" />
-            Volver
-          </Button>
-        ) : null}
-
-        {step === "capabilities" ? (
-          <ScrollArea
-            className="max-h-[calc(100dvh-18rem)] overflow-visible pr-3"
-            scrollbarClassName="translate-x-8"
-            type="always"
-          >
-            <div aria-label="Tipos de canal" className="grid gap-3 pb-6 sm:grid-cols-2 xl:grid-cols-3">
-              {capabilities.map((item) => (
-                <CapabilityCard capability={item} key={item.key} onSelect={selectCapability} />
-              ))}
-            </div>
-          </ScrollArea>
-        ) : null}
-
-        {step === "authorizing" && capability ? (
-          <div className="grid gap-5">
-            <Card variant="inset">
-              <CardContent className="flex items-start gap-3 py-5">
-                <ShieldCheck aria-hidden="true" className="mt-0.5 size-5 text-primary" />
-                <div className="grid gap-1">
-                  <p className="font-medium">Autorización simulada de {providerLabels[capability.provider]}</p>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    En producción se abrirá el proveedor, se validará el retorno y se mostrarán solo los recursos elegibles.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-            <div className="flex justify-end">
-              <Button onClick={authorize} type="button">Simular autorización aceptada</Button>
-            </div>
-          </div>
-        ) : null}
-
-        {step === "picker" && capability ? (
-          <div className="grid gap-4">
-            <p className="text-sm text-muted-foreground">Elige un único recurso devuelto para esta conexión.</p>
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {(capability.candidates ?? []).map((item) => (
-                <Button
-                  aria-pressed={candidate?.id === item.id}
-                  className="h-auto justify-start px-4 py-3 text-left whitespace-normal"
-                  key={item.id}
-                  onClick={() => setCandidate(item)}
-                  type="button"
-                  variant={candidate?.id === item.id ? "brand-secondary" : "surface"}
-                >
-                  <span className="grid gap-0.5">
-                    <span>{item.label}</span>
-                    <span className="text-sm font-normal text-muted-foreground">{item.description}</span>
-                    {item.metadata ? <span className="text-xs font-normal text-muted-foreground">{item.metadata}</span> : null}
-                  </span>
-                </Button>
-              ))}
-            </div>
-            <div className="flex justify-end">
-              <Button disabled={!candidate} onClick={() => candidate && finishConnection(candidate)} type="button">
-                Conectar selección
+            {step !== "capabilities" && step !== "connected" ? (
+              <Button className="w-fit" onClick={back} size="sm" type="button" variant="brand-secondary">
+                <ChevronLeft aria-hidden="true" />
+                Volver
               </Button>
-            </div>
-          </div>
-        ) : null}
+            ) : null}
 
-        {step === "whatsapp" ? (
-          <div className="grid gap-5">
-            {whatsAppState === "start" ? (
-              <Card variant="inset">
-                <CardContent className="flex items-start gap-3 py-5">
-                  <Smartphone aria-hidden="true" className="mt-0.5 size-5 text-primary" />
-                  <div className="grid gap-1">
-                    <p className="font-medium">Preparar vínculo por QR</p>
-                    <p className="text-sm leading-relaxed text-muted-foreground">El conector real crea un dispositivo temporal y consulta su estado.</p>
-                  </div>
-                </CardContent>
-              </Card>
+            {step === "capabilities" ? (
+              <ScrollArea className="max-h-[calc(100dvh-18rem)] overflow-visible pr-3" scrollbarClassName="translate-x-8" type="always">
+                <div aria-label="Tipos de canal" className="grid gap-3 pb-6 sm:grid-cols-2 xl:grid-cols-3">
+                  {capabilities.map((item) => (
+                    <CapabilityCard capability={item} key={item.key} onSelect={(item) => void selectCapability(item)} />
+                  ))}
+                </div>
+              </ScrollArea>
             ) : null}
-            {whatsAppState === "waiting" ? (
-              <Card variant="inset">
-                <CardContent className="grid justify-items-center gap-4 py-5 text-center">
-                  <QrMock />
-                  <div>
-                    <p className="flex items-center justify-center gap-2 font-medium"><QrCode aria-hidden="true" className="size-4 text-primary" />Escanea el QR desde WhatsApp</p>
-                    <p className="mt-1 text-sm text-muted-foreground">Esperando confirmación del dispositivo.</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : null}
-            {whatsAppState === "expired" ? (
-              <Card variant="inset">
-                <CardContent className="flex items-start gap-3 py-5">
-                  <CircleAlert aria-hidden="true" className="mt-0.5 size-5 text-warning" />
-                  <div className="grid gap-1"><p className="font-medium">El QR expiró</p><p className="text-sm text-muted-foreground">Genera uno nuevo para continuar.</p></div>
-                </CardContent>
-              </Card>
-            ) : null}
-            {whatsAppState === "connected" ? (
-              <Card variant="inset">
-                <CardContent className="flex items-start gap-3 py-5">
-                  <CheckCircle2 aria-hidden="true" className="mt-0.5 size-5 text-success" />
-                  <div className="grid gap-1"><p className="font-medium">Historias de WhatsApp conectadas</p><p className="text-sm text-muted-foreground">La sesión simulada quedó vinculada.</p></div>
-                </CardContent>
-              </Card>
-            ) : null}
-            <div className="flex flex-wrap justify-end gap-2">
-              {whatsAppState === "start" ? <Button onClick={() => setWhatsAppState("waiting")} type="button">Generar QR</Button> : null}
-              {whatsAppState === "waiting" ? <><Button onClick={() => setWhatsAppState("expired")} type="button" variant="brand-secondary"><Unplug />Simular expiración</Button><Button onClick={() => { setWhatsAppState("connected"); finishConnection({ id: "whatsapp-device-01", label: "WhatsApp de Northstar", description: "Historias de WhatsApp" }) }} type="button"><ScanLine />Marcar como conectado</Button></> : null}
-              {whatsAppState === "expired" ? <Button onClick={() => setWhatsAppState("waiting")} type="button"><RefreshCw />Generar otro QR</Button> : null}
-            </div>
-          </div>
-        ) : null}
 
-        {step === "connected" && capability ? (
-          <Card variant="inset">
-            <CardContent className="flex items-start gap-3 py-5">
-              <CheckCircle2 aria-hidden="true" className="mt-0.5 size-5 text-success" />
-              <div className="grid gap-1"><p className="font-medium">{capability.label} conectado</p><p className="text-sm text-muted-foreground">La cuenta aparece solo en este mock local.</p></div>
-            </CardContent>
-          </Card>
-        ) : null}
+            {isAuthorizing ? (
+              <Card variant="inset">
+                <CardContent className="flex items-center gap-3 py-5 text-sm text-muted-foreground">
+                  <LoaderCircle aria-hidden="true" className="size-5 animate-spin text-primary" />
+                  Preparando la autorización con Meta…
+                </CardContent>
+              </Card>
+            ) : null}
+
+            {step === "authorizing" && capability ? (
+              <div className="grid gap-5">
+                <Card variant="inset">
+                  <CardContent className="flex items-start gap-3 py-5">
+                    <ShieldCheck aria-hidden="true" className="mt-0.5 size-5 text-primary" />
+                    <div className="grid gap-1">
+                      <p className="font-medium">Autorización simulada de {providerLabels[capability.provider]}</p>
+                      <p className="text-sm leading-relaxed text-muted-foreground">En producción se abrirá el proveedor, se validará el retorno y se mostrarán solo los recursos elegibles.</p>
+                    </div>
+                  </CardContent>
+                </Card>
+                <div className="flex justify-end"><Button onClick={authorizeMock} type="button">Simular autorización aceptada</Button></div>
+              </div>
+            ) : null}
+
+            {step === "picker" && capability ? (
+              <div className="grid gap-4">
+                <p className="text-sm text-muted-foreground">Elige un único recurso devuelto para esta conexión.</p>
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {pickerCandidates.map((item) => (
+                    <Button aria-pressed={candidate?.id === item.id} className="h-auto justify-start px-4 py-3 text-left whitespace-normal" key={item.id} onClick={() => setCandidate(item)} type="button" variant={candidate?.id === item.id ? "brand-secondary" : "surface"}>
+                      <span className="grid gap-0.5"><span>{item.label}</span><span className="text-sm font-normal text-muted-foreground">{item.description}</span>{item.metadata ? <span className="text-xs font-normal text-muted-foreground">{item.metadata}</span> : null}</span>
+                    </Button>
+                  ))}
+                </div>
+                <div className="flex justify-end">
+                  <Button disabled={!candidate || isSelecting} onClick={() => void (isMetaPicker ? selectMetaCandidate() : candidate && finishMockConnection(candidate))} type="button">
+                    {isSelecting ? <LoaderCircle className="animate-spin" data-icon="inline-start" /> : null}
+                    Conectar selección
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+
+            {step === "whatsapp" ? (
+              <div className="grid gap-5">
+                {whatsAppState === "start" ? <Card variant="inset"><CardContent className="flex items-start gap-3 py-5"><Smartphone aria-hidden="true" className="mt-0.5 size-5 text-primary" /><div className="grid gap-1"><p className="font-medium">Preparar vínculo por QR</p><p className="text-sm leading-relaxed text-muted-foreground">El conector real crea un dispositivo temporal y consulta su estado.</p></div></CardContent></Card> : null}
+                {whatsAppState === "waiting" ? <Card variant="inset"><CardContent className="grid justify-items-center gap-4 py-5 text-center"><QrMock /><div><p className="flex items-center justify-center gap-2 font-medium"><QrCode aria-hidden="true" className="size-4 text-primary" />Escanea el QR desde WhatsApp</p><p className="mt-1 text-sm text-muted-foreground">Esperando confirmación del dispositivo.</p></div></CardContent></Card> : null}
+                {whatsAppState === "expired" ? <Card variant="inset"><CardContent className="flex items-start gap-3 py-5"><CircleAlert aria-hidden="true" className="mt-0.5 size-5 text-warning" /><div className="grid gap-1"><p className="font-medium">El QR expiró</p><p className="text-sm text-muted-foreground">Genera uno nuevo para continuar.</p></div></CardContent></Card> : null}
+                {whatsAppState === "connected" ? <Card variant="inset"><CardContent className="flex items-start gap-3 py-5"><CheckCircle2 aria-hidden="true" className="mt-0.5 size-5 text-success" /><div className="grid gap-1"><p className="font-medium">Historias de WhatsApp conectadas</p><p className="text-sm text-muted-foreground">La sesión simulada quedó vinculada.</p></div></CardContent></Card> : null}
+                <div className="flex flex-wrap justify-end gap-2">
+                  {whatsAppState === "start" ? <Button onClick={() => setWhatsAppState("waiting")} type="button">Generar QR</Button> : null}
+                  {whatsAppState === "waiting" ? <><Button onClick={() => setWhatsAppState("expired")} type="button" variant="brand-secondary"><Unplug />Simular expiración</Button><Button onClick={() => { setWhatsAppState("connected"); finishMockConnection({ id: "whatsapp-device-01", label: "WhatsApp de Northstar", description: "Historias de WhatsApp" }) }} type="button"><ScanLine />Marcar como conectado</Button></> : null}
+                  {whatsAppState === "expired" ? <Button onClick={() => setWhatsAppState("waiting")} type="button"><RefreshCw />Generar otro QR</Button> : null}
+                </div>
+              </div>
+            ) : null}
+
+            {step === "connected" && capability ? <Card variant="inset"><CardContent className="flex items-start gap-3 py-5"><CheckCircle2 aria-hidden="true" className="mt-0.5 size-5 text-success" /><div className="grid gap-1"><p className="font-medium">{capability.label} conectado</p><p className="text-sm text-muted-foreground">La cuenta ya está disponible para publicar.</p></div></CardContent></Card> : null}
           </div>
         </ScrollArea>
       </DialogContent>

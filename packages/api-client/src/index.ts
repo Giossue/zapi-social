@@ -1,17 +1,19 @@
 import type {
   AuthSession,
-  ChannelAccount,
-  ChannelList,
-  ChannelListQuery,
-  CreateChannelInput,
   LoginInput,
   MetaIntegration,
+  PortalChannelAccount,
+  PortalChannelCandidate,
+  PortalChannelConnection,
+  PortalChannelsQuery,
+  PortalChannelsResponse,
   PortalDashboard,
   RegisterInput,
+  StartPortalChannelConnectionInput,
   TestMetaIntegrationInput,
   TestMetaIntegrationResponse,
-  UpdateChannelInput,
   UpdateMetaIntegrationInput,
+  UpdatePortalChannelInput,
 } from "@workspace/contracts"
 
 const apiBaseUrl =
@@ -56,14 +58,35 @@ async function request<T>(path: string, init: RequestInit): Promise<T> {
   return response.json() as Promise<T>
 }
 
-function channelQueryString(query: ChannelListQuery = {}) {
+function portalChannelsQueryString(query: PortalChannelsQuery = {}) {
   const params = new URLSearchParams()
   if (query.q) params.set("q", query.q)
-  if (query.status) params.set("status", query.status)
   if (query.provider) params.set("provider", query.provider)
+  if (query.capability) params.set("capability", query.capability)
+  if (query.status) params.set("status", query.status)
   if (query.sort) params.set("sort", query.sort)
   const serialized = params.toString()
   return serialized ? `?${serialized}` : ""
+}
+
+type PortalChannelConnectionStartResponse = {
+  connection: PortalChannelConnection
+  authorizationUrl: string
+}
+
+type PortalChannelCandidatesResponse = {
+  connectionId: PortalChannelConnection["id"]
+  state: "picker_ready"
+  candidates: PortalChannelCandidate[]
+}
+
+type SelectPortalChannelCandidateInput = {
+  candidateId: PortalChannelCandidate["id"]
+}
+
+type SelectPortalChannelCandidateResponse = {
+  account: PortalChannelAccount
+  connection: PortalChannelConnection & { state: "connected" }
 }
 
 export const authApi = {
@@ -87,30 +110,52 @@ export const portalApi = {
 }
 
 export const channelsApi = {
-  list: (query?: ChannelListQuery) =>
-    request<ChannelList>(`/v1/portal/channels${channelQueryString(query)}`, {
-      method: "GET",
-    }),
-  create: (input: CreateChannelInput) =>
-    request<ChannelAccount>("/v1/portal/channels", {
-      method: "POST",
-      body: JSON.stringify(input),
-    }),
-  update: (id: string, input: UpdateChannelInput) =>
-    request<ChannelAccount>(`/v1/portal/channels/${id}`, {
+  list: (query?: PortalChannelsQuery) =>
+    request<PortalChannelsResponse>(
+      `/v1/portal/channels${portalChannelsQueryString(query)}`,
+      { method: "GET" }
+    ),
+  update: (id: string, input: UpdatePortalChannelInput) =>
+    request<PortalChannelAccount>(`/v1/portal/channels/${id}`, {
       method: "PATCH",
       body: JSON.stringify(input),
     }),
-  pause: (id: string) =>
-    request<ChannelAccount>(`/v1/portal/channels/${id}/pause`, {
-      method: "POST",
-    }),
-  resume: (id: string) =>
-    request<ChannelAccount>(`/v1/portal/channels/${id}/resume`, {
-      method: "POST",
-    }),
   remove: (id: string) =>
     request<void>(`/v1/portal/channels/${id}`, { method: "DELETE" }),
+  reconnect: (id: string) =>
+    request<PortalChannelConnectionStartResponse>(
+      `/v1/portal/channels/${id}/reconnect`,
+      { method: "POST" }
+    ),
+}
+
+export const channelConnectionsApi = {
+  startMeta: (input: StartPortalChannelConnectionInput) =>
+    request<PortalChannelConnectionStartResponse>(
+      "/v1/portal/channel-connections/oauth/start",
+      {
+        method: "POST",
+        body: JSON.stringify(input),
+      }
+    ),
+  candidates: (connectionId: string) =>
+    request<PortalChannelCandidatesResponse>(
+      `/v1/portal/channel-connections/${connectionId}/candidates`,
+      { method: "GET" }
+    ),
+  select: (connectionId: string, input: SelectPortalChannelCandidateInput) =>
+    request<SelectPortalChannelCandidateResponse>(
+      `/v1/portal/channel-connections/${connectionId}/select`,
+      {
+        method: "POST",
+        body: JSON.stringify(input),
+      }
+    ),
+  cancel: (connectionId: string) =>
+    request<PortalChannelConnection>(
+      `/v1/portal/channel-connections/${connectionId}/cancel`,
+      { method: "POST" }
+    ),
 }
 
 export const integrationsApi = {

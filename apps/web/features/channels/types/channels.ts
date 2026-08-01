@@ -11,7 +11,14 @@ export type ChannelCapabilityKey =
   | "whatsapp_status"
 
 export type ChannelAvailability = "ready" | "coming_soon" | "plan_locked"
-export type ChannelConnectionKind = "picker" | "direct" | "qr"
+/** Local values preserve the approved mock flow; OAuth values are returned by the Portal API. */
+export type ChannelConnectionKind =
+  | "picker"
+  | "direct"
+  | "qr"
+  | "oauth_direct"
+  | "oauth_picker"
+  | "qr_device"
 export type ChannelAccountStatus = "connected" | "disconnected"
 
 export type ChannelCandidate = {
