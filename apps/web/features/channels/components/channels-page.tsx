@@ -607,14 +607,12 @@ export function LiveChannelsPage() {
       handledOAuthOutcome.current = null
       if (window.location.hash === "#_=_") {
         clearMetaOAuthReturnUrl()
-        router.replace("/portal/channels")
       }
       return
     }
     if (handledOAuthOutcome.current === outcome) return
     handledOAuthOutcome.current = outcome
     clearMetaOAuthReturnUrl()
-    router.replace("/portal/channels")
 
     if (outcome === "denied" || outcome === "failed") {
       window.sessionStorage.removeItem(META_OAUTH_SESSION_KEY)
