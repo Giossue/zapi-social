@@ -56,11 +56,20 @@ async function request<T>(path: string, init: RequestInit): Promise<T> {
       requestId?: string
     } | null
 
-    throw new ApiError(
+    const error = new ApiError(
       body?.code ?? "REQUEST_FAILED",
       response.status,
       body?.requestId
     )
+    if (
+      typeof window !== "undefined" &&
+      error.status === 401 &&
+      path !== "/v1/auth/login" &&
+      path !== "/v1/auth/register"
+    ) {
+      window.dispatchEvent(new Event("zapi:session-invalid"))
+    }
+    throw error
   }
 
   if (response.status === 204) return undefined as T

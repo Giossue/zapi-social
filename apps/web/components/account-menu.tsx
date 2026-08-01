@@ -14,6 +14,7 @@ import { Switch } from "@workspace/ui/components/switch"
 import { toast } from "@workspace/ui/components/toast"
 import { LogOut, Moon, Sun } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { announceSessionLogout } from "@/features/identity/components/session-synchronizer"
 import { useTheme } from "next-themes"
 import { useEffect, useState } from "react"
 
@@ -45,6 +46,7 @@ export function AccountMenu({ profile }: AccountMenuProps) {
   async function logout() {
     try {
       await authApi.logout()
+      announceSessionLogout()
       router.replace("/login")
       router.refresh()
     } catch (error) {

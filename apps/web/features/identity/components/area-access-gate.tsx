@@ -18,17 +18,11 @@ import {
 type AccessState =
   | { status: "loading" }
   | { status: "ready"; session: AreaAuthSession }
-  | { status: "redirecting"; destination: string }
   | { status: "error"; message: string }
 
 type AreaAccessGateProps = {
   area: ProductArea
   children: (session: AreaAuthSession) => ReactNode
-}
-
-const areaLabels: Record<ProductArea, string> = {
-  admin: "Administración de plataforma",
-  portal: "Portal",
 }
 
 function AccessLoading() {
@@ -39,69 +33,42 @@ export function AreaAccessGate({ area, children }: AreaAccessGateProps) {
   const router = useRouter()
   const [state, setState] = useState<AccessState>({ status: "loading" })
 
+  const redirect = useCallback((destination: string) => {
+    router.replace(destination)
+    router.refresh()
+  }, [router])
+
   const validateSession = useCallback(async () => {
     setState({ status: "loading" })
-
     try {
       const session = await authApi.session()
       const sessionArea = getSessionArea(session)
-
       if (!sessionArea) {
-        setState({
-          status: "error",
-          message: "Tu sesión no incluye el área de acceso requerida. Vuelve a iniciar sesión.",
-        })
+        redirect("/login")
         return
       }
-
       if (sessionArea !== area) {
-        setState({
-          status: "redirecting",
-          destination: getAreaDestination(sessionArea),
-        })
+        redirect(getAreaDestination(sessionArea))
         return
       }
-
       setState({ status: "ready", session: session as AreaAuthSession })
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
-        setState({ status: "redirecting", destination: "/login" })
+        redirect("/login")
         return
       }
-
       setState({
         status: "error",
         message: "No pudimos validar tu acceso. Comprueba tu conexión e inténtalo de nuevo.",
       })
     }
-  }, [area])
+  }, [area, redirect])
 
   useEffect(() => {
     void validateSession()
   }, [validateSession])
 
-  useEffect(() => {
-    if (state.status === "redirecting") {
-      router.replace(state.destination)
-    }
-  }, [router, state])
-
   if (state.status === "loading") return <AccessLoading />
-
-  if (state.status === "redirecting") {
-    return (
-      <main className="mx-auto flex min-h-dvh w-full max-w-7xl items-center p-4 sm:p-6 lg:p-8">
-        <Card variant="surface" className="w-full max-w-lg">
-          <EmptyState
-            icon={ShieldAlert}
-            title="Redirigiendo a tu área"
-            description={`Esta cuenta solo tiene acceso a ${areaLabels[area === "admin" ? "portal" : "admin"]}.`}
-          />
-        </Card>
-      </main>
-    )
-  }
-
   if (state.status === "error") {
     return (
       <main className="mx-auto flex min-h-dvh w-full max-w-7xl items-center p-4 sm:p-6 lg:p-8">
@@ -116,6 +83,5 @@ export function AreaAccessGate({ area, children }: AreaAccessGateProps) {
       </main>
     )
   }
-
   return children(state.session)
 }

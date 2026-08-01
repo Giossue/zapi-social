@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import "@workspace/ui/globals.css"
 import { Toaster } from "@workspace/ui/components/toast"
 import { ThemeProvider } from "@/components/theme-provider"
+import { SessionSynchronizer } from "@/features/identity/components/session-synchronizer"
 import { cn } from "@workspace/ui/lib/utils"
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
@@ -21,6 +22,7 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning className={cn("antialiased", fontMono.variable, "font-sans", geist.variable)}>
       <body>
         <ThemeProvider>
+          <SessionSynchronizer />
           {children}
           <Toaster />
         </ThemeProvider>
