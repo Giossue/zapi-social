@@ -15,7 +15,6 @@ import { ScrollArea } from "@workspace/ui/components/scroll-area"
 import { toast } from "@workspace/ui/components/toast"
 import {
   CheckCircle2,
-  ChevronLeft,
   CircleAlert,
   LoaderCircle,
   Plus,
@@ -133,6 +132,7 @@ export function ChannelConnectionDialog({
   onConnected,
   onMetaAuthorizationStart,
   onMetaConnectionCompleted,
+  onMetaConnectionCancelled,
   onOpenChange,
 }: {
   capabilities: readonly PortalChannelCapability[]
@@ -141,6 +141,7 @@ export function ChannelConnectionDialog({
   onConnected: (account: PortalChannelAccount) => void
   onMetaAuthorizationStart: (result: Awaited<ReturnType<typeof channelConnectionsApi.startMeta>>, capability: PortalChannelCapability) => void
   onMetaConnectionCompleted: () => Promise<void>
+  onMetaConnectionCancelled: () => void
   onOpenChange: (open: boolean) => void
 }) {
   const [capability, setCapability] = useState<PortalChannelCapability | null>(null)
@@ -244,17 +245,31 @@ export function ChannelConnectionDialog({
     }
   }
 
-  function back() {
-    if (step === "capabilities") return
-    if (step === "picker" && !metaPickerSession) {
-      setStep("authorizing")
+  async function cancelPicker() {
+    if (capability?.provider === "meta") {
+      if (!metaPickerSession) return
+      setIsSelecting(true)
+      try {
+        await channelConnectionsApi.cancel(metaPickerSession.connectionId)
+        onMetaConnectionCancelled()
+        reset()
+        onOpenChange(false)
+        toast.success("La conexión con Meta fue cancelada.")
+      } catch (error) {
+        console.error("Meta connection cancellation failed", error)
+        toast.error("No pudimos cancelar la conexión con Meta. Inténtalo de nuevo.")
+      } finally {
+        setIsSelecting(false)
+      }
       return
     }
+
     reset()
+    onOpenChange(false)
   }
 
   const title = capability ? `Conectar ${capability.label}` : "Conectar un canal"
-  const isMetaPicker = capability?.provider === "meta" && capability.connectionKind === "oauth_picker"
+  const isMetaPicker = capability?.provider === "meta"
   const pickerCandidates = isMetaPicker ? metaPickerSession?.candidates ?? [] : capability?.candidates ?? []
 
   return (
@@ -270,13 +285,6 @@ export function ChannelConnectionDialog({
         </DialogHeader>
         <ScrollArea className="max-h-[calc(100dvh-10rem)]" scrollbarClassName="translate-x-6" type="always">
           <div className="grid gap-5 px-6 pt-5 pr-12 pb-6">
-            {step !== "capabilities" && step !== "connected" ? (
-              <Button className="w-fit" onClick={back} size="sm" type="button" variant="brand-secondary">
-                <ChevronLeft aria-hidden="true" />
-                Volver
-              </Button>
-            ) : null}
-
             {step === "capabilities" ? (
               <ScrollArea className="max-h-[calc(100dvh-18rem)] overflow-visible pr-3" scrollbarClassName="translate-x-8" type="always">
                 <div aria-label="Tipos de canal" className="grid gap-3 pb-6 sm:grid-cols-2 xl:grid-cols-3">
@@ -321,7 +329,8 @@ export function ChannelConnectionDialog({
                     </Button>
                   ))}
                 </div>
-                <div className="flex justify-end">
+                <div className="flex justify-end gap-2">
+                  <Button disabled={isSelecting} onClick={() => void cancelPicker()} type="button" variant="brand-secondary">Cancelar</Button>
                   <Button disabled={!candidate || isSelecting} onClick={() => void (isMetaPicker ? selectMetaCandidate() : candidate && finishMockConnection(candidate))} type="button">
                     {isSelecting ? <LoaderCircle className="animate-spin" data-icon="inline-start" /> : null}
                     Conectar selección

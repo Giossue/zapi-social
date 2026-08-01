@@ -70,6 +70,12 @@ function toPortalCapability(capability: Awaited<ReturnType<typeof channelsApi.li
   return { ...capability, icon: reference.icon }
 }
 
+function metaOAuthPickerCapability(capabilityKey: ChannelCapabilityKey): PortalChannelCapability | null {
+  const reference = channelsFixture.capabilities.find((item) => item.key === capabilityKey)
+  if (!reference || reference.provider !== "meta") return null
+  return { ...reference, connectionKind: "oauth_picker", candidates: undefined }
+}
+
 function readMetaOAuthSession(): MetaOAuthSession | null {
   try {
     const value = window.sessionStorage.getItem(META_OAUTH_SESSION_KEY)
@@ -183,7 +189,7 @@ export function LiveChannelsPage() {
     void (async () => {
       try {
         const response = await channelConnectionsApi.candidates(session.connectionId)
-        const capability = capabilities.find((item) => item.key === session.capabilityKey) ?? channelsFixture.capabilities.find((item) => item.key === session.capabilityKey)
+        const capability = capabilities.find((item) => item.key === session.capabilityKey) ?? metaOAuthPickerCapability(session.capabilityKey)
         if (!capability || capability.provider !== "meta") throw new Error("Missing Meta capability")
         setMetaPickerSession({ capability, connectionId: response.connectionId, candidates: response.candidates.map((candidate) => ({ ...candidate, metadata: candidate.metadata ?? undefined })) })
         setIsConnectOpen(true)
@@ -216,7 +222,9 @@ export function LiveChannelsPage() {
     setPendingAccountId(account.id)
     try {
       const result = await channelsApi.reconnect(account.id)
-      beginMetaAuthorization(result, { ...channelsFixture.capabilities.find((item) => item.key === account.capabilityKey)!, connectionKind: "oauth_picker" })
+      const capability = metaOAuthPickerCapability(account.capabilityKey)
+      if (!capability) throw new Error("Missing Meta capability")
+      beginMetaAuthorization(result, capability)
     } catch (error) {
       console.error("Channel reconnect failed", error)
       toast.error("No pudimos iniciar la reconexión del canal. Inténtalo de nuevo.")
@@ -258,6 +266,11 @@ export function LiveChannelsPage() {
     await loadChannels()
   }
 
+  function cancelMetaConnection() {
+    window.sessionStorage.removeItem(META_OAUTH_SESSION_KEY)
+    setMetaPickerSession(null)
+  }
+
   if (isLoading) return <ChannelsLoading />
   if (!hasPermission) return <EmptyState description="Pide acceso a un administrador del espacio de trabajo." icon={LockKeyhole} title="No tienes acceso a los canales" />
   if (hasError) return <EmptyState description="Comprueba tu conexión e inténtalo de nuevo." icon={TriangleAlert} title="No pudimos cargar los canales" action={<Button onClick={() => void loadChannels()}>Reintentar</Button>} />
@@ -271,6 +284,6 @@ export function LiveChannelsPage() {
     </section>
     <EditChannelDialog account={editingAccount} onOpenChange={(open) => !open && setEditingAccount(null)} onSave={(displayName) => void renameAccount(displayName)} pending={pendingAccountId === editingAccount?.id} />
     <DeleteChannelDialog account={deletingAccount} onConfirm={() => void confirmDelete()} onOpenChange={(open) => !open && setDeletingAccount(null)} pending={pendingAccountId === deletingAccount?.id} />
-    <ChannelConnectionDialog capabilities={capabilities} metaPickerSession={metaPickerSession} onConnected={addAccount} onMetaAuthorizationStart={beginMetaAuthorization} onMetaConnectionCompleted={completeMetaConnection} onOpenChange={setIsConnectOpen} open={isConnectOpen} />
+    <ChannelConnectionDialog capabilities={capabilities} metaPickerSession={metaPickerSession} onConnected={addAccount} onMetaAuthorizationStart={beginMetaAuthorization} onMetaConnectionCancelled={cancelMetaConnection} onMetaConnectionCompleted={completeMetaConnection} onOpenChange={setIsConnectOpen} open={isConnectOpen} />
   </div>
 }
