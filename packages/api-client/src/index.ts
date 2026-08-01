@@ -58,13 +58,15 @@ async function request<T>(path: string, init: RequestInit): Promise<T> {
   return response.json() as Promise<T>
 }
 
-function portalChannelsQueryString(query: PortalChannelsQuery = {}) {
+function portalChannelsQueryString(query: Partial<PortalChannelsQuery> = {}) {
   const params = new URLSearchParams()
   if (query.q) params.set("q", query.q)
   if (query.provider) params.set("provider", query.provider)
   if (query.capability) params.set("capability", query.capability)
   if (query.status) params.set("status", query.status)
   if (query.sort) params.set("sort", query.sort)
+  if (query.limit) params.set("limit", String(query.limit))
+  if (query.cursor) params.set("cursor", query.cursor)
   const serialized = params.toString()
   return serialized ? `?${serialized}` : ""
 }
@@ -110,7 +112,7 @@ export const portalApi = {
 }
 
 export const channelsApi = {
-  list: (query?: PortalChannelsQuery) =>
+  list: (query?: Partial<PortalChannelsQuery>) =>
     request<PortalChannelsResponse>(
       `/v1/portal/channels${portalChannelsQueryString(query)}`,
       { method: "GET" }

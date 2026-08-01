@@ -31,10 +31,7 @@ export const portalChannelAvailabilitySchema = z.enum([
   "plan_locked",
 ])
 
-export const portalChannelStatusSchema = z.enum([
-  "connected",
-  "disconnected",
-])
+export const portalChannelStatusSchema = z.enum(["connected", "disconnected"])
 
 export const portalChannelCapabilitySchema = z.object({
   key: portalChannelCapabilityKeySchema,
@@ -59,10 +56,23 @@ export const portalChannelAccountSchema = z.object({
   updatedAt: z.string().datetime(),
 })
 
+export const portalChannelsPaginationSchema = z.object({
+  limit: z.number().int().min(1).max(50),
+  nextCursor: z.string().min(1).max(1024).nullable(),
+})
+
+export const portalChannelsSummarySchema = z.object({
+  total: z.number().int().nonnegative(),
+  connected: z.number().int().nonnegative(),
+  disconnected: z.number().int().nonnegative(),
+})
+
 export const portalChannelsResponseSchema = z.object({
   canManage: z.boolean(),
   capabilities: z.array(portalChannelCapabilitySchema),
   accounts: z.array(portalChannelAccountSchema),
+  pagination: portalChannelsPaginationSchema,
+  summary: portalChannelsSummarySchema,
 })
 
 export const portalChannelsQuerySchema = z
@@ -71,7 +81,12 @@ export const portalChannelsQuerySchema = z
     provider: portalChannelProviderKeySchema.optional(),
     capability: portalChannelCapabilityKeySchema.optional(),
     status: portalChannelStatusSchema.optional(),
-    sort: z.enum(["created_at_desc", "updated_at_desc", "display_name_asc"]).optional(),
+    // Los sorts legados se mantienen con cursor específico y desempate por id.
+    sort: z
+      .enum(["created_at_desc", "updated_at_desc", "display_name_asc"])
+      .default("created_at_desc"),
+    limit: z.coerce.number().int().min(1).max(50).default(12),
+    cursor: z.string().min(1).max(1024).optional(),
   })
   .strict()
 
@@ -165,7 +180,13 @@ export type PortalChannelCapability = z.infer<
   typeof portalChannelCapabilitySchema
 >
 export type PortalChannelAccount = z.infer<typeof portalChannelAccountSchema>
-export type PortalChannelsResponse = z.infer<typeof portalChannelsResponseSchema>
+export type PortalChannelsPagination = z.infer<
+  typeof portalChannelsPaginationSchema
+>
+export type PortalChannelsSummary = z.infer<typeof portalChannelsSummarySchema>
+export type PortalChannelsResponse = z.infer<
+  typeof portalChannelsResponseSchema
+>
 export type PortalChannelsQuery = z.infer<typeof portalChannelsQuerySchema>
 export type UpdatePortalChannelInput = z.infer<typeof updatePortalChannelSchema>
 export type StartPortalChannelConnectionInput = z.infer<
