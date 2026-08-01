@@ -5,12 +5,15 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
+  metaIntegrationConfigurationSchema,
   metaIntegrationProviderKey,
   testMetaIntegrationSchema,
   updateMetaIntegrationSchema,
   type AuthSession,
   type ChannelOAuthProviderKey,
+  metaCapabilityScopeDefaults,
   type MetaCapabilityKey,
+  type MetaCapabilityScopes,
   type MetaIntegration,
   type MetaIntegrationConfiguration,
   type TestMetaIntegrationInput,
@@ -47,7 +50,9 @@ const oauthProviderConfigurationSchema = z
 
 export type OAuthProviderConfiguration = z.infer<
   typeof oauthProviderConfigurationSchema
->;
+> & {
+  capabilityScopes?: MetaCapabilityScopes;
+};
 
 type MetaRow = Pick<
   typeof providerIntegrations.$inferSelect,
@@ -150,7 +155,7 @@ export class IntegrationsService {
       configured,
       tested,
     );
-    const configurationCiphertext = values.configuration
+    const configurationCiphertext = configuration
       ? this.encryption().encrypt(
           JSON.stringify(configuration),
           metaIntegrationProviderKey,
@@ -304,6 +309,8 @@ export class IntegrationsService {
         enabled: enabledCapabilityKeys.has(capability.key),
         callbackUrl: this.callbackUrl(),
       })),
+      capabilityScopes:
+        configuration?.capabilityScopes ?? metaCapabilityScopeDefaults,
       clientId: configuration?.clientId ?? null,
       secretConfigured: Boolean(configuration),
       lastTestedAt: row?.lastTestedAt?.toISOString() ?? null,
@@ -311,14 +318,23 @@ export class IntegrationsService {
   }
 
   private resolveDraftConfiguration(
-    configuration: { clientId: string; clientSecret?: string },
+    configuration: {
+      clientId: string;
+      clientSecret?: string;
+      capabilityScopes?: MetaCapabilityScopes;
+    },
     row: MetaRow | undefined,
   ): MetaIntegrationConfiguration {
     const stored = this.decryptConfiguration(row?.configurationCiphertext);
-    const candidate = configuration.clientSecret
-      ? configuration
-      : { ...configuration, clientSecret: stored?.clientSecret };
-    const parsed = oauthProviderConfigurationSchema.safeParse(candidate);
+    const candidate = {
+      ...configuration,
+      clientSecret: configuration.clientSecret ?? stored?.clientSecret,
+      capabilityScopes:
+        configuration.capabilityScopes ??
+        stored?.capabilityScopes ??
+        metaCapabilityScopeDefaults,
+    };
+    const parsed = metaIntegrationConfigurationSchema.safeParse(candidate);
     if (!parsed.success) {
       throw new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
     }
@@ -331,7 +347,7 @@ export class IntegrationsService {
     if (!ciphertext) return null;
 
     try {
-      const parsed = oauthProviderConfigurationSchema.safeParse(
+      const parsed = metaIntegrationConfigurationSchema.safeParse(
         JSON.parse(
           this.encryption().decrypt(ciphertext, metaIntegrationProviderKey),
         ),

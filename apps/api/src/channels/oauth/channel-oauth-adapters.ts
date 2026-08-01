@@ -4,6 +4,7 @@ import {
   channelOAuthCallbackQuerySchema,
   channelOAuthConnectQuerySchema,
   channelOAuthProviderKeySchema,
+  metaCapabilityKeySchema,
   type PortalAuthSession,
   type ChannelOAuthCallbackOutcome,
   type ChannelOAuthCallbackQuery,
@@ -21,6 +22,7 @@ type AuthorizationRequest = {
   clientId: string;
   redirectUri: string;
   state: string;
+  scopes?: string[];
 };
 
 type OAuthProviderAdapter = {
@@ -30,12 +32,13 @@ type OAuthProviderAdapter = {
 
 const metaAdapter: OAuthProviderAdapter = {
   providerKey: 'facebook',
-  buildAuthorizationUrl({ clientId, redirectUri, state }) {
+  buildAuthorizationUrl({ clientId, redirectUri, state, scopes }) {
+    if (!scopes) throw new Error('Meta OAuth scopes are required.');
     return buildUrl('https://www.facebook.com/v22.0/dialog/oauth', {
       client_id: clientId,
       redirect_uri: redirectUri,
       response_type: 'code',
-      scope: 'pages_show_list,pages_read_engagement,instagram_basic',
+      scope: scopes.join(','),
       state,
     });
   },
@@ -85,6 +88,10 @@ export class ChannelOAuthAuthorizationService {
     const adapter = this.adapterFor(providerKey);
     const configuration =
       await this.integrations.readOAuthConfiguration(providerKey);
+    const scopes =
+      providerKey === 'facebook'
+        ? this.metaScopes(connect.capabilityKey, configuration)
+        : undefined;
     const state = await this.oauth.start(session, {
       ...connect,
       providerKey,
@@ -95,6 +102,7 @@ export class ChannelOAuthAuthorizationService {
         clientId: configuration.clientId,
         redirectUri: this.callbackUrl(providerKey),
         state: state.state,
+        scopes,
       }),
     };
   }
@@ -138,6 +146,19 @@ export class ChannelOAuthAuthorizationService {
       throw new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
     }
     return parsed.data;
+  }
+
+  private metaScopes(
+    capabilityKey: string,
+    configuration: OAuthProviderConfiguration,
+  ): string[] {
+    const capability = metaCapabilityKeySchema.safeParse(capabilityKey);
+    const capabilityScopes = configuration.capabilityScopes;
+    if (!capability.success || !capabilityScopes) {
+      throw new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
+    }
+
+    return capabilityScopes[capability.data];
   }
 
   private adapterFor(

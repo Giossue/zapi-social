@@ -19,6 +19,9 @@ import {
   type PortalAuthSession,
   type PortalChannelAccount,
   type PortalChannelCandidate,
+  type MetaCapabilityKey,
+  type MetaCapabilityScopes,
+  type MetaOAuthScope,
   type PortalChannelConnection,
 } from '@workspace/contracts'
 import { and, eq, gt } from '@workspace/database/query'
@@ -28,7 +31,10 @@ import { Aes256GcmService } from '../platform/crypto/aes-256-gcm.service'
 import { ChannelOAuthService } from './oauth/channel-oauth.service'
 
 const managerRoles = new Set(['owner', 'admin'])
-const metaCapabilities = new Set(['facebook_page', 'instagram_profile'])
+const metaCapabilities = new Set<MetaCapabilityKey>([
+  'facebook_page',
+  'instagram_profile',
+])
 const lifetimeMilliseconds = 10 * 60 * 1000
 
 type ConnectionRow = typeof channelConnectionSessions.$inferSelect
@@ -40,7 +46,10 @@ type CandidateContext = {
   avatarUrl: string | null
   accessToken: string
 }
-type MetaConnectionContext = { candidates: Record<string, CandidateContext> }
+type MetaConnectionContext = {
+  candidates: Record<string, CandidateContext>
+  scopes: MetaOAuthScope[]
+}
 
 type MetaPage = {
   id?: string
@@ -66,12 +75,13 @@ export class ChannelConnectionsService {
   async start(session: PortalAuthSession, input: unknown) {
     this.requireManager(session)
     const values = this.parse(startPortalChannelConnectionSchema.safeParse(input))
-    if (!metaCapabilities.has(values.capabilityKey)) throw new BadRequestException()
+    if (!this.isMetaCapability(values.capabilityKey)) throw new BadRequestException()
     if (values.reconnectAccountId) {
       await this.assertReconnectAccount(session, values.reconnectAccountId, values.capabilityKey)
     }
 
-    await this.integrations.readOAuthConfiguration('facebook')
+    const configuration = await this.integrations.readOAuthConfiguration('facebook')
+    const scopes = this.metaScopes(configuration, values.capabilityKey)
     const expiresAt = new Date(Date.now() + lifetimeMilliseconds)
     const [connection] = await this.database.db
       .insert(channelConnectionSessions)
@@ -91,10 +101,9 @@ export class ChannelConnectionsService {
       reconnectAccountId: values.reconnectAccountId,
       context: { connectionId: connection.id },
     })
-    const configuration = await this.integrations.readOAuthConfiguration('facebook')
     return {
       connection: this.serializeConnection(connection),
-      authorizationUrl: this.authorizationUrl(configuration.clientId, state.state),
+      authorizationUrl: this.authorizationUrl(configuration.clientId, state.state, scopes),
     }
   }
 
@@ -154,7 +163,7 @@ export class ChannelConnectionsService {
     const selected = context.candidates[candidate.id]
     if (!selected || selected.externalId !== candidate.externalId) throw new BadRequestException()
 
-    const account = await this.persistSelection(connection, selected)
+    const account = await this.persistSelection(connection, selected, context.scopes)
     const [updated] = await this.database.db
       .update(channelConnectionSessions)
       .set({ socialAccountId: account.id, status: 'connected', updatedAt: new Date() })
@@ -207,7 +216,9 @@ export class ChannelConnectionsService {
     }
 
     try {
+      if (!this.isMetaCapability(connection.capabilityKey)) throw new BadRequestException()
       const configuration = await this.integrations.readOAuthConfiguration('facebook')
+      const scopes = this.metaScopes(configuration, connection.capabilityKey)
       const token = await this.exchangeCode(configuration, parsed.code)
       const candidates = (await this.fetchCandidates(token)).filter(
         (candidate) => candidate.publicMetadata.kind === connection.capabilityKey,
@@ -228,6 +239,7 @@ export class ChannelConnectionsService {
         : []
       const byExternalId = new Map(candidates.map((candidate) => [candidate.externalId, candidate.context]))
       const context: MetaConnectionContext = {
+        scopes,
         candidates: Object.fromEntries(
           inserted.map((candidate) => [candidate.id, byExternalId.get(candidate.externalId)]).filter(([, value]) => value),
         ),
@@ -250,7 +262,11 @@ export class ChannelConnectionsService {
     }
   }
 
-  private async persistSelection(connection: ConnectionRow, selected: CandidateContext) {
+  private async persistSelection(
+    connection: ConnectionRow,
+    selected: CandidateContext,
+    scopes: MetaOAuthScope[],
+  ) {
     const [existing] = await this.database.db
       .select()
       .from(socialAccounts)
@@ -287,12 +303,13 @@ export class ChannelConnectionsService {
       .values({
         socialAccountId: account.id,
         accessTokenCiphertext: this.encryption().encrypt(selected.accessToken, `meta:account:${account.id}`),
-        scopes: [],
+        scopes,
       })
       .onConflictDoUpdate({
         target: socialAccountCredentials.socialAccountId,
         set: {
           accessTokenCiphertext: this.encryption().encrypt(selected.accessToken, `meta:account:${account.id}`),
+          scopes,
           rotatedAt: new Date(),
           updatedAt: new Date(),
         },
@@ -363,13 +380,17 @@ export class ChannelConnectionsService {
     ]
   }
 
-  private authorizationUrl(clientId: string, state: string) {
+  private authorizationUrl(
+    clientId: string,
+    state: string,
+    scopes: MetaOAuthScope[],
+  ) {
     const url = new URL('https://www.facebook.com/v22.0/dialog/oauth')
     url.search = new URLSearchParams({
       client_id: clientId,
       redirect_uri: this.callbackUrl(),
       response_type: 'code',
-      scope: 'pages_show_list,pages_read_engagement,instagram_basic',
+      scope: scopes.join(','),
       state,
     }).toString()
     return url.toString()
@@ -401,8 +422,23 @@ export class ChannelConnectionsService {
       .from(socialAccounts)
       .where(and(eq(socialAccounts.id, this.parseId(id)), eq(socialAccounts.workspaceId, session.workspace.id), eq(socialAccounts.providerKey, 'meta')))
       .limit(1)
-    if (!account || !metaCapabilities.has(account.capabilityKey)) throw new NotFoundException()
+    if (!account || !this.isMetaCapability(account.capabilityKey)) throw new NotFoundException()
     return account
+  }
+
+  private isMetaCapability(
+    capabilityKey: string,
+  ): capabilityKey is MetaCapabilityKey {
+    return metaCapabilities.has(capabilityKey as MetaCapabilityKey)
+  }
+
+  private metaScopes(
+    configuration: { capabilityScopes?: MetaCapabilityScopes },
+    capabilityKey: MetaCapabilityKey,
+  ): MetaOAuthScope[] {
+    const scopes = configuration.capabilityScopes?.[capabilityKey]
+    if (!scopes) throw new ServiceUnavailableException()
+    return scopes
   }
 
   private async assertReconnectAccount(session: PortalAuthSession, id: string, capabilityKey: string) {

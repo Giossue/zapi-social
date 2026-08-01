@@ -259,9 +259,7 @@ function DeleteChannelDialog({
 }
 
 export function LiveChannelsPage() {
-  const [accounts, setAccounts] = useState<PortalChannelAccount[]>(
-    () => [...channelsFixture.accounts]
-  )
+  const [accounts, setAccounts] = useState<PortalChannelAccount[]>(() => [])
   const [isLoading, setIsLoading] = useState(true)
   const [query, setQuery] = useState("")
   const [providerFilter, setProviderFilter] = useState("all")

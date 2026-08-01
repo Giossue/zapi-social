@@ -24,6 +24,12 @@ Laravel → diseño Next con mocks → contrato REST → Nest.
 
 No modificar Laravel para tareas V2 salvo solicitud explícita. No implementar backend de un módulo antes de que diseño y mocks estén definidos, salvo solicitud explícita.
 
+## Mocks aprobados
+
+- Los mocks, fixtures, capturas y composiciones aprobadas son referencias de producto. No borrarlos, sobrescribirlos ni sustituirlos por datos reales sin una orden explícita del usuario.
+- Al conectar una pantalla a API, conservar el mock aprobado en `features/<dominio>/fixtures` o documentar su reemplazo en el plan; el estado real vacío no autoriza eliminar esa referencia.
+- Si hay duda entre retirar datos sintéticos visibles y borrar el mock, retirar solo los datos visibles y conservar el fixture.
+
 ## Límites
 
 - `packages/ui` es fuente única de tokens y primitives.

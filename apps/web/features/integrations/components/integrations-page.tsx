@@ -18,6 +18,12 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
 import { Input } from "@workspace/ui/components/input"
 import { Switch } from "@workspace/ui/components/switch"
 import { toast } from "@workspace/ui/components/toast"
@@ -44,11 +50,70 @@ import {
   type FormEvent,
 } from "react"
 
+type CapabilityKey = MetaIntegration["capabilities"][number]["key"]
+type MetaScope = MetaIntegration["capabilityScopes"][CapabilityKey][number]
+type ScopeOption = { label: string; required: boolean; scope: MetaScope }
+
+const capabilityScopeOptions = {
+  facebook_page: [
+    {
+      label: "Información básica del perfil",
+      required: true,
+      scope: "public_profile",
+    },
+    { label: "Ver páginas", required: true, scope: "pages_show_list" },
+    {
+      label: "Leer actividad de páginas",
+      required: true,
+      scope: "pages_read_engagement",
+    },
+    {
+      label: "Publicar en páginas",
+      required: true,
+      scope: "pages_manage_posts",
+    },
+    {
+      label: "Administrar negocios",
+      required: false,
+      scope: "business_management",
+    },
+  ],
+  instagram_profile: [
+    {
+      label: "Información básica del perfil",
+      required: true,
+      scope: "public_profile",
+    },
+    { label: "Ver páginas", required: true, scope: "pages_show_list" },
+    {
+      label: "Leer actividad de páginas",
+      required: true,
+      scope: "pages_read_engagement",
+    },
+    {
+      label: "Leer perfiles de Instagram",
+      required: true,
+      scope: "instagram_basic",
+    },
+    {
+      label: "Publicar en Instagram",
+      required: true,
+      scope: "instagram_content_publish",
+    },
+    {
+      label: "Administrar negocios",
+      required: false,
+      scope: "business_management",
+    },
+  ],
+} satisfies Record<CapabilityKey, readonly ScopeOption[]>
+
 type Draft = {
   enabled: boolean
   enabledCapabilityKeys: MetaIntegration["capabilities"][number]["key"][]
   clientId: string
   clientSecret: string
+  capabilityScopes: MetaIntegration["capabilityScopes"]
 }
 
 type TestState = "not-tested" | "testing" | "passed" | "failed"
@@ -89,6 +154,10 @@ function draftFrom(integration: MetaIntegration): Draft {
       .map((capability) => capability.key),
     clientId: integration.clientId ?? "",
     clientSecret: "",
+    capabilityScopes: {
+      facebook_page: [...integration.capabilityScopes.facebook_page],
+      instagram_profile: [...integration.capabilityScopes.instagram_profile],
+    },
   }
 }
 
@@ -107,7 +176,15 @@ function isDirty(draft: Draft, integration: MetaIntegration) {
     draft.enabled !== integration.enabled ||
     !sameSet(draft.enabledCapabilityKeys, configuredCapabilities) ||
     draft.clientId !== (integration.clientId ?? "") ||
-    draft.clientSecret.length > 0
+    draft.clientSecret.length > 0 ||
+    !sameSet(
+      draft.capabilityScopes.facebook_page,
+      integration.capabilityScopes.facebook_page
+    ) ||
+    !sameSet(
+      draft.capabilityScopes.instagram_profile,
+      integration.capabilityScopes.instagram_profile
+    )
   )
 }
 
@@ -175,6 +252,28 @@ export function IntegrationsPage() {
     })
   }
 
+  function toggleScope(
+    capabilityKey: CapabilityKey,
+    scope: MetaScope,
+    selected: boolean
+  ) {
+    if (!draft) return
+    const option = capabilityScopeOptions[capabilityKey].find(
+      (item) => item.scope === scope
+    )
+    if (option?.required) return
+
+    const scopes = draft.capabilityScopes[capabilityKey]
+    updateDraft({
+      capabilityScopes: {
+        ...draft.capabilityScopes,
+        [capabilityKey]: selected
+          ? [...scopes, scope]
+          : scopes.filter((item) => item !== scope),
+      },
+    })
+  }
+
   async function copyCallbackUrl(label: string, value: string) {
     if (!navigator.clipboard) {
       toast.error("Tu navegador no permite copiar esta URL.")
@@ -206,6 +305,7 @@ export function IntegrationsPage() {
         configuration: {
           clientId: draft.clientId,
           ...(draft.clientSecret ? { clientSecret: draft.clientSecret } : {}),
+          capabilityScopes: draft.capabilityScopes,
         },
       })
       setTestState("passed")
@@ -234,13 +334,23 @@ export function IntegrationsPage() {
       const saved = await integrationsApi.saveMeta({
         enabled: draft.enabled,
         enabledCapabilityKeys: draft.enabledCapabilityKeys,
-        ...(draft.clientId !== integration.clientId || draft.clientSecret
+        ...(draft.clientId !== (integration.clientId ?? "") ||
+        draft.clientSecret ||
+        !sameSet(
+          draft.capabilityScopes.facebook_page,
+          integration.capabilityScopes.facebook_page
+        ) ||
+        !sameSet(
+          draft.capabilityScopes.instagram_profile,
+          integration.capabilityScopes.instagram_profile
+        )
           ? {
               configuration: {
                 clientId: draft.clientId,
                 ...(draft.clientSecret
                   ? { clientSecret: draft.clientSecret }
                   : {}),
+                capabilityScopes: draft.capabilityScopes,
               },
             }
           : {}),
@@ -458,13 +568,62 @@ export function IntegrationsPage() {
                             className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background p-3"
                             key={capability.key}
                           >
-                            <div>
+                            <div className="min-w-0">
                               <p className="text-sm font-medium">
                                 {capability.label}
                               </p>
                               <p className="mt-1 text-xs text-muted-foreground">
                                 {capability.description}
                               </p>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    className="mt-3"
+                                    type="button"
+                                    variant="surface"
+                                  >
+                                    {
+                                      draft.capabilityScopes[capability.key]
+                                        .length
+                                    }{" "}
+                                    permisos seleccionados
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="start">
+                                  {capabilityScopeOptions[capability.key].map(
+                                    (option) => {
+                                      const checked =
+                                        option.required ||
+                                        draft.capabilityScopes[
+                                          capability.key
+                                        ].includes(option.scope)
+                                      return (
+                                        <DropdownMenuCheckboxItem
+                                          checked={checked}
+                                          disabled={option.required}
+                                          key={option.scope}
+                                          onCheckedChange={(next) =>
+                                            toggleScope(
+                                              capability.key,
+                                              option.scope,
+                                              next
+                                            )
+                                          }
+                                        >
+                                          <span className="flex items-center gap-2">
+                                            {option.label}
+                                            {option.required ? (
+                                              <Badge variant="neutral">
+                                                Obligatorio
+                                              </Badge>
+                                            ) : null}
+                                          </span>
+                                        </DropdownMenuCheckboxItem>
+                                      )
+                                    }
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </div>
                             <Switch
                               aria-label={`Habilitar ${capability.label}`}
