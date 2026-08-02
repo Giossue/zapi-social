@@ -1,5 +1,5 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq'
-import { Injectable } from '@nestjs/common'
+import { Injectable, Logger } from '@nestjs/common'
 import { type Job } from 'bullmq'
 import { DatabaseService } from '../database/database.service'
 import { Aes256GcmService, DecryptionFailedError } from '../platform/crypto/aes-256-gcm.service'
@@ -49,6 +49,8 @@ class WhatsAppProfileSyncError extends Error {
 @Injectable()
 @Processor(WHATSAPP_PROFILE_SYNC_QUEUE, { concurrency: WHATSAPP_PROFILE_SYNC_CONCURRENCY })
 export class WhatsAppProfileSyncProcessor extends WorkerHost {
+  private readonly logger = new Logger(WhatsAppProfileSyncProcessor.name)
+
   constructor(
     private readonly database: DatabaseService,
     private readonly encryption: Aes256GcmService,
@@ -73,6 +75,12 @@ export class WhatsAppProfileSyncProcessor extends WorkerHost {
       await this.finishAuditRun(auditId, 'succeeded')
     } catch (error) {
       const errorCode = error instanceof WhatsAppProfileSyncError ? error.code : 'WHATSAPP_PROFILE_SYNC_FAILED'
+      this.logger.error({
+        accountId: account.id,
+        errorCode,
+        errorName: error instanceof Error ? error.name : 'UnknownError',
+        message: error instanceof Error ? error.message : undefined,
+      }, 'WhatsApp profile sync failed')
       await this.finishAuditRun(auditId, 'failed', errorCode)
       throw new Error(errorCode)
     }
