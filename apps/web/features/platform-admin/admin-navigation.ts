@@ -16,7 +16,6 @@ import {
   KeyRound,
   Languages,
   LayoutDashboard,
-  Mail,
   Menu,
   PackageCheck,
   Palette,
@@ -106,7 +105,6 @@ export const adminNavigationGroups: readonly AdminNavigationGroup[] = [
         href: "/admin/settings/general",
         icon: Settings2,
       },
-      { label: "Correo SMTP", href: "/admin/integrations", icon: Mail },
       {
         label: "Reglas de autenticación",
         href: "/admin/settings/auth",
