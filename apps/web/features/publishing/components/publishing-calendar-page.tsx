@@ -382,7 +382,7 @@ function ComposerDialog({
         </div>
 
         <div className="flex flex-wrap justify-end gap-2">
-          <Button onClick={onClose} variant="ghost">
+          <Button onClick={onClose} variant="brand-secondary">
             Cancelar
           </Button>
           <Button
@@ -652,7 +652,11 @@ export function PublishingCalendarPage({
         <Card variant="inset">
           <CardContent className="flex items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">{notice}</p>
-            <Button onClick={() => setNotice(null)} size="sm" variant="ghost">
+            <Button
+              onClick={() => setNotice(null)}
+              size="sm"
+              variant="brand-secondary"
+            >
               Cerrar
             </Button>
           </CardContent>

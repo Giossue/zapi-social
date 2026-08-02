@@ -308,7 +308,7 @@ export function AuthForm({ initialMode }: { initialMode: AuthMode }) {
                 />
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="brand-secondary"
                   size="icon-xs"
                   className="absolute top-1/2 right-1 -translate-y-1/2"
                   aria-label={
@@ -366,7 +366,7 @@ export function AuthForm({ initialMode }: { initialMode: AuthMode }) {
                       />
                       <Button
                         type="button"
-                        variant="ghost"
+                        variant="brand-secondary"
                         size="icon-xs"
                         className="absolute top-1/2 right-1 -translate-y-1/2"
                         aria-label={

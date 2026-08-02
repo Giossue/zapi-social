@@ -202,7 +202,7 @@ function CaptionCard({
               aria-label={`Editar ${caption.name}`}
               onClick={() => onEdit(caption)}
               size="icon-sm"
-              variant="ghost"
+              variant="brand-secondary"
             >
               <Pencil />
             </Button>
@@ -210,7 +210,7 @@ function CaptionCard({
               aria-label={`Eliminar ${caption.name}`}
               onClick={() => onDelete(caption)}
               size="icon-sm"
-              variant="ghost"
+              variant="brand-secondary"
             >
               <Trash2 />
             </Button>
@@ -618,7 +618,7 @@ export function CaptionsLibraryPage() {
           {filters.query ||
           filters.sourceType !== "all" ||
           filters.status !== "all" ? (
-            <Button onClick={() => setFilters(initialFilters)} variant="ghost">
+            <Button onClick={() => setFilters(initialFilters)} variant="brand-secondary">
               Limpiar filtros
             </Button>
           ) : null}

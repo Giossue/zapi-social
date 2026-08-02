@@ -193,7 +193,7 @@ export function PublishingPostsTable({
       </div>
       {hasFilters ? (
         <div className="flex justify-end">
-          <Button onClick={clearFilters} size="sm" variant="ghost">
+          <Button onClick={clearFilters} size="sm" variant="brand-secondary">
             <ListFilter data-icon="inline-start" />
             Limpiar filtros
           </Button>
@@ -264,7 +264,7 @@ export function PublishingPostsTable({
                             aria-label={`Eliminar ${post.title}`}
                             onClick={() => onDelete(post)}
                             size="icon"
-                            variant="ghost"
+                            variant="brand-secondary"
                           >
                             <Trash2 />
                           </Button>

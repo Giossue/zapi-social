@@ -59,6 +59,7 @@ Antes de crear markup o un componente, ejecutar `codebase-memory` para comprobar
 
 - `componentes.md` contiene candidatos/comandos de 21st; no es el catálogo de componentes instalados. Consultarlo solo para inspiración o bloques externos.
 - Reutilizar el primitive o variante existente antes de crear uno nuevo. No duplicar `Button`, `Dialog`, `Input`, `Select`, `Table`, `Tooltip`, `Toast`, `Empty`, `Alert`, `Badge`, `Card` o `Skeleton`.
+- No usar `Button` con `variant="ghost"` en producto. Las acciones secundarias, incluidas cancelar, cerrar e iconos, usan `variant="brand-secondary"`. La variante `ghost` permanece solo por compatibilidad interna hasta eliminarla de `packages/ui`.
 - Formularios usan primitives/Field actuales; no inputs estilizados locales.
 - Modal, dropdown, tooltip y drawer conservan primitive accesible; no z-index ni focus trap locales.
 - Un componente específico de dominio permanece en `features/<dominio>/components`.

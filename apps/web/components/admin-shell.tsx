@@ -60,7 +60,7 @@ export function AdminShell({ children, profile }: AdminShellProps) {
             className="lg:hidden"
             onClick={() => setMobileOpen(false)}
             size="icon"
-            variant="ghost"
+            variant="brand-secondary"
           >
             <X />
           </Button>
@@ -113,7 +113,7 @@ export function AdminShell({ children, profile }: AdminShellProps) {
               className="lg:hidden"
               onClick={() => setMobileOpen(true)}
               size="icon"
-              variant="ghost"
+              variant="brand-secondary"
             >
               <Menu />
             </Button>

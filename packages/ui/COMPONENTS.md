@@ -9,7 +9,7 @@ Este documento no sustituye el código: debe actualizarse cuando se agregue, ret
 | Componente          | Importación                              | Uso principal                                                                         |
 | ------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------- |
 | `Badge`             | `@workspace/ui/components/badge`         | Estados y etiquetas de dominio.                                                       |
-| `Button`            | `@workspace/ui/components/button`        | Acciones; usar variantes existentes.                                                  |
+| `Button`            | `@workspace/ui/components/button`        | Acciones; usar `brand-secondary` para acciones secundarias e iconos. No usar `ghost` en producto. |
 | `Card`              | `@workspace/ui/components/card`          | Superficies con variantes semánticas.                                                 |
 | `Calendar`          | `@workspace/ui/components/calendar`      | Selección accesible de fechas; componer con `Popover` para campos de fecha.           |
 | `Checkbox`          | `@workspace/ui/components/checkbox`      | Selección múltiple o booleana en formularios.                                         |

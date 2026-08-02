@@ -80,7 +80,7 @@ export function AppShell({ children, profile }: AppShellProps) {
             className="hidden lg:inline-flex"
             onClick={() => setCollapsed((value) => !value)}
             size="icon"
-            variant="ghost"
+            variant="brand-secondary"
           >
             {collapsed ? <ChevronRight /> : <PanelLeftClose />}
           </Button>
@@ -203,7 +203,7 @@ export function AppShell({ children, profile }: AppShellProps) {
               className="lg:hidden"
               onClick={() => setMobileOpen(true)}
               size="icon"
-              variant="ghost"
+              variant="brand-secondary"
             >
               <Menu />
             </Button>
@@ -213,7 +213,7 @@ export function AppShell({ children, profile }: AppShellProps) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button aria-label="Notificaciones" size="icon" variant="ghost">
+            <Button aria-label="Notificaciones" size="icon" variant="brand-secondary">
               <Bell />
             </Button>
             <AccountMenu profile={profile} />

@@ -138,7 +138,7 @@ function InviteDialog({
           </div>
         </div>
         <div className="flex justify-end gap-2">
-          <Button onClick={onClose} variant="ghost">
+          <Button onClick={onClose} variant="brand-secondary">
             Cancelar
           </Button>
           <Button
@@ -254,7 +254,7 @@ function MemberAccessDialog({
           </fieldset>
         </div>
         <div className="flex justify-end gap-2">
-          <Button onClick={onClose} variant="ghost">
+          <Button onClick={onClose} variant="brand-secondary">
             Cancelar
           </Button>
           <Button
@@ -369,7 +369,7 @@ export function TeamsPage({ teams }: { teams: TeamsData }) {
         <Card variant="inset">
           <CardContent className="flex items-center justify-between gap-4">
             <p className="text-sm text-muted-foreground">{notice}</p>
-            <Button onClick={() => setNotice(null)} size="sm" variant="ghost">
+            <Button onClick={() => setNotice(null)} size="sm" variant="brand-secondary">
               Cerrar
             </Button>
           </CardContent>
@@ -416,7 +416,7 @@ export function TeamsPage({ teams }: { teams: TeamsData }) {
                               <Button
                                 aria-label={`Acciones para ${member.name}`}
                                 size="icon"
-                                variant="ghost"
+                                variant="brand-secondary"
                               >
                                 <MoreHorizontal />
                               </Button>

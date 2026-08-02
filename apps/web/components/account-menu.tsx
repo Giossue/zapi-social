@@ -69,7 +69,7 @@ export function AccountMenu({ profile }: AccountMenuProps) {
         <Button
           aria-label="Abrir menú de cuenta"
           className="size-8 rounded-full p-0"
-          variant="ghost"
+          variant="brand-secondary"
         >
           <span className="flex size-8 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground">
             {initials(profile.displayName) || "Z"}

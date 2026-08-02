@@ -165,7 +165,7 @@ function PlanCard({
               <Button
                 aria-label={`Acciones para ${plan.name}`}
                 size="icon-sm"
-                variant="ghost"
+                variant="brand-secondary"
               >
                 <Ellipsis />
               </Button>

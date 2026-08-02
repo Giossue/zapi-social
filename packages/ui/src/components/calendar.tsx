@@ -23,11 +23,11 @@ function Calendar({
           "flex h-8 items-center justify-center px-8 text-sm font-medium",
         nav: "absolute inset-x-0 top-0 flex items-center justify-between",
         button_previous: cn(
-          buttonVariants({ variant: "ghost", size: "icon" }),
+          buttonVariants({ variant: "brand-secondary", size: "icon" }),
           "size-8"
         ),
         button_next: cn(
-          buttonVariants({ variant: "ghost", size: "icon" }),
+          buttonVariants({ variant: "brand-secondary", size: "icon" }),
           "size-8"
         ),
         month_grid: "w-full border-collapse",
@@ -36,7 +36,7 @@ function Calendar({
         week: "mt-1 flex w-full",
         day: "relative flex-1 p-0 text-center",
         day_button: cn(
-          buttonVariants({ variant: "ghost", size: "icon" }),
+          buttonVariants({ variant: "brand-secondary", size: "icon" }),
           "size-8 rounded-md aria-selected:bg-primary aria-selected:text-primary-foreground"
         ),
         selected: "[&>button]:bg-primary [&>button]:text-primary-foreground",
