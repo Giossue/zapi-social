@@ -638,12 +638,6 @@ export function CaptionsLibraryPage() {
           <Card variant="subtle">
             <CardContent>
               <EmptyState
-                action={
-                  <Button onClick={() => setEditor("new")}>
-                    <Plus data-icon="inline-start" />
-                    Nuevo caption
-                  </Button>
-                }
                 description={
                   captions.length === 0
                     ? "Crea el primer caption reutilizable para este espacio de trabajo."

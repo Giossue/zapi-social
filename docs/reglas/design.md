@@ -104,6 +104,7 @@ Laravel referencia → pantalla Next → fixtures/mock → estados UI → contra
 - No implementar backend de módulo antes de aprobar diseño, estados y acciones mock, salvo solicitud explícita.
 - Fixtures son sintéticos, deterministas y nunca incluyen datos/tokens producción.
 - Cada pantalla cubre normal, loading, empty, error, permisos, móvil y claro/oscuro cuando aplique.
+- Los `EmptyState` operativos usan el tamaño de icono de las metric cards (`size-5`) como escala base. No repetir dentro del empty state una acción primaria que ya está disponible de forma persistente en el encabezado de la misma pantalla; se permiten acciones contextuales no redundantes, como **Reintentar** ante un error o **Limpiar filtros** ante una búsqueda sin resultados.
 - Next no accede directamente a PostgreSQL ni Redis.
 
 ## Rendimiento React/Next

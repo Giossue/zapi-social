@@ -13,7 +13,7 @@ type EmptyStateProps = {
 function EmptyState({ icon: Icon, title, description, action, className }: EmptyStateProps) {
   return (
     <div className={cn("flex flex-col items-center justify-center gap-3 py-12 text-center", className)}>
-      <Icon aria-hidden="true" className="size-7 text-muted-foreground" />
+      <Icon aria-hidden="true" className="size-5 text-muted-foreground" />
       <div className="space-y-1">
         <p className="font-semibold">{title}</p>
         <p className="max-w-md text-sm leading-relaxed text-muted-foreground">{description}</p>
