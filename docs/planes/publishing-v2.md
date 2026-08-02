@@ -166,6 +166,7 @@ Scheduler: solo encola IDs vencidos; no llama proveedores directamente
 5. **Sugerencias, no automatismos opacos:** mejor horario, caption y transformaciones AI como propuestas editables, con coste/cuota visibles antes de confirmar.
 6. **Previas por provider:** preview representativo del formato de cada red sin prometer una réplica pixel-perfect de la app externa.
 7. **Protección contra errores:** advertir de cambios incompatibles al añadir/quitar cuentas, preservar borradores y permitir deshacer antes de encolar.
+8. **Fecha y hora accesibles:** el compositor usa el `Calendar` y `Popover` compartidos de `packages/ui` para elegir fecha, y controles separados de hora/minuto; no usa `input type="datetime-local"`. El calendario se apoya en `react-day-picker` dentro de `@workspace/ui`.
 
 ## Secuencia de ejecución
 

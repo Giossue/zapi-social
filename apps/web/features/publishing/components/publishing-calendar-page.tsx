@@ -35,15 +35,9 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { EmptyState } from "@workspace/ui/components/empty-state"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
 import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
+import { PublishingSchedulePicker } from "@/features/publishing/components/publishing-schedule-picker"
 import {
   PublishingMetrics,
   PublishingPostsTable,
@@ -339,48 +333,12 @@ function ComposerDialog({
               </TabsList>
             </Tabs>
             {mode === "schedule" ? (
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Fecha</label>
-                  <Select
-                    onValueChange={setScheduledDate}
-                    value={scheduledDate}
-                  >
-                    <SelectTrigger aria-label="Fecha de publicación">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="2026-08-03">
-                        3 de agosto de 2026
-                      </SelectItem>
-                      <SelectItem value="2026-08-04">
-                        4 de agosto de 2026
-                      </SelectItem>
-                      <SelectItem value="2026-08-05">
-                        5 de agosto de 2026
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Hora</label>
-                  <Select
-                    onValueChange={setScheduledTime}
-                    value={scheduledTime}
-                  >
-                    <SelectTrigger aria-label="Hora de publicación">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="09:00">09:00</SelectItem>
-                      <SelectItem value="10:00">10:00</SelectItem>
-                      <SelectItem value="12:30">12:30</SelectItem>
-                      <SelectItem value="16:00">16:00</SelectItem>
-                      <SelectItem value="18:00">18:00</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              <PublishingSchedulePicker
+                date={scheduledDate}
+                onDateChange={setScheduledDate}
+                onTimeChange={setScheduledTime}
+                time={scheduledTime}
+              />
             ) : null}
           </div>
 
