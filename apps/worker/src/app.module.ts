@@ -12,6 +12,13 @@ import { MetaProfileScheduleProcessor } from './meta-profile-sync/meta-profile-s
 import { MetaProfileSyncProcessor } from './meta-profile-sync/meta-profile-sync.processor'
 import { MetaProfileSyncScheduler } from './meta-profile-sync/meta-profile-sync.scheduler'
 import { Aes256GcmService } from './platform/crypto/aes-256-gcm.service'
+import {
+  WHATSAPP_PROFILE_SCHEDULE_QUEUE,
+  WHATSAPP_PROFILE_SYNC_QUEUE,
+} from './whatsapp-profile-sync/whatsapp-profile-sync.constants'
+import { WhatsAppProfileScheduleProcessor } from './whatsapp-profile-sync/whatsapp-profile-schedule.processor'
+import { WhatsAppProfileSyncProcessor } from './whatsapp-profile-sync/whatsapp-profile-sync.processor'
+import { WhatsAppProfileSyncScheduler } from './whatsapp-profile-sync/whatsapp-profile-sync.scheduler'
 
 @Module({
   imports: [
@@ -30,6 +37,8 @@ import { Aes256GcmService } from './platform/crypto/aes-256-gcm.service'
     BullModule.registerQueue(
       { name: META_PROFILE_SCHEDULE_QUEUE },
       { name: META_PROFILE_SYNC_QUEUE },
+      { name: WHATSAPP_PROFILE_SCHEDULE_QUEUE },
+      { name: WHATSAPP_PROFILE_SYNC_QUEUE },
     ),
   ],
   providers: [
@@ -38,6 +47,9 @@ import { Aes256GcmService } from './platform/crypto/aes-256-gcm.service'
     MetaProfileSyncScheduler,
     MetaProfileScheduleProcessor,
     MetaProfileSyncProcessor,
+    WhatsAppProfileSyncScheduler,
+    WhatsAppProfileScheduleProcessor,
+    WhatsAppProfileSyncProcessor,
   ],
 })
 export class AppModule {}

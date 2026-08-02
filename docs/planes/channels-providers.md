@@ -51,6 +51,20 @@ Meta usa el page access token cifrado de `social_account_credentials` y actualiz
 
 Una respuesta `401`/`403` deja un run seguro con `GRAPH_UNAUTHORIZED`; una reconexión posterior renueva el token según el flujo existente. El worker no desconecta ni reemplaza la cuenta por un cambio de perfil.
 
+### WhatsApp Status implementado
+
+WhatsApp Status usa adapter GOWA independiente del token Graph, aunque Portal lo agrupe visualmente bajo Meta. El Worker solo procesa cuentas activas si la integración GOWA está habilitada y `ready`; descifra su configuración con el mismo contexto seguro de API.
+
+```text
+metadata.deviceId (fallback external_id)
+→ GET /user/info
+→ GET /devices/:id solo si falta identidad
+→ GET /user/avatar solo si existe teléfono/JID
+→ actualizar nombre, teléfono/JID, avatar y profileSyncDueAt
+```
+
+No crea QR, no crea devices y no reconecta WhatsApp. Errores de conector quedan como códigos seguros `GOWA_*` en `channel_sync_runs` con operación `whatsapp_profile_sync`.
+
 ### Adaptación futura por provider
 
 LinkedIn, X y TikTok reutilizan la cola, batch, auditoría y el vencimiento por cuenta; solo cambia el adapter del provider:
