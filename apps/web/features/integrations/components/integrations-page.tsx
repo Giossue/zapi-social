@@ -3,6 +3,7 @@
 import { ApiError, integrationsApi } from "@workspace/api-client"
 import { WhatsAppStatusIntegrationCard } from "./whatsapp-status-integration-card"
 import { IntegrationCardLoading } from "./integration-card-loading"
+import { IntegrationInsetCard } from "./integration-inset-card"
 import type { MetaIntegration } from "@workspace/contracts"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -442,10 +443,7 @@ export function IntegrationsPage() {
             </div>
             <div className="grid gap-3 md:grid-cols-2">
               {integration.capabilities.map((capability) => (
-                <div
-                  className="rounded-lg border border-border bg-background p-4"
-                  key={capability.key}
-                >
+                <IntegrationInsetCard key={capability.key}>
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-sm font-medium">{capability.label}</p>
                     <Badge variant={capability.enabled ? "success" : "neutral"}>
@@ -455,7 +453,7 @@ export function IntegrationsPage() {
                   <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                     {capability.description}
                   </p>
-                </div>
+                </IntegrationInsetCard>
               ))}
             </div>
           </section>
@@ -471,15 +469,15 @@ export function IntegrationsPage() {
               </h2>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-lg border border-border bg-background p-4">
+              <IntegrationInsetCard>
                 <p className="text-xs font-medium text-muted-foreground">
                   ID de la aplicación
                 </p>
                 <p className="mt-1 text-sm break-all">
                   {integration.clientId ?? "Sin configurar"}
                 </p>
-              </div>
-              <div className="rounded-lg border border-border bg-background p-4">
+              </IntegrationInsetCard>
+              <IntegrationInsetCard>
                 <p className="text-xs font-medium text-muted-foreground">
                   Secreto de la aplicación
                 </p>
@@ -488,7 +486,7 @@ export function IntegrationsPage() {
                     ? "Configurado"
                     : "Sin configurar"}
                 </p>
-              </div>
+              </IntegrationInsetCard>
             </div>
           </section>
 
@@ -560,7 +558,7 @@ export function IntegrationsPage() {
                 noValidate
                 onSubmit={saveConfiguration}
               >
-                <section className="space-y-4 rounded-lg border border-border bg-muted/30 p-4">
+                <IntegrationInsetCard className="space-y-4">
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <p className="text-sm font-medium">
@@ -586,8 +584,8 @@ export function IntegrationsPage() {
                           capability.key
                         )
                         return (
-                          <div
-                            className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background p-3"
+                          <IntegrationInsetCard
+                            className="flex items-center justify-between gap-4 px-3 py-3"
                             key={capability.key}
                           >
                             <div className="min-w-0">
@@ -654,12 +652,12 @@ export function IntegrationsPage() {
                                 toggleCapability(capability.key, next)
                               }
                             />
-                          </div>
+                          </IntegrationInsetCard>
                         )
                       })}
                     </div>
                   </div>
-                </section>
+                </IntegrationInsetCard>
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <label className="grid gap-1.5">

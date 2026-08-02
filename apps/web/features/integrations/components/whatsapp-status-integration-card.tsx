@@ -1,6 +1,7 @@
 "use client"
 
 import { ApiError, integrationsApi } from "@workspace/api-client"
+import { IntegrationInsetCard } from "./integration-inset-card"
 import { IntegrationCardLoading } from "./integration-card-loading"
 import type { WhatsAppStatusIntegration } from "@workspace/contracts"
 import { Badge } from "@workspace/ui/components/badge"
@@ -282,10 +283,7 @@ export function WhatsAppStatusIntegrationCard() {
               </h2>
             </div>
             {integration.capabilities.map((capability) => (
-              <div
-                className="rounded-lg border border-border bg-background p-4"
-                key={capability.key}
-              >
+              <IntegrationInsetCard key={capability.key}>
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm font-medium">{capability.label}</p>
                   <Badge variant={capability.enabled ? "success" : "neutral"}>
@@ -295,7 +293,7 @@ export function WhatsAppStatusIntegrationCard() {
                 <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                   {capability.description}
                 </p>
-              </div>
+              </IntegrationInsetCard>
             ))}
           </section>
 
@@ -316,23 +314,23 @@ export function WhatsAppStatusIntegrationCard() {
               </h2>
             </div>
             <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-lg border border-border bg-background p-4">
+              <IntegrationInsetCard>
                 <p className="text-xs font-medium text-muted-foreground">
                   URL base
                 </p>
                 <p className="mt-1 text-sm break-all">
                   {integration.baseUrl ?? "Sin configurar"}
                 </p>
-              </div>
-              <div className="rounded-lg border border-border bg-background p-4">
+              </IntegrationInsetCard>
+              <IntegrationInsetCard>
                 <p className="text-xs font-medium text-muted-foreground">
                   Usuario Basic Auth
                 </p>
                 <p className="mt-1 text-sm break-all">
                   {integration.basicAuthUsername ?? "Sin configurar"}
                 </p>
-              </div>
-              <div className="rounded-lg border border-border bg-background p-4">
+              </IntegrationInsetCard>
+              <IntegrationInsetCard>
                 <p className="text-xs font-medium text-muted-foreground">
                   Contraseña Basic Auth
                 </p>
@@ -341,7 +339,7 @@ export function WhatsAppStatusIntegrationCard() {
                     ? "Configurada"
                     : "Sin configurar"}
                 </p>
-              </div>
+              </IntegrationInsetCard>
             </div>
           </section>
         </CardContent>
@@ -362,7 +360,7 @@ export function WhatsAppStatusIntegrationCard() {
                 noValidate
                 onSubmit={saveConfiguration}
               >
-                <section className="space-y-4 rounded-lg border border-border bg-muted/30 p-4">
+                <IntegrationInsetCard className="space-y-4">
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <p className="text-sm font-medium">
@@ -380,7 +378,7 @@ export function WhatsAppStatusIntegrationCard() {
                       onCheckedChange={(enabled) => updateDraft({ enabled })}
                     />
                   </div>
-                </section>
+                </IntegrationInsetCard>
 
                 <div className="grid gap-4">
                   <label className="grid gap-1.5">

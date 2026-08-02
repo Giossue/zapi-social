@@ -1,7 +1,6 @@
 "use client"
 
 import { ApiError, authApi } from "@workspace/api-client"
-import { animate } from "animejs"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
@@ -11,6 +10,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import { Input } from "@workspace/ui/components/input"
+import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { toast } from "@workspace/ui/components/toast"
 import {
   Check,
@@ -29,8 +29,6 @@ import {
 } from "@/features/identity/session-area"
 import {
   useEffect,
-  useLayoutEffect,
-  useRef,
   useState,
   type FormEvent,
 } from "react"
@@ -75,26 +73,6 @@ export function AuthForm({ initialMode }: { initialMode: AuthMode }) {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
   const [password, setPassword] = useState("")
   const [passwordConfirmation, setPasswordConfirmation] = useState("")
-  const rootRef = useRef<HTMLDivElement>(null)
-  const indicatorRef = useRef<HTMLSpanElement>(null)
-  const cardRef = useRef<HTMLDivElement>(null)
-  const previousCardHeight = useRef<number | null>(null)
-
-  useLayoutEffect(() => {
-    const indicator = indicatorRef.current
-    if (!indicator) return
-
-    const animation = animate(indicator, {
-      x: mode === "register" ? "100%" : "0%",
-      duration: 500,
-      ease: "out(4)",
-    })
-
-    return () => {
-      animation.cancel()
-    }
-  }, [mode])
-
   useEffect(() => {
     function syncModeFromLocation() {
       const nextMode: AuthMode =
@@ -212,36 +190,15 @@ export function AuthForm({ initialMode }: { initialMode: AuthMode }) {
   }
 
   return (
-    <div ref={rootRef}>
-      <div ref={cardRef}>
-        <Card variant="surface" className="gap-5 overflow-hidden py-5">
-          <CardHeader className="gap-3">
-            <div
-              className="relative grid grid-cols-2 rounded-lg border border-border bg-muted/40 p-1"
-              aria-label="Modo de autenticación"
-            >
-              <span
-                ref={indicatorRef}
-                aria-hidden="true"
-                className="absolute inset-y-1 left-1 w-[calc(50%-0.25rem)] rounded-md bg-primary"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                className={`relative z-10 hover:bg-transparent ${mode === "login" ? "text-primary-foreground hover:text-primary-foreground" : "text-muted-foreground"}`}
-                onClick={() => selectMode("login")}
-              >
-                Entrar
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                className={`relative z-10 hover:bg-transparent ${mode === "register" ? "text-primary-foreground hover:text-primary-foreground" : "text-muted-foreground"}`}
-                onClick={() => selectMode("register")}
-              >
-                Crear cuenta
-              </Button>
-            </div>
+    <div>
+      <Card variant="surface" className="gap-5 overflow-hidden py-5">
+        <CardHeader className="gap-3">
+            <Tabs onValueChange={(value) => selectMode(value as AuthMode)} value={mode}>
+              <TabsList aria-label="Modo de autenticación" className="grid w-full grid-cols-2">
+                <TabsTrigger value="login">Entrar</TabsTrigger>
+                <TabsTrigger value="register">Crear cuenta</TabsTrigger>
+              </TabsList>
+            </Tabs>
             <div className="space-y-1">
               <CardTitle>
                 {mode === "login" ? "Bienvenido de nuevo" : "Crea tu cuenta"}
@@ -465,8 +422,7 @@ export function AuthForm({ initialMode }: { initialMode: AuthMode }) {
               </Button>
             </form>
           </CardContent>
-        </Card>
-      </div>
+      </Card>
     </div>
   )
 }
