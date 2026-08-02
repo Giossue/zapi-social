@@ -96,7 +96,12 @@ export function ForgotPasswordForm() {
             className="grid gap-1.5 text-sm font-medium"
             htmlFor="recovery-email"
           >
-            Correo electrónico
+            <span>
+              Correo electrónico
+              <span aria-hidden="true" className="ml-0.5 text-destructive">
+                *
+              </span>
+            </span>
             <Input
               autoComplete="email"
               id="recovery-email"
@@ -211,7 +216,12 @@ export function ResetPasswordForm() {
           className="grid gap-1.5 text-sm font-medium"
           htmlFor="reset-password"
         >
-          Nueva contraseña
+          <span>
+            Nueva contraseña
+            <span aria-hidden="true" className="ml-0.5 text-destructive">
+              *
+            </span>
+          </span>
           <Input
             autoComplete="new-password"
             id="reset-password"
@@ -226,7 +236,12 @@ export function ResetPasswordForm() {
           className="grid gap-1.5 text-sm font-medium"
           htmlFor="reset-password-confirmation"
         >
-          Confirmar contraseña
+          <span>
+            Confirmar contraseña
+            <span aria-hidden="true" className="ml-0.5 text-destructive">
+              *
+            </span>
+          </span>
           <Input
             autoComplete="new-password"
             id="reset-password-confirmation"

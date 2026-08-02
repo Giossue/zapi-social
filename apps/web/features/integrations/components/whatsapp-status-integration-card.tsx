@@ -1,8 +1,8 @@
 "use client"
 
 import { ApiError, integrationsApi } from "@workspace/api-client"
-import { IntegrationInsetCard } from "./integration-inset-card"
-import { IntegrationCardLoading } from "./integration-card-loading"
+import { IntegrationInsetCard } from "./integration-inset-card.js"
+import { IntegrationCardLoading } from "./integration-card-loading.js"
 import type { WhatsAppStatusIntegration } from "@workspace/contracts"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"

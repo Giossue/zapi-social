@@ -240,7 +240,12 @@ export function PortalProfilePage() {
               className="grid gap-1.5 text-sm font-medium"
               htmlFor="profile-display-name"
             >
-              Nombre visible
+              <span>
+                Nombre visible
+                <span aria-hidden="true" className="ml-0.5 text-destructive">
+                  *
+                </span>
+              </span>
               <Input
                 id="profile-display-name"
                 onChange={(event) => setDisplayName(event.target.value)}
@@ -326,7 +331,12 @@ export function PortalProfilePage() {
               className="grid gap-1.5 text-sm font-medium"
               htmlFor="current-password"
             >
-              Contraseña actual
+              <span>
+                Contraseña actual
+                <span aria-hidden="true" className="ml-0.5 text-destructive">
+                  *
+                </span>
+              </span>
               <Input
                 autoComplete="current-password"
                 id="current-password"
@@ -340,7 +350,12 @@ export function PortalProfilePage() {
                 className="grid gap-1.5 text-sm font-medium"
                 htmlFor="new-password"
               >
-                Nueva contraseña
+                <span>
+                  Nueva contraseña
+                  <span aria-hidden="true" className="ml-0.5 text-destructive">
+                    *
+                  </span>
+                </span>
                 <Input
                   autoComplete="new-password"
                   id="new-password"
@@ -353,7 +368,12 @@ export function PortalProfilePage() {
                 className="grid gap-1.5 text-sm font-medium"
                 htmlFor="confirm-password"
               >
-                Confirmar nueva contraseña
+                <span>
+                  Confirmar nueva contraseña
+                  <span aria-hidden="true" className="ml-0.5 text-destructive">
+                    *
+                  </span>
+                </span>
                 <Input
                   autoComplete="new-password"
                   id="confirm-password"

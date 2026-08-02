@@ -224,8 +224,11 @@ export function AuthForm({ initialMode }: { initialMode: AuthMode }) {
                   htmlFor="display-name"
                 >
                   <span>
-                    Nombre{" "}
-                    <span className="text-destructive" aria-hidden="true">
+                    Nombre
+                    <span
+                      aria-hidden="true"
+                      className="ml-0.5 text-destructive"
+                    >
                       *
                     </span>
                   </span>
@@ -253,8 +256,8 @@ export function AuthForm({ initialMode }: { initialMode: AuthMode }) {
               htmlFor="email"
             >
               <span>
-                Correo electrónico{" "}
-                <span className="text-destructive" aria-hidden="true">
+                Correo electrónico
+                <span aria-hidden="true" className="ml-0.5 text-destructive">
                   *
                 </span>
               </span>
@@ -279,8 +282,8 @@ export function AuthForm({ initialMode }: { initialMode: AuthMode }) {
               htmlFor="password"
             >
               <span>
-                Contraseña{" "}
-                <span className="text-destructive" aria-hidden="true">
+                Contraseña
+                <span aria-hidden="true" className="ml-0.5 text-destructive">
                   *
                 </span>
               </span>
@@ -333,8 +336,11 @@ export function AuthForm({ initialMode }: { initialMode: AuthMode }) {
                     htmlFor="password-confirmation"
                   >
                     <span>
-                      Confirmar contraseña{" "}
-                      <span className="text-destructive" aria-hidden="true">
+                      Confirmar contraseña
+                      <span
+                        aria-hidden="true"
+                        className="ml-0.5 text-destructive"
+                      >
                         *
                       </span>
                     </span>

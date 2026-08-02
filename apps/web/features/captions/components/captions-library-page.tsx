@@ -286,7 +286,12 @@ function CaptionEditorDialog({
           onSubmit={submit}
         >
           <label className="grid gap-1.5 text-sm font-medium">
-            Nombre
+            <span>
+              Nombre
+              <span aria-hidden="true" className="ml-0.5 text-destructive">
+                *
+              </span>
+            </span>
             <Input
               defaultValue={isEditing ? caption.name : ""}
               maxLength={120}
@@ -295,7 +300,12 @@ function CaptionEditorDialog({
             />
           </label>
           <label className="grid gap-1.5 text-sm font-medium">
-            Contenido
+            <span>
+              Contenido
+              <span aria-hidden="true" className="ml-0.5 text-destructive">
+                *
+              </span>
+            </span>
             <Textarea
               defaultValue={isEditing ? caption.content : ""}
               maxLength={10000}
