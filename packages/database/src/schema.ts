@@ -28,6 +28,8 @@ export const users = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     email: varchar("email", { length: 320 }).notNull(),
     username: varchar("username", { length: 64 }),
+    locale: varchar("locale", { length: 10 }),
+    timezone: varchar("timezone", { length: 64 }),
     displayName: varchar("display_name", { length: 160 }).notNull(),
     passwordHash: text("password_hash"),
     emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),

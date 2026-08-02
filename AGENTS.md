@@ -112,3 +112,10 @@ infra/podman
 - No afirmar que algo funciona sin evidencia.
 
 Responder en español, directo y sin inventar comportamiento. Antes de crear una pantalla, explicar qué módulo Laravel se replica y qué queda mock. Al terminar, indicar archivos cambiados, validación ejecutada, pendiente real y siguiente módulo recomendado.
+
+### Claridad operativa
+
+- Cuando pidas una comprobación al usuario, indicar exactamente qué pantalla abrir, qué dato concreto copiar y para qué sirve; no pedir datos que el agente no vaya a usar.
+- Si no hace falta una comprobación, decirlo de forma explícita y dar siguiente acción directa.
+- Separar hechos confirmados, pendiente real y acción siguiente en frases cortas.
+- No pedir ni solicitar que extraigan, compartan o descifren tokens, secretos o credenciales.

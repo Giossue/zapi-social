@@ -20,6 +20,54 @@ export const loginSchema = z.object({
   password: z.string().min(1).max(128),
 })
 
+function isSupportedTimeZone(value: string) {
+  try {
+    return (
+      Intl.DateTimeFormat(undefined, { timeZone: value }).resolvedOptions()
+        .timeZone === value
+    )
+  } catch {
+    return false
+  }
+}
+
+const profileTimeZoneSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(64)
+  .refine(isSupportedTimeZone, "La zona horaria no es válida.")
+
+export const portalProfileSchema = z.object({
+  id: z.uuid(),
+  displayName: z.string(),
+  email: z.string().email(),
+  username: z.string().nullable(),
+  emailVerifiedAt: z.string().datetime().nullable(),
+  locale: z.enum(["es", "en"]).nullable(),
+  timezone: profileTimeZoneSchema.nullable(),
+  createdAt: z.string().datetime(),
+})
+
+export const updatePortalProfileSchema = z
+  .object({
+    displayName: z.string().trim().min(2).max(160),
+    locale: z.enum(["es", "en"]).nullable(),
+    timezone: profileTimeZoneSchema.nullable(),
+  })
+  .strict()
+
+export const changePortalPasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1).max(128),
+    newPassword: passwordPolicy,
+    passwordConfirmation: z.string().min(1).max(128),
+  })
+  .refine((input) => input.newPassword === input.passwordConfirmation, {
+    message: "Las contraseñas no coinciden.",
+    path: ["passwordConfirmation"],
+  })
+
 export const authUserSchema = z.object({
   id: z.uuid(),
   email: z.string().email(),
@@ -193,6 +241,11 @@ export const updateProviderIntegrationSchema = z
 
 export type RegisterInput = z.infer<typeof registerSchema>
 export type LoginInput = z.infer<typeof loginSchema>
+export type PortalProfile = z.infer<typeof portalProfileSchema>
+export type UpdatePortalProfileInput = z.infer<typeof updatePortalProfileSchema>
+export type ChangePortalPasswordInput = z.infer<
+  typeof changePortalPasswordSchema
+>
 export type AuthSession = z.infer<typeof authSessionSchema>
 export type PlatformAdminAuthSession = z.infer<
   typeof platformAdminAuthSessionSchema

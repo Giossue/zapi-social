@@ -6,8 +6,8 @@ Completar los providers de Channels sin borrar fixtures aprobados. Cada provider
 
 ## Orden
 
-1. Cerrar Meta: data deletion, readiness por capability y workers de token/sync.
-2. WhatsApp Status: GOWA, QR real, polling, lifecycle de device y limpieza remota.
+1. [ ] Meta: pendiente data deletion, readiness por capability e Instagram cuando exista cuenta conectada. Sync de perfil Facebook verificado.
+2. [x] WhatsApp Status: GOWA, QR real, polling, lifecycle de device, limpieza remota y sync de perfil verificados.
 3. LinkedIn Profile: OAuth directo y persistencia de miembro.
 4. LinkedIn Page: OAuth, organizaciones administradas y picker.
 5. X Profile: OAuth 2.0 con PKCE, refresh token y perfil directo.

@@ -1,8 +1,9 @@
-import { HttpException, type HttpStatus } from '@nestjs/common'
+import { HttpException, type HttpStatus } from '@nestjs/common';
 
 export type AppErrorCode =
   | 'AUTH_EMAIL_ALREADY_REGISTERED'
   | 'AUTH_INVALID_CREDENTIALS'
+  | 'AUTH_CURRENT_PASSWORD_INVALID'
   | 'AUTH_PASSWORD_POLICY_NOT_MET'
   | 'AUTH_SESSION_EXPIRED'
   | 'AUTH_ADMIN_ACCESS_REQUIRED'
@@ -21,13 +22,13 @@ export type AppErrorCode =
   | 'VALIDATION_FAILED'
   | 'INFRASTRUCTURE_UNAVAILABLE'
   | 'INTERNAL_SERVER_ERROR'
-  | 'REQUEST_FAILED'
+  | 'REQUEST_FAILED';
 
 export class AppException extends HttpException {
   constructor(
     readonly code: AppErrorCode,
     status: HttpStatus,
   ) {
-    super({ code }, status)
+    super({ code }, status);
   }
 }

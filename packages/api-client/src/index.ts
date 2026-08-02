@@ -15,7 +15,10 @@ import type {
   PortalChannelsQuery,
   PortalChannelsResponse,
   PortalDashboard,
+  PortalProfile,
   RegisterInput,
+  UpdatePortalProfileInput,
+  ChangePortalPasswordInput,
   RequestPortalChannelProfileSyncResponse,
   StartPortalChannelConnectionInput,
   StartWhatsAppStatusConnectionInput,
@@ -151,6 +154,20 @@ export const authApi = {
 export const portalApi = {
   dashboard: () =>
     request<PortalDashboard>("/v1/portal/dashboard", { method: "GET" }),
+}
+
+export const profileApi = {
+  get: () => request<PortalProfile>("/v1/portal/profile", { method: "GET" }),
+  update: (input: UpdatePortalProfileInput) =>
+    request<PortalProfile>("/v1/portal/profile", {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  changePassword: (input: ChangePortalPasswordInput) =>
+    request<void>("/v1/portal/profile/password", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
 }
 
 export const channelsApi = {
