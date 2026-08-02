@@ -131,7 +131,7 @@ function toPortalAccount(
     handle: account.handle ?? undefined,
     avatarUrl: account.avatarUrl,
     status: account.status,
-    connectedAt: account.createdAt.slice(0, 10),
+    connectedAt: account.createdAt,
   }
 }
 

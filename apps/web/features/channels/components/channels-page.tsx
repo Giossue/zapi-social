@@ -91,11 +91,12 @@ type MetaOAuthSession = {
 }
 
 function formatConnectionDate(value: string) {
+  const instant = value.includes("T") ? new Date(value) : new Date(`${value}T12:00:00`)
   return new Intl.DateTimeFormat("es", {
     day: "numeric",
     month: "short",
     year: "numeric",
-  }).format(new Date(`${value}T12:00:00`))
+  }).format(instant)
 }
 
 function capabilityInitials(account: PortalChannelAccount) {
@@ -107,9 +108,20 @@ function capabilityInitials(account: PortalChannelAccount) {
     .toUpperCase()
 }
 
-function normalizedHandle(handle?: string) {
+function normalizedHandle(handle?: string | null) {
   const value = handle?.replace(/^@+/, "").trim()
   return value || null
+}
+
+function whatsappPhone(handle?: string | null) {
+  const value = normalizedHandle(handle)
+  if (!value) return null
+  const digits = (value.split("@", 1)[0] ?? "").replace(/\D/g, "")
+  return digits ? `+${digits}` : value
+}
+
+function providerLabel(account: PortalChannelAccount) {
+  return account.capabilityKey === "whatsapp_status" ? "Meta" : providerLabels[account.provider]
 }
 
 function AccountAvatar({ account }: { account: PortalChannelAccount }) {
@@ -143,7 +155,7 @@ function toPortalAccount(
     handle: account.handle ?? undefined,
     avatarUrl: account.avatarUrl,
     status: account.status,
-    connectedAt: account.createdAt.slice(0, 10),
+    connectedAt: account.createdAt,
   }
 }
 
@@ -238,9 +250,11 @@ function ChannelAccountCard({
   const externalIdentity =
     account.capabilityKey === "facebook_page"
       ? account.externalName
-      : handle
-        ? `@${handle}`
-        : null
+      : account.capabilityKey === "whatsapp_status"
+        ? whatsappPhone(handle)
+        : handle
+          ? `@${handle}`
+          : null
 
   return (
     <Card variant="subtle">
@@ -305,7 +319,7 @@ function ChannelAccountCard({
           <div>
             <p className="text-xs text-muted-foreground">Proveedor</p>
             <p className="mt-1 font-medium">
-              {providerLabels[account.provider]}
+              {providerLabel(account)}
             </p>
           </div>
           <div>
