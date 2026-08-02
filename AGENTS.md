@@ -77,6 +77,10 @@ Crear o actualizar un plan cuando se inicia una vertical, cambia una equivalenci
 
 Responder en español, directo y sin inventar comportamiento. Antes de crear una pantalla, explicar qué módulo Laravel se replica y qué queda mock. Al terminar, indicar archivos cambiados, validación ejecutada, pendiente real y siguiente módulo recomendado.
 
-## Codebase Memory MCP
+## Codebase Memory MCP — consulta obligatoria
 
-Cuando el servidor `codebase-memory` esté disponible, usarlo para símbolos, rutas, imports, consumidores, llamadas, dependencias e impacto estructural en ZapiSocial o ZapiV2. Sus resultados son evidencia de exploración, no prueba absoluta de completitud: verificar código y pruebas antes de cambios destructivos. Para reglas, decisiones, equivalencias Laravel → V2, estado y pendientes, consultar `docs/`.
+Ante cualquier duda técnica sobre código, estructura, estado implementado, símbolos, rutas, imports, consumidores, llamadas, dependencias, contratos o impacto en ZapiSocial o ZapiV2, ejecutar primero el MCP `codebase-memory`. No responder ni inferir desde memoria sin consultarlo.
+
+Si el MCP falla, el índice no está disponible o la consulta no devuelve evidencia suficiente, inspeccionar manualmente el código, tests, schema y contratos relevantes. Para reglas, decisiones, equivalencias Laravel → V2, estado de aceptación y pendientes, consultar además `docs/`; el grafo no sustituye esa documentación.
+
+Los resultados de CBM son evidencia de exploración, no prueba absoluta de completitud: antes de cambios destructivos, verificar archivos y pruebas afectadas.
