@@ -98,7 +98,9 @@ type MetaOAuthSession = {
 }
 
 function formatConnectionDate(value: string) {
-  const instant = value.includes("T") ? new Date(value) : new Date(`${value}T12:00:00`)
+  const instant = value.includes("T")
+    ? new Date(value)
+    : new Date(`${value}T12:00:00`)
   return new Intl.DateTimeFormat("es", {
     day: "numeric",
     month: "short",
@@ -128,7 +130,9 @@ function whatsappPhone(handle?: string | null) {
 }
 
 function providerLabel(account: PortalChannelAccount) {
-  return account.capabilityKey === "whatsapp_status" ? "Meta" : providerLabels[account.provider]
+  return account.capabilityKey === "whatsapp_status"
+    ? "Meta"
+    : providerLabels[account.provider]
 }
 
 function AccountAvatar({ account }: { account: PortalChannelAccount }) {
@@ -335,9 +339,7 @@ function ChannelAccountCard({
         <div className="grid grid-cols-2 gap-3 border-t border-border pt-4 text-sm">
           <div>
             <p className="text-xs text-muted-foreground">Proveedor</p>
-            <p className="mt-1 font-medium">
-              {providerLabel(account)}
-            </p>
+            <p className="mt-1 font-medium">{providerLabel(account)}</p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Conectado el</p>
@@ -522,7 +524,9 @@ export function LiveChannelsPage() {
   const [capabilityFilter, setCapabilityFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
   const [isConnectOpen, setIsConnectOpen] = useState(false)
-  const [whatsappReconnectAccountId, setWhatsappReconnectAccountId] = useState<string | null>(null)
+  const [whatsappReconnectAccountId, setWhatsappReconnectAccountId] = useState<
+    string | null
+  >(null)
   const [editingAccount, setEditingAccount] =
     useState<PortalChannelAccount | null>(null)
   const [deletingAccount, setDeletingAccount] =
@@ -739,10 +743,17 @@ export function LiveChannelsPage() {
     setPendingAccountId(account.id)
     try {
       await channelsApi.requestProfileSync(account.id)
-      toast.success("Actualización de perfil programada. Puede tardar unos minutos.")
+      toast.success(
+        "Actualización de perfil programada. Puede tardar unos minutos."
+      )
     } catch (error) {
-      if (error instanceof ApiError && error.code === "CHANNEL_PROFILE_SYNC_COOLDOWN") {
-        toast.error("Ya solicitaste una actualización. Inténtalo de nuevo en 15 minutos.")
+      if (
+        error instanceof ApiError &&
+        error.code === "CHANNEL_PROFILE_SYNC_COOLDOWN"
+      ) {
+        toast.error(
+          "Ya solicitaste una actualización. Inténtalo de nuevo en 15 minutos."
+        )
       } else {
         console.error("Channel profile sync request failed", error)
         toast.error("No pudimos programar la actualización del perfil.")
@@ -827,10 +838,7 @@ export function LiveChannelsPage() {
           </Button>
         </div>
       ) : null}
-      <section
-        aria-label="Inventario de canales"
-        className="space-y-4 border-t border-border pt-7"
-      >
+      <section aria-label="Inventario de canales" className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-3">
           <ChannelMetric
             description="Canales registrados"
@@ -848,7 +856,10 @@ export function LiveChannelsPage() {
             value={summary.disconnected}
           />
         </div>
-        <p className="text-sm text-muted-foreground">La información de perfil se actualiza automáticamente cada 24 horas. También puedes solicitar una actualización por canal cada 15 minutos.</p>
+        <p className="text-sm text-muted-foreground">
+          La información de perfil se actualiza automáticamente cada 24 horas.
+          También puedes solicitar una actualización por canal cada 15 minutos.
+        </p>
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_12rem_14rem_12rem]">
           <div className="relative">
             <Search
@@ -996,7 +1007,9 @@ export function LiveChannelsPage() {
         onMetaAuthorizationStart={beginMetaAuthorization}
         onMetaConnectionCancelled={cancelMetaConnection}
         onMetaConnectionCompleted={completeMetaConnection}
-        onWhatsAppConnectionCompleted={async () => { await loadChannels() }}
+        onWhatsAppConnectionCompleted={async () => {
+          await loadChannels()
+        }}
         onOpenChange={(open) => {
           setIsConnectOpen(open)
           if (!open) setWhatsappReconnectAccountId(null)

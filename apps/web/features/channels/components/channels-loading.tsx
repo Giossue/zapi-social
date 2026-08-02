@@ -10,7 +10,7 @@ export function ChannelsLoading() {
       <div className="flex justify-end">
         <Skeleton className="h-9 w-40" />
       </div>
-      <section className="space-y-4 border-t border-border pt-7">
+      <section className="space-y-4">
         <div className="grid gap-3 sm:grid-cols-3">
           {metricSkeletons.map((metric) => (
             <Card key={metric} variant="subtle">
@@ -36,7 +36,10 @@ export function ChannelsLoading() {
               <CardContent className="space-y-5">
                 <div className="flex items-center gap-3">
                   <Skeleton className="size-10 rounded-full" />
-                  <div className="space-y-2"><Skeleton className="h-4 w-32" /><Skeleton className="h-3 w-24" /></div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
                 </div>
                 <Skeleton className="h-14 w-full" />
                 <Skeleton className="h-8 w-full" />

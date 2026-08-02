@@ -534,10 +534,7 @@ export function CaptionsLibraryPage() {
           Nuevo caption
         </Button>
       </div>
-      <section
-        aria-label="Biblioteca de captions"
-        className="space-y-5 border-t border-border pt-7"
-      >
+      <section aria-label="Biblioteca de captions" className="space-y-5">
         <div className="flex min-w-0 flex-1 flex-wrap gap-2">
           <div className="relative min-w-56 flex-1">
             <Search
