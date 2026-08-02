@@ -40,8 +40,8 @@ import {
   useState,
   type FormEvent,
 } from "react"
-import { IntegrationCardLoading } from "./integration-card-loading.js"
-import { IntegrationInsetCard } from "./integration-inset-card.js"
+import { IntegrationCardLoading } from "./integration-card-loading"
+import { IntegrationInsetCard } from "./integration-inset-card"
 
 type Draft = {
   enabled: boolean

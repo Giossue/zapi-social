@@ -51,10 +51,10 @@ import { Textarea } from "@workspace/ui/components/textarea"
 import { ScrollArea } from "@workspace/ui/components/scroll-area"
 import { toast } from "@workspace/ui/components/toast"
 
-import { planPermissionGroups } from "../fixtures/plans.js"
+import { planPermissionGroups } from "../fixtures/plans"
 import { ApiError, plansApi } from "@workspace/api-client"
 
-import type { AdminPlan, PlanBillingType, PlanStatus } from "../types/plans.js"
+import type { AdminPlan, PlanBillingType, PlanStatus } from "../types/plans"
 
 const billingLabels: Record<PlanBillingType, string> = {
   monthly: "Mensual",
