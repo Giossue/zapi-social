@@ -12,17 +12,13 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { ScrollArea } from "@workspace/ui/components/scroll-area"
+import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { toast } from "@workspace/ui/components/toast"
 import {
   CheckCircle2,
-  CircleAlert,
   LoaderCircle,
   Plus,
-  QrCode,
-  RefreshCw,
-  ScanLine,
   ShieldCheck,
-  Smartphone,
   Unplug,
 } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -34,7 +30,6 @@ import type {
 import { WhatsAppStatusConnection } from "./whatsapp-status-connection"
 
 type DialogStep = "capabilities" | "authorizing" | "picker" | "whatsapp" | "connected"
-type WhatsAppState = "start" | "waiting" | "expired" | "connected"
 
 const providerLabels = {
   meta: "Meta",
@@ -43,6 +38,10 @@ const providerLabels = {
   tiktok: "TikTok",
   whatsapp: "WhatsApp",
 } as const
+
+const providerTabs = ["all", "meta", "whatsapp", "linkedin", "x", "tiktok"] as const
+
+type CapabilityTab = (typeof providerTabs)[number]
 
 export type MetaPickerSession = {
   capability: PortalChannelCapability
@@ -92,23 +91,6 @@ function CapabilityCard({
         </Button>
       </CardContent>
     </Card>
-  )
-}
-
-function QrMock() {
-  return (
-    <div
-      aria-label="Código QR sintético para Historias de WhatsApp"
-      className="grid size-40 grid-cols-5 gap-1 rounded-lg border border-border bg-card p-3"
-      role="img"
-    >
-      {Array.from({ length: 25 }, (_, index) => (
-        <span
-          className={index % 3 === 0 || index % 5 === 0 ? "bg-foreground" : "bg-muted"}
-          key={index}
-        />
-      ))}
-    </div>
   )
 }
 
@@ -182,7 +164,7 @@ export function ChannelConnectionDialog({
   const [capability, setCapability] = useState<PortalChannelCapability | null>(null)
   const [candidate, setCandidate] = useState<ChannelCandidate | null>(null)
   const [step, setStep] = useState<DialogStep>("capabilities")
-  const [whatsAppState, setWhatsAppState] = useState<WhatsAppState>("start")
+  const [capabilityTab, setCapabilityTab] = useState<CapabilityTab>("all")
   const [isAuthorizing, setIsAuthorizing] = useState(false)
   const [isSelecting, setIsSelecting] = useState(false)
 
@@ -197,7 +179,7 @@ export function ChannelConnectionDialog({
     setCapability(null)
     setCandidate(null)
     setStep("capabilities")
-    setWhatsAppState("start")
+    setCapabilityTab("all")
     setIsAuthorizing(false)
     setIsSelecting(false)
   }
@@ -230,7 +212,7 @@ export function ChannelConnectionDialog({
       return
     }
 
-    if (nextCapability.connectionKind === "qr") {
+    if (nextCapability.connectionKind === "qr_device") {
       setStep("whatsapp")
       return
     }
@@ -309,6 +291,9 @@ export function ChannelConnectionDialog({
   const title = capability ? `Conectar ${capability.label}` : "Conectar un canal"
   const isMetaPicker = capability?.provider === "meta"
   const pickerCandidates = isMetaPicker ? metaPickerSession?.candidates ?? [] : capability?.candidates ?? []
+  const visibleCapabilities = capabilityTab === "all"
+    ? capabilities
+    : capabilities.filter((item) => item.provider === capabilityTab)
 
   return (
     <Dialog onOpenChange={handleOpenChange} open={open}>
@@ -324,13 +309,24 @@ export function ChannelConnectionDialog({
         <ScrollArea className="max-h-[calc(100dvh-10rem)]" scrollbarClassName="translate-x-6" type="always">
           <div className="grid gap-5 px-6 pt-5 pr-12 pb-6">
             {step === "capabilities" ? (
-              <ScrollArea className="max-h-[calc(100dvh-18rem)] overflow-visible pr-3" scrollbarClassName="translate-x-8" type="always">
-                <div aria-label="Tipos de canal" className="grid gap-3 pb-6 sm:grid-cols-2 xl:grid-cols-3">
-                  {capabilities.map((item) => (
-                    <CapabilityCard capability={item} key={item.key} onSelect={(item) => void selectCapability(item)} />
-                  ))}
-                </div>
-              </ScrollArea>
+              <Tabs onValueChange={(value) => setCapabilityTab(value as CapabilityTab)} value={capabilityTab}>
+                <ScrollArea className="w-full pb-1" scrollbarClassName="translate-y-1" type="always">
+                  <TabsList aria-label="Proveedor de canal" className="w-max">
+                    {providerTabs.map((provider) => (
+                      <TabsTrigger key={provider} value={provider}>
+                        {provider === "all" ? "Todos" : providerLabels[provider]}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </ScrollArea>
+                <ScrollArea className="mt-5 max-h-[calc(100dvh-22rem)] overflow-visible pr-3" scrollbarClassName="translate-x-8" type="always">
+                  <div aria-label="Tipos de canal" className="grid gap-3 pb-6 sm:grid-cols-2 xl:grid-cols-3">
+                    {visibleCapabilities.map((item) => (
+                      <CapabilityCard capability={item} key={item.key} onSelect={(item) => void selectCapability(item)} />
+                    ))}
+                  </div>
+                </ScrollArea>
+              </Tabs>
             ) : null}
 
             {isAuthorizing ? (

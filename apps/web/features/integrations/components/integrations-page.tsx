@@ -2,6 +2,7 @@
 
 import { ApiError, integrationsApi } from "@workspace/api-client"
 import { WhatsAppStatusIntegrationCard } from "./whatsapp-status-integration-card"
+import { IntegrationCardLoading } from "./integration-card-loading"
 import type { MetaIntegration } from "@workspace/contracts"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -375,11 +376,10 @@ export function IntegrationsPage() {
 
   if (loading) {
     return (
-      <EmptyState
-        description="Consultando la configuración cifrada de Meta."
-        icon={LoaderCircle}
-        title="Cargando integración"
-      />
+      <div className="space-y-6">
+        <IntegrationCardLoading />
+        <WhatsAppStatusIntegrationCard />
+      </div>
     )
   }
 
