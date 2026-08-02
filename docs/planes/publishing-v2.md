@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Investigación Laravel completada; diseño y alcance V2 pendientes de aprobación.**
+**Investigación Laravel completada; UI mock implementada. Permisos de Teams y contrato/backend pendientes.**
 
 No implementar persistencia, adapters de providers ni workers hasta aprobar el MVP, permisos y transición de estados descritos aquí.
 
@@ -14,28 +14,28 @@ Construir el dominio que crea, valida, agenda, aprueba y entrega publicaciones p
 
 ### Superficie principal
 
-| Superficie | Ruta Laravel | Referencia |
-| --- | --- | --- |
-| Calendario y compositor | `/portal/publishing` | `modules/AppPublishing/Livewire/PublishingCalendar.php` |
-| Borradores | `/portal/publishing/drafts` | `PublishingDrafts.php` |
-| Cola | `/portal/publishing/queue` | `PublishingQueue.php` |
-| Aprobaciones | `/portal/publishing/approvals` | `PublishingApprovals.php` |
-| Campañas | `/portal/publishing/campaigns` | `PublishingCampaigns.php` |
-| Etiquetas | `/portal/publishing/labels` | `PublishingLabels.php` |
+| Superficie              | Ruta Laravel                   | Referencia                                              |
+| ----------------------- | ------------------------------ | ------------------------------------------------------- |
+| Calendario y compositor | `/portal/publishing`           | `modules/AppPublishing/Livewire/PublishingCalendar.php` |
+| Borradores              | `/portal/publishing/drafts`    | `PublishingDrafts.php`                                  |
+| Cola                    | `/portal/publishing/queue`     | `PublishingQueue.php`                                   |
+| Aprobaciones            | `/portal/publishing/approvals` | `PublishingApprovals.php`                               |
+| Campañas                | `/portal/publishing/campaigns` | `PublishingCampaigns.php`                               |
+| Etiquetas               | `/portal/publishing/labels`    | `PublishingLabels.php`                                  |
 
 Laravel soporta crear, editar, duplicar, borrar y programar posts; selección de una o varias cuentas; repetición; borradores; aprobaciones; campañas/labels; medios; captions; watermark; validación por provider; y publicación inmediata o programada.
 
 ### Dependencias de origen
 
-| Origen | Referencia Laravel | Equivalencia V2 propuesta |
-| --- | --- | --- |
-| Caption | `AppCaptions` | inserta una copia de texto en el compositor; sin FK viva al caption. |
-| AI Publishing | `AppAiPublishing` | productor posterior de solicitudes tipadas. |
-| CSV / Bulk | `AppBulkPosts` | productor posterior mediante lote/filas tipados. |
-| RSS | `AppRssSchedules` | productor posterior con historial idempotente por item/cuenta. |
-| Archivo/media | `AppFiles` | media perteneciente al workspace, resuelta y autorizada por ID. |
-| Watermark | `AppWatermark` | transformación efímera por adapter, nunca sobre el original. |
-| Canales | `AppChannels` | solo cuentas activas, accesibles y con capability publicable. |
+| Origen        | Referencia Laravel | Equivalencia V2 propuesta                                            |
+| ------------- | ------------------ | -------------------------------------------------------------------- |
+| Caption       | `AppCaptions`      | inserta una copia de texto en el compositor; sin FK viva al caption. |
+| AI Publishing | `AppAiPublishing`  | productor posterior de solicitudes tipadas.                          |
+| CSV / Bulk    | `AppBulkPosts`     | productor posterior mediante lote/filas tipados.                     |
+| RSS           | `AppRssSchedules`  | productor posterior con historial idempotente por item/cuenta.       |
+| Archivo/media | `AppFiles`         | media perteneciente al workspace, resuelta y autorizada por ID.      |
+| Watermark     | `AppWatermark`     | transformación efímera por adapter, nunca sobre el original.         |
+| Canales       | `AppChannels`      | solo cuentas activas, accesibles y con capability publicable.        |
 
 ## Hallazgos Laravel que V2 no debe replicar
 
@@ -106,13 +106,13 @@ Constraints mínimos:
 
 ### Autorización
 
-| Acción | Permiso propuesto |
-| --- | --- |
-| Ver calendario, drafts y cola | `publishing.view` |
-| Crear/editar/borrar drafts | `publishing.create` / `publishing.manage` |
-| Enviar a revisión | `publishing.submit_review` |
-| Aprobar/rechazar | `publishing.approve` |
-| Publicar inmediatamente o programar | `publishing.publish` |
+| Acción                              | Permiso propuesto                         |
+| ----------------------------------- | ----------------------------------------- |
+| Ver calendario, drafts y cola       | `publishing.view`                         |
+| Crear/editar/borrar drafts          | `publishing.create` / `publishing.manage` |
+| Enviar a revisión                   | `publishing.submit_review`                |
+| Aprobar/rechazar                    | `publishing.approve`                      |
+| Publicar inmediatamente o programar | `publishing.publish`                      |
 
 En creación y ejecución se comprueba: sesión Portal, membership activa, permiso, ownership de campaña/label/media, cuenta accesible por `managed_account_ids`, capability publicable, canal activo y cuota vigente.
 
@@ -129,6 +129,12 @@ Scheduler: solo encola IDs vencidos; no llama proveedores directamente
 - Estados terminales explícitos y acción de reintento manual para fallos recuperables.
 - Webhooks de Automation mediante outbox/evento durable, no dentro de la publicación remota.
 
+## Decisiones confirmadas
+
+- El MVP incluye **borradores**, **publicación inmediata** y **publicación programada**.
+- Los adapters iniciales son **Facebook Page**, **Instagram Profile** y **WhatsApp Status**.
+- La autorización de miembros, invitaciones, roles y `managed_account_ids` se define junto al módulo Teams; no se inferirá desde Laravel ni se implementará una política provisional en Publishing.
+
 ## MVP recomendado
 
 ### Incluido
@@ -136,7 +142,7 @@ Scheduler: solo encola IDs vencidos; no llama proveedores directamente
 1. Calendario semanal/mensual y listado de cola.
 2. Composer para texto + media desde Files + una o varias cuentas elegibles.
 3. Borrador, publicación inmediata y programación de una fecha/hora.
-4. Validación por capability de Facebook Page e Instagram Profile inicialmente.
+4. Validación y adapters iniciales para Facebook Page, Instagram Profile y WhatsApp Status.
 5. Estados `draft`, `scheduled`, `processing`, `published`, `failed` y reintento manual.
 6. Campañas y labels básicos.
 7. Auditoría y trazabilidad de operación/run.
@@ -147,7 +153,7 @@ Scheduler: solo encola IDs vencidos; no llama proveedores directamente
 - Aprobaciones de equipo.
 - Recurrencias, slots y mejor horario.
 - Watermarks y transformaciones de imagen/video.
-- LinkedIn, X, TikTok y WhatsApp Status como adapters publicables.
+- LinkedIn, X y TikTok como adapters publicables.
 - Bulk CSV, RSS y AI Publishing como productores hacia el contrato central.
 - Analytics, A/B testing, URL shorteners y automatizaciones salientes.
 
@@ -165,10 +171,10 @@ Scheduler: solo encola IDs vencidos; no llama proveedores directamente
 
 1. [x] Auditar Laravel, dependencias, proveedores y extensiones de origen.
 2. [ ] Aprobar alcance MVP, permisos y estados de transición.
-3. [ ] Diseñar UI mock: calendar, composer, cola, empty/loading/error/permisos y preview/preflight.
+3. [x] Diseñar UI mock: calendar, composer, cola, empty/loading/error/permisos y preview/preflight. Evidencia: `apps/web/features/publishing/` y rutas `apps/web/app/portal/publishing/`.
 4. [ ] Definir contrato Zod + REST + errores públicos.
 5. [ ] Añadir schema/migración Drizzle y pruebas de constraints.
 6. [ ] Implementar API, ownership, cuotas y auditoría.
-7. [ ] Implementar Worker, outbox, locks, reintentos y adapters Meta autorizados.
+7. [ ] Implementar Worker, outbox, locks, reintentos y adapters autorizados de Facebook Page, Instagram Profile y WhatsApp Status.
 8. [ ] Sustituir mock por API y validar flujo end-to-end.
 9. [ ] Añadir aprobaciones, nuevos providers y productores AI/Bulk/RSS por fases.
