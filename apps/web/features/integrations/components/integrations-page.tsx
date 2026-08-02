@@ -28,6 +28,7 @@ import {
 } from "@workspace/ui/components/dropdown-menu"
 import { Input } from "@workspace/ui/components/input"
 import { Switch } from "@workspace/ui/components/switch"
+import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { toast } from "@workspace/ui/components/toast"
 import {
   CheckCircle2,
@@ -197,6 +198,7 @@ export function IntegrationsPage() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [activeProvider, setActiveProvider] = useState<"meta" | "whatsapp">("meta")
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -396,6 +398,15 @@ export function IntegrationsPage() {
 
   return (
     <div className="space-y-6">
+      <Tabs onValueChange={(value) => setActiveProvider(value as "meta" | "whatsapp")} value={activeProvider}>
+        <TabsList aria-label="Proveedor de integración">
+          <TabsTrigger value="meta">Meta</TabsTrigger>
+          <TabsTrigger value="whatsapp">WhatsApp Status</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      {activeProvider === "meta" ? (
+        <>
       <Card variant="surface">
         <CardHeader className="gap-4 border-b border-border pb-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -524,7 +535,10 @@ export function IntegrationsPage() {
         </CardContent>
       </Card>
 
-      <WhatsAppStatusIntegrationCard />
+        </>
+      ) : (
+        <WhatsAppStatusIntegrationCard />
+      )}
 
       <Dialog
         onOpenChange={(open) => !open && closeConfiguration()}
