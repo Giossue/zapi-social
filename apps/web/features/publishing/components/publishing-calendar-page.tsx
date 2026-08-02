@@ -5,7 +5,6 @@ import Link from "next/link"
 import {
   CalendarClock,
   CalendarDays,
-  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   CircleAlert,
@@ -19,13 +18,7 @@ import {
 } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
+import { Card, CardContent } from "@workspace/ui/components/card"
 import {
   Dialog,
   DialogContent,
@@ -149,21 +142,6 @@ function postTitle(content: string) {
     : normalized || "Publicación sin texto"
 }
 
-function preflightMessage(
-  account: PublishingAccount,
-  content: string,
-  hasMedia: boolean
-) {
-  if (!account.connected)
-    return "Esta cuenta debe reconectarse antes de publicar."
-  if (!content.trim()) return "Añade un texto antes de continuar."
-  if (account.provider === "instagram" && !hasMedia)
-    return "Instagram requiere una imagen o video."
-  if (account.provider === "whatsapp" && !hasMedia)
-    return "El estado de WhatsApp requiere una imagen o video."
-  return null
-}
-
 function PublishingLoading() {
   return (
     <div aria-busy="true" className="space-y-5">
@@ -221,18 +199,16 @@ function ComposerDialog({
   const selected = accounts.filter((account) =>
     selectedAccounts.includes(account.id)
   )
-  const validations = selected.map((account) => ({
-    account,
-    message: preflightMessage(account, content, hasMedia),
-  }))
   const canSubmit =
     selected.length > 0 &&
-    validations.every(({ message }) => !message) &&
+    selected.every((account) => account.connected) &&
+    Boolean(content.trim()) &&
+    selected.every((account) => account.provider === "facebook" || hasMedia) &&
     (mode !== "schedule" || Boolean(scheduledDate && scheduledTime))
 
   return (
     <Dialog onOpenChange={(nextOpen) => !nextOpen && onClose()} open={open}>
-      <DialogContent className="max-h-[calc(100dvh-2rem)] max-w-4xl overflow-y-auto">
+      <DialogContent className="max-h-[calc(100dvh-2rem)] min-h-[42rem] w-[min(96vw,90rem)] max-w-none overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {editingPost ? "Editar publicación" : "Nueva publicación"}
@@ -242,7 +218,7 @@ function ComposerDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(22rem,0.85fr)]">
           <div className="space-y-5">
             <fieldset className="flex flex-col gap-3">
               <legend className="text-sm font-medium">Cuentas destino</legend>
@@ -320,53 +296,14 @@ function ComposerDialog({
             ) : null}
           </div>
 
-          <div className="space-y-4">
-            <PublishingNetworkPreview
-              accounts={accounts}
-              activeAccountId={activePreviewAccountId}
-              content={content}
-              hasMedia={hasMedia}
-              onAccountChange={setActivePreviewAccountId}
-              selectedAccountIds={selectedAccounts}
-            />
-            <Card variant="inset">
-              <CardHeader>
-                <CardTitle>Comprobación por destino</CardTitle>
-                <CardDescription>
-                  La API y el Worker repetirán estas comprobaciones con permisos
-                  y capabilities reales.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {validations.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    Selecciona al menos una cuenta.
-                  </p>
-                ) : null}
-                {validations.map(({ account, message }) => (
-                  <div className="flex gap-2 text-sm" key={account.id}>
-                    {message ? (
-                      <CircleAlert
-                        aria-hidden="true"
-                        className="mt-0.5 size-4 shrink-0 text-warning"
-                      />
-                    ) : (
-                      <CheckCircle2
-                        aria-hidden="true"
-                        className="mt-0.5 size-4 shrink-0 text-success"
-                      />
-                    )}
-                    <div>
-                      <p className="font-medium">{account.detail}</p>
-                      <p className="mt-0.5 text-muted-foreground">
-                        {message ?? "Listo para este destino."}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </div>
+          <PublishingNetworkPreview
+            accounts={accounts}
+            activeAccountId={activePreviewAccountId}
+            content={content}
+            hasMedia={hasMedia}
+            onAccountChange={setActivePreviewAccountId}
+            selectedAccountIds={selectedAccounts}
+          />
         </div>
 
         <div className="flex flex-wrap justify-end gap-2">
