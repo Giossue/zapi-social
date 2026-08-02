@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react"
 import {
   Bot,
   FilePenLine,
+  List,
   LoaderCircle,
   Pencil,
   PenLine,
@@ -99,7 +100,7 @@ function normalizeTags(value: string) {
 
 function CaptionMetricsGrid({ metrics }: { metrics: CaptionMetrics }) {
   const items = [
-    { label: "Total", value: metrics.total, icon: PenLine },
+    { label: "Total", value: metrics.total, icon: List },
     { label: "Con AI", value: metrics.ai, icon: Bot },
     { label: "Manuales", value: metrics.manual, icon: FilePenLine },
     { label: "Activos", value: metrics.active, icon: Sparkles },
