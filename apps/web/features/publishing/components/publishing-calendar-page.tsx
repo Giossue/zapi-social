@@ -37,6 +37,7 @@ import { EmptyState } from "@workspace/ui/components/empty-state"
 import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { PublishingAccountPicker } from "@/features/publishing/components/publishing-account-picker"
+import { PublishingNetworkPreview } from "@/features/publishing/components/publishing-network-preview"
 import { PublishingSchedulePicker } from "@/features/publishing/components/publishing-schedule-picker"
 import {
   PublishingMetrics,
@@ -213,6 +214,9 @@ function ComposerDialog({
   )
   const [scheduledDate, setScheduledDate] = useState("2026-08-03")
   const [scheduledTime, setScheduledTime] = useState("10:00")
+  const [activePreviewAccountId, setActivePreviewAccountId] = useState<
+    string | null
+  >(null)
 
   const selected = accounts.filter((account) =>
     selectedAccounts.includes(account.id)
@@ -264,42 +268,48 @@ function ComposerDialog({
               />
             </div>
 
-            <Card variant="inset">
-              <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-start gap-3">
-                  <ImagePlus
-                    aria-hidden="true"
-                    className="mt-0.5 size-5 text-muted-foreground"
-                  />
-                  <div>
-                    <p className="text-sm font-medium">Archivo desde Files</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Mock: selecciona una imagen o video autorizado del
-                      espacio.
-                    </p>
+            <div className="flex flex-col gap-2">
+              <p className="text-sm font-medium">Media</p>
+              <Card variant="inset">
+                <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-start gap-3">
+                    <ImagePlus
+                      aria-hidden="true"
+                      className="mt-0.5 size-5 text-muted-foreground"
+                    />
+                    <div>
+                      <p className="text-sm font-medium">Archivo desde Files</p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Mock: selecciona una imagen o video autorizado del
+                        espacio.
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <Button
-                  onClick={() => setHasMedia((current) => !current)}
-                  size="sm"
-                  variant="brand-secondary"
-                >
-                  {hasMedia ? "Quitar archivo" : "Añadir archivo"}
-                </Button>
-              </CardContent>
-            </Card>
+                  <Button
+                    onClick={() => setHasMedia((current) => !current)}
+                    size="sm"
+                    variant="brand-secondary"
+                  >
+                    {hasMedia ? "Quitar archivo" : "Añadir archivo"}
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
 
-            <Tabs
-              aria-label="Momento de publicación"
-              onValueChange={(value) => setMode(value as ComposerMode)}
-              value={mode}
-            >
-              <TabsList className="w-full justify-start">
-                <TabsTrigger value="draft">Borrador</TabsTrigger>
-                <TabsTrigger value="now">Ahora</TabsTrigger>
-                <TabsTrigger value="schedule">Programar</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            <div className="flex flex-col gap-2">
+              <p className="text-sm font-medium">Cuándo publicar</p>
+              <Tabs
+                aria-label="Cuándo publicar"
+                onValueChange={(value) => setMode(value as ComposerMode)}
+                value={mode}
+              >
+                <TabsList className="w-full justify-start">
+                  <TabsTrigger value="draft">Borrador</TabsTrigger>
+                  <TabsTrigger value="now">Ahora</TabsTrigger>
+                  <TabsTrigger value="schedule">Programar</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
             {mode === "schedule" ? (
               <PublishingSchedulePicker
                 date={scheduledDate}
@@ -310,43 +320,53 @@ function ComposerDialog({
             ) : null}
           </div>
 
-          <Card variant="inset">
-            <CardHeader>
-              <CardTitle>Comprobación por destino</CardTitle>
-              <CardDescription>
-                La API y el Worker repetirán estas comprobaciones con permisos y
-                capabilities reales.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {validations.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  Selecciona al menos una cuenta.
-                </p>
-              ) : null}
-              {validations.map(({ account, message }) => (
-                <div className="flex gap-2 text-sm" key={account.id}>
-                  {message ? (
-                    <CircleAlert
-                      aria-hidden="true"
-                      className="mt-0.5 size-4 shrink-0 text-warning"
-                    />
-                  ) : (
-                    <CheckCircle2
-                      aria-hidden="true"
-                      className="mt-0.5 size-4 shrink-0 text-success"
-                    />
-                  )}
-                  <div>
-                    <p className="font-medium">{account.detail}</p>
-                    <p className="mt-0.5 text-muted-foreground">
-                      {message ?? "Listo para este destino."}
-                    </p>
+          <div className="space-y-4">
+            <PublishingNetworkPreview
+              accounts={accounts}
+              activeAccountId={activePreviewAccountId}
+              content={content}
+              hasMedia={hasMedia}
+              onAccountChange={setActivePreviewAccountId}
+              selectedAccountIds={selectedAccounts}
+            />
+            <Card variant="inset">
+              <CardHeader>
+                <CardTitle>Comprobación por destino</CardTitle>
+                <CardDescription>
+                  La API y el Worker repetirán estas comprobaciones con permisos
+                  y capabilities reales.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {validations.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Selecciona al menos una cuenta.
+                  </p>
+                ) : null}
+                {validations.map(({ account, message }) => (
+                  <div className="flex gap-2 text-sm" key={account.id}>
+                    {message ? (
+                      <CircleAlert
+                        aria-hidden="true"
+                        className="mt-0.5 size-4 shrink-0 text-warning"
+                      />
+                    ) : (
+                      <CheckCircle2
+                        aria-hidden="true"
+                        className="mt-0.5 size-4 shrink-0 text-success"
+                      />
+                    )}
+                    <div>
+                      <p className="font-medium">{account.detail}</p>
+                      <p className="mt-0.5 text-muted-foreground">
+                        {message ?? "Listo para este destino."}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
         <div className="flex flex-wrap justify-end gap-2">

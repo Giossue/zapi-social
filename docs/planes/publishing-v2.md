@@ -159,12 +159,12 @@ Scheduler: solo encola IDs vencidos; no llama proveedores directamente
 
 ## Experiencia de usuario propuesta
 
-1. **Composer contextual:** elegir cuentas primero mediante un multiselect buscable por nombre de cuenta o alias asignado; los filtros de red son botones interactivos y las cuentas ya elegidas se muestran como badges removibles. El formulario muestra solo campos, límites y preview compatibles con la selección.
+1. **Composer contextual:** elegir cuentas primero mediante un multiselect buscable por nombre de cuenta o alias asignado; los filtros de red son botones interactivos y las cuentas ya elegidas se muestran como badges removibles. Agrupa explícitamente texto, **Media** y **Cuándo publicar** para facilitar el escaneo antes de mostrar campos, límites y previews compatibles.
 2. **Preflight visible:** antes de programar, mostrar validación por destino: media faltante, límite de texto, cuenta desconectada, capacidad no soportada o permiso ausente.
 3. **Publicación multicanal transparente:** una operación puede producir varios posts; mostrar progreso individual por cuenta, no un éxito/fallo global ambiguo.
 4. **Cola accionable:** separar `Programadas`, `En proceso`, `Fallidas`, `Publicadas`; permitir reintentar solo fallos seguros y explicar la causa sin filtraciones técnicas.
 5. **Sugerencias, no automatismos opacos:** mejor horario, caption y transformaciones AI como propuestas editables, con coste/cuota visibles antes de confirmar.
-6. **Previas por provider:** preview representativo del formato de cada red sin prometer una réplica pixel-perfect de la app externa.
+6. **Previas por provider:** preview vivo y representativo del formato de cada red sin prometer una réplica pixel-perfect de la app externa. Replica la estructura útil observada en Laravel: una cuenta activa entre los destinos seleccionados, texto y media actuales; V2 presenta formatos diferenciados para Instagram, Facebook y WhatsApp Status y conserva el preflight separado.
 7. **Protección contra errores:** advertir de cambios incompatibles al añadir/quitar cuentas, preservar borradores y permitir deshacer antes de encolar.
 8. **Fecha y hora accesibles:** el compositor usa el `Calendar` y `Popover` compartidos de `packages/ui` para elegir fecha, y controles separados de hora/minuto; no usa `input type="datetime-local"`. El calendario se apoya en `react-day-picker` dentro de `@workspace/ui`.
 
