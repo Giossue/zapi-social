@@ -19,6 +19,9 @@
 5. Scroll usa primitive compartido `packages/ui/src/components/scroll-area.tsx`.
 6. Scroll Area fue auditado por MCP 21st; se adaptó composición Radix y tokens existentes. No se importó bloque, CSS global ni primitive duplicado.
 7. Visibilidad por plan, equipo y permisos sigue mock: opciones visibles para diseñar módulos primero.
+8. Portal y Admin persisten el estado contraído en `localStorage` versionado: `zapi:portal-sidebar:v1` y `zapi:admin-sidebar:v1`.
+9. En modo contraído, el botón de expandir se ubica fuera del logo, los iconos se centran y los disclosures ocultan su chevron sin perder etiqueta accesible.
+10. Ambos shells usan el asset local `apps/web/public/brand/logo-brand-dark.png` mediante `next/image`.
 
 ## Pendiente
 

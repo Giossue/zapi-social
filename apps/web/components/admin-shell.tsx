@@ -1,14 +1,16 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Menu, X } from "lucide-react"
+import { ChevronRight, Menu, PanelLeftClose, X } from "lucide-react"
 import { useState } from "react"
 
 import { Button } from "@workspace/ui/components/button"
 import { ScrollArea } from "@workspace/ui/components/scroll-area"
 
 import { AccountMenu } from "@/components/account-menu"
+import { usePersistedSidebarState } from "@/hooks/use-persisted-sidebar-state"
 import {
   adminNavigationGroups,
   getAdminNavigationItem,
@@ -22,6 +24,9 @@ type AdminShellProps = {
 
 export function AdminShell({ children, profile }: AdminShellProps) {
   const pathname = usePathname()
+  const [collapsed, setCollapsed] = usePersistedSidebarState(
+    "zapi:admin-sidebar:v1"
+  )
   const [mobileOpen, setMobileOpen] = useState(false)
   const currentItem = getAdminNavigationItem(pathname)
 
@@ -35,26 +40,45 @@ export function AdminShell({ children, profile }: AdminShellProps) {
         />
       ) : null}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-sidebar-border bg-sidebar p-3 transition-transform duration-200 lg:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-sidebar-border bg-sidebar p-3 transition-[transform,width] duration-200 lg:translate-x-0 ${collapsed ? "lg:w-20" : ""} ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
-        <div className="flex items-center justify-between gap-3 px-2 py-2">
+        <div
+          className={`relative flex items-center gap-2 py-2 ${collapsed ? "justify-center px-0" : "justify-between px-2"}`}
+        >
           <Link
             className="flex min-w-0 items-center gap-3"
             href="/admin"
             onClick={() => setMobileOpen(false)}
           >
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sm font-semibold text-sidebar-primary-foreground">
-              Z
-            </span>
-            <span className="min-w-0">
-              <span className="block truncate text-sm font-semibold">
-                Zapi Social
+            <Image
+              alt="Zapi Social"
+              className="size-9 shrink-0 rounded-lg"
+              height={36}
+              src="/brand/logo-brand-dark.png"
+              width={36}
+            />
+            {collapsed ? null : (
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-semibold">
+                  Zapi Social
+                </span>
+                <span className="block text-xs text-muted-foreground">
+                  Plataforma
+                </span>
               </span>
-              <span className="block text-xs text-muted-foreground">
-                Plataforma
-              </span>
-            </span>
+            )}
           </Link>
+          <Button
+            aria-label={
+              collapsed ? "Expandir navegación" : "Contraer navegación"
+            }
+            className={`hidden lg:inline-flex ${collapsed ? "absolute top-2 -right-4" : ""}`}
+            onClick={() => setCollapsed((value) => !value)}
+            size="icon"
+            variant="brand-secondary"
+          >
+            {collapsed ? <ChevronRight /> : <PanelLeftClose />}
+          </Button>
           <Button
             aria-label="Cerrar navegación"
             className="lg:hidden"
@@ -76,16 +100,23 @@ export function AdminShell({ children, profile }: AdminShellProps) {
                 aria-label={group.label}
                 className="space-y-1"
               >
-                <p className="px-3 pb-1 text-xs font-medium text-muted-foreground">
-                  {group.label}
-                </p>
+                {collapsed ? null : (
+                  <p className="px-3 pb-1 text-xs font-medium text-muted-foreground">
+                    {group.label}
+                  </p>
+                )}
                 {group.items.map((item) => {
                   const active = isAdminNavigationItemActive(item, pathname)
                   const Icon = item.icon
                   return (
                     <Button
                       asChild
-                      className="w-full justify-start"
+                      aria-label={collapsed ? item.label : undefined}
+                      className={
+                        collapsed
+                          ? "w-full justify-center"
+                          : "w-full justify-start"
+                      }
                       key={item.href}
                       variant={active ? "sidebar-active" : "sidebar"}
                     >
@@ -95,7 +126,7 @@ export function AdminShell({ children, profile }: AdminShellProps) {
                         onClick={() => setMobileOpen(false)}
                       >
                         <Icon />
-                        {item.label}
+                        {collapsed ? null : item.label}
                       </Link>
                     </Button>
                   )
@@ -105,7 +136,9 @@ export function AdminShell({ children, profile }: AdminShellProps) {
           </nav>
         </ScrollArea>
       </aside>
-      <div className="min-h-dvh lg:pl-72">
+      <div
+        className={`min-h-dvh transition-[padding] duration-200 ${collapsed ? "lg:pl-20" : "lg:pl-72"}`}
+      >
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-sidebar-border bg-sidebar px-4 sm:px-5 lg:px-8">
           <div className="flex items-center gap-3">
             <Button

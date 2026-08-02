@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
@@ -15,6 +16,7 @@ import { Button } from "@workspace/ui/components/button"
 import { ScrollArea } from "@workspace/ui/components/scroll-area"
 
 import { AccountMenu } from "@/components/account-menu"
+import { usePersistedSidebarState } from "@/hooks/use-persisted-sidebar-state"
 import {
   getPortalNavigationItem,
   isPortalNavigationItemActive,
@@ -31,7 +33,9 @@ type AppShellProps = {
 
 export function AppShell({ children, profile }: AppShellProps) {
   const pathname = usePathname()
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = usePersistedSidebarState(
+    "zapi:portal-sidebar:v1"
+  )
   const [mobileOpen, setMobileOpen] = useState(false)
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
     {}
@@ -55,15 +59,21 @@ export function AppShell({ children, profile }: AppShellProps) {
       <aside
         className={`fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-sidebar-border bg-sidebar p-3 transition-[transform,width] duration-200 lg:translate-x-0 ${collapsed ? "lg:w-20" : ""} ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
-        <div className="flex items-center justify-between gap-2 px-2 py-2">
+        <div
+          className={`relative flex items-center gap-2 py-2 ${collapsed ? "justify-center px-0" : "justify-between px-2"}`}
+        >
           <Link
             className="flex min-w-0 items-center gap-3"
             href="/portal/dashboard"
             onClick={() => setMobileOpen(false)}
           >
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-sidebar-primary text-sm font-semibold text-sidebar-primary-foreground">
-              Z
-            </span>
+            <Image
+              alt="Zapi Social"
+              className="size-9 shrink-0 rounded-lg"
+              height={36}
+              src="/brand/logo-brand-dark.png"
+              width={36}
+            />
             {collapsed ? null : (
               <span className="min-w-0">
                 <span className="block truncate text-sm font-semibold">
@@ -76,8 +86,10 @@ export function AppShell({ children, profile }: AppShellProps) {
             )}
           </Link>
           <Button
-            aria-label="Contraer navegación"
-            className="hidden lg:inline-flex"
+            aria-label={
+              collapsed ? "Expandir navegación" : "Contraer navegación"
+            }
+            className={`hidden lg:inline-flex ${collapsed ? "absolute top-2 -right-4" : ""}`}
             onClick={() => setCollapsed((value) => !value)}
             size="icon"
             variant="brand-secondary"
@@ -120,7 +132,12 @@ export function AppShell({ children, profile }: AppShellProps) {
                       {"href" in item ? (
                         <Button
                           asChild
-                          className="w-full justify-start"
+                          aria-label={collapsed ? item.label : undefined}
+                          className={
+                            collapsed
+                              ? "w-full justify-center"
+                              : "w-full justify-start"
+                          }
                           variant={active ? "sidebar-active" : "sidebar"}
                         >
                           <Link
@@ -135,7 +152,14 @@ export function AppShell({ children, profile }: AppShellProps) {
                       ) : (
                         <Button
                           aria-expanded={expanded}
-                          className="w-full justify-start"
+                          aria-label={
+                            collapsed ? `Expandir ${item.label}` : undefined
+                          }
+                          className={
+                            collapsed
+                              ? "w-full justify-center"
+                              : "w-full justify-start"
+                          }
                           onClick={() => {
                             if (collapsed) setCollapsed(false)
                             setExpandedItems((current) => ({
@@ -147,9 +171,11 @@ export function AppShell({ children, profile }: AppShellProps) {
                         >
                           {Icon ? <Icon /> : null}
                           {collapsed ? null : <span>{item.label}</span>}
-                          <ChevronDown
-                            className={`ml-auto transition-transform ${expanded ? "rotate-180" : ""}`}
-                          />
+                          {collapsed ? null : (
+                            <ChevronDown
+                              className={`ml-auto transition-transform ${expanded ? "rotate-180" : ""}`}
+                            />
+                          )}
                         </Button>
                       )}
 
@@ -213,7 +239,11 @@ export function AppShell({ children, profile }: AppShellProps) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button aria-label="Notificaciones" size="icon" variant="brand-secondary">
+            <Button
+              aria-label="Notificaciones"
+              size="icon"
+              variant="brand-secondary"
+            >
               <Bell />
             </Button>
             <AccountMenu profile={profile} />
