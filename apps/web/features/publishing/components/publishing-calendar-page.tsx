@@ -26,7 +26,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -37,6 +36,7 @@ import {
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
+import { PublishingAccountPicker } from "@/features/publishing/components/publishing-account-picker"
 import { PublishingSchedulePicker } from "@/features/publishing/components/publishing-schedule-picker"
 import {
   PublishingMetrics,
@@ -226,14 +226,6 @@ function ComposerDialog({
     validations.every(({ message }) => !message) &&
     (mode !== "schedule" || Boolean(scheduledDate && scheduledTime))
 
-  function toggleAccount(accountId: string, checked: boolean) {
-    setSelectedAccounts((current) =>
-      checked
-        ? [...current, accountId]
-        : current.filter((id) => id !== accountId)
-    )
-  }
-
   return (
     <Dialog onOpenChange={(nextOpen) => !nextOpen && onClose()} open={open}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] max-w-4xl overflow-y-auto">
@@ -248,37 +240,13 @@ function ComposerDialog({
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
           <div className="space-y-5">
-            <fieldset className="space-y-3">
+            <fieldset className="flex flex-col gap-3">
               <legend className="text-sm font-medium">Cuentas destino</legend>
-              <div className="space-y-2">
-                {accounts.map((account) => {
-                  const checked = selectedAccounts.includes(account.id)
-                  return (
-                    <label
-                      className="flex cursor-pointer items-center gap-3 rounded-lg border border-border px-3 py-2"
-                      key={account.id}
-                    >
-                      <Checkbox
-                        checked={checked}
-                        onCheckedChange={(value) =>
-                          toggleAccount(account.id, value === true)
-                        }
-                      />
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium">
-                          {account.name}
-                        </span>
-                        <span className="block text-xs text-muted-foreground">
-                          {account.detail}
-                        </span>
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {providerMeta[account.provider]}
-                      </span>
-                    </label>
-                  )
-                })}
-              </div>
+              <PublishingAccountPicker
+                accounts={accounts}
+                onChange={setSelectedAccounts}
+                selectedAccountIds={selectedAccounts}
+              />
             </fieldset>
 
             <div className="space-y-2">

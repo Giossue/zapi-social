@@ -8,6 +8,7 @@ export const publishingCalendarFixture: PublishingCalendarData = {
     {
       id: "instagram-norte",
       name: "Norte Studio",
+      assignedName: "Marca principal",
       provider: "instagram",
       detail: "Perfil de Instagram",
       connected: true,
@@ -15,6 +16,7 @@ export const publishingCalendarFixture: PublishingCalendarData = {
     {
       id: "facebook-norte",
       name: "Norte Studio",
+      assignedName: "Comunidad Facebook",
       provider: "facebook",
       detail: "Página de Facebook",
       connected: true,
@@ -22,6 +24,7 @@ export const publishingCalendarFixture: PublishingCalendarData = {
     {
       id: "whatsapp-norte",
       name: "Norte Studio",
+      assignedName: "Estados del equipo",
       provider: "whatsapp",
       detail: "Estado de WhatsApp",
       connected: true,

@@ -159,7 +159,7 @@ Scheduler: solo encola IDs vencidos; no llama proveedores directamente
 
 ## Experiencia de usuario propuesta
 
-1. **Composer contextual:** elegir cuentas primero; el formulario muestra solo campos, límites y preview compatibles con la selección.
+1. **Composer contextual:** elegir cuentas primero mediante un multiselect buscable por nombre de cuenta o alias asignado; los filtros de red son botones interactivos y las cuentas ya elegidas se muestran como badges removibles. El formulario muestra solo campos, límites y preview compatibles con la selección.
 2. **Preflight visible:** antes de programar, mostrar validación por destino: media faltante, límite de texto, cuenta desconectada, capacidad no soportada o permiso ausente.
 3. **Publicación multicanal transparente:** una operación puede producir varios posts; mostrar progreso individual por cuenta, no un éxito/fallo global ambiguo.
 4. **Cola accionable:** separar `Programadas`, `En proceso`, `Fallidas`, `Publicadas`; permitir reintentar solo fallos seguros y explicar la causa sin filtraciones técnicas.

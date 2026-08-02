@@ -6,6 +6,7 @@ export type PublishingStatus =
 export type PublishingAccount = {
   id: string
   name: string
+  assignedName?: string
   provider: PublishingProvider
   detail: string
   connected: boolean
