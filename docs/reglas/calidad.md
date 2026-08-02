@@ -22,17 +22,23 @@ Los workspaces API y Worker tienen comandos `test`. Antes de ejecutar pruebas de
 
 ## Matriz de validación
 
-| Tipo de cambio | Validación mínima |
-| --- | --- |
-| Ruta o UI Next | Typecheck y lint/build disponible; estados mock; permisos; móvil; claro/oscuro; revisión visual si hay navegador. |
-| Feature con mock | Fixture determinista; loading, empty, error y permiso; interacción principal; composición dentro de `features/<dominio>`. |
-| Contrato REST | Schemas Zod, DTOs y errores consistentes; autorización; OpenAPI y cliente sincronizados si existen. |
-| API Nest | Typecheck; test focal si existe; validación de entrada; ownership/permisos; no exponer entidades Drizzle. |
-| Worker | Idempotencia, reintentos limitados, estado durable en PostgreSQL y logs redactados; test focal si existe. |
-| Schema o migración | Migración Drizzle; constraints; reversibilidad práctica o plan explícito; schema/conteos y contratos afectados verificados. |
-| Integración externa | Secretos solo server-side; errores normalizados; límite/rate limit, reintento y fallo simulado cuando aplique. |
-| Refactor | Diff acotado, búsqueda de residuos, typecheck y pruebas relevantes. |
-| Regla o documento | Enlaces válidos, una fuente de verdad, sin secretos ni duplicación de especificaciones. |
+| Tipo de cambio      | Validación mínima                                                                                                           |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Ruta o UI Next      | Typecheck y lint/build disponible; estados mock; permisos; móvil; claro/oscuro; revisión visual si hay navegador.           |
+| Feature con mock    | Fixture determinista; loading, empty, error y permiso; interacción principal; composición dentro de `features/<dominio>`.   |
+| Contrato REST       | Schemas Zod, DTOs y errores consistentes; autorización; OpenAPI y cliente sincronizados si existen.                         |
+| API Nest            | Typecheck; test focal si existe; validación de entrada; ownership/permisos; no exponer entidades Drizzle.                   |
+| Worker              | Idempotencia, reintentos limitados, estado durable en PostgreSQL y logs redactados; test focal si existe.                   |
+| Schema o migración  | Migración Drizzle; constraints; reversibilidad práctica o plan explícito; schema/conteos y contratos afectados verificados. |
+| Integración externa | Secretos solo server-side; errores normalizados; límite/rate limit, reintento y fallo simulado cuando aplique.              |
+| Refactor            | Diff acotado, búsqueda de residuos, typecheck y pruebas relevantes.                                                         |
+| Regla o documento   | Enlaces válidos, una fuente de verdad, sin secretos ni duplicación de especificaciones.                                     |
+
+## Documentación de cierre
+
+- Todo cambio funcional debe actualizar durante el mismo cambio el plan de dominio y la fuente documental canónica afectada; no se acepta que código, contratos y documentación describan estados distintos.
+- La evidencia de validación se registra en el plan, PR o sección de cierre correspondiente antes de marcar una fase como completada.
+- Cambios puramente mecánicos sin efecto funcional pueden no modificar documentación, pero el cierre debe declararlo explícitamente.
 
 ## Definition of Done de una vertical
 

@@ -25,18 +25,18 @@ Para un mismo rol visual, ambas áreas usan el mismo primitive y la misma varian
 
 Los tokens expresan roles de interfaz; no son una paleta libre para elegir por gusto. Portal y Admin aplican esta misma tabla.
 
-| Rol visual | Token o primitive obligatorio | Uso |
-| --- | --- | --- |
-| Lienzo de aplicación | `background` | Fondo de la página y áreas no elevadas. |
-| Estructura de navegación | `sidebar`, `sidebar-border`, `sidebar-primary` | Sidebar y header del shell, en ambas áreas. |
-| Contenido estándar | `Card variant="subtle"` | Resúmenes, inventarios, paneles operativos y loading equivalente. Es la variante base compartida. |
-| Contenido elevado | `Card` por defecto | Solo overlays, bloques que flotan sobre otro contenido o cuando la elevación comunica prioridad. |
-| Superficie densa sin elevación | `Card variant="surface"` | Formularios o paneles compactos dentro de una superficie ya agrupada; no como variante estética alternativa de `subtle`. |
-| Superficie subordinada | `Card variant="inset"` | Contenido interno, pasos, avisos o bloques contenidos dentro de un card padre. |
-| Acción principal | `Button` por defecto (`primary`) | Una acción principal por contexto. |
-| Acción secundaria | `Button variant="brand-secondary"` o `surface` | Acciones auxiliares; elegir por contexto, no para inventar color. |
-| Selección y navegación activa | `sidebar-active`, `accent` o `primary` mediante primitive | Estado activo; nunca un color local. |
-| Estado de dominio | `success`, `warning`, `info`, `destructive` mediante `Badge`, `Alert`, `Toast` o primitive existente | Éxito, advertencia, información y error. No usar `primary` para comunicar salud o peligro. |
+| Rol visual                     | Token o primitive obligatorio                                                                        | Uso                                                                                                                      |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Lienzo de aplicación           | `background`                                                                                         | Fondo de la página y áreas no elevadas.                                                                                  |
+| Estructura de navegación       | `sidebar`, `sidebar-border`, `sidebar-primary`                                                       | Sidebar y header del shell, en ambas áreas.                                                                              |
+| Contenido estándar             | `Card variant="subtle"`                                                                              | Resúmenes, inventarios, paneles operativos y loading equivalente. Es la variante base compartida.                        |
+| Contenido elevado              | `Card` por defecto                                                                                   | Solo overlays, bloques que flotan sobre otro contenido o cuando la elevación comunica prioridad.                         |
+| Superficie densa sin elevación | `Card variant="surface"`                                                                             | Formularios o paneles compactos dentro de una superficie ya agrupada; no como variante estética alternativa de `subtle`. |
+| Superficie subordinada         | `Card variant="inset"`                                                                               | Contenido interno, pasos, avisos o bloques contenidos dentro de un card padre.                                           |
+| Acción principal               | `Button` por defecto (`primary`)                                                                     | Una acción principal por contexto.                                                                                       |
+| Acción secundaria              | `Button variant="brand-secondary"` o `surface`                                                       | Acciones auxiliares; elegir por contexto, no para inventar color.                                                        |
+| Selección y navegación activa  | `sidebar-active`, `accent` o `primary` mediante primitive                                            | Estado activo; nunca un color local.                                                                                     |
+| Estado de dominio              | `success`, `warning`, `info`, `destructive` mediante `Badge`, `Alert`, `Toast` o primitive existente | Éxito, advertencia, información y error. No usar `primary` para comunicar salud o peligro.                               |
 
 No aplicar clases de color a un primitive para cambiar su apariencia (`bg-*`, `text-*`, `border-*`, `dark:*`). Si falta un rol visual, se amplía el token o la variante en `packages/ui` con una decisión documentada, antes de usarlo en una feature.
 
@@ -44,12 +44,12 @@ No aplicar clases de color a un primitive para cambiar su apariencia (`bg-*`, `t
 
 Las sombras son tokens globales, no decoración por pantalla:
 
-| Nivel | Fuente | Cuándo usarlo |
-| --- | --- | --- |
-| Sin elevación | `Card variant="surface"`, `outline` o `inset` | Contenido integrado al plano actual. |
-| Sutil | `Card variant="subtle"` → `--shadow-xs` | Cards estándar de producto. |
-| Elevación base | `Card` por defecto → `--shadow-sm` | Elementos que deben distinguirse del lienzo. |
-| Elevación alta | `--shadow-md` desde un primitive compartido | Solo dialog, popover, menu o drawer; no desde una feature. |
+| Nivel          | Fuente                                        | Cuándo usarlo                                              |
+| -------------- | --------------------------------------------- | ---------------------------------------------------------- |
+| Sin elevación  | `Card variant="surface"`, `outline` o `inset` | Contenido integrado al plano actual.                       |
+| Sutil          | `Card variant="subtle"` → `--shadow-xs`       | Cards estándar de producto.                                |
+| Elevación base | `Card` por defecto → `--shadow-sm`            | Elementos que deben distinguirse del lienzo.               |
+| Elevación alta | `--shadow-md` desde un primitive compartido   | Solo dialog, popover, menu o drawer; no desde una feature. |
 
 Features, rutas y shells no escriben `shadow-*`, `box-shadow`, `filter: drop-shadow()` ni valores de sombra locales. Los cambios de elevación se realizan en `packages/ui/src/styles/globals.css` o en la variante compartida correspondiente.
 
@@ -62,7 +62,7 @@ Antes de crear markup o un componente, ejecutar `codebase-memory` para comprobar
 - Formularios usan primitives/Field actuales; no inputs estilizados locales.
 - Modal, dropdown, tooltip y drawer conservan primitive accesible; no z-index ni focus trap locales.
 - Un componente específico de dominio permanece en `features/<dominio>/components`.
-- Un pattern pasa a `packages/ui` solo si su contrato es genérico y será reutilizable por tres o más features. Al hacerlo, actualizar `packages/ui/COMPONENTS.md`.
+- Un pattern pasa a `packages/ui` solo si su contrato es genérico y será reutilizable por tres o más features. Todo primitive o pattern global añadido, creado o promovido debe añadir o actualizar su fila en `packages/ui/COMPONENTS.md` dentro del mismo cambio.
 
 ## 21st.dev MCP y CLI
 

@@ -1,4 +1,5 @@
 <!-- BEGIN:nextjs-agent-rules -->
+
 # This is NOT the Next.js you know
 
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Before modifying Next.js code, read the relevant guide in `node_modules/next/dist/docs/` and heed deprecation notices.
@@ -20,15 +21,15 @@ No modificar Laravel en una tarea V2 salvo solicitud explícita. No implementar 
 
 Antes de afirmar cómo funciona algo o modificarlo, abrir [`docs/README.md`](./docs/README.md) y solo las referencias de la tarea.
 
-| Cambio | Referencias obligatorias |
-| --- | --- |
-| Cualquier tarea de dominio | Plan relevante en `docs/planes/` y, si hay equivalencia, la referencia Laravel auditada. |
-| UI, ruta Next, Tailwind, shadcn o 21st | `docs/reglas/design.md`, `docs/reglas/calidad.md` y guía Next instalada. |
-| API REST, Nest o contratos | `ARCHITECTURE.md`, `docs/reglas/calidad.md` y plan de dominio. |
-| Schema o migración | `ARCHITECTURE.md`, `docs/reglas/calidad.md`, plan de dominio y schema afectado. |
-| Worker, BullMQ o integración | `ARCHITECTURE.md`, `docs/reglas/calidad.md` y plan de dominio. |
-| Despliegue o variables | `docs/conocimiento/deployment/dokploy.md`. |
-| Revisión | `docs/reglas/calidad.md`, contrato y plan afectados. |
+| Cambio                                 | Referencias obligatorias                                                                              |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Cualquier tarea de dominio             | Plan relevante en `docs/planes/` y, si hay equivalencia, la referencia Laravel auditada.              |
+| UI, ruta Next, Tailwind, shadcn o 21st | `docs/reglas/design.md`, `packages/ui/COMPONENTS.md`, `docs/reglas/calidad.md` y guía Next instalada. |
+| API REST, Nest o contratos             | `ARCHITECTURE.md`, `docs/reglas/calidad.md` y plan de dominio.                                        |
+| Schema o migración                     | `ARCHITECTURE.md`, `docs/reglas/calidad.md`, plan de dominio y schema afectado.                       |
+| Worker, BullMQ o integración           | `ARCHITECTURE.md`, `docs/reglas/calidad.md` y plan de dominio.                                        |
+| Despliegue o variables                 | `docs/conocimiento/deployment/dokploy.md`.                                                            |
+| Revisión                               | `docs/reglas/calidad.md`, contrato y plan afectados.                                                  |
 
 ## Flujo obligatorio por módulo
 
@@ -36,7 +37,7 @@ Antes de afirmar cómo funciona algo o modificarlo, abrir [`docs/README.md`](./d
 2. Registrar o actualizar la equivalencia mínima en `docs/planes/`.
 3. Construir la pantalla/ruta Next con fixtures sintéticas y repositorio mock.
 4. Cubrir normal, loading, empty, error, permisos, móvil y claro/oscuro cuando aplique.
-5. Antes de crear markup o un componente, consultar `codebase-memory` en `packages/ui` y revisar `packages/ui/COMPONENTS.md`; reutilizar primitives/variantes existentes. `componentes.md` solo lista candidatos 21st. Un componente de dominio vive en `features/<dominio>/components`; solo promover a `packages/ui` un patrón genérico reutilizable por tres o más features y actualizar su catálogo.
+5. Antes de crear markup o un componente, consultar `codebase-memory` en `packages/ui` y revisar `packages/ui/COMPONENTS.md`; reutilizar primitives/variantes existentes. `componentes.md` solo lista candidatos 21st. Un componente de dominio vive en `features/<dominio>/components`; solo promover a `packages/ui` un patrón genérico reutilizable por tres o más features. Todo primitive o pattern global añadido, creado o promovido debe actualizar `packages/ui/COMPONENTS.md` en el mismo cambio.
 6. Auditar bloques 21st según `docs/reglas/design.md` antes de integrarlos.
 7. Definir schemas Zod y contrato REST cuando diseño y acciones estén claros.
 8. Implementar Nest, Drizzle, adapters y Worker sustituyendo el mock sin reescribir la UI.
@@ -63,6 +64,13 @@ Para el mapa completo de dependencias consultar [`ARCHITECTURE.md`](./ARCHITECTU
 - `docs/planes/` conserva equivalencias Laravel → V2, decisiones, estado y pendientes.
 
 Crear o actualizar un plan cuando se inicia una vertical, cambia una equivalencia, se confirma un contrato REST, se modifica una migración con impacto funcional o se toma una decisión de arquitectura/permisos. No crear planes por correcciones locales, cambios mecánicos o refactors sin decisión nueva.
+
+## Documentación obligatoria al cerrar
+
+- Todo cambio funcional, de UX, contrato, permiso, persistencia, integración, arquitectura, regla o estado de entrega actualiza en el mismo cambio su documentación canónica y el plan de dominio afectado.
+- Al añadir o cambiar una API, schema, worker, adapter o flujo operativo, actualizar también sus contratos, pruebas/evidencia y documentos relacionados; no dejar decisiones solo en código o conversación.
+- Antes de finalizar, revisar `docs/README.md` para ubicar las fuentes afectadas y comprobar que el plan refleja el estado real y la validación ejecutada.
+- Para una corrección estrictamente mecánica sin cambio de comportamiento ni decisión, no crear documentación ceremonial; declarar explícitamente en el cierre que no requería actualización documental.
 
 ## Datos y seguridad
 
