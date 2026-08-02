@@ -390,18 +390,20 @@ export class WhatsAppStatusConnectionsService {
   private safeQrUrl(configuration: GoWaConfiguration, qrLink: string) {
     const base = new URL(configuration.baseUrl)
     const url = new URL(qrLink, `${base.toString().replace(/\/+$/, '')}/`)
-    if (url.username || url.password) throw new NotFoundException()
-    if (url.origin === base.origin) return url
-
-    if (!['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)) {
+    if (url.username || url.password || !this.isGoWaQrPath(url.pathname)) {
       throw new NotFoundException()
     }
+    if (url.origin === base.origin) return url
 
     const basePath = base.pathname.replace(/\/$/, '')
     const path = url.pathname === basePath || url.pathname.startsWith(`${basePath}/`)
       ? url.pathname
       : `${basePath}/${url.pathname.replace(/^\/+/, '')}`
     return new URL(`${path}${url.search}`, base.origin)
+  }
+
+  private isGoWaQrPath(pathname: string) {
+    return /(?:^|\/)statics\/qrcode\/scan-qr-[a-zA-Z0-9-]+\.png$/.test(pathname)
   }
 
   private dataQr(value: string) {

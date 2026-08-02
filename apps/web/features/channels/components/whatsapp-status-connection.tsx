@@ -46,6 +46,7 @@ export function WhatsAppStatusConnection({
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null)
   const completedConnectionId = useRef<string | null>(null)
   const refreshingConnectionId = useRef<string | null>(null)
+  const imageRefreshAttempts = useRef(0)
 
   const refresh = useCallback(async (connectionId: string) => {
     if (refreshingConnectionId.current === connectionId) return
@@ -160,7 +161,14 @@ export function WhatsAppStatusConnection({
     return (
       <Card variant="inset">
         <CardContent className="grid justify-items-center gap-4 py-5 text-center">
-          <img alt="Código QR para conectar Estados de WhatsApp" className="size-52 rounded-lg border border-border bg-card object-contain p-2" onError={() => void refresh(connection.connection.id)} src={qrSource} />
+          <img alt="Código QR para conectar Estados de WhatsApp" className="size-52 rounded-lg border border-border bg-card object-contain p-2" onError={() => {
+            if (imageRefreshAttempts.current >= 1) {
+              setError(true)
+              return
+            }
+            imageRefreshAttempts.current += 1
+            void refresh(connection.connection.id)
+          }} onLoad={() => { imageRefreshAttempts.current = 0 }} src={qrSource} />
           <div>
             <p className="flex items-center justify-center gap-2 font-medium"><QrCode aria-hidden="true" className="size-4 text-primary" />Escanea el QR desde WhatsApp</p>
             <p className="mt-1 text-sm text-muted-foreground">En WhatsApp abre Dispositivos vinculados y confirma la conexión.</p>
