@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react"
 import Link from "next/link"
 import {
+  CalendarClock,
   CalendarDays,
   CheckCircle2,
   ChevronLeft,
@@ -13,9 +14,7 @@ import {
   ImagePlus,
   LoaderCircle,
   Plus,
-  RotateCcw,
   Send,
-  Trash2,
   XCircle,
 } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
@@ -36,9 +35,19 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { EmptyState } from "@workspace/ui/components/empty-state"
-import { Input } from "@workspace/ui/components/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
 import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
+import {
+  PublishingMetrics,
+  PublishingPostsTable,
+} from "@/features/publishing/components/publishing-posts-table"
 import type {
   PublishingAccount,
   PublishingCalendarData,
@@ -145,13 +154,6 @@ function postTitle(content: string) {
     : normalized || "Publicación sin texto"
 }
 
-function formatPostDate(post: PublishingPost) {
-  return new Date(`${post.date}T${post.time}:00`).toLocaleDateString("es", {
-    day: "numeric",
-    month: "short",
-  })
-}
-
 function preflightMessage(
   account: PublishingAccount,
   content: string,
@@ -182,81 +184,6 @@ function PublishingLoading() {
 function PostStatusBadge({ status }: { status: PublishingStatus }) {
   const meta = statusMeta[status]
   return <Badge variant={meta.variant}>{meta.label}</Badge>
-}
-
-function PostCard({
-  post,
-  onContinue,
-  onDelete,
-  onRetry,
-}: {
-  post: PublishingPost
-  onContinue?: (post: PublishingPost) => void
-  onDelete?: (post: PublishingPost) => void
-  onRetry?: (post: PublishingPost) => void
-}) {
-  return (
-    <Card variant="subtle">
-      <CardContent className="space-y-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="truncate font-medium">{post.title}</p>
-            <p className="mt-1 text-sm text-muted-foreground">{post.channel}</p>
-          </div>
-          <PostStatusBadge status={post.status} />
-        </div>
-        <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
-          <span className="inline-flex items-center gap-1.5">
-            <Clock3 className="size-4" />
-            {formatPostDate(post)} · {post.time}
-          </span>
-          <span>{post.hasMedia ? "Con archivo" : "Solo texto"}</span>
-        </div>
-        {post.status === "failed" ? (
-          <p className="text-sm text-destructive">
-            No se completó la entrega. Puedes revisar y reintentar esta
-            publicación.
-          </p>
-        ) : null}
-        {post.status === "processing" ? (
-          <p className="text-sm text-muted-foreground">
-            Estamos enviando esta publicación. El resultado aparecerá aquí.
-          </p>
-        ) : null}
-        {onContinue ||
-        onDelete ||
-        (post.status === "failed" && post.recoverable && onRetry) ? (
-          <div className="flex flex-wrap gap-2">
-            {onContinue ? (
-              <Button
-                onClick={() => onContinue(post)}
-                size="sm"
-                variant="brand-secondary"
-              >
-                Continuar editando
-              </Button>
-            ) : null}
-            {post.status === "failed" && post.recoverable && onRetry ? (
-              <Button onClick={() => onRetry(post)} size="sm">
-                <RotateCcw data-icon="inline-start" />
-                Reintentar
-              </Button>
-            ) : null}
-            {onDelete ? (
-              <Button
-                aria-label={`Eliminar ${post.title}`}
-                onClick={() => onDelete(post)}
-                size="icon"
-                variant="ghost"
-              >
-                <Trash2 />
-              </Button>
-            ) : null}
-          </div>
-        ) : null}
-      </CardContent>
-    </Card>
-  )
 }
 
 function ComposerDialog({
@@ -290,7 +217,8 @@ function ComposerDialog({
   const [mode, setMode] = useState<ComposerMode>(() =>
     editingPost?.status === "draft" ? "draft" : "schedule"
   )
-  const [scheduledAt, setScheduledAt] = useState("2026-08-03T10:00")
+  const [scheduledDate, setScheduledDate] = useState("2026-08-03")
+  const [scheduledTime, setScheduledTime] = useState("10:00")
 
   const selected = accounts.filter((account) =>
     selectedAccounts.includes(account.id)
@@ -302,7 +230,7 @@ function ComposerDialog({
   const canSubmit =
     selected.length > 0 &&
     validations.every(({ message }) => !message) &&
-    (mode !== "schedule" || Boolean(scheduledAt))
+    (mode !== "schedule" || Boolean(scheduledDate && scheduledTime))
 
   function toggleAccount(accountId: string, checked: boolean) {
     setSelectedAccounts((current) =>
@@ -411,19 +339,47 @@ function ComposerDialog({
               </TabsList>
             </Tabs>
             {mode === "schedule" ? (
-              <div className="space-y-2">
-                <label
-                  className="text-sm font-medium"
-                  htmlFor="publishing-schedule"
-                >
-                  Fecha y hora
-                </label>
-                <Input
-                  id="publishing-schedule"
-                  onChange={(event) => setScheduledAt(event.target.value)}
-                  type="datetime-local"
-                  value={scheduledAt}
-                />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Fecha</label>
+                  <Select
+                    onValueChange={setScheduledDate}
+                    value={scheduledDate}
+                  >
+                    <SelectTrigger aria-label="Fecha de publicación">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="2026-08-03">
+                        3 de agosto de 2026
+                      </SelectItem>
+                      <SelectItem value="2026-08-04">
+                        4 de agosto de 2026
+                      </SelectItem>
+                      <SelectItem value="2026-08-05">
+                        5 de agosto de 2026
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Hora</label>
+                  <Select
+                    onValueChange={setScheduledTime}
+                    value={scheduledTime}
+                  >
+                    <SelectTrigger aria-label="Hora de publicación">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="09:00">09:00</SelectItem>
+                      <SelectItem value="10:00">10:00</SelectItem>
+                      <SelectItem value="12:30">12:30</SelectItem>
+                      <SelectItem value="16:00">16:00</SelectItem>
+                      <SelectItem value="18:00">18:00</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             ) : null}
           </div>
@@ -474,7 +430,13 @@ function ComposerDialog({
           <Button
             disabled={!canSubmit}
             onClick={() =>
-              onSave({ content, selectedAccounts, hasMedia, mode, scheduledAt })
+              onSave({
+                content,
+                selectedAccounts,
+                hasMedia,
+                mode,
+                scheduledAt: `${scheduledDate}T${scheduledTime}`,
+              })
             }
           >
             {mode === "draft" ? (
@@ -523,7 +485,7 @@ function PublishingCalendar({
             return (
               <section
                 className={[
-                  "min-h-56 p-3",
+                  view === "week" ? "min-h-[34rem] p-3" : "min-h-56 p-3",
                   !isLastColumn && "border-r border-border",
                   !isLastRow && "border-b border-border",
                   key === focusKey && "bg-primary/5",
@@ -574,7 +536,7 @@ function PublishingCalendar({
                       className="w-full justify-start"
                       onClick={onOpenComposer}
                       size="sm"
-                      variant="ghost"
+                      variant="brand-secondary"
                     >
                       <Plus data-icon="inline-start" />
                       Añadir publicación
@@ -813,64 +775,60 @@ export function PublishingCalendarPage({
 
       {section === "queue" ? (
         <section aria-label="Cola de publicaciones" className="space-y-4">
-          <div className="grid gap-3 sm:grid-cols-3">
-            {["scheduled", "processing", "failed"].map((status) => (
-              <Card key={status} variant="subtle">
-                <CardContent>
-                  <p className="text-2xl font-semibold">
-                    {queuePosts.filter((post) => post.status === status).length}
-                  </p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {statusMeta[status as PublishingStatus].label}s
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-          {queuePosts.length > 0 ? (
-            <div className="grid gap-4 lg:grid-cols-2">
-              {queuePosts.map((post) => (
-                <PostCard key={post.id} onRetry={retryPost} post={post} />
-              ))}
-            </div>
-          ) : (
-            <Card variant="subtle">
-              <CardContent>
-                <EmptyState
-                  description="Cuando programes o publiques una pieza, su progreso aparecerá aquí por cada destino."
-                  icon={Clock3}
-                  title="La cola está vacía"
-                />
-              </CardContent>
-            </Card>
-          )}
+          <PublishingMetrics
+            items={[
+              {
+                icon: CalendarClock,
+                label: "Programadas",
+                value: queuePosts.filter((post) => post.status === "scheduled")
+                  .length,
+              },
+              {
+                icon: LoaderCircle,
+                label: "En proceso",
+                value: queuePosts.filter((post) => post.status === "processing")
+                  .length,
+              },
+              {
+                icon: XCircle,
+                label: "Fallidas",
+                value: queuePosts.filter((post) => post.status === "failed")
+                  .length,
+              },
+            ]}
+          />
+          <PublishingPostsTable
+            mode="queue"
+            onRetry={retryPost}
+            posts={queuePosts}
+          />
         </section>
       ) : null}
 
       {section === "drafts" ? (
         <section aria-label="Borradores" className="space-y-4">
-          {drafts.length > 0 ? (
-            <div className="grid gap-4 lg:grid-cols-2">
-              {drafts.map((post) => (
-                <PostCard
-                  key={post.id}
-                  onContinue={openComposer}
-                  onDelete={deletePost}
-                  post={post}
-                />
-              ))}
-            </div>
-          ) : (
-            <Card variant="subtle">
-              <CardContent>
-                <EmptyState
-                  description="Guarda una publicación como borrador para continuarla después."
-                  icon={FileText}
-                  title="Todavía no hay borradores"
-                />
-              </CardContent>
-            </Card>
-          )}
+          <PublishingMetrics
+            items={[
+              { icon: FileText, label: "Total", value: drafts.length },
+              {
+                icon: ImagePlus,
+                label: "Con archivo",
+                value: drafts.filter((post) => post.hasMedia).length,
+              },
+              {
+                icon: Send,
+                label: "Listos para programar",
+                value: drafts.filter((post) => post.content.trim().length > 0)
+                  .length,
+              },
+            ]}
+          />
+          <PublishingPostsTable
+            mode="drafts"
+            onContinue={openComposer}
+            onDelete={deletePost}
+            posts={drafts}
+          />
         </section>
       ) : null}
 
