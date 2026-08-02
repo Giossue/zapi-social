@@ -491,6 +491,7 @@ export function LiveChannelsPage() {
   const [capabilityFilter, setCapabilityFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
   const [isConnectOpen, setIsConnectOpen] = useState(false)
+  const [whatsappReconnectAccountId, setWhatsappReconnectAccountId] = useState<string | null>(null)
   const [editingAccount, setEditingAccount] =
     useState<PortalChannelAccount | null>(null)
   const [deletingAccount, setDeletingAccount] =
@@ -682,6 +683,12 @@ export function LiveChannelsPage() {
   }
 
   async function reconnect(account: PortalChannelAccount) {
+    if (account.capabilityKey === "whatsapp_status") {
+      setWhatsappReconnectAccountId(account.id)
+      setIsConnectOpen(true)
+      return
+    }
+
     setPendingAccountId(account.id)
     try {
       const result = await channelsApi.reconnect(account.id)
@@ -940,8 +947,12 @@ export function LiveChannelsPage() {
         onMetaConnectionCancelled={cancelMetaConnection}
         onMetaConnectionCompleted={completeMetaConnection}
         onWhatsAppConnectionCompleted={async () => { await loadChannels() }}
-        onOpenChange={setIsConnectOpen}
+        onOpenChange={(open) => {
+          setIsConnectOpen(open)
+          if (!open) setWhatsappReconnectAccountId(null)
+        }}
         open={isConnectOpen}
+        whatsappReconnectAccountId={whatsappReconnectAccountId}
       />
     </div>
   )

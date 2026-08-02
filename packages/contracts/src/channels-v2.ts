@@ -151,9 +151,9 @@ export const startWhatsAppStatusConnectionSchema = z
   .strict()
 
 export const whatsappStatusQrResponseSchema = z.object({
-  connectionId: z.uuid(),
-  state: z.enum(["qr_ready", "waiting_for_scan"]),
-  expiresAt: z.string().datetime(),
+  connection: portalChannelConnectionSchema.extend({
+    state: z.enum(["qr_ready", "waiting_for_scan"]),
+  }),
   /** URL interna de corta vida; nunca la URL original del conector. */
   qrEndpoint: z.string().startsWith("/v1/portal/channel-connections/"),
 })
@@ -200,4 +200,7 @@ export type PortalChannelCandidate = z.infer<
 >
 export type StartWhatsAppStatusConnectionInput = z.infer<
   typeof startWhatsAppStatusConnectionSchema
+>
+export type WhatsAppStatusQrResponse = z.infer<
+  typeof whatsappStatusQrResponseSchema
 >

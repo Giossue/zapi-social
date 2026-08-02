@@ -70,6 +70,11 @@ export class ChannelConnectionsController {
     return this.whatsapp.start(await this.access.requirePortalSession(request), body)
   }
 
+  @Post(':id/refresh-qr')
+  async refreshQr(@Req() request: FastifyRequest, @Param('id') id: string) {
+    return this.whatsapp.refreshQr(await this.access.requirePortalSession(request), id)
+  }
+
   @Get(':id/qr')
   async qr(@Req() request: FastifyRequest, @Param('id') id: string, @Res() reply: FastifyReply) {
     const qr = await this.whatsapp.qr(await this.access.requirePortalSession(request), id)

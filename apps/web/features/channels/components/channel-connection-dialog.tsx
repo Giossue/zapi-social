@@ -145,6 +145,7 @@ export function ChannelConnectionDialog({
   onMetaConnectionCancelled,
   onWhatsAppConnectionCompleted,
   onOpenChange,
+  whatsappReconnectAccountId,
 }: {
   capabilities: readonly PortalChannelCapability[]
   open: boolean
@@ -155,12 +156,22 @@ export function ChannelConnectionDialog({
   onMetaConnectionCancelled: () => void
   onWhatsAppConnectionCompleted: () => Promise<void>
   onOpenChange: (open: boolean) => void
+  whatsappReconnectAccountId: string | null
 }) {
   const [capability, setCapability] = useState<PortalChannelCapability | null>(null)
   const [candidate, setCandidate] = useState<ChannelCandidate | null>(null)
   const [step, setStep] = useState<DialogStep>("capabilities")
   const [isAuthorizing, setIsAuthorizing] = useState(false)
   const [isSelecting, setIsSelecting] = useState(false)
+
+  useEffect(() => {
+    if (!whatsappReconnectAccountId || !open) return
+    const whatsappCapability = capabilities.find((item) => item.key === "whatsapp_status")
+    if (!whatsappCapability) return
+    setCapability(whatsappCapability)
+    setCandidate(null)
+    setStep("whatsapp")
+  }, [capabilities, open, whatsappReconnectAccountId])
 
   useEffect(() => {
     if (!metaPickerSession || !open) return
@@ -355,6 +366,7 @@ export function ChannelConnectionDialog({
 
             {step === "whatsapp" ? (
               <WhatsAppStatusConnection
+                reconnectAccountId={whatsappReconnectAccountId ?? undefined}
                 onConnected={async (account) => {
                   onConnected(account)
                   await onWhatsAppConnectionCompleted()

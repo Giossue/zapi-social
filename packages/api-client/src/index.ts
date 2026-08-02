@@ -18,6 +18,7 @@ import type {
   RegisterInput,
   StartPortalChannelConnectionInput,
   StartWhatsAppStatusConnectionInput,
+  WhatsAppStatusQrResponse,
   TestMetaIntegrationInput,
   TestMetaIntegrationResponse,
   UpdateAdminPlanInput,
@@ -116,11 +117,6 @@ type PortalChannelCandidatesResponse = {
   candidates: PortalChannelCandidate[]
 }
 
-type StartWhatsAppStatusConnectionResponse = {
-  connection: PortalChannelConnection & { state: "qr_ready" | "waiting_for_scan" }
-  qrEndpoint: string
-}
-
 type PortalChannelConnectionStatusResponse = {
   connection: PortalChannelConnection
   account: PortalChannelAccount | null
@@ -186,9 +182,14 @@ export const channelConnectionsApi = {
       }
     ),
   startWhatsAppStatus: (input: StartWhatsAppStatusConnectionInput = {}) =>
-    request<StartWhatsAppStatusConnectionResponse>(
+    request<WhatsAppStatusQrResponse>(
       "/v1/portal/channel-connections/whatsapp-status/start",
       { method: "POST", body: JSON.stringify(input) }
+    ),
+  refreshWhatsAppStatusQr: (connectionId: string) =>
+    request<WhatsAppStatusQrResponse>(
+      `/v1/portal/channel-connections/${connectionId}/refresh-qr`,
+      { method: "POST" }
     ),
   status: (connectionId: string) =>
     request<PortalChannelConnectionStatusResponse>(

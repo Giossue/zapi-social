@@ -17,7 +17,7 @@ import {
   type PortalChannelAccount,
   type PortalChannelConnection,
 } from '@workspace/contracts'
-import { and, eq, gt } from '@workspace/database/query'
+import { and, eq } from '@workspace/database/query'
 import { randomUUID } from 'node:crypto'
 import { Redis } from 'ioredis'
 import { DatabaseService } from '../database/database.service'
@@ -25,7 +25,8 @@ import { IntegrationsService } from '../integrations/integrations.service'
 import { Aes256GcmService } from '../platform/crypto/aes-256-gcm.service'
 
 const managerRoles = new Set(['owner', 'admin'])
-const lifetimeMilliseconds = 10 * 60 * 1000
+const minQrDurationSeconds = 5
+const maxQrDurationSeconds = 120
 const providerKey = 'whatsapp-status'
 const capabilityKey = 'whatsapp_status'
 
@@ -42,6 +43,11 @@ type GoWaResponse = {
   results?: Record<string, unknown>
   message?: string
 }
+type QrStart = {
+  qrLink: string
+  durationSeconds: number
+}
+type PurgeDeviceResult = 'preserved' | 'deleted'
 
 class GoWaConnectorError extends Error {}
 
@@ -60,14 +66,18 @@ export class WhatsAppStatusConnectionsService {
     const reconnect = values.reconnectAccountId
       ? await this.reconnectAccount(session, values.reconnectAccountId)
       : null
+    const reconnectDeviceId = reconnect ? this.deviceId(reconnect.metadata) : null
 
-    if (reconnect) await this.purgeDevice(configuration, this.deviceId(reconnect.metadata))
+    let deviceId = reconnectDeviceId ?? randomUUID()
+    let mustCreateDevice = !reconnectDeviceId
+    if (reconnectDeviceId) {
+      const purgeResult = await this.purgeDevice(configuration, reconnectDeviceId)
+      mustCreateDevice = purgeResult === 'deleted'
+    }
 
-    let deviceId: string = randomUUID()
-    const expiresAt = new Date(Date.now() + lifetimeMilliseconds)
     try {
-      deviceId = await this.createDevice(configuration, deviceId)
-      const qrLink = await this.startQr(configuration, deviceId)
+      if (mustCreateDevice) deviceId = await this.createDevice(configuration, deviceId)
+      const qr = await this.startQr(configuration, deviceId)
       const [connection] = await this.database.db
         .insert(channelConnectionSessions)
         .values({
@@ -78,21 +88,51 @@ export class WhatsAppStatusConnectionsService {
           externalConnectionId: deviceId,
           contextCiphertext: this.encryptContext(deviceId, {
             displayName: reconnect?.displayName ?? 'WhatsApp Status',
-            qrLink,
+            qrLink: qr.qrLink,
           }),
           status: 'qr_ready',
-          expiresAt,
+          expiresAt: this.qrExpiresAt(qr.durationSeconds),
         })
         .returning()
-      return {
-        connection: this.serializeConnection(connection),
-        qrEndpoint: `/v1/portal/channel-connections/${connection.id}/qr`,
-      }
+      return this.serializeQrConnection(connection)
     } catch (error) {
       await this.purgeDevice(configuration, deviceId).catch(() => undefined)
       if (error instanceof GoWaConnectorError) throw new ServiceUnavailableException()
       throw error
     }
+  }
+
+  async refreshQr(session: PortalAuthSession, id: string) {
+    this.requireManager(session)
+    const connection = await this.connectionForSession(session, id)
+    const deviceId = connection.externalConnectionId
+    if (!deviceId) throw new BadRequestException()
+
+    return this.withDeviceLock(deviceId, async () => {
+      const current = await this.connectionForSession(session, id)
+      if (!['qr_ready', 'waiting_for_scan', 'expired'].includes(current.status)) {
+        throw new BadRequestException()
+      }
+      if (current.externalConnectionId !== deviceId) throw new ConflictException()
+
+      const configuration = await this.integrations.readWhatsAppStatusConfiguration()
+      try {
+        const qr = await this.startQr(configuration, deviceId)
+        const context = this.decryptContext(current)
+        const updated = await this.updateConnection(current.id, {
+          contextCiphertext: this.encryptContext(deviceId, {
+            displayName: context.displayName,
+            qrLink: qr.qrLink,
+          }),
+          status: 'qr_ready',
+          expiresAt: this.qrExpiresAt(qr.durationSeconds),
+        })
+        return this.serializeQrConnection(updated)
+      } catch (error) {
+        if (error instanceof GoWaConnectorError) throw new ServiceUnavailableException()
+        throw error
+      }
+    })
   }
 
   async status(session: PortalAuthSession, id: string) {
@@ -126,12 +166,18 @@ export class WhatsAppStatusConnectionsService {
         const account = await this.persistConnectedDevice(current, configuration, providerStatus)
         const updated = await this.updateConnection(current.id, { socialAccountId: account.id, status: 'connected' })
         return { connection: this.serializeConnection(updated), account: this.serializeAccount(account), publicError: null }
-      } catch {
+      } catch (error) {
+        if (error instanceof ConflictException) {
+          await this.purgeDevice(configuration, deviceId).catch(() => undefined)
+        }
         const updated = await this.updateConnection(current.id, { status: 'failed' })
         return {
           connection: this.serializeConnection(updated),
           account: null,
-          publicError: { code: 'WHATSAPP_CONNECTOR_UNAVAILABLE', requestId: randomUUID() },
+          publicError: {
+            code: error instanceof ConflictException ? 'WHATSAPP_ACCOUNT_MISMATCH' : 'WHATSAPP_CONNECTOR_UNAVAILABLE',
+            requestId: randomUUID(),
+          },
         }
       }
     })
@@ -185,6 +231,11 @@ export class WhatsAppStatusConnectionsService {
     const [previous] = connection.reconnectAccountId
       ? await this.database.db.select().from(socialAccounts).where(eq(socialAccounts.id, connection.reconnectAccountId)).limit(1)
       : []
+    const previousPhone = previous ? this.phoneIdentity(this.firstString(previous.metadata, ['phoneNumber'])) : null
+    const connectedPhone = this.phoneIdentity(profile.phoneNumber)
+    if (previous && previousPhone && connectedPhone && previousPhone !== connectedPhone) {
+      throw new ConflictException()
+    }
     const values = {
       externalId: deviceId,
       displayName: profile.displayName ?? context.displayName,
@@ -243,7 +294,7 @@ export class WhatsAppStatusConnectionsService {
     return this.firstString(result, ['results.id', 'results.device_id']) ?? deviceId
   }
 
-  private async startQr(configuration: GoWaConfiguration, deviceId: string) {
+  private async startQr(configuration: GoWaConfiguration, deviceId: string): Promise<QrStart> {
     const attempts = [
       () => this.requestJson(configuration, '/app/login', deviceId),
       () => this.requestJson(configuration, `/devices/${encodeURIComponent(deviceId)}/login`),
@@ -251,8 +302,11 @@ export class WhatsAppStatusConnectionsService {
     for (const request of attempts) {
       try {
         const result = await request()
-        const qr = this.firstString(result, ['results.qr_link', 'results.qr_url', 'results.qr', 'results.qrcode', 'qr_link', 'qr_url', 'qr', 'qrcode'])
-        if (qr) return qr
+        const qrLink = this.firstString(result, ['results.qr_link', 'results.qr_url', 'results.qr', 'results.qrcode', 'qr_link', 'qr_url', 'qr', 'qrcode'])
+        const durationSeconds = this.firstNumber(result, ['results.qr_duration'])
+        if (qrLink && durationSeconds !== null && durationSeconds >= minQrDurationSeconds && durationSeconds <= maxQrDurationSeconds) {
+          return { qrLink, durationSeconds }
+        }
       } catch {
         // Fallback supported by legacy GOWA deployments.
       }
@@ -260,13 +314,15 @@ export class WhatsAppStatusConnectionsService {
     throw new GoWaConnectorError()
   }
 
-  private async purgeDevice(configuration: GoWaConfiguration, deviceId: string | null) {
-    if (!deviceId) return
+  private async purgeDevice(configuration: GoWaConfiguration, deviceId: string | null): Promise<PurgeDeviceResult | null> {
+    if (!deviceId) return null
     try {
       await this.requestJson(configuration, `/devices/${encodeURIComponent(deviceId)}/logout`, undefined, { method: 'POST' })
+      return 'preserved'
     } catch {
       try {
         await this.requestJson(configuration, `/devices/${encodeURIComponent(deviceId)}`, undefined, { method: 'DELETE' })
+        return 'deleted'
       } catch {
         throw new ServiceUnavailableException()
       }
@@ -307,6 +363,21 @@ export class WhatsAppStatusConnectionsService {
     return null
   }
 
+  private firstNumber(value: unknown, paths: string[]) {
+    for (const path of paths) {
+      let current: unknown = value
+      for (const segment of path.split('.')) current = current && typeof current === 'object' ? (current as Record<string, unknown>)[segment] : undefined
+      if (typeof current === 'number' && Number.isFinite(current) && current > 0) return current
+    }
+    return null
+  }
+
+  private phoneIdentity(value: string | null) {
+    if (!value) return null
+    const normalized = value.split('@', 1)[0].replace(/\D/g, '')
+    return normalized || null
+  }
+
   private firstBoolean(value: unknown, paths: string[]) {
     for (const path of paths) {
       let current: unknown = value
@@ -317,10 +388,20 @@ export class WhatsAppStatusConnectionsService {
   }
 
   private safeQrUrl(configuration: GoWaConfiguration, qrLink: string) {
-    const url = new URL(qrLink, `${configuration.baseUrl}/`)
     const base = new URL(configuration.baseUrl)
-    if (url.origin !== base.origin || url.username || url.password) throw new NotFoundException()
-    return url
+    const url = new URL(qrLink, `${base.toString().replace(/\/+$/, '')}/`)
+    if (url.username || url.password) throw new NotFoundException()
+    if (url.origin === base.origin) return url
+
+    if (!['localhost', '127.0.0.1', '[::1]'].includes(url.hostname)) {
+      throw new NotFoundException()
+    }
+
+    const basePath = base.pathname.replace(/\/$/, '')
+    const path = url.pathname === basePath || url.pathname.startsWith(`${basePath}/`)
+      ? url.pathname
+      : `${basePath}/${url.pathname.replace(/^\/+/, '')}`
+    return new URL(`${path}${url.search}`, base.origin)
   }
 
   private dataQr(value: string) {
@@ -392,6 +473,17 @@ export class WhatsAppStatusConnectionsService {
   private deviceId(metadata: Record<string, unknown>) {
     const value = metadata.deviceId
     return typeof value === 'string' && value.length > 0 && value.length <= 255 ? value : null
+  }
+
+  private qrExpiresAt(durationSeconds: number) {
+    return new Date(Date.now() + durationSeconds * 1000)
+  }
+
+  private serializeQrConnection(connection: ConnectionRow) {
+    return {
+      connection: this.serializeConnection(connection),
+      qrEndpoint: `/v1/portal/channel-connections/${connection.id}/qr`,
+    }
   }
 
   private serializeConnection(connection: ConnectionRow): PortalChannelConnection {
