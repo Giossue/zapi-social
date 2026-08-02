@@ -271,26 +271,27 @@ export function PortalProfilePage() {
                   </SelectContent>
                 </Select>
               </div>
-              <label
-                className="grid gap-1.5 text-sm font-medium"
-                htmlFor="profile-timezone"
-              >
-                Zona horaria
-                <Input
-                  id="profile-timezone"
-                  onChange={(event) => setTimezone(event.target.value)}
-                  list="profile-timezones"
-                  maxLength={64}
-                  name="timezone"
-                  placeholder="America/Guayaquil"
-                  value={timezone}
-                />
-                <datalist id="profile-timezones">
-                  {suggestedTimeZones.map((timeZone) => (
-                    <option key={timeZone} value={timeZone} />
-                  ))}
-                </datalist>
-              </label>
+              <div className="grid gap-1.5 text-sm font-medium">
+                <span>Zona horaria</span>
+                <Select
+                  value={timezone || "unset"}
+                  onValueChange={(value) =>
+                    setTimezone(value === "unset" ? "" : value)
+                  }
+                >
+                  <SelectTrigger aria-label="Zona horaria">
+                    <SelectValue placeholder="Selecciona zona horaria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unset">Sin zona horaria</SelectItem>
+                    {suggestedTimeZones.map((timeZone) => (
+                      <SelectItem key={timeZone} value={timeZone}>
+                        {timeZone}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="flex justify-end">
               <Button
