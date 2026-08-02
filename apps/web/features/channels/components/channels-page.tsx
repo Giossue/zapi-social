@@ -72,8 +72,15 @@ const providerLabels = {
   linkedin: "LinkedIn",
   x: "X",
   tiktok: "TikTok",
-  whatsapp: "Historias de WhatsApp",
+  whatsapp: "Meta",
 } as const
+
+const providerFilterOptions = [
+  ["meta", "Meta"],
+  ["linkedin", "LinkedIn"],
+  ["x", "X"],
+  ["tiktok", "TikTok"],
+] as const
 
 const capabilityLabels = {
   facebook_page: "Página de Facebook",
@@ -840,7 +847,7 @@ export function LiveChannelsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos los proveedores</SelectItem>
-              {Object.entries(providerLabels).map(([value, label]) => (
+              {providerFilterOptions.map(([value, label]) => (
                 <SelectItem key={value} value={value}>
                   {label}
                 </SelectItem>

@@ -23,6 +23,47 @@ Completar los providers de Channels sin borrar fixtures aprobados. Cada provider
 - Redis gestiona locks, rate limits y jobs; PostgreSQL conserva estado y auditoría.
 - Fixtures aprobados se preservan aunque una capability pase a API real.
 
+## Sincronización global de perfiles
+
+La sincronización de foto, nombre y handle es un proceso global del worker; nunca exige reconectar un canal solo para actualizar su presentación.
+
+### Política base
+
+| Parámetro | Valor inicial | Razón |
+| --- | ---: | --- |
+| Sweep global | cada 5 min | Busca trabajo vencido sin polling por navegador. |
+| Batch máximo | 25 cuentas | Limita CPU, memoria, Redis y tráfico externo. |
+| Concurrencia | 2 por provider worker | Evita ráfagas y facilita respetar rate limits. |
+| Perfil normal | cada 24 h | Avatar/nombre cambian poco. |
+| Timeout externo | 10 s | Evita workers bloqueados por providers lentos. |
+| Reintento | 1 con backoff exponencial | Recupera fallos transitorios sin loops. |
+
+Cada cuenta guarda en `social_accounts.metadata.profileSyncDueAt` su próxima revisión. El worker actualiza ese vencimiento después de un sync correcto y conserva `channel_sync_runs` como auditoría segura. No guarda tokens ni payloads completos en logs o metadata de runs.
+
+### Meta implementado
+
+Meta usa el page access token cifrado de `social_account_credentials` y actualiza únicamente campos que hayan cambiado:
+
+| Capability | Consulta Graph | Campos actualizados |
+| --- | --- | --- |
+| `facebook_page` | `id,name,picture{url}` | nombre, avatar, URL de página |
+| `instagram_profile` | `id,username,profile_picture_url` | nombre, handle, avatar, URL de perfil |
+
+Una respuesta `401`/`403` deja un run seguro con `GRAPH_UNAUTHORIZED`; una reconexión posterior renueva el token según el flujo existente. El worker no desconecta ni reemplaza la cuenta por un cambio de perfil.
+
+### Adaptación futura por provider
+
+LinkedIn, X y TikTok reutilizan la cola, batch, auditoría y el vencimiento por cuenta; solo cambia el adapter del provider:
+
+```text
+credencial cifrada + endpoint de perfil + límites del provider
+→ snapshot tipado
+→ actualizar únicamente display_name / handle / avatar_url / profile_url
+→ profileSyncDueAt + channel_sync_runs
+```
+
+Antes de habilitar cada adapter se debe confirmar su modelo de token, refresh, scopes, endpoint de perfil, rate limit y formato de avatar. No se asume que sus frecuencias o mecanismos sean iguales a Meta.
+
 ## WhatsApp Status — lifecycle QR GOWA
 
 Referencia auditada: upstream `aldinokemal/go-whatsapp-web-multidevice` y `AppChannelWhatsAppStatus` de Laravel.

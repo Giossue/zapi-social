@@ -12,7 +12,7 @@ Internet
                              └── Redis / BullMQ
 ```
 
-El worker no se despliega todavía: no tiene jobs de producción activos ni necesita dominio público.
+El worker se despliega como servicio interno sin dominio público. Procesa BullMQ para sincronización de perfiles; comparte PostgreSQL, Redis y la clave de cifrado de API.
 
 ## Repositorio y rama
 
@@ -55,6 +55,18 @@ Los dos servicios se construyen con contexto raíz porque dependen de workspaces
 
 Los Dockerfiles se validaron con Podman. No definir un Start Command manual en Dokploy: debe usar el `CMD` de la imagen.
 
+## Perfil operativo actual
+
+Los valores sensibles permanecen únicamente en Dokploy. En esta guía, `configurado en Dokploy` significa que el servicio tiene el valor real sin exponerlo en el repositorio.
+
+| Servicio | Entorno actual |
+| --- | --- |
+| Web Next | `NODE_ENV=production`, `INTERNAL_API_ORIGIN=https://api.zapisocial.com` |
+| API Nest | `NODE_ENV=production`, `API_HOST=0.0.0.0`, `API_PORT=3001`, `API_PUBLIC_ORIGIN=https://api.zapisocial.com`, `WEB_ORIGIN=https://app.zapisocial.com`, `COOKIE_SECURE=true`, `LOG_LEVEL=info`; base de datos, JWT, Redis y cifrado configurados en Dokploy. |
+| Worker Nest | Servicio interno; comparte base de datos, Redis y clave de cifrado configurados en Dokploy con API. |
+
+La etiqueta visual de un servicio en Dokploy no cambia esta responsabilidad: el bloque con `API_HOST`/`API_PORT` pertenece a API y el bloque con `INTERNAL_API_ORIGIN` pertenece a Web.
+
 ## Variables por servicio
 
 ### Web Next.js
@@ -77,6 +89,26 @@ JWT_ACCESS_SECRET
 COOKIE_SECURE
 PROVIDER_INTEGRATIONS_ENCRYPTION_KEY
 ```
+
+### Worker Nest
+
+No expone dominio ni puerto público. Usa el mismo contexto raíz y el Dockerfile/servicio Worker configurado en Dokploy.
+
+```dotenv
+NODE_ENV=production
+DATABASE_URL=POSTGRES_CONNECTION_SECRET
+REDIS_HOST=REDIS_SERVICE_HOST
+REDIS_PORT=6379
+REDIS_USERNAME=default
+REDIS_PASSWORD=REDIS_PASSWORD
+PROVIDER_INTEGRATIONS_ENCRYPTION_KEY=THE_SAME_STABLE_API_KEY
+LOG_LEVEL=info
+```
+
+- `DATABASE_URL`, Redis y `PROVIDER_INTEGRATIONS_ENCRYPTION_KEY` son secretos del servicio Worker.
+- La clave de cifrado debe ser exactamente la misma que API para poder descifrar tokens de cuentas ya conectadas.
+- El Worker no recibe `JWT_ACCESS_SECRET`, `WEB_ORIGIN`, callbacks OAuth ni dominio público.
+- El sync de perfiles Meta se programa internamente cada cinco minutos y no requiere cron externo.
 
 ### API Nest
 

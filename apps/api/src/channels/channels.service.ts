@@ -288,7 +288,7 @@ export class ChannelsService {
   private providerWhere(provider: PortalChannelProviderKey): Condition {
     const providerKeys =
       provider === 'meta'
-        ? ['meta', 'facebook']
+        ? ['meta', 'facebook', 'whatsapp-status']
         : provider === 'whatsapp'
           ? ['whatsapp-status']
           : [provider];
