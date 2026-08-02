@@ -19,6 +19,7 @@ import {
 } from "@workspace/ui/components/dialog"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { Input } from "@workspace/ui/components/input"
+import { ScrollArea } from "@workspace/ui/components/scroll-area"
 import { Switch } from "@workspace/ui/components/switch"
 import { toast } from "@workspace/ui/components/toast"
 import {
@@ -296,215 +297,216 @@ export function EmailSmtpIntegrationCard() {
         onOpenChange={(open) => !open && closeDialog()}
         open={draft !== null}
       >
-        <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto">
+        <DialogContent className="max-h-[calc(100vh-2rem)] overflow-hidden">
           {draft ? (
-            <>
-              <DialogHeader>
-                <DialogTitle>Configurar SMTP general</DialogTitle>
-              </DialogHeader>
-              <form
-                className="flex flex-col gap-5"
-                noValidate
-                onSubmit={saveConfiguration}
-              >
-                <IntegrationInsetCard className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-medium">
-                      Disponibilidad del correo
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Al habilitarla, los flujos de autenticación entregarán
-                      correo por este servidor.
-                    </p>
-                  </div>
-                  <Switch
-                    aria-label="Habilitar SMTP"
-                    checked={draft.enabled}
-                    onCheckedChange={(enabled) => updateDraft({ enabled })}
-                  />
-                </IntegrationInsetCard>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="grid gap-1.5 text-sm font-medium">
-                    Host SMTP
-                    <Input
-                      autoComplete="off"
-                      onChange={(event) =>
-                        updateDraft({ host: event.target.value })
-                      }
-                      placeholder="smtp.example.com"
-                      required
-                      value={draft.host}
-                    />
-                  </label>
-                  <label className="grid gap-1.5 text-sm font-medium">
-                    Puerto
-                    <Input
-                      inputMode="numeric"
-                      max="65535"
-                      min="1"
-                      onChange={(event) =>
-                        updateDraft({ port: event.target.value })
-                      }
-                      required
-                      type="number"
-                      value={draft.port}
-                    />
-                  </label>
-                  <label className="grid gap-1.5 text-sm font-medium">
-                    Usuario SMTP
-                    <Input
-                      autoComplete="username"
-                      onChange={(event) =>
-                        updateDraft({ username: event.target.value })
-                      }
-                      required
-                      value={draft.username}
-                    />
-                  </label>
-                  <label className="grid gap-1.5 text-sm font-medium">
-                    Contraseña SMTP
-                    <Input
-                      autoComplete="new-password"
-                      onChange={(event) =>
-                        updateDraft({ password: event.target.value })
-                      }
-                      placeholder={
-                        integration.passwordConfigured
-                          ? "••••••••••••"
-                          : undefined
-                      }
-                      required={!integration.passwordConfigured}
-                      type="password"
-                      value={draft.password}
-                    />
-                    <span className="text-xs font-normal text-muted-foreground">
-                      Es write-only: no se vuelve a mostrar.
-                    </span>
-                  </label>
-                  <label className="grid gap-1.5 text-sm font-medium">
-                    Nombre del remitente
-                    <Input
-                      onChange={(event) =>
-                        updateDraft({ fromName: event.target.value })
-                      }
-                      required
-                      value={draft.fromName}
-                    />
-                  </label>
-                  <label className="grid gap-1.5 text-sm font-medium">
-                    Correo remitente
-                    <Input
-                      autoComplete="email"
-                      onChange={(event) =>
-                        updateDraft({ fromEmail: event.target.value })
-                      }
-                      required
-                      type="email"
-                      value={draft.fromEmail}
-                    />
-                  </label>
-                </div>
-                <IntegrationInsetCard className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-medium">Usar TLS directo</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Actívalo para puertos como 465. Para 587, usa STARTTLS del
-                      servidor.
-                    </p>
-                  </div>
-                  <Switch
-                    aria-label="Usar TLS directo"
-                    checked={draft.secure}
-                    onCheckedChange={(secure) => updateDraft({ secure })}
-                  />
-                </IntegrationInsetCard>
-                <IntegrationInsetCard className="grid gap-4 sm:grid-cols-2">
-                  <label className="grid gap-1.5 text-sm font-medium text-muted-foreground">
-                    Reply-to
-                    <Input
-                      disabled
-                      placeholder="No compatible con la API actual"
-                    />
-                  </label>
-                  <label className="grid gap-1.5 text-sm font-medium text-muted-foreground">
-                    Timeout
-                    <Input
-                      disabled
-                      placeholder="No compatible con la API actual"
-                    />
-                  </label>
-                  <p className="text-xs text-muted-foreground sm:col-span-2">
-                    Estos valores requieren soporte adicional de API para poder
-                    guardarse de forma segura.
-                  </p>
-                </IntegrationInsetCard>
-                {draft.enabled ? (
-                  <section className="flex flex-col gap-3 border-t border-border pt-5">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <h3 className="text-sm font-semibold">
-                          Probar borrador
-                        </h3>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          La prueba abre una conexión SMTP con el borrador antes
-                          de guardarlo.
-                        </p>
-                      </div>
-                      <Button
-                        disabled={
-                          testState === "testing" || testState === "passed"
-                        }
-                        onClick={() => void testConfiguration()}
-                        type="button"
-                        variant={testState === "passed" ? "success" : "surface"}
-                      >
-                        {testState === "testing" ? (
-                          <LoaderCircle
-                            className="animate-spin"
-                            data-icon="inline-start"
-                          />
-                        ) : testState === "passed" ? (
-                          <CheckCircle2 data-icon="inline-start" />
-                        ) : (
-                          <ShieldCheck data-icon="inline-start" />
-                        )}
-                        {testState === "testing"
-                          ? "Probando"
-                          : testState === "passed"
-                            ? "Borrador validado"
-                            : "Probar configuración"}
-                      </Button>
-                    </div>
-                    {testState === "failed" ? (
-                      <p className="flex items-center gap-2 text-sm text-destructive">
-                        <XCircle aria-hidden="true" />
-                        No se pudo validar el borrador.
+            <ScrollArea className="max-h-[calc(100vh-2rem)]">
+              <div className="p-6">
+                <DialogHeader>
+                  <DialogTitle>Configurar SMTP general</DialogTitle>
+                </DialogHeader>
+                <form
+                  className="flex flex-col gap-5"
+                  noValidate
+                  onSubmit={saveConfiguration}
+                >
+                  <IntegrationInsetCard className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-medium">
+                        Disponibilidad del correo
                       </p>
-                    ) : null}
-                  </section>
-                ) : null}
-                <div className="flex flex-col-reverse gap-2 border-t border-border pt-5 sm:flex-row sm:justify-end">
-                  <Button
-                    onClick={closeDialog}
-                    type="button"
-                    variant="brand-secondary"
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    disabled={
-                      !dirty ||
-                      saving ||
-                      (draft.enabled && testState !== "passed")
-                    }
-                    type="submit"
-                  >
-                    <Save data-icon="inline-start" />
-                    {saving ? "Guardando" : "Guardar configuración"}
-                  </Button>
-                </div>
-              </form>
-            </>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Al habilitarla, los flujos de autenticación entregarán
+                        correo por este servidor.
+                      </p>
+                    </div>
+                    <Switch
+                      aria-label="Habilitar SMTP"
+                      checked={draft.enabled}
+                      onCheckedChange={(enabled) => updateDraft({ enabled })}
+                    />
+                  </IntegrationInsetCard>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="grid gap-1.5 text-sm font-medium">
+                      Host SMTP
+                      <Input
+                        autoComplete="off"
+                        onChange={(event) =>
+                          updateDraft({ host: event.target.value })
+                        }
+                        placeholder="smtp.example.com"
+                        required
+                        value={draft.host}
+                      />
+                    </label>
+                    <label className="grid gap-1.5 text-sm font-medium">
+                      Puerto
+                      <Input
+                        inputMode="numeric"
+                        max="65535"
+                        min="1"
+                        onChange={(event) =>
+                          updateDraft({ port: event.target.value })
+                        }
+                        required
+                        type="number"
+                        value={draft.port}
+                      />
+                    </label>
+                    <label className="grid gap-1.5 text-sm font-medium">
+                      Usuario SMTP
+                      <Input
+                        autoComplete="username"
+                        onChange={(event) =>
+                          updateDraft({ username: event.target.value })
+                        }
+                        required
+                        value={draft.username}
+                      />
+                    </label>
+                    <label className="grid gap-1.5 text-sm font-medium">
+                      Contraseña SMTP
+                      <Input
+                        autoComplete="new-password"
+                        onChange={(event) =>
+                          updateDraft({ password: event.target.value })
+                        }
+                        placeholder={
+                          integration.passwordConfigured
+                            ? "••••••••••••"
+                            : undefined
+                        }
+                        required={!integration.passwordConfigured}
+                        type="password"
+                        value={draft.password}
+                      />
+                    </label>
+                    <label className="grid gap-1.5 text-sm font-medium">
+                      Nombre del remitente
+                      <Input
+                        onChange={(event) =>
+                          updateDraft({ fromName: event.target.value })
+                        }
+                        required
+                        value={draft.fromName}
+                      />
+                    </label>
+                    <label className="grid gap-1.5 text-sm font-medium">
+                      Correo remitente
+                      <Input
+                        autoComplete="email"
+                        onChange={(event) =>
+                          updateDraft({ fromEmail: event.target.value })
+                        }
+                        required
+                        type="email"
+                        value={draft.fromEmail}
+                      />
+                    </label>
+                  </div>
+                  <IntegrationInsetCard className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-medium">Usar TLS directo</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Actívalo para puertos como 465. Para 587, usa STARTTLS
+                        del servidor.
+                      </p>
+                    </div>
+                    <Switch
+                      aria-label="Usar TLS directo"
+                      checked={draft.secure}
+                      onCheckedChange={(secure) => updateDraft({ secure })}
+                    />
+                  </IntegrationInsetCard>
+                  <IntegrationInsetCard className="grid gap-4 sm:grid-cols-2">
+                    <label className="grid gap-1.5 text-sm font-medium text-muted-foreground">
+                      Reply-to
+                      <Input
+                        disabled
+                        placeholder="No compatible con la API actual"
+                      />
+                    </label>
+                    <label className="grid gap-1.5 text-sm font-medium text-muted-foreground">
+                      Timeout
+                      <Input
+                        disabled
+                        placeholder="No compatible con la API actual"
+                      />
+                    </label>
+                    <p className="text-xs text-muted-foreground sm:col-span-2">
+                      Estos valores requieren soporte adicional de API para
+                      poder guardarse de forma segura.
+                    </p>
+                  </IntegrationInsetCard>
+                  {draft.enabled ? (
+                    <section className="flex flex-col gap-3 border-t border-border pt-5">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <h3 className="text-sm font-semibold">
+                            Probar borrador
+                          </h3>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            La prueba abre una conexión SMTP con el borrador
+                            antes de guardarlo.
+                          </p>
+                        </div>
+                        <Button
+                          disabled={
+                            testState === "testing" || testState === "passed"
+                          }
+                          onClick={() => void testConfiguration()}
+                          type="button"
+                          variant={
+                            testState === "passed" ? "success" : "surface"
+                          }
+                        >
+                          {testState === "testing" ? (
+                            <LoaderCircle
+                              className="animate-spin"
+                              data-icon="inline-start"
+                            />
+                          ) : testState === "passed" ? (
+                            <CheckCircle2 data-icon="inline-start" />
+                          ) : (
+                            <ShieldCheck data-icon="inline-start" />
+                          )}
+                          {testState === "testing"
+                            ? "Probando"
+                            : testState === "passed"
+                              ? "Borrador validado"
+                              : "Probar configuración"}
+                        </Button>
+                      </div>
+                      {testState === "failed" ? (
+                        <p className="flex items-center gap-2 text-sm text-destructive">
+                          <XCircle aria-hidden="true" />
+                          No se pudo validar el borrador.
+                        </p>
+                      ) : null}
+                    </section>
+                  ) : null}
+                  <div className="flex flex-col-reverse gap-2 border-t border-border pt-5 sm:flex-row sm:justify-end">
+                    <Button
+                      onClick={closeDialog}
+                      type="button"
+                      variant="brand-secondary"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      disabled={
+                        !dirty ||
+                        saving ||
+                        (draft.enabled && testState !== "passed")
+                      }
+                      type="submit"
+                    >
+                      <Save data-icon="inline-start" />
+                      {saving ? "Guardando" : "Guardar configuración"}
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            </ScrollArea>
           ) : null}
         </DialogContent>
       </Dialog>
