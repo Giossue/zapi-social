@@ -59,9 +59,9 @@ ZapiV2/
 ├── infra/
 │   └── podman/
 ├── docs/
-│   ├── architecture/
-│   ├── design/
-│   └── adr/
+│   ├── conocimiento/
+│   ├── reglas/
+│   └── planes/
 ├── turbo.json
 └── package.json
 ```

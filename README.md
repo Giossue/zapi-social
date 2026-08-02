@@ -19,3 +19,8 @@ To use the components in your app, import them from the `ui` package.
 ```tsx
 import { Button } from "@workspace/ui/components/button";
 ```
+
+
+## Documentación
+
+Consulta [`docs/README.md`](./docs/README.md) para encontrar conocimiento técnico, reglas obligatorias y planes de producto.

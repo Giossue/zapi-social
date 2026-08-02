@@ -61,7 +61,7 @@ No se copiarán secretos, tokens, cuentas ni recursos reales de Laravel a V2. La
 | PlatformAdmin | `/admin/integrations` | Configuración global, readiness y diagnóstico del proveedor |
 | PortalUser | `/portal/channels` | Inventario, conexión, reconexión y operación de cuentas del workspace |
 
-La separación de identidad está definida en [platform-admin-portal-separation-plan.md](./platform-admin-portal-separation-plan.md). PlatformAdmin no posee canales ni puede iniciar conexiones de cliente.
+La separación de identidad está definida en [separacion-admin-portal.md](./separacion-admin-portal.md). PlatformAdmin no posee canales ni puede iniciar conexiones de cliente.
 
 No existe en Laravel un CRUD administrativo global de `social_accounts`; V2 tampoco lo crea sin una decisión de producto explícita.
 
