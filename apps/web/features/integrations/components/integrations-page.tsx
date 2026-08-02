@@ -2,6 +2,7 @@
 
 import { ApiError, integrationsApi } from "@workspace/api-client"
 import { WhatsAppStatusIntegrationCard } from "./whatsapp-status-integration-card"
+import { EmailSmtpIntegrationCard } from "./email-smtp-integration-card"
 import { IntegrationCardLoading } from "./integration-card-loading"
 import { IntegrationInsetCard } from "./integration-inset-card"
 import type { MetaIntegration } from "@workspace/contracts"
@@ -199,7 +200,9 @@ export function IntegrationsPage() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [activeProvider, setActiveProvider] = useState<"meta" | "whatsapp">("meta")
+  const [activeProvider, setActiveProvider] = useState<
+    "meta" | "whatsapp" | "email"
+  >("meta")
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -380,10 +383,16 @@ export function IntegrationsPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <Tabs onValueChange={(value) => setActiveProvider(value as "meta" | "whatsapp")} value={activeProvider}>
+        <Tabs
+          onValueChange={(value) =>
+            setActiveProvider(value as "meta" | "whatsapp" | "email")
+          }
+          value={activeProvider}
+        >
           <TabsList aria-label="Proveedor de integración">
             <TabsTrigger value="meta">Meta</TabsTrigger>
             <TabsTrigger value="whatsapp">WhatsApp Status</TabsTrigger>
+            <TabsTrigger value="email">Correo SMTP</TabsTrigger>
           </TabsList>
         </Tabs>
         <IntegrationCardLoading />
@@ -404,143 +413,163 @@ export function IntegrationsPage() {
 
   return (
     <div className="space-y-6">
-      <Tabs onValueChange={(value) => setActiveProvider(value as "meta" | "whatsapp")} value={activeProvider}>
+      <Tabs
+        onValueChange={(value) =>
+          setActiveProvider(value as "meta" | "whatsapp" | "email")
+        }
+        value={activeProvider}
+      >
         <TabsList aria-label="Proveedor de integración">
           <TabsTrigger value="meta">Meta</TabsTrigger>
           <TabsTrigger value="whatsapp">WhatsApp Status</TabsTrigger>
+          <TabsTrigger value="email">Correo SMTP</TabsTrigger>
         </TabsList>
       </Tabs>
 
       {activeProvider === "meta" ? (
         <>
-      <Card variant="subtle">
-        <CardHeader className="gap-4 border-b border-border pb-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0 space-y-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <CardTitle>{integration.label}</CardTitle>
-                <ProviderStatus readiness={integration.readiness} />
-                <Badge variant="neutral">OAuth 2.0</Badge>
-              </div>
-              <CardDescription>{integration.description}</CardDescription>
-            </div>
-            <Button onClick={openConfiguration} variant="brand-secondary">
-              <Settings2 data-icon="inline-start" />
-              Ver y configurar
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-7">
-          <section aria-labelledby="capabilities-title" className="space-y-3">
-            <div className="flex items-center gap-2">
-              <KeyRound
-                aria-hidden="true"
-                className="size-4 text-muted-foreground"
-              />
-              <h2 id="capabilities-title" className="text-sm font-semibold">
-                Tipos de canal
-              </h2>
-            </div>
-            <div className="grid gap-3 md:grid-cols-2">
-              {integration.capabilities.map((capability) => (
-                <IntegrationInsetCard key={capability.key}>
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-medium">{capability.label}</p>
-                    <Badge variant={capability.enabled ? "success" : "neutral"}>
-                      {capability.enabled ? "Activa" : "Desactivada"}
-                    </Badge>
+          <Card variant="subtle">
+            <CardHeader className="gap-4 border-b border-border pb-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0 space-y-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <CardTitle>{integration.label}</CardTitle>
+                    <ProviderStatus readiness={integration.readiness} />
+                    <Badge variant="neutral">OAuth 2.0</Badge>
                   </div>
-                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                    {capability.description}
-                  </p>
-                </IntegrationInsetCard>
-              ))}
-            </div>
-          </section>
-
-          <section aria-labelledby="configuration-title" className="space-y-3">
-            <div className="flex items-center gap-2">
-              <LockKeyhole
-                aria-hidden="true"
-                className="size-4 text-muted-foreground"
-              />
-              <h2 id="configuration-title" className="text-sm font-semibold">
-                Resumen de configuración
-              </h2>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <IntegrationInsetCard>
-                <p className="text-xs font-medium text-muted-foreground">
-                  ID de la aplicación
-                </p>
-                <p className="mt-1 text-sm break-all">
-                  {integration.clientId ?? "Sin configurar"}
-                </p>
-              </IntegrationInsetCard>
-              <IntegrationInsetCard>
-                <p className="text-xs font-medium text-muted-foreground">
-                  Secreto de la aplicación
-                </p>
-                <p className="mt-1 text-sm">
-                  {integration.secretConfigured
-                    ? "Configurado"
-                    : "Sin configurar"}
-                </p>
-              </IntegrationInsetCard>
-            </div>
-          </section>
-
-          <section aria-labelledby="callbacks-title" className="space-y-3">
-            <div className="flex items-start gap-2">
-              <Link
-                aria-hidden="true"
-                className="mt-0.5 size-4 shrink-0 text-muted-foreground"
-              />
-              <div>
-                <h2 id="callbacks-title" className="text-sm font-semibold">
-                  URLs de retorno OAuth
-                </h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Son datos de solo lectura generados por la API. Regístralos en
-                  Meta.
-                </p>
+                  <CardDescription>{integration.description}</CardDescription>
+                </div>
+                <Button onClick={openConfiguration} variant="brand-secondary">
+                  <Settings2 data-icon="inline-start" />
+                  Ver y configurar
+                </Button>
               </div>
-            </div>
-            <div className="grid gap-3 pl-6">
-              {integration.capabilities.map((capability) => (
-                <div className="grid gap-1.5" key={capability.key}>
-                  <p className="text-sm font-medium">{capability.label}</p>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      className="font-mono text-xs"
-                      readOnly
-                      value={capability.callbackUrl}
-                    />
-                    <Button
-                      aria-label={`Copiar URL de retorno de ${capability.label}`}
-                      onClick={() =>
-                        void copyCallbackUrl(
-                          capability.label,
-                          capability.callbackUrl
-                        )
-                      }
-                      size="icon"
-                      type="button"
-                      variant="surface"
-                    >
-                      <Copy />
-                    </Button>
+            </CardHeader>
+            <CardContent className="space-y-7">
+              <section
+                aria-labelledby="capabilities-title"
+                className="space-y-3"
+              >
+                <div className="flex items-center gap-2">
+                  <KeyRound
+                    aria-hidden="true"
+                    className="size-4 text-muted-foreground"
+                  />
+                  <h2 id="capabilities-title" className="text-sm font-semibold">
+                    Tipos de canal
+                  </h2>
+                </div>
+                <div className="grid gap-3 md:grid-cols-2">
+                  {integration.capabilities.map((capability) => (
+                    <IntegrationInsetCard key={capability.key}>
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-medium">
+                          {capability.label}
+                        </p>
+                        <Badge
+                          variant={capability.enabled ? "success" : "neutral"}
+                        >
+                          {capability.enabled ? "Activa" : "Desactivada"}
+                        </Badge>
+                      </div>
+                      <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                        {capability.description}
+                      </p>
+                    </IntegrationInsetCard>
+                  ))}
+                </div>
+              </section>
+
+              <section
+                aria-labelledby="configuration-title"
+                className="space-y-3"
+              >
+                <div className="flex items-center gap-2">
+                  <LockKeyhole
+                    aria-hidden="true"
+                    className="size-4 text-muted-foreground"
+                  />
+                  <h2
+                    id="configuration-title"
+                    className="text-sm font-semibold"
+                  >
+                    Resumen de configuración
+                  </h2>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <IntegrationInsetCard>
+                    <p className="text-xs font-medium text-muted-foreground">
+                      ID de la aplicación
+                    </p>
+                    <p className="mt-1 text-sm break-all">
+                      {integration.clientId ?? "Sin configurar"}
+                    </p>
+                  </IntegrationInsetCard>
+                  <IntegrationInsetCard>
+                    <p className="text-xs font-medium text-muted-foreground">
+                      Secreto de la aplicación
+                    </p>
+                    <p className="mt-1 text-sm">
+                      {integration.secretConfigured
+                        ? "Configurado"
+                        : "Sin configurar"}
+                    </p>
+                  </IntegrationInsetCard>
+                </div>
+              </section>
+
+              <section aria-labelledby="callbacks-title" className="space-y-3">
+                <div className="flex items-start gap-2">
+                  <Link
+                    aria-hidden="true"
+                    className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                  />
+                  <div>
+                    <h2 id="callbacks-title" className="text-sm font-semibold">
+                      URLs de retorno OAuth
+                    </h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Son datos de solo lectura generados por la API.
+                      Regístralos en Meta.
+                    </p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </section>
-        </CardContent>
-      </Card>
-
+                <div className="grid gap-3 pl-6">
+                  {integration.capabilities.map((capability) => (
+                    <div className="grid gap-1.5" key={capability.key}>
+                      <p className="text-sm font-medium">{capability.label}</p>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          className="font-mono text-xs"
+                          readOnly
+                          value={capability.callbackUrl}
+                        />
+                        <Button
+                          aria-label={`Copiar URL de retorno de ${capability.label}`}
+                          onClick={() =>
+                            void copyCallbackUrl(
+                              capability.label,
+                              capability.callbackUrl
+                            )
+                          }
+                          size="icon"
+                          type="button"
+                          variant="surface"
+                        >
+                          <Copy />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </CardContent>
+          </Card>
         </>
-      ) : (
+      ) : activeProvider === "whatsapp" ? (
         <WhatsAppStatusIntegrationCard />
+      ) : (
+        <EmailSmtpIntegrationCard />
       )}
 
       <Dialog

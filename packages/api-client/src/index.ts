@@ -19,6 +19,10 @@ import type {
   RegisterInput,
   UpdatePortalProfileInput,
   ChangePortalPasswordInput,
+  EmailSmtpIntegration,
+  PasswordResetConfirmInput,
+  PasswordResetRequestInput,
+  TestEmailSmtpIntegrationResponse,
   RequestPortalChannelProfileSyncResponse,
   StartPortalChannelConnectionInput,
   StartWhatsAppStatusConnectionInput,
@@ -46,6 +50,21 @@ export class ApiError extends Error {
   }
 }
 
+type EmailSmtpConfigurationDraft = {
+  host: string
+  port: number
+  secure: boolean
+  username: string
+  password?: string
+  fromEmail: string
+  fromName: string
+}
+
+type UpdateEmailSmtpIntegrationInput = {
+  enabled: boolean
+  configuration?: EmailSmtpConfigurationDraft
+}
+
 async function request<T>(path: string, init: RequestInit): Promise<T> {
   const response = await fetch(`${apiBaseUrl}${path}`, {
     ...init,
@@ -70,7 +89,8 @@ async function request<T>(path: string, init: RequestInit): Promise<T> {
       typeof window !== "undefined" &&
       error.status === 401 &&
       path !== "/v1/auth/login" &&
-      path !== "/v1/auth/register"
+      path !== "/v1/auth/register" &&
+      !path.startsWith("/v1/auth/password-reset/")
     ) {
       window.dispatchEvent(new Event("zapi:session-invalid"))
     }
@@ -144,6 +164,16 @@ export const authApi = {
     }),
   login: (input: LoginInput) =>
     request<AuthSession>("/v1/auth/login", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  requestPasswordReset: (input: PasswordResetRequestInput) =>
+    request<{ accepted: true }>("/v1/auth/password-reset/request", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  confirmPasswordReset: (input: PasswordResetConfirmInput) =>
+    request<void>("/v1/auth/password-reset/confirm", {
       method: "POST",
       body: JSON.stringify(input),
     }),
@@ -273,6 +303,23 @@ export const integrationsApi = {
         body: JSON.stringify(input),
       }
     ),
+  getEmailSmtp: () =>
+    request<EmailSmtpIntegration>("/v1/admin/integrations/email-smtp", {
+      method: "GET",
+    }),
+  testEmailSmtp: (input: { configuration: EmailSmtpConfigurationDraft }) =>
+    request<TestEmailSmtpIntegrationResponse>(
+      "/v1/admin/integrations/email-smtp/test",
+      {
+        method: "POST",
+        body: JSON.stringify(input),
+      }
+    ),
+  saveEmailSmtp: (input: UpdateEmailSmtpIntegrationInput) =>
+    request<EmailSmtpIntegration>("/v1/admin/integrations/email-smtp", {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
 }
 
 export const plansApi = {

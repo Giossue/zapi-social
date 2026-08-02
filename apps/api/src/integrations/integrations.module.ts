@@ -1,14 +1,20 @@
 import { Module } from '@nestjs/common';
+import { EmailModule } from '../email/email.module';
 import { IdentityModule } from '../identity/identity.module';
 import {
+  EmailSmtpIntegrationsController,
   IntegrationsController,
   WhatsAppStatusIntegrationsController,
 } from './integrations.controller';
 import { IntegrationsService } from './integrations.service';
 
 @Module({
-  imports: [IdentityModule],
-  controllers: [IntegrationsController, WhatsAppStatusIntegrationsController],
+  imports: [EmailModule, IdentityModule],
+  controllers: [
+    IntegrationsController,
+    WhatsAppStatusIntegrationsController,
+    EmailSmtpIntegrationsController,
+  ],
   providers: [IntegrationsService],
   exports: [IntegrationsService],
 })
