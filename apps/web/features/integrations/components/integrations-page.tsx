@@ -379,8 +379,13 @@ export function IntegrationsPage() {
   if (loading) {
     return (
       <div className="space-y-6">
+        <Tabs onValueChange={(value) => setActiveProvider(value as "meta" | "whatsapp")} value={activeProvider}>
+          <TabsList aria-label="Proveedor de integración">
+            <TabsTrigger value="meta">Meta</TabsTrigger>
+            <TabsTrigger value="whatsapp">WhatsApp Status</TabsTrigger>
+          </TabsList>
+        </Tabs>
         <IntegrationCardLoading />
-        <WhatsAppStatusIntegrationCard />
       </div>
     )
   }
