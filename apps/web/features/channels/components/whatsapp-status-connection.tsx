@@ -67,12 +67,10 @@ export function WhatsAppStatusConnection({
           toast.success("Estados de WhatsApp conectados.")
           return
         }
-        if (result.connection.state === "expired") {
+        if (['expired', 'failed', 'cancelled'].includes(result.connection.state) || result.publicError) {
           setConnection(null)
           setError(true)
-        }
-        if (result.publicError) {
-          setError(true)
+          return
         }
       } catch (error) {
         console.error("WhatsApp QR status failed", error)
