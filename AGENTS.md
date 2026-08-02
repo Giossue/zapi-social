@@ -36,7 +36,7 @@ Antes de afirmar cómo funciona algo o modificarlo, abrir [`docs/README.md`](./d
 2. Registrar o actualizar la equivalencia mínima en `docs/planes/`.
 3. Construir la pantalla/ruta Next con fixtures sintéticas y repositorio mock.
 4. Cubrir normal, loading, empty, error, permisos, móvil y claro/oscuro cuando aplique.
-5. Reutilizar primitives de `packages/ui`; no recrear Button, Dialog, Input, Select, Table, Toast o Empty State.
+5. Antes de crear markup o un componente, consultar `codebase-memory` en `packages/ui` y revisar `packages/ui/COMPONENTS.md`; reutilizar primitives/variantes existentes. `componentes.md` solo lista candidatos 21st. Un componente de dominio vive en `features/<dominio>/components`; solo promover a `packages/ui` un patrón genérico reutilizable por tres o más features y actualizar su catálogo.
 6. Auditar bloques 21st según `docs/reglas/design.md` antes de integrarlos.
 7. Definir schemas Zod y contrato REST cuando diseño y acciones estén claros.
 8. Implementar Nest, Drizzle, adapters y Worker sustituyendo el mock sin reescribir la UI.

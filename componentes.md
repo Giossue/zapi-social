@@ -1,3 +1,7 @@
+# Candidatos de 21st.dev
+
+Este archivo contiene referencias y comandos candidatos de 21st.dev. No es el catálogo de componentes globales instalados; para ello consultar `packages/ui/COMPONENTS.md` y verificar `packages/ui` con `codebase-memory` antes de integrar o crear markup.
+
 npx @21st-dev/cli add arunjdass/dashboard-sidebar
 npx @21st-dev/cli add ravikatiyar162/sign-in-1
 npx @21st-dev/cli add preetsuthar17/command-menu

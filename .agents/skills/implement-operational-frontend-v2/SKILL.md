@@ -17,7 +17,7 @@ description: Usa este skill para rutas Portal/Admin, tablas, formularios, diálo
 1. Identificar usuario, decisión/acción principal y datos necesarios antes de diseñar.
 2. Construir dentro de `features/<dominio>` con fixture sintética y mock repository.
 3. Elegir tabla para escanear/filtrar registros, diálogo para edición breve y página para workflows largos o de riesgo.
-4. Reutilizar `@workspace/ui`; adaptar bloques 21st según la regla de diseño.
+4. Consultar `codebase-memory` en `packages/ui` y revisar `packages/ui/COMPONENTS.md` antes de crear markup; reutilizar `@workspace/ui`. Crear algo en la feature si es de dominio y promoverlo a UI solo si será compartido por tres o más features; adaptar bloques 21st según la regla de diseño.
 5. Cubrir normal, loading, empty inicial, empty filtrado, error, permisos y estados de acción.
 6. Revisar móvil, claro/oscuro, teclado y texto largo cuando aplique.
 

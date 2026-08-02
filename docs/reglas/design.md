@@ -55,12 +55,14 @@ Features, rutas y shells no escriben `shadow-*`, `box-shadow`, `filter: drop-sha
 
 ## Primitives
 
-Antes de crear markup propio, comprobar `packages/ui` y shadcn.
+Antes de crear markup o un componente, ejecutar `codebase-memory` para comprobar qué existe realmente en `packages/ui` y revisar el [catálogo global](../../packages/ui/COMPONENTS.md). No responder por memoria ni asumir que un componente falta.
 
-- No duplicar `Button`, `Dialog`, `Input`, `Select`, `Table`, `Tooltip`, `Toast`, `Empty`, `Alert`, `Badge`, `Card` o `Skeleton`.
+- `componentes.md` contiene candidatos/comandos de 21st; no es el catálogo de componentes instalados. Consultarlo solo para inspiración o bloques externos.
+- Reutilizar el primitive o variante existente antes de crear uno nuevo. No duplicar `Button`, `Dialog`, `Input`, `Select`, `Table`, `Tooltip`, `Toast`, `Empty`, `Alert`, `Badge`, `Card` o `Skeleton`.
 - Formularios usan primitives/Field actuales; no inputs estilizados locales.
 - Modal, dropdown, tooltip y drawer conservan primitive accesible; no z-index ni focus trap locales.
-- Un pattern pasa a `packages/ui` solo si es reusable por tres o más features. Si no, permanece en `features/<dominio>/components`.
+- Un componente específico de dominio permanece en `features/<dominio>/components`.
+- Un pattern pasa a `packages/ui` solo si su contrato es genérico y será reutilizable por tres o más features. Al hacerlo, actualizar `packages/ui/COMPONENTS.md`.
 
 ## 21st.dev MCP y CLI
 
