@@ -223,7 +223,7 @@ export class WhatsAppProfileSyncProcessor extends WorkerHost {
         handle = case when ${profile.handle !== undefined && account.handle !== profile.handle} then ${profile.handle ?? null} else handle end,
         avatar_url = case when ${profile.avatarUrl !== undefined && account.avatarUrl !== profile.avatarUrl} then ${profile.avatarUrl ?? null} else avatar_url end,
         metadata = ${JSON.stringify(nextMetadata)}::jsonb,
-        updated_at = ${now}
+        updated_at = ${now.toISOString()}
       where id = ${account.id}
     `
   }

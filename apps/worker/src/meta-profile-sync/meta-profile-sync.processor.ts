@@ -154,7 +154,7 @@ export class MetaProfileSyncProcessor extends WorkerHost {
         avatar_url = case when ${account.avatarUrl !== profile.avatarUrl} then ${profile.avatarUrl} else avatar_url end,
         profile_url = case when ${account.profileUrl !== profile.profileUrl} then ${profile.profileUrl} else profile_url end,
         metadata = ${JSON.stringify(nextMetadata)}::jsonb,
-        updated_at = ${now}
+        updated_at = ${now.toISOString()}
       where id = ${account.id}
     `
   }
