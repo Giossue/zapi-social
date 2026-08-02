@@ -22,7 +22,6 @@ import {
 import { toast } from "@workspace/ui/components/toast"
 import { CheckCircle2, KeyRound, LoaderCircle, UserRound } from "lucide-react"
 import { useEffect, useState, type FormEvent } from "react"
-import { useRouter } from "next/navigation"
 import type { PortalProfile } from "@workspace/contracts"
 
 const suggestedTimeZones = [
@@ -89,12 +88,13 @@ function ProfileLoading() {
 }
 
 export function PortalProfilePage() {
-  const router = useRouter()
   const [profile, setProfile] = useState<PortalProfile | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [savingPreferences, setSavingPreferences] = useState(false)
   const [locale, setLocale] = useState<"" | "es" | "en">("")
+  const [displayName, setDisplayName] = useState("")
+  const [timezone, setTimezone] = useState("")
   const [savingPassword, setSavingPassword] = useState(false)
 
   useEffect(() => {
@@ -104,7 +104,9 @@ export function PortalProfilePage() {
       .then((nextProfile) => {
         if (!active) return
         setProfile(nextProfile)
+        setDisplayName(nextProfile.displayName)
         setLocale(nextProfile.locale ?? "")
+        setTimezone(nextProfile.timezone ?? "")
         setError(null)
       })
       .catch(() => {
@@ -127,12 +129,14 @@ export function PortalProfilePage() {
     setSavingPreferences(true)
     try {
       const nextProfile = await profileApi.update({
-        displayName: String(form.get("displayName") ?? "").trim(),
+        displayName,
         locale: locale || null,
-        timezone: String(form.get("timezone") ?? "").trim() || null,
+        timezone: timezone.trim() || null,
       })
       setProfile(nextProfile)
-      router.refresh()
+      setDisplayName(nextProfile.displayName)
+      setLocale(nextProfile.locale ?? "")
+      setTimezone(nextProfile.timezone ?? "")
       toast.success("Perfil actualizado.")
     } catch (nextError) {
       toast.error(profileError(nextError))
@@ -169,6 +173,12 @@ export function PortalProfilePage() {
   }
 
   if (loading) return <ProfileLoading />
+
+  const preferencesChanged =
+    profile !== null &&
+    (displayName.trim() !== profile.displayName ||
+      locale !== (profile.locale ?? "") ||
+      timezone.trim() !== (profile.timezone ?? ""))
 
   if (!profile || error) {
     return (
@@ -232,11 +242,12 @@ export function PortalProfilePage() {
             >
               Nombre visible
               <Input
-                defaultValue={profile.displayName}
                 id="profile-display-name"
+                onChange={(event) => setDisplayName(event.target.value)}
                 maxLength={160}
                 name="displayName"
                 required
+                value={displayName}
               />
             </label>
             <div className="grid gap-5 md:grid-cols-2">
@@ -266,12 +277,13 @@ export function PortalProfilePage() {
               >
                 Zona horaria
                 <Input
-                  defaultValue={profile.timezone ?? ""}
                   id="profile-timezone"
+                  onChange={(event) => setTimezone(event.target.value)}
                   list="profile-timezones"
                   maxLength={64}
                   name="timezone"
                   placeholder="America/Guayaquil"
+                  value={timezone}
                 />
                 <datalist id="profile-timezones">
                   {suggestedTimeZones.map((timeZone) => (
@@ -281,7 +293,10 @@ export function PortalProfilePage() {
               </label>
             </div>
             <div className="flex justify-end">
-              <Button disabled={savingPreferences} type="submit">
+              <Button
+                disabled={savingPreferences || !preferencesChanged}
+                type="submit"
+              >
                 {savingPreferences ? (
                   <LoaderCircle
                     className="animate-spin"
