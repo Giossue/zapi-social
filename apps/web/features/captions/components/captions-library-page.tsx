@@ -43,14 +43,7 @@ import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
 
-import {
-  createCaptionMock,
-  deleteCaptionMock,
-  filterCaptionsMock,
-  getCaptionMetricsMock,
-  listCaptionsMock,
-  updateCaptionMock,
-} from "@/features/captions/mocks/captions-repository"
+import { ApiError, captionsApi } from "@workspace/api-client"
 import type {
   Caption,
   CaptionDraft,
@@ -451,10 +444,13 @@ export function CaptionsLibraryPage() {
     setLoading(true)
     setError(null)
     try {
-      setCaptions(await listCaptionsMock())
-    } catch {
+      const response = await captionsApi.list()
+      setCaptions(response.captions)
+    } catch (nextError) {
       setError(
-        "No se pudo cargar la biblioteca mock. Ningún caption fue modificado."
+        nextError instanceof ApiError && nextError.status === 403
+          ? "No tienes acceso a la biblioteca de captions."
+          : "No se pudo cargar la biblioteca. Ningún caption fue modificado."
       )
     } finally {
       setLoading(false)
@@ -465,31 +461,45 @@ export function CaptionsLibraryPage() {
     void loadCaptions()
   }, [])
 
-  const filteredCaptions = useMemo(
-    () => filterCaptionsMock(captions, filters),
-    [captions, filters]
-  )
-  const metrics = useMemo(() => getCaptionMetricsMock(captions), [captions])
+  const filteredCaptions = useMemo(() => {
+    const query = filters.query.trim().toLocaleLowerCase("es")
+    return captions.filter((caption) => {
+      const matchesQuery = !query || [caption.name, caption.content, caption.notes ?? "", ...caption.tags]
+        .join(" ").toLocaleLowerCase("es").includes(query)
+      return matchesQuery &&
+        (filters.sourceType === "all" || caption.sourceType === filters.sourceType) &&
+        (filters.status === "all" || caption.status === filters.status)
+    })
+  }, [captions, filters])
+  const metrics = useMemo(() => captions.reduce<CaptionMetrics>(
+    (current, caption) => ({
+      total: current.total + 1,
+      ai: current.ai + (caption.sourceType === "ai" ? 1 : 0),
+      manual: current.manual + (caption.sourceType === "manual" ? 1 : 0),
+      active: current.active + (caption.status === "active" ? 1 : 0),
+    }),
+    { total: 0, ai: 0, manual: 0, active: 0 }
+  ), [captions])
 
   async function saveCaption(draft: CaptionDraft) {
     setPending(true)
     try {
       if (editor === "new") {
-        const caption = await createCaptionMock(captions, draft)
+        const caption = await captionsApi.create(draft)
         setCaptions((current) => [caption, ...current])
-        toast.success("Caption creado en la biblioteca mock.")
+        toast.success("Caption creado.")
       } else if (editor) {
-        const updatedCaption = await updateCaptionMock(editor, draft)
+        const updatedCaption = await captionsApi.update(editor.id, draft)
         setCaptions((current) =>
           current.map((caption) =>
             caption.id === updatedCaption.id ? updatedCaption : caption
           )
         )
-        toast.success("Cambios guardados en la biblioteca mock.")
+        toast.success("Cambios guardados.")
       }
       setEditor(null)
     } catch {
-      toast.error("No se pudo guardar el caption mock.")
+      toast.error("No se pudo guardar el caption.")
     } finally {
       setPending(false)
     }
@@ -499,14 +509,12 @@ export function CaptionsLibraryPage() {
     if (!captionToDelete) return
     setPending(true)
     try {
-      const deletedId = await deleteCaptionMock(captionToDelete.id)
-      setCaptions((current) =>
-        current.filter((caption) => caption.id !== deletedId)
-      )
+      await captionsApi.remove(captionToDelete.id)
+      setCaptions((current) => current.filter((caption) => caption.id !== captionToDelete.id))
       setCaptionToDelete(null)
-      toast.success("Caption eliminado de la biblioteca mock.")
+      toast.success("Caption eliminado.")
     } catch {
-      toast.error("No se pudo eliminar el caption mock.")
+      toast.error("No se pudo eliminar el caption.")
     } finally {
       setPending(false)
     }

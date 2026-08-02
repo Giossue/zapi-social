@@ -69,9 +69,9 @@ Crear o actualizar un plan cuando se inicia una vertical, cambia una equivalenci
 - Fixtures son sintéticas y deterministas; nunca contienen datos de producción.
 - Nunca leer, mostrar, versionar ni registrar `.env`, secretos, tokens, passwords, credenciales o archivos privados.
 - Validar ownership, permisos e idempotencia al implementar backend.
-- No ejecutar cambios sobre bases remotas sin solicitud explícita.
+- Trabajamos exclusivamente contra PostgreSQL remoto; no ejecutar ni preparar mutaciones locales.
+- Antes de ejecutar una migración remota, pedir confirmación explícita indicando el archivo y si es aditiva, destructiva o transformadora.
 - Para PostgreSQL remoto usar exclusivamente `psql "service=zapi_v2"`; las mutaciones, migraciones y permisos requieren aprobación explícita.
-- PostgreSQL local es nativo. Si se requiere el rol `postgres`, solicitar y usar `pkexec runuser -u postgres`.
 
 ## Comunicación
 

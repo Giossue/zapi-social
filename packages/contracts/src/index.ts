@@ -119,6 +119,77 @@ const dashboardAttentionSchema = dashboardActionSchema.extend({
   icon: z.enum(["ai", "channels", "credits", "publishing"]),
 })
 
+export const portalCaptionSourceTypeSchema = z.enum(["manual", "ai"])
+export const portalCaptionStatusSchema = z.enum(["active", "draft", "archived"])
+
+const portalCaptionTagsSchema = z
+  .array(z.string().trim().min(1).max(64))
+  .max(20)
+  .transform((tags) => {
+    const unique = new Map<string, string>()
+    for (const tag of tags) {
+      const normalized = tag.trim()
+      if (normalized) unique.set(normalized.toLocaleLowerCase("es"), normalized)
+    }
+    return [...unique.values()]
+  })
+
+export const portalCaptionSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  sourceType: portalCaptionSourceTypeSchema,
+  status: portalCaptionStatusSchema,
+  content: z.string(),
+  notes: z.string().nullable(),
+  tags: z.array(z.string()),
+  updatedAt: z.string().datetime(),
+})
+
+export const portalCaptionMetricsSchema = z.object({
+  total: z.number().int().nonnegative(),
+  ai: z.number().int().nonnegative(),
+  manual: z.number().int().nonnegative(),
+  active: z.number().int().nonnegative(),
+})
+
+export const portalCaptionsResponseSchema = z.object({
+  captions: z.array(portalCaptionSchema),
+  metrics: portalCaptionMetricsSchema,
+})
+
+export const portalCaptionsQuerySchema = z
+  .object({
+    q: z.string().trim().min(1).max(255).optional(),
+    sourceType: portalCaptionSourceTypeSchema.optional(),
+    status: portalCaptionStatusSchema.optional(),
+  })
+  .strict()
+
+const portalCaptionInputFields = {
+  name: z.string().trim().min(1).max(120),
+  sourceType: portalCaptionSourceTypeSchema,
+  status: portalCaptionStatusSchema,
+  content: z.string().trim().min(1).max(10000),
+  notes: z.string().trim().max(2000).nullable(),
+  tags: portalCaptionTagsSchema,
+}
+
+export const createPortalCaptionSchema = z.object(portalCaptionInputFields).strict()
+
+export const updatePortalCaptionSchema = z
+  .object({
+    name: portalCaptionInputFields.name.optional(),
+    sourceType: portalCaptionSourceTypeSchema.optional(),
+    status: portalCaptionStatusSchema.optional(),
+    content: portalCaptionInputFields.content.optional(),
+    notes: portalCaptionInputFields.notes.optional(),
+    tags: portalCaptionTagsSchema.optional(),
+  })
+  .strict()
+  .refine((input) => Object.keys(input).length > 0, {
+    message: "Incluye al menos un campo para actualizar.",
+  })
+
 export const portalDashboardSchema = z.object({
   welcome: z.object({ name: z.string() }),
   primaryAction: dashboardActionSchema,
@@ -252,6 +323,14 @@ export type PlatformAdminAuthSession = z.infer<
 >
 export type PortalAuthSession = z.infer<typeof portalAuthSessionSchema>
 export type PortalDashboard = z.infer<typeof portalDashboardSchema>
+export type PortalCaptionSourceType = z.infer<typeof portalCaptionSourceTypeSchema>
+export type PortalCaptionStatus = z.infer<typeof portalCaptionStatusSchema>
+export type PortalCaption = z.infer<typeof portalCaptionSchema>
+export type PortalCaptionMetrics = z.infer<typeof portalCaptionMetricsSchema>
+export type PortalCaptionsResponse = z.infer<typeof portalCaptionsResponseSchema>
+export type PortalCaptionsQuery = z.infer<typeof portalCaptionsQuerySchema>
+export type CreatePortalCaptionInput = z.infer<typeof createPortalCaptionSchema>
+export type UpdatePortalCaptionInput = z.infer<typeof updatePortalCaptionSchema>
 export type ChannelStatus = z.infer<typeof channelStatusSchema>
 export type ChannelAccount = z.infer<typeof channelAccountSchema>
 export type ChannelMetrics = z.infer<typeof channelMetricsSchema>

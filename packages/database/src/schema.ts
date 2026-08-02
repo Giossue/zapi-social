@@ -508,6 +508,37 @@ export const channelSyncRuns = pgTable(
   ]
 )
 
+export const captions = pgTable(
+  "captions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    createdByUserId: uuid("created_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    name: varchar("name", { length: 120 }).notNull(),
+    slug: varchar("slug", { length: 140 }).notNull(),
+    sourceType: varchar("source_type", { length: 16 })
+      .$type<"manual" | "ai">()
+      .notNull(),
+    status: varchar("status", { length: 16 })
+      .$type<"active" | "draft" | "archived">()
+      .notNull(),
+    content: varchar("content", { length: 10000 }).notNull(),
+    notes: varchar("notes", { length: 2000 }),
+    tags: jsonb("tags").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("captions_workspace_slug_unique").on(table.workspaceId, table.slug),
+    index("captions_workspace_updated_index").on(table.workspaceId, table.updatedAt),
+    index("captions_workspace_status_index").on(table.workspaceId, table.status),
+    index("captions_workspace_source_type_index").on(table.workspaceId, table.sourceType),
+  ]
+)
+
 export const plans = pgTable(
   "plans",
   {

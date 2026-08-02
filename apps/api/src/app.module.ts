@@ -2,6 +2,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
+import { CaptionsModule } from './captions/captions.module';
 import { ChannelsModule } from './channels/channels.module';
 import { validateEnv } from './config/env';
 import { DatabaseModule } from './database/database.module';
@@ -24,6 +25,7 @@ import { PlansModule } from './plans/plans.module';
       },
     }),
     DatabaseModule,
+    CaptionsModule,
     ChannelsModule,
     DashboardModule,
     IntegrationsModule,

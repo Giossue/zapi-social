@@ -119,7 +119,7 @@ type ChangePortalPasswordInput = {
 - `currentPassword` se valida con Argon2 antes de escribir.
 - `newPassword` reutiliza política vigente de registro.
 - No se devuelve hash, input de password, token ni contenido de auditoría sensible.
-- Tras cambiar contraseña, comportamiento de otras sesiones se define durante implementación: recomendado revocar sesiones distintas a la sesión actual.
+- Tras cambiar contraseña se revocan todas las sesiones activas, incluida la sesión actual; el usuario debe iniciar sesión de nuevo.
 
 ## Autorización y errores
 
@@ -152,7 +152,7 @@ El endpoint nunca recibe ID de usuario. Siempre parte de la sesión autenticada.
 - [x] Auditoría `profile.updated` y `profile.password_updated`, sin contraseñas ni hashes.
 - [x] Validación de typecheck y build para contracts, database, API y Web.
 - [x] Migración aplicada y registrada en BD remota: `users.locale` y `users.timezone`.
-- [ ] Desplegar API/Web y probar flujo real autenticado.
+- [ ] Desplegar API/Web y probar flujo real autenticado; el cambio de contraseña ahora revoca todas las sesiones activas y redirige al login.
 - [ ] Añadir tests de servicio/API cuando se habilite suite de tests del módulo.
 
 ## Criterio de cierre

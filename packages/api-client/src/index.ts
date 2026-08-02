@@ -32,6 +32,11 @@ import type {
   UpdateAdminPlanInput,
   UpdateMetaIntegrationInput,
   UpdatePortalChannelInput,
+  CreatePortalCaptionInput,
+  PortalCaptionsQuery,
+  PortalCaptionsResponse,
+  PortalCaption,
+  UpdatePortalCaptionInput,
 } from "@workspace/contracts"
 
 const apiBaseUrl =
@@ -198,6 +203,35 @@ export const profileApi = {
       method: "POST",
       body: JSON.stringify(input),
     }),
+}
+
+function portalCaptionsQueryString(query: Partial<PortalCaptionsQuery> = {}) {
+  const params = new URLSearchParams()
+  if (query.q) params.set("q", query.q)
+  if (query.sourceType) params.set("sourceType", query.sourceType)
+  if (query.status) params.set("status", query.status)
+  const serialized = params.toString()
+  return serialized ? `?${serialized}` : ""
+}
+
+export const captionsApi = {
+  list: (query?: Partial<PortalCaptionsQuery>) =>
+    request<PortalCaptionsResponse>(
+      `/v1/portal/captions${portalCaptionsQueryString(query)}`,
+      { method: "GET" }
+    ),
+  create: (input: CreatePortalCaptionInput) =>
+    request<PortalCaption>("/v1/portal/captions", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  update: (id: string, input: UpdatePortalCaptionInput) =>
+    request<PortalCaption>(`/v1/portal/captions/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) =>
+    request<void>(`/v1/portal/captions/${id}`, { method: "DELETE" }),
 }
 
 export const channelsApi = {

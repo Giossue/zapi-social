@@ -5,8 +5,8 @@ import {
   type PortalAuthSession,
   type PortalProfile,
 } from '@workspace/contracts';
-import { auditLogs, users } from '@workspace/database';
-import { eq } from '@workspace/database/query';
+import { auditLogs, authSessions, users } from '@workspace/database';
+import { and, eq, isNull } from '@workspace/database/query';
 import argon2 from 'argon2';
 import { DatabaseService } from '../database/database.service';
 import { AppException } from '../platform/errors/app-exception';
@@ -89,13 +89,23 @@ export class PortalProfileService {
     }
 
     await this.database.db.transaction(async (tx) => {
+      const now = new Date();
       await tx
         .update(users)
         .set({
           passwordHash: await argon2.hash(parsed.data.newPassword),
-          updatedAt: new Date(),
+          updatedAt: now,
         })
         .where(eq(users.id, session.user.id));
+      await tx
+        .update(authSessions)
+        .set({ revokedAt: now, updatedAt: now })
+        .where(
+          and(
+            eq(authSessions.userId, session.user.id),
+            isNull(authSessions.revokedAt),
+          ),
+        );
 
       await tx.insert(auditLogs).values({
         workspaceId: session.workspace.id,

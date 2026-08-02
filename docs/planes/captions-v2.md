@@ -86,11 +86,11 @@ type Caption = {
 ## Secuencia
 
 1. [x] Crear feature con fixture, mock y pantalla `/portal/captions`.
-2. [ ] Aprobar UI y estados.
-3. [ ] Añadir schema/migración, contratos y API client.
-4. [ ] Implementar API con ownership/auditoría.
-5. [ ] Sustituir mock por REST sin reescribir composición.
-6. [ ] Validar tests, typecheck, build y migración autorizada.
+2. [x] Aprobar UI y estados.
+3. [x] Añadir schema/migración, contratos y API client.
+4. [x] Implementar API con ownership/auditoría.
+5. [x] Sustituir mock por REST sin reescribir composición.
+6. [ ] Validar tests y build; `typecheck` pasó. La migración aditiva `0009_adorable_caretaker.sql` se aplicó y verificó en PostgreSQL remoto el 2026-08-02 (`captions`, 5 índices, 2 FK).
 
 ## Criterio de cierre
 
