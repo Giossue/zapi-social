@@ -125,3 +125,7 @@ build/lint disponible
 diff sin CSS/tokens duplicados
 revisión visual manual cuando exista navegador
 ```
+
+## Calidad
+
+Para Definition of Done, pruebas, revisión y validación proporcional, consultar [calidad.md](./calidad.md).

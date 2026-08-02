@@ -217,3 +217,10 @@ Cada vertical se cierra solo con:
 ## Estado actual
 
 Foundation instalada. API Fastify y Worker existen, pero falta conectar configuración tipada/health al módulo y reemplazar el scaffold Nest restante. No hay funcionalidad de producto migrada todavía.
+
+## Gobernanza de ejecución
+
+- Cada vertical mantiene su plan de dominio en `docs/planes/` con referencia Laravel, UI mock, contrato REST, persistencia, jobs y evidencia de validación cuando apliquen.
+- El plan global coordina fases y dependencias; no duplica decisiones de dominio.
+- Un checkbox se marca solo cuando la evidencia de validación queda registrada en el mismo plan, cambio o prueba asociada.
+- La guía de contexto y skills V2 está documentada en [gobernanza-agentes-v2.md](./gobernanza-agentes-v2.md).

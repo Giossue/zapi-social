@@ -6,116 +6,77 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # Zapi V2 — guía operativa
 
-## 1. Orientación documental obligatoria
-
-Antes de afirmar cómo funciona algo o modificar un módulo, localizar la referencia en [`docs/README.md`](./docs/README.md).
-
-```text
-docs/conocimiento/  estado técnico y composición observada
-docs/reglas/        normas obligatorias
-docs/planes/        decisiones, equivalencias Laravel → V2 y pendientes
-```
-
-### Ruta de lectura por tipo de tarea
-
-| Tarea | Leer |
-| --- | --- |
-| UI, ruta Next, Tailwind, shadcn, 21st o accesibilidad | `docs/reglas/design.md` antes de editar |
-| Next.js | guía concreta en `node_modules/next/dist/docs/` antes de escribir código |
-| Arquitectura, stack o responsabilidades | `docs/conocimiento/stack.md` |
-| Despliegue, Dokploy o variables por servicio | `docs/conocimiento/deployment/dokploy.md` |
-| Navegación y shell Portal | `docs/conocimiento/ui/portal-sidebar.md` |
-| Prioridad global de V2 | `docs/planes/implementacion-v2.md` |
-| Identidad, sesión, redirecciones, Admin o Portal | `docs/planes/separacion-admin-portal.md` |
-| Channels y providers | `docs/planes/channels-v2.md` y `docs/planes/channels-providers.md` |
-
-### Si no hay documentación suficiente
-
-1. No inventar rutas, contratos, permisos, estados, decisiones ni configuración.
-2. Buscar por nombre en `docs/`, después en contratos, schema, código y tests.
-3. Para una equivalencia de producto, auditar `ZapiSocial` —rutas, módulo, vistas, modelo/tablas, permisos y acciones visibles— antes de inferir V2.
-4. Si sigue siendo ambiguo, si faltan requisitos o si la operación es irreversible, pedir aclaración al usuario.
-5. Si se inicia un módulo o se toma una decisión nueva, crear o actualizar un plan breve en `docs/planes/` con alcance, referencia Laravel, estado mock y pendiente; no presentar una inferencia como hecho.
-
-## 2. Dirección de producto
+## Dirección
 
 ```text
 Laravel ZapiSocial = referencia funcional, visual y de schema.
 ZapiV2 = producto nuevo.
-Laravel → diseño Next con mocks → contrato REST → Nest.
+Laravel auditado → UI Next mock → contrato REST → Nest/Drizzle/Worker.
 ```
 
 No modificar Laravel en una tarea V2 salvo solicitud explícita. No implementar backend de un módulo antes de que diseño, mocks y acciones estén definidos, salvo solicitud explícita.
 
-### Flujo por módulo V2
+## Lectura mínima
 
-1. Localizar referencia Laravel y registrar la equivalencia mínima en el plan afectado.
-2. Construir primero la ruta/pantalla Next con `fixtures` y repositorio `mock`.
-3. Diseñar estados normal, loading, empty, error, permisos, móvil y claro/oscuro.
-4. Reutilizar primitives de `packages/ui`; no recrear `Button`, `Dialog`, `Input`, `Select`, `Table`, `Toast` o `EmptyState`.
-5. Auditar bloques 21st antes de integrarlos según `docs/reglas/design.md`.
-6. Definir tipos y contrato REST cuando las acciones estén claras.
-7. Implementar Nest/Drizzle/Redis después, sustituyendo el mock sin reescribir la composición UI.
+Antes de afirmar cómo funciona algo o modificarlo, abrir [`docs/README.md`](./docs/README.md) y solo las referencias de la tarea.
 
-## 3. Estructura y límites
+| Cambio | Referencias obligatorias |
+| --- | --- |
+| Cualquier tarea de dominio | Plan relevante en `docs/planes/` y, si hay equivalencia, la referencia Laravel auditada. |
+| UI, ruta Next, Tailwind, shadcn o 21st | `docs/reglas/design.md`, `docs/reglas/calidad.md` y guía Next instalada. |
+| API REST, Nest o contratos | `ARCHITECTURE.md`, `docs/reglas/calidad.md` y plan de dominio. |
+| Schema o migración | `ARCHITECTURE.md`, `docs/reglas/calidad.md`, plan de dominio y schema afectado. |
+| Worker, BullMQ o integración | `ARCHITECTURE.md`, `docs/reglas/calidad.md` y plan de dominio. |
+| Despliegue o variables | `docs/conocimiento/deployment/dokploy.md`. |
+| Revisión | `docs/reglas/calidad.md`, contrato y plan afectados. |
 
-```text
-apps/web       # Next: rutas y UI
-apps/api       # Nest Fastify: REST/OpenAPI
-apps/worker    # BullMQ
-packages/ui    # tokens y primitives compartidos
-packages/contracts
-packages/api-client
-packages/database
-infra/podman
-```
+## Flujo obligatorio por módulo
 
-- `packages/ui` es la fuente única de tokens y primitives reutilizables.
-- `features/<dominio>` contiene componentes, fixtures, mocks, tipos y composición de dominio.
-- `app/` define rutas y layouts; no concentra lógica de feature.
-- Portal y Admin comparten tokens; no crear temas paralelos.
-- Usar tokens semánticos y variantes; no colores raw ni overrides arbitrarios de primitives.
-- Next no accede directamente a PostgreSQL ni Redis.
-- Redis es cache, locks, rate limits y BullMQ; PostgreSQL es fuente de verdad.
-- Nest expone DTOs REST versionados; no entidades Drizzle directamente.
+1. Auditar Laravel: rutas, módulos/vistas, modelos/tablas, permisos y acciones visibles.
+2. Registrar o actualizar la equivalencia mínima en `docs/planes/`.
+3. Construir la pantalla/ruta Next con fixtures sintéticas y repositorio mock.
+4. Cubrir normal, loading, empty, error, permisos, móvil y claro/oscuro cuando aplique.
+5. Reutilizar primitives de `packages/ui`; no recrear Button, Dialog, Input, Select, Table, Toast o Empty State.
+6. Auditar bloques 21st según `docs/reglas/design.md` antes de integrarlos.
+7. Definir schemas Zod y contrato REST cuando diseño y acciones estén claros.
+8. Implementar Nest, Drizzle, adapters y Worker sustituyendo el mock sin reescribir la UI.
+9. Validar según `docs/reglas/calidad.md` y actualizar el estado del plan con evidencia.
 
-## 4. Mocks y datos
+## Límites del monorepo
 
-- Fixtures, mocks, capturas y composiciones aprobadas son referencias de producto: no borrarlos, sobrescribirlos ni sustituirlos por datos reales sin orden explícita.
-- Al conectar una API, conservar el mock aprobado en `features/<dominio>/fixtures` o documentar su reemplazo en el plan.
-- Los fixtures son sintéticos y deterministas; nunca contienen datos de producción.
+- `apps/web` compone UI y consume REST; nunca accede a PostgreSQL, Redis o secretos.
+- `apps/api` aplica REST, DTOs, autorización y ownership; no expone entidades Drizzle.
+- `apps/worker` procesa BullMQ, reintentos e idempotencia; no expone HTTP público.
+- `packages/ui` es la fuente única de tokens, primitives y patterns compartidos.
+- `features/<dominio>` contiene composición, componentes, fixtures, mocks y tipos de dominio.
+- `packages/contracts` contiene schemas Zod, DTOs, enums y errores públicos sin infraestructura.
+- PostgreSQL es fuente de verdad; Redis solo cache, locks, rate limits y BullMQ.
 
-## 5. Seguridad y bases de datos
+Para el mapa completo de dependencias consultar [`ARCHITECTURE.md`](./ARCHITECTURE.md).
 
+## Documentación y planes
+
+- `AGENTS.md` dirige; no sustituye documentos de dominio.
+- `ARCHITECTURE.md` mapea responsabilidades; no replica reglas o planes.
+- `docs/conocimiento/` describe estado observado.
+- `docs/reglas/` contiene normas obligatorias reutilizables.
+- `docs/planes/` conserva equivalencias Laravel → V2, decisiones, estado y pendientes.
+
+Crear o actualizar un plan cuando se inicia una vertical, cambia una equivalencia, se confirma un contrato REST, se modifica una migración con impacto funcional o se toma una decisión de arquitectura/permisos. No crear planes por correcciones locales, cambios mecánicos o refactors sin decisión nueva.
+
+## Datos y seguridad
+
+- Fixtures son sintéticas y deterministas; nunca contienen datos de producción.
 - Nunca leer, mostrar, versionar ni registrar `.env`, secretos, tokens, passwords, credenciales o archivos privados.
 - Validar ownership, permisos e idempotencia al implementar backend.
 - No ejecutar cambios sobre bases remotas sin solicitud explícita.
+- Para PostgreSQL remoto usar exclusivamente `psql "service=zapi_v2"`; las mutaciones, migraciones y permisos requieren aprobación explícita.
+- PostgreSQL local es nativo. Si se requiere el rol `postgres`, solicitar y usar `pkexec runuser -u postgres`.
 
-### PostgreSQL remoto
-
-- Usar exclusivamente `psql "service=zapi_v2"`.
-- Lecturas (`SELECT`, schema, conteos y `EXPLAIN`) están permitidas.
-- Mutaciones, migraciones y cambios de permisos requieren aprobación explícita para esa operación.
-- No incluir host, usuario, contraseña, URI ni secretos en código, documentos, comandos visibles o logs.
-
-### PostgreSQL local
-
-- Es una instalación nativa, no un contenedor.
-- Para consultas o migraciones que requieran el rol `postgres`, solicitar y usar `pkexec runuser -u postgres`; inspeccionar antes de asumir el nombre de la base.
-
-## 6. Validación y comunicación
-
-- UI: typecheck, build/lint disponible, estados mock y revisión visual si hay navegador.
-- API: typecheck, tests de módulo, OpenAPI y autorización.
-- Datos: schema, migración, constraints y conteos relevantes.
-- Refactors: alcance explícito, diff y búsqueda de residuos.
-- No afirmar que algo funciona sin evidencia.
+## Comunicación
 
 Responder en español, directo y sin inventar comportamiento. Antes de crear una pantalla, explicar qué módulo Laravel se replica y qué queda mock. Al terminar, indicar archivos cambiados, validación ejecutada, pendiente real y siguiente módulo recomendado.
 
-### Claridad operativa
+## Codebase Memory MCP
 
-- Cuando pidas una comprobación al usuario, indicar exactamente qué pantalla abrir, qué dato concreto copiar y para qué sirve; no pedir datos que el agente no vaya a usar.
-- Si no hace falta una comprobación, decirlo de forma explícita y dar siguiente acción directa.
-- Separar hechos confirmados, pendiente real y acción siguiente en frases cortas.
-- No pedir ni solicitar que extraigan, compartan o descifren tokens, secretos o credenciales.
+Cuando el servidor `codebase-memory` esté disponible, usarlo para símbolos, rutas, imports, consumidores, llamadas, dependencias e impacto estructural en ZapiSocial o ZapiV2. Sus resultados son evidencia de exploración, no prueba absoluta de completitud: verificar código y pruebas antes de cambios destructivos. Para reglas, decisiones, equivalencias Laravel → V2, estado y pendientes, consultar `docs/`.

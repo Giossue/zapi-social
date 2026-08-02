@@ -8,24 +8,28 @@ reglas/        # normas obligatorias y límites de trabajo
 planes/        # decisiones, equivalencias Laravel → V2 y trabajo pendiente
 ```
 
+`AGENTS.md` dirige el trabajo. [`ARCHITECTURE.md`](../ARCHITECTURE.md) ubica responsabilidades en el monorepo. Ninguno sustituye la fuente de verdad específica de cada dominio.
+
 ## Cómo encontrar información
 
 | Necesito | Leer primero |
 | --- | --- |
+| Límites entre Web, API, Worker y packages | [`ARCHITECTURE.md`](../ARCHITECTURE.md) |
 | Tokens, primitives, 21st, UI, Next o Tailwind | [`reglas/design.md`](./reglas/design.md) |
-| Stack, paquetes y responsabilidades | [`conocimiento/stack.md`](./conocimiento/stack.md) |
+| Definition of Done, pruebas o revisión | [`reglas/calidad.md`](./reglas/calidad.md) |
+| Stack, paquetes y responsabilidades observadas | [`conocimiento/stack.md`](./conocimiento/stack.md) |
 | Despliegue, Dokploy o variables por servicio | [`conocimiento/deployment/dokploy.md`](./conocimiento/deployment/dokploy.md) |
 | Shell, navegación o sidebar Portal | [`conocimiento/ui/portal-sidebar.md`](./conocimiento/ui/portal-sidebar.md) |
 | Dirección y fases globales de V2 | [`planes/implementacion-v2.md`](./planes/implementacion-v2.md) |
 | Roles, sesión, Admin y Portal | [`planes/separacion-admin-portal.md`](./planes/separacion-admin-portal.md) |
 | Channels, providers, contratos y equivalencia Laravel | [`planes/channels-v2.md`](./planes/channels-v2.md) |
-| Prioridad y pendientes de providers Channels | [`planes/channels-providers.md`](./planes/channels-providers.md) |
+| Gobernanza documental y de agentes | [`planes/gobernanza-agentes-v2.md`](./planes/gobernanza-agentes-v2.md) |
 
 ## Estado de una referencia
 
-- **Conocimiento** describe la implementación observada; no sustituye revisar el código cuando una afirmación deba ser exacta.
+- **Conocimiento** describe implementación observada; no sustituye revisar el código cuando una afirmación deba ser exacta.
 - **Regla** es obligatoria mientras no sea reemplazada explícitamente.
-- **Plan** describe una decisión o intención. Sus checklists deben actualizarse al cerrar trabajo relevante.
+- **Plan** describe una decisión, equivalencia o intención. Sus checklists se marcan solo con evidencia de validación.
 
 ## Si no existe documentación
 
@@ -33,6 +37,6 @@ planes/        # decisiones, equivalencias Laravel → V2 y trabajo pendiente
 2. Buscar primero por nombre en `docs/` y después en código, schema y contratos.
 3. Para comportamiento heredado, auditar `ZapiSocial` antes de proponer equivalencia V2.
 4. Si la evidencia no resuelve la duda o el cambio es irreversible, pedir aclaración al usuario.
-5. Si se toma una decisión nueva o se inicia un módulo nuevo, crear o actualizar un documento breve en `planes/` con alcance, referencia y pendiente antes de implementar backend.
+5. Si se toma una decisión nueva o se inicia un módulo, crear o actualizar un plan breve en `planes/` con alcance, referencia, estado mock y pendiente antes de implementar backend.
 
 No almacenar secretos, tokens, datos de producción ni valores de `.env` en ningún documento.
