@@ -535,7 +535,7 @@ export function CaptionsLibraryPage() {
         </Button>
       </div>
       <section aria-label="Biblioteca de captions" className="space-y-5">
-        <div className="flex min-w-0 flex-1 flex-wrap gap-2">
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_12rem_12rem]">
           <div className="relative min-w-56 flex-1">
             <Search
               aria-hidden="true"
@@ -563,7 +563,7 @@ export function CaptionsLibraryPage() {
             }
             value={filters.sourceType}
           >
-            <SelectTrigger aria-label="Filtrar por origen" className="w-36">
+            <SelectTrigger aria-label="Filtrar por origen">
               <SelectValue placeholder="Origen" />
             </SelectTrigger>
             <SelectContent>
@@ -581,7 +581,7 @@ export function CaptionsLibraryPage() {
             }
             value={filters.status}
           >
-            <SelectTrigger aria-label="Filtrar por estado" className="w-36">
+            <SelectTrigger aria-label="Filtrar por estado">
               <SelectValue placeholder="Estado" />
             </SelectTrigger>
             <SelectContent>
@@ -595,12 +595,7 @@ export function CaptionsLibraryPage() {
 
         <CaptionMetricsGrid metrics={metrics} />
 
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-sm text-muted-foreground">
-            {filteredCaptions.length}{" "}
-            {filteredCaptions.length === 1 ? "caption" : "captions"} encontrado
-            {filteredCaptions.length === 1 ? "" : "s"}
-          </p>
+        <div className="flex justify-end">
           {filters.query ||
           filters.sourceType !== "all" ||
           filters.status !== "all" ? (

@@ -165,4 +165,17 @@
     min-height: 100dvh;
     font-synthesis: none;
   }
+
+  label:not(:has(.text-destructive)):has(input[required], textarea[required], select[required]) {
+    position: relative;
+  }
+
+  label:not(:has(.text-destructive)):has(input[required], textarea[required], select[required])::before {
+    content: "*";
+    color: var(--destructive);
+    font-weight: 600;
+    position: absolute;
+    top: 0;
+    left: -0.625rem;
+  }
 }
