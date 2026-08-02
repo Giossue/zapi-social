@@ -43,6 +43,8 @@ type GoWaResponse = {
   message?: string
 }
 
+class GoWaConnectorError extends Error {}
+
 @Injectable()
 export class WhatsAppStatusConnectionsService {
   constructor(
@@ -61,10 +63,10 @@ export class WhatsAppStatusConnectionsService {
 
     if (reconnect) await this.purgeDevice(configuration, this.deviceId(reconnect.metadata))
 
-    const deviceId = randomUUID()
+    let deviceId: string = randomUUID()
     const expiresAt = new Date(Date.now() + lifetimeMilliseconds)
     try {
-      await this.createDevice(configuration, deviceId)
+      deviceId = await this.createDevice(configuration, deviceId)
       const qrLink = await this.startQr(configuration, deviceId)
       const [connection] = await this.database.db
         .insert(channelConnectionSessions)
@@ -88,6 +90,7 @@ export class WhatsAppStatusConnectionsService {
       }
     } catch (error) {
       await this.purgeDevice(configuration, deviceId).catch(() => undefined)
+      if (error instanceof GoWaConnectorError) throw new ServiceUnavailableException()
       throw error
     }
   }
@@ -232,7 +235,12 @@ export class WhatsAppStatusConnectionsService {
   }
 
   private async createDevice(configuration: GoWaConfiguration, deviceId: string) {
-    await this.requestJson(configuration, '/devices', undefined, { method: 'POST', body: JSON.stringify({ device_id: deviceId }) })
+    const result = await this.requestJson(configuration, '/devices', undefined, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ device_id: deviceId }),
+    })
+    return this.firstString(result, ['results.id', 'results.device_id']) ?? deviceId
   }
 
   private async startQr(configuration: GoWaConfiguration, deviceId: string) {
@@ -249,7 +257,7 @@ export class WhatsAppStatusConnectionsService {
         // Fallback supported by legacy GOWA deployments.
       }
     }
-    throw new ServiceUnavailableException()
+    throw new GoWaConnectorError()
   }
 
   private async purgeDevice(configuration: GoWaConfiguration, deviceId: string | null) {
@@ -273,7 +281,7 @@ export class WhatsAppStatusConnectionsService {
       signal: AbortSignal.timeout(15_000),
     })
     const body: unknown = await response.json().catch(() => null)
-    if (!response.ok || !this.isSuccess(body)) throw new Error('GOWA request failed')
+    if (!response.ok || !this.isSuccess(body)) throw new GoWaConnectorError()
     return body
   }
 
