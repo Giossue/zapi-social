@@ -22,7 +22,7 @@ export function AdminDashboard() {
         {adminDashboardFixture.metrics.map((metric, index) => {
           const Icon = metricIcons[index] ?? Activity
           return (
-            <Card key={metric.label} variant="surface">
+            <Card key={metric.label} variant="subtle">
               <CardHeader className="gap-3">
                 <div className="flex items-center justify-between gap-3">
                   <CardDescription>{metric.label}</CardDescription>
@@ -37,7 +37,7 @@ export function AdminDashboard() {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
-        <Card variant="surface">
+        <Card variant="subtle">
           <CardHeader>
             <CardTitle>Atención operativa</CardTitle>
             <CardDescription>Prioridades de configuración global. Datos de muestra mientras se conecta el módulo administrativo.</CardDescription>
@@ -59,7 +59,7 @@ export function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card variant="surface">
+        <Card variant="subtle">
           <CardHeader>
             <CardTitle>Acceso rápido</CardTitle>
             <CardDescription>Gestiona los proveedores que habilitan los canales para todos los clientes.</CardDescription>

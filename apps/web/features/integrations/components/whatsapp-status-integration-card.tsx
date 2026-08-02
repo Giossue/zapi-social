@@ -241,7 +241,7 @@ export function WhatsAppStatusIntegrationCard() {
 
   return (
     <>
-      <Card variant="surface">
+      <Card variant="subtle">
         <CardHeader className="gap-4 border-b border-border pb-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0 space-y-2">
