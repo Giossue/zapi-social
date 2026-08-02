@@ -160,7 +160,7 @@ export class WhatsAppProfileSyncProcessor extends WorkerHost {
     deviceId: string,
     account: WhatsAppAccount,
   ): Promise<ProfileSnapshot> {
-    const info = await this.requestJson(configuration, '/user/info', deviceId)
+    const info = await this.requestJson(configuration, '/user/info', deviceId).catch(() => ({}))
     const infoDisplayName = this.firstString(info, [
       'results.verified_name',
       'results.push_name',
@@ -171,7 +171,7 @@ export class WhatsAppProfileSyncProcessor extends WorkerHost {
     const knownPhone = this.firstString(account.metadata, ['phoneNumber']) ?? account.handle
 
     const device = !infoDisplayName || !infoPhone
-      ? await this.requestJson(configuration, `/devices/${encodeURIComponent(deviceId)}`, deviceId)
+      ? await this.requestJson(configuration, `/devices/${encodeURIComponent(deviceId)}`, undefined).catch(() => ({}))
       : null
     const displayName = infoDisplayName ?? this.firstString(device, [
       'results.verified_name',
@@ -220,14 +220,14 @@ export class WhatsAppProfileSyncProcessor extends WorkerHost {
     `
   }
 
-  private async requestJson(configuration: GoWaConfiguration, path: string, deviceId: string): Promise<GoWaResponse> {
+  private async requestJson(configuration: GoWaConfiguration, path: string, deviceId?: string): Promise<GoWaResponse> {
     let response: Response
     try {
       response = await fetch(new URL(path.replace(/^\/+/, ''), `${configuration.baseUrl}/`), {
         headers: {
           accept: 'application/json',
           authorization: `Basic ${Buffer.from(`${configuration.basicAuthUsername}:${configuration.basicAuthPassword}`).toString('base64')}`,
-          'x-device-id': deviceId,
+          ...(deviceId ? { 'x-device-id': deviceId } : {}),
         },
         redirect: 'error',
         signal: AbortSignal.timeout(10_000),
