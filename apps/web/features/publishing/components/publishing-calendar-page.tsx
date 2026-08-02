@@ -31,6 +31,7 @@ import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { PublishingAccountPicker } from "@/features/publishing/components/publishing-account-picker"
 import { PublishingNetworkPreview } from "@/features/publishing/components/publishing-network-preview"
+import { PublishingMediaPicker } from "@/features/publishing/components/publishing-media-picker"
 import { PublishingSchedulePicker } from "@/features/publishing/components/publishing-schedule-picker"
 import {
   PublishingMetrics,
@@ -186,7 +187,10 @@ function ComposerDialog({
           .map((account) => account.id)
       : []
   )
-  const [hasMedia, setHasMedia] = useState(() => editingPost?.hasMedia ?? false)
+  const [selectedMediaAssetId, setSelectedMediaAssetId] = useState<
+    string | null
+  >(() => (editingPost?.hasMedia ? "campaign-launch" : null))
+  const hasMedia = selectedMediaAssetId !== null
   const [mode, setMode] = useState<ComposerMode>(() =>
     editingPost?.status === "draft" ? "draft" : "schedule"
   )
@@ -246,30 +250,10 @@ function ComposerDialog({
 
             <div className="flex flex-col gap-2">
               <p className="text-sm font-medium">Media</p>
-              <Card variant="inset">
-                <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="flex items-start gap-3">
-                    <ImagePlus
-                      aria-hidden="true"
-                      className="mt-0.5 size-5 text-muted-foreground"
-                    />
-                    <div>
-                      <p className="text-sm font-medium">Archivo desde Files</p>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        Mock: selecciona una imagen o video autorizado del
-                        espacio.
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    onClick={() => setHasMedia((current) => !current)}
-                    size="sm"
-                    variant="brand-secondary"
-                  >
-                    {hasMedia ? "Quitar archivo" : "Añadir archivo"}
-                  </Button>
-                </CardContent>
-              </Card>
+              <PublishingMediaPicker
+                onChange={setSelectedMediaAssetId}
+                selectedAssetId={selectedMediaAssetId}
+              />
             </div>
 
             <div className="flex flex-col gap-2">
