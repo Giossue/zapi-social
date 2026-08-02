@@ -158,6 +158,11 @@ export const whatsappStatusQrResponseSchema = z.object({
   qrEndpoint: z.string().startsWith("/v1/portal/channel-connections/"),
 })
 
+export const requestPortalChannelProfileSyncResponseSchema = z.object({
+  acceptedAt: z.string().datetime(),
+  nextAllowedAt: z.string().datetime(),
+})
+
 export const portalChannelConnectionStatusResponseSchema = z.object({
   connection: portalChannelConnectionSchema,
   account: portalChannelAccountSchema.nullable(),
@@ -203,4 +208,7 @@ export type StartWhatsAppStatusConnectionInput = z.infer<
 >
 export type WhatsAppStatusQrResponse = z.infer<
   typeof whatsappStatusQrResponseSchema
+>
+export type RequestPortalChannelProfileSyncResponse = z.infer<
+  typeof requestPortalChannelProfileSyncResponseSchema
 >

@@ -40,6 +40,8 @@ La sincronización de foto, nombre y handle es un proceso global del worker; nun
 
 Cada cuenta guarda en `social_accounts.metadata.profileSyncDueAt` su próxima revisión. El worker actualiza ese vencimiento después de un sync correcto y conserva `channel_sync_runs` como auditoría segura. No guarda tokens ni payloads completos en logs o metadata de runs.
 
+Portal informa que los cambios de perfil pueden tardar hasta 24 horas. Un manager puede solicitar `POST /v1/portal/channels/:id/profile-sync` para Meta o WhatsApp Status; API solo encola el job y aplica un cooldown atómico de 15 minutos por cuenta mediante `metadata.profileManualRefreshRequestedAt`.
+
 ### Meta implementado
 
 Meta usa el page access token cifrado de `social_account_credentials` y actualiza únicamente campos que hayan cambiado:

@@ -244,12 +244,14 @@ function ChannelAccountCard({
   onDelete,
   onEdit,
   onReconnect,
+  onProfileSync,
   pending,
 }: {
   account: PortalChannelAccount
   onDelete: (account: PortalChannelAccount) => void
   onEdit: (account: PortalChannelAccount) => void
   onReconnect: (account: PortalChannelAccount) => void
+  onProfileSync: (account: PortalChannelAccount) => void
   pending: boolean
 }) {
   const disconnected = account.status === "disconnected"
@@ -300,6 +302,14 @@ function ChannelAccountCard({
                 >
                   <Pencil />
                   Editar
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={pending}
+                  onSelect={() => onProfileSync(account)}
+                  size="compact"
+                >
+                  <RefreshCw />
+                  Actualizar perfil
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-destructive focus:text-destructive"
@@ -725,6 +735,23 @@ export function LiveChannelsPage() {
     }
   }
 
+  async function refreshProfile(account: PortalChannelAccount) {
+    setPendingAccountId(account.id)
+    try {
+      await channelsApi.requestProfileSync(account.id)
+      toast.success("Actualización de perfil programada. Puede tardar unos minutos.")
+    } catch (error) {
+      if (error instanceof ApiError && error.code === "CHANNEL_PROFILE_SYNC_COOLDOWN") {
+        toast.error("Ya solicitaste una actualización. Inténtalo de nuevo en 15 minutos.")
+      } else {
+        console.error("Channel profile sync request failed", error)
+        toast.error("No pudimos programar la actualización del perfil.")
+      }
+    } finally {
+      setPendingAccountId(null)
+    }
+  }
+
   async function renameAccount(displayName: string) {
     if (!editingAccount) return
     setPendingAccountId(editingAccount.id)
@@ -821,6 +848,7 @@ export function LiveChannelsPage() {
             value={summary.disconnected}
           />
         </div>
+        <p className="text-sm text-muted-foreground">La información de perfil se actualiza automáticamente cada 24 horas. También puedes solicitar una actualización por canal cada 15 minutos.</p>
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_12rem_14rem_12rem]">
           <div className="relative">
             <Search
@@ -905,6 +933,7 @@ export function LiveChannelsPage() {
                 onDelete={setDeletingAccount}
                 onEdit={setEditingAccount}
                 onReconnect={(account) => void reconnect(account)}
+                onProfileSync={(account) => void refreshProfile(account)}
                 pending={pendingAccountId === account.id}
               />
             ))}

@@ -1,4 +1,4 @@
-import { HttpException, type HttpStatus } from '@nestjs/common';
+import { HttpException, type HttpStatus } from '@nestjs/common'
 
 export type AppErrorCode =
   | 'AUTH_EMAIL_ALREADY_REGISTERED'
@@ -8,6 +8,9 @@ export type AppErrorCode =
   | 'AUTH_ADMIN_ACCESS_REQUIRED'
   | 'AUTH_PORTAL_ACCESS_REQUIRED'
   | 'AUTH_WORKSPACE_UNAVAILABLE'
+  | 'CHANNEL_PROFILE_SYNC_COOLDOWN'
+  | 'CHANNEL_PROFILE_SYNC_UNAVAILABLE'
+  | 'CHANNEL_PROFILE_SYNC_UNSUPPORTED'
   | 'OAUTH_CALLBACK_INVALID'
   | 'OAUTH_PROVIDER_CONFIGURATION_INVALID'
   | 'OAUTH_PROVIDER_NOT_READY'
@@ -18,13 +21,13 @@ export type AppErrorCode =
   | 'VALIDATION_FAILED'
   | 'INFRASTRUCTURE_UNAVAILABLE'
   | 'INTERNAL_SERVER_ERROR'
-  | 'REQUEST_FAILED';
+  | 'REQUEST_FAILED'
 
 export class AppException extends HttpException {
   constructor(
     readonly code: AppErrorCode,
     status: HttpStatus,
   ) {
-    super({ code }, status);
+    super({ code }, status)
   }
 }

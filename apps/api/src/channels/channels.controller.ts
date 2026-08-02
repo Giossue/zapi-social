@@ -18,6 +18,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify'
 import { SessionAccessService } from '../identity/session-access.service'
 import { ChannelConnectionsService } from './channel-connections.service'
 import { ChannelsService } from './channels.service'
+import { ProfileSyncService } from './profile-sync.service'
 import { WhatsAppStatusConnectionsService } from './whatsapp-status-connections.service'
 
 @ApiTags('portal-channels-v2')
@@ -26,6 +27,7 @@ export class ChannelsController {
   constructor(
     private readonly channels: ChannelsService,
     private readonly connections: ChannelConnectionsService,
+    private readonly profileSyncService: ProfileSyncService,
     private readonly access: SessionAccessService,
   ) {}
 
@@ -48,6 +50,15 @@ export class ChannelsController {
   @Post(':id/reconnect')
   async reconnect(@Req() request: FastifyRequest, @Param('id') id: string) {
     return this.connections.reconnect(await this.access.requirePortalSession(request), id)
+  }
+
+  @Post(':id/profile-sync')
+  @HttpCode(HttpStatus.ACCEPTED)
+  async profileSync(@Req() request: FastifyRequest, @Param('id') id: string) {
+    return this.profileSyncService.requestManualSync(
+      await this.access.requirePortalSession(request),
+      id,
+    )
   }
 }
 

@@ -16,6 +16,7 @@ import type {
   PortalChannelsResponse,
   PortalDashboard,
   RegisterInput,
+  RequestPortalChannelProfileSyncResponse,
   StartPortalChannelConnectionInput,
   StartWhatsAppStatusConnectionInput,
   WhatsAppStatusQrResponse,
@@ -168,6 +169,11 @@ export const channelsApi = {
   reconnect: (id: string) =>
     request<PortalChannelConnectionStartResponse>(
       `/v1/portal/channels/${id}/reconnect`,
+      { method: "POST" }
+    ),
+  requestProfileSync: (id: string) =>
+    request<RequestPortalChannelProfileSyncResponse>(
+      `/v1/portal/channels/${id}/profile-sync`,
       { method: "POST" }
     ),
 }

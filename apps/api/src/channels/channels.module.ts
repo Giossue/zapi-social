@@ -1,3 +1,4 @@
+import { BullModule } from '@nestjs/bullmq'
 import { Module } from '@nestjs/common'
 import { IdentityModule } from '../identity/identity.module'
 import { IntegrationsModule } from '../integrations/integrations.module'
@@ -11,10 +12,21 @@ import {
   ChannelOAuthRedirectController,
 } from './oauth/channel-oauth.controller'
 import { ChannelOAuthService } from './oauth/channel-oauth.service'
+import { ProfileSyncService } from './profile-sync.service'
 import { WhatsAppStatusConnectionsService } from './whatsapp-status-connections.service'
 
+const META_PROFILE_SYNC_QUEUE = 'meta-profile-sync'
+const WHATSAPP_PROFILE_SYNC_QUEUE = 'whatsapp-profile-sync'
+
 @Module({
-  imports: [IdentityModule, IntegrationsModule],
+  imports: [
+    IdentityModule,
+    IntegrationsModule,
+    BullModule.registerQueue(
+      { name: META_PROFILE_SYNC_QUEUE },
+      { name: WHATSAPP_PROFILE_SYNC_QUEUE },
+    ),
+  ],
   controllers: [
     ChannelsController,
     ChannelConnectionsController,
@@ -28,6 +40,7 @@ import { WhatsAppStatusConnectionsService } from './whatsapp-status-connections.
     WhatsAppStatusConnectionsService,
     ChannelOAuthService,
     ChannelOAuthAuthorizationService,
+    ProfileSyncService,
   ],
 })
 export class ChannelsModule {}
