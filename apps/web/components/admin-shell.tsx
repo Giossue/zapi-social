@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { Menu, PanelLeftClose, X } from "lucide-react"
 
 import { Button } from "@workspace/ui/components/button"
+import { ScrollArea } from "@workspace/ui/components/scroll-area"
 
 import { AccountMenu } from "@/components/account-menu"
 import {
@@ -81,46 +82,48 @@ function AdminSidebarContent({ pathname }: { pathname: string }) {
           <X />
         </Button>
       </SidebarHeader>
-      <SidebarContent className="mt-5 -mr-2 pr-2">
-        <nav
-          aria-label="Navegación administrativa"
-          className="flex flex-col gap-3 pb-3"
-        >
-          {adminNavigationGroups.map((group) => (
-            <SidebarGroup
-              key={group.label}
-              aria-label={group.label}
-              className="p-0"
-            >
-              <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
-              <SidebarMenu>
-                {group.items.map((item) => {
-                  const active = isAdminNavigationItemActive(item, pathname)
-                  const Icon = item.icon
+      <SidebarContent className="mt-5 min-h-0">
+        <ScrollArea className="-mr-2 min-h-0 flex-1 pr-2">
+          <nav
+            aria-label="Navegación administrativa"
+            className="flex flex-col gap-3 pb-3"
+          >
+            {adminNavigationGroups.map((group) => (
+              <SidebarGroup
+                key={group.label}
+                aria-label={group.label}
+                className="p-0"
+              >
+                <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+                <SidebarMenu>
+                  {group.items.map((item) => {
+                    const active = isAdminNavigationItemActive(item, pathname)
+                    const Icon = item.icon
 
-                  return (
-                    <SidebarMenuItem key={item.href}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={active}
-                        tooltip={item.label}
-                      >
-                        <Link
-                          aria-current={active ? "page" : undefined}
-                          href={item.href}
-                          onClick={() => setMobileOpen(false)}
+                    return (
+                      <SidebarMenuItem key={item.href}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={active}
+                          tooltip={item.label}
                         >
-                          <Icon />
-                          <span>{item.label}</span>
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )
-                })}
-              </SidebarMenu>
-            </SidebarGroup>
-          ))}
-        </nav>
+                          <Link
+                            aria-current={active ? "page" : undefined}
+                            href={item.href}
+                            onClick={() => setMobileOpen(false)}
+                          >
+                            <Icon />
+                            <span>{item.label}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    )
+                  })}
+                </SidebarMenu>
+              </SidebarGroup>
+            ))}
+          </nav>
+        </ScrollArea>
       </SidebarContent>
     </>
   )

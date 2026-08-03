@@ -19,7 +19,7 @@
 6. La navegación usa `SidebarMenuButton` y `SidebarMenuSubButton`, que internamente componen el primitive `Button` de `packages/ui` con variantes `sidebar` y `sidebar-active`; drawer y controles secundarios usan `variant="brand-secondary"`.
 7. El estado compacto se expresa con `data-collapsible="icon"` en el contenedor del sidebar; los primitives usan selectores `group-data` para ocultar etiquetas, grupos y submenús sin layout paralelo.
 8. Cada `SidebarMenuButton` conserva montados `TooltipTrigger` y `TooltipContent`; el tooltip se habilita solo en modo compacto, para que su identidad DOM permanezca estable al alternar el ancho.
-9. `SidebarContent` mantiene el scroll del panel con overflow nativo, sin montar una navegación paralela.
+9. `SidebarContent` delega el scroll a `ScrollArea` de `packages/ui`; el viewport se conserva operativo también con `data-collapsible="icon"`.
 10. Visibilidad por plan, equipo y permisos sigue mock: opciones visibles para diseñar módulos primero.
 11. Portal y Admin persisten el estado contraído en `localStorage` versionado: `zapi:portal-sidebar:v1` y `zapi:admin-sidebar:v1`.
 12. El panel móvil se abre siempre expandido aunque el estado persistido de escritorio sea contraído; cerrar o navegar vuelve a ocultarlo sin modificar esa preferencia.

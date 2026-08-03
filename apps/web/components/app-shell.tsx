@@ -7,6 +7,7 @@ import { useState } from "react"
 import { Bell, ChevronDown, Menu, PanelLeftClose, X } from "lucide-react"
 
 import { Button } from "@workspace/ui/components/button"
+import { ScrollArea } from "@workspace/ui/components/scroll-area"
 
 import { AccountMenu } from "@/components/account-menu"
 import {
@@ -92,107 +93,109 @@ function PortalSidebarContent({ pathname }: { pathname: string }) {
         </Button>
       </SidebarHeader>
 
-      <SidebarContent className="mt-5 -mr-2 pr-2">
-        <nav
-          aria-label="Navegación del portal"
-          className="flex flex-col gap-3 pb-3"
-        >
-          {portalNavigationGroups.map((group) => (
-            <SidebarGroup
-              key={group.label}
-              aria-label={group.label}
-              className="p-0"
-            >
-              <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
-              <SidebarMenu>
-                {group.items.map((item) => {
-                  const children =
-                    "children" in item ? item.children : undefined
-                  const hasActiveChild = children?.some((child) =>
-                    isPortalNavigationItemActive(child, pathname)
-                  )
-                  const active =
-                    isPortalNavigationItemActive(item, pathname) ||
-                    hasActiveChild
-                  const expanded =
-                    expandedItems[item.label] ?? hasActiveChild ?? false
-                  const Icon = item.icon
+      <SidebarContent className="mt-5 min-h-0">
+        <ScrollArea className="-mr-2 min-h-0 flex-1 pr-2">
+          <nav
+            aria-label="Navegación del portal"
+            className="flex flex-col gap-3 pb-3"
+          >
+            {portalNavigationGroups.map((group) => (
+              <SidebarGroup
+                key={group.label}
+                aria-label={group.label}
+                className="p-0"
+              >
+                <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+                <SidebarMenu>
+                  {group.items.map((item) => {
+                    const children =
+                      "children" in item ? item.children : undefined
+                    const hasActiveChild = children?.some((child) =>
+                      isPortalNavigationItemActive(child, pathname)
+                    )
+                    const active =
+                      isPortalNavigationItemActive(item, pathname) ||
+                      hasActiveChild
+                    const expanded =
+                      expandedItems[item.label] ?? hasActiveChild ?? false
+                    const Icon = item.icon
 
-                  return (
-                    <SidebarMenuItem key={item.label}>
-                      {"href" in item ? (
-                        <SidebarMenuButton
-                          asChild
-                          isActive={active}
-                          tooltip={item.label}
-                        >
-                          <Link
-                            aria-current={active ? "page" : undefined}
-                            href={item.href}
-                            onClick={() => setMobileOpen(false)}
+                    return (
+                      <SidebarMenuItem key={item.label}>
+                        {"href" in item ? (
+                          <SidebarMenuButton
+                            asChild
+                            isActive={active}
+                            tooltip={item.label}
+                          >
+                            <Link
+                              aria-current={active ? "page" : undefined}
+                              href={item.href}
+                              onClick={() => setMobileOpen(false)}
+                            >
+                              {Icon ? <Icon /> : null}
+                              <span>{item.label}</span>
+                            </Link>
+                          </SidebarMenuButton>
+                        ) : (
+                          <SidebarMenuButton
+                            aria-expanded={expanded}
+                            aria-label={
+                              compact ? `Expandir ${item.label}` : undefined
+                            }
+                            isActive={active}
+                            onClick={() => {
+                              if (compact) setCollapsed(false)
+                              setExpandedItems((current) => ({
+                                ...current,
+                                [item.label]: !expanded,
+                              }))
+                            }}
+                            tooltip={item.label}
                           >
                             {Icon ? <Icon /> : null}
                             <span>{item.label}</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      ) : (
-                        <SidebarMenuButton
-                          aria-expanded={expanded}
-                          aria-label={
-                            compact ? `Expandir ${item.label}` : undefined
-                          }
-                          isActive={active}
-                          onClick={() => {
-                            if (compact) setCollapsed(false)
-                            setExpandedItems((current) => ({
-                              ...current,
-                              [item.label]: !expanded,
-                            }))
-                          }}
-                          tooltip={item.label}
-                        >
-                          {Icon ? <Icon /> : null}
-                          <span>{item.label}</span>
-                          <ChevronDown className="ml-auto transition-transform duration-200 ease-out group-aria-expanded/button:rotate-180 group-data-[collapsible=icon]/sidebar:hidden motion-reduce:transition-none" />
-                        </SidebarMenuButton>
-                      )}
+                            <ChevronDown className="ml-auto transition-transform duration-200 ease-out group-aria-expanded/button:rotate-180 group-data-[collapsible=icon]/sidebar:hidden motion-reduce:transition-none" />
+                          </SidebarMenuButton>
+                        )}
 
-                      {children && expanded ? (
-                        <SidebarMenuSub>
-                          {children.map((child) => {
-                            const childActive = isPortalNavigationItemActive(
-                              child,
-                              pathname
-                            )
+                        {children && expanded ? (
+                          <SidebarMenuSub>
+                            {children.map((child) => {
+                              const childActive = isPortalNavigationItemActive(
+                                child,
+                                pathname
+                              )
 
-                            return (
-                              <SidebarMenuSubItem key={child.href}>
-                                <SidebarMenuSubButton
-                                  asChild
-                                  isActive={childActive}
-                                >
-                                  <Link
-                                    aria-current={
-                                      childActive ? "page" : undefined
-                                    }
-                                    href={child.href}
-                                    onClick={() => setMobileOpen(false)}
+                              return (
+                                <SidebarMenuSubItem key={child.href}>
+                                  <SidebarMenuSubButton
+                                    asChild
+                                    isActive={childActive}
                                   >
-                                    {child.label}
-                                  </Link>
-                                </SidebarMenuSubButton>
-                              </SidebarMenuSubItem>
-                            )
-                          })}
-                        </SidebarMenuSub>
-                      ) : null}
-                    </SidebarMenuItem>
-                  )
-                })}
-              </SidebarMenu>
-            </SidebarGroup>
-          ))}
-        </nav>
+                                    <Link
+                                      aria-current={
+                                        childActive ? "page" : undefined
+                                      }
+                                      href={child.href}
+                                      onClick={() => setMobileOpen(false)}
+                                    >
+                                      {child.label}
+                                    </Link>
+                                  </SidebarMenuSubButton>
+                                </SidebarMenuSubItem>
+                              )
+                            })}
+                          </SidebarMenuSub>
+                        ) : null}
+                      </SidebarMenuItem>
+                    )
+                  })}
+                </SidebarMenu>
+              </SidebarGroup>
+            ))}
+          </nav>
+        </ScrollArea>
       </SidebarContent>
     </>
   )

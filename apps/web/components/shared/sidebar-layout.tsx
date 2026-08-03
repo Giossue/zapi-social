@@ -144,10 +144,7 @@ export function SidebarHeader({ className, ...props }: ComponentProps<"div">) {
 export function SidebarContent({ className, ...props }: ComponentProps<"div">) {
   return (
     <div
-      className={cn(
-        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]/sidebar:overflow-hidden",
-        className
-      )}
+      className={cn("flex min-h-0 flex-1 flex-col gap-2", className)}
       data-slot="sidebar-content"
       {...props}
     />
