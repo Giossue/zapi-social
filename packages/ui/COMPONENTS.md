@@ -20,6 +20,7 @@ Este documento no sustituye el código: debe actualizarse cuando se agregue, ret
 | `Popover`           | `@workspace/ui/components/popover`       | Contenido contextual anclado; usar como contenedor de Calendar y controles compactos.             |
 | `ScrollArea`        | `@workspace/ui/components/scroll-area`   | Regiones con scroll contenido.                                                                    |
 | `Select`            | `@workspace/ui/components/select`        | Selecciones con opciones acotadas.                                                                |
+| `Sidebar`           | `@workspace/ui/components/sidebar`       | Shell de navegación responsive con provider controlado, drawer móvil y cierre desktop offcanvas.  |
 | `Skeleton`          | `@workspace/ui/components/skeleton`      | Estado loading que conserva la forma del contenido.                                               |
 | `Switch`            | `@workspace/ui/components/switch`        | Ajustes binarios inmediatos.                                                                      |
 | `Tabs`              | `@workspace/ui/components/tabs`          | Áreas de configuración estrechamente relacionadas.                                                |

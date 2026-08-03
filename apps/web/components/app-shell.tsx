@@ -4,12 +4,10 @@ import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
-import { Bell, ChevronDown, Menu, PanelLeftClose, X } from "lucide-react"
+import { Bell, ChevronDown } from "lucide-react"
 
 import { Button } from "@workspace/ui/components/button"
 import { ScrollArea } from "@workspace/ui/components/scroll-area"
-
-import { AccountMenu } from "@/components/account-menu"
 import {
   Sidebar,
   SidebarContent,
@@ -26,7 +24,9 @@ import {
   SidebarProvider,
   SidebarTrigger,
   useSidebar,
-} from "@/components/shared/sidebar-layout"
+} from "@workspace/ui/components/sidebar"
+
+import { AccountMenu } from "@/components/account-menu"
 import { usePersistedSidebarState } from "@/hooks/use-persisted-sidebar-state"
 import {
   getPortalNavigationItem,
@@ -46,18 +46,13 @@ function PortalSidebarContent({ pathname }: { pathname: string }) {
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
     {}
   )
-  const { compact, setCollapsed, setMobileOpen } = useSidebar()
+  const { setOpenMobile } = useSidebar()
 
   return (
     <>
       <SidebarHeader className="relative h-11 p-0">
-        <SidebarMenuButton
-          asChild
-          className="h-9"
-          tooltip="Zapi Social"
-          variant="sidebar"
-        >
-          <Link href="/portal/dashboard" onClick={() => setMobileOpen(false)}>
+        <SidebarMenuButton asChild className="h-9" tooltip="Zapi Social">
+          <Link href="/portal/dashboard" onClick={() => setOpenMobile(false)}>
             <Image
               alt="Zapi Social"
               className="size-9 shrink-0 rounded-lg"
@@ -65,7 +60,7 @@ function PortalSidebarContent({ pathname }: { pathname: string }) {
               src="/brand/logo-brand-dark.png"
               width={36}
             />
-            <span className="flex min-w-0 flex-col items-start group-data-[collapsible=icon]/sidebar:hidden">
+            <span className="flex min-w-0 flex-col items-start">
               <span className="truncate text-sm font-semibold">
                 Zapi Social
               </span>
@@ -73,24 +68,12 @@ function PortalSidebarContent({ pathname }: { pathname: string }) {
             </span>
           </Link>
         </SidebarMenuButton>
-        <Button
-          aria-label={compact ? "Expandir navegación" : "Contraer navegación"}
-          className="absolute top-1/2 right-0 hidden -translate-y-1/2 group-data-[collapsible=icon]/sidebar:-right-4 lg:inline-flex"
-          onClick={() => setCollapsed((value) => !value)}
-          size="icon"
-          variant="brand-secondary"
-        >
-          <PanelLeftClose className="transition-transform duration-200 ease-out group-data-[collapsible=icon]/sidebar:rotate-180 motion-reduce:transition-none" />
-        </Button>
-        <Button
+        <SidebarTrigger
           aria-label="Cerrar navegación"
           className="absolute top-1/2 right-0 -translate-y-1/2 lg:hidden"
-          onClick={() => setMobileOpen(false)}
           size="icon"
           variant="brand-secondary"
-        >
-          <X />
-        </Button>
+        />
       </SidebarHeader>
 
       <SidebarContent className="mt-5 min-h-0">
@@ -131,7 +114,7 @@ function PortalSidebarContent({ pathname }: { pathname: string }) {
                             <Link
                               aria-current={active ? "page" : undefined}
                               href={item.href}
-                              onClick={() => setMobileOpen(false)}
+                              onClick={() => setOpenMobile(false)}
                             >
                               {Icon ? <Icon /> : null}
                               <span>{item.label}</span>
@@ -140,12 +123,8 @@ function PortalSidebarContent({ pathname }: { pathname: string }) {
                         ) : (
                           <SidebarMenuButton
                             aria-expanded={expanded}
-                            aria-label={
-                              compact ? `Expandir ${item.label}` : undefined
-                            }
                             isActive={active}
                             onClick={() => {
-                              if (compact) setCollapsed(false)
                               setExpandedItems((current) => ({
                                 ...current,
                                 [item.label]: !expanded,
@@ -155,7 +134,7 @@ function PortalSidebarContent({ pathname }: { pathname: string }) {
                           >
                             {Icon ? <Icon /> : null}
                             <span>{item.label}</span>
-                            <ChevronDown className="ml-auto transition-transform duration-200 ease-out group-aria-expanded/button:rotate-180 group-data-[collapsible=icon]/sidebar:hidden motion-reduce:transition-none" />
+                            <ChevronDown className="ml-auto transition-transform duration-200 ease-out group-aria-expanded/menu-button:rotate-180 motion-reduce:transition-none" />
                           </SidebarMenuButton>
                         )}
 
@@ -178,7 +157,7 @@ function PortalSidebarContent({ pathname }: { pathname: string }) {
                                         childActive ? "page" : undefined
                                       }
                                       href={child.href}
-                                      onClick={() => setMobileOpen(false)}
+                                      onClick={() => setOpenMobile(false)}
                                     >
                                       {child.label}
                                     </Link>
@@ -213,21 +192,25 @@ export function AppShell({ children, profile }: AppShellProps) {
       : (currentItem?.label ?? "Portal")
 
   return (
-    <SidebarProvider collapsed={collapsed} onCollapsedChange={setCollapsed}>
-      <Sidebar aria-label="Navegación principal del portal">
+    <SidebarProvider
+      open={!collapsed}
+      onOpenChange={(open) => setCollapsed(!open)}
+    >
+      <Sidebar
+        collapsible="offcanvas"
+        aria-label="Navegación principal del portal"
+      >
         <PortalSidebarContent pathname={pathname} />
       </Sidebar>
       <SidebarInset>
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-sidebar-border bg-sidebar px-4 lg:px-8">
           <div className="flex items-center gap-3">
             <SidebarTrigger
-              aria-label="Abrir navegación"
+              aria-label="Alternar navegación"
               className="shrink-0"
               size="icon"
               variant="brand-secondary"
-            >
-              <Menu />
-            </SidebarTrigger>
+            />
             <div>
               <p className="text-xs text-muted-foreground">Portal</p>
               <h1 className="text-sm font-semibold">{pageLabel}</h1>
@@ -244,9 +227,9 @@ export function AppShell({ children, profile }: AppShellProps) {
             <AccountMenu profile={profile} />
           </div>
         </header>
-        <main className="mx-auto w-full max-w-7xl p-4 sm:p-6 lg:p-8">
+        <div className="mx-auto w-full max-w-7xl p-4 sm:p-6 lg:p-8">
           {children}
-        </main>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   )

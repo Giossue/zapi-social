@@ -3,12 +3,8 @@
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Menu, PanelLeftClose, X } from "lucide-react"
 
-import { Button } from "@workspace/ui/components/button"
 import { ScrollArea } from "@workspace/ui/components/scroll-area"
-
-import { AccountMenu } from "@/components/account-menu"
 import {
   Sidebar,
   SidebarContent,
@@ -22,7 +18,9 @@ import {
   SidebarProvider,
   SidebarTrigger,
   useSidebar,
-} from "@/components/shared/sidebar-layout"
+} from "@workspace/ui/components/sidebar"
+
+import { AccountMenu } from "@/components/account-menu"
 import { usePersistedSidebarState } from "@/hooks/use-persisted-sidebar-state"
 import {
   adminNavigationGroups,
@@ -36,18 +34,13 @@ type AdminShellProps = {
 }
 
 function AdminSidebarContent({ pathname }: { pathname: string }) {
-  const { compact, setCollapsed, setMobileOpen } = useSidebar()
+  const { setOpenMobile } = useSidebar()
 
   return (
     <>
       <SidebarHeader className="relative h-11 p-0">
-        <SidebarMenuButton
-          asChild
-          className="h-9"
-          tooltip="Zapi Social"
-          variant="sidebar"
-        >
-          <Link href="/admin" onClick={() => setMobileOpen(false)}>
+        <SidebarMenuButton asChild className="h-9" tooltip="Zapi Social">
+          <Link href="/admin" onClick={() => setOpenMobile(false)}>
             <Image
               alt="Zapi Social"
               className="size-9 shrink-0 rounded-lg"
@@ -55,7 +48,7 @@ function AdminSidebarContent({ pathname }: { pathname: string }) {
               src="/brand/logo-brand-dark.png"
               width={36}
             />
-            <span className="flex min-w-0 flex-col items-start group-data-[collapsible=icon]/sidebar:hidden">
+            <span className="flex min-w-0 flex-col items-start">
               <span className="truncate text-sm font-semibold">
                 Zapi Social
               </span>
@@ -63,24 +56,12 @@ function AdminSidebarContent({ pathname }: { pathname: string }) {
             </span>
           </Link>
         </SidebarMenuButton>
-        <Button
-          aria-label={compact ? "Expandir navegación" : "Contraer navegación"}
-          className="absolute top-1/2 right-0 hidden -translate-y-1/2 group-data-[collapsible=icon]/sidebar:-right-4 lg:inline-flex"
-          onClick={() => setCollapsed((value) => !value)}
-          size="icon"
-          variant="brand-secondary"
-        >
-          <PanelLeftClose className="transition-transform duration-200 ease-out group-data-[collapsible=icon]/sidebar:rotate-180 motion-reduce:transition-none" />
-        </Button>
-        <Button
+        <SidebarTrigger
           aria-label="Cerrar navegación"
           className="absolute top-1/2 right-0 -translate-y-1/2 lg:hidden"
-          onClick={() => setMobileOpen(false)}
           size="icon"
           variant="brand-secondary"
-        >
-          <X />
-        </Button>
+        />
       </SidebarHeader>
       <SidebarContent className="mt-5 min-h-0">
         <ScrollArea className="-mr-2 min-h-0 flex-1 pr-2">
@@ -110,7 +91,7 @@ function AdminSidebarContent({ pathname }: { pathname: string }) {
                           <Link
                             aria-current={active ? "page" : undefined}
                             href={item.href}
-                            onClick={() => setMobileOpen(false)}
+                            onClick={() => setOpenMobile(false)}
                           >
                             <Icon />
                             <span>{item.label}</span>
@@ -137,21 +118,25 @@ export function AdminShell({ children, profile }: AdminShellProps) {
   const currentItem = getAdminNavigationItem(pathname)
 
   return (
-    <SidebarProvider collapsed={collapsed} onCollapsedChange={setCollapsed}>
-      <Sidebar aria-label="Navegación principal de la plataforma">
+    <SidebarProvider
+      open={!collapsed}
+      onOpenChange={(open) => setCollapsed(!open)}
+    >
+      <Sidebar
+        collapsible="offcanvas"
+        aria-label="Navegación principal de la plataforma"
+      >
         <AdminSidebarContent pathname={pathname} />
       </Sidebar>
       <SidebarInset>
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-sidebar-border bg-sidebar px-4 sm:px-5 lg:px-8">
           <div className="flex items-center gap-3">
             <SidebarTrigger
-              aria-label="Abrir navegación"
+              aria-label="Alternar navegación"
               className="shrink-0"
               size="icon"
               variant="brand-secondary"
-            >
-              <Menu />
-            </SidebarTrigger>
+            />
             <div>
               <p className="text-xs text-muted-foreground">Plataforma</p>
               <h1 className="text-sm font-semibold">
@@ -161,9 +146,9 @@ export function AdminShell({ children, profile }: AdminShellProps) {
           </div>
           <AccountMenu profile={profile} />
         </header>
-        <main className="mx-auto w-full max-w-7xl p-4 sm:p-6 lg:p-8">
+        <div className="mx-auto w-full max-w-7xl p-4 sm:p-6 lg:p-8">
           {children}
-        </main>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   )
