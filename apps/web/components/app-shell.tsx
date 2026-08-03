@@ -143,6 +143,7 @@ export function AppShell({ children, profile }: AppShellProps) {
                           >
                             <Link
                               aria-current={active ? "page" : undefined}
+                              className="relative flex h-full w-full items-center"
                               href={item.href}
                               onClick={() => setMobileOpen(false)}
                             >
