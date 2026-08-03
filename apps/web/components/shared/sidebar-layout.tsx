@@ -79,7 +79,7 @@ type SidebarProps = {
 
 export function Sidebar({ children, ...props }: SidebarProps) {
   const { compact, mobileOpen, setMobileOpen } = useSidebar()
-  const desktopWidth = compact ? "lg:w-20" : "lg:w-72"
+  const desktopWidth = compact ? "lg:w-0" : "lg:w-[260px]"
 
   return (
     <>
@@ -92,7 +92,6 @@ export function Sidebar({ children, ...props }: SidebarProps) {
       ) : null}
       <div
         className="group/sidebar relative shrink-0"
-        data-collapsible={compact ? "icon" : undefined}
         data-slot="sidebar"
         data-state={compact ? "collapsed" : "expanded"}
       >
@@ -106,15 +105,14 @@ export function Sidebar({ children, ...props }: SidebarProps) {
         />
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-sidebar-border bg-sidebar p-3 transition-[transform,width] duration-200 ease-out motion-reduce:transition-none lg:translate-x-0",
+            "fixed inset-y-0 left-0 z-40 flex w-[260px] flex-col overflow-hidden border-r border-sidebar-border bg-sidebar transition-[transform,width] duration-300 ease-in-out motion-reduce:transition-none lg:translate-x-0",
             desktopWidth,
             mobileOpen ? "translate-x-0" : "-translate-x-full"
           )}
-          data-collapsible={compact ? "icon" : undefined}
           data-slot="sidebar-container"
           {...props}
         >
-          {children}
+          <div className="flex h-full w-[260px] flex-col p-3">{children}</div>
         </aside>
       </div>
     </>
@@ -289,13 +287,20 @@ export function SidebarTrigger({
   onClick,
   ...props
 }: ComponentProps<typeof Button>) {
-  const { setMobileOpen } = useSidebar()
+  const { compact, setCollapsed, setMobileOpen } = useSidebar()
 
   return (
     <Button
       onClick={(event) => {
         onClick?.(event)
-        if (!event.defaultPrevented) setMobileOpen(true)
+        if (event.defaultPrevented) return
+
+        if (window.matchMedia("(min-width: 1024px)").matches) {
+          setCollapsed(!compact)
+          return
+        }
+
+        setMobileOpen(true)
       }}
       {...props}
     >

@@ -14,10 +14,10 @@
 1. Laravel fue referencia: `register_user_sidebar_section` y `register_user_sidebar_item`.
 2. Mapa V2 centralizado en `apps/web/features/portal-shell/portal-navigation.ts`.
 3. Portal y Admin componen primitives locales `SidebarProvider`, `Sidebar`, `SidebarInset`, `SidebarHeader`, `SidebarContent`, `SidebarGroup` y `SidebarMenu*` de `apps/web/components/shared/sidebar-layout.tsx`. La composición se adaptó al patrón de `next-shadcn-admin-dashboard` sin instalar `@shadcn/sidebar` ni modificar primitives de `packages/ui`.
-4. En escritorio, `Sidebar` deja un `sidebar-gap` animado y mantiene el panel fijo con el mismo ancho (`w-72` o `w-20`); el contenido usa `SidebarInset`, en vez de sincronizar un `padding-left` independiente.
+4. En escritorio, `Sidebar` deja un `sidebar-gap` animado y mantiene el panel fijo con el mismo ancho (`260px` o `0`); el contenido usa `SidebarInset`, en vez de sincronizar un `padding-left` independiente.
 5. El mismo panel de navegación se desplaza como drawer en móvil: no se monta una segunda navegación, por lo que enlaces, estado de disclosures y triggers de tooltip conservan su identidad DOM.
 6. La navegación usa `SidebarMenuButton` y `SidebarMenuSubButton`, que internamente componen el primitive `Button` de `packages/ui` con variantes `sidebar` y `sidebar-active`; drawer y controles secundarios usan `variant="brand-secondary"`.
-7. El estado compacto se expresa con `data-collapsible="icon"` en el contenedor del sidebar; los primitives usan selectores `group-data` para ocultar etiquetas, grupos y submenús sin layout paralelo.
+7. El estado cerrado usa ancho `0` en el panel y su gap; no existe un modo intermedio de iconos compactos.
 8. Cada `SidebarMenuButton` conserva montados `TooltipTrigger` y `TooltipContent`; el tooltip se habilita solo en modo compacto, para que su identidad DOM permanezca estable al alternar el ancho.
 9. `SidebarContent` delega el scroll a `ScrollArea` de `packages/ui`; el viewport se conserva operativo también con `data-collapsible="icon"`.
 10. Visibilidad por plan, equipo y permisos sigue mock: opciones visibles para diseñar módulos primero.

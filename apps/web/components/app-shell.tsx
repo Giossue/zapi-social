@@ -222,7 +222,7 @@ export function AppShell({ children, profile }: AppShellProps) {
           <div className="flex items-center gap-3">
             <SidebarTrigger
               aria-label="Abrir navegación"
-              className="lg:hidden"
+              className="shrink-0"
               size="icon"
               variant="brand-secondary"
             >
