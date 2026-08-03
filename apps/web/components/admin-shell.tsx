@@ -6,17 +6,22 @@ import { usePathname } from "next/navigation"
 import { Menu, PanelLeftClose, X } from "lucide-react"
 
 import { Button } from "@workspace/ui/components/button"
-import { ScrollArea } from "@workspace/ui/components/scroll-area"
 
 import { AccountMenu } from "@/components/account-menu"
 import {
   Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarHeader,
   SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
   useSidebar,
 } from "@/components/shared/sidebar-layout"
-import { SidebarNavigationTooltip } from "@/components/sidebar-navigation-tooltip"
 import { usePersistedSidebarState } from "@/hooks/use-persisted-sidebar-state"
 import {
   adminNavigationGroups,
@@ -34,40 +39,37 @@ function AdminSidebarContent({ pathname }: { pathname: string }) {
 
   return (
     <>
-      <div className="relative h-11">
-        <Link
-          className="relative flex h-9 w-full items-center"
-          href="/admin"
-          onClick={() => setMobileOpen(false)}
+      <SidebarHeader className="relative h-11 p-0">
+        <SidebarMenuButton
+          asChild
+          className="h-9"
+          tooltip="Zapi Social"
+          variant="sidebar"
         >
-          <Image
-            alt="Zapi Social"
-            className={`absolute size-9 shrink-0 rounded-lg transition-[left,transform] duration-200 ease-out motion-reduce:transition-none ${compact ? "left-1/2 -translate-x-1/2" : "left-0 translate-x-0"}`}
-            height={36}
-            src="/brand/logo-brand-dark.png"
-            width={36}
-          />
-          <span
-            className={`ml-12 min-w-0 overflow-hidden whitespace-nowrap transition-[max-width,opacity,margin] duration-200 ease-out motion-reduce:transition-none ${compact ? "ml-0 max-w-0 opacity-0" : "max-w-[180px] opacity-100"}`}
-          >
-            <span className="block truncate text-sm font-semibold">
-              Zapi Social
+          <Link href="/admin" onClick={() => setMobileOpen(false)}>
+            <Image
+              alt="Zapi Social"
+              className="size-9 shrink-0 rounded-lg"
+              height={36}
+              src="/brand/logo-brand-dark.png"
+              width={36}
+            />
+            <span className="flex min-w-0 flex-col items-start group-data-[collapsible=icon]/sidebar:hidden">
+              <span className="truncate text-sm font-semibold">
+                Zapi Social
+              </span>
+              <span className="text-xs text-muted-foreground">Plataforma</span>
             </span>
-            <span className="block text-xs text-muted-foreground">
-              Plataforma
-            </span>
-          </span>
-        </Link>
+          </Link>
+        </SidebarMenuButton>
         <Button
           aria-label={compact ? "Expandir navegación" : "Contraer navegación"}
-          className={`absolute top-1/2 hidden -translate-y-1/2 transition-[right] duration-200 ease-out motion-reduce:transition-none lg:inline-flex ${compact ? "-right-4" : "right-0"}`}
+          className="absolute top-1/2 right-0 hidden -translate-y-1/2 group-data-[collapsible=icon]/sidebar:-right-4 lg:inline-flex"
           onClick={() => setCollapsed((value) => !value)}
           size="icon"
           variant="brand-secondary"
         >
-          <PanelLeftClose
-            className={`transition-transform duration-200 ease-out motion-reduce:transition-none ${compact ? "rotate-180" : "rotate-0"}`}
-          />
+          <PanelLeftClose className="transition-transform duration-200 ease-out group-data-[collapsible=icon]/sidebar:rotate-180 motion-reduce:transition-none" />
         </Button>
         <Button
           aria-label="Cerrar navegación"
@@ -78,68 +80,48 @@ function AdminSidebarContent({ pathname }: { pathname: string }) {
         >
           <X />
         </Button>
-      </div>
-      <ScrollArea className="mt-5 -mr-2 min-h-0 flex-1">
+      </SidebarHeader>
+      <SidebarContent className="mt-5 -mr-2 pr-2">
         <nav
           aria-label="Navegación administrativa"
-          className="flex flex-col gap-5 pr-3 pb-3"
+          className="flex flex-col gap-3 pb-3"
         >
           {adminNavigationGroups.map((group) => (
-            <section
+            <SidebarGroup
               key={group.label}
               aria-label={group.label}
-              className="space-y-1"
+              className="p-0"
             >
-              <p
-                className={`overflow-hidden px-3 text-xs font-medium whitespace-nowrap text-muted-foreground transition-[max-height,opacity,padding] duration-200 ease-out motion-reduce:transition-none ${compact ? "max-h-0 pb-0 opacity-0" : "max-h-6 pb-1 opacity-100"}`}
-              >
-                {group.label}
-              </p>
-              {group.items.map((item) => {
-                const active = isAdminNavigationItemActive(item, pathname)
-                const Icon = item.icon
-                const iconPosition = compact
-                  ? "left-1/2 -translate-x-1/2"
-                  : "left-2.5 translate-x-0"
-                const labelVisibility = compact
-                  ? "ml-0 max-w-0 opacity-0"
-                  : "ml-6 max-w-xs opacity-100"
+              <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+              <SidebarMenu>
+                {group.items.map((item) => {
+                  const active = isAdminNavigationItemActive(item, pathname)
+                  const Icon = item.icon
 
-                return (
-                  <SidebarNavigationTooltip
-                    enabled={compact}
-                    key={item.href}
-                    label={item.label}
-                  >
-                    <Button
-                      asChild
-                      aria-label={compact ? item.label : undefined}
-                      className="relative w-full justify-start gap-0"
-                      variant={active ? "sidebar-active" : "sidebar"}
-                    >
-                      <Link
-                        aria-current={active ? "page" : undefined}
-                        className="relative flex h-full w-full items-center"
-                        href={item.href}
-                        onClick={() => setMobileOpen(false)}
+                  return (
+                    <SidebarMenuItem key={item.href}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={active}
+                        tooltip={item.label}
                       >
-                        <Icon
-                          className={`absolute shrink-0 transition-[left,transform] duration-200 ease-out motion-reduce:transition-none ${iconPosition}`}
-                        />
-                        <span
-                          className={`overflow-hidden whitespace-nowrap transition-[max-width,opacity,margin] duration-200 ease-out motion-reduce:transition-none ${labelVisibility}`}
+                        <Link
+                          aria-current={active ? "page" : undefined}
+                          href={item.href}
+                          onClick={() => setMobileOpen(false)}
                         >
-                          {item.label}
-                        </span>
-                      </Link>
-                    </Button>
-                  </SidebarNavigationTooltip>
-                )
-              })}
-            </section>
+                          <Icon />
+                          <span>{item.label}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )
+                })}
+              </SidebarMenu>
+            </SidebarGroup>
           ))}
         </nav>
-      </ScrollArea>
+      </SidebarContent>
     </>
   )
 }
