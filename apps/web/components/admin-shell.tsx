@@ -3,7 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ChevronRight, Menu, PanelLeftClose, X } from "lucide-react"
+import { Menu, PanelLeftClose, X } from "lucide-react"
 import { useState } from "react"
 
 import { Button } from "@workspace/ui/components/button"
@@ -43,46 +43,46 @@ export function AdminShell({ children, profile }: AdminShellProps) {
       <aside
         className={`fixed inset-y-0 left-0 z-40 flex flex-col border-r border-sidebar-border bg-sidebar p-3 transition-[width,transform] duration-200 ease-out lg:translate-x-0 ${collapsed ? "w-20" : "w-72"} ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
-        <div
-          className={`relative flex items-center gap-2 py-2 ${collapsed ? "justify-center px-0" : "justify-between px-2"}`}
-        >
+        <div className="relative h-11">
           <Link
-            className="flex min-w-0 items-center gap-3"
+            className="relative flex h-9 w-full items-center"
             href="/admin"
             onClick={() => setMobileOpen(false)}
           >
             <Image
               alt="Zapi Social"
-              className="size-9 shrink-0 rounded-lg"
+              className={`absolute size-9 shrink-0 rounded-lg transition-[left,transform] duration-200 ease-out ${collapsed ? "left-1/2 -translate-x-1/2" : "left-0 translate-x-0"}`}
               height={36}
               src="/brand/logo-brand-dark.png"
               width={36}
             />
-            {collapsed ? null : (
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-semibold">
-                  Zapi Social
-                </span>
-                <span className="block text-xs text-muted-foreground">
-                  Plataforma
-                </span>
+            <span
+              className={`ml-12 min-w-0 overflow-hidden whitespace-nowrap transition-[max-width,opacity,margin] duration-200 ease-out ${collapsed ? "ml-0 max-w-0 opacity-0" : "max-w-[180px] opacity-100"}`}
+            >
+              <span className="block truncate text-sm font-semibold">
+                Zapi Social
               </span>
-            )}
+              <span className="block text-xs text-muted-foreground">
+                Plataforma
+              </span>
+            </span>
           </Link>
           <Button
             aria-label={
               collapsed ? "Expandir navegación" : "Contraer navegación"
             }
-            className={`hidden lg:inline-flex ${collapsed ? "absolute top-2 -right-4" : ""}`}
+            className={`absolute top-1/2 hidden -translate-y-1/2 transition-[right] duration-200 ease-out lg:inline-flex ${collapsed ? "-right-4" : "right-0"}`}
             onClick={() => setCollapsed((value) => !value)}
             size="icon"
             variant="brand-secondary"
           >
-            {collapsed ? <ChevronRight /> : <PanelLeftClose />}
+            <PanelLeftClose
+              className={`transition-transform duration-200 ease-out ${collapsed ? "rotate-180" : "rotate-0"}`}
+            />
           </Button>
           <Button
             aria-label="Cerrar navegación"
-            className="lg:hidden"
+            className="absolute top-1/2 right-0 -translate-y-1/2 lg:hidden"
             onClick={() => setMobileOpen(false)}
             size="icon"
             variant="brand-secondary"
@@ -101,14 +101,21 @@ export function AdminShell({ children, profile }: AdminShellProps) {
                 aria-label={group.label}
                 className="space-y-1"
               >
-                {collapsed ? null : (
-                  <p className="px-3 pb-1 text-xs font-medium text-muted-foreground">
-                    {group.label}
-                  </p>
-                )}
+                <p
+                  className={`overflow-hidden px-3 text-xs font-medium whitespace-nowrap text-muted-foreground transition-[max-height,opacity,padding] duration-200 ease-out ${collapsed ? "max-h-0 pb-0 opacity-0" : "max-h-6 pb-1 opacity-100"}`}
+                >
+                  {group.label}
+                </p>
                 {group.items.map((item) => {
                   const active = isAdminNavigationItemActive(item, pathname)
                   const Icon = item.icon
+                  const iconPosition = collapsed
+                    ? "left-1/2 -translate-x-1/2"
+                    : "left-2.5 translate-x-0"
+                  const labelVisibility = collapsed
+                    ? "ml-0 max-w-0 opacity-0"
+                    : "ml-6 max-w-xs opacity-100"
+
                   return (
                     <SidebarNavigationTooltip
                       enabled={collapsed}
@@ -118,11 +125,7 @@ export function AdminShell({ children, profile }: AdminShellProps) {
                       <Button
                         asChild
                         aria-label={collapsed ? item.label : undefined}
-                        className={
-                          collapsed
-                            ? "w-full justify-center"
-                            : "w-full justify-start"
-                        }
+                        className="relative w-full justify-start gap-0"
                         variant={active ? "sidebar-active" : "sidebar"}
                       >
                         <Link
@@ -130,8 +133,14 @@ export function AdminShell({ children, profile }: AdminShellProps) {
                           href={item.href}
                           onClick={() => setMobileOpen(false)}
                         >
-                          <Icon className="shrink-0" />
-                          {collapsed ? null : <span>{item.label}</span>}
+                          <Icon
+                            className={`absolute shrink-0 transition-[left,transform] duration-200 ease-out ${iconPosition}`}
+                          />
+                          <span
+                            className={`overflow-hidden whitespace-nowrap transition-[max-width,opacity,margin] duration-200 ease-out ${labelVisibility}`}
+                          >
+                            {item.label}
+                          </span>
                         </Link>
                       </Button>
                     </SidebarNavigationTooltip>
