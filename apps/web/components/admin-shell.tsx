@@ -139,7 +139,7 @@ export function AdminShell({ children, profile }: AdminShellProps) {
                           href={item.href}
                           onClick={() => setMobileOpen(false)}
                         >
-                          <Icon />
+                          <Icon className="shrink-0" />
                           {isCompact ? null : (
                             <span
                               className={`transition-opacity duration-150 ${isCollapsing ? "opacity-0" : "opacity-100"}`}

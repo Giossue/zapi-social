@@ -23,7 +23,7 @@
 9. En modo contraído, el botón de expandir se ubica fuera del logo, los iconos se centran y los disclosures ocultan su chevron sin perder etiqueta accesible.
 10. Ambos shells usan el asset local `apps/web/public/brand/logo-brand-dark.png` mediante `next/image`.
 11. El ancho del sidebar y el desplazamiento del contenido se animan coordinadamente con `animejs`; respeta `prefers-reduced-motion` y no se aplica al drawer móvil. La apertura conserva `out(4)` durante 260 ms. Al cerrar, las etiquetas se desvanecen primero y luego el ancho se comprime con `inOutQuad`, con 140 ms de preparación y 420 ms de movimiento.
-12. Al contraerse, Portal y Admin muestran tooltips a la derecha de cada opción de navegación mediante el primitive compartido `Tooltip`.
+12. Al contraerse, Portal y Admin muestran tooltips a la derecha de cada opción mediante el primitive compartido `Tooltip`; su trigger permanece montado al expandir o contraer para preservar la identidad de los botones e iconos.
 
 ## Pendiente
 

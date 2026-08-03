@@ -159,7 +159,7 @@ export function AppShell({ children, profile }: AppShellProps) {
                               href={item.href}
                               onClick={() => setMobileOpen(false)}
                             >
-                              {Icon ? <Icon /> : null}
+                              {Icon ? <Icon className="shrink-0" /> : null}
                               {isCompact ? null : (
                                 <span
                                   className={`transition-opacity duration-150 ${isCollapsing ? "opacity-0" : "opacity-100"}`}
@@ -194,7 +194,7 @@ export function AppShell({ children, profile }: AppShellProps) {
                             }}
                             variant={active ? "sidebar-active" : "sidebar"}
                           >
-                            {Icon ? <Icon /> : null}
+                            {Icon ? <Icon className="shrink-0" /> : null}
                             {isCompact ? null : (
                               <span
                                 className={`transition-opacity duration-150 ${isCollapsing ? "opacity-0" : "opacity-100"}`}

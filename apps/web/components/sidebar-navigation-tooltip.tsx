@@ -19,14 +19,14 @@ export function SidebarNavigationTooltip({
   enabled,
   label,
 }: SidebarNavigationTooltipProps) {
-  if (!enabled) return children
-
   return (
-    <Tooltip>
+    <Tooltip open={enabled ? undefined : false}>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
-      <TooltipContent side="right" sideOffset={10}>
-        {label}
-      </TooltipContent>
+      {enabled ? (
+        <TooltipContent side="right" sideOffset={10}>
+          {label}
+        </TooltipContent>
+      ) : null}
     </Tooltip>
   )
 }
