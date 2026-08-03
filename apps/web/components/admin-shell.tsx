@@ -41,7 +41,7 @@ export function AdminShell({ children, profile }: AdminShellProps) {
         />
       ) : null}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex flex-col border-r border-sidebar-border bg-sidebar p-3 transition-[width,transform] duration-300 ease-in-out lg:translate-x-0 ${collapsed ? "w-20" : "w-72"} ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed inset-y-0 left-0 z-40 flex flex-col border-r border-sidebar-border bg-sidebar p-3 transition-transform duration-200 lg:translate-x-0 ${collapsed ? "w-20" : "w-72"} ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div
           className={`relative flex items-center gap-2 py-2 ${collapsed ? "justify-center px-0" : "justify-between px-2"}`}
@@ -142,9 +142,7 @@ export function AdminShell({ children, profile }: AdminShellProps) {
           </nav>
         </ScrollArea>
       </aside>
-      <div
-        className={`min-h-dvh transition-[padding-left] duration-300 ease-in-out ${collapsed ? "lg:pl-20" : "lg:pl-72"}`}
-      >
+      <div className={`min-h-dvh ${collapsed ? "lg:pl-20" : "lg:pl-72"}`}>
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-sidebar-border bg-sidebar px-4 sm:px-5 lg:px-8">
           <div className="flex items-center gap-3">
             <Button
