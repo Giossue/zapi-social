@@ -12,7 +12,6 @@ import { ScrollArea } from "@workspace/ui/components/scroll-area"
 import { AccountMenu } from "@/components/account-menu"
 import { SidebarNavigationTooltip } from "@/components/sidebar-navigation-tooltip"
 import { usePersistedSidebarState } from "@/hooks/use-persisted-sidebar-state"
-import { useSidebarAnimation } from "@/hooks/use-sidebar-animation"
 import {
   adminNavigationGroups,
   getAdminNavigationItem,
@@ -30,13 +29,10 @@ export function AdminShell({ children, profile }: AdminShellProps) {
     "zapi:admin-sidebar:v1"
   )
   const [mobileOpen, setMobileOpen] = useState(false)
-  const { contentRef, isCollapsing, rootRef, sidebarRef } =
-    useSidebarAnimation(collapsed)
   const currentItem = getAdminNavigationItem(pathname)
-  const isCompact = collapsed && !isCollapsing
 
   return (
-    <div className="min-h-dvh bg-background text-foreground" ref={rootRef}>
+    <div className="min-h-dvh bg-background text-foreground">
       {mobileOpen ? (
         <button
           aria-label="Cerrar navegación"
@@ -45,11 +41,10 @@ export function AdminShell({ children, profile }: AdminShellProps) {
         />
       ) : null}
       <aside
-        ref={sidebarRef}
-        className={`fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-sidebar-border bg-sidebar p-3 transition-transform duration-200 lg:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed inset-y-0 left-0 z-40 flex flex-col border-r border-sidebar-border bg-sidebar p-3 transition-[width,transform] duration-300 ease-in-out lg:translate-x-0 ${collapsed ? "w-20" : "w-72"} ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div
-          className={`relative flex items-center gap-2 py-2 ${isCompact ? "justify-center px-0" : "justify-between px-2"}`}
+          className={`relative flex items-center gap-2 py-2 ${collapsed ? "justify-center px-0" : "justify-between px-2"}`}
         >
           <Link
             className="flex min-w-0 items-center gap-3"
@@ -63,10 +58,8 @@ export function AdminShell({ children, profile }: AdminShellProps) {
               src="/brand/logo-brand-dark.png"
               width={36}
             />
-            {isCompact ? null : (
-              <span
-                className={`min-w-0 transition-opacity duration-150 ${isCollapsing ? "opacity-0" : "opacity-100"}`}
-              >
+            {collapsed ? null : (
+              <span className="min-w-0">
                 <span className="block truncate text-sm font-semibold">
                   Zapi Social
                 </span>
@@ -78,14 +71,14 @@ export function AdminShell({ children, profile }: AdminShellProps) {
           </Link>
           <Button
             aria-label={
-              isCompact ? "Expandir navegación" : "Contraer navegación"
+              collapsed ? "Expandir navegación" : "Contraer navegación"
             }
-            className={`hidden lg:inline-flex ${isCompact ? "absolute top-2 -right-4" : ""}`}
+            className={`hidden lg:inline-flex ${collapsed ? "absolute top-2 -right-4" : ""}`}
             onClick={() => setCollapsed((value) => !value)}
             size="icon"
             variant="brand-secondary"
           >
-            {isCompact ? <ChevronRight /> : <PanelLeftClose />}
+            {collapsed ? <ChevronRight /> : <PanelLeftClose />}
           </Button>
           <Button
             aria-label="Cerrar navegación"
@@ -108,10 +101,8 @@ export function AdminShell({ children, profile }: AdminShellProps) {
                 aria-label={group.label}
                 className="space-y-1"
               >
-                {isCompact ? null : (
-                  <p
-                    className={`px-3 pb-1 text-xs font-medium text-muted-foreground transition-opacity duration-150 ${isCollapsing ? "opacity-0" : "opacity-100"}`}
-                  >
+                {collapsed ? null : (
+                  <p className="px-3 pb-1 text-xs font-medium text-muted-foreground">
                     {group.label}
                   </p>
                 )}
@@ -120,15 +111,15 @@ export function AdminShell({ children, profile }: AdminShellProps) {
                   const Icon = item.icon
                   return (
                     <SidebarNavigationTooltip
-                      enabled={isCompact}
+                      enabled={collapsed}
                       key={item.href}
                       label={item.label}
                     >
                       <Button
                         asChild
-                        aria-label={isCompact ? item.label : undefined}
+                        aria-label={collapsed ? item.label : undefined}
                         className={
-                          isCompact
+                          collapsed
                             ? "w-full justify-center"
                             : "w-full justify-start"
                         }
@@ -140,13 +131,7 @@ export function AdminShell({ children, profile }: AdminShellProps) {
                           onClick={() => setMobileOpen(false)}
                         >
                           <Icon className="shrink-0" />
-                          {isCompact ? null : (
-                            <span
-                              className={`transition-opacity duration-150 ${isCollapsing ? "opacity-0" : "opacity-100"}`}
-                            >
-                              {item.label}
-                            </span>
-                          )}
+                          {collapsed ? null : <span>{item.label}</span>}
                         </Link>
                       </Button>
                     </SidebarNavigationTooltip>
@@ -157,7 +142,9 @@ export function AdminShell({ children, profile }: AdminShellProps) {
           </nav>
         </ScrollArea>
       </aside>
-      <div className="min-h-dvh lg:pl-72" ref={contentRef}>
+      <div
+        className={`min-h-dvh transition-[padding-left] duration-300 ease-in-out ${collapsed ? "lg:pl-20" : "lg:pl-72"}`}
+      >
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-sidebar-border bg-sidebar px-4 sm:px-5 lg:px-8">
           <div className="flex items-center gap-3">
             <Button
