@@ -30,8 +30,10 @@ export function AdminShell({ children, profile }: AdminShellProps) {
     "zapi:admin-sidebar:v1"
   )
   const [mobileOpen, setMobileOpen] = useState(false)
-  const { contentRef, rootRef, sidebarRef } = useSidebarAnimation(collapsed)
+  const { contentRef, isCollapsing, rootRef, sidebarRef } =
+    useSidebarAnimation(collapsed)
   const currentItem = getAdminNavigationItem(pathname)
+  const isCompact = collapsed && !isCollapsing
 
   return (
     <div className="min-h-dvh bg-background text-foreground" ref={rootRef}>
@@ -47,7 +49,7 @@ export function AdminShell({ children, profile }: AdminShellProps) {
         className={`fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-sidebar-border bg-sidebar p-3 transition-transform duration-200 lg:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div
-          className={`relative flex items-center gap-2 py-2 ${collapsed ? "justify-center px-0" : "justify-between px-2"}`}
+          className={`relative flex items-center gap-2 py-2 ${isCompact ? "justify-center px-0" : "justify-between px-2"}`}
         >
           <Link
             className="flex min-w-0 items-center gap-3"
@@ -61,8 +63,10 @@ export function AdminShell({ children, profile }: AdminShellProps) {
               src="/brand/logo-brand-dark.png"
               width={36}
             />
-            {collapsed ? null : (
-              <span className="min-w-0">
+            {isCompact ? null : (
+              <span
+                className={`min-w-0 transition-opacity duration-150 ${isCollapsing ? "opacity-0" : "opacity-100"}`}
+              >
                 <span className="block truncate text-sm font-semibold">
                   Zapi Social
                 </span>
@@ -74,14 +78,14 @@ export function AdminShell({ children, profile }: AdminShellProps) {
           </Link>
           <Button
             aria-label={
-              collapsed ? "Expandir navegación" : "Contraer navegación"
+              isCompact ? "Expandir navegación" : "Contraer navegación"
             }
-            className={`hidden lg:inline-flex ${collapsed ? "absolute top-2 -right-4" : ""}`}
+            className={`hidden lg:inline-flex ${isCompact ? "absolute top-2 -right-4" : ""}`}
             onClick={() => setCollapsed((value) => !value)}
             size="icon"
             variant="brand-secondary"
           >
-            {collapsed ? <ChevronRight /> : <PanelLeftClose />}
+            {isCompact ? <ChevronRight /> : <PanelLeftClose />}
           </Button>
           <Button
             aria-label="Cerrar navegación"
@@ -104,8 +108,10 @@ export function AdminShell({ children, profile }: AdminShellProps) {
                 aria-label={group.label}
                 className="space-y-1"
               >
-                {collapsed ? null : (
-                  <p className="px-3 pb-1 text-xs font-medium text-muted-foreground">
+                {isCompact ? null : (
+                  <p
+                    className={`px-3 pb-1 text-xs font-medium text-muted-foreground transition-opacity duration-150 ${isCollapsing ? "opacity-0" : "opacity-100"}`}
+                  >
                     {group.label}
                   </p>
                 )}
@@ -114,15 +120,15 @@ export function AdminShell({ children, profile }: AdminShellProps) {
                   const Icon = item.icon
                   return (
                     <SidebarNavigationTooltip
-                      enabled={collapsed}
+                      enabled={isCompact}
                       key={item.href}
                       label={item.label}
                     >
                       <Button
                         asChild
-                        aria-label={collapsed ? item.label : undefined}
+                        aria-label={isCompact ? item.label : undefined}
                         className={
-                          collapsed
+                          isCompact
                             ? "w-full justify-center"
                             : "w-full justify-start"
                         }
@@ -134,7 +140,13 @@ export function AdminShell({ children, profile }: AdminShellProps) {
                           onClick={() => setMobileOpen(false)}
                         >
                           <Icon />
-                          {collapsed ? null : item.label}
+                          {isCompact ? null : (
+                            <span
+                              className={`transition-opacity duration-150 ${isCollapsing ? "opacity-0" : "opacity-100"}`}
+                            >
+                              {item.label}
+                            </span>
+                          )}
                         </Link>
                       </Button>
                     </SidebarNavigationTooltip>

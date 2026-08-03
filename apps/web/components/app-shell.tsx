@@ -39,11 +39,13 @@ export function AppShell({ children, profile }: AppShellProps) {
     "zapi:portal-sidebar:v1"
   )
   const [mobileOpen, setMobileOpen] = useState(false)
-  const { contentRef, rootRef, sidebarRef } = useSidebarAnimation(collapsed)
+  const { contentRef, isCollapsing, rootRef, sidebarRef } =
+    useSidebarAnimation(collapsed)
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
     {}
   )
   const currentItem = getPortalNavigationItem(pathname)
+  const isCompact = collapsed && !isCollapsing
   const pageLabel =
     pathname === "/portal/profile"
       ? "Mi perfil"
@@ -64,7 +66,7 @@ export function AppShell({ children, profile }: AppShellProps) {
         className={`fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-sidebar-border bg-sidebar p-3 transition-transform duration-200 lg:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div
-          className={`relative flex items-center gap-2 py-2 ${collapsed ? "justify-center px-0" : "justify-between px-2"}`}
+          className={`relative flex items-center gap-2 py-2 ${isCompact ? "justify-center px-0" : "justify-between px-2"}`}
         >
           <Link
             className="flex min-w-0 items-center gap-3"
@@ -78,8 +80,10 @@ export function AppShell({ children, profile }: AppShellProps) {
               src="/brand/logo-brand-dark.png"
               width={36}
             />
-            {collapsed ? null : (
-              <span className="min-w-0">
+            {isCompact ? null : (
+              <span
+                className={`min-w-0 transition-opacity duration-150 ${isCollapsing ? "opacity-0" : "opacity-100"}`}
+              >
                 <span className="block truncate text-sm font-semibold">
                   Zapi Social
                 </span>
@@ -91,14 +95,14 @@ export function AppShell({ children, profile }: AppShellProps) {
           </Link>
           <Button
             aria-label={
-              collapsed ? "Expandir navegación" : "Contraer navegación"
+              isCompact ? "Expandir navegación" : "Contraer navegación"
             }
-            className={`hidden lg:inline-flex ${collapsed ? "absolute top-2 -right-4" : ""}`}
+            className={`hidden lg:inline-flex ${isCompact ? "absolute top-2 -right-4" : ""}`}
             onClick={() => setCollapsed((value) => !value)}
             size="icon"
             variant="brand-secondary"
           >
-            {collapsed ? <ChevronRight /> : <PanelLeftClose />}
+            {isCompact ? <ChevronRight /> : <PanelLeftClose />}
           </Button>
         </div>
 
@@ -113,8 +117,10 @@ export function AppShell({ children, profile }: AppShellProps) {
                 aria-label={group.label}
                 className="space-y-1"
               >
-                {collapsed ? null : (
-                  <p className="px-3 pb-1 text-xs font-medium text-muted-foreground">
+                {isCompact ? null : (
+                  <p
+                    className={`px-3 pb-1 text-xs font-medium text-muted-foreground transition-opacity duration-150 ${isCollapsing ? "opacity-0" : "opacity-100"}`}
+                  >
                     {group.label}
                   </p>
                 )}
@@ -135,14 +141,14 @@ export function AppShell({ children, profile }: AppShellProps) {
                     <div key={item.label} className="space-y-1">
                       {"href" in item ? (
                         <SidebarNavigationTooltip
-                          enabled={collapsed}
+                          enabled={isCompact}
                           label={item.label}
                         >
                           <Button
                             asChild
-                            aria-label={collapsed ? item.label : undefined}
+                            aria-label={isCompact ? item.label : undefined}
                             className={
-                              collapsed
+                              isCompact
                                 ? "w-full justify-center"
                                 : "w-full justify-start"
                             }
@@ -154,22 +160,28 @@ export function AppShell({ children, profile }: AppShellProps) {
                               onClick={() => setMobileOpen(false)}
                             >
                               {Icon ? <Icon /> : null}
-                              {collapsed ? null : <span>{item.label}</span>}
+                              {isCompact ? null : (
+                                <span
+                                  className={`transition-opacity duration-150 ${isCollapsing ? "opacity-0" : "opacity-100"}`}
+                                >
+                                  {item.label}
+                                </span>
+                              )}
                             </Link>
                           </Button>
                         </SidebarNavigationTooltip>
                       ) : (
                         <SidebarNavigationTooltip
-                          enabled={collapsed}
+                          enabled={isCompact}
                           label={item.label}
                         >
                           <Button
                             aria-expanded={expanded}
                             aria-label={
-                              collapsed ? `Expandir ${item.label}` : undefined
+                              isCompact ? `Expandir ${item.label}` : undefined
                             }
                             className={
-                              collapsed
+                              isCompact
                                 ? "w-full justify-center"
                                 : "w-full justify-start"
                             }
@@ -183,17 +195,23 @@ export function AppShell({ children, profile }: AppShellProps) {
                             variant={active ? "sidebar-active" : "sidebar"}
                           >
                             {Icon ? <Icon /> : null}
-                            {collapsed ? null : <span>{item.label}</span>}
-                            {collapsed ? null : (
+                            {isCompact ? null : (
+                              <span
+                                className={`transition-opacity duration-150 ${isCollapsing ? "opacity-0" : "opacity-100"}`}
+                              >
+                                {item.label}
+                              </span>
+                            )}
+                            {isCompact ? null : (
                               <ChevronDown
-                                className={`ml-auto transition-transform ${expanded ? "rotate-180" : ""}`}
+                                className={`ml-auto transition-opacity transition-transform duration-150 ${expanded ? "rotate-180" : ""} ${isCollapsing ? "opacity-0" : "opacity-100"}`}
                               />
                             )}
                           </Button>
                         </SidebarNavigationTooltip>
                       )}
 
-                      {collapsed || !children || !expanded ? null : (
+                      {isCompact || !children || !expanded ? null : (
                         <div className="ml-7 space-y-0.5 border-l border-border pl-2">
                           {children.map((child) => {
                             const childActive = isPortalNavigationItemActive(
