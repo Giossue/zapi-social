@@ -56,8 +56,12 @@ export const portalNavigationGroups: readonly PortalNavigationGroup[] = [
       { label: "Canales", href: "/portal/channels", icon: Share2 },
       {
         label: "Publicación",
-        href: "/portal/publishing/calendar",
         icon: CalendarDays,
+        children: [
+          { label: "Calendario", href: "/portal/publishing/calendar" },
+          { label: "Cola", href: "/portal/publishing/queue" },
+          { label: "Borradores", href: "/portal/publishing/drafts" },
+        ],
       },
       { label: "Programaciones RSS", href: "/portal/rss-schedules", icon: Rss },
       {

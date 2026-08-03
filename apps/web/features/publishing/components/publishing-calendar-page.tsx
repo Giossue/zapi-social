@@ -189,8 +189,8 @@ function ComposerDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(20rem,0.9fr)]">
-          <FieldGroup>
+        <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(24rem,0.9fr)]">
+          <FieldGroup className="min-w-0">
             <FieldSet>
               <FieldLabel asChild>
                 <legend>Cuentas destino</legend>
@@ -242,14 +242,16 @@ function ComposerDialog({
             ) : null}
           </FieldGroup>
 
-          <PublishingNetworkPreview
-            accounts={accounts}
-            activeAccountId={activePreviewAccountId}
-            content={content}
-            hasMedia={hasMedia}
-            onAccountChange={setActivePreviewAccountId}
-            selectedAccountIds={selectedAccounts}
-          />
+          <div className="min-w-0">
+            <PublishingNetworkPreview
+              accounts={accounts}
+              activeAccountId={activePreviewAccountId}
+              content={content}
+              hasMedia={hasMedia}
+              onAccountChange={setActivePreviewAccountId}
+              selectedAccountIds={selectedAccounts}
+            />
+          </div>
         </div>
 
         <DialogFooter>

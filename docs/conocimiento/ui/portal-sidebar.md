@@ -18,7 +18,7 @@
 5. `Sidebar` usa `collapsible="offcanvas"`: en escritorio no existe un estado intermedio de iconos; cerrarlo retira por completo el panel y su gap. El `SidebarTrigger` del encabezado sigue disponible para volver a abrirlo.
 6. En móvil, el provider oficial presenta el mismo panel como drawer. Los enlaces y el trigger interno cierran el drawer sin alterar la preferencia persistida de escritorio.
 7. `SidebarContent` delega el scroll del menú a `ScrollArea` de `packages/ui`.
-8. El disclosure AI Studio, la ruta activa, `AccountMenu`, Bell y el asset local `apps/web/public/brand/logo-brand-dark.png` se conservan en los shells. Cuando varias rutas comparten prefijo, solo la coincidencia más específica queda activa; por ejemplo, `Buscar medios online` no activa también `Archivos`.
+8. Los disclosures AI Studio y Publicación, la ruta activa, `AccountMenu`, Bell y el asset local `apps/web/public/brand/logo-brand-dark.png` se conservan en los shells. Publicación agrupa Calendario, Cola y Borradores. Cuando varias rutas comparten prefijo, solo la coincidencia más específica queda activa; por ejemplo, `Buscar medios online` no activa también `Archivos`.
 9. Visibilidad por plan, equipo y permisos sigue mock: opciones visibles para diseñar módulos primero.
 
 ## Pendiente

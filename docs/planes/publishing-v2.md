@@ -174,6 +174,7 @@ Scheduler: solo encola IDs vencidos; no llama proveedores directamente
 - V2 adapta únicamente el contenido y callbacks: los `PublishingPost` mock se convierten en eventos, el selector genérico se limita a proveedores reales y los clics de fecha abren el compositor. Un evento solo permite editar estados `draft`, `scheduled` o `failed`, coherente con Laravel.
 - La fuente aporta vista de día además de mes/semana. Es una divergencia visual documentada: no cambia los datos ni el contrato mock y quedará sujeta al contrato REST final.
 - Se añaden `@fullcalendar/react` y `date-fns` como dependencias explícitas de `apps/web`; no se importa `diseño ideal` ni se añade un primitive global porque el renderer solo tiene consumidor Publishing.
+- El compositor conserva su flujo mock, pero prioriza una sola columna hasta `xl`: evita que formulario y preview se compriman en ventanas angostas o con zoom elevado. En dos columnas la preview no se estira a la altura del formulario.
 
 ## Secuencia de ejecución
 
