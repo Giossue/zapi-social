@@ -16,7 +16,9 @@ import { Button } from "@workspace/ui/components/button"
 import { ScrollArea } from "@workspace/ui/components/scroll-area"
 
 import { AccountMenu } from "@/components/account-menu"
+import { SidebarNavigationTooltip } from "@/components/sidebar-navigation-tooltip"
 import { usePersistedSidebarState } from "@/hooks/use-persisted-sidebar-state"
+import { useSidebarAnimation } from "@/hooks/use-sidebar-animation"
 import {
   getPortalNavigationItem,
   isPortalNavigationItemActive,
@@ -37,6 +39,7 @@ export function AppShell({ children, profile }: AppShellProps) {
     "zapi:portal-sidebar:v1"
   )
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { contentRef, rootRef, sidebarRef } = useSidebarAnimation(collapsed)
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
     {}
   )
@@ -47,7 +50,7 @@ export function AppShell({ children, profile }: AppShellProps) {
       : (currentItem?.label ?? "Portal")
 
   return (
-    <div className="min-h-dvh bg-background text-foreground">
+    <div className="min-h-dvh bg-background text-foreground" ref={rootRef}>
       {mobileOpen ? (
         <button
           aria-label="Cerrar navegación"
@@ -57,7 +60,8 @@ export function AppShell({ children, profile }: AppShellProps) {
       ) : null}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-sidebar-border bg-sidebar p-3 transition-[transform,width] duration-200 lg:translate-x-0 ${collapsed ? "lg:w-20" : ""} ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
+        ref={sidebarRef}
+        className={`fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-sidebar-border bg-sidebar p-3 transition-transform duration-200 lg:translate-x-0 ${mobileOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div
           className={`relative flex items-center gap-2 py-2 ${collapsed ? "justify-center px-0" : "justify-between px-2"}`}
@@ -130,53 +134,63 @@ export function AppShell({ children, profile }: AppShellProps) {
                   return (
                     <div key={item.label} className="space-y-1">
                       {"href" in item ? (
-                        <Button
-                          asChild
-                          aria-label={collapsed ? item.label : undefined}
-                          className={
-                            collapsed
-                              ? "w-full justify-center"
-                              : "w-full justify-start"
-                          }
-                          variant={active ? "sidebar-active" : "sidebar"}
+                        <SidebarNavigationTooltip
+                          enabled={collapsed}
+                          label={item.label}
                         >
-                          <Link
-                            aria-current={active ? "page" : undefined}
-                            href={item.href}
-                            onClick={() => setMobileOpen(false)}
+                          <Button
+                            asChild
+                            aria-label={collapsed ? item.label : undefined}
+                            className={
+                              collapsed
+                                ? "w-full justify-center"
+                                : "w-full justify-start"
+                            }
+                            variant={active ? "sidebar-active" : "sidebar"}
+                          >
+                            <Link
+                              aria-current={active ? "page" : undefined}
+                              href={item.href}
+                              onClick={() => setMobileOpen(false)}
+                            >
+                              {Icon ? <Icon /> : null}
+                              {collapsed ? null : <span>{item.label}</span>}
+                            </Link>
+                          </Button>
+                        </SidebarNavigationTooltip>
+                      ) : (
+                        <SidebarNavigationTooltip
+                          enabled={collapsed}
+                          label={item.label}
+                        >
+                          <Button
+                            aria-expanded={expanded}
+                            aria-label={
+                              collapsed ? `Expandir ${item.label}` : undefined
+                            }
+                            className={
+                              collapsed
+                                ? "w-full justify-center"
+                                : "w-full justify-start"
+                            }
+                            onClick={() => {
+                              if (collapsed) setCollapsed(false)
+                              setExpandedItems((current) => ({
+                                ...current,
+                                [item.label]: !expanded,
+                              }))
+                            }}
+                            variant={active ? "sidebar-active" : "sidebar"}
                           >
                             {Icon ? <Icon /> : null}
                             {collapsed ? null : <span>{item.label}</span>}
-                          </Link>
-                        </Button>
-                      ) : (
-                        <Button
-                          aria-expanded={expanded}
-                          aria-label={
-                            collapsed ? `Expandir ${item.label}` : undefined
-                          }
-                          className={
-                            collapsed
-                              ? "w-full justify-center"
-                              : "w-full justify-start"
-                          }
-                          onClick={() => {
-                            if (collapsed) setCollapsed(false)
-                            setExpandedItems((current) => ({
-                              ...current,
-                              [item.label]: !expanded,
-                            }))
-                          }}
-                          variant={active ? "sidebar-active" : "sidebar"}
-                        >
-                          {Icon ? <Icon /> : null}
-                          {collapsed ? null : <span>{item.label}</span>}
-                          {collapsed ? null : (
-                            <ChevronDown
-                              className={`ml-auto transition-transform ${expanded ? "rotate-180" : ""}`}
-                            />
-                          )}
-                        </Button>
+                            {collapsed ? null : (
+                              <ChevronDown
+                                className={`ml-auto transition-transform ${expanded ? "rotate-180" : ""}`}
+                              />
+                            )}
+                          </Button>
+                        </SidebarNavigationTooltip>
                       )}
 
                       {collapsed || !children || !expanded ? null : (
@@ -219,9 +233,7 @@ export function AppShell({ children, profile }: AppShellProps) {
         </ScrollArea>
       </aside>
 
-      <div
-        className={`min-h-dvh transition-[padding] duration-200 ${collapsed ? "lg:pl-20" : "lg:pl-72"}`}
-      >
+      <div className="min-h-dvh lg:pl-72" ref={contentRef}>
         <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-sidebar-border bg-sidebar px-4 lg:px-8">
           <div className="flex items-center gap-3">
             <Button
