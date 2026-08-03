@@ -156,3 +156,14 @@ Para cada feature:
 5. Registrar cualquier divergencia indispensable por falta de dato/acción equivalente; no introducir datos ficticios para aparentar equivalencia.
 
 Queda prohibido crear un componente de dominio “inspirado” o una versión visual Zapi de la fuente. Cambiar una `Card`, `Button`, `Dialog`, tabla o layout de la fuente para acomodar estilos/variantes V2 previas incumple esta regla.
+
+### Protocolo obligatorio fuente → copia
+
+1. Auditar todos los estados y efectos de la feature V2 antes de diseñar: normal, loading, empty, error, permiso, pending, modal y responsive.
+2. Buscar una fuente exacta en `diseño ideal`. Si existe, copiar DOM, clases, primitives, spacing y responsive sin reinterpretarlos.
+3. Si no existe fuente exacta, no ensamblar un sustituto dentro de V2. Crear primero un componente canónico co-localizado en `diseño ideal`, con ruta o demo navegable para revisarlo; después copiarlo literalmente a la feature V2.
+4. Mantener la lógica V2 mediante props, hooks o adapters. Solo son adaptables contenido, tipos, datos, handlers, rutas, permisos, sesión y accesibilidad indispensable.
+5. Auditar tokens antes de crear alguno. Un token nuevo se añade primero a la fuente `diseño ideal`, incluyendo claro/oscuro; la copia V2 solo refleja ese token cuando lo consume.
+6. No crear variantes, aliases, sombras, colores raw ni estilos compensatorios locales en V2. Una divergencia visual indispensable se documenta en el plan antes de aceptarla.
+7. Validar la fuente y el consumidor tras cambios compartidos: formato/check/build/lint disponible en ambos repositorios, `git diff --check` y smoke visual cuando haya navegador.
+8. Al cerrar una iteración, dejar la superficie pausada. Se reabre exclusivamente por una solicitud de producto nueva; no se hacen retoques preventivos.

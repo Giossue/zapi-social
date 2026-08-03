@@ -136,6 +136,12 @@ ZapiV2       → datos y comportamiento de dominio
 
 No se consideran terminadas las superficies pendientes solo porque una iteración previa haya usado primitives, tokens o una adaptación visual. Cada una debe auditarse primero y sustituirse sin perder lógica Zapi.
 
+### Protocolo operativo consolidado
+
+- `diseño ideal` es la fuente visual canónica. Si una superficie no existe allí, se crea y revisa primero allí antes de cualquier composición V2.
+- La copia V2 conserva literalmente JSX, clases, primitives, densidad, responsive y estados visuales; adapta únicamente contenido, datos y comportamiento de dominio.
+- Tokens nuevos se auditan y crean primero en `diseño ideal`, con claro/oscuro; V2 no crea sustitutos visuales locales.
+- Cambios que afecten fuente y consumidor se validan en ambos repositorios. Una iteración cerrada queda pausada hasta una solicitud de producto nueva.
 
 ## Channels Portal — avance source-first
 

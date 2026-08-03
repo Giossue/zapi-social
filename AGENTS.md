@@ -112,3 +112,13 @@ ZapiV2
 - Solo se permite cambiar JSX/clases de la fuente cuando sea imprescindible para enlazar un dato, handler, accesibilidad o estado real de Zapi; documentar cada divergencia.
 - No añadir tokens, variantes, aliases o props de compatibilidad para reproducir estética V2 previa. Errores de consumidores se migran, no se ocultan deformando la fuente visual.
 - `packages/ui` conserva primitives globales copiados de `diseño ideal`; `features/<dominio>` contiene la composición fuente específica ya conectada al dominio Zapi.
+
+### Protocolo fuente → copia
+
+1. Auditar primero la feature V2 completa y localizar su fuente exacta en `diseño ideal`.
+2. Si la fuente existe, copiarla literalmente a V2; no mezclar fragmentos de otras pantallas ni "mejorarla" en V2.
+3. Si la fuente no existe, crear primero el componente canónico y una demo navegable en `diseño ideal`; solo después copiarlo a V2.
+4. Antes de añadir un token, variante o color, auditar `diseño ideal`. Si falta, se define primero allí con su modo claro/oscuro y luego se refleja en V2 si el consumidor lo necesita.
+5. V2 adapta únicamente contenido, tipos, datos, callbacks, rutas, permisos, sesión y accesibilidad indispensable. Conserva la lógica real fuera de la composición visual.
+6. Toda modificación visual se valida proactivamente en ambos repositorios cuando ambos cambian: formato/check/build/lint disponible y revisión visual manual cuando haya navegador.
+7. Una superficie queda pausada al cerrar su iteración; no se rehace ni se extiende hasta que producto solicite un cambio nuevo.
