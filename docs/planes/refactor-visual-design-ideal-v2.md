@@ -66,11 +66,11 @@ No se entrega un selector de preferencias. Presets, fuentes y modos alternos de 
 | --- | --- | --- | --- |
 | Dashboard Portal/Admin | [x] Refactorizado | Portal REST live / Admin fixture | Sin hero duplicado; métricas y paneles operativos densos. |
 | Files y búsqueda online | [x] Mock nuevo | Fixtures deterministas | Rutas `/portal/files` y `/portal/files/search-online`; upload/búsqueda no tocan storage ni API. |
-| Publishing | [x] Refactorizado | Mock existente | Toolbar/calendario/tablas densas; acciones siguen locales. |
+| Publishing | [x] Source-first (calendario) | Mock existente | Calendario canónico FullCalendar; cola, borradores y compositor siguen locales. |
 | Channels | [x] Refactorizado | REST/OAuth live | OAuth, 403, paginación, mutaciones y errores preservados. |
 | Teams | [x] Refactorizado | Mock existente | Tabla desktop, filas móvil, gate de roles y acciones mock preservados. |
 | AI Studio | [x] Mock nuevo | Fixtures deterministas | Ruta `/portal/ai-studio/ai-content`; generación local, sin proveedor ni créditos reales. |
-| Captions | [x] Refactorizado | REST live | CRUD, filtros, pending, 403 y errores preservados. |
+| Captions | [x] Source-first | REST live | Inventario tabular canónico copiado; CRUD, filtros locales, pending, 403, error y sesión expirada preservados. |
 | Commerce | [x] Mock nuevo | Fixtures deterministas | Ruta `/portal/commerce`; no existía equivalencia Laravel/V2. No consulta ni modifica órdenes, inventario ni backend. |
 
 ## Referencias adaptadas
@@ -82,6 +82,7 @@ No se entrega un selector de preferencias. Presets, fuentes y modos alternos de 
 - Channels/Teams: `diseño ideal/src/app/(main)/dashboard/infrastructure/` y `users/`.
 - AI: `diseño ideal/src/app/(main)/chat/` solo como patrón de composición.
 - Commerce: `diseño ideal/src/app/(main)/dashboard/ecommerce/` solo como referencia visual.
+- Captions: `diseño ideal/src/app/(main)/dashboard/captions/_components/caption-library.tsx` y `caption-types.ts`.
 
 Los componentes compartidos de Preferences/layout controls de la referencia se excluyen deliberadamente: son controles para configuración mutable y contradicen la configuración fija aprobada. `date-range-picker` y `simple-icon` no se copian por anticipación: no tienen consumidor V2 actual.
 
@@ -132,7 +133,9 @@ ZapiV2       → datos y comportamiento de dominio
 | --- | --- |
 | Shell Portal/Admin | Base activa: estructura fuente copiada y datos/rutas Zapi inyectados. |
 | Dashboard Portal | Base activa: jerarquía `dashboard/default` copiada y alimentada por `PortalDashboard`. |
-| Auth, Profile, Files, Publishing, Channels, Teams, Captions, AI Studio, Commerce y Dashboard Admin | Pendientes de reemplazar su composición de dominio adaptada por fuente literal de `diseño ideal`. |
+| Auth, Profile, Files, Teams, AI Studio, Commerce y Dashboard Admin | Pendientes de reemplazar su composición de dominio adaptada por fuente literal de `diseño ideal`. |
+| Publishing / Calendario | Base activa: `dashboard/calendar` y su renderer FullCalendar copiados; datos y callbacks Publishing inyectados. |
+| Captions | Base activa: `dashboard/captions/_components/caption-library.tsx` copiado a la feature y conectado a REST real. |
 
 No se consideran terminadas las superficies pendientes solo porque una iteración previa haya usado primitives, tokens o una adaptación visual. Cada una debe auditarse primero y sustituirse sin perder lógica Zapi.
 
@@ -159,3 +162,24 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - Eliminación consume `AlertDialog` con `AlertDialogMedia`, header y footer de `diseño ideal/src/components/ui/alert-dialog.tsx`; solo cambian recurso, texto y callback destructivo Zapi.
 - El picker OAuth Meta y el flujo QR WhatsApp no se han cambiado todavía: requieren sus propias fuentes canónicas en `diseño ideal`; se preservan sin cambios funcionales hasta construirlas allí.
 - Validación de este avance: `bun --filter web typecheck`, `bun --filter web build` y `git diff --check` correctos el 2026-08-03; `bun --filter web lint` sin errores; sus warnings restantes no provienen de `channel-capability-picker.tsx`.
+
+
+## Captions Portal — avance source-first
+
+- `TablePagination` se promovió a `packages/ui` desde `diseño ideal/src/components/table-pagination.tsx` como footer estándar para tablas operativas. Tiene modo `compact` para Channels y Captions, y modo `detailed` para el Resumen operativo del Dashboard; las tablas nuevas deben reutilizarlo.
+- La fuente canónica se reestructuró primero en `diseño ideal/src/app/(main)/dashboard/captions/_components/caption-library.tsx` junto con `caption-types.ts`, usando literalmente el patrón tabular de `dashboard/users` que sirve de base a Channels; V2 no compone una variante visual propia.
+- `apps/web/features/captions/components/captions-library-page.tsx` copia la jerarquía tabular, DOM, clases, responsive, empty/error/loading, diálogos y badges de la fuente. La vista sustituye las cards y métricas por un Card operativo con búsqueda, filtros compactos, conteo, tabla y `TablePagination`; la adaptación se limita a imports `@workspace`, tipos reales, textos, callbacks, IDs accesibles y datos REST.
+- Se eliminó el selector visible de estados de demo. `captionsApi.list/create/update/remove` activa loading, 403, error, resultados y empty según las respuestas reales; el filtro permanece local sobre captions recibidos.
+- Un `ApiError` `AUTH_SESSION_EXPIRED` recibido en carga o mutaciones redirige con `useRouter().replace("/login")`, sin mostrar error técnico ni request IDs. `updatedAt` ISO se formatea para lectura humana y el error de guardado queda persistente en el formulario, además del toast secundario.
+- Error y permiso usan Card + empty state como Channels; los empty inicial/filtrado se renderizan dentro de la tabla. La única divergencia de variante es el botón de acciones: `ghost` en fuente se mapea a `brand-secondary` porque producto lo prohíbe. No se añadieron variantes, tokens, aliases ni colores locales; badges activo verde y los demás grises conservan `leading-none`.
+- Validación: `npm run check` y `npm run build` correctos en `diseño ideal`; `bun --filter web typecheck`, `bun --filter web build` y `git diff --check` correctos en V2 el 2026-08-03. El lint focal no tiene errores y conserva el warning conocido de TanStack Table que ya existe en Channels. La carga REST inicial sigue siendo una promesa cancelable en `useEffect`. No se ejecutó smoke de navegador autenticado en esta iteración.
+
+
+## Publishing Portal — calendario source-first
+
+- Se auditó el flujo mock y la equivalencia Laravel antes de sustituir la composición: permiso `canView`, posts, cuentas, borrador/programación/publicación inmediata, cola, reintento, borradores, preview y errores permanecen locales; no se tocó REST, contratos, Nest, Drizzle ni Worker.
+- La fuente exacta es `diseño ideal/src/app/(main)/dashboard/calendar/_components/calendar.tsx`; su renderer `src/components/calendar/event-calendar-views.tsx` se copia a `apps/web/features/publishing/components/` para evitar promover un pattern que todavía solo consume Publishing.
+- V2 adapta los eventos desde `PublishingPost`, los calendarios de demo a filtros Facebook/Instagram/WhatsApp y `Add event` al compositor mock. La navegación, selector, jerarquía DOM, clases, responsive, popover y vistas mes/semana/día se conservan de la fuente.
+- La vista diaria es una divergencia visual explícita frente a Laravel, que solo expone mes/semana; no introduce datos ni nuevas transiciones de estado y se reevaluará al definir REST.
+- `@fullcalendar/react` y `date-fns` se declaran en `apps/web` por importación directa. El CSS de skeleton se importa junto al renderer copiado, sin tokens, colores o CSS global V2 nuevos.
+- Validación: `bun --cwd apps/web typecheck`, lint focal de los tres componentes y `git diff --check` correctos el 2026-08-03. Falta smoke manual en navegador para `/portal/publishing/calendar` en escritorio, móvil y modo claro/oscuro.

@@ -65,6 +65,7 @@ Este inventario refleja los módulos reales de `packages/ui/src/components/`. No
 | `ScrollArea` | `@workspace/ui/components/scroll-area` | Regiones con scroll contenido. |
 | `Separator` | `@workspace/ui/components/separator` | Separación semántica entre bloques o acciones. |
 | `Table` | `@workspace/ui/components/table` | Datos tabulares y listados operativos. |
+| `TablePagination` | `@workspace/ui/components/table-pagination` | Footer estándar: modo `compact` con rango y flechas, y modo `detailed` con selección opcional, filas por página y controles completos. |
 
 ## Feedback, overlays y utilidades de interfaz
 

@@ -80,6 +80,7 @@ Crear o actualizar un plan cuando se inicia una vertical, cambia una equivalenci
 - Trabajamos exclusivamente contra PostgreSQL remoto; no ejecutar ni preparar mutaciones locales.
 - Antes de ejecutar una migración remota, pedir confirmación explícita indicando el archivo y si es aditiva, destructiva o transformadora.
 - Para PostgreSQL remoto usar exclusivamente `psql "service=zapi_v2"`; las mutaciones, migraciones y permisos requieren aprobación explícita.
+- Para una operación local ya autorizada que requiera privilegios de PostgreSQL, solicitar elevación mediante `pkexec`; no delegar al usuario la ejecución manual de comandos `sudo`.
 
 ## Comunicación
 

@@ -1,26 +1,15 @@
 "use client"
 "use no memo"
 
-import type { MouseEvent, ReactNode } from "react"
+import type { ReactNode } from "react"
 
 import { flexRender, type Table as TableType } from "@tanstack/react-table"
 
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationNext,
-  PaginationPrevious,
-} from "@workspace/ui/components/pagination"
-import { Separator } from "@workspace/ui/components/separator"
 import { Skeleton } from "@workspace/ui/components/skeleton"
+import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/table"
 
 import type { PortalChannelAccount } from "../../types/channels"
-
-function preventPaginationNavigation(event: MouseEvent<HTMLAnchorElement>) {
-  event.preventDefault()
-}
 
 type ChannelsTableProps = {
   table: TableType<PortalChannelAccount>
@@ -97,40 +86,17 @@ export function ChannelsTable({
         </Table>
       </div>
 
-      <Separator />
-
-      <div className="flex items-center justify-between px-4">
-        <div className="flex items-center gap-4 text-muted-foreground text-sm">
-          <span>{total > 0 ? `${rangeStart}-${rangeEnd} de ${total}` : "0 canales"}</span>
-        </div>
-
-        <Pagination className="mx-0 w-auto justify-start md:justify-end">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                text=""
-                className={!canGoPrevious ? "pointer-events-none opacity-50" : undefined}
-                onClick={(event) => {
-                  preventPaginationNavigation(event)
-                  if (canGoPrevious) onPreviousPage()
-                }}
-              />
-            </PaginationItem>
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                text=""
-                className={!canGoNext ? "pointer-events-none opacity-50" : undefined}
-                onClick={(event) => {
-                  preventPaginationNavigation(event)
-                  if (canGoNext) onNextPage()
-                }}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      </div>
+      <TablePagination
+        canGoNext={canGoNext}
+        canGoPrevious={canGoPrevious}
+        itemLabel="canales"
+        mode="compact"
+        onNextPage={onNextPage}
+        onPreviousPage={onPreviousPage}
+        rangeEnd={rangeEnd}
+        rangeStart={rangeStart}
+        total={total}
+      />
     </div>
   )
 }

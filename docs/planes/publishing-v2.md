@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Investigación Laravel completada; UI mock implementada. Permisos de Teams y contrato/backend pendientes.**
+**Investigación Laravel completada; UI mock source-first implementada. Permisos de Teams y contrato/backend pendientes.**
 
 No implementar persistencia, adapters de providers ni workers hasta aprobar el MVP, permisos y transición de estados descritos aquí.
 
@@ -168,11 +168,18 @@ Scheduler: solo encola IDs vencidos; no llama proveedores directamente
 7. **Protección contra errores:** advertir de cambios incompatibles al añadir/quitar cuentas, preservar borradores y permitir deshacer antes de encolar.
 8. **Fecha y hora accesibles:** el compositor usa el `Calendar` y `Popover` compartidos de `packages/ui` para elegir fecha, y controles separados de hora/minuto; no usa `input type="datetime-local"`. El calendario se apoya en `react-day-picker` dentro de `@workspace/ui`.
 
+### Refactor visual source-first — calendario
+
+- La superficie canónica es `diseño ideal/src/app/(main)/dashboard/calendar/_components/calendar.tsx`, junto con su renderer `src/components/calendar/event-calendar-views.tsx`. V2 copia literalmente la jerarquía visual: cabecera sidebar, selector, navegación, selector de vistas, botón primario y FullCalendar.
+- V2 adapta únicamente el contenido y callbacks: los `PublishingPost` mock se convierten en eventos, el selector genérico se limita a proveedores reales y los clics de fecha abren el compositor. Un evento solo permite editar estados `draft`, `scheduled` o `failed`, coherente con Laravel.
+- La fuente aporta vista de día además de mes/semana. Es una divergencia visual documentada: no cambia los datos ni el contrato mock y quedará sujeta al contrato REST final.
+- Se añaden `@fullcalendar/react` y `date-fns` como dependencias explícitas de `apps/web`; no se importa `diseño ideal` ni se añade un primitive global porque el renderer solo tiene consumidor Publishing.
+
 ## Secuencia de ejecución
 
 1. [x] Auditar Laravel, dependencias, proveedores y extensiones de origen.
 2. [ ] Aprobar alcance MVP, permisos y estados de transición.
-3. [x] Diseñar UI mock: calendar, composer, cola, empty/loading/error/permisos y preview/preflight. Evidencia: `apps/web/features/publishing/` y rutas `apps/web/app/portal/publishing/`.
+3. [x] Diseñar UI mock: calendar, composer, cola, empty/loading/error/permisos y preview/preflight. El calendario source-first usa FullCalendar, filtro de proveedor, mes/semana/día y compositor contextual. Evidencia: `apps/web/features/publishing/`, `apps/web/app/portal/publishing/` y `diseño ideal/src/app/(main)/dashboard/calendar/`.
 4. [ ] Definir contrato Zod + REST + errores públicos.
 5. [ ] Añadir schema/migración Drizzle y pruebas de constraints.
 6. [ ] Implementar API, ownership, cuotas y auditoría.

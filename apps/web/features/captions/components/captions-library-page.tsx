@@ -1,30 +1,22 @@
 "use client"
-
-import { useEffect, useMemo, useState, type FormEvent } from "react"
+"use no memo"
+import type { ColumnDef } from "@tanstack/react-table"
+import { flexRender, getCoreRowModel, getPaginationRowModel, type PaginationState, useReactTable } from "@tanstack/react-table"
+import { ApiError, captionsApi } from "@workspace/api-client"
 import {
-  Bot,
-  FilePenLine,
-  List,
-  LoaderCircle,
-  Pencil,
-  PenLine,
-  Plus,
-  Search,
-  Sparkles,
-  Trash2,
-  TriangleAlert,
-} from "lucide-react"
-
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+} from "@workspace/ui/components/alert-dialog"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
 import {
   Dialog,
   DialogContent,
@@ -33,65 +25,86 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
-import { EmptyState } from "@workspace/ui/components/empty-state"
-import { Input } from "@workspace/ui/components/input"
 import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@workspace/ui/components/input-group"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
+import { EmptyState } from "@workspace/ui/components/empty-state"
+import { Field, FieldError, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
+import { Input } from "@workspace/ui/components/input"
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@workspace/ui/components/input-group"
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
 import { Skeleton } from "@workspace/ui/components/skeleton"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/table"
+import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
+import { FileText, LockKeyhole, MoreHorizontal, Pencil, Plus, RefreshCw, Search, Sparkles, Trash2, TriangleAlert, X } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { type FormEvent, type ReactNode, useCallback, useEffect, useMemo, useState } from "react"
 
-import { ApiError, captionsApi } from "@workspace/api-client"
-import type {
-  Caption,
-  CaptionDraft,
-  CaptionFilters,
-  CaptionMetrics,
-  CaptionSourceType,
-  CaptionStatus,
-} from "@/features/captions/types/captions"
+import type { Caption, CaptionDraft, CaptionSourceType, CaptionStatus } from "@/features/captions/types/captions"
 
-const initialFilters: CaptionFilters = {
-  query: "",
-  sourceType: "all",
-  status: "all",
+type CaptionEditorValues = Omit<Caption, "id" | "notes" | "updatedAt" | "tags"> & {
+  notes: string
+  tags: string
 }
 
-type EditorTarget = Caption | "new" | null
-
-const sourceMeta: Record<
-  CaptionSourceType,
-  { label: string; icon: typeof FilePenLine }
-> = {
-  manual: { label: "Manual", icon: FilePenLine },
-  ai: { label: "AI", icon: Sparkles },
+type CaptionTableActions = {
+  onEdit: (caption: Caption) => void
+  onRemove: (caption: Caption) => void
 }
 
-const statusMeta: Record<
-  CaptionStatus,
-  { label: string; variant: "success" | "neutral" | "warning" }
-> = {
-  active: { label: "Activo", variant: "success" },
-  draft: { label: "Borrador", variant: "neutral" },
-  archived: { label: "Archivado", variant: "warning" },
+const sourceLabels: Record<CaptionSourceType, string> = {
+  manual: "Manual",
+  ai: "Generado por IA",
+}
+
+const statusLabels: Record<CaptionStatus, string> = {
+  active: "Activo",
+  draft: "Borrador",
+  archived: "Archivado",
+}
+
+const emptyEditorValues: CaptionEditorValues = {
+  content: "",
+  name: "",
+  notes: "",
+  sourceType: "manual",
+  status: "draft",
+  tags: "",
+}
+
+function toEditorValues(caption: Caption): CaptionEditorValues {
+  return {
+    content: caption.content,
+    name: caption.name,
+    notes: caption.notes ?? "",
+    sourceType: caption.sourceType,
+    status: caption.status,
+    tags: caption.tags.join(", "),
+  }
 }
 
 function formatUpdatedAt(value: string) {
+  const updatedAt = new Date(value)
+  if (Number.isNaN(updatedAt.getTime())) return "Actualizado recientemente"
+
   return new Intl.DateTimeFormat("es", {
     day: "numeric",
     month: "short",
     year: "numeric",
-  }).format(new Date(value))
+  }).format(updatedAt)
 }
 
 function normalizeTags(value: string) {
@@ -105,605 +118,702 @@ function normalizeTags(value: string) {
   return [...uniqueTags.values()]
 }
 
-function CaptionMetricsGrid({ metrics }: { metrics: CaptionMetrics }) {
-  const items = [
-    { label: "Total", value: metrics.total, icon: List },
-    { label: "Con AI", value: metrics.ai, icon: Bot },
-    { label: "Manuales", value: metrics.manual, icon: FilePenLine },
-    { label: "Activos", value: metrics.active, icon: Sparkles },
-  ]
+function CaptionStatusBadge({ status }: { status: CaptionStatus }) {
+  if (status === "active") {
+    return (
+      <Badge className="bg-success text-success-foreground leading-none" variant="secondary">
+        {statusLabels[status]}
+      </Badge>
+    )
+  }
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      {items.map(({ label, value, icon: Icon }) => (
-        <Card key={label} size="sm" variant="subtle">
-          <CardHeader>
-            <CardTitle className="font-normal text-muted-foreground">
-              {label}
-            </CardTitle>
-            <CardAction>
-              <Icon aria-hidden="true" className="size-4 text-muted-foreground" />
-            </CardAction>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl leading-none font-semibold tracking-tight">
-              {value}
-            </p>
-          </CardContent>
-        </Card>
+    <Badge className="leading-none" variant="outline">
+      {statusLabels[status]}
+    </Badge>
+  )
+}
+
+function CaptionCell({ caption }: { caption: Caption }) {
+  return (
+    <div className="min-w-0">
+      <div className="truncate font-medium text-foreground text-sm">{caption.name}</div>
+      <div className="max-w-md truncate text-muted-foreground text-sm">{caption.content}</div>
+    </div>
+  )
+}
+
+function SourceCell({ sourceType }: { sourceType: CaptionSourceType }) {
+  return (
+    <Badge className="leading-none" variant="outline">
+      {sourceLabels[sourceType]}
+    </Badge>
+  )
+}
+
+function TagsCell({ tags }: { tags: readonly string[] }) {
+  const visibleTags = tags.slice(0, 2)
+  const hiddenTagCount = tags.length - visibleTags.length
+
+  return (
+    <div className="flex max-w-48 flex-wrap gap-1">
+      {visibleTags.map((tag) => (
+        <Badge className="leading-none" key={tag} variant="outline">
+          {tag}
+        </Badge>
       ))}
+      {hiddenTagCount > 0 ? (
+        <Badge className="leading-none" variant="outline">
+          +{hiddenTagCount}
+        </Badge>
+      ) : null}
+    </div>
+  )
+}
+
+function createCaptionColumns({ onEdit, onRemove }: CaptionTableActions): ColumnDef<Caption>[] {
+  return [
+    {
+      accessorKey: "name",
+      header: "Caption",
+      cell: ({ row }) => <CaptionCell caption={row.original} />,
+    },
+    {
+      accessorKey: "sourceType",
+      header: "Origen",
+      cell: ({ row }) => <SourceCell sourceType={row.original.sourceType} />,
+    },
+    {
+      accessorKey: "status",
+      header: "Estado",
+      cell: ({ row }) => <CaptionStatusBadge status={row.original.status} />,
+    },
+    {
+      accessorKey: "tags",
+      header: "Etiquetas",
+      cell: ({ row }) => <TagsCell tags={row.original.tags} />,
+    },
+    {
+      accessorKey: "updatedAt",
+      header: "Actualizado",
+      cell: ({ row }) => <span className="text-foreground text-sm">{formatUpdatedAt(row.original.updatedAt)}</span>,
+    },
+    {
+      id: "actions",
+      header: () => <div className="text-right">Acciones</div>,
+      cell: ({ row }) => {
+        const caption = row.original
+
+        return (
+          <div className="text-right">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  aria-label={`Abrir acciones para ${caption.name}`}
+                  size="icon-sm"
+                  type="button"
+                  variant="brand-secondary"
+                >
+                  <MoreHorizontal />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" size="compact">
+                <DropdownMenuItem onSelect={() => onEdit(caption)} size="compact">
+                  <Pencil />
+                  Editar
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onSelect={() => onRemove(caption)} size="compact" variant="destructive">
+                  <Trash2 />
+                  Eliminar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )
+      },
+      enableHiding: false,
+      enableSorting: false,
+    },
+  ]
+}
+
+function CaptionsTable({
+  captions,
+  emptyState,
+  onEdit,
+  onRemove,
+}: {
+  captions: readonly Caption[]
+  emptyState: ReactNode
+  onEdit: (caption: Caption) => void
+  onRemove: (caption: Caption) => void
+}) {
+  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
+  const tableData = useMemo(() => [...captions], [captions])
+  const table = useReactTable({
+    data: tableData,
+    columns: createCaptionColumns({ onEdit, onRemove }),
+    state: { pagination },
+    getRowId: (caption) => caption.id,
+    onPaginationChange: setPagination,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+  })
+  const total = captions.length
+  const rangeStart = total ? pagination.pageIndex * pagination.pageSize + 1 : 0
+  const rangeEnd = total ? Math.min(rangeStart + table.getRowModel().rows.length - 1, total) : 0
+
+  return (
+    <div className="flex flex-1 flex-col gap-4">
+      <div>
+        <Table className="**:data-[slot=table-cell]:px-4 **:data-[slot=table-head]:px-4">
+          <TableHeader className="[&_tr]:border-t">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id} className="py-4 font-normal">
+                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
+              </TableRow>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id} className="border-border/60 hover:bg-white/2.5">
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id} className="px-3 py-4 align-middle">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={table.getVisibleLeafColumns().length}>{emptyState}</TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      <TablePagination
+        canGoNext={table.getCanNextPage()}
+        canGoPrevious={table.getCanPreviousPage()}
+        itemLabel="captions"
+        mode="compact"
+        onNextPage={() => table.nextPage()}
+        onPreviousPage={() => table.previousPage()}
+        rangeEnd={rangeEnd}
+        rangeStart={rangeStart}
+        total={total}
+      />
     </div>
   )
 }
 
 function CaptionsLoading() {
   return (
-    <div aria-busy="true" className="space-y-4">
-      <div className="flex justify-end">
-        <Skeleton className="h-8 w-36" />
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {["total", "ai", "manual", "active"].map((key) => (
-          <Skeleton className="h-24" key={key} />
-        ))}
-      </div>
-      <Card variant="subtle">
-        <CardContent className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_12rem_12rem_auto]">
-          <Skeleton className="h-8" />
-          <Skeleton className="h-8" />
-          <Skeleton className="h-8" />
-          <Skeleton className="h-8 w-28" />
-        </CardContent>
-      </Card>
-      <div className="grid gap-4 lg:grid-cols-2">
-        {["one", "two", "three", "four"].map((key) => (
-          <Skeleton className="h-64" key={key} />
-        ))}
-      </div>
-    </div>
-  )
-}
-
-function CaptionCard({
-  caption,
-  onDelete,
-  onEdit,
-}: {
-  caption: Caption
-  onDelete: (caption: Caption) => void
-  onEdit: (caption: Caption) => void
-}) {
-  const source = sourceMeta[caption.sourceType]
-  const SourceIcon = source.icon
-  const status = statusMeta[caption.status]
-
-  return (
-    <Card className="h-full" variant="subtle">
-      <CardHeader className="gap-3">
-        <div className="min-w-0 space-y-1">
-          <CardTitle className="truncate">{caption.name}</CardTitle>
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <SourceIcon aria-hidden="true" className="size-3.5" />
-            {source.label}
-          </p>
-        </div>
-        <CardAction>
-          <Badge variant={status.variant}>{status.label}</Badge>
-        </CardAction>
+    <Card>
+      <CardHeader className="border-b">
+        <Skeleton className="h-5 w-44" />
+        <Skeleton className="h-4 w-72" />
       </CardHeader>
-      <CardContent className="flex flex-1 flex-col gap-4">
-        <p className="line-clamp-4 text-sm leading-relaxed text-muted-foreground">
-          {caption.content}
-        </p>
-        {caption.tags.length > 0 ? (
-          <div className="flex flex-wrap gap-1.5">
-            {caption.tags.map((tag) => (
-              <Badge key={tag} variant="neutral">
-                {tag}
-              </Badge>
-            ))}
-          </div>
-        ) : null}
-        {caption.notes ? (
-          <p className="line-clamp-2 border-l-2 border-border pl-3 text-sm leading-relaxed text-muted-foreground">
-            {caption.notes}
-          </p>
-        ) : null}
-      </CardContent>
-      <CardFooter className="mt-auto justify-between gap-3">
-        <p className="text-xs text-muted-foreground">
-          Actualizado {formatUpdatedAt(caption.updatedAt)}
-        </p>
-        <div className="flex shrink-0 items-center gap-1">
-          <Button
-            aria-label={`Editar ${caption.name}`}
-            onClick={() => onEdit(caption)}
-            size="icon-sm"
-            variant="brand-secondary"
-          >
-            <Pencil />
-          </Button>
-          <Button
-            aria-label={`Eliminar ${caption.name}`}
-            onClick={() => onDelete(caption)}
-            size="icon-sm"
-            variant="brand-secondary"
-          >
-            <Trash2 />
-          </Button>
+      <CardContent className="flex flex-col gap-4 px-0 py-4">
+        <div className="flex gap-3 px-4">
+          <Skeleton className="h-7 w-28" />
+          <Skeleton className="h-7 w-28" />
         </div>
-      </CardFooter>
+        {["one", "two", "three"].map((key) => (
+          <Skeleton className="mx-4 h-14" key={key} />
+        ))}
+      </CardContent>
     </Card>
   )
 }
 
-function CaptionEditorDialog({
-  caption,
-  onClose,
-  onSave,
-  pending,
-}: {
-  caption: EditorTarget
-  onClose: () => void
-  onSave: (draft: CaptionDraft) => void
-  pending: boolean
-}) {
-  const isEditing = caption !== null && caption !== "new"
-
-  function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const form = new FormData(event.currentTarget)
-    const name = String(form.get("name") ?? "").trim()
-    const content = String(form.get("content") ?? "").trim()
-    const notes = String(form.get("notes") ?? "").trim()
-    const tags = normalizeTags(String(form.get("tags") ?? ""))
-
-    if (!name || !content) {
-      toast.error("Nombre y contenido son obligatorios.")
-      return
-    }
-    if (tags.length > 20 || tags.some((tag) => tag.length > 64)) {
-      toast.error("Usa hasta 20 etiquetas de 64 caracteres como máximo.")
-      return
-    }
-
-    onSave({
-      name,
-      content,
-      notes: notes || null,
-      tags,
-      sourceType: String(form.get("sourceType")) as CaptionSourceType,
-      status: String(form.get("status")) as CaptionStatus,
-    })
-  }
-
-  return (
-    <Dialog onOpenChange={(open) => !open && onClose()} open={caption !== null}>
-      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{isEditing ? "Editar caption" : "Nuevo caption"}</DialogTitle>
-          <DialogDescription>
-            Guarda una pieza reutilizable para este espacio de trabajo. No se
-            publicará contenido desde aquí.
-          </DialogDescription>
-        </DialogHeader>
-        <form
-          className="grid gap-5"
-          key={isEditing ? caption.id : "new"}
-          noValidate
-          onSubmit={submit}
-        >
-          <label className="grid gap-1.5 text-sm font-medium">
-            <span>
-              Nombre
-              <span aria-hidden="true" className="ml-0.5 text-destructive">
-                *
-              </span>
-            </span>
-            <Input
-              defaultValue={isEditing ? caption.name : ""}
-              maxLength={120}
-              name="name"
-              required
-            />
-          </label>
-          <label className="grid gap-1.5 text-sm font-medium">
-            <span>
-              Contenido
-              <span aria-hidden="true" className="ml-0.5 text-destructive">
-                *
-              </span>
-            </span>
-            <Textarea
-              className="min-h-32"
-              defaultValue={isEditing ? caption.content : ""}
-              maxLength={10000}
-              name="content"
-              required
-            />
-          </label>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="grid gap-1.5 text-sm font-medium">
-              Origen
-              <Select
-                defaultValue={isEditing ? caption.sourceType : "manual"}
-                name="sourceType"
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="manual">Manual</SelectItem>
-                  <SelectItem value="ai">AI</SelectItem>
-                </SelectContent>
-              </Select>
-            </label>
-            <label className="grid gap-1.5 text-sm font-medium">
-              Estado
-              <Select
-                defaultValue={isEditing ? caption.status : "draft"}
-                name="status"
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Activo</SelectItem>
-                  <SelectItem value="draft">Borrador</SelectItem>
-                  <SelectItem value="archived">Archivado</SelectItem>
-                </SelectContent>
-              </Select>
-            </label>
-          </div>
-          <label className="grid gap-1.5 text-sm font-medium">
-            Etiquetas
-            <Input
-              defaultValue={isEditing ? caption.tags.join(", ") : ""}
-              maxLength={1299}
-              name="tags"
-              placeholder="lanzamiento, instagram"
-            />
-            <span className="text-xs font-normal text-muted-foreground">
-              Separadas por comas; hasta 20.
-            </span>
-          </label>
-          <label className="grid gap-1.5 text-sm font-medium">
-            Notas{" "}
-            <span className="text-xs font-normal text-muted-foreground">
-              Opcionales
-            </span>
-            <Textarea
-              defaultValue={isEditing ? (caption.notes ?? "") : ""}
-              maxLength={2000}
-              name="notes"
-            />
-          </label>
-          <DialogFooter>
-            <Button
-              disabled={pending}
-              onClick={onClose}
-              type="button"
-              variant="brand-secondary"
-            >
-              Cancelar
-            </Button>
-            <Button disabled={pending} type="submit">
-              {pending ? (
-                <LoaderCircle className="animate-spin" data-icon="inline-start" />
-              ) : null}
-              {isEditing ? "Guardar cambios" : "Crear caption"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-function DeleteCaptionDialog({
-  caption,
-  onClose,
-  onConfirm,
-  pending,
-}: {
-  caption: Caption | null
-  onClose: () => void
-  onConfirm: () => void
-  pending: boolean
-}) {
-  return (
-    <Dialog onOpenChange={(open) => !open && onClose()} open={caption !== null}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Eliminar caption</DialogTitle>
-          <DialogDescription>
-            {caption
-              ? `Eliminarás “${caption.name}” de la biblioteca del espacio de trabajo. Esta acción no se puede deshacer.`
-              : ""}
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button disabled={pending} onClick={onClose} variant="brand-secondary">
-            Cancelar
-          </Button>
-          <Button disabled={pending} onClick={onConfirm} variant="destructive">
-            {pending ? (
-              <LoaderCircle className="animate-spin" data-icon="inline-start" />
-            ) : (
-              <Trash2 data-icon="inline-start" />
-            )}
-            Eliminar
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
 export function CaptionsLibraryPage() {
+  const router = useRouter()
   const [captions, setCaptions] = useState<Caption[]>([])
-  const [filters, setFilters] = useState<CaptionFilters>(initialFilters)
-  const [loading, setLoading] = useState(true)
-  const [pending, setPending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [editor, setEditor] = useState<EditorTarget>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [hasLoadError, setHasLoadError] = useState(false)
+  const [hasPermission, setHasPermission] = useState(true)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [sourceFilter, setSourceFilter] = useState<CaptionSourceType | "all">("all")
+  const [statusFilter, setStatusFilter] = useState<CaptionStatus | "all">("all")
+  const [isEditorOpen, setIsEditorOpen] = useState(false)
+  const [editingCaption, setEditingCaption] = useState<Caption | null>(null)
+  const [editorKey, setEditorKey] = useState(0)
   const [captionToDelete, setCaptionToDelete] = useState<Caption | null>(null)
+  const [pending, setPending] = useState(false)
 
-  async function loadCaptions() {
-    setLoading(true)
-    setError(null)
+  const loadCaptions = useCallback(async () => {
+    setIsLoading(true)
+    setHasLoadError(false)
+
     try {
       const response = await captionsApi.list()
       setCaptions(response.captions)
-    } catch (nextError) {
-      setError(
-        nextError instanceof ApiError && nextError.status === 403
-          ? "No tienes acceso a la biblioteca de captions."
-          : "No se pudo cargar la biblioteca. Ningún caption fue modificado."
-      )
+      setHasPermission(true)
+    } catch (error) {
+      if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
+        router.replace("/login")
+        return
+      }
+      if (error instanceof ApiError && error.status === 403) {
+        setHasPermission(false)
+        return
+      }
+
+      console.error("Captions request failed", error)
+      setHasLoadError(true)
     } finally {
-      setLoading(false)
+      setIsLoading(false)
     }
-  }
+  }, [router])
 
   useEffect(() => {
-    void loadCaptions()
-  }, [])
+    let isCurrent = true
+
+    void captionsApi
+      .list()
+      .then((response) => {
+        if (!isCurrent) return
+        setCaptions(response.captions)
+        setHasPermission(true)
+      })
+      .catch((error: unknown) => {
+        if (!isCurrent) return
+        if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
+          router.replace("/login")
+          return
+        }
+        if (error instanceof ApiError && error.status === 403) {
+          setHasPermission(false)
+          return
+        }
+
+        console.error("Captions request failed", error)
+        setHasLoadError(true)
+      })
+      .finally(() => {
+        if (isCurrent) setIsLoading(false)
+      })
+
+    return () => {
+      isCurrent = false
+    }
+  }, [router])
 
   const filteredCaptions = useMemo(() => {
-    const query = filters.query.trim().toLocaleLowerCase("es")
+    const normalizedQuery = searchQuery.trim().toLocaleLowerCase("es")
+
     return captions.filter((caption) => {
       const matchesQuery =
-        !query ||
+        !normalizedQuery ||
         [caption.name, caption.content, caption.notes ?? "", ...caption.tags]
           .join(" ")
           .toLocaleLowerCase("es")
-          .includes(query)
-      return (
-        matchesQuery &&
-        (filters.sourceType === "all" || caption.sourceType === filters.sourceType) &&
-        (filters.status === "all" || caption.status === filters.status)
-      )
-    })
-  }, [captions, filters])
-  const metrics = useMemo(
-    () =>
-      captions.reduce<CaptionMetrics>(
-        (current, caption) => ({
-          total: current.total + 1,
-          ai: current.ai + (caption.sourceType === "ai" ? 1 : 0),
-          manual: current.manual + (caption.sourceType === "manual" ? 1 : 0),
-          active: current.active + (caption.status === "active" ? 1 : 0),
-        }),
-        { total: 0, ai: 0, manual: 0, active: 0 }
-      ),
-    [captions]
-  )
-  const hasActiveFilters =
-    Boolean(filters.query) ||
-    filters.sourceType !== "all" ||
-    filters.status !== "all"
+          .includes(normalizedQuery)
+      const matchesSource = sourceFilter === "all" || caption.sourceType === sourceFilter
+      const matchesStatus = statusFilter === "all" || caption.status === statusFilter
 
-  async function saveCaption(draft: CaptionDraft) {
+      return matchesQuery && matchesSource && matchesStatus
+    })
+  }, [captions, searchQuery, sourceFilter, statusFilter])
+
+  const hasActiveFilters = Boolean(searchQuery) || sourceFilter !== "all" || statusFilter !== "all"
+
+  function clearFilters() {
+    setSearchQuery("")
+    setSourceFilter("all")
+    setStatusFilter("all")
+  }
+
+  function openCreateEditor() {
+    setEditingCaption(null)
+    setEditorKey((currentKey) => currentKey + 1)
+    setIsEditorOpen(true)
+  }
+
+  function openEditEditor(caption: Caption) {
+    setEditingCaption(caption)
+    setEditorKey((currentKey) => currentKey + 1)
+    setIsEditorOpen(true)
+  }
+
+  async function saveCaption(values: CaptionEditorValues) {
+    const name = values.name.trim()
+    const content = values.content.trim()
+    const tags = normalizeTags(values.tags)
+
+    if (!name || !content) return "Nombre y contenido son obligatorios."
+    if (tags.length > 20 || tags.some((tag) => tag.length > 64)) {
+      return "Usa hasta 20 etiquetas de 64 caracteres como máximo."
+    }
+
+    const draft: CaptionDraft = {
+      content,
+      name,
+      notes: values.notes.trim() || null,
+      sourceType: values.sourceType,
+      status: values.status,
+      tags,
+    }
+
     setPending(true)
     try {
-      if (editor === "new") {
-        const caption = await captionsApi.create(draft)
-        setCaptions((current) => [caption, ...current])
-        toast.success("Caption creado.")
-      } else if (editor) {
-        const updatedCaption = await captionsApi.update(editor.id, draft)
-        setCaptions((current) =>
-          current.map((caption) =>
-            caption.id === updatedCaption.id ? updatedCaption : caption
-          )
+      if (editingCaption) {
+        const updatedCaption = await captionsApi.update(editingCaption.id, draft)
+        setCaptions((currentCaptions) =>
+          currentCaptions.map((caption) => (caption.id === updatedCaption.id ? updatedCaption : caption))
         )
         toast.success("Cambios guardados.")
+      } else {
+        const newCaption = await captionsApi.create(draft)
+        setCaptions((currentCaptions) => [newCaption, ...currentCaptions])
+        toast.success("Caption creado.")
       }
-      setEditor(null)
-    } catch {
+
+      setIsEditorOpen(false)
+      setEditingCaption(null)
+      return null
+    } catch (error) {
+      if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
+        router.replace("/login")
+        return null
+      }
+
+      console.error("Caption save failed", error)
       toast.error("No se pudo guardar el caption.")
+      return "No pudimos guardar los cambios. Revisa los datos e inténtalo de nuevo."
     } finally {
       setPending(false)
     }
   }
 
-  async function confirmDelete() {
+  async function deleteCaption() {
     if (!captionToDelete) return
+
     setPending(true)
     try {
       await captionsApi.remove(captionToDelete.id)
-      setCaptions((current) =>
-        current.filter((caption) => caption.id !== captionToDelete.id)
-      )
+      setCaptions((currentCaptions) => currentCaptions.filter((caption) => caption.id !== captionToDelete.id))
       setCaptionToDelete(null)
       toast.success("Caption eliminado.")
-    } catch {
+    } catch (error) {
+      if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
+        router.replace("/login")
+        return
+      }
+
+      console.error("Caption delete failed", error)
       toast.error("No se pudo eliminar el caption.")
     } finally {
       setPending(false)
     }
   }
 
-  if (loading) return <CaptionsLoading />
+  if (isLoading) return <CaptionsLoading />
 
-  if (error) {
+  if (!hasPermission) {
     return (
-      <Card variant="subtle">
-        <CardContent className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
-            <TriangleAlert
-              aria-hidden="true"
-              className="mt-0.5 size-5 text-destructive"
-            />
-            <div>
-              <p className="font-semibold">No se pudo cargar Captions</p>
-              <p className="mt-1 text-sm text-muted-foreground">{error}</p>
-            </div>
-          </div>
-          <Button onClick={() => void loadCaptions()} variant="brand-secondary">
-            Reintentar
-          </Button>
+      <Card>
+        <CardContent>
+          <EmptyState
+            description="Pide acceso a un administrador del espacio de trabajo."
+            icon={LockKeyhole}
+            title="No tienes acceso a los captions"
+          />
         </CardContent>
       </Card>
     )
   }
 
-  return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button onClick={() => setEditor("new")}>
-          <Plus data-icon="inline-start" />
-          Nuevo caption
+  if (hasLoadError) {
+    return (
+      <Card>
+        <CardContent>
+          <EmptyState
+            action={<Button onClick={() => void loadCaptions()}>Reintentar</Button>}
+            description="No pudimos cargar la biblioteca en este momento. Inténtalo de nuevo."
+            icon={TriangleAlert}
+            title="No pudimos cargar los captions"
+          />
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const emptyState = hasActiveFilters ? (
+    <EmptyState
+      action={
+        <Button onClick={clearFilters} type="button" variant="outline">
+          <X data-icon="inline-start" />
+          Limpiar filtros
         </Button>
-      </div>
+      }
+      description="Prueba con otro término de búsqueda."
+      icon={Search}
+      title="No encontramos captions"
+    />
+  ) : (
+    <EmptyState
+      description="Crea un caption para empezar a construir tu biblioteca."
+      icon={FileText}
+      title="Aún no hay captions"
+    />
+  )
 
-      <section aria-label="Biblioteca de captions" className="space-y-4">
-        <CaptionMetricsGrid metrics={metrics} />
-
-        <Card variant="subtle">
-          <CardContent className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_12rem_12rem_auto]">
-            <InputGroup>
-              <InputGroupAddon>
-                <Search aria-hidden="true" />
+  return (
+    <>
+      <Card>
+        <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
+          <CardTitle className="text-xl leading-none">Biblioteca de captions</CardTitle>
+          <CardDescription className="max-w-sm leading-snug">
+            Gestiona textos reutilizables para mantener una voz consistente en tus publicaciones.
+          </CardDescription>
+          <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
+            <InputGroup className="h-7 w-full md:w-64">
+              <InputGroupAddon align="inline-start">
+                <Search className="size-3.5" />
               </InputGroupAddon>
               <InputGroupInput
                 aria-label="Buscar captions"
-                onChange={(event) =>
-                  setFilters((current) => ({
-                    ...current,
-                    query: event.target.value,
-                  }))
-                }
-                placeholder="Buscar por nombre, contenido o nota"
-                value={filters.query}
+                className="h-7"
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Buscar captions..."
+                value={searchQuery}
               />
             </InputGroup>
-            <Select
-              onValueChange={(value) =>
-                setFilters((current) => ({
-                  ...current,
-                  sourceType: value as CaptionFilters["sourceType"],
-                }))
-              }
-              value={filters.sourceType}
-            >
-              <SelectTrigger aria-label="Filtrar por origen" className="w-full">
-                <SelectValue placeholder="Origen" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los orígenes</SelectItem>
-                <SelectItem value="manual">Manual</SelectItem>
-                <SelectItem value="ai">AI</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select
-              onValueChange={(value) =>
-                setFilters((current) => ({
-                  ...current,
-                  status: value as CaptionFilters["status"],
-                }))
-              }
-              value={filters.status}
-            >
-              <SelectTrigger aria-label="Filtrar por estado" className="w-full">
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los estados</SelectItem>
-                <SelectItem value="active">Activo</SelectItem>
-                <SelectItem value="draft">Borrador</SelectItem>
-                <SelectItem value="archived">Archivado</SelectItem>
-              </SelectContent>
-            </Select>
-            {hasActiveFilters ? (
-              <Button
-                className="justify-self-start lg:justify-self-end"
-                onClick={() => setFilters(initialFilters)}
-                variant="brand-secondary"
-              >
-                Limpiar filtros
-              </Button>
-            ) : (
-              <p className="self-center text-xs text-muted-foreground lg:text-right">
-                Filtra por origen o estado
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        <div className="flex items-center justify-between gap-3">
-          <p aria-live="polite" className="text-sm text-muted-foreground">
-            {filteredCaptions.length === 1
-              ? "1 caption en la biblioteca"
-              : `${filteredCaptions.length} captions en la biblioteca`}
-          </p>
-        </div>
-
-        {filteredCaptions.length > 0 ? (
-          <div className="grid gap-4 lg:grid-cols-2">
-            {filteredCaptions.map((caption) => (
-              <CaptionCard
-                caption={caption}
-                key={caption.id}
-                onDelete={setCaptionToDelete}
-                onEdit={setEditor}
-              />
-            ))}
+            <Button onClick={openCreateEditor} size="sm" type="button">
+              <Plus />
+              Nuevo caption
+            </Button>
+          </CardAction>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4 px-0">
+          <div className="flex flex-wrap items-center justify-between gap-3 px-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <Select onValueChange={(value: CaptionSourceType | "all") => setSourceFilter(value)} value={sourceFilter}>
+                <SelectTrigger size="sm">
+                  <span className="text-muted-foreground">Origen:</span>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent position="popper" align="start">
+                  <SelectGroup>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="manual">Manual</SelectItem>
+                    <SelectItem value="ai">Generado por IA</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <Select onValueChange={(value: CaptionStatus | "all") => setStatusFilter(value)} value={statusFilter}>
+                <SelectTrigger size="sm">
+                  <span className="text-muted-foreground">Estado:</span>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent position="popper" align="start">
+                  <SelectGroup>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="active">Activo</SelectItem>
+                    <SelectItem value="draft">Borrador</SelectItem>
+                    <SelectItem value="archived">Archivado</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              {hasActiveFilters ? (
+                <Button onClick={clearFilters} size="sm" type="button" variant="outline">
+                  <X />
+                  Limpiar
+                </Button>
+              ) : null}
+            </div>
           </div>
-        ) : (
-          <Card variant="subtle">
-            <CardContent>
-              <EmptyState
-                description={
-                  captions.length === 0
-                    ? "Crea el primer caption reutilizable para este espacio de trabajo."
-                    : "Prueba con otra búsqueda o limpia los filtros para ver la biblioteca completa."
-                }
-                icon={PenLine}
-                title={
-                  captions.length === 0
-                    ? "Todavía no hay captions"
-                    : "No encontramos captions"
-                }
-              />
-            </CardContent>
-          </Card>
-        )}
+          <CaptionsTable
+            captions={filteredCaptions}
+            emptyState={emptyState}
+            onEdit={openEditEditor}
+            onRemove={setCaptionToDelete}
+          />
+        </CardContent>
+      </Card>
 
-        <CaptionEditorDialog
-          caption={editor}
-          onClose={() => setEditor(null)}
-          onSave={(draft) => void saveCaption(draft)}
-          pending={pending}
-        />
-        <DeleteCaptionDialog
-          caption={captionToDelete}
-          onClose={() => setCaptionToDelete(null)}
-          onConfirm={() => void confirmDelete()}
-          pending={pending}
-        />
-      </section>
-    </div>
+      <CaptionEditor
+        caption={editingCaption}
+        key={editorKey}
+        onOpenChange={(open) => {
+          setIsEditorOpen(open)
+          if (!open) setEditingCaption(null)
+        }}
+        onSave={saveCaption}
+        open={isEditorOpen}
+        pending={pending}
+      />
+
+      <AlertDialog onOpenChange={(open) => !open && setCaptionToDelete(null)} open={Boolean(captionToDelete)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogMedia>
+              <Trash2 aria-hidden="true" />
+            </AlertDialogMedia>
+            <AlertDialogTitle>¿Eliminar este caption?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {captionToDelete
+                ? `“${captionToDelete.name}” se eliminará de la biblioteca. Esta acción no se puede deshacer.`
+                : "Esta acción no se puede deshacer."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={pending}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={pending}
+              onClick={(event) => {
+                event.preventDefault()
+                void deleteCaption()
+              }}
+              variant="destructive"
+            >
+              {pending ? <RefreshCw className="animate-spin" data-icon="inline-start" /> : null}
+              Eliminar caption
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  )
+}
+
+function CaptionEditor({
+  caption,
+  onOpenChange,
+  onSave,
+  open,
+  pending,
+}: {
+  caption: Caption | null
+  onOpenChange: (open: boolean) => void
+  onSave: (values: CaptionEditorValues) => Promise<string | null>
+  open: boolean
+  pending: boolean
+}) {
+  const [values, setValues] = useState<CaptionEditorValues>(() =>
+    caption ? toEditorValues(caption) : emptyEditorValues
+  )
+  const [saveError, setSaveError] = useState<string | null>(null)
+
+  function updateValue<Key extends keyof CaptionEditorValues>(key: Key, value: CaptionEditorValues[Key]) {
+    setValues((currentValues) => ({ ...currentValues, [key]: value }))
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setSaveError(null)
+    setSaveError(await onSave(values))
+  }
+
+  return (
+    <Dialog onOpenChange={onOpenChange} open={open}>
+      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>{caption ? "Editar caption" : "Nuevo caption"}</DialogTitle>
+          <DialogDescription>
+            {caption
+              ? "Actualiza el contenido y los metadatos que tu equipo necesita para reutilizarlo."
+              : "Guarda un caption que puedas encontrar y adaptar en futuras publicaciones."}
+          </DialogDescription>
+        </DialogHeader>
+        <form className="flex flex-col gap-5" onSubmit={(event) => void handleSubmit(event)}>
+          <FieldGroup className="grid gap-4 md:grid-cols-2">
+            <Field>
+              <FieldLabel htmlFor="caption-name">Nombre</FieldLabel>
+              <Input
+                id="caption-name"
+                maxLength={120}
+                onChange={(event) => updateValue("name", event.target.value)}
+                placeholder="Ej. Lanzamiento de colección"
+                required
+                value={values.name}
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="caption-tags">Etiquetas</FieldLabel>
+              <Input
+                id="caption-tags"
+                maxLength={1299}
+                onChange={(event) => updateValue("tags", event.target.value)}
+                placeholder="lanzamiento, producto"
+                value={values.tags}
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="caption-source">Origen</FieldLabel>
+              <Select onValueChange={(value: CaptionSourceType) => updateValue("sourceType", value)} value={values.sourceType}>
+                <SelectTrigger id="caption-source" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="manual">Manual</SelectItem>
+                    <SelectItem value="ai">Generado por IA</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="caption-status">Estado</FieldLabel>
+              <Select onValueChange={(value: CaptionStatus) => updateValue("status", value)} value={values.status}>
+                <SelectTrigger id="caption-status" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectItem value="active">Activo</SelectItem>
+                    <SelectItem value="draft">Borrador</SelectItem>
+                    <SelectItem value="archived">Archivado</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </Field>
+          </FieldGroup>
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="caption-content">Contenido</FieldLabel>
+              <Textarea
+                id="caption-content"
+                maxLength={10000}
+                onChange={(event) => updateValue("content", event.target.value)}
+                placeholder="Escribe el caption que quieres guardar"
+                required
+                rows={5}
+                value={values.content}
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="caption-notes">Notas internas</FieldLabel>
+              <Textarea
+                id="caption-notes"
+                maxLength={2000}
+                onChange={(event) => updateValue("notes", event.target.value)}
+                placeholder="Contexto, aprobaciones o instrucciones para el equipo"
+                rows={3}
+                value={values.notes}
+              />
+            </Field>
+          </FieldGroup>
+          {saveError ? <FieldError>{saveError}</FieldError> : null}
+          <DialogFooter>
+            <Button disabled={pending} onClick={() => onOpenChange(false)} type="button" variant="outline">
+              Cancelar
+            </Button>
+            <Button disabled={pending} type="submit">
+              {pending ? <RefreshCw className="animate-spin" data-icon="inline-start" /> : <Sparkles data-icon="inline-start" />}
+              {caption ? "Guardar cambios" : "Guardar caption"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }

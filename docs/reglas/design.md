@@ -63,6 +63,7 @@ Antes de crear markup o un componente, ejecutar `codebase-memory` para comprobar
 - Formularios usan primitives/Field actuales; no inputs estilizados locales.
 - Modal, dropdown, tooltip y drawer conservan primitive accesible; no z-index ni focus trap locales.
 - Un componente específico de dominio permanece en `features/<dominio>/components`.
+- Las tablas operativas paginadas usan `TablePagination`; no duplicar ese footer en una feature. Usar modo `compact` cuando el footer solo requiere rango y flechas —para datos remotos o locales— y modo `detailed` cuando la tabla necesita selector de filas, página y controles primera/anterior/siguiente/última.
 - Un pattern pasa a `packages/ui` solo si su contrato es genérico y será reutilizable por tres o más features. Todo primitive o pattern global añadido, creado o promovido debe añadir o actualizar su fila en `packages/ui/COMPONENTS.md` dentro del mismo cambio.
 
 ## 21st.dev MCP y CLI

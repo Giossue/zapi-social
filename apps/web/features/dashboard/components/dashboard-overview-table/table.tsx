@@ -15,7 +15,7 @@ import {
   useReactTable,
   type VisibilityState,
 } from "@tanstack/react-table"
-import { ArrowUpDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search, Tags } from "lucide-react"
+import { ArrowUpDown, Search, Tags } from "lucide-react"
 
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -26,9 +26,8 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/table"
+import { TablePagination } from "@workspace/ui/components/table-pagination"
 
 import { dashboardOverviewColumns } from "./columns"
 import type { DashboardOverviewRow } from "./schema"
@@ -98,6 +97,10 @@ export function DashboardOverviewTable({ data }: { data: DashboardOverviewRow[] 
 
     return "name-asc"
   }, [sorting])
+
+  const filteredTotal = table.getFilteredRowModel().rows.length
+  const rangeStart = filteredTotal ? pagination.pageIndex * pagination.pageSize + 1 : 0
+  const rangeEnd = filteredTotal ? Math.min(rangeStart + table.getRowModel().rows.length - 1, filteredTotal) : 0
 
   return (
     <div className="space-y-4">
@@ -199,83 +202,25 @@ export function DashboardOverviewTable({ data }: { data: DashboardOverviewRow[] 
         </Table>
       </div>
 
-      <div className="flex items-center justify-between px-1">
-        <div className="hidden flex-1 text-muted-foreground text-sm lg:flex">
-          {table.getFilteredSelectedRowModel().rows.length} de {table.getFilteredRowModel().rows.length} elemento(s)
-          seleccionado(s).
-        </div>
-        <div className="flex w-full items-center gap-8 lg:w-fit">
-          <div className="hidden items-center gap-2 lg:flex">
-            <Label htmlFor="dashboard-overview-rows-per-page" className="font-medium text-sm">
-              Filas por página
-            </Label>
-            <Select
-              value={`${table.getState().pagination.pageSize}`}
-              onValueChange={(value) => {
-                table.setPageSize(Number(value))
-              }}
-            >
-              <SelectTrigger size="sm" className="w-20" id="dashboard-overview-rows-per-page">
-                <SelectValue placeholder={table.getState().pagination.pageSize} />
-              </SelectTrigger>
-              <SelectContent side="top">
-                <SelectGroup>
-                  {[10, 20, 30, 40, 50].map((pageSize) => (
-                    <SelectItem key={pageSize} value={`${pageSize}`}>
-                      {pageSize}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex w-fit items-center justify-center font-medium text-sm">
-            Página {table.getState().pagination.pageIndex + 1} de {table.getPageCount()}
-          </div>
-          <div className="ml-auto flex items-center gap-2 lg:ml-0">
-            <Button
-              variant="outline"
-              className="hidden size-8 lg:flex"
-              size="icon"
-              onClick={() => table.setPageIndex(0)}
-              disabled={!table.getCanPreviousPage()}
-            >
-              <span className="sr-only">Ir a la primera página</span>
-              <ChevronsLeft />
-            </Button>
-            <Button
-              variant="outline"
-              className="size-8"
-              size="icon"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              <span className="sr-only">Ir a la página anterior</span>
-              <ChevronLeft />
-            </Button>
-            <Button
-              variant="outline"
-              className="size-8"
-              size="icon"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              <span className="sr-only">Ir a la página siguiente</span>
-              <ChevronRight />
-            </Button>
-            <Button
-              variant="outline"
-              className="hidden size-8 lg:flex"
-              size="icon"
-              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-              disabled={!table.getCanNextPage()}
-            >
-              <span className="sr-only">Ir a la última página</span>
-              <ChevronsRight />
-            </Button>
-          </div>
-        </div>
-      </div>
+      <TablePagination
+        canGoNext={table.getCanNextPage()}
+        canGoPrevious={table.getCanPreviousPage()}
+        itemLabel="elementos"
+        locale="es"
+        mode="detailed"
+        onFirstPage={() => table.setPageIndex(0)}
+        onLastPage={() => table.setPageIndex(Math.max(table.getPageCount() - 1, 0))}
+        onNextPage={() => table.nextPage()}
+        onPageSizeChange={(pageSize) => table.setPageSize(pageSize)}
+        onPreviousPage={() => table.previousPage()}
+        page={pagination.pageIndex + 1}
+        pageCount={Math.max(table.getPageCount(), 1)}
+        pageSize={pagination.pageSize}
+        rangeEnd={rangeEnd}
+        rangeStart={rangeStart}
+        summary={`${table.getFilteredSelectedRowModel().rows.length} de ${filteredTotal} elemento(s) seleccionado(s).`}
+        total={filteredTotal}
+      />
     </div>
   )
 }
