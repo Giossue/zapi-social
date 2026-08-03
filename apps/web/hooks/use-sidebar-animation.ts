@@ -5,6 +5,8 @@ import { useLayoutEffect, useRef } from "react"
 
 const EXPANDED_WIDTH = 288
 const COLLAPSED_WIDTH = 80
+const EXPAND_MOTION = { duration: 260, ease: "out(4)" }
+const COLLAPSE_MOTION = { duration: 360, ease: "inOut(2)" }
 
 export function useSidebarAnimation(collapsed: boolean) {
   const rootRef = useRef<HTMLDivElement>(null)
@@ -34,19 +36,18 @@ export function useSidebarAnimation(collapsed: boolean) {
         return
       }
 
+      const motion = collapsed ? COLLAPSE_MOTION : EXPAND_MOTION
       scope?.revert()
       scope = createScope({ root: rootRef }).add(() => {
         if (sidebar)
           animate(sidebar, {
             width: targetWidth,
-            duration: 260,
-            ease: "out(4)",
+            ...motion,
           })
         if (content)
           animate(content, {
             paddingLeft: targetWidth,
-            duration: 260,
-            ease: "out(4)",
+            ...motion,
           })
       })
     }
