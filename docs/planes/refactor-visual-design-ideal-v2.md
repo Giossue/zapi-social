@@ -135,3 +135,14 @@ ZapiV2       → datos y comportamiento de dominio
 | Auth, Profile, Files, Publishing, Channels, Teams, Captions, AI Studio, Commerce y Dashboard Admin | Pendientes de reemplazar su composición de dominio adaptada por fuente literal de `diseño ideal`. |
 
 No se consideran terminadas las superficies pendientes solo porque una iteración previa haya usado primitives, tokens o una adaptación visual. Cada una debe auditarse primero y sustituirse sin perder lógica Zapi.
+
+
+## Channels Portal — avance source-first
+
+- Se auditó completo el flujo antes de cambiar visual: listado REST, cursor, filtros, permisos, OAuth Meta, picker, QR WhatsApp, sincronización, rename, delete, reconnect y estados loading/error/empty/403.
+- El inventario de cuentas sustituyó su grid/card V2 por composición fuente de `diseño ideal/src/app/(main)/dashboard/users/_components/{users,users-columns,users-table}.tsx`.
+- Los datos, filtros y paginación siguen siendo remotos/cursor de Channels. Las diferencias frente a la tabla fuente se limitan a no inventar filtros locales, selección masiva, exportación, vista grid o páginas numéricas inexistentes en el contrato actual.
+- Edición consume `Field`/`FieldGroup` y `DialogFooter` copiados literalmente de `diseño ideal/src/components/ui/{field,dialog}.tsx`; solo cambian etiqueta, valor y callback Zapi.
+- Eliminación consume `AlertDialog` con `AlertDialogMedia`, header y footer de `diseño ideal/src/components/ui/alert-dialog.tsx`; solo cambian recurso, texto y callback destructivo Zapi.
+- El selector/conexión OAuth y el flujo QR WhatsApp no se han cambiado todavía: no existe una composición equivalente identificada en `diseño ideal`; se preservan tal cual hasta auditar una fuente visual específica o recibir dirección de producto.
+- Validación de este avance: `bun --filter web typecheck`, `bun --filter web build` y `git diff --check` correctos el 2026-08-03; `bun --filter web lint` sin errores y con 26 warnings preexistentes/no bloqueantes.

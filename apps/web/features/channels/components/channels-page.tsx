@@ -5,55 +5,52 @@ import {
   channelConnectionsApi,
   channelsApi,
 } from "@workspace/api-client"
-import { Badge } from "@workspace/ui/components/badge"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+} from "@workspace/ui/components/alert-dialog"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
-import { EmptyState } from "@workspace/ui/components/empty-state"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu"
+import { EmptyState } from "@workspace/ui/components/empty-state"
+import { Field, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
-import { Skeleton } from "@workspace/ui/components/skeleton"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
 import { toast } from "@workspace/ui/components/toast"
 import {
-  CheckCircle2,
-  CircleAlert,
   Link2,
-  LockKeyhole,
   LoaderCircle,
-  MoreVertical,
-  Pencil,
-  Plus,
-  RefreshCw,
-  Search,
+  LockKeyhole,
   Trash2,
   TriangleAlert,
 } from "lucide-react"
-import { useCallback, useEffect, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { type FormEvent, useCallback, useEffect, useRef, useState } from "react"
+
 import { channelsFixture } from "../fixtures/channels"
 import type {
   ChannelCapabilityKey,
   PortalChannelAccount,
   PortalChannelCapability,
 } from "../types/channels"
+import {
+  capabilityLabels,
+  type ChannelTableActions,
+} from "./channel-table/channels-columns"
+import { ChannelsUsers } from "./channel-table/channels-users"
 import {
   ChannelConnectionDialog,
   type MetaPickerSession,
@@ -67,14 +64,6 @@ type ChannelsResponse = Awaited<ReturnType<typeof channelsApi.list>>
 type ChannelsSummary = ChannelsResponse["summary"]
 type ChannelsPagination = ChannelsResponse["pagination"]
 
-const providerLabels = {
-  meta: "Meta",
-  linkedin: "LinkedIn",
-  x: "X",
-  tiktok: "TikTok",
-  whatsapp: "Meta",
-} as const
-
 const providerFilterOptions = [
   ["meta", "Meta"],
   ["linkedin", "LinkedIn"],
@@ -82,76 +71,9 @@ const providerFilterOptions = [
   ["tiktok", "TikTok"],
 ] as const
 
-const capabilityLabels = {
-  facebook_page: "Página de Facebook",
-  instagram_profile: "Perfil de Instagram",
-  linkedin_page: "Página de LinkedIn",
-  linkedin_profile: "Perfil de LinkedIn",
-  x_profile: "Perfil de X",
-  tiktok_profile: "Perfil de TikTok",
-  whatsapp_status: "Historias de WhatsApp",
-} as const
-
 type MetaOAuthSession = {
   connectionId: string
   capabilityKey: ChannelCapabilityKey
-}
-
-function formatConnectionDate(value: string) {
-  const instant = value.includes("T")
-    ? new Date(value)
-    : new Date(`${value}T12:00:00`)
-  return new Intl.DateTimeFormat("es", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(instant)
-}
-
-function capabilityInitials(account: PortalChannelAccount) {
-  return account.displayName
-    .split(" ")
-    .map((part) => part.slice(0, 1))
-    .join("")
-    .slice(0, 2)
-    .toUpperCase()
-}
-
-function normalizedHandle(handle?: string | null) {
-  const value = handle?.replace(/^@+/, "").trim()
-  return value || null
-}
-
-function whatsappPhone(handle?: string | null) {
-  const value = normalizedHandle(handle)
-  if (!value) return null
-  const digits = (value.split("@", 1)[0] ?? "").replace(/\D/g, "")
-  return digits ? `+${digits}` : value
-}
-
-function providerLabel(account: PortalChannelAccount) {
-  return account.capabilityKey === "whatsapp_status"
-    ? "Meta"
-    : providerLabels[account.provider]
-}
-
-function AccountAvatar({ account }: { account: PortalChannelAccount }) {
-  return (
-    <span className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent text-sm font-semibold text-accent-foreground">
-      <span aria-hidden="true">{capabilityInitials(account)}</span>
-      {account.avatarUrl ? (
-        <img
-          alt={`Avatar de ${account.displayName}`}
-          className="absolute inset-0 size-full object-cover"
-          loading="lazy"
-          onError={(event) => {
-            event.currentTarget.style.display = "none"
-          }}
-          src={account.avatarUrl}
-        />
-      ) : null}
-    </span>
-  )
 }
 
 function toPortalAccount(
@@ -221,155 +143,6 @@ function readMetaOAuthSession(): MetaOAuthSession | null {
   }
 }
 
-function ChannelMetric({
-  description,
-  icon: Icon,
-  value,
-}: {
-  description: string
-  icon: typeof Link2
-  value: number
-}) {
-  return (
-    <div className="flex items-center justify-between gap-3 px-4 py-3">
-      <div>
-        <p className="text-xl font-semibold tracking-tight tabular-nums">{value}</p>
-        <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
-      </div>
-      <Icon aria-hidden="true" className="size-4 text-muted-foreground" />
-    </div>
-  )
-}
-
-function ChannelAccountCard({
-  account,
-  onDelete,
-  onEdit,
-  onReconnect,
-  onProfileSync,
-  pending,
-}: {
-  account: PortalChannelAccount
-  onDelete: (account: PortalChannelAccount) => void
-  onEdit: (account: PortalChannelAccount) => void
-  onReconnect: (account: PortalChannelAccount) => void
-  onProfileSync: (account: PortalChannelAccount) => void
-  pending: boolean
-}) {
-  const disconnected = account.status === "disconnected"
-  const handle = normalizedHandle(account.handle)
-  const externalIdentity =
-    account.capabilityKey === "facebook_page"
-      ? account.externalName
-      : account.capabilityKey === "whatsapp_status"
-        ? whatsappPhone(handle)
-        : handle
-          ? `@${handle}`
-          : null
-
-  return (
-    <Card size="sm" variant="surface">
-      <CardContent className="flex h-full flex-col gap-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3">
-            <AccountAvatar account={account} />
-            <div className="min-h-16 min-w-0">
-              <p className="truncate font-semibold">{account.displayName}</p>
-              <p className="min-h-5 truncate text-sm text-muted-foreground">
-                {externalIdentity ?? <span aria-hidden="true">&nbsp;</span>}
-              </p>
-              <p className="truncate text-sm text-muted-foreground">
-                {capabilityLabels[account.capabilityKey]}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-1">
-            <Badge variant={disconnected ? "warning" : "success"}>
-              {disconnected ? "Desconectado" : "Conectado"}
-            </Badge>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  aria-label={`Acciones para ${account.displayName}`}
-                  size="icon"
-                  variant="brand-secondary"
-                >
-                  <MoreVertical />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" size="compact">
-                <DropdownMenuItem
-                  onSelect={() => onEdit(account)}
-                  size="compact"
-                >
-                  <Pencil />
-                  Editar
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  disabled={pending}
-                  onSelect={() => onProfileSync(account)}
-                  size="compact"
-                >
-                  <RefreshCw />
-                  Actualizar perfil
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
-                  onSelect={() => onDelete(account)}
-                  size="compact"
-                >
-                  <Trash2 />
-                  Eliminar
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-        {disconnected ? (
-          <div className="flex items-start gap-2 rounded-lg border border-warning/25 bg-warning/10 p-3 text-sm text-warning">
-            <CircleAlert
-              aria-hidden="true"
-              className="mt-0.5 size-4 shrink-0"
-            />
-            <span>Este canal no puede publicar hasta reconectarse.</span>
-          </div>
-        ) : null}
-        <div className="grid grid-cols-2 gap-3 border-t border-border pt-3 text-sm">
-          <div>
-            <p className="text-xs text-muted-foreground">Proveedor</p>
-            <p className="mt-1 font-medium">{providerLabel(account)}</p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Conectado el</p>
-            <p className="mt-1 font-medium">
-              {formatConnectionDate(account.connectedAt)}
-            </p>
-          </div>
-        </div>
-        {disconnected ? (
-          <div className="mt-auto flex gap-2">
-            <Button
-              className="flex-1"
-              disabled={pending}
-              onClick={() => onReconnect(account)}
-            >
-              {pending ? (
-                <LoaderCircle
-                  className="animate-spin"
-                  data-icon="inline-start"
-                />
-              ) : (
-                <RefreshCw data-icon="inline-start" />
-              )}
-              Reconectar
-            </Button>
-          </div>
-        ) : null}
-      </CardContent>
-    </Card>
-  )
-}
-
 function EditChannelDialog({
   account,
   onOpenChange,
@@ -381,7 +154,7 @@ function EditChannelDialog({
   onSave: (displayName: string) => void
   pending: boolean
 }) {
-  function submit(event: React.FormEvent<HTMLFormElement>) {
+  function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const displayName = String(
       new FormData(event.currentTarget).get("displayName") ?? ""
@@ -392,6 +165,7 @@ function EditChannelDialog({
     }
     onSave(displayName)
   }
+
   return (
     <Dialog onOpenChange={onOpenChange} open={account !== null}>
       <DialogContent>
@@ -401,28 +175,28 @@ function EditChannelDialog({
             Este cambio solo actualiza el nombre visible en Zapi.
           </DialogDescription>
         </DialogHeader>
-        <form className="grid gap-5" onSubmit={submit}>
-          <label className="grid gap-1.5 text-sm font-medium">
-            <span>
-              Nombre visible
-              <span aria-hidden="true" className="ml-0.5 text-destructive">
-                *
-              </span>
-            </span>
-            <Input
-              defaultValue={account?.displayName}
-              key={account?.id}
-              maxLength={255}
-              name="displayName"
-              required
-            />
-          </label>
-          <div className="flex justify-end gap-2">
+        <form className="flex flex-col gap-4" onSubmit={submit}>
+          <FieldGroup className="gap-4">
+            <Field className="gap-1.5">
+              <FieldLabel htmlFor="channel-display-name">
+                Nombre visible
+              </FieldLabel>
+              <Input
+                defaultValue={account?.displayName}
+                id="channel-display-name"
+                key={account?.id}
+                maxLength={255}
+                name="displayName"
+                required
+              />
+            </Field>
+          </FieldGroup>
+          <DialogFooter>
             <Button
               disabled={pending}
               onClick={() => onOpenChange(false)}
               type="button"
-              variant="brand-secondary"
+              variant="outline"
             >
               Cancelar
             </Button>
@@ -435,7 +209,7 @@ function EditChannelDialog({
               ) : null}
               Guardar cambios
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
@@ -454,29 +228,24 @@ function DeleteChannelDialog({
   onOpenChange: (open: boolean) => void
 }) {
   return (
-    <Dialog onOpenChange={onOpenChange} open={account !== null}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Eliminar canal</DialogTitle>
-          <DialogDescription>
+    <AlertDialog onOpenChange={onOpenChange} open={account !== null}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogMedia>
+            <Trash2 aria-hidden="true" />
+          </AlertDialogMedia>
+          <AlertDialogTitle>Eliminar canal</AlertDialogTitle>
+          <AlertDialogDescription>
             {account
               ? `Eliminarás “${account.displayName}” de este espacio de trabajo. Esta acción no se puede deshacer.`
               : ""}
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex justify-end gap-2">
-          <Button
-            disabled={pending}
-            onClick={() => onOpenChange(false)}
-            type="button"
-            variant="brand-secondary"
-          >
-            Cancelar
-          </Button>
-          <Button
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={pending}>Cancelar</AlertDialogCancel>
+          <AlertDialogAction
             disabled={pending}
             onClick={onConfirm}
-            type="button"
             variant="destructive"
           >
             {pending ? (
@@ -485,10 +254,10 @@ function DeleteChannelDialog({
               <Trash2 data-icon="inline-start" />
             )}
             Eliminar
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }
 
@@ -807,6 +576,23 @@ export function LiveChannelsPage() {
     setMetaPickerSession(null)
   }
 
+  const rangeStart = accounts.length
+    ? cursorHistory.length * CHANNELS_PAGE_SIZE + 1
+    : 0
+  const rangeEnd = accounts.length
+    ? Math.min(
+        cursorHistory.length * CHANNELS_PAGE_SIZE + accounts.length,
+        summary.total
+      )
+    : 0
+  const tableActions: ChannelTableActions = {
+    onDelete: setDeletingAccount,
+    onEdit: setEditingAccount,
+    onReconnect: (account) => void reconnect(account),
+    onProfileSync: (account) => void refreshProfile(account),
+    pendingAccountId,
+  }
+
   if (isLoading) return <ChannelsLoading />
   if (!hasPermission)
     return (
@@ -825,7 +611,9 @@ export function LiveChannelsPage() {
       <Card variant="subtle">
         <CardContent>
           <EmptyState
-            action={<Button onClick={() => void loadChannels()}>Reintentar</Button>}
+            action={
+              <Button onClick={() => void loadChannels()}>Reintentar</Button>
+            }
             description="Comprueba tu conexión e inténtalo de nuevo."
             icon={TriangleAlert}
             title="No pudimos cargar los canales"
@@ -835,173 +623,51 @@ export function LiveChannelsPage() {
     )
 
   return (
-    <div className="space-y-4">
-      {canManage ? (
-        <div className="flex justify-end">
-          <Button onClick={() => setIsConnectOpen(true)}>
-            <Plus data-icon="inline-start" />
-            Conectar canal
-          </Button>
-        </div>
-      ) : null}
-      <section aria-label="Inventario de canales" className="space-y-4">
-        <Card
-          className="grid gap-0 overflow-hidden p-0 sm:grid-cols-3 sm:divide-x sm:divide-border"
-          size="sm"
-          variant="subtle"
-        >
-          <ChannelMetric
-            description="Canales registrados"
+    <>
+      <ChannelsUsers
+        accounts={accounts}
+        canGoNext={pagination.nextCursor !== null}
+        canGoPrevious={cursorHistory.length > 0}
+        canManage={canManage}
+        capabilityFilter={capabilityFilter}
+        capabilityOptions={Object.entries(capabilityLabels)}
+        emptyState={
+          <EmptyState
+            description={
+              query
+                ? "Prueba con otro término de búsqueda."
+                : "Conecta un tipo de canal para empezar."
+            }
             icon={Link2}
-            value={summary.total}
+            title={query ? "No encontramos canales" : "Aún no hay canales"}
           />
-          <ChannelMetric
-            description="Listos para publicar"
-            icon={CheckCircle2}
-            value={summary.connected}
-          />
-          <ChannelMetric
-            description="Requieren reconexión"
-            icon={CircleAlert}
-            value={summary.disconnected}
-          />
-        </Card>
-        <p className="text-xs text-muted-foreground">
-          La información de perfil se actualiza automáticamente cada 24 horas.
-          También puedes solicitar una actualización por canal cada 15 minutos.
-        </p>
-        <Card variant="subtle">
-          <CardContent className="grid gap-4 px-0">
-            <div className="grid gap-3 px-4 lg:grid-cols-[minmax(0,1fr)_12rem_14rem_12rem]">
-          <div className="relative">
-            <Search
-              aria-hidden="true"
-              className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-            />
-            <Input
-              aria-label="Buscar canales"
-              className="pl-9"
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Buscar canales"
-              value={query}
-            />
-          </div>
-          <Select
-            onValueChange={(value) => {
-              setProviderFilter(value)
-              resetPagination()
-            }}
-            value={providerFilter}
-          >
-            <SelectTrigger aria-label="Proveedor">
-              <SelectValue placeholder="Proveedor" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los proveedores</SelectItem>
-              {providerFilterOptions.map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            onValueChange={(value) => {
-              setCapabilityFilter(value)
-              resetPagination()
-            }}
-            value={capabilityFilter}
-          >
-            <SelectTrigger aria-label="Tipo de canal">
-              <SelectValue placeholder="Tipo de canal" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los tipos</SelectItem>
-              {Object.entries(capabilityLabels).map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            onValueChange={(value) => {
-              setStatusFilter(value)
-              resetPagination()
-            }}
-            value={statusFilter}
-          >
-            <SelectTrigger aria-label="Estado">
-              <SelectValue placeholder="Estado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los estados</SelectItem>
-              <SelectItem value="connected">Conectados</SelectItem>
-              <SelectItem value="disconnected">Desconectados</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        {isFiltering ? (
-          <div className="grid gap-2 px-4 md:grid-cols-2 xl:grid-cols-3">
-            {["one", "two", "three"].map((item) => (
-              <Skeleton className="h-64" key={item} />
-            ))}
-          </div>
-        ) : accounts.length > 0 ? (
-          <div className="grid items-start gap-2 px-4 md:grid-cols-2 xl:grid-cols-3">
-            {accounts.map((account) => (
-              <ChannelAccountCard
-                account={account}
-                key={account.id}
-                onDelete={setDeletingAccount}
-                onEdit={setEditingAccount}
-                onReconnect={(account) => void reconnect(account)}
-                onProfileSync={(account) => void refreshProfile(account)}
-                pending={pendingAccountId === account.id}
-              />
-            ))}
-          </div>
-        ) : (
-          <Card variant="surface">
-            <CardContent>
-              <EmptyState
-                description={
-                  query
-                    ? "Prueba con otro término de búsqueda."
-                    : "Conecta un tipo de canal para empezar."
-                }
-                icon={Link2}
-                title={query ? "No encontramos canales" : "Aún no hay canales"}
-              />
-            </CardContent>
-          </Card>
-        )}
-        {summary.total > CHANNELS_PAGE_SIZE ? (
-          <div className="flex flex-col gap-3 border-t border-border px-4 pt-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-muted-foreground">{`${cursorHistory.length * CHANNELS_PAGE_SIZE + 1}-${Math.min(cursorHistory.length * CHANNELS_PAGE_SIZE + accounts.length, summary.total)} de ${summary.total}`}</p>
-            <div className="flex gap-2">
-              <Button
-                disabled={isFiltering || cursorHistory.length === 0}
-                onClick={goToPreviousPage}
-                type="button"
-                variant="brand-secondary"
-              >
-                Anterior
-              </Button>
-              <Button
-                disabled={isFiltering || !pagination.nextCursor}
-                onClick={goToNextPage}
-                type="button"
-                variant="brand-secondary"
-              >
-                Siguiente
-              </Button>
-            </div>
-          </div>
-        ) : null}
-          </CardContent>
-        </Card>
-      </section>
+        }
+        isFiltering={isFiltering}
+        onCapabilityFilterChange={(value) => {
+          setCapabilityFilter(value)
+          resetPagination()
+        }}
+        onConnect={() => setIsConnectOpen(true)}
+        onNextPage={goToNextPage}
+        onPreviousPage={goToPreviousPage}
+        onProviderFilterChange={(value) => {
+          setProviderFilter(value)
+          resetPagination()
+        }}
+        onQueryChange={setQuery}
+        onStatusFilterChange={(value) => {
+          setStatusFilter(value)
+          resetPagination()
+        }}
+        providerFilter={providerFilter}
+        providerOptions={providerFilterOptions}
+        query={query}
+        rangeEnd={rangeEnd}
+        rangeStart={rangeStart}
+        statusFilter={statusFilter}
+        tableActions={tableActions}
+        total={summary.total}
+      />
       <EditChannelDialog
         account={editingAccount}
         onOpenChange={(open) => !open && setEditingAccount(null)}
@@ -1031,6 +697,6 @@ export function LiveChannelsPage() {
         open={isConnectOpen}
         whatsappReconnectAccountId={whatsappReconnectAccountId}
       />
-    </div>
+    </>
   )
 }

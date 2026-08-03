@@ -3,7 +3,14 @@
 import { channelConnectionsApi } from "@workspace/api-client"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { Card, CardContent } from "@workspace/ui/components/card"
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card"
 import {
   Dialog,
   DialogContent,
@@ -61,26 +68,30 @@ function CapabilityCard({
     : "Disponible"
 
   return (
-    <Card variant="surface">
-      <CardContent className="flex h-full flex-col gap-4">
-        <div className="flex items-start justify-between gap-3">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <Icon aria-hidden="true" className="size-5" />
-          </span>
-          {!blocked ? <Badge variant="success">{label}</Badge> : null}
+    <Card size="sm">
+      <CardHeader>
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+            <Icon aria-hidden="true" className="size-4.5" />
+          </div>
+          <div className="flex min-w-0 flex-col gap-1">
+            <CardTitle className="leading-none">{capability.label}</CardTitle>
+            <CardDescription className="text-xs">
+              {capability.description}
+            </CardDescription>
+          </div>
         </div>
-        <div className="space-y-1">
-          <p className="font-semibold">{capability.label}</p>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            {blocked ? label : capability.description}
-          </p>
-        </div>
+        <CardAction>
+          <Badge variant={blocked ? "warning" : "success"}>{label}</Badge>
+        </CardAction>
+      </CardHeader>
+      <CardContent className="flex items-center justify-end gap-3">
         <Button
-          className="mt-auto w-full"
           disabled={blocked}
           onClick={() => onSelect(capability)}
+          size="sm"
           type="button"
-          variant={blocked ? "surface" : "brand-secondary"}
+          variant="outline"
         >
           {blocked ? (
             <Unplug data-icon="inline-start" />
@@ -327,8 +338,8 @@ export function ChannelConnectionDialog({
 
   return (
     <Dialog onOpenChange={handleOpenChange} open={open}>
-      <DialogContent className="max-h-[calc(100dvh-2rem)] max-w-5xl overflow-hidden p-0">
-        <DialogHeader className="px-6 pt-6">
+      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-hidden sm:max-w-2xl">
+        <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
             {capability?.provider === "meta"
@@ -336,31 +347,21 @@ export function ChannelConnectionDialog({
               : "Los conectores disponibles fuera de Meta permanecen en modo de referencia."}
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea
-          className="max-h-[calc(100dvh-10rem)]"
-          scrollbarClassName="translate-x-6"
-          type="always"
-        >
-          <div className="grid gap-5 px-6 pt-5 pr-12 pb-6">
+        <ScrollArea className="max-h-[calc(100dvh-10rem)]">
+          <div className="grid gap-4 pr-4">
             {step === "capabilities" ? (
-              <ScrollArea
-                className="max-h-[calc(100dvh-18rem)] overflow-visible pr-3"
-                scrollbarClassName="translate-x-8"
-                type="always"
+              <div
+                aria-label="Tipos de canal"
+                className="grid gap-3 sm:grid-cols-2"
               >
-                <div
-                  aria-label="Tipos de canal"
-                  className="grid gap-3 pb-6 sm:grid-cols-2 xl:grid-cols-3"
-                >
-                  {capabilities.map((item) => (
-                    <CapabilityCard
-                      capability={item}
-                      key={item.key}
-                      onSelect={(item) => void selectCapability(item)}
-                    />
-                  ))}
-                </div>
-              </ScrollArea>
+                {capabilities.map((item) => (
+                  <CapabilityCard
+                    capability={item}
+                    key={item.key}
+                    onSelect={(item) => void selectCapability(item)}
+                  />
+                ))}
+              </div>
             ) : null}
 
             {isAuthorizing ? (
