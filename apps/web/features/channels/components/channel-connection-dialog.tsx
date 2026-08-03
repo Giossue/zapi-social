@@ -1,7 +1,6 @@
 "use client"
 
 import { channelConnectionsApi } from "@workspace/api-client"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
@@ -75,31 +74,33 @@ function CapabilityCard({
             <Icon aria-hidden="true" className="size-4.5" />
           </div>
           <div className="flex min-w-0 flex-col gap-1">
-            <CardTitle className="leading-none">{capability.label}</CardTitle>
+            <CardTitle className="truncate leading-none">
+              {capability.label}
+            </CardTitle>
             <CardDescription className="text-xs">
               {capability.description}
             </CardDescription>
           </div>
         </div>
         <CardAction>
-          <Badge variant={blocked ? "warning" : "success"}>{label}</Badge>
+          <Button
+            aria-label={`${blocked ? label : "Conectar"} ${capability.label}`}
+            disabled={blocked}
+            onClick={() => onSelect(capability)}
+            size="icon-sm"
+            type="button"
+            variant="ghost"
+          >
+            {blocked ? <Unplug /> : <Plus />}
+          </Button>
         </CardAction>
       </CardHeader>
-      <CardContent className="flex items-center justify-end gap-3">
-        <Button
-          disabled={blocked}
-          onClick={() => onSelect(capability)}
-          size="sm"
-          type="button"
-          variant="outline"
-        >
-          {blocked ? (
-            <Unplug data-icon="inline-start" />
-          ) : (
-            <Plus data-icon="inline-start" />
-          )}
-          {blocked ? label : "Conectar"}
-        </Button>
+      <CardContent className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+        <div className="flex items-center gap-1.5">
+          <Icon aria-hidden="true" className="size-3.5" />
+          <span>{label}</span>
+        </div>
+        <span>{blocked ? "No disponible" : "Listo para conectar"}</span>
       </CardContent>
     </Card>
   )
@@ -348,7 +349,7 @@ export function ChannelConnectionDialog({
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="max-h-[calc(100dvh-10rem)]">
-          <div className="grid gap-4 pr-4">
+          <div className="grid gap-4">
             {step === "capabilities" ? (
               <div
                 aria-label="Tipos de canal"
