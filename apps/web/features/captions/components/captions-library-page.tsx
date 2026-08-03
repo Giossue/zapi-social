@@ -19,8 +19,9 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
+  CardAction,
   CardContent,
-  CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
@@ -28,11 +29,17 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { Input } from "@workspace/ui/components/input"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@workspace/ui/components/input-group"
 import {
   Select,
   SelectContent,
@@ -109,13 +116,19 @@ function CaptionMetricsGrid({ metrics }: { metrics: CaptionMetrics }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {items.map(({ label, value, icon: Icon }) => (
-        <Card key={label} variant="subtle">
-          <CardContent className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-2xl font-semibold tracking-tight">{value}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{label}</p>
-            </div>
-            <Icon aria-hidden="true" className="size-5 text-muted-foreground" />
+        <Card key={label} size="sm" variant="subtle">
+          <CardHeader>
+            <CardTitle className="font-normal text-muted-foreground">
+              {label}
+            </CardTitle>
+            <CardAction>
+              <Icon aria-hidden="true" className="size-4 text-muted-foreground" />
+            </CardAction>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl leading-none font-semibold tracking-tight">
+              {value}
+            </p>
           </CardContent>
         </Card>
       ))}
@@ -125,20 +138,23 @@ function CaptionMetricsGrid({ metrics }: { metrics: CaptionMetrics }) {
 
 function CaptionsLoading() {
   return (
-    <div aria-busy="true" className="space-y-5">
-      <div className="flex flex-wrap justify-between gap-3">
-        <div className="flex flex-1 flex-wrap gap-2">
-          <Skeleton className="h-9 min-w-64 flex-1" />
-          <Skeleton className="h-9 w-36" />
-          <Skeleton className="h-9 w-36" />
-        </div>
-        <Skeleton className="h-9 w-36" />
+    <div aria-busy="true" className="space-y-4">
+      <div className="flex justify-end">
+        <Skeleton className="h-8 w-36" />
       </div>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {["total", "ai", "manual", "active"].map((key) => (
           <Skeleton className="h-24" key={key} />
         ))}
       </div>
+      <Card variant="subtle">
+        <CardContent className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_12rem_12rem_auto]">
+          <Skeleton className="h-8" />
+          <Skeleton className="h-8" />
+          <Skeleton className="h-8" />
+          <Skeleton className="h-8 w-28" />
+        </CardContent>
+      </Card>
       <div className="grid gap-4 lg:grid-cols-2">
         {["one", "two", "three", "four"].map((key) => (
           <Skeleton className="h-64" key={key} />
@@ -164,19 +180,19 @@ function CaptionCard({
   return (
     <Card className="h-full" variant="subtle">
       <CardHeader className="gap-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 space-y-1">
-            <CardTitle className="truncate">{caption.name}</CardTitle>
-            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <SourceIcon className="size-3.5" />
-              {source.label}
-            </p>
-          </div>
-          <Badge variant={status.variant}>{status.label}</Badge>
+        <div className="min-w-0 space-y-1">
+          <CardTitle className="truncate">{caption.name}</CardTitle>
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <SourceIcon aria-hidden="true" className="size-3.5" />
+            {source.label}
+          </p>
         </div>
+        <CardAction>
+          <Badge variant={status.variant}>{status.label}</Badge>
+        </CardAction>
       </CardHeader>
-      <CardContent className="flex h-full flex-col gap-4">
-        <p className="text-sm leading-relaxed text-muted-foreground">
+      <CardContent className="flex flex-1 flex-col gap-4">
+        <p className="line-clamp-4 text-sm leading-relaxed text-muted-foreground">
           {caption.content}
         </p>
         {caption.tags.length > 0 ? (
@@ -189,34 +205,34 @@ function CaptionCard({
           </div>
         ) : null}
         {caption.notes ? (
-          <p className="border-l-2 border-border pl-3 text-sm text-muted-foreground">
+          <p className="line-clamp-2 border-l-2 border-border pl-3 text-sm leading-relaxed text-muted-foreground">
             {caption.notes}
           </p>
         ) : null}
-        <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
-          <p className="text-xs text-muted-foreground">
-            Actualizado {formatUpdatedAt(caption.updatedAt)}
-          </p>
-          <div className="flex items-center gap-1">
-            <Button
-              aria-label={`Editar ${caption.name}`}
-              onClick={() => onEdit(caption)}
-              size="icon-sm"
-              variant="brand-secondary"
-            >
-              <Pencil />
-            </Button>
-            <Button
-              aria-label={`Eliminar ${caption.name}`}
-              onClick={() => onDelete(caption)}
-              size="icon-sm"
-              variant="brand-secondary"
-            >
-              <Trash2 />
-            </Button>
-          </div>
-        </div>
       </CardContent>
+      <CardFooter className="mt-auto justify-between gap-3">
+        <p className="text-xs text-muted-foreground">
+          Actualizado {formatUpdatedAt(caption.updatedAt)}
+        </p>
+        <div className="flex shrink-0 items-center gap-1">
+          <Button
+            aria-label={`Editar ${caption.name}`}
+            onClick={() => onEdit(caption)}
+            size="icon-sm"
+            variant="brand-secondary"
+          >
+            <Pencil />
+          </Button>
+          <Button
+            aria-label={`Eliminar ${caption.name}`}
+            onClick={() => onDelete(caption)}
+            size="icon-sm"
+            variant="brand-secondary"
+          >
+            <Trash2 />
+          </Button>
+        </div>
+      </CardFooter>
     </Card>
   )
 }
@@ -263,11 +279,9 @@ function CaptionEditorDialog({
 
   return (
     <Dialog onOpenChange={(open) => !open && onClose()} open={caption !== null}>
-      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
+      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>
-            {isEditing ? "Editar caption" : "Nuevo caption"}
-          </DialogTitle>
+          <DialogTitle>{isEditing ? "Editar caption" : "Nuevo caption"}</DialogTitle>
           <DialogDescription>
             Guarda una pieza reutilizable para este espacio de trabajo. No se
             publicará contenido desde aquí.
@@ -301,6 +315,7 @@ function CaptionEditorDialog({
               </span>
             </span>
             <Textarea
+              className="min-h-32"
               defaultValue={isEditing ? caption.content : ""}
               maxLength={10000}
               name="content"
@@ -314,7 +329,7 @@ function CaptionEditorDialog({
                 defaultValue={isEditing ? caption.sourceType : "manual"}
                 name="sourceType"
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -329,7 +344,7 @@ function CaptionEditorDialog({
                 defaultValue={isEditing ? caption.status : "draft"}
                 name="status"
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -363,7 +378,7 @@ function CaptionEditorDialog({
               name="notes"
             />
           </label>
-          <div className="flex justify-end gap-2">
+          <DialogFooter>
             <Button
               disabled={pending}
               onClick={onClose}
@@ -374,14 +389,11 @@ function CaptionEditorDialog({
             </Button>
             <Button disabled={pending} type="submit">
               {pending ? (
-                <LoaderCircle
-                  className="animate-spin"
-                  data-icon="inline-start"
-                />
+                <LoaderCircle className="animate-spin" data-icon="inline-start" />
               ) : null}
               {isEditing ? "Guardar cambios" : "Crear caption"}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
@@ -410,12 +422,8 @@ function DeleteCaptionDialog({
               : ""}
           </DialogDescription>
         </DialogHeader>
-        <div className="flex justify-end gap-2">
-          <Button
-            disabled={pending}
-            onClick={onClose}
-            variant="brand-secondary"
-          >
+        <DialogFooter>
+          <Button disabled={pending} onClick={onClose} variant="brand-secondary">
             Cancelar
           </Button>
           <Button disabled={pending} onClick={onConfirm} variant="destructive">
@@ -426,7 +434,7 @@ function DeleteCaptionDialog({
             )}
             Eliminar
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )
@@ -473,8 +481,7 @@ export function CaptionsLibraryPage() {
           .includes(query)
       return (
         matchesQuery &&
-        (filters.sourceType === "all" ||
-          caption.sourceType === filters.sourceType) &&
+        (filters.sourceType === "all" || caption.sourceType === filters.sourceType) &&
         (filters.status === "all" || caption.status === filters.status)
       )
     })
@@ -492,6 +499,10 @@ export function CaptionsLibraryPage() {
       ),
     [captions]
   )
+  const hasActiveFilters =
+    Boolean(filters.query) ||
+    filters.sourceType !== "all" ||
+    filters.status !== "all"
 
   async function saveCaption(draft: CaptionDraft) {
     setPending(true)
@@ -559,85 +570,94 @@ export function CaptionsLibraryPage() {
   }
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-4">
       <div className="flex justify-end">
-        <Button onClick={() => setEditor("new")} size="lg">
+        <Button onClick={() => setEditor("new")}>
           <Plus data-icon="inline-start" />
           Nuevo caption
         </Button>
       </div>
-      <section aria-label="Biblioteca de captions" className="space-y-5">
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_12rem_12rem]">
-          <div className="relative min-w-56 flex-1">
-            <Search
-              aria-hidden="true"
-              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-            />
-            <Input
-              aria-label="Buscar captions"
-              className="pl-9"
-              onChange={(event) =>
-                setFilters((current) => ({
-                  ...current,
-                  query: event.target.value,
-                }))
-              }
-              placeholder="Buscar por nombre, contenido o nota"
-              value={filters.query}
-            />
-          </div>
-          <Select
-            onValueChange={(value) =>
-              setFilters((current) => ({
-                ...current,
-                sourceType: value as CaptionFilters["sourceType"],
-              }))
-            }
-            value={filters.sourceType}
-          >
-            <SelectTrigger aria-label="Filtrar por origen">
-              <SelectValue placeholder="Origen" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los orígenes</SelectItem>
-              <SelectItem value="manual">Manual</SelectItem>
-              <SelectItem value="ai">AI</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select
-            onValueChange={(value) =>
-              setFilters((current) => ({
-                ...current,
-                status: value as CaptionFilters["status"],
-              }))
-            }
-            value={filters.status}
-          >
-            <SelectTrigger aria-label="Filtrar por estado">
-              <SelectValue placeholder="Estado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los estados</SelectItem>
-              <SelectItem value="active">Activo</SelectItem>
-              <SelectItem value="draft">Borrador</SelectItem>
-              <SelectItem value="archived">Archivado</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
 
+      <section aria-label="Biblioteca de captions" className="space-y-4">
         <CaptionMetricsGrid metrics={metrics} />
 
-        <div className="flex justify-end">
-          {filters.query ||
-          filters.sourceType !== "all" ||
-          filters.status !== "all" ? (
-            <Button
-              onClick={() => setFilters(initialFilters)}
-              variant="brand-secondary"
+        <Card variant="subtle">
+          <CardContent className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_12rem_12rem_auto]">
+            <InputGroup>
+              <InputGroupAddon>
+                <Search aria-hidden="true" />
+              </InputGroupAddon>
+              <InputGroupInput
+                aria-label="Buscar captions"
+                onChange={(event) =>
+                  setFilters((current) => ({
+                    ...current,
+                    query: event.target.value,
+                  }))
+                }
+                placeholder="Buscar por nombre, contenido o nota"
+                value={filters.query}
+              />
+            </InputGroup>
+            <Select
+              onValueChange={(value) =>
+                setFilters((current) => ({
+                  ...current,
+                  sourceType: value as CaptionFilters["sourceType"],
+                }))
+              }
+              value={filters.sourceType}
             >
-              Limpiar filtros
-            </Button>
-          ) : null}
+              <SelectTrigger aria-label="Filtrar por origen" className="w-full">
+                <SelectValue placeholder="Origen" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los orígenes</SelectItem>
+                <SelectItem value="manual">Manual</SelectItem>
+                <SelectItem value="ai">AI</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select
+              onValueChange={(value) =>
+                setFilters((current) => ({
+                  ...current,
+                  status: value as CaptionFilters["status"],
+                }))
+              }
+              value={filters.status}
+            >
+              <SelectTrigger aria-label="Filtrar por estado" className="w-full">
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los estados</SelectItem>
+                <SelectItem value="active">Activo</SelectItem>
+                <SelectItem value="draft">Borrador</SelectItem>
+                <SelectItem value="archived">Archivado</SelectItem>
+              </SelectContent>
+            </Select>
+            {hasActiveFilters ? (
+              <Button
+                className="justify-self-start lg:justify-self-end"
+                onClick={() => setFilters(initialFilters)}
+                variant="brand-secondary"
+              >
+                Limpiar filtros
+              </Button>
+            ) : (
+              <p className="self-center text-xs text-muted-foreground lg:text-right">
+                Filtra por origen o estado
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        <div className="flex items-center justify-between gap-3">
+          <p aria-live="polite" className="text-sm text-muted-foreground">
+            {filteredCaptions.length === 1
+              ? "1 caption en la biblioteca"
+              : `${filteredCaptions.length} captions en la biblioteca`}
+          </p>
         </div>
 
         {filteredCaptions.length > 0 ? (

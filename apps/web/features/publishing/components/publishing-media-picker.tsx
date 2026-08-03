@@ -11,7 +11,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import { Input } from "@workspace/ui/components/input"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@workspace/ui/components/input-group"
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@workspace/ui/components/toggle-group"
 
 type MediaKind = "image" | "video"
 
@@ -58,7 +66,7 @@ export function PublishingMediaPicker({
   }, [kind, query])
 
   return (
-    <Card variant="inset">
+    <Card size="sm" variant="inset">
       <CardHeader>
         <CardTitle>Selecciona desde tu almacenamiento</CardTitle>
         <CardDescription>
@@ -66,35 +74,35 @@ export function PublishingMediaPicker({
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
-          <div className="relative">
-            <Search
-              aria-hidden="true"
-              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-            />
-            <Input
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <InputGroup className="sm:flex-1">
+            <InputGroupAddon>
+              <Search aria-hidden="true" />
+            </InputGroupAddon>
+            <InputGroupInput
               aria-label="Buscar media en el almacenamiento"
-              className="pl-9"
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Buscar en tu almacenamiento"
               value={query}
             />
-          </div>
-          <div
+          </InputGroup>
+          <ToggleGroup
             aria-label="Filtrar media por tipo"
-            className="flex flex-wrap gap-2"
+            onValueChange={(value) =>
+              value && setKind(value as MediaKind | "all")
+            }
+            size="sm"
+            spacing={1}
+            type="single"
+            value={kind}
+            variant="outline"
           >
             {filters.map((filter) => (
-              <Button
-                key={filter.value}
-                onClick={() => setKind(filter.value)}
-                size="sm"
-                variant={kind === filter.value ? "default" : "brand-secondary"}
-              >
+              <ToggleGroupItem key={filter.value} value={filter.value}>
                 {filter.label}
-              </Button>
+              </ToggleGroupItem>
             ))}
-          </div>
+          </ToggleGroup>
         </div>
         {visibleAssets.length ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -103,13 +111,13 @@ export function PublishingMediaPicker({
               const AssetIcon = asset.kind === "image" ? Image : Video
               return (
                 <Button
-                  className="h-auto min-h-32 flex-col items-start gap-3 p-3 text-left"
+                  className="h-auto min-h-28 flex-col items-start gap-3 p-3 text-left"
                   key={asset.id}
                   onClick={() => onChange(selected ? null : asset.id)}
                   variant={selected ? "default" : "brand-secondary"}
                 >
-                  <span className="flex size-9 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                    <AssetIcon className="size-5" />
+                  <span className="flex size-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                    <AssetIcon />
                   </span>
                   <span className="w-full">
                     <span className="block truncate text-sm font-medium">
@@ -117,7 +125,7 @@ export function PublishingMediaPicker({
                     </span>
                     <span className="mt-1 flex items-center justify-between text-xs">
                       <span>{asset.kind === "image" ? "Imagen" : "Video"}</span>
-                      {selected ? <Check className="size-4" /> : null}
+                      {selected ? <Check aria-hidden="true" /> : null}
                     </span>
                   </span>
                 </Button>

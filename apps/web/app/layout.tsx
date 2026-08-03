@@ -1,35 +1,19 @@
-import { Geist, Geist_Mono } from "next/font/google"
+import { Inter, Geist_Mono } from "next/font/google"
 
 import "@workspace/ui/globals.css"
 import { Toaster } from "@workspace/ui/components/toast"
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
-import { ThemeProvider } from "@/components/theme-provider"
-import { SessionSynchronizer } from "@/features/identity/components/session-synchronizer"
 import { cn } from "@workspace/ui/lib/utils"
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-sans" })
+import { ThemeProvider } from "@/components/theme-provider"
+import { SessionSynchronizer } from "@/features/identity/components/session-synchronizer"
 
-const fontMono = Geist_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-})
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
+const fontMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="es"
-      suppressHydrationWarning
-      className={cn(
-        "antialiased",
-        fontMono.variable,
-        "font-sans",
-        geist.variable
-      )}
-    >
+    <html lang="es" suppressHydrationWarning className={cn("dark antialiased font-sans", inter.variable, fontMono.variable)}>
       <body>
         <ThemeProvider>
           <TooltipProvider>

@@ -1,35 +1,23 @@
-import { Card, CardContent, CardHeader } from "@workspace/ui/components/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 
-const workspaceMetricSkeletons = ["channels", "posts", "credits", "ai"] as const
-const compactMetricSkeletons = ["one", "two", "three"] as const
-const workflowSkeletons = ["content", "image", "repurpose", "timing"] as const
-const attentionSkeletons = ["one", "two"] as const
+const metricSkeletons = ["channels", "posts", "credits", "ai"] as const
+const tableSkeletons = ["one", "two", "three", "four"] as const
 
-function SectionHeaderLoading({ action = true }: { action?: boolean }) {
+function MetricLoading() {
   return (
-    <CardHeader className="flex flex-row items-start justify-between gap-4">
-      <div className="min-w-0 space-y-2">
-        <Skeleton className="h-5 w-40" />
-        <Skeleton className="h-4 w-72 max-w-full" />
-      </div>
-      {action ? <Skeleton className="h-9 w-36 shrink-0" /> : null}
-    </CardHeader>
-  )
-}
-
-function MetricLoading({ compact = false }: { compact?: boolean }) {
-  return (
-    <Card className={compact ? "min-h-32" : "min-h-36"} variant="inset">
-      <CardContent className="flex h-full flex-col justify-between gap-5">
-        <div className="flex items-start justify-between">
-          <Skeleton className="h-8 w-14" />
-          <Skeleton className="size-5" />
-        </div>
-        <div className="space-y-2">
+    <Card>
+      <CardHeader>
+        <CardTitle>
+          <Skeleton className="size-7" />
+        </CardTitle>
+        <CardDescription>
           <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-3 w-32" />
-        </div>
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-1">
+        <Skeleton className="h-8 w-16" />
+        <Skeleton className="h-4 w-32" />
       </CardContent>
     </Card>
   )
@@ -37,54 +25,40 @@ function MetricLoading({ compact = false }: { compact?: boolean }) {
 
 export function DashboardLoading() {
   return (
-    <div aria-busy="true" className="space-y-6">
-      <Card variant="subtle">
-        <SectionHeaderLoading action={false} />
-      </Card>
-
-      <Card variant="subtle">
-        <SectionHeaderLoading />
-        <CardContent>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {workspaceMetricSkeletons.map((metric) => (
-              <MetricLoading key={metric} />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card variant="subtle">
-        <SectionHeaderLoading />
-        <CardContent>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {workflowSkeletons.map((workflow) => (
-              <Skeleton className="h-20" key={workflow} />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-6 xl:grid-cols-2">
-        {["publishing", "library"].map((section) => (
-          <Card key={section} variant="subtle">
-            <SectionHeaderLoading />
-            <CardContent>
-              <div className="grid gap-3 sm:grid-cols-3">
-                {compactMetricSkeletons.map((metric) => (
-                  <MetricLoading compact key={metric} />
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+    <div aria-busy="true" className="@container/main flex flex-col gap-4 md:gap-6">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-4">
+        {metricSkeletons.map((metric) => (
+          <MetricLoading key={metric} />
         ))}
       </div>
 
-      <Card variant="subtle">
-        <SectionHeaderLoading action={false} />
+      <Card className="@container/card">
+        <CardHeader>
+          <CardTitle className="leading-none">
+            <Skeleton className="h-5 w-44" />
+          </CardTitle>
+          <CardDescription>
+            <Skeleton className="h-4 w-72 max-w-full" />
+          </CardDescription>
+        </CardHeader>
         <CardContent>
-          <div className="grid gap-3 md:grid-cols-2">
-            {attentionSkeletons.map((item) => (
-              <Skeleton className="h-24" key={item} />
+          <Skeleton className="h-80 w-full" />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="leading-none">
+            <Skeleton className="h-5 w-40" />
+          </CardTitle>
+          <CardDescription>
+            <Skeleton className="h-4 w-96 max-w-full" />
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="overflow-hidden rounded-lg border bg-card">
+            {tableSkeletons.map((row) => (
+              <Skeleton className="h-14 rounded-none border-b last:border-b-0" key={row} />
             ))}
           </div>
         </CardContent>

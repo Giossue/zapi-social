@@ -1,21 +1,17 @@
 import Link from "next/link"
-import {
-  Activity,
-  ArrowRight,
-  CheckCircle2,
-  PlugZap,
-  TriangleAlert,
-} from "lucide-react"
+import { Activity, ArrowRight, CheckCircle2, PlugZap, TriangleAlert } from "lucide-react"
 
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import { Separator } from "@workspace/ui/components/separator"
 
 import { adminDashboardFixture } from "../fixtures/dashboard"
 
@@ -23,99 +19,83 @@ const metricIcons = [PlugZap, TriangleAlert, Activity] as const
 
 export function AdminDashboard() {
   return (
-    <div className="space-y-6">
-      <section className="max-w-2xl space-y-2">
-        <p className="text-sm font-medium text-primary">
-          Administración de plataforma
-        </p>
-        <h2 className="text-2xl font-semibold tracking-tight sm:text-3xl">
-          Control operativo de Zapi
-        </h2>
-        <p className="text-muted-foreground">
-          Supervisa la configuración global sin entrar en los workspaces de
-          clientes.
-        </p>
+    <div className="flex flex-col gap-4 md:gap-6">
+      <section aria-label="Estado de la plataforma">
+        <div className="grid gap-3 md:grid-cols-3">
+          {adminDashboardFixture.metrics.map((metric, index) => {
+            const Icon = metricIcons[index] ?? Activity
+
+            return (
+              <Card key={metric.label} size="sm" variant="subtle">
+                <CardHeader>
+                  <div className="flex items-center justify-between gap-3">
+                    <CardDescription>{metric.label}</CardDescription>
+                    <Icon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+                  </div>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-1">
+                  <p className="text-2xl font-semibold tracking-tight">{metric.value}</p>
+                  <p className="text-sm text-muted-foreground">{metric.description}</p>
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
       </section>
 
-      <section
-        className="grid gap-4 md:grid-cols-3"
-        aria-label="Estado de la plataforma"
-      >
-        {adminDashboardFixture.metrics.map((metric, index) => {
-          const Icon = metricIcons[index] ?? Activity
-          return (
-            <Card key={metric.label} variant="subtle">
-              <CardHeader className="gap-3">
-                <div className="flex items-center justify-between gap-3">
-                  <CardDescription>{metric.label}</CardDescription>
-                  <Icon
-                    aria-hidden="true"
-                    className="size-4 text-muted-foreground"
-                  />
-                </div>
-                <CardTitle className="text-2xl">{metric.value}</CardTitle>
-                <CardDescription>{metric.description}</CardDescription>
-              </CardHeader>
-            </Card>
-          )
-        })}
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
+      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(18rem,1fr)]" aria-label="Operación de plataforma">
         <Card variant="subtle">
           <CardHeader>
             <CardTitle>Atención operativa</CardTitle>
             <CardDescription>
-              Prioridades de configuración global. Datos de muestra mientras se
-              conecta el módulo administrativo.
+              Prioridades de configuración global. Datos de muestra mientras se conecta el módulo administrativo.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {adminDashboardFixture.activity.map((item) => {
-              const isHealthy = item.status === "healthy"
-              return (
-                <div
-                  key={item.title}
-                  className="flex items-start gap-3 border-t border-border pt-3 first:border-t-0 first:pt-0"
-                >
-                  {isHealthy ? (
-                    <CheckCircle2
-                      aria-hidden="true"
-                      className="mt-0.5 size-4 shrink-0 text-success"
-                    />
-                  ) : (
-                    <TriangleAlert
-                      aria-hidden="true"
-                      className="mt-0.5 size-4 shrink-0 text-warning"
-                    />
-                  )}
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <p className="text-sm font-medium">{item.title}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {item.description}
-                    </p>
+          <CardContent>
+            <div className="flex flex-col gap-3">
+              {adminDashboardFixture.activity.map((item, index) => {
+                const isHealthy = item.status === "healthy"
+
+                return (
+                  <div className="flex flex-col gap-3" key={item.title}>
+                    {index > 0 ? <Separator /> : null}
+                    <div className="flex items-start gap-3">
+                      {isHealthy ? (
+                        <CheckCircle2 aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-success" />
+                      ) : (
+                        <TriangleAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-warning" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium">{item.title}</p>
+                        <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
+                      </div>
+                      <Badge variant={isHealthy ? "success" : "warning"}>
+                        {isHealthy ? "Correcto" : "Revisar"}
+                      </Badge>
+                    </div>
                   </div>
-                  <Badge variant={isHealthy ? "success" : "warning"}>
-                    {isHealthy ? "Correcto" : "Revisar"}
-                  </Badge>
-                </div>
-              )
-            })}
+                )
+              })}
+            </div>
           </CardContent>
         </Card>
 
         <Card variant="subtle">
           <CardHeader>
-            <CardTitle>Acceso rápido</CardTitle>
+            <CardTitle>Integraciones</CardTitle>
             <CardDescription>
-              Gestiona los proveedores que habilitan los canales para todos los
-              clientes.
+              Gestiona los proveedores que habilitan los canales para todos los clientes.
             </CardDescription>
+            <CardAction>
+              <PlugZap aria-hidden="true" className="size-4 text-muted-foreground" />
+            </CardAction>
           </CardHeader>
-          <CardContent>
-            <Button asChild className="w-full">
+          <CardContent className="flex flex-col gap-3">
+            <p className="text-sm text-muted-foreground">
+              Revisa las configuraciones incompletas antes de habilitarlas para los workspaces.
+            </p>
+            <Button asChild size="sm" variant="brand-secondary">
               <Link href="/admin/integrations">
-                <PlugZap data-icon="inline-start" />
                 Administrar integraciones
                 <ArrowRight data-icon="inline-end" />
               </Link>

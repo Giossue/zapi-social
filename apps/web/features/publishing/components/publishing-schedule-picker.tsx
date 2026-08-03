@@ -3,6 +3,7 @@
 import { CalendarDays, Clock3 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Calendar } from "@workspace/ui/components/calendar"
+import { Field, FieldLabel } from "@workspace/ui/components/field"
 import {
   Popover,
   PopoverContent,
@@ -11,6 +12,7 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -47,8 +49,8 @@ export function PublishingSchedulePicker({
 
   return (
     <div className="grid gap-3 sm:grid-cols-2">
-      <div className="flex flex-col gap-2">
-        <p className="text-sm font-medium">Fecha</p>
+      <Field>
+        <FieldLabel>Fecha</FieldLabel>
         <Popover>
           <PopoverTrigger asChild>
             <Button className="justify-start" variant="surface">
@@ -70,9 +72,9 @@ export function PublishingSchedulePicker({
             />
           </PopoverContent>
         </Popover>
-      </div>
-      <div className="flex flex-col gap-2">
-        <p className="text-sm font-medium">Hora</p>
+      </Field>
+      <Field>
+        <FieldLabel>Hora</FieldLabel>
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
           <Select
             onValueChange={(value) =>
@@ -84,14 +86,16 @@ export function PublishingSchedulePicker({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {hours.map((value) => (
-                <SelectItem key={value} value={value}>
-                  {value}
-                </SelectItem>
-              ))}
+              <SelectGroup>
+                {hours.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {value}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
             </SelectContent>
           </Select>
-          <Clock3 aria-hidden="true" className="size-4 text-muted-foreground" />
+          <Clock3 aria-hidden="true" className="text-muted-foreground" />
           <Select
             onValueChange={(value) => onTimeChange(`${hour ?? "00"}:${value}`)}
             value={minute}
@@ -100,15 +104,17 @@ export function PublishingSchedulePicker({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {minutes.map((value) => (
-                <SelectItem key={value} value={value}>
-                  {value}
-                </SelectItem>
-              ))}
+              <SelectGroup>
+                {minutes.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {value}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
             </SelectContent>
           </Select>
         </div>
-      </div>
+      </Field>
     </div>
   )
 }

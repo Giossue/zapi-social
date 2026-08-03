@@ -5,12 +5,20 @@ import { Check, ChevronDown, Search, X } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
-import { Input } from "@workspace/ui/components/input"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@workspace/ui/components/input-group"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@workspace/ui/components/popover"
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@workspace/ui/components/toggle-group"
 import type {
   PublishingAccount,
   PublishingProvider,
@@ -91,36 +99,34 @@ export function PublishingAccountPicker({
           className="w-[min(30rem,calc(100vw-2rem))]"
         >
           <div className="flex flex-col gap-3">
-            <div className="relative">
-              <Search
-                aria-hidden="true"
-                className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-              />
-              <Input
+            <InputGroup>
+              <InputGroupAddon>
+                <Search aria-hidden="true" />
+              </InputGroupAddon>
+              <InputGroupInput
                 aria-label="Buscar cuentas destino"
-                className="pl-9"
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Buscar por cuenta o nombre asignado"
                 value={query}
               />
-            </div>
-            <div
+            </InputGroup>
+            <ToggleGroup
               aria-label="Filtrar cuentas por red"
-              className="flex flex-wrap gap-2"
+              onValueChange={(value) =>
+                value && setProvider(value as PublishingProvider | "all")
+              }
+              size="sm"
+              spacing={1}
+              type="single"
+              value={provider}
+              variant="outline"
             >
               {providerFilters.map((filter) => (
-                <Button
-                  key={filter.value}
-                  onClick={() => setProvider(filter.value)}
-                  size="sm"
-                  variant={
-                    provider === filter.value ? "default" : "brand-secondary"
-                  }
-                >
+                <ToggleGroupItem key={filter.value} value={filter.value}>
                   {filter.label}
-                </Button>
+                </ToggleGroupItem>
               ))}
-            </div>
+            </ToggleGroup>
             <div className="max-h-72 overflow-y-auto">
               {filteredAccounts.length ? (
                 <div className="flex flex-col gap-2">
@@ -146,10 +152,7 @@ export function PublishingAccountPicker({
                           </span>
                         </span>
                         {checked ? (
-                          <Check
-                            aria-hidden="true"
-                            className="size-4 text-success"
-                          />
+                          <Check aria-hidden="true" className="text-success" />
                         ) : null}
                       </label>
                     )

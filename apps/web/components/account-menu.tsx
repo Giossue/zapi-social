@@ -1,32 +1,33 @@
 "use client"
 
 import { ApiError, authApi } from "@workspace/api-client"
-import { Button } from "@workspace/ui/components/button"
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
-import { Switch } from "@workspace/ui/components/switch"
 import { toast } from "@workspace/ui/components/toast"
-import { LogOut, Moon, Sun, UserRound } from "lucide-react"
+import { CircleUser, LogOut } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { announceSessionLogout } from "@/features/identity/components/session-synchronizer"
-import { useTheme } from "next-themes"
-import { useEffect, useState } from "react"
 
-type AccountMenuProps = {
-  profile: {
-    displayName: string
-    email: string
-  }
+import { announceSessionLogout } from "@/features/identity/components/session-synchronizer"
+
+export type AccountProfile = {
+  displayName: string
+  email: string
 }
 
-function initials(displayName: string) {
+type AccountMenuProps = {
+  profile: AccountProfile
+}
+
+export function initials(displayName: string) {
   return displayName
     .split(/\s+/)
     .map((part) => part[0])
@@ -35,16 +36,10 @@ function initials(displayName: string) {
     .toUpperCase()
 }
 
-export function AccountMenu({ profile }: AccountMenuProps) {
+export function useSessionLogout() {
   const router = useRouter()
-  const { resolvedTheme, setTheme } = useTheme()
-  const [themeMounted, setThemeMounted] = useState(false)
 
-  useEffect(() => {
-    setThemeMounted(true)
-  }, [])
-
-  async function logout() {
+  return async function logout() {
     try {
       await authApi.logout()
       announceSessionLogout()
@@ -62,60 +57,46 @@ export function AccountMenu({ profile }: AccountMenuProps) {
       toast.error("No pudimos cerrar tu sesión. Inténtalo de nuevo.")
     }
   }
+}
+
+export function AccountMenu({ profile }: AccountMenuProps) {
+  const logout = useSessionLogout()
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          aria-label="Abrir menú de cuenta"
-          className="size-8 rounded-full p-0"
-          variant="brand-secondary"
-        >
-          <span className="flex size-8 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground">
-            {initials(profile.displayName) || "Z"}
-          </span>
-        </Button>
+        <Avatar className="size-8 rounded-lg">
+          <AvatarFallback>{initials(profile.displayName) || "Z"}</AvatarFallback>
+        </Avatar>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" size="compact">
-        <DropdownMenuLabel className="grid gap-0.5" size="compact">
-          <span className="font-medium">{profile.displayName}</span>
-          <span className="text-xs font-normal text-muted-foreground">
-            {profile.email}
-          </span>
+      <DropdownMenuContent
+        align="end"
+        className="min-w-56 space-y-1 rounded-lg"
+        side="bottom"
+        sideOffset={4}
+      >
+        <DropdownMenuLabel className="p-0 font-normal">
+          <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+            <Avatar className="size-9 rounded-lg">
+              <AvatarFallback>{initials(profile.displayName) || "Z"}</AvatarFallback>
+            </Avatar>
+            <div className="grid min-w-0 flex-1 text-left text-sm leading-tight">
+              <span className="truncate font-semibold">{profile.displayName}</span>
+              <span className="truncate text-xs">{profile.email}</span>
+            </div>
+          </div>
         </DropdownMenuLabel>
-        <DropdownMenuSeparator className="my-1 h-px bg-border" />
-        <DropdownMenuItem asChild size="compact">
-          <Link href="/portal/profile">
-            <UserRound aria-hidden="true" /> Mi perfil
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator className="my-1 h-px bg-border" />
-        <DropdownMenuItem
-          className="justify-between"
-          size="compact"
-          onSelect={(event) => event.preventDefault()}
-        >
-          <span className="flex items-center gap-2">
-            {themeMounted && resolvedTheme === "dark" ? (
-              <Moon aria-hidden="true" />
-            ) : (
-              <Sun aria-hidden="true" />
-            )}
-            Tema oscuro
-          </span>
-          <Switch
-            aria-label="Alternar modo oscuro"
-            checked={themeMounted && resolvedTheme === "dark"}
-            disabled={!themeMounted}
-            onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
-          />
-        </DropdownMenuItem>
-        <DropdownMenuSeparator className="my-1 h-px bg-border" />
-        <DropdownMenuItem
-          className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-          size="compact"
-          onSelect={() => void logout()}
-        >
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem asChild>
+            <Link href="/portal/profile">
+              <CircleUser aria-hidden="true" />
+              Mi perfil
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem variant="destructive" onSelect={() => void logout()}>
           <LogOut aria-hidden="true" />
           Cerrar sesión
         </DropdownMenuItem>

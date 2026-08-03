@@ -12,6 +12,7 @@ import {
   PenLine,
   Rss,
   Share2,
+  ShoppingBag,
   Sparkles,
   Users,
   WandSparkles,
@@ -115,22 +116,16 @@ export const portalNavigationGroups: readonly PortalNavigationGroup[] = [
     items: [{ label: "Soporte", href: "/portal/support", icon: LifeBuoy }],
   },
   {
+    label: "Commerce",
+    items: [{ label: "Commerce", href: "/portal/commerce", icon: ShoppingBag }],
+  },
+  {
     label: "Aplicaciones",
     items: [{ label: "Afiliados", href: "/portal/affiliate", icon: HandCoins }],
   },
 ]
 
-export function isPortalNavigationItemActive(
-  item: PortalNavigationItem,
-  pathname: string
-) {
-  return (
-    "href" in item &&
-    (pathname === item.href || pathname.startsWith(`${item.href}/`))
-  )
-}
-
-export function getPortalNavigationItem(pathname: string) {
+function getDeepestPortalNavigationItem(pathname: string) {
   return portalNavigationGroups
     .flatMap((group) =>
       group.items.flatMap((item) =>
@@ -138,6 +133,22 @@ export function getPortalNavigationItem(pathname: string) {
       )
     )
     .filter((item): item is PortalNavigationLink => "href" in item)
-    .filter((item) => isPortalNavigationItemActive(item, pathname))
+    .filter(
+      (item) => pathname === item.href || pathname.startsWith(`${item.href}/`)
+    )
     .sort((first, second) => second.href.length - first.href.length)[0]
+}
+
+export function isPortalNavigationItemActive(
+  item: PortalNavigationItem,
+  pathname: string
+) {
+  return (
+    "href" in item &&
+    getDeepestPortalNavigationItem(pathname)?.href === item.href
+  )
+}
+
+export function getPortalNavigationItem(pathname: string) {
+  return getDeepestPortalNavigationItem(pathname)
 }

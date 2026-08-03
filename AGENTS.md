@@ -92,3 +92,23 @@ Ante cualquier duda técnica sobre código, estructura, estado implementado, sí
 Si el MCP falla, el índice no está disponible o la consulta no devuelve evidencia suficiente, inspeccionar manualmente el código, tests, schema y contratos relevantes. Para reglas, decisiones, equivalencias Laravel → V2, estado de aceptación y pendientes, consultar además `docs/`; el grafo no sustituye esa documentación.
 
 Los resultados de CBM son evidencia de exploración, no prueba absoluta de completitud: antes de cambios destructivos, verificar archivos y pruebas afectadas.
+
+
+## Regla visual obligatoria — `diseño ideal` source-first
+
+Cuando exista una superficie equivalente en `../diseño ideal`, ese repositorio es la fuente de implementación visual, no inspiración.
+
+```text
+diseño ideal
+  → JSX, jerarquía DOM, primitives, clases Tailwind, spacing, responsive y estados visuales
+
+ZapiV2
+  → textos, datos, fixtures/API, rutas, handlers, sesión, permisos y efectos de dominio
+```
+
+- No rediseñar, compactar, reinterpretar ni crear una variante visual V2 de un componente de dominio existente.
+- Antes de integrar, localizar página/componente fuente exacto en `diseño ideal`; copiarlo dentro de la feature V2 y adaptar solo imports, contenido y comportamiento Zapi.
+- El markup visual de dominio anterior se elimina. La lógica real se conserva o extrae a hooks/adapters, sin conservar su composición visual.
+- Solo se permite cambiar JSX/clases de la fuente cuando sea imprescindible para enlazar un dato, handler, accesibilidad o estado real de Zapi; documentar cada divergencia.
+- No añadir tokens, variantes, aliases o props de compatibilidad para reproducir estética V2 previa. Errores de consumidores se migran, no se ocultan deformando la fuente visual.
+- `packages/ui` conserva primitives globales copiados de `diseño ideal`; `features/<dominio>` contiene la composición fuente específica ya conectada al dominio Zapi.

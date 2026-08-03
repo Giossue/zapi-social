@@ -14,6 +14,7 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -34,7 +35,11 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { EmptyState } from "@workspace/ui/components/empty-state"
-import { Input } from "@workspace/ui/components/input"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@workspace/ui/components/input-group"
 import {
   Select,
   SelectContent,
@@ -42,6 +47,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 import type {
   TeamMember,
   TeamRole,
@@ -60,6 +73,58 @@ const roleMeta: Record<
 function canManageTarget(actor: TeamRole, target: TeamRole) {
   if (actor === "owner") return target !== "owner"
   return actor === "admin" && target === "member"
+}
+
+function MemberIdentity({ member }: { member: TeamMember }) {
+  return (
+    <div className="flex min-w-0 items-center gap-3">
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-semibold text-accent-foreground">
+        {member.name.slice(0, 1)}
+      </span>
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium">{member.name}</p>
+        <p className="truncate text-xs text-muted-foreground">{member.email}</p>
+      </div>
+    </div>
+  )
+}
+
+function MemberActions({
+  editable,
+  member,
+  onManage,
+  onRemove,
+}: {
+  editable: boolean
+  member: TeamMember
+  onManage: (member: TeamMember) => void
+  onRemove: (member: TeamMember) => void
+}) {
+  if (!editable) return null
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          aria-label={`Acciones para ${member.name}`}
+          size="icon-sm"
+          variant="brand-secondary"
+        >
+          <MoreHorizontal />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" size="compact">
+        <DropdownMenuItem onSelect={() => onManage(member)} size="compact">
+          <UserCog />
+          Gestionar acceso
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => onRemove(member)} size="compact">
+          <Trash2 />
+          Eliminar miembro
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
 }
 
 function InviteDialog({
@@ -94,13 +159,18 @@ function InviteDialog({
             <label className="text-sm font-medium" htmlFor="team-invite-email">
               Correo
             </label>
-            <Input
-              id="team-invite-email"
-              onChange={(event) => setEmail(event.target.value)}
-              placeholder="nombre@empresa.com"
-              type="email"
-              value={email}
-            />
+            <InputGroup>
+              <InputGroupAddon>
+                <MailPlus aria-hidden="true" />
+              </InputGroupAddon>
+              <InputGroupInput
+                id="team-invite-email"
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="nombre@empresa.com"
+                type="email"
+                value={email}
+              />
+            </InputGroup>
             {email && !validEmail ? (
               <p className="text-sm text-destructive">
                 Introduce un correo válido.
@@ -351,23 +421,13 @@ export function TeamsPage({ teams }: { teams: TeamsData }) {
     setNotice(`${member.name} fue eliminado del espacio en este mock.`)
   }
 
+  const invitationLabel = invitations.length === 1 ? "invitación pendiente" : "invitaciones pendientes"
+
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-          <Users className="size-5" />
-          {members.length} miembros activos · {invitations.length} invitación
-          {invitations.length === 1 ? "" : "es"} pendiente
-          {invitations.length === 1 ? "" : "s"}
-        </div>
-        <Button onClick={() => setInviteOpen(true)} size="lg">
-          <MailPlus data-icon="inline-start" />
-          Invitar miembro
-        </Button>
-      </div>
+    <div className="space-y-4">
       {notice ? (
-        <Card variant="inset">
-          <CardContent className="flex items-center justify-between gap-4">
+        <Card size="sm" variant="inset">
+          <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">{notice}</p>
             <Button
               onClick={() => setNotice(null)}
@@ -379,114 +439,155 @@ export function TeamsPage({ teams }: { teams: TeamsData }) {
           </CardContent>
         </Card>
       ) : null}
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
-        <section aria-label="Miembros" className="space-y-4">
-          <div className="relative">
-            <Search
-              aria-hidden="true"
-              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-            />
-            <Input
-              aria-label="Buscar miembros"
-              className="pl-9"
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Buscar por nombre o correo"
-              value={query}
-            />
-          </div>
-          {visibleMembers.length ? (
-            <div className="space-y-3">
-              {visibleMembers.map((member) => {
-                const editable = canManageTarget(actorRole, member.role)
-                return (
-                  <Card key={member.id} variant="subtle">
-                    <CardContent className="flex flex-wrap items-center gap-3 sm:flex-nowrap">
-                      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground">
-                        {member.name.slice(0, 1)}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium">{member.name}</p>
-                        <p className="truncate text-sm text-muted-foreground">
-                          {member.email}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={roleMeta[member.role].variant}>
-                          {roleMeta[member.role].label}
-                        </Badge>
-                        {editable ? (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                aria-label={`Acciones para ${member.name}`}
-                                size="icon"
-                                variant="brand-secondary"
-                              >
-                                <MoreHorizontal />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onSelect={() => setSelectedMember(member)}
-                              >
-                                <UserCog />
-                                Gestionar acceso
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onSelect={() => removeMember(member)}
-                              >
-                                <Trash2 />
-                                Eliminar miembro
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        ) : null}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )
-              })}
-            </div>
-          ) : (
-            <Card variant="subtle">
-              <CardContent>
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_18rem]">
+        <section aria-label="Miembros">
+          <Card variant="subtle">
+            <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
+              <CardTitle>Miembros</CardTitle>
+              <CardDescription>
+                <span className="inline-flex items-center gap-2">
+                  <Users aria-hidden="true" className="size-4" />
+                  {members.length} miembros activos · {invitations.length} {invitationLabel}
+                </span>
+              </CardDescription>
+              <CardAction className="col-start-1 row-start-auto w-full justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:justify-self-end">
+                <Button className="w-full md:w-auto" onClick={() => setInviteOpen(true)}>
+                  <MailPlus data-icon="inline-start" />
+                  Invitar miembro
+                </Button>
+              </CardAction>
+            </CardHeader>
+            <CardContent className="grid gap-4 px-0">
+              <div className="px-4">
+                <InputGroup>
+                  <InputGroupAddon>
+                    <Search aria-hidden="true" />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    aria-label="Buscar miembros"
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder="Buscar por nombre, correo o rol"
+                    value={query}
+                  />
+                </InputGroup>
+              </div>
+              {visibleMembers.length ? (
+                <>
+                  <div className="hidden md:block">
+                    <Table className="**:data-[slot='table-cell']:px-4 **:data-[slot='table-head']:px-4">
+                      <TableHeader className="border-y bg-muted/50">
+                        <TableRow>
+                          <TableHead>Miembro</TableHead>
+                          <TableHead>Rol</TableHead>
+                          <TableHead>Alcance</TableHead>
+                          <TableHead>Se unió</TableHead>
+                          <TableHead className="text-right">Acciones</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {visibleMembers.map((member) => {
+                          const editable = canManageTarget(actorRole, member.role)
+                          return (
+                            <TableRow key={member.id}>
+                              <TableCell className="py-3">
+                                <MemberIdentity member={member} />
+                              </TableCell>
+                              <TableCell>
+                                <Badge variant={roleMeta[member.role].variant}>
+                                  {roleMeta[member.role].label}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-sm text-muted-foreground">
+                                {member.role === "member"
+                                  ? `${member.accountIds.length} cuenta${member.accountIds.length === 1 ? "" : "s"}`
+                                  : "Todas las cuentas"}
+                              </TableCell>
+                              <TableCell className="text-sm text-muted-foreground">
+                                {member.joinedAt}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <MemberActions
+                                  editable={editable}
+                                  member={member}
+                                  onManage={setSelectedMember}
+                                  onRemove={removeMember}
+                                />
+                              </TableCell>
+                            </TableRow>
+                          )
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  <div className="divide-y md:hidden">
+                    {visibleMembers.map((member) => {
+                      const editable = canManageTarget(actorRole, member.role)
+                      return (
+                        <div className="grid gap-3 px-4 py-3" key={member.id}>
+                          <div className="flex items-start justify-between gap-3">
+                            <MemberIdentity member={member} />
+                            <MemberActions
+                              editable={editable}
+                              member={member}
+                              onManage={setSelectedMember}
+                              onRemove={removeMember}
+                            />
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                            <Badge variant={roleMeta[member.role].variant}>
+                              {roleMeta[member.role].label}
+                            </Badge>
+                            <span>
+                              {member.role === "member"
+                                ? `${member.accountIds.length} cuenta${member.accountIds.length === 1 ? "" : "s"}`
+                                : "Todas las cuentas"}
+                            </span>
+                            <span>Se unió {member.joinedAt}</span>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </>
+              ) : (
                 <EmptyState
+                  className="px-4 py-10"
                   description="Prueba otra búsqueda para encontrar a un miembro del espacio."
                   icon={Search}
                   title="No encontramos miembros"
                 />
-              </CardContent>
-            </Card>
-          )}
+              )}
+            </CardContent>
+          </Card>
         </section>
         <aside aria-label="Invitaciones pendientes">
-          <Card variant="subtle">
-            <CardHeader>
+          <Card size="sm" variant="subtle">
+            <CardHeader className="border-b">
               <CardTitle>Invitaciones pendientes</CardTitle>
               <CardDescription>
-                Solo el correo invitado podrá aceptarlas antes de su
-                vencimiento.
+                Solo el correo invitado podrá aceptarlas antes de su vencimiento.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="px-0">
               {invitations.length ? (
-                invitations.map((invite) => (
-                  <div className="space-y-2" key={invite.id}>
-                    <p className="truncate text-sm font-medium">
-                      {invite.email}
-                    </p>
-                    <div className="flex items-center justify-between gap-2">
-                      <Badge variant={roleMeta[invite.role].variant}>
-                        {roleMeta[invite.role].label}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        Hasta {invite.expiresAt}
-                      </span>
+                <div className="divide-y">
+                  {invitations.map((invite) => (
+                    <div className="grid gap-2 px-3 py-3" key={invite.id}>
+                      <p className="truncate text-sm font-medium">{invite.email}</p>
+                      <div className="flex items-center justify-between gap-2">
+                        <Badge variant={roleMeta[invite.role].variant}>
+                          {roleMeta[invite.role].label}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          Hasta {invite.expiresAt}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  ))}
+                </div>
               ) : (
                 <EmptyState
+                  className="px-3 py-8"
                   description="Las nuevas invitaciones aparecerán aquí."
                   icon={MailPlus}
                   title="Sin invitaciones"

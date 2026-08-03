@@ -231,15 +231,13 @@ function ChannelMetric({
   value: number
 }) {
   return (
-    <Card variant="subtle">
-      <CardContent className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-2xl font-semibold tracking-tight">{value}</p>
-          <p className="mt-2 text-sm text-muted-foreground">{description}</p>
-        </div>
-        <Icon aria-hidden="true" className="size-5 text-muted-foreground" />
-      </CardContent>
-    </Card>
+    <div className="flex items-center justify-between gap-3 px-4 py-3">
+      <div>
+        <p className="text-xl font-semibold tracking-tight tabular-nums">{value}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+      </div>
+      <Icon aria-hidden="true" className="size-4 text-muted-foreground" />
+    </div>
   )
 }
 
@@ -270,8 +268,8 @@ function ChannelAccountCard({
           : null
 
   return (
-    <Card variant="subtle">
-      <CardContent className="flex h-full flex-col gap-5">
+    <Card size="sm" variant="surface">
+      <CardContent className="flex h-full flex-col gap-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">
             <AccountAvatar account={account} />
@@ -336,7 +334,7 @@ function ChannelAccountCard({
             <span>Este canal no puede publicar hasta reconectarse.</span>
           </div>
         ) : null}
-        <div className="grid grid-cols-2 gap-3 border-t border-border pt-4 text-sm">
+        <div className="grid grid-cols-2 gap-3 border-t border-border pt-3 text-sm">
           <div>
             <p className="text-xs text-muted-foreground">Proveedor</p>
             <p className="mt-1 font-medium">{providerLabel(account)}</p>
@@ -812,34 +810,46 @@ export function LiveChannelsPage() {
   if (isLoading) return <ChannelsLoading />
   if (!hasPermission)
     return (
-      <EmptyState
-        description="Pide acceso a un administrador del espacio de trabajo."
-        icon={LockKeyhole}
-        title="No tienes acceso a los canales"
-      />
+      <Card variant="subtle">
+        <CardContent>
+          <EmptyState
+            description="Pide acceso a un administrador del espacio de trabajo."
+            icon={LockKeyhole}
+            title="No tienes acceso a los canales"
+          />
+        </CardContent>
+      </Card>
     )
   if (hasError)
     return (
-      <EmptyState
-        description="Comprueba tu conexión e inténtalo de nuevo."
-        icon={TriangleAlert}
-        title="No pudimos cargar los canales"
-        action={<Button onClick={() => void loadChannels()}>Reintentar</Button>}
-      />
+      <Card variant="subtle">
+        <CardContent>
+          <EmptyState
+            action={<Button onClick={() => void loadChannels()}>Reintentar</Button>}
+            description="Comprueba tu conexión e inténtalo de nuevo."
+            icon={TriangleAlert}
+            title="No pudimos cargar los canales"
+          />
+        </CardContent>
+      </Card>
     )
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-4">
       {canManage ? (
         <div className="flex justify-end">
-          <Button onClick={() => setIsConnectOpen(true)} size="lg">
+          <Button onClick={() => setIsConnectOpen(true)}>
             <Plus data-icon="inline-start" />
             Conectar canal
           </Button>
         </div>
       ) : null}
       <section aria-label="Inventario de canales" className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-3">
+        <Card
+          className="grid gap-0 overflow-hidden p-0 sm:grid-cols-3 sm:divide-x sm:divide-border"
+          size="sm"
+          variant="subtle"
+        >
           <ChannelMetric
             description="Canales registrados"
             icon={Link2}
@@ -855,12 +865,14 @@ export function LiveChannelsPage() {
             icon={CircleAlert}
             value={summary.disconnected}
           />
-        </div>
-        <p className="text-sm text-muted-foreground">
+        </Card>
+        <p className="text-xs text-muted-foreground">
           La información de perfil se actualiza automáticamente cada 24 horas.
           También puedes solicitar una actualización por canal cada 15 minutos.
         </p>
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_12rem_14rem_12rem]">
+        <Card variant="subtle">
+          <CardContent className="grid gap-4 px-0">
+            <div className="grid gap-3 px-4 lg:grid-cols-[minmax(0,1fr)_12rem_14rem_12rem]">
           <div className="relative">
             <Search
               aria-hidden="true"
@@ -930,13 +942,13 @@ export function LiveChannelsPage() {
           </Select>
         </div>
         {isFiltering ? (
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-2 px-4 md:grid-cols-2 xl:grid-cols-3">
             {["one", "two", "three"].map((item) => (
               <Skeleton className="h-64" key={item} />
             ))}
           </div>
         ) : accounts.length > 0 ? (
-          <div className="grid items-start gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid items-start gap-2 px-4 md:grid-cols-2 xl:grid-cols-3">
             {accounts.map((account) => (
               <ChannelAccountCard
                 account={account}
@@ -965,7 +977,7 @@ export function LiveChannelsPage() {
           </Card>
         )}
         {summary.total > CHANNELS_PAGE_SIZE ? (
-          <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 border-t border-border px-4 pt-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-muted-foreground">{`${cursorHistory.length * CHANNELS_PAGE_SIZE + 1}-${Math.min(cursorHistory.length * CHANNELS_PAGE_SIZE + accounts.length, summary.total)} de ${summary.total}`}</p>
             <div className="flex gap-2">
               <Button
@@ -987,6 +999,8 @@ export function LiveChannelsPage() {
             </div>
           </div>
         ) : null}
+          </CardContent>
+        </Card>
       </section>
       <EditChannelDialog
         account={editingAccount}

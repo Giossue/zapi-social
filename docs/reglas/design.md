@@ -133,3 +133,26 @@ revisión visual manual cuando exista navegador
 ## Calidad
 
 Para Definition of Done, pruebas, revisión y validación proporcional, consultar [calidad.md](./calidad.md).
+
+
+## Regla source-first para `diseño ideal`
+
+`../diseño ideal` es la fuente visual obligatoria cuando contiene una superficie equivalente. No es una referencia estética ni un catálogo de inspiración.
+
+```text
+Fuente `diseño ideal`
+→ copiar página/componente, JSX, clases, primitives, densidad, responsive y estados visuales
+
+Destino ZapiV2
+→ reemplazar solo textos, datos, rutas, callbacks, sesión, permisos y estados reales
+```
+
+Para cada feature:
+
+1. Auditar primero su comportamiento completo: datos, botones, modales, loading, empty, error, permisos, pending y efectos externos.
+2. Localizar la página/componente fuente equivalente en `diseño ideal`.
+3. Eliminar la composición visual de dominio V2 existente.
+4. Crear la nueva composición copiando la fuente; conservar comportamiento mediante props, hooks o adapters Zapi.
+5. Registrar cualquier divergencia indispensable por falta de dato/acción equivalente; no introducir datos ficticios para aparentar equivalencia.
+
+Queda prohibido crear un componente de dominio “inspirado” o una versión visual Zapi de la fuente. Cambiar una `Card`, `Button`, `Dialog`, tabla o layout de la fuente para acomodar estilos/variantes V2 previas incumple esta regla.
