@@ -25,9 +25,10 @@ import { useEffect, useMemo, useState, type FormEvent } from "react"
 import { announceSessionLogout } from "@/features/identity/components/session-synchronizer"
 import type { PortalProfile } from "@workspace/contracts"
 
-const supportedTimeZones = typeof Intl.supportedValuesOf === "function"
-  ? Intl.supportedValuesOf("timeZone")
-  : []
+const supportedTimeZones =
+  typeof Intl.supportedValuesOf === "function"
+    ? Intl.supportedValuesOf("timeZone")
+    : []
 
 const suggestedTimeZones = [
   "America/Guayaquil",
@@ -169,7 +170,9 @@ export function PortalProfilePage() {
         passwordConfirmation,
       })
       event.currentTarget.reset()
-      toast.success("Contraseña actualizada. Inicia sesión de nuevo para continuar.")
+      toast.success(
+        "Contraseña actualizada. Inicia sesión de nuevo para continuar."
+      )
       announceSessionLogout()
     } catch (nextError) {
       toast.error(profileError(nextError))
@@ -181,7 +184,11 @@ export function PortalProfilePage() {
   if (loading) return <ProfileLoading />
 
   const availableTimeZones = useMemo(() => {
-    const values = new Set(["UTC", ...suggestedTimeZones, ...supportedTimeZones])
+    const values = new Set([
+      "UTC",
+      ...suggestedTimeZones,
+      ...supportedTimeZones,
+    ])
     if (timezone) values.add(timezone)
     return [...values].sort((first, second) => first.localeCompare(second))
   }, [timezone])

@@ -12,7 +12,9 @@ export function IntegrationInsetCard({
 }) {
   return (
     <Card className="gap-0 py-0" variant="inset">
-      <CardContent className={cn("px-4 py-4", className)}>{children}</CardContent>
+      <CardContent className={cn("px-4 py-4", className)}>
+        {children}
+      </CardContent>
     </Card>
   )
 }

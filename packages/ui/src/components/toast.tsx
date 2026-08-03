@@ -17,7 +17,8 @@ function Toaster(props: ToasterProps) {
         classNames: {
           toast: "group toast !border-transparent shadow-sm",
           description: "text-muted-foreground",
-          closeButton: "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
+          closeButton:
+            "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
           error: "text-destructive",
           success: "text-success",
         },

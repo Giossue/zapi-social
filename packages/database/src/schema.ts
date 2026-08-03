@@ -528,14 +528,29 @@ export const captions = pgTable(
       .notNull(),
     content: varchar("content", { length: 10000 }).notNull(),
     notes: varchar("notes", { length: 2000 }),
-    tags: jsonb("tags").$type<string[]>().notNull().default(sql`'[]'::jsonb`),
+    tags: jsonb("tags")
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
     ...timestamps,
   },
   (table) => [
-    uniqueIndex("captions_workspace_slug_unique").on(table.workspaceId, table.slug),
-    index("captions_workspace_updated_index").on(table.workspaceId, table.updatedAt),
-    index("captions_workspace_status_index").on(table.workspaceId, table.status),
-    index("captions_workspace_source_type_index").on(table.workspaceId, table.sourceType),
+    uniqueIndex("captions_workspace_slug_unique").on(
+      table.workspaceId,
+      table.slug
+    ),
+    index("captions_workspace_updated_index").on(
+      table.workspaceId,
+      table.updatedAt
+    ),
+    index("captions_workspace_status_index").on(
+      table.workspaceId,
+      table.status
+    ),
+    index("captions_workspace_source_type_index").on(
+      table.workspaceId,
+      table.sourceType
+    ),
   ]
 )
 

@@ -1,14 +1,10 @@
 export type DashboardMetricIcon =
-  | "ai"
-  | "calendar"
-  | "channels"
-  | "files"
-  | "storage"
-  | "templates"
+  "ai" | "calendar" | "channels" | "files" | "storage" | "templates"
 
 export type DashboardToolIcon = "content" | "image" | "repurpose" | "timing"
 
-export type DashboardAttentionIcon = "ai" | "channels" | "credits" | "publishing"
+export type DashboardAttentionIcon =
+  "ai" | "channels" | "credits" | "publishing"
 
 export type DashboardAction = {
   label: string

@@ -37,10 +37,10 @@ function ScrollBar({
   return (
     <ScrollAreaPrimitive.Scrollbar
       className={cn(
-        "flex touch-none select-none p-px transition-colors hover:bg-muted",
+        "flex touch-none p-px transition-colors select-none hover:bg-muted",
         orientation === "vertical" && "h-full w-2",
         orientation === "horizontal" && "h-2.5 w-full flex-col",
-        className,
+        className
       )}
       orientation={orientation}
       {...props}

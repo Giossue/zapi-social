@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react"
 
-export type ChannelProviderKey = "meta" | "linkedin" | "x" | "tiktok" | "whatsapp"
+export type ChannelProviderKey =
+  "meta" | "linkedin" | "x" | "tiktok" | "whatsapp"
 export type ChannelCapabilityKey =
   | "facebook_page"
   | "instagram_profile"
@@ -13,12 +14,7 @@ export type ChannelCapabilityKey =
 export type ChannelAvailability = "ready" | "coming_soon" | "plan_locked"
 /** Local values preserve the approved mock flow; OAuth values are returned by the Portal API. */
 export type ChannelConnectionKind =
-  | "picker"
-  | "direct"
-  | "qr"
-  | "oauth_direct"
-  | "oauth_picker"
-  | "qr_device"
+  "picker" | "direct" | "qr" | "oauth_direct" | "oauth_picker" | "qr_device"
 export type ChannelAccountStatus = "connected" | "disconnected"
 
 export type ChannelCandidate = {

@@ -465,22 +465,33 @@ export function CaptionsLibraryPage() {
   const filteredCaptions = useMemo(() => {
     const query = filters.query.trim().toLocaleLowerCase("es")
     return captions.filter((caption) => {
-      const matchesQuery = !query || [caption.name, caption.content, caption.notes ?? "", ...caption.tags]
-        .join(" ").toLocaleLowerCase("es").includes(query)
-      return matchesQuery &&
-        (filters.sourceType === "all" || caption.sourceType === filters.sourceType) &&
+      const matchesQuery =
+        !query ||
+        [caption.name, caption.content, caption.notes ?? "", ...caption.tags]
+          .join(" ")
+          .toLocaleLowerCase("es")
+          .includes(query)
+      return (
+        matchesQuery &&
+        (filters.sourceType === "all" ||
+          caption.sourceType === filters.sourceType) &&
         (filters.status === "all" || caption.status === filters.status)
+      )
     })
   }, [captions, filters])
-  const metrics = useMemo(() => captions.reduce<CaptionMetrics>(
-    (current, caption) => ({
-      total: current.total + 1,
-      ai: current.ai + (caption.sourceType === "ai" ? 1 : 0),
-      manual: current.manual + (caption.sourceType === "manual" ? 1 : 0),
-      active: current.active + (caption.status === "active" ? 1 : 0),
-    }),
-    { total: 0, ai: 0, manual: 0, active: 0 }
-  ), [captions])
+  const metrics = useMemo(
+    () =>
+      captions.reduce<CaptionMetrics>(
+        (current, caption) => ({
+          total: current.total + 1,
+          ai: current.ai + (caption.sourceType === "ai" ? 1 : 0),
+          manual: current.manual + (caption.sourceType === "manual" ? 1 : 0),
+          active: current.active + (caption.status === "active" ? 1 : 0),
+        }),
+        { total: 0, ai: 0, manual: 0, active: 0 }
+      ),
+    [captions]
+  )
 
   async function saveCaption(draft: CaptionDraft) {
     setPending(true)
@@ -511,7 +522,9 @@ export function CaptionsLibraryPage() {
     setPending(true)
     try {
       await captionsApi.remove(captionToDelete.id)
-      setCaptions((current) => current.filter((caption) => caption.id !== captionToDelete.id))
+      setCaptions((current) =>
+        current.filter((caption) => caption.id !== captionToDelete.id)
+      )
       setCaptionToDelete(null)
       toast.success("Caption eliminado.")
     } catch {
@@ -618,7 +631,10 @@ export function CaptionsLibraryPage() {
           {filters.query ||
           filters.sourceType !== "all" ||
           filters.status !== "all" ? (
-            <Button onClick={() => setFilters(initialFilters)} variant="brand-secondary">
+            <Button
+              onClick={() => setFilters(initialFilters)}
+              variant="brand-secondary"
+            >
               Limpiar filtros
             </Button>
           ) : null}

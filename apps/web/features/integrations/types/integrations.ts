@@ -1,14 +1,8 @@
 export type IntegrationReadiness =
-  | "ready"
-  | "incomplete"
-  | "untested"
-  | "disabled"
+  "ready" | "incomplete" | "untested" | "disabled"
 
 export type IntegrationTestState =
-  | "not-tested"
-  | "testing"
-  | "passed"
-  | "failed"
+  "not-tested" | "testing" | "passed" | "failed"
 
 export type IntegrationAuthMode = "oauth" | "basic"
 

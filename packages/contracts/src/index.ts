@@ -174,7 +174,9 @@ const portalCaptionInputFields = {
   tags: portalCaptionTagsSchema,
 }
 
-export const createPortalCaptionSchema = z.object(portalCaptionInputFields).strict()
+export const createPortalCaptionSchema = z
+  .object(portalCaptionInputFields)
+  .strict()
 
 export const updatePortalCaptionSchema = z
   .object({
@@ -323,11 +325,15 @@ export type PlatformAdminAuthSession = z.infer<
 >
 export type PortalAuthSession = z.infer<typeof portalAuthSessionSchema>
 export type PortalDashboard = z.infer<typeof portalDashboardSchema>
-export type PortalCaptionSourceType = z.infer<typeof portalCaptionSourceTypeSchema>
+export type PortalCaptionSourceType = z.infer<
+  typeof portalCaptionSourceTypeSchema
+>
 export type PortalCaptionStatus = z.infer<typeof portalCaptionStatusSchema>
 export type PortalCaption = z.infer<typeof portalCaptionSchema>
 export type PortalCaptionMetrics = z.infer<typeof portalCaptionMetricsSchema>
-export type PortalCaptionsResponse = z.infer<typeof portalCaptionsResponseSchema>
+export type PortalCaptionsResponse = z.infer<
+  typeof portalCaptionsResponseSchema
+>
 export type PortalCaptionsQuery = z.infer<typeof portalCaptionsQuerySchema>
 export type CreatePortalCaptionInput = z.infer<typeof createPortalCaptionSchema>
 export type UpdatePortalCaptionInput = z.infer<typeof updatePortalCaptionSchema>

@@ -1,20 +1,23 @@
 type WorkerEnv = {
-  DATABASE_URL: string
-  PROVIDER_INTEGRATIONS_ENCRYPTION_KEY: string
-  REDIS_HOST: string
-  REDIS_PORT: number
-  REDIS_USERNAME?: string
-  REDIS_PASSWORD?: string
-}
+  DATABASE_URL: string;
+  PROVIDER_INTEGRATIONS_ENCRYPTION_KEY: string;
+  REDIS_HOST: string;
+  REDIS_PORT: number;
+  REDIS_USERNAME?: string;
+  REDIS_PASSWORD?: string;
+};
 
 export function validateEnv(config: Record<string, unknown>): WorkerEnv {
-  const databaseUrl = required(config, 'DATABASE_URL')
-  const encryptionKey = required(config, 'PROVIDER_INTEGRATIONS_ENCRYPTION_KEY')
-  const redisHost = required(config, 'REDIS_HOST')
-  const redisPort = Number(required(config, 'REDIS_PORT'))
+  const databaseUrl = required(config, 'DATABASE_URL');
+  const encryptionKey = required(
+    config,
+    'PROVIDER_INTEGRATIONS_ENCRYPTION_KEY',
+  );
+  const redisHost = required(config, 'REDIS_HOST');
+  const redisPort = Number(required(config, 'REDIS_PORT'));
 
   if (!Number.isInteger(redisPort) || redisPort <= 0) {
-    throw new Error('REDIS_PORT must be a positive integer.')
+    throw new Error('REDIS_PORT must be a positive integer.');
   }
 
   return {
@@ -24,16 +27,19 @@ export function validateEnv(config: Record<string, unknown>): WorkerEnv {
     REDIS_PORT: redisPort,
     REDIS_USERNAME: optional(config, 'REDIS_USERNAME'),
     REDIS_PASSWORD: optional(config, 'REDIS_PASSWORD'),
-  }
+  };
 }
 
 function required(config: Record<string, unknown>, name: string): string {
-  const value = optional(config, name)
-  if (!value) throw new Error(`${name} is required.`)
-  return value
+  const value = optional(config, name);
+  if (!value) throw new Error(`${name} is required.`);
+  return value;
 }
 
-function optional(config: Record<string, unknown>, name: string): string | undefined {
-  const value = config[name]
-  return typeof value === 'string' && value.length > 0 ? value : undefined
+function optional(
+  config: Record<string, unknown>,
+  name: string,
+): string | undefined {
+  const value = config[name];
+  return typeof value === 'string' && value.length > 0 ? value : undefined;
 }

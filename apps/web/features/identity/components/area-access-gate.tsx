@@ -33,10 +33,13 @@ export function AreaAccessGate({ area, children }: AreaAccessGateProps) {
   const router = useRouter()
   const [state, setState] = useState<AccessState>({ status: "loading" })
 
-  const redirect = useCallback((destination: string) => {
-    router.replace(destination)
-    router.refresh()
-  }, [router])
+  const redirect = useCallback(
+    (destination: string) => {
+      router.replace(destination)
+      router.refresh()
+    },
+    [router]
+  )
 
   const validateSession = useCallback(async () => {
     setState({ status: "loading" })
@@ -59,7 +62,8 @@ export function AreaAccessGate({ area, children }: AreaAccessGateProps) {
       }
       setState({
         status: "error",
-        message: "No pudimos validar tu acceso. Comprueba tu conexión e inténtalo de nuevo.",
+        message:
+          "No pudimos validar tu acceso. Comprueba tu conexión e inténtalo de nuevo.",
       })
     }
   }, [area, redirect])
@@ -77,7 +81,9 @@ export function AreaAccessGate({ area, children }: AreaAccessGateProps) {
             icon={ShieldAlert}
             title="No pudimos verificar tu acceso"
             description={state.message}
-            action={<Button onClick={() => void validateSession()}>Reintentar</Button>}
+            action={
+              <Button onClick={() => void validateSession()}>Reintentar</Button>
+            }
           />
         </Card>
       </main>

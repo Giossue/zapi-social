@@ -6,12 +6,15 @@ import { Checkbox as CheckboxPrimitive } from "radix-ui"
 
 import { cn } from "@workspace/ui/lib/utils"
 
-function Checkbox({ className, ...props }: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
+function Checkbox({
+  className,
+  ...props
+}: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
   return (
     <CheckboxPrimitive.Root
       className={cn(
-        "peer size-4 shrink-0 rounded-[4px] border border-input bg-card text-primary outline-none transition-colors focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
-        className,
+        "peer size-4 shrink-0 rounded-[4px] border border-input bg-card text-primary transition-colors outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground",
+        className
       )}
       data-slot="checkbox"
       {...props}

@@ -650,8 +650,8 @@ export class IntegrationsService {
   private isGoWaSuccess(value: unknown): boolean {
     return Boolean(
       value &&
-        typeof value === 'object' &&
-        (!('code' in value) || String(value.code).toUpperCase() === 'SUCCESS'),
+      typeof value === 'object' &&
+      (!('code' in value) || String(value.code).toUpperCase() === 'SUCCESS'),
     );
   }
 

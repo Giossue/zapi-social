@@ -1,24 +1,24 @@
-import { BullModule } from '@nestjs/bullmq'
-import { Module } from '@nestjs/common'
-import { ConfigModule } from '@nestjs/config'
-import { LoggerModule } from 'nestjs-pino'
-import { validateEnv } from './config/env'
-import { DatabaseService } from './database/database.service'
+import { BullModule } from '@nestjs/bullmq';
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { LoggerModule } from 'nestjs-pino';
+import { validateEnv } from './config/env';
+import { DatabaseService } from './database/database.service';
 import {
   META_PROFILE_SCHEDULE_QUEUE,
   META_PROFILE_SYNC_QUEUE,
-} from './meta-profile-sync/meta-profile-sync.constants'
-import { MetaProfileScheduleProcessor } from './meta-profile-sync/meta-profile-schedule.processor'
-import { MetaProfileSyncProcessor } from './meta-profile-sync/meta-profile-sync.processor'
-import { MetaProfileSyncScheduler } from './meta-profile-sync/meta-profile-sync.scheduler'
-import { Aes256GcmService } from './platform/crypto/aes-256-gcm.service'
+} from './meta-profile-sync/meta-profile-sync.constants';
+import { MetaProfileScheduleProcessor } from './meta-profile-sync/meta-profile-schedule.processor';
+import { MetaProfileSyncProcessor } from './meta-profile-sync/meta-profile-sync.processor';
+import { MetaProfileSyncScheduler } from './meta-profile-sync/meta-profile-sync.scheduler';
+import { Aes256GcmService } from './platform/crypto/aes-256-gcm.service';
 import {
   WHATSAPP_PROFILE_SCHEDULE_QUEUE,
   WHATSAPP_PROFILE_SYNC_QUEUE,
-} from './whatsapp-profile-sync/whatsapp-profile-sync.constants'
-import { WhatsAppProfileScheduleProcessor } from './whatsapp-profile-sync/whatsapp-profile-schedule.processor'
-import { WhatsAppProfileSyncProcessor } from './whatsapp-profile-sync/whatsapp-profile-sync.processor'
-import { WhatsAppProfileSyncScheduler } from './whatsapp-profile-sync/whatsapp-profile-sync.scheduler'
+} from './whatsapp-profile-sync/whatsapp-profile-sync.constants';
+import { WhatsAppProfileScheduleProcessor } from './whatsapp-profile-sync/whatsapp-profile-schedule.processor';
+import { WhatsAppProfileSyncProcessor } from './whatsapp-profile-sync/whatsapp-profile-sync.processor';
+import { WhatsAppProfileSyncScheduler } from './whatsapp-profile-sync/whatsapp-profile-sync.scheduler';
 
 @Module({
   imports: [

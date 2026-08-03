@@ -47,7 +47,9 @@ function DropdownMenuItem({
     <DropdownMenuPrimitive.Item
       className={cn(
         "flex cursor-default items-center gap-2 rounded-lg text-sm transition-colors outline-none focus:bg-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-        size === "compact" ? "h-8 gap-2 px-2 py-1 text-sm [&_svg]:size-4" : "px-2.5 py-2",
+        size === "compact"
+          ? "h-8 gap-2 px-2 py-1 text-sm [&_svg]:size-4"
+          : "px-2.5 py-2",
         className
       )}
       {...props}
@@ -85,7 +87,10 @@ function DropdownMenuLabel({
 }) {
   return (
     <DropdownMenuPrimitive.Label
-      className={cn(size === "compact" ? "px-2 py-1.5 text-sm" : "px-2.5 py-2 text-sm", className)}
+      className={cn(
+        size === "compact" ? "px-2 py-1.5 text-sm" : "px-2.5 py-2 text-sm",
+        className
+      )}
       {...props}
     />
   )

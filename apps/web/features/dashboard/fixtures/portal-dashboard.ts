@@ -10,10 +10,30 @@ export const portalDashboardFixture: PortalDashboard = {
     href: "/portal/publishing/calendar",
   },
   workspace: [
-    { label: "Canales", value: "4", description: "3 activos", icon: "channels" },
-    { label: "Publicaciones", value: "18", description: "5 programadas", icon: "calendar" },
-    { label: "Créditos AI", value: "1,280", description: "96 usados este ciclo", icon: "ai" },
-    { label: "Ejecuciones AI", value: "37", description: "34 exitosas", icon: "ai" },
+    {
+      label: "Canales",
+      value: "4",
+      description: "3 activos",
+      icon: "channels",
+    },
+    {
+      label: "Publicaciones",
+      value: "18",
+      description: "5 programadas",
+      icon: "calendar",
+    },
+    {
+      label: "Créditos AI",
+      value: "1,280",
+      description: "96 usados este ciclo",
+      icon: "ai",
+    },
+    {
+      label: "Ejecuciones AI",
+      value: "37",
+      description: "34 exitosas",
+      icon: "ai",
+    },
   ],
   tools: [
     {
@@ -54,13 +74,15 @@ export const portalDashboardFixture: PortalDashboard = {
   attention: [
     {
       label: "1 canal inactivo",
-      description: "Reconecta o pausa canales antes de planificar nuevas publicaciones.",
+      description:
+        "Reconecta o pausa canales antes de planificar nuevas publicaciones.",
       href: "/portal/channels",
       icon: "channels",
     },
     {
       label: "1 publicación fallida",
-      description: "Revisa errores de publicación antes de que afecten tu próxima cola.",
+      description:
+        "Revisa errores de publicación antes de que afecten tu próxima cola.",
       href: "/portal/publishing/calendar",
       icon: "publishing",
     },

@@ -21,13 +21,13 @@ function DialogContent({
       <DialogPrimitive.Content
         className={cn(
           "fixed top-1/2 left-1/2 z-50 grid w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 gap-5 rounded-xl border bg-popover p-6 text-popover-foreground shadow-md outline-none",
-          className,
+          className
         )}
         data-slot="dialog-content"
         {...props}
       >
         {children}
-        <DialogPrimitive.Close className="absolute top-4 right-4 rounded-md text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50">
+        <DialogPrimitive.Close className="absolute top-4 right-4 rounded-md text-muted-foreground transition-colors outline-none hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50">
           <X className="size-4" />
           <span className="sr-only">Cerrar</span>
         </DialogPrimitive.Close>
@@ -37,10 +37,19 @@ function DialogContent({
 }
 
 function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
-  return <div className={cn("space-y-1.5 pr-8", className)} data-slot="dialog-header" {...props} />
+  return (
+    <div
+      className={cn("space-y-1.5 pr-8", className)}
+      data-slot="dialog-header"
+      {...props}
+    />
+  )
 }
 
-function DialogTitle({ className, ...props }: React.ComponentProps<typeof DialogPrimitive.Title>) {
+function DialogTitle({
+  className,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Title>) {
   return (
     <DialogPrimitive.Title
       className={cn("text-lg font-semibold tracking-tight", className)}
@@ -63,4 +72,12 @@ function DialogDescription({
   )
 }
 
-export { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger }
+export {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+}

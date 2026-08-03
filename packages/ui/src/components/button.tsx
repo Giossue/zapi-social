@@ -9,7 +9,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-[var(--primary-hover)]",
+        default:
+          "bg-primary text-primary-foreground hover:bg-[var(--primary-hover)]",
         outline:
           "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:
@@ -23,7 +24,7 @@ const buttonVariants = cva(
         sidebar:
           "hover:bg-primary/15 hover:text-primary hover:[&_svg]:text-primary",
         "sidebar-active":
-          "bg-primary/15 text-primary [&_svg]:text-primary hover:bg-primary/15 hover:text-primary hover:[&_svg]:text-primary",
+          "bg-primary/15 text-primary hover:bg-primary/15 hover:text-primary [&_svg]:text-primary hover:[&_svg]:text-primary",
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         success:
@@ -48,7 +49,7 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  },
+  }
 )
 
 function Button({

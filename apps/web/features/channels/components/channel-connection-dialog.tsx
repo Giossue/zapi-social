@@ -28,7 +28,8 @@ import type {
 } from "../types/channels"
 import { WhatsAppStatusConnection } from "./whatsapp-status-connection"
 
-type DialogStep = "capabilities" | "authorizing" | "picker" | "whatsapp" | "connected"
+type DialogStep =
+  "capabilities" | "authorizing" | "picker" | "whatsapp" | "connected"
 
 const providerLabels = {
   meta: "Meta",
@@ -81,7 +82,11 @@ function CapabilityCard({
           type="button"
           variant={blocked ? "surface" : "brand-secondary"}
         >
-          {blocked ? <Unplug data-icon="inline-start" /> : <Plus data-icon="inline-start" />}
+          {blocked ? (
+            <Unplug data-icon="inline-start" />
+          ) : (
+            <Plus data-icon="inline-start" />
+          )}
           {blocked ? label : "Conectar"}
         </Button>
       </CardContent>
@@ -120,7 +125,7 @@ function CandidateAvatar({ candidate }: { candidate: ChannelCandidate }) {
 }
 
 function toPortalAccount(
-  account: Awaited<ReturnType<typeof channelConnectionsApi.select>>["account"],
+  account: Awaited<ReturnType<typeof channelConnectionsApi.select>>["account"]
 ): PortalChannelAccount {
   return {
     id: account.id,
@@ -151,14 +156,19 @@ export function ChannelConnectionDialog({
   open: boolean
   metaPickerSession: MetaPickerSession | null
   onConnected: (account: PortalChannelAccount) => void
-  onMetaAuthorizationStart: (result: Awaited<ReturnType<typeof channelConnectionsApi.startMeta>>, capability: PortalChannelCapability) => void
+  onMetaAuthorizationStart: (
+    result: Awaited<ReturnType<typeof channelConnectionsApi.startMeta>>,
+    capability: PortalChannelCapability
+  ) => void
   onMetaConnectionCompleted: () => Promise<void>
   onMetaConnectionCancelled: () => void
   onWhatsAppConnectionCompleted: () => Promise<void>
   onOpenChange: (open: boolean) => void
   whatsappReconnectAccountId: string | null
 }) {
-  const [capability, setCapability] = useState<PortalChannelCapability | null>(null)
+  const [capability, setCapability] = useState<PortalChannelCapability | null>(
+    null
+  )
   const [candidate, setCandidate] = useState<ChannelCandidate | null>(null)
   const [step, setStep] = useState<DialogStep>("capabilities")
   const [isAuthorizing, setIsAuthorizing] = useState(false)
@@ -166,7 +176,9 @@ export function ChannelConnectionDialog({
 
   useEffect(() => {
     if (!whatsappReconnectAccountId || !open) return
-    const whatsappCapability = capabilities.find((item) => item.key === "whatsapp_status")
+    const whatsappCapability = capabilities.find(
+      (item) => item.key === "whatsapp_status"
+    )
     if (!whatsappCapability) return
     setCapability(whatsappCapability)
     setCandidate(null)
@@ -204,11 +216,15 @@ export function ChannelConnectionDialog({
     if (nextCapability.provider === "meta") {
       setIsAuthorizing(true)
       try {
-        const result = await channelConnectionsApi.startMeta({ capabilityKey: nextCapability.key })
+        const result = await channelConnectionsApi.startMeta({
+          capabilityKey: nextCapability.key,
+        })
         onMetaAuthorizationStart(result, nextCapability)
       } catch (error) {
         console.error("Meta authorization start failed", error)
-        toast.error("No pudimos iniciar la autorización con Meta. Inténtalo de nuevo.")
+        toast.error(
+          "No pudimos iniciar la autorización con Meta. Inténtalo de nuevo."
+        )
         setStep("capabilities")
       } finally {
         setIsAuthorizing(false)
@@ -230,7 +246,9 @@ export function ChannelConnectionDialog({
       capabilityKey: capability.key,
       provider: capability.provider,
       displayName: selected.label,
-      handle: selected.label.startsWith("@") ? selected.label.slice(1) : undefined,
+      handle: selected.label.startsWith("@")
+        ? selected.label.slice(1)
+        : undefined,
       status: "connected",
       connectedAt: "2026-07-31",
     })
@@ -255,15 +273,20 @@ export function ChannelConnectionDialog({
     if (!candidate || !metaPickerSession) return
     setIsSelecting(true)
     try {
-      const result = await channelConnectionsApi.select(metaPickerSession.connectionId, {
-        candidateId: candidate.id,
-      })
+      const result = await channelConnectionsApi.select(
+        metaPickerSession.connectionId,
+        {
+          candidateId: candidate.id,
+        }
+      )
       onConnected(toPortalAccount(result.account))
       await onMetaConnectionCompleted()
       toast.success(`${metaPickerSession.capability.label} conectado.`)
     } catch (error) {
       console.error("Meta candidate selection failed", error)
-      toast.error("No pudimos conectar la cuenta seleccionada. Inténtalo de nuevo.")
+      toast.error(
+        "No pudimos conectar la cuenta seleccionada. Inténtalo de nuevo."
+      )
     } finally {
       setIsSelecting(false)
     }
@@ -281,7 +304,9 @@ export function ChannelConnectionDialog({
         toast.success("La conexión con Meta fue cancelada.")
       } catch (error) {
         console.error("Meta connection cancellation failed", error)
-        toast.error("No pudimos cancelar la conexión con Meta. Inténtalo de nuevo.")
+        toast.error(
+          "No pudimos cancelar la conexión con Meta. Inténtalo de nuevo."
+        )
       } finally {
         setIsSelecting(false)
       }
@@ -292,9 +317,13 @@ export function ChannelConnectionDialog({
     onOpenChange(false)
   }
 
-  const title = capability ? `Conectar ${capability.label}` : "Conectar un canal"
+  const title = capability
+    ? `Conectar ${capability.label}`
+    : "Conectar un canal"
   const isMetaPicker = capability?.provider === "meta"
-  const pickerCandidates = isMetaPicker ? metaPickerSession?.candidates ?? [] : capability?.candidates ?? []
+  const pickerCandidates = isMetaPicker
+    ? (metaPickerSession?.candidates ?? [])
+    : (capability?.candidates ?? [])
 
   return (
     <Dialog onOpenChange={handleOpenChange} open={open}>
@@ -307,13 +336,28 @@ export function ChannelConnectionDialog({
               : "Los conectores disponibles fuera de Meta permanecen en modo de referencia."}
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="max-h-[calc(100dvh-10rem)]" scrollbarClassName="translate-x-6" type="always">
+        <ScrollArea
+          className="max-h-[calc(100dvh-10rem)]"
+          scrollbarClassName="translate-x-6"
+          type="always"
+        >
           <div className="grid gap-5 px-6 pt-5 pr-12 pb-6">
             {step === "capabilities" ? (
-              <ScrollArea className="max-h-[calc(100dvh-18rem)] overflow-visible pr-3" scrollbarClassName="translate-x-8" type="always">
-                <div aria-label="Tipos de canal" className="grid gap-3 pb-6 sm:grid-cols-2 xl:grid-cols-3">
+              <ScrollArea
+                className="max-h-[calc(100dvh-18rem)] overflow-visible pr-3"
+                scrollbarClassName="translate-x-8"
+                type="always"
+              >
+                <div
+                  aria-label="Tipos de canal"
+                  className="grid gap-3 pb-6 sm:grid-cols-2 xl:grid-cols-3"
+                >
                   {capabilities.map((item) => (
-                    <CapabilityCard capability={item} key={item.key} onSelect={(item) => void selectCapability(item)} />
+                    <CapabilityCard
+                      capability={item}
+                      key={item.key}
+                      onSelect={(item) => void selectCapability(item)}
+                    />
                   ))}
                 </div>
               </ScrollArea>
@@ -322,7 +366,10 @@ export function ChannelConnectionDialog({
             {isAuthorizing ? (
               <Card variant="inset">
                 <CardContent className="flex items-center gap-3 py-5 text-sm text-muted-foreground">
-                  <LoaderCircle aria-hidden="true" className="size-5 animate-spin text-primary" />
+                  <LoaderCircle
+                    aria-hidden="true"
+                    className="size-5 animate-spin text-primary"
+                  />
                   Preparando la autorización con Meta…
                 </CardContent>
               </Card>
@@ -332,32 +379,88 @@ export function ChannelConnectionDialog({
               <div className="grid gap-5">
                 <Card variant="inset">
                   <CardContent className="flex items-start gap-3 py-5">
-                    <ShieldCheck aria-hidden="true" className="mt-0.5 size-5 text-primary" />
+                    <ShieldCheck
+                      aria-hidden="true"
+                      className="mt-0.5 size-5 text-primary"
+                    />
                     <div className="grid gap-1">
-                      <p className="font-medium">Autorización simulada de {providerLabels[capability.provider]}</p>
-                      <p className="text-sm leading-relaxed text-muted-foreground">En producción se abrirá el proveedor, se validará el retorno y se mostrarán solo los recursos elegibles.</p>
+                      <p className="font-medium">
+                        Autorización simulada de{" "}
+                        {providerLabels[capability.provider]}
+                      </p>
+                      <p className="text-sm leading-relaxed text-muted-foreground">
+                        En producción se abrirá el proveedor, se validará el
+                        retorno y se mostrarán solo los recursos elegibles.
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
-                <div className="flex justify-end"><Button onClick={authorizeMock} type="button">Simular autorización aceptada</Button></div>
+                <div className="flex justify-end">
+                  <Button onClick={authorizeMock} type="button">
+                    Simular autorización aceptada
+                  </Button>
+                </div>
               </div>
             ) : null}
 
             {step === "picker" && capability ? (
               <div className="grid gap-4">
-                <p className="text-sm text-muted-foreground">Elige un único recurso devuelto para esta conexión.</p>
+                <p className="text-sm text-muted-foreground">
+                  Elige un único recurso devuelto para esta conexión.
+                </p>
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {pickerCandidates.map((item) => (
-                    <Button aria-pressed={candidate?.id === item.id} className="h-auto justify-start gap-3 px-4 py-3 text-left whitespace-normal" key={item.id} onClick={() => setCandidate(item)} type="button" variant={candidate?.id === item.id ? "brand-secondary" : "surface"}>
+                    <Button
+                      aria-pressed={candidate?.id === item.id}
+                      className="h-auto justify-start gap-3 px-4 py-3 text-left whitespace-normal"
+                      key={item.id}
+                      onClick={() => setCandidate(item)}
+                      type="button"
+                      variant={
+                        candidate?.id === item.id
+                          ? "brand-secondary"
+                          : "surface"
+                      }
+                    >
                       <CandidateAvatar candidate={item} />
-                      <span className="grid min-w-0 gap-0.5"><span>{item.label}</span><span className="text-sm font-normal text-muted-foreground">{item.description}</span>{item.metadata ? <span className="text-xs font-normal text-muted-foreground">{item.metadata}</span> : null}</span>
+                      <span className="grid min-w-0 gap-0.5">
+                        <span>{item.label}</span>
+                        <span className="text-sm font-normal text-muted-foreground">
+                          {item.description}
+                        </span>
+                        {item.metadata ? (
+                          <span className="text-xs font-normal text-muted-foreground">
+                            {item.metadata}
+                          </span>
+                        ) : null}
+                      </span>
                     </Button>
                   ))}
                 </div>
                 <div className="flex justify-end gap-2">
-                  <Button disabled={isSelecting} onClick={() => void cancelPicker()} type="button" variant="brand-secondary">Cancelar</Button>
-                  <Button disabled={!candidate || isSelecting} onClick={() => void (isMetaPicker ? selectMetaCandidate() : candidate && finishMockConnection(candidate))} type="button">
-                    {isSelecting ? <LoaderCircle className="animate-spin" data-icon="inline-start" /> : null}
+                  <Button
+                    disabled={isSelecting}
+                    onClick={() => void cancelPicker()}
+                    type="button"
+                    variant="brand-secondary"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    disabled={!candidate || isSelecting}
+                    onClick={() =>
+                      void (isMetaPicker
+                        ? selectMetaCandidate()
+                        : candidate && finishMockConnection(candidate))
+                    }
+                    type="button"
+                  >
+                    {isSelecting ? (
+                      <LoaderCircle
+                        className="animate-spin"
+                        data-icon="inline-start"
+                      />
+                    ) : null}
                     Conectar selección
                   </Button>
                 </div>
@@ -376,7 +479,22 @@ export function ChannelConnectionDialog({
               />
             ) : null}
 
-            {step === "connected" && capability ? <Card variant="inset"><CardContent className="flex items-start gap-3 py-5"><CheckCircle2 aria-hidden="true" className="mt-0.5 size-5 text-success" /><div className="grid gap-1"><p className="font-medium">{capability.label} conectado</p><p className="text-sm text-muted-foreground">La cuenta ya está disponible para publicar.</p></div></CardContent></Card> : null}
+            {step === "connected" && capability ? (
+              <Card variant="inset">
+                <CardContent className="flex items-start gap-3 py-5">
+                  <CheckCircle2
+                    aria-hidden="true"
+                    className="mt-0.5 size-5 text-success"
+                  />
+                  <div className="grid gap-1">
+                    <p className="font-medium">{capability.label} conectado</p>
+                    <p className="text-sm text-muted-foreground">
+                      La cuenta ya está disponible para publicar.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : null}
           </div>
         </ScrollArea>
       </DialogContent>

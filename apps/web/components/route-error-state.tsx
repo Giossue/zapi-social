@@ -11,7 +11,11 @@ type RouteErrorStateProps = {
   description: string
 }
 
-export function RouteErrorState({ reset, title, description }: RouteErrorStateProps) {
+export function RouteErrorState({
+  reset,
+  title,
+  description,
+}: RouteErrorStateProps) {
   return (
     <Card variant="surface" className="max-w-xl">
       <EmptyState

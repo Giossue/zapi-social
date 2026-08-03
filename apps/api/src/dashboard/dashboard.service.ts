@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common'
-import { workspaceMemberships } from '@workspace/database'
-import type { PortalAuthSession, PortalDashboard } from '@workspace/contracts'
-import { and, count, eq } from '@workspace/database/query'
-import { DatabaseService } from '../database/database.service'
+import { Injectable } from '@nestjs/common';
+import { workspaceMemberships } from '@workspace/database';
+import type { PortalAuthSession, PortalDashboard } from '@workspace/contracts';
+import { and, count, eq } from '@workspace/database/query';
+import { DatabaseService } from '../database/database.service';
 
 @Injectable()
 export class DashboardService {
@@ -17,13 +17,20 @@ export class DashboardService {
           eq(workspaceMemberships.workspaceId, session.workspace.id),
           eq(workspaceMemberships.status, 'active'),
         ),
-      )
+      );
 
     return {
       welcome: { name: session.user.displayName },
-      primaryAction: { label: 'Nueva publicación', href: '/portal/publishing/calendar' },
+      primaryAction: {
+        label: 'Nueva publicación',
+        href: '/portal/publishing/calendar',
+      },
       workspace: [
-        { label: 'Miembros activos', value: String(membershipTotal?.value ?? 0), icon: 'channels' },
+        {
+          label: 'Miembros activos',
+          value: String(membershipTotal?.value ?? 0),
+          icon: 'channels',
+        },
         { label: 'Canales conectados', value: '0', icon: 'channels' },
         { label: 'Publicaciones', value: '0', icon: 'calendar' },
         { label: 'Créditos AI usados', value: '0', icon: 'ai' },
@@ -40,6 +47,6 @@ export class DashboardService {
         { label: 'Plantillas', value: '0', icon: 'templates' },
       ],
       attention: [],
-    }
+    };
   }
 }

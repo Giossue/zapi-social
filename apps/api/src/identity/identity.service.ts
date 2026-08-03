@@ -1,25 +1,25 @@
-import { HttpStatus, Injectable } from '@nestjs/common'
-import { JwtService } from '@nestjs/jwt'
+import { HttpStatus, Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import {
   authSessions,
   users,
   workspaceMemberships,
   workspaces,
-} from '@workspace/database'
+} from '@workspace/database';
 import {
   loginSchema,
   registerSchema,
   type AuthSession,
   type PlatformAdminAuthSession,
   type PortalAuthSession,
-} from '@workspace/contracts'
-import { and, eq, gt, isNull, sql } from '@workspace/database/query'
-import argon2 from 'argon2'
-import { createHash, randomBytes, randomUUID } from 'node:crypto'
-import { DatabaseService } from '../database/database.service'
-import { AppException } from '../platform/errors/app-exception'
+} from '@workspace/contracts';
+import { and, eq, gt, isNull, sql } from '@workspace/database/query';
+import argon2 from 'argon2';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
+import { DatabaseService } from '../database/database.service';
+import { AppException } from '../platform/errors/app-exception';
 
-const sessionLifetimeSeconds = 60 * 60 * 24 * 30
+const sessionLifetimeSeconds = 60 * 60 * 24 * 30;
 
 @Injectable()
 export class IdentityService {
@@ -29,24 +29,30 @@ export class IdentityService {
   ) {}
 
   async register(input: unknown) {
-    const parsed = registerSchema.safeParse(input)
+    const parsed = registerSchema.safeParse(input);
     if (!parsed.success) {
-      throw new AppException('AUTH_PASSWORD_POLICY_NOT_MET', HttpStatus.BAD_REQUEST)
+      throw new AppException(
+        'AUTH_PASSWORD_POLICY_NOT_MET',
+        HttpStatus.BAD_REQUEST,
+      );
     }
-    const data = parsed.data
-    const email = data.email.toLowerCase()
-    const passwordHash = await argon2.hash(data.password)
-    const sessionToken = this.createSessionToken()
+    const data = parsed.data;
+    const email = data.email.toLowerCase();
+    const passwordHash = await argon2.hash(data.password);
+    const sessionToken = this.createSessionToken();
 
     const session = await this.database.db.transaction(async (tx) => {
       const [existingUser] = await tx
         .select({ id: users.id })
         .from(users)
         .where(eq(sql`lower(${users.email})`, email))
-        .limit(1)
+        .limit(1);
 
       if (existingUser) {
-        throw new AppException('AUTH_EMAIL_ALREADY_REGISTERED', HttpStatus.CONFLICT)
+        throw new AppException(
+          'AUTH_EMAIL_ALREADY_REGISTERED',
+          HttpStatus.CONFLICT,
+        );
       }
 
       const [user] = await tx
@@ -57,7 +63,11 @@ export class IdentityService {
           passwordHash,
           isPlatformAdmin: false,
         })
-        .returning({ id: users.id, email: users.email, displayName: users.displayName })
+        .returning({
+          id: users.id,
+          email: users.email,
+          displayName: users.displayName,
+        });
 
       const [workspace] = await tx
         .insert(workspaces)
@@ -66,38 +76,45 @@ export class IdentityService {
           name: `${data.displayName} workspace`,
           slug: this.personalWorkspaceSlug(data.displayName),
         })
-        .returning({ id: workspaces.id, name: workspaces.name, slug: workspaces.slug })
+        .returning({
+          id: workspaces.id,
+          name: workspaces.name,
+          slug: workspaces.slug,
+        });
 
       await tx.insert(workspaceMemberships).values({
         workspaceId: workspace.id,
         userId: user.id,
         role: 'owner',
-      })
+      });
 
       await tx.insert(authSessions).values({
         userId: user.id,
         activeWorkspaceId: workspace.id,
         tokenHash: this.hashSessionToken(sessionToken),
         expiresAt: this.sessionExpiry(),
-      })
+      });
 
       return {
         user,
         area: 'portal' as const,
         workspace: { ...workspace, role: 'owner' },
-      }
-    })
+      };
+    });
 
-    return this.buildAuthentication(session, sessionToken)
+    return this.buildAuthentication(session, sessionToken);
   }
 
   async login(input: unknown) {
-    const parsed = loginSchema.safeParse(input)
+    const parsed = loginSchema.safeParse(input);
     if (!parsed.success) {
-      throw new AppException('AUTH_INVALID_CREDENTIALS', HttpStatus.UNAUTHORIZED)
+      throw new AppException(
+        'AUTH_INVALID_CREDENTIALS',
+        HttpStatus.UNAUTHORIZED,
+      );
     }
-    const data = parsed.data
-    const email = data.email.toLowerCase()
+    const data = parsed.data;
+    const email = data.email.toLowerCase();
     const [user] = await this.database.db
       .select({
         id: users.id,
@@ -109,39 +126,48 @@ export class IdentityService {
       })
       .from(users)
       .where(eq(sql`lower(${users.email})`, email))
-      .limit(1)
+      .limit(1);
 
     if (!user || user.status !== 'active' || !user.passwordHash) {
-      throw new AppException('AUTH_INVALID_CREDENTIALS', HttpStatus.UNAUTHORIZED)
+      throw new AppException(
+        'AUTH_INVALID_CREDENTIALS',
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
-    const validPassword = await argon2.verify(user.passwordHash, data.password)
+    const validPassword = await argon2.verify(user.passwordHash, data.password);
     if (!validPassword) {
-      throw new AppException('AUTH_INVALID_CREDENTIALS', HttpStatus.UNAUTHORIZED)
+      throw new AppException(
+        'AUTH_INVALID_CREDENTIALS',
+        HttpStatus.UNAUTHORIZED,
+      );
     }
 
     const userSession = {
       id: user.id,
       email: user.email,
       displayName: user.displayName,
-    }
+    };
     const session: AuthSession = user.isPlatformAdmin
       ? { user: userSession, area: 'admin' }
-      : await this.portalSessionForUser(user.id, userSession)
+      : await this.portalSessionForUser(user.id, userSession);
 
-    const sessionToken = this.createSessionToken()
+    const sessionToken = this.createSessionToken();
     await this.database.db.insert(authSessions).values({
       userId: user.id,
-      activeWorkspaceId: session.area === 'portal' ? session.workspace.id : null,
+      activeWorkspaceId:
+        session.area === 'portal' ? session.workspace.id : null,
       tokenHash: this.hashSessionToken(sessionToken),
       expiresAt: this.sessionExpiry(),
-    })
+    });
 
-    return this.buildAuthentication(session, sessionToken)
+    return this.buildAuthentication(session, sessionToken);
   }
 
-  async getSession(sessionToken: string | undefined): Promise<AuthSession | null> {
-    if (!sessionToken) return null
+  async getSession(
+    sessionToken: string | undefined,
+  ): Promise<AuthSession | null> {
+    if (!sessionToken) return null;
 
     const [session] = await this.database.db
       .select({
@@ -161,19 +187,19 @@ export class IdentityService {
           eq(users.status, 'active'),
         ),
       )
-      .limit(1)
+      .limit(1);
 
-    if (!session) return null
+    if (!session) return null;
 
     const user = {
       id: session.userId,
       email: session.email,
       displayName: session.displayName,
-    }
+    };
     if (session.isPlatformAdmin) {
-      return { user, area: 'admin' }
+      return { user, area: 'admin' };
     }
-    if (!session.activeWorkspaceId) return null
+    if (!session.activeWorkspaceId) return null;
 
     const [workspace] = await this.database.db
       .select({
@@ -183,7 +209,10 @@ export class IdentityService {
         role: workspaceMemberships.role,
       })
       .from(workspaceMemberships)
-      .innerJoin(workspaces, eq(workspaceMemberships.workspaceId, workspaces.id))
+      .innerJoin(
+        workspaces,
+        eq(workspaceMemberships.workspaceId, workspaces.id),
+      )
       .where(
         and(
           eq(workspaceMemberships.workspaceId, session.activeWorkspaceId),
@@ -191,62 +220,73 @@ export class IdentityService {
           eq(workspaceMemberships.status, 'active'),
         ),
       )
-      .limit(1)
+      .limit(1);
 
-    if (!workspace) return null
-    return { user, area: 'portal', workspace }
+    if (!workspace) return null;
+    return { user, area: 'portal', workspace };
   }
 
   async refresh(sessionToken: string | undefined) {
-    const session = await this.getSession(sessionToken)
+    const session = await this.getSession(sessionToken);
     if (!session || !sessionToken) {
-      throw new AppException('AUTH_SESSION_EXPIRED', HttpStatus.UNAUTHORIZED)
+      throw new AppException('AUTH_SESSION_EXPIRED', HttpStatus.UNAUTHORIZED);
     }
 
     return {
       session,
       accessToken: await this.signAccessToken(session, sessionToken),
       sessionToken,
-    }
+    };
   }
 
   async logout(sessionToken: string | undefined) {
-    if (!sessionToken) return
+    if (!sessionToken) return;
 
     await this.database.db
       .update(authSessions)
       .set({ revokedAt: new Date(), updatedAt: new Date() })
       .where(
-        and(eq(authSessions.tokenHash, this.hashSessionToken(sessionToken)), isNull(authSessions.revokedAt)),
-      )
+        and(
+          eq(authSessions.tokenHash, this.hashSessionToken(sessionToken)),
+          isNull(authSessions.revokedAt),
+        ),
+      );
   }
 
   private async portalSessionForUser(
     userId: string,
     user: PlatformAdminAuthSession['user'],
   ): Promise<PortalAuthSession> {
-    const workspace = await this.findActiveWorkspace(userId)
+    const workspace = await this.findActiveWorkspace(userId);
     if (!workspace) {
-      throw new AppException('AUTH_WORKSPACE_UNAVAILABLE', HttpStatus.FORBIDDEN)
+      throw new AppException(
+        'AUTH_WORKSPACE_UNAVAILABLE',
+        HttpStatus.FORBIDDEN,
+      );
     }
-    return { user, area: 'portal', workspace }
+    return { user, area: 'portal', workspace };
   }
 
-  private async buildAuthentication(session: AuthSession, sessionToken: string) {
+  private async buildAuthentication(
+    session: AuthSession,
+    sessionToken: string,
+  ) {
     return {
       session,
       accessToken: await this.signAccessToken(session, sessionToken),
       sessionToken,
-    }
+    };
   }
 
   private async signAccessToken(session: AuthSession, sessionToken: string) {
     return this.jwt.signAsync({
       sub: session.user.id,
       area: session.area,
-      ...(session.area === 'portal' ? { workspaceId: session.workspace.id } : {}),
+      ...(session.area === 'portal'
+        ? { workspaceId: session.workspace.id }
+        : {}),
       sessionHash: this.hashSessionToken(sessionToken),
-    })
+    });
   }
 
   private async findActiveWorkspace(userId: string) {
@@ -258,23 +298,31 @@ export class IdentityService {
         role: workspaceMemberships.role,
       })
       .from(workspaceMemberships)
-      .innerJoin(workspaces, eq(workspaceMemberships.workspaceId, workspaces.id))
-      .where(and(eq(workspaceMemberships.userId, userId), eq(workspaceMemberships.status, 'active')))
-      .limit(1)
+      .innerJoin(
+        workspaces,
+        eq(workspaceMemberships.workspaceId, workspaces.id),
+      )
+      .where(
+        and(
+          eq(workspaceMemberships.userId, userId),
+          eq(workspaceMemberships.status, 'active'),
+        ),
+      )
+      .limit(1);
 
-    return workspace
+    return workspace;
   }
 
   private createSessionToken() {
-    return randomBytes(48).toString('base64url')
+    return randomBytes(48).toString('base64url');
   }
 
   private hashSessionToken(token: string) {
-    return createHash('sha256').update(token).digest('hex')
+    return createHash('sha256').update(token).digest('hex');
   }
 
   private sessionExpiry() {
-    return new Date(Date.now() + sessionLifetimeSeconds * 1000)
+    return new Date(Date.now() + sessionLifetimeSeconds * 1000);
   }
 
   private personalWorkspaceSlug(displayName: string) {
@@ -284,8 +332,8 @@ export class IdentityService {
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '')
-      .slice(0, 72)
+      .slice(0, 72);
 
-    return `${base || 'workspace'}-${randomUUID().slice(0, 8)}`
+    return `${base || 'workspace'}-${randomUUID().slice(0, 8)}`;
   }
 }

@@ -2,10 +2,7 @@ import { z } from "zod"
 
 export const adminPlanStatusSchema = z.enum(["active", "inactive"])
 export const adminPlanCurrencySchema = z.enum(["USD", "EUR"])
-export const adminPlanBillingTypeSchema = z.enum([
-  "monthly",
-  "yearly",
-])
+export const adminPlanBillingTypeSchema = z.enum(["monthly", "yearly"])
 
 const adminPlanValuesSchema = z
   .object({

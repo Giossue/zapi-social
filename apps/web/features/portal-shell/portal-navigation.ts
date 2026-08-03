@@ -30,7 +30,8 @@ export type PortalNavigationDisclosure = {
   children: readonly PortalNavigationLink[]
 }
 
-export type PortalNavigationItem = PortalNavigationLink | PortalNavigationDisclosure
+export type PortalNavigationItem =
+  PortalNavigationLink | PortalNavigationDisclosure
 
 export type PortalNavigationGroup = {
   label: string
@@ -52,9 +53,17 @@ export const portalNavigationGroups: readonly PortalNavigationGroup[] = [
     label: "Espacio de trabajo",
     items: [
       { label: "Canales", href: "/portal/channels", icon: Share2 },
-      { label: "Publicación", href: "/portal/publishing/calendar", icon: CalendarDays },
+      {
+        label: "Publicación",
+        href: "/portal/publishing/calendar",
+        icon: CalendarDays,
+      },
       { label: "Programaciones RSS", href: "/portal/rss-schedules", icon: Rss },
-      { label: "Publicaciones masivas", href: "/portal/bulk-posts", icon: FileText },
+      {
+        label: "Publicaciones masivas",
+        href: "/portal/bulk-posts",
+        icon: FileText,
+      },
       { label: "AI Publishing", href: "/portal/ai-publishing", icon: Sparkles },
       { label: "API de automatización", href: "/portal/automation", icon: Zap },
     ],
@@ -71,11 +80,17 @@ export const portalNavigationGroups: readonly PortalNavigationGroup[] = [
           { label: "Contenido AI", href: "/portal/ai-studio/ai-content" },
           { label: "Crear con AI", href: "/portal/ai-studio/image" },
           { label: "Reutilizar", href: "/portal/ai-studio/repurpose" },
-          { label: "Planificador de calendario", href: "/portal/ai-studio/planner" },
+          {
+            label: "Planificador de calendario",
+            href: "/portal/ai-studio/planner",
+          },
           { label: "Revisión AI", href: "/portal/ai-studio/review" },
           { label: "Mejor horario", href: "/portal/ai-studio/timing" },
           { label: "Búsqueda semántica", href: "/portal/ai-studio/search" },
-          { label: "Historial de prompts", href: "/portal/ai-studio/prompt-history" },
+          {
+            label: "Historial de prompts",
+            href: "/portal/ai-studio/prompt-history",
+          },
           { label: "Uso de créditos", href: "/portal/credits" },
           { label: "Ajustes AI", href: "/portal/ai-studio/settings" },
         ],
@@ -88,7 +103,11 @@ export const portalNavigationGroups: readonly PortalNavigationGroup[] = [
     label: "Biblioteca",
     items: [
       { label: "Archivos", href: "/portal/files", icon: FolderOpen },
-      { label: "Buscar medios online", href: "/portal/files/search-online", icon: Image },
+      {
+        label: "Buscar medios online",
+        href: "/portal/files/search-online",
+        icon: Image,
+      },
     ],
   },
   {
@@ -101,14 +120,22 @@ export const portalNavigationGroups: readonly PortalNavigationGroup[] = [
   },
 ]
 
-export function isPortalNavigationItemActive(item: PortalNavigationItem, pathname: string) {
-  return "href" in item && (pathname === item.href || pathname.startsWith(`${item.href}/`))
+export function isPortalNavigationItemActive(
+  item: PortalNavigationItem,
+  pathname: string
+) {
+  return (
+    "href" in item &&
+    (pathname === item.href || pathname.startsWith(`${item.href}/`))
+  )
 }
 
 export function getPortalNavigationItem(pathname: string) {
   return portalNavigationGroups
     .flatMap((group) =>
-      group.items.flatMap((item) => ("children" in item ? [item, ...item.children] : [item])),
+      group.items.flatMap((item) =>
+        "children" in item ? [item, ...item.children] : [item]
+      )
     )
     .filter((item): item is PortalNavigationLink => "href" in item)
     .filter((item) => isPortalNavigationItemActive(item, pathname))

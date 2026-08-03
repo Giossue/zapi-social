@@ -178,15 +178,25 @@ export type MetaIntegrationConfiguration = z.infer<
 
 export const whatsappStatusIntegrationProviderKey = "whatsapp-status" as const
 
-const whatsappStatusBaseUrlSchema = z.url().max(2048).superRefine((value, context) => {
-  const url = new URL(value)
-  if (url.protocol !== "http:" && url.protocol !== "https:") {
-    context.addIssue({ code: "custom", message: "La URL de GOWA debe usar HTTP o HTTPS." })
-  }
-  if (url.username || url.password || url.search || url.hash) {
-    context.addIssue({ code: "custom", message: "La URL de GOWA no puede incluir credenciales, parámetros ni fragmentos." })
-  }
-})
+const whatsappStatusBaseUrlSchema = z
+  .url()
+  .max(2048)
+  .superRefine((value, context) => {
+    const url = new URL(value)
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      context.addIssue({
+        code: "custom",
+        message: "La URL de GOWA debe usar HTTP o HTTPS.",
+      })
+    }
+    if (url.username || url.password || url.search || url.hash) {
+      context.addIssue({
+        code: "custom",
+        message:
+          "La URL de GOWA no puede incluir credenciales, parámetros ni fragmentos.",
+      })
+    }
+  })
 
 export const whatsappStatusCapabilityKeySchema = z.literal("whatsapp_status")
 

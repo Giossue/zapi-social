@@ -3,7 +3,10 @@
 import { ApiError, authApi } from "@workspace/api-client"
 import { usePathname, useRouter } from "next/navigation"
 import { useCallback, useEffect } from "react"
-import { getAreaDestination, getSessionArea } from "@/features/identity/session-area"
+import {
+  getAreaDestination,
+  getSessionArea,
+} from "@/features/identity/session-area"
 
 const logoutStorageKey = "zapi:session:logout"
 const sessionInvalidEvent = "zapi:session-invalid"
@@ -15,7 +18,12 @@ export function announceSessionLogout() {
 }
 
 function isProtectedPath(pathname: string) {
-  return pathname === "/admin" || pathname.startsWith("/admin/") || pathname === "/portal" || pathname.startsWith("/portal/")
+  return (
+    pathname === "/admin" ||
+    pathname.startsWith("/admin/") ||
+    pathname === "/portal" ||
+    pathname.startsWith("/portal/")
+  )
 }
 
 export function SessionSynchronizer() {
@@ -35,7 +43,10 @@ export function SessionSynchronizer() {
       const area = getSessionArea(session)
       if (area) {
         const destination = getAreaDestination(area)
-        const inExpectedArea = area === "admin" ? window.location.pathname.startsWith("/admin") : window.location.pathname.startsWith("/portal")
+        const inExpectedArea =
+          area === "admin"
+            ? window.location.pathname.startsWith("/admin")
+            : window.location.pathname.startsWith("/portal")
         if (!inExpectedArea) {
           router.replace(destination)
           router.refresh()

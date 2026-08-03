@@ -71,7 +71,12 @@ type DashboardSectionProps = {
   children?: React.ReactNode
 }
 
-function DashboardSection({ title, description, action, children }: DashboardSectionProps) {
+function DashboardSection({
+  title,
+  description,
+  action,
+  children,
+}: DashboardSectionProps) {
   const ActionIcon = action?.icon
 
   return (
@@ -82,7 +87,12 @@ function DashboardSection({ title, description, action, children }: DashboardSec
           <CardDescription>{description}</CardDescription>
         </div>
         {action ? (
-          <Button asChild className="shrink-0" size="lg" variant={action.variant ?? "brand-secondary"}>
+          <Button
+            asChild
+            className="shrink-0"
+            size="lg"
+            variant={action.variant ?? "brand-secondary"}
+          >
             <Link href={action.href}>
               {ActionIcon ? <ActionIcon data-icon="inline-start" /> : null}
               {action.label}
@@ -102,13 +112,23 @@ function MetricCard({ metric }: { metric: DashboardMetric }) {
     <Card className="min-h-36" variant="inset">
       <CardContent className="flex h-full flex-col justify-between gap-5">
         <div className="flex items-start justify-between gap-3">
-          <p className={metric.value.length > 6 ? "text-2xl font-semibold tracking-tight whitespace-nowrap" : "text-3xl font-semibold tracking-tight"}>{metric.value}</p>
+          <p
+            className={
+              metric.value.length > 6
+                ? "text-2xl font-semibold tracking-tight whitespace-nowrap"
+                : "text-3xl font-semibold tracking-tight"
+            }
+          >
+            {metric.value}
+          </p>
           <Icon aria-hidden="true" className="size-5 text-muted-foreground" />
         </div>
         <div>
           <p className="text-sm font-medium">{metric.label}</p>
           {metric.description ? (
-            <p className="mt-1 text-sm text-muted-foreground">{metric.description}</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {metric.description}
+            </p>
           ) : null}
         </div>
       </CardContent>
@@ -121,19 +141,25 @@ function WorkflowCard({ tool }: { tool: DashboardTool }) {
 
   return (
     <Link
-      className="group block h-full rounded-xl focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+      className="group block h-full rounded-xl focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
       href={tool.href}
     >
       <Card className="h-full" variant="interactive">
         <CardContent className="flex h-full items-center gap-3">
-          <Icon aria-hidden="true" className="size-5 shrink-0 text-muted-foreground" />
+          <Icon
+            aria-hidden="true"
+            className="size-5 shrink-0 text-muted-foreground"
+          />
           <div className="min-w-0 flex-1">
             <h3 className="text-sm font-semibold">{tool.label}</h3>
             <p className="mt-1 text-sm text-muted-foreground">
               {tool.uses} {tool.uses === 1 ? "uso" : "usos"}
             </p>
           </div>
-          <ArrowRight aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+          <ArrowRight
+            aria-hidden="true"
+            className="size-4 shrink-0 text-muted-foreground"
+          />
         </CardContent>
       </Card>
     </Link>
@@ -145,15 +171,20 @@ function AttentionRow({ item }: { item: DashboardAttention }) {
 
   return (
     <Link
-      className="group block rounded-xl focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+      className="group block rounded-xl focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
       href={item.href}
     >
       <Card variant="interactive">
         <CardContent className="flex items-start gap-3">
-          <Icon aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
+          <Icon
+            aria-hidden="true"
+            className="mt-0.5 size-5 shrink-0 text-muted-foreground"
+          />
           <div className="min-w-0">
             <h3 className="text-sm font-semibold">{item.label}</h3>
-            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
+            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+              {item.description}
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -161,7 +192,11 @@ function AttentionRow({ item }: { item: DashboardAttention }) {
   )
 }
 
-export function PortalDashboardPage({ dashboard }: { dashboard: PortalDashboard }) {
+export function PortalDashboardPage({
+  dashboard,
+}: {
+  dashboard: PortalDashboard
+}) {
   return (
     <div className="space-y-6">
       <DashboardSection
@@ -183,7 +218,11 @@ export function PortalDashboardPage({ dashboard }: { dashboard: PortalDashboard 
 
       {dashboard.tools.length > 0 ? (
         <DashboardSection
-          action={{ label: "Abrir AI Studio", href: "/portal/ai-studio/ai-content", icon: Sparkles }}
+          action={{
+            label: "Abrir AI Studio",
+            href: "/portal/ai-studio/ai-content",
+            icon: Sparkles,
+          }}
           description="Tus herramientas más utilizadas en este espacio de trabajo."
           title="Continúa tu trabajo AI"
         >
@@ -197,7 +236,11 @@ export function PortalDashboardPage({ dashboard }: { dashboard: PortalDashboard 
 
       <div className="grid gap-6 xl:grid-cols-2">
         <DashboardSection
-          action={{ label: "Abrir calendario", href: "/portal/publishing/calendar", icon: CalendarDays }}
+          action={{
+            label: "Abrir calendario",
+            href: "/portal/publishing/calendar",
+            icon: CalendarDays,
+          }}
           description="Tu carga de publicaciones actual, de un vistazo."
           title="Publicación"
         >
@@ -209,7 +252,11 @@ export function PortalDashboardPage({ dashboard }: { dashboard: PortalDashboard 
         </DashboardSection>
 
         <DashboardSection
-          action={{ label: "Abrir archivos", href: "/portal/files", icon: FolderOpen }}
+          action={{
+            label: "Abrir archivos",
+            href: "/portal/files",
+            icon: FolderOpen,
+          }}
           description="Recursos y activos AI disponibles para tu espacio de trabajo."
           title="Biblioteca"
         >

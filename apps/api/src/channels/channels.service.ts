@@ -206,7 +206,9 @@ export class ChannelsService {
     if (!existing) throw new NotFoundException();
 
     await this.whatsapp.purgeAccountDevice(existing);
-    await this.database.db.delete(socialAccounts).where(eq(socialAccounts.id, existing.id));
+    await this.database.db
+      .delete(socialAccounts)
+      .where(eq(socialAccounts.id, existing.id));
   }
 
   assertReconnectAccount(
@@ -238,7 +240,10 @@ export class ChannelsService {
 
   private async portalCapabilities(): Promise<PortalChannelCapability[]> {
     const whatsApp = await this.integrations.getWhatsAppStatus();
-    const whatsAppReady = whatsApp.enabled && whatsApp.readiness === 'ready' && whatsApp.capabilities[0]?.enabled;
+    const whatsAppReady =
+      whatsApp.enabled &&
+      whatsApp.readiness === 'ready' &&
+      whatsApp.capabilities[0]?.enabled;
     return capabilities.map((capability) =>
       capability.key === 'whatsapp_status'
         ? {
