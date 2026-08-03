@@ -19,19 +19,14 @@ import {
 } from "@workspace/ui/components/dialog"
 import { ScrollArea } from "@workspace/ui/components/scroll-area"
 import { toast } from "@workspace/ui/components/toast"
-import {
-  CheckCircle2,
-  LoaderCircle,
-  Plus,
-  ShieldCheck,
-  Unplug,
-} from "lucide-react"
+import { CheckCircle2, LoaderCircle, ShieldCheck } from "lucide-react"
 import { useEffect, useState } from "react"
 import type {
   ChannelCandidate,
   PortalChannelAccount,
   PortalChannelCapability,
 } from "../types/channels"
+import { ChannelCapabilityGrid } from "./channel-capability-picker"
 import { WhatsAppStatusConnection } from "./whatsapp-status-connection"
 
 type DialogStep =
@@ -49,61 +44,6 @@ export type MetaPickerSession = {
   capability: PortalChannelCapability
   connectionId: string
   candidates: readonly ChannelCandidate[]
-}
-
-function CapabilityCard({
-  capability,
-  onSelect,
-}: {
-  capability: PortalChannelCapability
-  onSelect: (capability: PortalChannelCapability) => void
-}) {
-  const Icon = capability.icon
-  const blocked = capability.availability !== "ready"
-  const label = blocked
-    ? capability.availability === "plan_locked"
-      ? "No incluido en tu plan"
-      : "Próximamente"
-    : "Disponible"
-
-  return (
-    <Card size="sm">
-      <CardHeader>
-        <div className="flex min-w-0 items-center gap-2">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-            <Icon aria-hidden="true" className="size-4.5" />
-          </div>
-          <div className="flex min-w-0 flex-col gap-1">
-            <CardTitle className="truncate leading-none">
-              {capability.label}
-            </CardTitle>
-            <CardDescription className="text-xs">
-              {capability.description}
-            </CardDescription>
-          </div>
-        </div>
-        <CardAction>
-          <Button
-            aria-label={`${blocked ? label : "Conectar"} ${capability.label}`}
-            disabled={blocked}
-            onClick={() => onSelect(capability)}
-            size="icon-sm"
-            type="button"
-            variant="ghost"
-          >
-            {blocked ? <Unplug /> : <Plus />}
-          </Button>
-        </CardAction>
-      </CardHeader>
-      <CardContent className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
-        <div className="flex items-center gap-1.5">
-          <Icon aria-hidden="true" className="size-3.5" />
-          <span>{label}</span>
-        </div>
-        <span>{blocked ? "No disponible" : "Listo para conectar"}</span>
-      </CardContent>
-    </Card>
-  )
 }
 
 function candidateInitials(label: string) {
@@ -351,18 +291,10 @@ export function ChannelConnectionDialog({
         <ScrollArea className="max-h-[calc(100dvh-10rem)]">
           <div className="grid gap-4">
             {step === "capabilities" ? (
-              <div
-                aria-label="Tipos de canal"
-                className="grid gap-3 sm:grid-cols-2"
-              >
-                {capabilities.map((item) => (
-                  <CapabilityCard
-                    capability={item}
-                    key={item.key}
-                    onSelect={(item) => void selectCapability(item)}
-                  />
-                ))}
-              </div>
+              <ChannelCapabilityGrid
+                capabilities={capabilities}
+                onSelect={(capability) => void selectCapability(capability)}
+              />
             ) : null}
 
             {isAuthorizing ? (
