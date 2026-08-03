@@ -144,6 +144,11 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - Los datos, filtros y paginación siguen siendo remotos/cursor de Channels. Las diferencias frente a la tabla fuente se limitan a no inventar filtros locales, selección masiva, exportación, vista grid o páginas numéricas inexistentes en el contrato actual.
 - La fuente canónica del selector inicial vive en `diseño ideal/src/app/(main)/dashboard/channels/_components/channel-capability-picker.tsx`, con demo en `diseño ideal/src/app/(main)/dashboard/channels/page.tsx`.
 - V2 copia su `ChannelCapabilityGrid` en `features/channels/components/channel-capability-picker.tsx`; solo adapta textos, tipos de availability y callback de conexión real. No usa variantes, tokens ni clases visuales heredadas de V2.
+- Las capabilities bloqueadas muestran un único badge de estado, sin botón deshabilitado redundante; el grid reserva 32 px al lado del scrollbar y 1 px para el `ring` de las cards, evitando bordes cortados.
+- El diálogo canónico usa `sm:max-w-3xl` en fuente y V2, ampliando las dos columnas y separando visualmente el scrollbar de la card derecha.
+- `diseño ideal` no tenía token `success`; se añadieron `success` y `success-foreground` en claro/oscuro. `Disponible` usa ese verde y los estados no disponibles usan el gris `secondary` ya existente.
+- Los badges usan `leading-none` en fuente y copia para centrar ópticamente su texto dentro de la altura fija del primitive.
+- Validación de la fuente canónica: `npm run check` y `npm run build` correctos en `diseño ideal`.
 - Edición consume `Field`/`FieldGroup` y `DialogFooter` copiados literalmente de `diseño ideal/src/components/ui/{field,dialog}.tsx`; solo cambian etiqueta, valor y callback Zapi.
 - Eliminación consume `AlertDialog` con `AlertDialogMedia`, header y footer de `diseño ideal/src/components/ui/alert-dialog.tsx`; solo cambian recurso, texto y callback destructivo Zapi.
 - El picker OAuth Meta y el flujo QR WhatsApp no se han cambiado todavía: requieren sus propias fuentes canónicas en `diseño ideal`; se preservan sin cambios funcionales hasta construirlas allí.

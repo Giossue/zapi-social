@@ -1,6 +1,6 @@
 "use client"
 
-import { Clock3, LockKeyhole, Plus } from "lucide-react"
+import { Plus } from "lucide-react"
 
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -17,33 +17,18 @@ import type {
   PortalChannelCapability,
 } from "../types/channels"
 
-const availabilityCopy: Record<
-  ChannelAvailability,
-  {
-    action: string
-    icon: typeof Plus
-    label: string
-    variant: "default" | "outline"
+const availabilityCopy: Record<ChannelAvailability, { label: string }> = {
+  ready: { label: "Disponible" },
+  coming_soon: { label: "Próximamente" },
+  plan_locked: { label: "Plan requerido" },
+}
+
+function capabilityDescription(capability: PortalChannelCapability) {
+  if (capability.availability === "ready") return capability.description
+  if (capability.availability === "plan_locked") {
+    return "Este canal no está incluido en tu plan actual."
   }
-> = {
-  ready: {
-    action: "Conectar",
-    icon: Plus,
-    label: "Disponible",
-    variant: "default",
-  },
-  coming_soon: {
-    action: "Próximamente",
-    icon: Clock3,
-    label: "Próximamente",
-    variant: "outline",
-  },
-  plan_locked: {
-    action: "No incluido",
-    icon: LockKeyhole,
-    label: "Plan requerido",
-    variant: "outline",
-  },
+  return "Estamos preparando esta conexión."
 }
 
 function ChannelCapabilityCard({
@@ -55,7 +40,6 @@ function ChannelCapabilityCard({
 }) {
   const Icon = capability.icon
   const availability = availabilityCopy[capability.availability]
-  const ActionIcon = availability.icon
   const isAvailable = capability.availability === "ready"
 
   return (
@@ -70,23 +54,26 @@ function ChannelCapabilityCard({
       </CardHeader>
       <CardContent className="flex-1">
         <p className="text-sm leading-snug text-muted-foreground">
-          {capability.description}
+          {capabilityDescription(capability)}
         </p>
       </CardContent>
       <CardFooter className="mt-auto justify-between gap-3">
-        <Badge variant={isAvailable ? "secondary" : "outline"}>
+        <Badge
+          className={
+            isAvailable
+              ? "bg-success leading-none text-success-foreground"
+              : "leading-none"
+          }
+          variant="secondary"
+        >
           {availability.label}
         </Badge>
-        <Button
-          disabled={!isAvailable}
-          onClick={onSelect}
-          size="sm"
-          type="button"
-          variant={availability.variant}
-        >
-          <ActionIcon data-icon="inline-start" />
-          {availability.action}
-        </Button>
+        {isAvailable ? (
+          <Button onClick={onSelect} size="sm" type="button">
+            <Plus data-icon="inline-start" />
+            Conectar
+          </Button>
+        ) : null}
       </CardFooter>
     </Card>
   )
@@ -100,7 +87,10 @@ export function ChannelCapabilityGrid({
   onSelect: (capability: PortalChannelCapability) => void
 }) {
   return (
-    <div aria-label="Tipos de canal" className="grid gap-3 sm:grid-cols-2">
+    <section
+      aria-label="Tipos de canal"
+      className="grid gap-3 p-px pr-8 sm:grid-cols-2"
+    >
       {capabilities.map((capability) => (
         <ChannelCapabilityCard
           capability={capability}
@@ -108,6 +98,6 @@ export function ChannelCapabilityGrid({
           onSelect={() => onSelect(capability)}
         />
       ))}
-    </div>
+    </section>
   )
 }
