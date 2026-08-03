@@ -22,7 +22,7 @@
 8. Portal y Admin persisten el estado contraído en `localStorage` versionado: `zapi:portal-sidebar:v1` y `zapi:admin-sidebar:v1`.
 9. En modo contraído, el botón de expandir se ubica fuera del logo, los iconos se centran y los disclosures ocultan su chevron sin perder etiqueta accesible.
 10. Ambos shells usan el asset local `apps/web/public/brand/logo-brand-dark.png` mediante `next/image`.
-11. El ancho del sidebar y el desplazamiento del contenido cambian en el mismo render, sin animación JavaScript ni transición CSS de escritorio, para evitar un sidebar vacío durante el colapso. El drawer móvil conserva su transición CSS de desplazamiento.
+11. El ancho del sidebar y el desplazamiento del contenido usan una transición CSS breve de 200 ms con `ease-out`, sin animación JavaScript ni estado transitorio. El drawer móvil conserva su transición CSS de desplazamiento.
 12. Al contraerse, Portal y Admin muestran tooltips a la derecha de cada opción mediante el primitive compartido `Tooltip`; su trigger permanece montado al expandir o contraer para preservar la identidad de los botones e iconos.
 
 ## Pendiente
