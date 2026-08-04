@@ -87,7 +87,10 @@ import {
   ToggleGroupItem,
 } from "@workspace/ui/components/toggle-group"
 
-import { FilesPermissionState } from "@/features/files/components/files-states"
+import {
+  FilesErrorState,
+  FilesPermissionState,
+} from "@/features/files/components/files-states"
 import {
   FileMoveDialog,
   FilePreviewDialog,
@@ -357,6 +360,7 @@ function formatSize(sizeBytes: number) {
 
 export function FilesLibraryPage() {
   const [library, setLibrary] = useState<FileLibraryData | null>(null)
+  const [loadError, setLoadError] = useState(false)
   const [query, setQuery] = useState("")
   const [assetFilter, setAssetFilter] = useState<AssetFilter>("all")
   const [folderId, setFolderId] = useState<string | "all">("all")
@@ -386,6 +390,7 @@ export function FilesLibraryPage() {
   const loadLibrary = useCallback(async () => {
     try {
       const data = await filesApi.list()
+      setLoadError(false)
       setLibrary({
         canView: true,
         canUpload: data.canManage,
@@ -417,8 +422,14 @@ export function FilesLibraryPage() {
           thumbnailStatus: asset.thumbnailStatus,
         })),
       })
-    } catch {
-      setLibrary({ canView: false, canUpload: false, folders: [], assets: [] })
+    } catch (error) {
+      setLoadError(!(error instanceof ApiError && error.status === 403))
+      setLibrary({
+        canView: false,
+        canUpload: false,
+        folders: [],
+        assets: [],
+      })
     }
   }, [])
 
@@ -560,6 +571,8 @@ export function FilesLibraryPage() {
   }
 
   if (library === null) return null
+  if (loadError)
+    return <FilesErrorState onRetry={() => void loadLibrary()} section="biblioteca" />
   if (!library.canView) return <FilesPermissionState mode="library" />
 
   return (
