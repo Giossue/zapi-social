@@ -155,7 +155,7 @@ export class FilesController {
         .header('content-length', String(file.end - file.start + 1));
     return reply
       .type(file.mimeType)
-      .header('cache-control', 'private, max-age=3600')
+      .header('cache-control', 'private, max-age=86400')
       .header(
         'content-disposition',
         `inline; filename="${file.name.replaceAll('"', '')}"`,
@@ -173,7 +173,7 @@ export class FilesController {
     );
     return reply
       .type(file.mimeType)
-      .header('cache-control', 'private, max-age=3600')
+      .header('cache-control', 'private, max-age=86400')
       .header(
         'content-disposition',
         `inline; filename="${file.name.replaceAll('"', '')}"`,

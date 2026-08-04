@@ -115,7 +115,7 @@ La implementación visual se hace primero en `diseño ideal` y se copia literalm
 - Diálogo “Mover a carpeta”: árbol navegable con breadcrumb, opción raíz, carpeta actual marcada y descendientes inválidos deshabilitados.
 - Papelera: confirmación contextual, feedback con toast y ruta/tabla de restauración; no usar toast como único mensaje cuando una acción esté bloqueada por Publishing.
 - Preview en Dialog/Sheet canónico: imagen con `img`, vídeo con controles nativos, audio con controles nativos y PDF inline. Tipos sin preview muestran metadata y descarga.
-- Las tarjetas muestran miniatura WebP si `thumbnail_status=ready`; mientras está pendiente, falta en un asset histórico o falla, las imágenes usan el preview autenticado original. Solo muestran el icono de tipo si ese preview también falla.
+- Las tarjetas y la lista muestran miniatura WebP si `thumbnail_status=ready`; mientras está pendiente, falta en un asset histórico o falla, las imágenes usan el preview autenticado original. Solo muestran el icono de tipo si ese preview también falla.
 - El grid y lista conservan loading, vacío inicial, vacío filtrado, error, permisos, responsive, foco y teclado.
 
 ### 6. Integración con Publishing
@@ -150,6 +150,6 @@ La implementación visual se hace primero en `diseño ideal` y se copia literalm
 - La subida no bufferiza el archivo entero en Web ni API.
 - Mover un archivo o carpeta no permite cruces de workspace ni ciclos.
 - Enviar a papelera no rompe publicaciones activas; restaurar recupera la ubicación cuando sea posible.
-- Preview y descarga son autenticados, no URLs estáticas del volumen. Preview y miniatura declaran caché privada de una hora para evitar repetir la descarga al volver a la biblioteca.
+- Preview y descarga son autenticados, no URLs estáticas del volumen. Preview y miniatura declaran caché privada de 24 horas para evitar repetir la descarga al volver a la biblioteca.
 - Las miniaturas no bloquean la subida ni hacen que un archivo listo desaparezca si fallan.
 - La UI Portal es copia literal de la superficie aprobada en `diseño ideal`; solo datos, texto y handlers difieren.

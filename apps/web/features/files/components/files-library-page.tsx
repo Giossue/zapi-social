@@ -134,6 +134,45 @@ function assetMatches(
   return matchesQuery && matchesFilter && matchesFolder
 }
 
+function AssetThumbnail({
+  asset,
+  fallbackClassName,
+  imageClassName,
+}: {
+  asset: FileAsset
+  fallbackClassName: string
+  imageClassName: string
+}) {
+  const { icon: AssetIcon } = assetKindMeta[asset.kind]
+  const [imageSource, setImageSource] = useState<
+    "thumbnail" | "preview" | "unavailable"
+  >(asset.thumbnailStatus === "ready" ? "thumbnail" : "preview")
+
+  useEffect(() => {
+    setImageSource(asset.thumbnailStatus === "ready" ? "thumbnail" : "preview")
+  }, [asset.id, asset.thumbnailStatus])
+
+  if (asset.kind !== "image" || imageSource === "unavailable")
+    return <AssetIcon aria-hidden="true" className={fallbackClassName} />
+
+  return (
+    <img
+      alt=""
+      className={imageClassName}
+      onError={() =>
+        setImageSource((current) =>
+          current === "thumbnail" ? "preview" : "unavailable"
+        )
+      }
+      src={
+        imageSource === "thumbnail"
+          ? filesApi.thumbnailUrl(asset.id)
+          : filesApi.previewUrl(asset.id)
+      }
+    />
+  )
+}
+
 function AssetCard({
   asset,
   selected,
@@ -153,41 +192,17 @@ function AssetCard({
   onMove: (asset: FileAsset) => void
   onTrash: (asset: FileAsset) => void
 }) {
-  const { icon: AssetIcon, label } = assetKindMeta[asset.kind]
-  const [imageSource, setImageSource] = useState<
-    "thumbnail" | "preview" | "unavailable"
-  >(asset.thumbnailStatus === "ready" ? "thumbnail" : "preview")
-
-  useEffect(() => {
-    setImageSource(asset.thumbnailStatus === "ready" ? "thumbnail" : "preview")
-  }, [asset.id, asset.thumbnailStatus])
-
-  const imageUrl =
-    imageSource === "thumbnail"
-      ? filesApi.thumbnailUrl(asset.id)
-      : filesApi.previewUrl(asset.id)
+  const { label } = assetKindMeta[asset.kind]
 
   return (
     <Card className="group/file" size="sm">
       <CardContent>
         <div className="relative flex h-36 items-center justify-center rounded-lg bg-muted/50">
-          {asset.kind === "image" && imageSource !== "unavailable" ? (
-            <img
-              alt=""
-              className="h-full w-full rounded-lg object-cover"
-              onError={() =>
-                setImageSource((current) =>
-                  current === "thumbnail" ? "preview" : "unavailable"
-                )
-              }
-              src={imageUrl}
-            />
-          ) : (
-            <AssetIcon
-              aria-hidden="true"
-              className="size-12 text-muted-foreground"
-            />
-          )}
+          <AssetThumbnail
+            asset={asset}
+            fallbackClassName="size-12 text-muted-foreground"
+            imageClassName="h-full w-full rounded-lg object-cover"
+          />
           <Checkbox
             aria-label={`Seleccionar ${asset.name}`}
             checked={selected}
@@ -298,7 +313,7 @@ function AssetsTable({
       </TableHeader>
       <TableBody>
         {assets.map((asset) => {
-          const { icon: AssetIcon, label } = assetKindMeta[asset.kind]
+          const { label } = assetKindMeta[asset.kind]
           const selected = selectedAssetIds.includes(asset.id)
 
           return (
@@ -312,9 +327,10 @@ function AssetsTable({
               </TableCell>
               <TableCell>
                 <div className="flex min-w-0 items-center gap-3">
-                  <AssetIcon
-                    aria-hidden="true"
-                    className="size-5 shrink-0 text-muted-foreground"
+                  <AssetThumbnail
+                    asset={asset}
+                    fallbackClassName="size-5 shrink-0 text-muted-foreground"
+                    imageClassName="size-8 shrink-0 rounded object-cover"
                   />
                   <div className="min-w-0">
                     <p className="truncate font-medium">{asset.name}</p>
@@ -881,7 +897,7 @@ export function FilesLibraryPage() {
             }
           />
         ) : view === "grid" ? (
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-5">
             {assets.map((asset) => (
               <AssetCard
                 asset={asset}
