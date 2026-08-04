@@ -28,7 +28,10 @@ export class FileDerivativesBackfillScheduler implements OnApplicationBootstrap 
       .where(
         and(
           eq(fileAssets.status, 'ready'),
-          eq(fileAssets.thumbnailStatus, 'not_applicable'),
+          or(
+            eq(fileAssets.thumbnailStatus, 'not_applicable'),
+            eq(fileAssets.thumbnailStatus, 'pending'),
+          ),
           or(
             ilike(fileAssets.mimeType, 'image/%'),
             ilike(fileAssets.mimeType, 'video/%'),
@@ -43,7 +46,7 @@ export class FileDerivativesBackfillScheduler implements OnApplicationBootstrap 
         name: FILE_DERIVATIVES_JOB,
         data: { assetId: asset.id },
         opts: {
-          jobId: `thumbnail:${asset.id}`,
+          jobId: `thumbnail-${asset.id}`,
           attempts: 3,
           backoff: { type: 'exponential', delay: 1_000 },
           removeOnComplete: true,

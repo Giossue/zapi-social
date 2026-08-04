@@ -359,19 +359,6 @@ export class FilesService {
         .update(fileAssets)
         .set({ status: 'ready', updatedAt: new Date() })
         .where(eq(fileAssets.id, asset.id));
-      if (asset.thumbnailStatus === 'pending') {
-        await this.derivatives.add(
-          'generate-thumbnail',
-          { assetId: asset.id },
-          {
-            jobId: `thumbnail:${asset.id}`,
-            attempts: 3,
-            backoff: { type: 'exponential', delay: 1000 },
-            removeOnComplete: true,
-            removeOnFail: 100,
-          },
-        );
-      }
     } catch (error) {
       await Promise.all([
         rm(temporaryPath, { force: true }),
@@ -387,6 +374,23 @@ export class FilesService {
           ),
         );
       throw error;
+    }
+    if (asset.thumbnailStatus !== 'pending') return;
+    try {
+      await this.derivatives.add(
+        'generate-thumbnail',
+        { assetId: asset.id },
+        {
+          jobId: `thumbnail-${asset.id}`,
+          attempts: 3,
+          backoff: { type: 'exponential', delay: 1000 },
+          removeOnComplete: true,
+          removeOnFail: 100,
+        },
+      );
+    } catch {
+      // The asset is already ready; the Worker backfill retries this pending
+      // derivative at its next boot without discarding the uploaded original.
     }
   }
 

@@ -97,7 +97,7 @@ Los endpoints definitivos se fijan tras diseñar la UI, pero el contrato objetiv
 
 - API solo valida, persiste el asset y encola los derivados. No ejecuta generación de miniaturas o lectura costosa de media dentro del request de subida.
 - Worker lee el binario desde el mismo volumen local, extrae metadata y genera derivados en un namespace interno separado del original.
-- Al arrancar, Worker reencola de forma idempotente hasta 100 imágenes o vídeos históricos `ready` sin derivado; el job conserva el ID determinista `thumbnail:<asset_id>`.
+- Al arrancar, Worker reencola de forma idempotente hasta 100 imágenes o vídeos `ready` sin derivado; el job conserva el ID determinista `thumbnail-<asset_id>`. Si Redis no acepta un job durante upload, el original listo se conserva y se reintenta en ese backfill.
 - Imagen: dimensiones y miniatura WebP/AVIF con tamaño acotado.
 - Vídeo: duración, dimensiones y frame de portada; si la herramienta de media no está disponible, estado `failed` normalizado y fallback de icono.
 - Audio: duración y fallback visual; no necesita waveform en la primera entrega.
