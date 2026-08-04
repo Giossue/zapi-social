@@ -34,6 +34,7 @@ import {
   BreadcrumbSeparator,
 } from "@workspace/ui/components/breadcrumb"
 import { Button } from "@workspace/ui/components/button"
+import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
   Card,
   CardAction,
@@ -174,6 +175,12 @@ function AssetCard({
               className="size-12 text-muted-foreground"
             />
           )}
+          <Checkbox
+            aria-label={`Seleccionar ${asset.name}`}
+            checked={selected}
+            className="absolute top-2 left-2"
+            onCheckedChange={() => onSelect(asset.id)}
+          />
           <Button
             aria-label={`${asset.starred ? "Quitar de favoritos" : "Añadir a favoritos"} ${asset.name}`}
             className={`absolute top-2 right-2 opacity-0 group-hover/file:opacity-100 focus-visible:opacity-100 ${
@@ -227,9 +234,6 @@ function AssetCard({
                   <FolderInput />
                   Mover
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => onSelect(asset.id)}>
-                  {selected ? "Quitar selección" : "Seleccionar"}
-                </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
@@ -238,7 +242,7 @@ function AssetCard({
                   variant="destructive"
                 >
                   <Trash2 />
-                  Enviar a papelera
+                  Eliminar
                 </DropdownMenuItem>
               </DropdownMenuGroup>
             </DropdownMenuContent>
@@ -270,6 +274,9 @@ function AssetsTable({
     <Table>
       <TableHeader>
         <TableRow>
+          <TableHead className="w-10">
+            <span className="sr-only">Seleccionar</span>
+          </TableHead>
           <TableHead>Archivo</TableHead>
           <TableHead className="hidden md:table-cell">Tipo</TableHead>
           <TableHead className="hidden lg:table-cell">Actualizado</TableHead>
@@ -283,6 +290,13 @@ function AssetsTable({
 
           return (
             <TableRow key={asset.id}>
+              <TableCell>
+                <Checkbox
+                  aria-label={`Seleccionar ${asset.name}`}
+                  checked={selected}
+                  onCheckedChange={() => onSelect(asset.id)}
+                />
+              </TableCell>
               <TableCell>
                 <div className="flex min-w-0 items-center gap-3">
                   <AssetIcon
@@ -339,7 +353,7 @@ function AssetsTable({
                       variant="destructive"
                     >
                       <Trash2 />
-                      Enviar a papelera
+                      Eliminar
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -366,6 +380,7 @@ export function FilesLibraryPage() {
   const [folderId, setFolderId] = useState<string | "all">("all")
   const [view, setView] = useState<FilesView>("grid")
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([])
+  const [bulkTrashOpen, setBulkTrashOpen] = useState(false)
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [folderDialogOpen, setFolderDialogOpen] = useState(false)
   const [folderName, setFolderName] = useState("")
@@ -570,6 +585,33 @@ export function FilesLibraryPage() {
     }
   }
 
+  async function trashSelectedAssets() {
+    const ids = [...selectedAssetIds]
+    if (!ids.length) return
+    try {
+      const results = await Promise.allSettled(
+        ids.map((id) => filesApi.remove(id))
+      )
+      const failed = results.filter((result) => result.status === "rejected")
+      setBulkTrashOpen(false)
+      await loadLibrary()
+      setSelectedAssetIds([])
+      if (failed.length) {
+        toast.error(
+          failed.length === ids.length
+            ? "No se pudo eliminar ningún archivo"
+            : "Algunos archivos no se pudieron eliminar"
+        )
+        return
+      }
+      toast.success(
+        ids.length === 1 ? "Archivo eliminado" : "Archivos eliminados"
+      )
+    } catch {
+      toast.error("No se pudieron eliminar los archivos")
+    }
+  }
+
   if (library === null) return null
   if (loadError)
     return <FilesErrorState onRetry={() => void loadLibrary()} section="biblioteca" />
@@ -739,9 +781,19 @@ export function FilesLibraryPage() {
           <div className="flex flex-wrap items-center gap-2">
             <p className="font-medium">Todos los archivos</p>
             {selectedAssetIds.length > 0 ? (
-              <Badge variant="info">
-                {selectedAssetIds.length} seleccionados
-              </Badge>
+              <>
+                <Badge variant="info">
+                  {selectedAssetIds.length} seleccionados
+                </Badge>
+                <Button
+                  onClick={() => setBulkTrashOpen(true)}
+                  size="sm"
+                  variant="destructive"
+                >
+                  <Trash2 data-icon="inline-start" />
+                  Eliminar
+                </Button>
+              </>
             ) : null}
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -930,9 +982,15 @@ export function FilesLibraryPage() {
       />
       <FileTrashDialog
         item={trashItem}
-        onConfirm={trashManagedItem}
-        onOpenChange={(open) => !open && setTrashItem(null)}
-        open={Boolean(trashItem)}
+        onConfirm={trashItem ? trashManagedItem : trashSelectedAssets}
+        onOpenChange={(open) => {
+          if (!open) {
+            setTrashItem(null)
+            setBulkTrashOpen(false)
+          }
+        }}
+        open={Boolean(trashItem) || bulkTrashOpen}
+        selectedCount={bulkTrashOpen ? selectedAssetIds.length : undefined}
       />
     </div>
   )

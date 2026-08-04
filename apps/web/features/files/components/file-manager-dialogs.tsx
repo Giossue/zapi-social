@@ -205,22 +205,29 @@ export function FileMoveDialog({
 
 export function FileTrashDialog({
   item,
+  selectedCount,
   onConfirm,
   onOpenChange,
   open,
 }: {
   item: ManagedItem | null
+  selectedCount?: number
   onConfirm: () => Promise<void>
   onOpenChange: (open: boolean) => void
   open: boolean
 }) {
+  const isBulkAction = selectedCount !== undefined
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Enviar a papelera</DialogTitle>
+          <DialogTitle>
+            {isBulkAction ? "Eliminar archivos seleccionados" : "Eliminar"}
+          </DialogTitle>
           <DialogDescription>
-            {item?.name} dejará de estar disponible hasta que lo restaures.
+            {isBulkAction
+              ? `${selectedCount} ${selectedCount === 1 ? "archivo dejará" : "archivos dejarán"} de estar disponible hasta que los restaures.`
+              : `${item?.name} dejará de estar disponible hasta que lo restaures.`}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
@@ -228,7 +235,7 @@ export function FileTrashDialog({
             Cancelar
           </Button>
           <Button onClick={() => void onConfirm()} variant="destructive">
-            Enviar a papelera
+            Eliminar
           </Button>
         </DialogFooter>
       </DialogContent>

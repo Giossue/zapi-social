@@ -151,13 +151,16 @@ Después de que API tenga un `DATABASE_URL` válido, ejecutar una vez por releas
 bun --filter @workspace/database db:migrate
 ```
 
-Migraciones actuales:
+Migraciones de producción verificadas el 2026-08-04:
 
 ```text
-0000_chemical_proudstar.sql
-0001_magical_veda.sql
-0002_channel_oauth_state_context.sql
+0000_chemical_proudstar.sql … 0015_lyrical_cargill.sql
 ```
+
+La base tenía físicamente `0009`–`0011` sin sus filas en
+`drizzle.__drizzle_migrations`. Se verificaron tablas, claves e índices antes de
+registrarlos como baseline; Drizzle aplicó después `0012`–`0015` normalmente.
+No se modificaron ni eliminaron filas de `file_assets` durante esa operación.
 
 No ejecutar SQL destructivo ni aplicar migraciones sobre una base remota sin autorización explícita.
 
