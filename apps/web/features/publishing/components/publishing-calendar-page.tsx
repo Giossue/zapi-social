@@ -1,6 +1,6 @@
 "use client"
 
-import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useMemo, useState } from "react"
 import {
   CalendarClock,
@@ -12,19 +12,8 @@ import {
   Send,
   XCircle,
 } from "lucide-react"
-import {
-  Alert,
-  AlertAction,
-  AlertDescription,
-  AlertTitle,
-} from "@workspace/ui/components/alert"
 import { Button } from "@workspace/ui/components/button"
-import { ButtonGroup } from "@workspace/ui/components/button-group"
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@workspace/ui/components/card"
+import { Card, CardContent, CardHeader } from "@workspace/ui/components/card"
 import {
   Dialog,
   DialogContent,
@@ -40,9 +29,9 @@ import {
   FieldLabel,
   FieldSet,
 } from "@workspace/ui/components/field"
-import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
+import { toast } from "@workspace/ui/components/toast"
 import { PublishingAccountPicker } from "@/features/publishing/components/publishing-account-picker"
 import { PublishingCalendar } from "@/features/publishing/components/publishing-calendar"
 import { PublishingMediaPicker } from "@/features/publishing/components/publishing-media-picker"
@@ -105,31 +94,6 @@ function postTitle(content: string) {
     : normalized || "Publicación sin texto"
 }
 
-function PublishingLoading() {
-  return (
-    <div aria-busy="true" className="overflow-hidden rounded-md border">
-      <div className="flex flex-col gap-4 border-b bg-sidebar p-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-col gap-1">
-          <Skeleton className="h-5 w-48" />
-          <Skeleton className="h-4 w-32" />
-        </div>
-        <Skeleton className="h-8 w-72" />
-      </div>
-      <Card className="border-0 shadow-none" size="sm" variant="surface">
-        <CardHeader className="sr-only">Cargando calendario</CardHeader>
-        <CardContent className="grid grid-cols-7 gap-px bg-border px-0">
-          {Array.from({ length: 35 }, (_, index) => (
-            <div className="min-h-32 bg-card p-3" key={index}>
-              <Skeleton className="h-4 w-8" />
-              <Skeleton className="mt-5 h-14 w-full" />
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-    </div>
-  )
-}
-
 function ComposerDialog({
   accounts,
   editingPost,
@@ -159,19 +123,25 @@ function ComposerDialog({
           .map((account) => account.id)
       : []
   )
-  const [selectedMediaAssetId, setSelectedMediaAssetId] = useState<string | null>(() =>
-    editingPost?.hasMedia ? "campaign-launch" : null
-  )
+  const [selectedMediaAssetId, setSelectedMediaAssetId] = useState<
+    string | null
+  >(() => (editingPost?.hasMedia ? "campaign-launch" : null))
   const [mode, setMode] = useState<ComposerMode>(() =>
     editingPost?.status === "draft" ? "draft" : "schedule"
   )
-  const [scheduledDate, setScheduledDate] = useState(() => editingPost?.date ?? initialScheduledDate)
+  const [scheduledDate, setScheduledDate] = useState(
+    () => editingPost?.date ?? initialScheduledDate
+  )
   const [scheduledTime, setScheduledTime] = useState(() =>
     editingPost?.time === "Ahora" ? "10:00" : (editingPost?.time ?? "10:00")
   )
-  const [activePreviewAccountId, setActivePreviewAccountId] = useState<string | null>(null)
+  const [activePreviewAccountId, setActivePreviewAccountId] = useState<
+    string | null
+  >(null)
   const hasMedia = selectedMediaAssetId !== null
-  const selected = accounts.filter((account) => selectedAccounts.includes(account.id))
+  const selected = accounts.filter((account) =>
+    selectedAccounts.includes(account.id)
+  )
   const canSubmit =
     selected.length > 0 &&
     selected.every((account) => account.connected) &&
@@ -181,15 +151,17 @@ function ComposerDialog({
 
   return (
     <Dialog onOpenChange={(nextOpen) => !nextOpen && onClose()} open={open}>
-      <DialogContent className="max-h-[calc(100dvh-2rem)] w-[min(96vw,80rem)] max-w-none overflow-y-auto">
+      <DialogContent className="max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-none overflow-y-auto sm:w-[min(90vw,80rem)] sm:max-w-none">
         <DialogHeader>
-          <DialogTitle>{editingPost ? "Editar publicación" : "Nueva publicación"}</DialogTitle>
+          <DialogTitle>
+            {editingPost ? "Editar publicación" : "Nueva publicación"}
+          </DialogTitle>
           <DialogDescription>
             El mock valida cada destino antes de guardar, programar o publicar.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(24rem,0.9fr)]">
+        <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(24rem,0.9fr)]">
           <FieldGroup className="min-w-0">
             <FieldSet>
               <FieldLabel asChild>
@@ -214,7 +186,10 @@ function ComposerDialog({
 
             <Field>
               <FieldLabel>Media</FieldLabel>
-              <PublishingMediaPicker onChange={setSelectedMediaAssetId} selectedAssetId={selectedMediaAssetId} />
+              <PublishingMediaPicker
+                onChange={setSelectedMediaAssetId}
+                selectedAssetId={selectedMediaAssetId}
+              />
             </Field>
 
             <Field>
@@ -277,7 +252,11 @@ function ComposerDialog({
             ) : (
               <CalendarDays data-icon="inline-start" />
             )}
-            {mode === "draft" ? "Guardar borrador" : mode === "now" ? "Publicar ahora" : "Programar"}
+            {mode === "draft"
+              ? "Guardar borrador"
+              : mode === "now"
+                ? "Publicar ahora"
+                : "Programar"}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -292,15 +271,21 @@ export function PublishingCalendarPage({
   calendar: PublishingCalendarData
   initialSection?: PublishingSection
 }) {
+  const router = useRouter()
   const [posts, setPosts] = useState(calendar.posts)
   const [section, setSection] = useState<PublishingSection>(initialSection)
   const [composerOpen, setComposerOpen] = useState(false)
-  const [composerScheduledDate, setComposerScheduledDate] = useState(defaultScheduleDate)
+  const [composerScheduledDate, setComposerScheduledDate] =
+    useState(defaultScheduleDate)
   const [editingPost, setEditingPost] = useState<PublishingPost | null>(null)
-  const [notice, setNotice] = useState<string | null>(null)
-
-  const queuePosts = useMemo(() => posts.filter((post) => post.status !== "draft"), [posts])
-  const drafts = useMemo(() => posts.filter((post) => post.status === "draft"), [posts])
+  const queuePosts = useMemo(
+    () => posts.filter((post) => post.status !== "draft"),
+    [posts]
+  )
+  const drafts = useMemo(
+    () => posts.filter((post) => post.status === "draft"),
+    [posts]
+  )
 
   if (!calendar.canView) {
     return (
@@ -316,7 +301,10 @@ export function PublishingCalendarPage({
     )
   }
 
-  function openComposer(post: PublishingPost | null = null, scheduledDate = defaultScheduleDate) {
+  function openComposer(
+    post: PublishingPost | null = null,
+    scheduledDate = defaultScheduleDate
+  ) {
     setEditingPost(post)
     setComposerScheduledDate(post?.date ?? scheduledDate)
     setComposerOpen(true)
@@ -335,12 +323,17 @@ export function PublishingCalendarPage({
     mode: ComposerMode
     scheduledAt: string
   }) {
-    const dateTime = mode === "schedule" ? new Date(scheduledAt) : parseDate(calendar.focusDate)
+    const dateTime =
+      mode === "schedule"
+        ? new Date(scheduledAt)
+        : parseDate(calendar.focusDate)
     const date = dateKey(dateTime)
     const time = mode === "schedule" ? scheduledAt.slice(11, 16) : "Ahora"
     const nextStatus: PublishingStatus =
       mode === "draft" ? "draft" : mode === "now" ? "processing" : "scheduled"
-    const destinations = calendar.accounts.filter((account) => selectedAccounts.includes(account.id))
+    const destinations = calendar.accounts.filter((account) =>
+      selectedAccounts.includes(account.id)
+    )
     const nextPosts = destinations.map((account, index): PublishingPost => ({
       id: `${Date.now()}-${account.id}-${index}`,
       date,
@@ -355,12 +348,14 @@ export function PublishingCalendarPage({
 
     if (editingPost) {
       setPosts((current) =>
-        current.map((post) => (post.id === editingPost.id ? { ...post, ...nextPosts[0] } : post))
+        current.map((post) =>
+          post.id === editingPost.id ? { ...post, ...nextPosts[0] } : post
+        )
       )
-      setNotice("Los cambios del borrador se guardaron en este mock.")
+      toast.success("Los cambios del borrador se guardaron en este mock.")
     } else {
       setPosts((current) => [...nextPosts, ...current])
-      setNotice(
+      toast.success(
         mode === "now"
           ? `Iniciamos la operación para ${nextPosts.length} destino${nextPosts.length === 1 ? "" : "s"}.`
           : mode === "draft"
@@ -373,13 +368,17 @@ export function PublishingCalendarPage({
   }
 
   function retryPost(post: PublishingPost) {
-    setPosts((current) => current.map((item) => (item.id === post.id ? { ...item, status: "processing" } : item)))
-    setNotice("El reintento se añadió a la cola mock.")
+    setPosts((current) =>
+      current.map((item) =>
+        item.id === post.id ? { ...item, status: "processing" } : item
+      )
+    )
+    toast.success("El reintento se añadió a la cola mock.")
   }
 
   function deletePost(post: PublishingPost) {
     setPosts((current) => current.filter((item) => item.id !== post.id))
-    setNotice("El borrador se eliminó.")
+    toast.success("El borrador se eliminó.")
   }
 
   return (
@@ -387,38 +386,33 @@ export function PublishingCalendarPage({
       {section !== "calendar" ? (
         <div className="flex flex-wrap items-center justify-between gap-3">
           <nav aria-label="Secciones de Publishing">
-            <ButtonGroup>
-              {sectionLinks.map((item) => (
-                <Button
-                  asChild
-                  key={item.value}
-                  onClick={() => setSection(item.value)}
-                  size="sm"
-                  variant={section === item.value ? "sidebar-active" : "brand-secondary"}
-                >
-                  <Link href={item.href}>{item.label}</Link>
-                </Button>
-              ))}
-            </ButtonGroup>
+            <Tabs
+              onValueChange={(value) => {
+                const nextSection = value as PublishingSection
+                const nextLink = sectionLinks.find(
+                  (item) => item.value === nextSection
+                )
+                if (!nextLink) return
+
+                setSection(nextSection)
+                router.push(nextLink.href)
+              }}
+              value={section}
+            >
+              <TabsList>
+                {sectionLinks.map((item) => (
+                  <TabsTrigger key={item.value} value={item.value}>
+                    {item.label}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
           </nav>
           <Button onClick={() => openComposer()}>
             <CalendarDays data-icon="inline-start" />
             Nueva publicación
           </Button>
         </div>
-      ) : null}
-
-      {notice ? (
-        <Alert>
-          <CalendarClock aria-hidden="true" />
-          <AlertTitle>Actualización del mock</AlertTitle>
-          <AlertDescription>{notice}</AlertDescription>
-          <AlertAction>
-            <Button onClick={() => setNotice(null)} size="sm" variant="brand-secondary">
-              Cerrar
-            </Button>
-          </AlertAction>
-        </Alert>
       ) : null}
 
       {section === "calendar" ? (
@@ -433,27 +427,37 @@ export function PublishingCalendarPage({
       ) : null}
 
       {section === "queue" ? (
-        <section aria-label="Cola de publicaciones" className="flex flex-col gap-4">
+        <section
+          aria-label="Cola de publicaciones"
+          className="flex flex-col gap-4"
+        >
           <PublishingMetrics
             items={[
               {
                 icon: CalendarClock,
                 label: "Programadas",
-                value: queuePosts.filter((post) => post.status === "scheduled").length,
+                value: queuePosts.filter((post) => post.status === "scheduled")
+                  .length,
               },
               {
                 icon: LoaderCircle,
                 label: "En proceso",
-                value: queuePosts.filter((post) => post.status === "processing").length,
+                value: queuePosts.filter((post) => post.status === "processing")
+                  .length,
               },
               {
                 icon: XCircle,
                 label: "Fallidas",
-                value: queuePosts.filter((post) => post.status === "failed").length,
+                value: queuePosts.filter((post) => post.status === "failed")
+                  .length,
               },
             ]}
           />
-          <PublishingPostsTable mode="queue" onRetry={retryPost} posts={queuePosts} />
+          <PublishingPostsTable
+            mode="queue"
+            onRetry={retryPost}
+            posts={queuePosts}
+          />
         </section>
       ) : null}
 
@@ -470,11 +474,17 @@ export function PublishingCalendarPage({
               {
                 icon: Send,
                 label: "Listos para programar",
-                value: drafts.filter((post) => post.content.trim().length > 0).length,
+                value: drafts.filter((post) => post.content.trim().length > 0)
+                  .length,
               },
             ]}
           />
-          <PublishingPostsTable mode="drafts" onContinue={openComposer} onDelete={deletePost} posts={drafts} />
+          <PublishingPostsTable
+            mode="drafts"
+            onContinue={openComposer}
+            onDelete={deletePost}
+            posts={drafts}
+          />
         </section>
       ) : null}
 
@@ -494,5 +504,3 @@ export function PublishingCalendarPage({
     </div>
   )
 }
-
-export { PublishingLoading }

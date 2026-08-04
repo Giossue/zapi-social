@@ -174,7 +174,9 @@ Scheduler: solo encola IDs vencidos; no llama proveedores directamente
 - V2 adapta únicamente el contenido y callbacks: los `PublishingPost` mock se convierten en eventos, el selector genérico se limita a proveedores reales y los clics de fecha abren el compositor. Un evento solo permite editar estados `draft`, `scheduled` o `failed`, coherente con Laravel.
 - La fuente aporta vista de día además de mes/semana. Es una divergencia visual documentada: no cambia los datos ni el contrato mock y quedará sujeta al contrato REST final.
 - Se añaden `@fullcalendar/react` y `date-fns` como dependencias explícitas de `apps/web`; no se importa `diseño ideal` ni se añade un primitive global porque el renderer solo tiene consumidor Publishing.
-- El compositor conserva su flujo mock, pero prioriza una sola columna hasta `xl`: evita que formulario y preview se compriman en ventanas angostas o con zoom elevado. En dos columnas la preview no se estira a la altura del formulario.
+- El compositor conserva su flujo mock, editor y preview en dos columnas desde `lg`. El diálogo anula el límite `sm:max-w-sm` del primitive y ocupa hasta el 90% del viewport (máximo `80rem`), para que ambas columnas dispongan del espacio de trabajo previsto; en móvil usa el ancho disponible con márgenes seguros.
+- Cola y Borradores comparten una superficie operativa: KPIs con la jerarquía de `diseño ideal/dashboard/crm`, tabla con encabezado y filtros integrados, estado vacío y `TablePagination` común visible incluso con una sola página (10 filas por página), como Captions y Canales. Los conteos y acciones siguen procediendo del fixture Publishing mock.
+- Las mutaciones mock de Publishing (guardar, editar, borrar y reintentar) confirman mediante toast transitorio; no reservan un aviso persistente en la superficie operativa.
 
 ## Secuencia de ejecución
 

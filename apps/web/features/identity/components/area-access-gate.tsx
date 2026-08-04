@@ -4,6 +4,7 @@ import { ApiError, authApi } from "@workspace/api-client"
 import { Button } from "@workspace/ui/components/button"
 import { Card } from "@workspace/ui/components/card"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { PageLoading } from "@workspace/ui/components/page-loading"
 import { ShieldAlert } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useState, type ReactNode } from "react"
@@ -26,7 +27,7 @@ type AreaAccessGateProps = {
 }
 
 function AccessLoading() {
-  return <div aria-busy="true" className="min-h-dvh bg-background" />
+  return <PageLoading className="min-h-dvh bg-background" />
 }
 
 export function AreaAccessGate({ area, children }: AreaAccessGateProps) {

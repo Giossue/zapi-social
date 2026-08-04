@@ -259,6 +259,18 @@ html {
   overscroll-behavior: none;
 }
 
+@keyframes spinner-fade {
+  0%,
+  39%,
+  100% {
+    opacity: 0.25;
+  }
+
+  40% {
+    opacity: 1;
+  }
+}
+
 .disable-transitions * {
   transition: none !important;
 }

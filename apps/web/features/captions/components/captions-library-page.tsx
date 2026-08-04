@@ -1,7 +1,13 @@
 "use client"
 "use no memo"
 import type { ColumnDef } from "@tanstack/react-table"
-import { flexRender, getCoreRowModel, getPaginationRowModel, type PaginationState, useReactTable } from "@tanstack/react-table"
+import {
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  type PaginationState,
+  useReactTable,
+} from "@tanstack/react-table"
 import { ApiError, captionsApi } from "@workspace/api-client"
 import {
   AlertDialog,
@@ -16,7 +22,14 @@ import {
 } from "@workspace/ui/components/alert-dialog"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card"
 import {
   Dialog,
   DialogContent,
@@ -33,9 +46,18 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { EmptyState } from "@workspace/ui/components/empty-state"
-import { Field, FieldError, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@workspace/ui/components/input-group"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@workspace/ui/components/input-group"
 import {
   Select,
   SelectContent,
@@ -44,18 +66,52 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import { Skeleton } from "@workspace/ui/components/skeleton"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/table"
+import { PageLoading } from "@workspace/ui/components/page-loading"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
-import { FileText, LockKeyhole, MoreHorizontal, Pencil, Plus, RefreshCw, Search, Sparkles, Trash2, TriangleAlert, X } from "lucide-react"
+import {
+  FileText,
+  LockKeyhole,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  RefreshCw,
+  Search,
+  Sparkles,
+  Trash2,
+  TriangleAlert,
+  X,
+} from "lucide-react"
 import { useRouter } from "next/navigation"
-import { type FormEvent, type ReactNode, useCallback, useEffect, useMemo, useState } from "react"
+import {
+  type FormEvent,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react"
 
-import type { Caption, CaptionDraft, CaptionSourceType, CaptionStatus } from "@/features/captions/types/captions"
+import type {
+  Caption,
+  CaptionDraft,
+  CaptionSourceType,
+  CaptionStatus,
+} from "@/features/captions/types/captions"
 
-type CaptionEditorValues = Omit<Caption, "id" | "notes" | "updatedAt" | "tags"> & {
+type CaptionEditorValues = Omit<
+  Caption,
+  "id" | "notes" | "updatedAt" | "tags"
+> & {
   notes: string
   tags: string
 }
@@ -121,7 +177,10 @@ function normalizeTags(value: string) {
 function CaptionStatusBadge({ status }: { status: CaptionStatus }) {
   if (status === "active") {
     return (
-      <Badge className="bg-success text-success-foreground leading-none" variant="secondary">
+      <Badge
+        className="bg-success leading-none text-success-foreground"
+        variant="secondary"
+      >
         {statusLabels[status]}
       </Badge>
     )
@@ -137,8 +196,12 @@ function CaptionStatusBadge({ status }: { status: CaptionStatus }) {
 function CaptionCell({ caption }: { caption: Caption }) {
   return (
     <div className="min-w-0">
-      <div className="truncate font-medium text-foreground text-sm">{caption.name}</div>
-      <div className="max-w-md truncate text-muted-foreground text-sm">{caption.content}</div>
+      <div className="truncate text-sm font-medium text-foreground">
+        {caption.name}
+      </div>
+      <div className="max-w-md truncate text-sm text-muted-foreground">
+        {caption.content}
+      </div>
     </div>
   )
 }
@@ -171,7 +234,10 @@ function TagsCell({ tags }: { tags: readonly string[] }) {
   )
 }
 
-function createCaptionColumns({ onEdit, onRemove }: CaptionTableActions): ColumnDef<Caption>[] {
+function createCaptionColumns({
+  onEdit,
+  onRemove,
+}: CaptionTableActions): ColumnDef<Caption>[] {
   return [
     {
       accessorKey: "name",
@@ -196,7 +262,11 @@ function createCaptionColumns({ onEdit, onRemove }: CaptionTableActions): Column
     {
       accessorKey: "updatedAt",
       header: "Actualizado",
-      cell: ({ row }) => <span className="text-foreground text-sm">{formatUpdatedAt(row.original.updatedAt)}</span>,
+      cell: ({ row }) => (
+        <span className="text-sm text-foreground">
+          {formatUpdatedAt(row.original.updatedAt)}
+        </span>
+      ),
     },
     {
       id: "actions",
@@ -218,12 +288,19 @@ function createCaptionColumns({ onEdit, onRemove }: CaptionTableActions): Column
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" size="compact">
-                <DropdownMenuItem onSelect={() => onEdit(caption)} size="compact">
+                <DropdownMenuItem
+                  onSelect={() => onEdit(caption)}
+                  size="compact"
+                >
                   <Pencil />
                   Editar
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => onRemove(caption)} size="compact" variant="destructive">
+                <DropdownMenuItem
+                  onSelect={() => onRemove(caption)}
+                  size="compact"
+                  variant="destructive"
+                >
                   <Trash2 />
                   Eliminar
                 </DropdownMenuItem>
@@ -249,7 +326,10 @@ function CaptionsTable({
   onEdit: (caption: Caption) => void
   onRemove: (caption: Caption) => void
 }) {
-  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  })
   const tableData = useMemo(() => [...captions], [captions])
   const table = useReactTable({
     data: tableData,
@@ -262,7 +342,9 @@ function CaptionsTable({
   })
   const total = captions.length
   const rangeStart = total ? pagination.pageIndex * pagination.pageSize + 1 : 0
-  const rangeEnd = total ? Math.min(rangeStart + table.getRowModel().rows.length - 1, total) : 0
+  const rangeEnd = total
+    ? Math.min(rangeStart + table.getRowModel().rows.length - 1, total)
+    : 0
 
   return (
     <div className="flex flex-1 flex-col gap-4">
@@ -273,7 +355,12 @@ function CaptionsTable({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead key={header.id} className="py-4 font-normal">
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -282,17 +369,25 @@ function CaptionsTable({
           <TableBody>
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} className="border-border/60 hover:bg-white/2.5">
+                <TableRow
+                  key={row.id}
+                  className="border-border/60 hover:bg-white/2.5"
+                >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="px-3 py-4 align-middle">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={table.getVisibleLeafColumns().length}>{emptyState}</TableCell>
+                <TableCell colSpan={table.getVisibleLeafColumns().length}>
+                  {emptyState}
+                </TableCell>
               </TableRow>
             )}
           </TableBody>
@@ -314,23 +409,7 @@ function CaptionsTable({
 }
 
 function CaptionsLoading() {
-  return (
-    <Card>
-      <CardHeader className="border-b">
-        <Skeleton className="h-5 w-44" />
-        <Skeleton className="h-4 w-72" />
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4 px-0 py-4">
-        <div className="flex gap-3 px-4">
-          <Skeleton className="h-7 w-28" />
-          <Skeleton className="h-7 w-28" />
-        </div>
-        {["one", "two", "three"].map((key) => (
-          <Skeleton className="mx-4 h-14" key={key} />
-        ))}
-      </CardContent>
-    </Card>
-  )
+  return <PageLoading />
 }
 
 export function CaptionsLibraryPage() {
@@ -340,7 +419,9 @@ export function CaptionsLibraryPage() {
   const [hasLoadError, setHasLoadError] = useState(false)
   const [hasPermission, setHasPermission] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
-  const [sourceFilter, setSourceFilter] = useState<CaptionSourceType | "all">("all")
+  const [sourceFilter, setSourceFilter] = useState<CaptionSourceType | "all">(
+    "all"
+  )
   const [statusFilter, setStatusFilter] = useState<CaptionStatus | "all">("all")
   const [isEditorOpen, setIsEditorOpen] = useState(false)
   const [editingCaption, setEditingCaption] = useState<Caption | null>(null)
@@ -385,7 +466,10 @@ export function CaptionsLibraryPage() {
       })
       .catch((error: unknown) => {
         if (!isCurrent) return
-        if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
+        if (
+          error instanceof ApiError &&
+          error.code === "AUTH_SESSION_EXPIRED"
+        ) {
           router.replace("/login")
           return
         }
@@ -416,14 +500,17 @@ export function CaptionsLibraryPage() {
           .join(" ")
           .toLocaleLowerCase("es")
           .includes(normalizedQuery)
-      const matchesSource = sourceFilter === "all" || caption.sourceType === sourceFilter
-      const matchesStatus = statusFilter === "all" || caption.status === statusFilter
+      const matchesSource =
+        sourceFilter === "all" || caption.sourceType === sourceFilter
+      const matchesStatus =
+        statusFilter === "all" || caption.status === statusFilter
 
       return matchesQuery && matchesSource && matchesStatus
     })
   }, [captions, searchQuery, sourceFilter, statusFilter])
 
-  const hasActiveFilters = Boolean(searchQuery) || sourceFilter !== "all" || statusFilter !== "all"
+  const hasActiveFilters =
+    Boolean(searchQuery) || sourceFilter !== "all" || statusFilter !== "all"
 
   function clearFilters() {
     setSearchQuery("")
@@ -465,9 +552,14 @@ export function CaptionsLibraryPage() {
     setPending(true)
     try {
       if (editingCaption) {
-        const updatedCaption = await captionsApi.update(editingCaption.id, draft)
+        const updatedCaption = await captionsApi.update(
+          editingCaption.id,
+          draft
+        )
         setCaptions((currentCaptions) =>
-          currentCaptions.map((caption) => (caption.id === updatedCaption.id ? updatedCaption : caption))
+          currentCaptions.map((caption) =>
+            caption.id === updatedCaption.id ? updatedCaption : caption
+          )
         )
         toast.success("Cambios guardados.")
       } else {
@@ -499,7 +591,9 @@ export function CaptionsLibraryPage() {
     setPending(true)
     try {
       await captionsApi.remove(captionToDelete.id)
-      setCaptions((currentCaptions) => currentCaptions.filter((caption) => caption.id !== captionToDelete.id))
+      setCaptions((currentCaptions) =>
+        currentCaptions.filter((caption) => caption.id !== captionToDelete.id)
+      )
       setCaptionToDelete(null)
       toast.success("Caption eliminado.")
     } catch (error) {
@@ -536,7 +630,9 @@ export function CaptionsLibraryPage() {
       <Card>
         <CardContent>
           <EmptyState
-            action={<Button onClick={() => void loadCaptions()}>Reintentar</Button>}
+            action={
+              <Button onClick={() => void loadCaptions()}>Reintentar</Button>
+            }
             description="No pudimos cargar la biblioteca en este momento. Inténtalo de nuevo."
             icon={TriangleAlert}
             title="No pudimos cargar los captions"
@@ -570,9 +666,12 @@ export function CaptionsLibraryPage() {
     <>
       <Card>
         <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
-          <CardTitle className="text-xl leading-none">Biblioteca de captions</CardTitle>
+          <CardTitle className="text-xl leading-none">
+            Biblioteca de captions
+          </CardTitle>
           <CardDescription className="max-w-sm leading-snug">
-            Gestiona textos reutilizables para mantener una voz consistente en tus publicaciones.
+            Gestiona textos reutilizables para mantener una voz consistente en
+            tus publicaciones.
           </CardDescription>
           <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
             <InputGroup className="h-7 w-full md:w-64">
@@ -596,7 +695,12 @@ export function CaptionsLibraryPage() {
         <CardContent className="flex flex-col gap-4 px-0">
           <div className="flex flex-wrap items-center justify-between gap-3 px-4">
             <div className="flex flex-wrap items-center gap-3">
-              <Select onValueChange={(value: CaptionSourceType | "all") => setSourceFilter(value)} value={sourceFilter}>
+              <Select
+                onValueChange={(value: CaptionSourceType | "all") =>
+                  setSourceFilter(value)
+                }
+                value={sourceFilter}
+              >
                 <SelectTrigger size="sm">
                   <span className="text-muted-foreground">Origen:</span>
                   <SelectValue />
@@ -609,7 +713,12 @@ export function CaptionsLibraryPage() {
                   </SelectGroup>
                 </SelectContent>
               </Select>
-              <Select onValueChange={(value: CaptionStatus | "all") => setStatusFilter(value)} value={statusFilter}>
+              <Select
+                onValueChange={(value: CaptionStatus | "all") =>
+                  setStatusFilter(value)
+                }
+                value={statusFilter}
+              >
                 <SelectTrigger size="sm">
                   <span className="text-muted-foreground">Estado:</span>
                   <SelectValue />
@@ -624,7 +733,12 @@ export function CaptionsLibraryPage() {
                 </SelectContent>
               </Select>
               {hasActiveFilters ? (
-                <Button onClick={clearFilters} size="sm" type="button" variant="outline">
+                <Button
+                  onClick={clearFilters}
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                >
                   <X />
                   Limpiar
                 </Button>
@@ -652,7 +766,10 @@ export function CaptionsLibraryPage() {
         pending={pending}
       />
 
-      <AlertDialog onOpenChange={(open) => !open && setCaptionToDelete(null)} open={Boolean(captionToDelete)}>
+      <AlertDialog
+        onOpenChange={(open) => !open && setCaptionToDelete(null)}
+        open={Boolean(captionToDelete)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogMedia>
@@ -675,7 +792,9 @@ export function CaptionsLibraryPage() {
               }}
               variant="destructive"
             >
-              {pending ? <RefreshCw className="animate-spin" data-icon="inline-start" /> : null}
+              {pending ? (
+                <RefreshCw className="animate-spin" data-icon="inline-start" />
+              ) : null}
               Eliminar caption
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -703,7 +822,10 @@ function CaptionEditor({
   )
   const [saveError, setSaveError] = useState<string | null>(null)
 
-  function updateValue<Key extends keyof CaptionEditorValues>(key: Key, value: CaptionEditorValues[Key]) {
+  function updateValue<Key extends keyof CaptionEditorValues>(
+    key: Key,
+    value: CaptionEditorValues[Key]
+  ) {
     setValues((currentValues) => ({ ...currentValues, [key]: value }))
   }
 
@@ -717,14 +839,19 @@ function CaptionEditor({
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{caption ? "Editar caption" : "Nuevo caption"}</DialogTitle>
+          <DialogTitle>
+            {caption ? "Editar caption" : "Nuevo caption"}
+          </DialogTitle>
           <DialogDescription>
             {caption
               ? "Actualiza el contenido y los metadatos que tu equipo necesita para reutilizarlo."
               : "Guarda un caption que puedas encontrar y adaptar en futuras publicaciones."}
           </DialogDescription>
         </DialogHeader>
-        <form className="flex flex-col gap-5" onSubmit={(event) => void handleSubmit(event)}>
+        <form
+          className="flex flex-col gap-5"
+          onSubmit={(event) => void handleSubmit(event)}
+        >
           <FieldGroup className="grid gap-4 md:grid-cols-2">
             <Field>
               <FieldLabel htmlFor="caption-name">Nombre</FieldLabel>
@@ -749,7 +876,12 @@ function CaptionEditor({
             </Field>
             <Field>
               <FieldLabel htmlFor="caption-source">Origen</FieldLabel>
-              <Select onValueChange={(value: CaptionSourceType) => updateValue("sourceType", value)} value={values.sourceType}>
+              <Select
+                onValueChange={(value: CaptionSourceType) =>
+                  updateValue("sourceType", value)
+                }
+                value={values.sourceType}
+              >
                 <SelectTrigger id="caption-source" className="w-full">
                   <SelectValue />
                 </SelectTrigger>
@@ -763,7 +895,12 @@ function CaptionEditor({
             </Field>
             <Field>
               <FieldLabel htmlFor="caption-status">Estado</FieldLabel>
-              <Select onValueChange={(value: CaptionStatus) => updateValue("status", value)} value={values.status}>
+              <Select
+                onValueChange={(value: CaptionStatus) =>
+                  updateValue("status", value)
+                }
+                value={values.status}
+              >
                 <SelectTrigger id="caption-status" className="w-full">
                   <SelectValue />
                 </SelectTrigger>
@@ -804,11 +941,20 @@ function CaptionEditor({
           </FieldGroup>
           {saveError ? <FieldError>{saveError}</FieldError> : null}
           <DialogFooter>
-            <Button disabled={pending} onClick={() => onOpenChange(false)} type="button" variant="outline">
+            <Button
+              disabled={pending}
+              onClick={() => onOpenChange(false)}
+              type="button"
+              variant="outline"
+            >
               Cancelar
             </Button>
             <Button disabled={pending} type="submit">
-              {pending ? <RefreshCw className="animate-spin" data-icon="inline-start" /> : <Sparkles data-icon="inline-start" />}
+              {pending ? (
+                <RefreshCw className="animate-spin" data-icon="inline-start" />
+              ) : (
+                <Sparkles data-icon="inline-start" />
+              )}
               {caption ? "Guardar cambios" : "Guardar caption"}
             </Button>
           </DialogFooter>

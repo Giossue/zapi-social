@@ -1,5 +1,5 @@
-import { DashboardLoading } from "@/features/dashboard/components/dashboard-loading"
+import { PageLoading } from "@workspace/ui/components/page-loading"
 
 export default function Loading() {
-  return <DashboardLoading />
+  return <PageLoading />
 }

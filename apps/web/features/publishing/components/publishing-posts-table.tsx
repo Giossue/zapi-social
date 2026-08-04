@@ -12,7 +12,14 @@ import {
 } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { Card, CardContent } from "@workspace/ui/components/card"
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import {
   InputGroup,
@@ -43,13 +50,14 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
+import { TablePagination } from "@workspace/ui/components/table-pagination"
 import type {
   PublishingPost,
   PublishingProvider,
   PublishingStatus,
 } from "@/features/publishing/types/publishing-calendar"
 
-const PAGE_SIZE = 30
+const PAGE_SIZE = 10
 
 const providerLabels: Record<PublishingProvider, string> = {
   facebook: "Facebook",
@@ -184,15 +192,20 @@ export function PublishingMetrics({
   items: Array<{ icon: typeof CalendarClock; label: string; value: number }>
 }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
       {items.map(({ icon: Icon, label, value }) => (
-        <Card key={label} size="sm" variant="subtle">
-          <CardContent className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 flex-col gap-0.5">
-              <p className="text-xl font-semibold tracking-tight">{value}</p>
-              <p className="text-sm text-muted-foreground">{label}</p>
-            </div>
-            <Icon aria-hidden="true" className="text-muted-foreground" />
+        <Card key={label}>
+          <CardHeader>
+            <CardDescription>{label}</CardDescription>
+            <CardAction>
+              <Icon
+                aria-hidden="true"
+                className="size-4 text-muted-foreground"
+              />
+            </CardAction>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl leading-none tracking-tight">{value}</p>
           </CardContent>
         </Card>
       ))}
@@ -239,6 +252,15 @@ export function PublishingPostsTable({
     currentPage * PAGE_SIZE
   )
   const hasFilters = query || provider !== "all" || status !== "all"
+  const pageRangeStart = filteredPosts.length
+    ? (currentPage - 1) * PAGE_SIZE + 1
+    : 0
+  const pageRangeEnd = Math.min(currentPage * PAGE_SIZE, filteredPosts.length)
+  const tableTitle = mode === "drafts" ? "Borradores" : "Cola de publicación"
+  const tableDescription =
+    mode === "drafts"
+      ? "Continúa, filtra o elimina las publicaciones guardadas para después."
+      : "Supervisa las publicaciones programadas, en proceso y fallidas por destino."
 
   function clearFilters() {
     setQuery("")
@@ -249,23 +271,27 @@ export function PublishingPostsTable({
 
   return (
     <div className="flex flex-col gap-4">
-      <Card size="sm" variant="surface">
-        <CardContent className="flex flex-col gap-3 lg:flex-row lg:items-center">
-          <InputGroup className="lg:flex-1">
-            <InputGroupAddon>
-              <Search aria-hidden="true" />
-            </InputGroupAddon>
-            <InputGroupInput
-              aria-label="Buscar publicaciones"
-              onChange={(event) => {
-                setQuery(event.target.value)
-                setPage(1)
-              }}
-              placeholder="Buscar por contenido o cuenta"
-              value={query}
-            />
-          </InputGroup>
-          <div className="grid gap-3 sm:grid-cols-2 lg:flex lg:items-center">
+      <Card>
+        <CardHeader className="gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0 space-y-1">
+            <CardTitle>{tableTitle}</CardTitle>
+            <CardDescription>{tableDescription}</CardDescription>
+          </div>
+          <div className="grid w-full gap-3 sm:grid-cols-2 lg:w-auto lg:grid-cols-[minmax(14rem,1fr)_10rem_10rem_auto]">
+            <InputGroup>
+              <InputGroupAddon>
+                <Search aria-hidden="true" />
+              </InputGroupAddon>
+              <InputGroupInput
+                aria-label="Buscar publicaciones"
+                onChange={(event) => {
+                  setQuery(event.target.value)
+                  setPage(1)
+                }}
+                placeholder="Buscar publicaciones"
+                value={query}
+              />
+            </InputGroup>
             <Select
               onValueChange={(value) => {
                 setProvider(value as PublishingProvider | "all")
@@ -273,10 +299,7 @@ export function PublishingPostsTable({
               }}
               value={provider}
             >
-              <SelectTrigger
-                aria-label="Filtrar por red"
-                className="w-full lg:w-40"
-              >
+              <SelectTrigger aria-label="Filtrar por red" className="w-full">
                 <SelectValue placeholder="Red" />
               </SelectTrigger>
               <SelectContent>
@@ -295,10 +318,7 @@ export function PublishingPostsTable({
               }}
               value={status}
             >
-              <SelectTrigger
-                aria-label="Filtrar por estado"
-                className="w-full lg:w-40"
-              >
+              <SelectTrigger aria-label="Filtrar por estado" className="w-full">
                 <SelectValue placeholder="Estado" />
               </SelectTrigger>
               <SelectContent>
@@ -317,26 +337,24 @@ export function PublishingPostsTable({
                 </SelectGroup>
               </SelectContent>
             </Select>
+            {hasFilters ? (
+              <Button
+                onClick={clearFilters}
+                size="sm"
+                variant="brand-secondary"
+              >
+                <ListFilter data-icon="inline-start" />
+                Limpiar
+              </Button>
+            ) : null}
           </div>
-          {hasFilters ? (
-            <Button onClick={clearFilters} size="sm" variant="brand-secondary">
-              <ListFilter data-icon="inline-start" />
-              Limpiar filtros
-            </Button>
-          ) : null}
-        </CardContent>
-      </Card>
+        </CardHeader>
 
-      {pagePosts.length ? (
-        <>
-          <Card
-            className="hidden overflow-hidden md:block"
-            size="sm"
-            variant="surface"
-          >
-            <CardContent className="px-0">
+        {pagePosts.length ? (
+          <CardContent className="flex flex-col gap-4 px-0">
+            <div className="hidden overflow-hidden md:block">
               <Table>
-                <TableHeader>
+                <TableHeader className="border-t **:data-[slot='table-head']:h-11 **:data-[slot='table-head']:font-medium **:data-[slot='table-head']:text-foreground">
                   <TableRow>
                     <TableHead className="pl-4">Publicación</TableHead>
                     <TableHead>Cuenta</TableHead>
@@ -345,7 +363,7 @@ export function PublishingPostsTable({
                     <TableHead className="pr-4 text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody className="**:data-[slot='table-row']:border-border/50">
                   {pagePosts.map((post) => (
                     <TableRow key={post.id}>
                       <TableCell className="max-w-72 pl-4">
@@ -383,23 +401,32 @@ export function PublishingPostsTable({
                   ))}
                 </TableBody>
               </Table>
-            </CardContent>
-          </Card>
-          <div className="flex flex-col gap-3 md:hidden">
-            {pagePosts.map((post) => (
-              <PostCard
-                key={post.id}
-                mode={mode}
-                onContinue={onContinue}
-                onDelete={onDelete}
-                onRetry={onRetry}
-                post={post}
-              />
-            ))}
-          </div>
-        </>
-      ) : (
-        <Card variant="subtle">
+            </div>
+            <div className="flex flex-col gap-3 px-4 md:hidden">
+              {pagePosts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  mode={mode}
+                  onContinue={onContinue}
+                  onDelete={onDelete}
+                  onRetry={onRetry}
+                  post={post}
+                />
+              ))}
+            </div>
+            <TablePagination
+              canGoNext={currentPage < pageCount}
+              canGoPrevious={currentPage > 1}
+              itemLabel="publicaciones"
+              mode="compact"
+              onNextPage={() => setPage((value) => value + 1)}
+              onPreviousPage={() => setPage((value) => value - 1)}
+              rangeEnd={pageRangeEnd}
+              rangeStart={pageRangeStart}
+              total={filteredPosts.length}
+            />
+          </CardContent>
+        ) : (
           <CardContent>
             <EmptyState
               description={
@@ -419,36 +446,8 @@ export function PublishingPostsTable({
               }
             />
           </CardContent>
-        </Card>
-      )}
-
-      {filteredPosts.length > PAGE_SIZE ? (
-        <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
-          <p>
-            Mostrando {(currentPage - 1) * PAGE_SIZE + 1}–
-            {Math.min(currentPage * PAGE_SIZE, filteredPosts.length)} de{" "}
-            {filteredPosts.length}
-          </p>
-          <div className="flex gap-2">
-            <Button
-              disabled={currentPage === 1}
-              onClick={() => setPage((value) => value - 1)}
-              size="sm"
-              variant="brand-secondary"
-            >
-              Anterior
-            </Button>
-            <Button
-              disabled={currentPage === pageCount}
-              onClick={() => setPage((value) => value + 1)}
-              size="sm"
-              variant="brand-secondary"
-            >
-              Siguiente
-            </Button>
-          </div>
-        </div>
-      ) : null}
+        )}
+      </Card>
     </div>
   )
 }

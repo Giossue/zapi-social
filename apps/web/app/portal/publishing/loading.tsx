@@ -1,5 +1,5 @@
-import { PublishingLoading } from "@/features/publishing/components/publishing-calendar-page"
+import { PageLoading } from "@workspace/ui/components/page-loading"
 
 export default function PublishingLoadingPage() {
-  return <PublishingLoading />
+  return <PageLoading />
 }

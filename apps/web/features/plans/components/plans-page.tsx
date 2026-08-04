@@ -39,6 +39,7 @@ import {
 } from "@workspace/ui/components/dropdown-menu"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { Input } from "@workspace/ui/components/input"
+import { PageLoading } from "@workspace/ui/components/page-loading"
 import {
   Select,
   SelectContent,
@@ -815,13 +816,7 @@ export function PlansPage() {
         </Card>
       </section>
       {isLoading ? (
-        <Card variant="surface">
-          <EmptyState
-            description="Consultando la configuración persistida de planes."
-            icon={Search}
-            title="Cargando planes"
-          />
-        </Card>
+        <PageLoading />
       ) : plans.length > 0 ? (
         <section
           aria-label="Listado de planes"

@@ -1,5 +1,5 @@
-import { FilesLibraryLoading } from "@/features/files/components/files-states"
+import { PageLoading } from "@workspace/ui/components/page-loading"
 
 export default function FilesLoadingRoute() {
-  return <FilesLibraryLoading />
+  return <PageLoading />
 }

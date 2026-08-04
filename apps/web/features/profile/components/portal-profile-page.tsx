@@ -25,7 +25,7 @@ import {
   FieldLabel,
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
-import { Skeleton } from "@workspace/ui/components/skeleton"
+import { PageLoading } from "@workspace/ui/components/page-loading"
 import {
   Select,
   SelectContent,
@@ -97,47 +97,7 @@ function profileError(error: unknown) {
 }
 
 function ProfileLoading() {
-  return (
-    <div
-      aria-busy="true"
-      aria-label="Cargando perfil"
-      className="grid gap-4 lg:grid-cols-3"
-    >
-      <Card className="lg:row-span-2" size="sm" variant="subtle">
-        <CardContent className="flex flex-col gap-4">
-          <div className="flex items-center gap-3">
-            <Skeleton className="size-10 rounded-full" />
-            <div className="flex flex-1 flex-col gap-2">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-3 w-44" />
-            </div>
-          </div>
-          <Skeleton className="h-3 w-full" />
-          <Skeleton className="h-3 w-4/5" />
-        </CardContent>
-      </Card>
-      <Card className="lg:col-span-2" size="sm" variant="subtle">
-        <CardContent className="flex flex-col gap-4">
-          <Skeleton className="h-4 w-36" />
-          <Skeleton className="h-8 w-full" />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
-          </div>
-        </CardContent>
-      </Card>
-      <Card className="lg:col-span-2" size="sm" variant="subtle">
-        <CardContent className="flex flex-col gap-4">
-          <Skeleton className="h-4 w-40" />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
-          </div>
-          <Skeleton className="h-8 w-full" />
-        </CardContent>
-      </Card>
-    </div>
-  )
+  return <PageLoading aria-label="Cargando perfil" />
 }
 
 export function PortalProfilePage() {

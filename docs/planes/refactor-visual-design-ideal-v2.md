@@ -183,3 +183,9 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - La vista diaria es una divergencia visual explícita frente a Laravel, que solo expone mes/semana; no introduce datos ni nuevas transiciones de estado y se reevaluará al definir REST.
 - `@fullcalendar/react` y `date-fns` se declaran en `apps/web` por importación directa. El CSS de skeleton se importa junto al renderer copiado, sin tokens, colores o CSS global V2 nuevos.
 - Validación: `bun --cwd apps/web typecheck`, lint focal de los tres componentes y `git diff --check` correctos el 2026-08-03. Falta smoke manual en navegador para `/portal/publishing/calendar` en escritorio, móvil y modo claro/oscuro.
+
+## Estados de carga compartidos
+
+- Se retiraron los skeletons y placeholders visuales de las rutas Portal/Admin y de los estados internos de Dashboard, Channels, Captions, Profile, Integrations, Files, AI Studio, Commerce, Plans y Publishing.
+- `packages/ui/src/components/spinner.tsx` adopta el spinner de 12 barras recuperado vía MCP desde `21st.dev/@shugar/components/spinner-1`; `PageLoading` centraliza su uso para superficies de página y conserva `aria-busy`/etiquetas accesibles.
+- Los flags y transiciones `isLoading`/`loading` se mantienen: el cambio es solamente de presentación y no modifica autenticación, reintentos, llamadas REST ni contratos.

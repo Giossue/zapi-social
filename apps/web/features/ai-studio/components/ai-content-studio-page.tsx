@@ -12,9 +12,17 @@ import {
   Sparkles,
 } from "lucide-react"
 
-import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert"
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@workspace/ui/components/alert"
 import { Badge } from "@workspace/ui/components/badge"
-import { Bubble, BubbleContent, BubbleGroup } from "@workspace/ui/components/bubble"
+import {
+  Bubble,
+  BubbleContent,
+  BubbleGroup,
+} from "@workspace/ui/components/bubble"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
@@ -43,7 +51,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Textarea } from "@workspace/ui/components/textarea"
 
 import { createAIContentResultsMock } from "@/features/ai-studio/mocks/ai-content-repository"
@@ -84,30 +91,23 @@ function AIContentResultCard({ result }: { result: AIContentResult }) {
       </CardContent>
       <CardFooter>
         <span className="text-xs text-muted-foreground">
-          {copied ? "Copiado en este mock" : "Resultado generado con datos mock"}
+          {copied
+            ? "Copiado en este mock"
+            : "Resultado generado con datos mock"}
         </span>
       </CardFooter>
     </Card>
   )
 }
 
-export function AIContentLoading() {
-  return (
-    <div aria-busy="true" className="grid gap-4 xl:grid-cols-[17rem_minmax(0,1fr)_18rem]">
-      <Skeleton className="h-96" />
-      <Skeleton className="h-[34rem]" />
-      <Skeleton className="h-96" />
-    </div>
-  )
-}
-
 export function AIContentStudioPage({ data }: { data: AIContentStudioData }) {
-  const [activeTemplateId, setActiveTemplateId] = useState(data.templates[0]?.id ?? "")
+  const [activeTemplateId, setActiveTemplateId] = useState(
+    data.templates[0]?.id ?? ""
+  )
   const [prompt, setPrompt] = useState(data.templates[0]?.prompt ?? "")
   const [tone, setTone] = useState("Cercano")
-  const [selectedPlatforms, setSelectedPlatforms] = useState<readonly string[]>(
-    platforms
-  )
+  const [selectedPlatforms, setSelectedPlatforms] =
+    useState<readonly string[]>(platforms)
   const [results, setResults] = useState<readonly AIContentResult[]>(
     data.initialResults
   )
@@ -134,12 +134,16 @@ export function AIContentStudioPage({ data }: { data: AIContentStudioData }) {
     const normalizedPrompt = prompt.trim()
 
     if (!normalizedPrompt) {
-      setPromptError("Describe el contenido que quieres crear antes de generar.")
+      setPromptError(
+        "Describe el contenido que quieres crear antes de generar."
+      )
       return
     }
 
     if (selectedPlatforms.length === 0) {
-      setPromptError("Selecciona al menos una plataforma para crear las versiones.")
+      setPromptError(
+        "Selecciona al menos una plataforma para crear las versiones."
+      )
       return
     }
 
@@ -166,7 +170,8 @@ export function AIContentStudioPage({ data }: { data: AIContentStudioData }) {
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
-          Selecciona una base, ajusta el enfoque y revisa las versiones antes de usarlas.
+          Selecciona una base, ajusta el enfoque y revisa las versiones antes de
+          usarlas.
         </p>
         <Badge variant="info">{data.creditsAvailable} créditos mock</Badge>
       </div>
@@ -184,7 +189,11 @@ export function AIContentStudioPage({ data }: { data: AIContentStudioData }) {
               const selected = template.id === activeTemplateId
 
               return (
-                <Card key={template.id} size="sm" variant={selected ? "interactive" : "inset"}>
+                <Card
+                  key={template.id}
+                  size="sm"
+                  variant={selected ? "interactive" : "inset"}
+                >
                   <CardContent className="flex flex-col gap-2">
                     <p className="font-medium">{template.title}</p>
                     <p className="text-xs leading-relaxed text-muted-foreground">
@@ -203,13 +212,20 @@ export function AIContentStudioPage({ data }: { data: AIContentStudioData }) {
             })}
           </CardContent>
           <CardFooter className="flex-col items-stretch gap-2">
-            <p className="text-xs font-medium text-muted-foreground">Borradores recientes</p>
+            <p className="text-xs font-medium text-muted-foreground">
+              Borradores recientes
+            </p>
             {data.drafts.map((draft) => (
               <div className="flex min-w-0 items-start gap-2" key={draft.id}>
-                <FileText aria-hidden="true" className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
+                <FileText
+                  aria-hidden="true"
+                  className="mt-0.5 size-3.5 shrink-0 text-muted-foreground"
+                />
                 <div className="min-w-0">
                   <p className="truncate text-xs font-medium">{draft.title}</p>
-                  <p className="truncate text-xs text-muted-foreground">{draft.updatedAt}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {draft.updatedAt}
+                  </p>
                 </div>
               </div>
             ))}
@@ -225,24 +241,33 @@ export function AIContentStudioPage({ data }: { data: AIContentStudioData }) {
                   El resultado se genera localmente a partir de tu briefing.
                 </CardDescription>
               </div>
-              <Bot aria-hidden="true" className="size-5 shrink-0 text-muted-foreground" />
+              <Bot
+                aria-hidden="true"
+                className="size-5 shrink-0 text-muted-foreground"
+              />
             </div>
           </CardHeader>
           <CardContent className="flex flex-col gap-5">
             <BubbleGroup>
               <Bubble align="start" variant="muted">
                 <BubbleContent>
-                  Cuéntame qué quieres comunicar. Prepararé dos versiones para las plataformas que selecciones.
+                  Cuéntame qué quieres comunicar. Prepararé dos versiones para
+                  las plataformas que selecciones.
                 </BubbleContent>
               </Bubble>
               <Bubble align="end" variant="default">
-                <BubbleContent>{prompt || "Escribe un briefing para comenzar."}</BubbleContent>
+                <BubbleContent>
+                  {prompt || "Escribe un briefing para comenzar."}
+                </BubbleContent>
               </Bubble>
             </BubbleGroup>
 
             {isGenerating ? (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <LoaderCircle aria-hidden="true" className="size-4 animate-spin" />
+                <LoaderCircle
+                  aria-hidden="true"
+                  className="size-4 animate-spin"
+                />
                 Preparando versiones mock…
               </div>
             ) : (
@@ -274,7 +299,10 @@ export function AIContentStudioPage({ data }: { data: AIContentStudioData }) {
             </Field>
             <Button disabled={isGenerating} onClick={generate}>
               {isGenerating ? (
-                <LoaderCircle className="animate-spin" data-icon="inline-start" />
+                <LoaderCircle
+                  className="animate-spin"
+                  data-icon="inline-start"
+                />
               ) : (
                 <Send data-icon="inline-start" />
               )}

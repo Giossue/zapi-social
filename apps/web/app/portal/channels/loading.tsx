@@ -1,5 +1,5 @@
-import { ChannelsLoading } from "@/features/channels/components/channels-loading"
+import { PageLoading } from "@workspace/ui/components/page-loading"
 
 export default function ChannelsLoadingRoute() {
-  return <ChannelsLoading />
+  return <PageLoading />
 }

@@ -5,7 +5,7 @@ import type { ReactNode } from "react"
 
 import { flexRender, type Table as TableType } from "@tanstack/react-table"
 
-import { Skeleton } from "@workspace/ui/components/skeleton"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@workspace/ui/components/table"
 
@@ -57,7 +57,9 @@ export function ChannelsTable({
               ["one", "two", "three"].map((item) => (
                 <TableRow key={item}>
                   <TableCell className="px-3 py-4 align-middle" colSpan={table.getVisibleLeafColumns().length}>
-                    <Skeleton className="h-10" />
+                    <div className="flex h-10 items-center justify-center">
+                      <Spinner aria-label="Filtrando canales" />
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

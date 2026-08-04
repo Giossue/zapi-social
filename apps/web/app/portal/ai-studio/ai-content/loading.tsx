@@ -1,5 +1,5 @@
-import { AIContentLoading } from "@/features/ai-studio/components/ai-content-studio-page"
+import { PageLoading } from "@workspace/ui/components/page-loading"
 
 export default function AIContentLoadingRoute() {
-  return <AIContentLoading />
+  return <PageLoading />
 }

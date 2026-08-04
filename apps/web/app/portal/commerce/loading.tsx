@@ -1,5 +1,5 @@
-import { CommerceDashboardLoading } from "@/features/commerce/components/commerce-dashboard-page"
+import { PageLoading } from "@workspace/ui/components/page-loading"
 
 export default function CommerceLoadingRoute() {
-  return <CommerceDashboardLoading />
+  return <PageLoading />
 }

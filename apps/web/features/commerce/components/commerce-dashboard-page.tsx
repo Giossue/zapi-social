@@ -12,7 +12,11 @@ import {
   TriangleAlert,
 } from "lucide-react"
 
-import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert"
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@workspace/ui/components/alert"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -31,7 +35,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   Table,
   TableBody,
@@ -40,7 +43,10 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/toggle-group"
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@workspace/ui/components/toggle-group"
 
 import type {
   CommerceChannel,
@@ -118,22 +124,33 @@ function InventorySummary({ items }: { items: readonly InventoryItem[] }) {
     <Card variant="subtle">
       <CardHeader>
         <CardTitle>Inventario</CardTitle>
-        <CardDescription>Estado simulado de las referencias principales.</CardDescription>
+        <CardDescription>
+          Estado simulado de las referencias principales.
+        </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <div className="grid grid-cols-3 gap-2">
           <div className="flex flex-col gap-1 rounded-lg bg-muted p-3">
-            <PackageCheck aria-hidden="true" className="size-4 text-muted-foreground" />
+            <PackageCheck
+              aria-hidden="true"
+              className="size-4 text-muted-foreground"
+            />
             <p className="text-lg font-semibold">{summary.healthy}</p>
             <p className="text-xs text-muted-foreground">disponibles</p>
           </div>
           <div className="flex flex-col gap-1 rounded-lg bg-muted p-3">
-            <TriangleAlert aria-hidden="true" className="size-4 text-muted-foreground" />
+            <TriangleAlert
+              aria-hidden="true"
+              className="size-4 text-muted-foreground"
+            />
             <p className="text-lg font-semibold">{summary.low}</p>
             <p className="text-xs text-muted-foreground">por revisar</p>
           </div>
           <div className="flex flex-col gap-1 rounded-lg bg-muted p-3">
-            <PackageX aria-hidden="true" className="size-4 text-muted-foreground" />
+            <PackageX
+              aria-hidden="true"
+              className="size-4 text-muted-foreground"
+            />
             <p className="text-lg font-semibold">{summary.out}</p>
             <p className="text-xs text-muted-foreground">agotados</p>
           </div>
@@ -143,11 +160,15 @@ function InventorySummary({ items }: { items: readonly InventoryItem[] }) {
             const status = inventoryStatusMeta[item.status]
 
             return (
-              <div className="flex items-start justify-between gap-3" key={item.id}>
+              <div
+                className="flex items-start justify-between gap-3"
+                key={item.id}
+              >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{item.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {item.sku} · {item.available} disponibles · {item.reserved} reservadas
+                    {item.sku} · {item.available} disponibles · {item.reserved}{" "}
+                    reservadas
                   </p>
                 </div>
                 <Badge variant={status.variant}>{status.label}</Badge>
@@ -192,43 +213,29 @@ function OrdersTable({ orders }: { orders: readonly CommerceOrder[] }) {
               <TableCell>
                 <div className="min-w-0">
                   <p className="font-medium">{order.id}</p>
-                  <p className="truncate text-xs text-muted-foreground">{order.customer}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {order.customer}
+                  </p>
                 </div>
               </TableCell>
               <TableCell className="capitalize">{order.channel}</TableCell>
-              <TableCell className="hidden md:table-cell">{order.itemCount}</TableCell>
+              <TableCell className="hidden md:table-cell">
+                {order.itemCount}
+              </TableCell>
               <TableCell className="hidden text-muted-foreground lg:table-cell">
                 {order.updatedAt}
               </TableCell>
               <TableCell>
                 <Badge variant={status.variant}>{status.label}</Badge>
               </TableCell>
-              <TableCell className="text-right font-medium">{order.total}</TableCell>
+              <TableCell className="text-right font-medium">
+                {order.total}
+              </TableCell>
             </TableRow>
           )
         })}
       </TableBody>
     </Table>
-  )
-}
-
-export function CommerceDashboardLoading() {
-  return (
-    <div aria-busy="true" className="flex flex-col gap-5">
-      <div className="flex flex-wrap justify-between gap-3">
-        <Skeleton className="h-8 w-64" />
-        <Skeleton className="h-8 w-72" />
-      </div>
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {["one", "two", "three", "four"].map((item) => (
-          <Skeleton className="h-32" key={item} />
-        ))}
-      </div>
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_22rem]">
-        <Skeleton className="h-96" />
-        <Skeleton className="h-96" />
-      </div>
-    </div>
   )
 }
 
@@ -248,7 +255,8 @@ export function CommerceErrorState({ onRetry }: { onRetry: () => void }) {
       <CircleAlert aria-hidden="true" />
       <AlertTitle>No se pudo cargar Commerce</AlertTitle>
       <AlertDescription>
-        Ninguna orden ni inventario fue modificado. Intenta recuperar el dashboard visual.
+        Ninguna orden ni inventario fue modificado. Intenta recuperar el
+        dashboard visual.
       </AlertDescription>
       <div className="mt-3 flex">
         <Button onClick={onRetry} variant="brand-secondary">
@@ -286,7 +294,8 @@ export function CommerceDashboardPage({
         <CircleAlert aria-hidden="true" />
         <AlertTitle>Dashboard visual mock</AlertTitle>
         <AlertDescription>
-          Los indicadores y filtros usan fixtures locales y deterministas. Esta pantalla no consulta ni modifica API, órdenes, inventario o backend.
+          Los indicadores y filtros usan fixtures locales y deterministas. Esta
+          pantalla no consulta ni modifica API, órdenes, inventario o backend.
         </AlertDescription>
       </Alert>
 
@@ -294,7 +303,8 @@ export function CommerceDashboardPage({
         <div>
           <p className="font-medium">Resumen comercial</p>
           <p className="text-sm text-muted-foreground">
-            Referencia visual para {periodLabels[period].toLocaleLowerCase("es")}.
+            Referencia visual para{" "}
+            {periodLabels[period].toLocaleLowerCase("es")}.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
