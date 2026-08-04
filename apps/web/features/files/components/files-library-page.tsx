@@ -340,6 +340,7 @@ export function FilesLibraryPage() {
       ),
     [assetFilter, folderId, library?.assets, query]
   )
+  const hasFilters = Boolean(query.trim()) || assetFilter !== "all" || folderId !== "all"
 
   function toggleAsset(id: string) {
     setSelectedAssetIds((current) =>
@@ -483,20 +484,22 @@ export function FilesLibraryPage() {
         {assets.length === 0 ? (
           <EmptyState
             action={
-              <Button
-                onClick={() => {
-                  setAssetFilter("all")
-                  setFolderId("all")
-                  setQuery("")
-                }}
-                variant="brand-secondary"
-              >
-                Limpiar filtros
-              </Button>
+              hasFilters ? (
+                <Button
+                  onClick={() => {
+                    setAssetFilter("all")
+                    setFolderId("all")
+                    setQuery("")
+                  }}
+                  variant="brand-secondary"
+                >
+                  Limpiar filtros
+                </Button>
+              ) : undefined
             }
-            description="Prueba con otro término o restablece los filtros para consultar todos los archivos disponibles."
+            description={hasFilters ? "Prueba con otro término o restablece los filtros para consultar todos los archivos disponibles." : "Sube un archivo o crea una carpeta para comenzar a organizar tu biblioteca."}
             icon={Search}
-            title="No encontramos archivos"
+            title={hasFilters ? "No encontramos archivos" : "Aún no tienes archivos"}
           />
         ) : view === "grid" ? (
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
