@@ -37,6 +37,11 @@ import type {
   PortalCaptionsResponse,
   PortalCaption,
   UpdatePortalCaptionInput,
+  PortalFilesResponse,
+  PortalFilesQuery,
+  CreatePortalFileFolderInput,
+  UpdatePortalFileAssetInput,
+  StartPortalFileUploadInput,
 } from "@workspace/contracts"
 
 const apiBaseUrl =
@@ -232,6 +237,50 @@ export const captionsApi = {
     }),
   remove: (id: string) =>
     request<void>(`/v1/portal/captions/${id}`, { method: "DELETE" }),
+}
+
+function portalFilesQueryString(query: Partial<PortalFilesQuery> = {}) {
+  const params = new URLSearchParams()
+  if (query.q) params.set("q", query.q)
+  if (query.folderId) params.set("folderId", query.folderId)
+  if (query.kind) params.set("kind", query.kind)
+  if (query.starred !== undefined) params.set("starred", String(query.starred))
+  const value = params.toString()
+  return value ? `?${value}` : ""
+}
+
+export const filesApi = {
+  list: (query?: Partial<PortalFilesQuery>) =>
+    request<PortalFilesResponse>(
+      `/v1/portal/files${portalFilesQueryString(query)}`,
+      { method: "GET" }
+    ),
+  createFolder: (input: CreatePortalFileFolderInput) =>
+    request<unknown>("/v1/portal/files/folders", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  update: (id: string, input: UpdatePortalFileAssetInput) =>
+    request<unknown>(`/v1/portal/files/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) =>
+    request<void>(`/v1/portal/files/${id}`, { method: "DELETE" }),
+  startUpload: (input: StartPortalFileUploadInput) =>
+    request<{ id: string; uploadUrl: string }>("/v1/portal/files/uploads", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  upload: async (id: string, file: File) => {
+    const response = await fetch(`${apiBaseUrl}/v1/portal/files/${id}/upload`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "content-type": "application/octet-stream" },
+      body: file,
+    })
+    if (!response.ok) throw new ApiError("REQUEST_FAILED", response.status)
+  },
 }
 
 export const channelsApi = {

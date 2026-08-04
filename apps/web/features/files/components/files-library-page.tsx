@@ -1,15 +1,19 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { filesApi } from "@workspace/api-client"
+import { toast } from "@workspace/ui/components/toast"
 import Link from "next/link"
 import {
   FileText,
   Folder,
+  FolderPlus,
   Grid2X2,
   Image,
   List,
   MoreHorizontal,
   Search,
+  Star,
   Share2,
   Sparkles,
   Upload,
@@ -40,6 +44,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@workspace/ui/components/input-group"
+import { Input } from "@workspace/ui/components/input"
 import {
   Select,
   SelectContent,
@@ -56,7 +61,10 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/toggle-group"
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@workspace/ui/components/toggle-group"
 
 import { FilesPermissionState } from "@/features/files/components/files-states"
 import type {
@@ -114,10 +122,12 @@ function AssetCard({
   asset,
   selected,
   onSelect,
+  onToggleStar,
 }: {
   asset: FileAsset
   selected: boolean
   onSelect: (id: string) => void
+  onToggleStar: (asset: FileAsset) => void
 }) {
   const { icon: AssetIcon } = assetKindMeta[asset.kind]
 
@@ -126,15 +136,18 @@ function AssetCard({
       <CardHeader>
         <div className="flex items-start justify-between gap-3">
           <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
-            <AssetIcon aria-hidden="true" className="size-5 text-muted-foreground" />
+            <AssetIcon
+              aria-hidden="true"
+              className="size-5 text-muted-foreground"
+            />
           </div>
           <Button
-            aria-label={`${selected ? "Quitar" : "Seleccionar"} ${asset.name}`}
-            onClick={() => onSelect(asset.id)}
+            aria-label={`${asset.starred ? "Quitar de favoritos" : "Añadir a favoritos"} ${asset.name}`}
+            onClick={() => onToggleStar(asset)}
             size="icon-sm"
             variant="brand-secondary"
           >
-            <MoreHorizontal />
+            <Star className={asset.starred ? "fill-current" : undefined} />
           </Button>
         </div>
         <CardTitle className="truncate">{asset.name}</CardTitle>
@@ -156,7 +169,11 @@ function AssetCard({
         <span className="text-xs text-muted-foreground">
           {selected ? "Seleccionado" : "Disponible"}
         </span>
-        <Button onClick={() => onSelect(asset.id)} size="sm" variant="brand-secondary">
+        <Button
+          onClick={() => onSelect(asset.id)}
+          size="sm"
+          variant="brand-secondary"
+        >
           {selected ? "Quitar" : "Seleccionar"}
         </Button>
       </CardFooter>
@@ -192,10 +209,15 @@ function AssetsTable({
             <TableRow key={asset.id}>
               <TableCell>
                 <div className="flex min-w-0 items-center gap-3">
-                  <AssetIcon aria-hidden="true" className="size-5 shrink-0 text-muted-foreground" />
+                  <AssetIcon
+                    aria-hidden="true"
+                    className="size-5 shrink-0 text-muted-foreground"
+                  />
                   <div className="min-w-0">
                     <p className="truncate font-medium">{asset.name}</p>
-                    <p className="text-xs text-muted-foreground">{asset.size}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {asset.size}
+                    </p>
                   </div>
                 </div>
               </TableCell>
@@ -222,20 +244,101 @@ function AssetsTable({
   )
 }
 
-export function FilesLibraryPage({ library }: { library: FileLibraryData }) {
+function formatSize(sizeBytes: number) {
+  return sizeBytes < 1024 * 1024
+    ? `${Math.max(1, Math.round(sizeBytes / 1024))} KB`
+    : `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+export function FilesLibraryPage() {
+  const [library, setLibrary] = useState<FileLibraryData | null>(null)
   const [query, setQuery] = useState("")
   const [assetFilter, setAssetFilter] = useState<AssetFilter>("all")
   const [folderId, setFolderId] = useState<string | "all">("all")
   const [view, setView] = useState<FilesView>("grid")
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([])
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
+  const [folderDialogOpen, setFolderDialogOpen] = useState(false)
+  const [folderName, setFolderName] = useState("")
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const loadLibrary = useCallback(async () => {
+    try {
+      const data = await filesApi.list()
+      setLibrary({
+        canView: true,
+        canUpload: data.canManage,
+        folders: data.folders.map((folder) => ({
+          ...folder,
+          size: formatSize(folder.sizeBytes),
+          updatedAt: new Intl.DateTimeFormat("es", {
+            dateStyle: "medium",
+          }).format(new Date(folder.updatedAt)),
+        })),
+        assets: data.files.map((asset) => ({
+          id: asset.id,
+          name: asset.name,
+          folderId: asset.folderId,
+          kind:
+            asset.kind === "image" || asset.kind === "video"
+              ? asset.kind
+              : "document",
+          size: formatSize(asset.sizeBytes),
+          dimensions: null,
+          updatedAt: new Intl.DateTimeFormat("es", {
+            dateStyle: "medium",
+          }).format(new Date(asset.modifiedAt)),
+          shared: false,
+          generatedWithAi: false,
+          starred: asset.starred,
+        })),
+      })
+    } catch {
+      setLibrary({ canView: false, canUpload: false, folders: [], assets: [] })
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadLibrary()
+  }, [loadLibrary])
+
+  async function uploadSelectedFile(file: File) {
+    try {
+      const upload = await filesApi.startUpload({
+        name: file.name,
+        mimeType: file.type || "application/octet-stream",
+        sizeBytes: file.size,
+        folderId: folderId === "all" ? null : folderId,
+      })
+      await filesApi.upload(upload.id, file)
+      setUploadDialogOpen(false)
+      await loadLibrary()
+      toast.success("Archivo subido")
+    } catch {
+      toast.error("No se pudo subir el archivo")
+    }
+  }
+
+  async function createFolder() {
+    const name = folderName.trim()
+    if (!name) return
+    try {
+      await filesApi.createFolder({ name })
+      setFolderName("")
+      setFolderDialogOpen(false)
+      await loadLibrary()
+      toast.success("Carpeta creada")
+    } catch {
+      toast.error("No se pudo crear la carpeta")
+    }
+  }
 
   const assets = useMemo(
     () =>
-      library.assets.filter((asset) =>
+      (library?.assets ?? []).filter((asset) =>
         assetMatches(asset, query, assetFilter, folderId)
       ),
-    [assetFilter, folderId, library.assets, query]
+    [assetFilter, folderId, library?.assets, query]
   )
 
   function toggleAsset(id: string) {
@@ -246,6 +349,17 @@ export function FilesLibraryPage({ library }: { library: FileLibraryData }) {
     )
   }
 
+  async function toggleStar(asset: FileAsset) {
+    try {
+      await filesApi.update(asset.id, { starred: !asset.starred })
+      await loadLibrary()
+      toast.success(asset.starred ? "Quitado de favoritos" : "Añadido a favoritos")
+    } catch {
+      toast.error("No se pudo actualizar favoritos")
+    }
+  }
+
+  if (library === null) return null
   if (!library.canView) return <FilesPermissionState mode="library" />
 
   return (
@@ -263,11 +377,13 @@ export function FilesLibraryPage({ library }: { library: FileLibraryData }) {
           />
         </InputGroup>
         <div className="flex flex-wrap items-center gap-2">
-          <Button asChild variant="brand-secondary">
-            <Link href="/portal/files/search-online">
-              <Image data-icon="inline-start" />
-              Buscar online
-            </Link>
+          <Button
+            disabled={!library.canUpload}
+            onClick={() => setFolderDialogOpen(true)}
+            variant="brand-secondary"
+          >
+            <FolderPlus data-icon="inline-start" />
+            Nueva carpeta
           </Button>
           <Button
             disabled={!library.canUpload}
@@ -284,7 +400,10 @@ export function FilesLibraryPage({ library }: { library: FileLibraryData }) {
           <Card key={folder.id} size="sm" variant="subtle">
             <CardHeader>
               <div className="flex items-center justify-between gap-3">
-                <Folder aria-hidden="true" className="size-5 text-muted-foreground" />
+                <Folder
+                  aria-hidden="true"
+                  className="size-5 text-muted-foreground"
+                />
                 <Badge variant={folderId === folder.id ? "default" : "neutral"}>
                   {folder.fileCount} archivos
                 </Badge>
@@ -293,7 +412,9 @@ export function FilesLibraryPage({ library }: { library: FileLibraryData }) {
               <CardDescription>{folder.updatedAt}</CardDescription>
             </CardHeader>
             <CardFooter className="justify-between">
-              <span className="text-xs text-muted-foreground">{folder.size}</span>
+              <span className="text-xs text-muted-foreground">
+                {folder.size}
+              </span>
               <Button
                 onClick={() =>
                   setFolderId((current) =>
@@ -315,7 +436,9 @@ export function FilesLibraryPage({ library }: { library: FileLibraryData }) {
           <div className="flex flex-wrap items-center gap-2">
             <p className="font-medium">{assets.length} archivos</p>
             {selectedAssetIds.length > 0 ? (
-              <Badge variant="info">{selectedAssetIds.length} seleccionados</Badge>
+              <Badge variant="info">
+                {selectedAssetIds.length} seleccionados
+              </Badge>
             ) : null}
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -382,6 +505,7 @@ export function FilesLibraryPage({ library }: { library: FileLibraryData }) {
                 asset={asset}
                 key={asset.id}
                 onSelect={toggleAsset}
+                onToggleStar={toggleStar}
                 selected={selectedAssetIds.includes(asset.id)}
               />
             ))}
@@ -409,8 +533,54 @@ export function FilesLibraryPage({ library }: { library: FileLibraryData }) {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={() => setUploadDialogOpen(false)} variant="brand-secondary">
+            <input
+              className="sr-only"
+              onChange={(event) => {
+                const file = event.target.files?.[0]
+                if (file) void uploadSelectedFile(file)
+                event.currentTarget.value = ""
+              }}
+              ref={fileInputRef}
+              type="file"
+            />
+            <Button onClick={() => fileInputRef.current?.click()}>
+              Seleccionar archivo
+            </Button>
+            <Button
+              onClick={() => setUploadDialogOpen(false)}
+              variant="brand-secondary"
+            >
               Cerrar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog onOpenChange={setFolderDialogOpen} open={folderDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nueva carpeta</DialogTitle>
+            <DialogDescription>
+              Organiza los archivos de este espacio de trabajo.
+            </DialogDescription>
+          </DialogHeader>
+          <Input
+            aria-label="Nombre de carpeta"
+            onChange={(event) => setFolderName(event.target.value)}
+            placeholder="Nombre de carpeta"
+            value={folderName}
+          />
+          <DialogFooter>
+            <Button
+              onClick={() => void createFolder()}
+              disabled={!folderName.trim()}
+            >
+              Crear carpeta
+            </Button>
+            <Button
+              onClick={() => setFolderDialogOpen(false)}
+              variant="brand-secondary"
+            >
+              Cancelar
             </Button>
           </DialogFooter>
         </DialogContent>

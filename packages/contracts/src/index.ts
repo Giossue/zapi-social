@@ -192,6 +192,69 @@ export const updatePortalCaptionSchema = z
     message: "Incluye al menos un campo para actualizar.",
   })
 
+export const portalFileKindSchema = z.enum([
+  "archive",
+  "design",
+  "document",
+  "image",
+  "pdf",
+  "spreadsheet",
+  "video",
+])
+export const portalFileStatusSchema = z.enum(["pending", "ready", "trashed"])
+export const portalFileAssetSchema = z.object({
+  id: z.uuid(),
+  folderId: z.uuid().nullable(),
+  name: z.string(),
+  kind: portalFileKindSchema,
+  mimeType: z.string(),
+  sizeBytes: z.number().int().nonnegative(),
+  owner: z.string(),
+  ownerInitials: z.string(),
+  modifiedAt: z.string().datetime(),
+  starred: z.boolean(),
+})
+export const portalFileFolderSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  fileCount: z.number().int().nonnegative(),
+  sizeBytes: z.number().int().nonnegative(),
+  updatedAt: z.string().datetime(),
+})
+export const portalFilesResponseSchema = z.object({
+  canManage: z.boolean(),
+  folders: z.array(portalFileFolderSchema),
+  files: z.array(portalFileAssetSchema),
+})
+export const portalFilesQuerySchema = z
+  .object({
+    q: z.string().trim().min(1).max(255).optional(),
+    folderId: z.uuid().optional(),
+    kind: portalFileKindSchema.optional(),
+    starred: z.coerce.boolean().optional(),
+  })
+  .strict()
+export const createPortalFileFolderSchema = z
+  .object({ name: z.string().trim().min(1).max(160) })
+  .strict()
+export const updatePortalFileFolderSchema = createPortalFileFolderSchema
+export const updatePortalFileAssetSchema = z
+  .object({
+    starred: z.boolean().optional(),
+    folderId: z.uuid().nullable().optional(),
+  })
+  .strict()
+  .refine((input) => Object.keys(input).length > 0)
+export const startPortalFileUploadSchema = z
+  .object({
+    name: z.string().trim().min(1).max(255),
+    mimeType: z.string().trim().min(1).max(127),
+    sizeBytes: z.number().int().positive().max(104857600),
+    folderId: z.uuid().nullable().optional(),
+  })
+  .strict()
+export const completePortalFileUploadSchema = z.object({}).strict()
+
 export const portalDashboardSchema = z.object({
   welcome: z.object({ name: z.string() }),
   primaryAction: dashboardActionSchema,
@@ -337,6 +400,20 @@ export type PortalCaptionsResponse = z.infer<
 export type PortalCaptionsQuery = z.infer<typeof portalCaptionsQuerySchema>
 export type CreatePortalCaptionInput = z.infer<typeof createPortalCaptionSchema>
 export type UpdatePortalCaptionInput = z.infer<typeof updatePortalCaptionSchema>
+export type PortalFileKind = z.infer<typeof portalFileKindSchema>
+export type PortalFileAsset = z.infer<typeof portalFileAssetSchema>
+export type PortalFileFolder = z.infer<typeof portalFileFolderSchema>
+export type PortalFilesResponse = z.infer<typeof portalFilesResponseSchema>
+export type PortalFilesQuery = z.infer<typeof portalFilesQuerySchema>
+export type CreatePortalFileFolderInput = z.infer<
+  typeof createPortalFileFolderSchema
+>
+export type UpdatePortalFileAssetInput = z.infer<
+  typeof updatePortalFileAssetSchema
+>
+export type StartPortalFileUploadInput = z.infer<
+  typeof startPortalFileUploadSchema
+>
 export type ChannelStatus = z.infer<typeof channelStatusSchema>
 export type ChannelAccount = z.infer<typeof channelAccountSchema>
 export type ChannelMetrics = z.infer<typeof channelMetricsSchema>

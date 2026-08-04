@@ -71,6 +71,13 @@
       "when": 1785682243462,
       "tag": "0009_adorable_caretaker",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1785816661827,
+      "tag": "0010_mighty_sprite",
+      "breakpoints": true
     }
   ]
 }

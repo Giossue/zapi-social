@@ -13,6 +13,7 @@ const schema = z.object({
   REDIS_PORT: z.coerce.number().int().positive().default(6379),
   REDIS_USERNAME: z.string().min(1).optional(),
   REDIS_PASSWORD: z.string().min(1).optional(),
+  FILES_STORAGE_PATH: z.string().min(1).default('/var/lib/zapi/files'),
 });
 
 export type Env = z.infer<typeof schema>;

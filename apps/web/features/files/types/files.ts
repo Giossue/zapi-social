@@ -10,6 +10,7 @@ export type FileAsset = {
   updatedAt: string
   shared: boolean
   generatedWithAi: boolean
+  starred?: boolean
 }
 
 export type FileFolder = {

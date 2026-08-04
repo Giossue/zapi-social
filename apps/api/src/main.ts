@@ -16,6 +16,14 @@ async function bootstrap() {
   );
 
   await app.register(fastifyCookie);
+  app
+    .getHttpAdapter()
+    .getInstance()
+    .addContentTypeParser(
+      'application/octet-stream',
+      { parseAs: 'buffer' },
+      (_request, body, done) => done(null, body),
+    );
   const webOrigins = Array.from(
     new Set([
       process.env.WEB_ORIGIN ?? 'http://localhost:3000',

@@ -277,7 +277,7 @@ export function PublishingPostsTable({
             <CardTitle>{tableTitle}</CardTitle>
             <CardDescription>{tableDescription}</CardDescription>
           </div>
-          <div className="grid w-full gap-3 sm:grid-cols-2 lg:w-auto lg:grid-cols-[minmax(14rem,1fr)_10rem_10rem_auto]">
+          <div className="grid w-full gap-3 sm:grid-cols-2 lg:w-auto lg:grid-cols-[minmax(14rem,1fr)_11rem_11rem_auto]">
             <InputGroup>
               <InputGroupAddon>
                 <Search aria-hidden="true" />

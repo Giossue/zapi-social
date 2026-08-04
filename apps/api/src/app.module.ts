@@ -11,6 +11,7 @@ import { HealthController } from './health/health.controller';
 import { IdentityModule } from './identity/identity.module';
 import { IntegrationsModule } from './integrations/integrations.module';
 import { PlansModule } from './plans/plans.module';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { PlansModule } from './plans/plans.module';
     DashboardModule,
     IntegrationsModule,
     PlansModule,
+    FilesModule,
     IdentityModule,
     BullModule.forRoot({
       connection: {

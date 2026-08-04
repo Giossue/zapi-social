@@ -594,3 +594,67 @@ export const plans = pgTable(
     index("plans_status_position_index").on(table.status, table.position),
   ]
 )
+
+export const fileFolders = pgTable(
+  "file_folders",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    createdByUserId: uuid("created_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    name: varchar("name", { length: 160 }).notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("file_folders_workspace_name_unique").on(
+      table.workspaceId,
+      table.name
+    ),
+    index("file_folders_workspace_updated_index").on(
+      table.workspaceId,
+      table.updatedAt
+    ),
+  ]
+)
+
+export const fileAssets = pgTable(
+  "file_assets",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    folderId: uuid("folder_id").references(() => fileFolders.id, {
+      onDelete: "set null",
+    }),
+    createdByUserId: uuid("created_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    storageKey: varchar("storage_key", { length: 512 }).notNull(),
+    name: varchar("name", { length: 255 }).notNull(),
+    mimeType: varchar("mime_type", { length: 127 }).notNull(),
+    sizeBytes: integer("size_bytes").notNull(),
+    status: varchar("status", { length: 16 })
+      .$type<"pending" | "ready" | "trashed">()
+      .notNull()
+      .default("pending"),
+    starred: boolean("starred").notNull().default(false),
+    trashedAt: timestamp("trashed_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("file_assets_storage_key_unique").on(table.storageKey),
+    index("file_assets_workspace_status_updated_index").on(
+      table.workspaceId,
+      table.status,
+      table.updatedAt
+    ),
+    index("file_assets_workspace_folder_index").on(
+      table.workspaceId,
+      table.folderId
+    ),
+  ]
+)
