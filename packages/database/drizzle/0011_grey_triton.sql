@@ -1,0 +1,3 @@
+ALTER TABLE "file_folders" ADD COLUMN "parent_folder_id" uuid;--> statement-breakpoint
+ALTER TABLE "file_folders" ADD CONSTRAINT "file_folders_parent_folder_id_file_folders_id_fk" FOREIGN KEY ("parent_folder_id") REFERENCES "public"."file_folders"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "file_folders_workspace_parent_updated_index" ON "file_folders" USING btree ("workspace_id","parent_folder_id","updated_at");

@@ -216,6 +216,7 @@ export const portalFileAssetSchema = z.object({
 })
 export const portalFileFolderSchema = z.object({
   id: z.uuid(),
+  parentFolderId: z.uuid().nullable(),
   name: z.string(),
   fileCount: z.number().int().nonnegative(),
   sizeBytes: z.number().int().nonnegative(),
@@ -235,9 +236,14 @@ export const portalFilesQuerySchema = z
   })
   .strict()
 export const createPortalFileFolderSchema = z
+  .object({
+    name: z.string().trim().min(1).max(160),
+    parentFolderId: z.uuid().nullable().optional(),
+  })
+  .strict()
+export const updatePortalFileFolderSchema = z
   .object({ name: z.string().trim().min(1).max(160) })
   .strict()
-export const updatePortalFileFolderSchema = createPortalFileFolderSchema
 export const updatePortalFileAssetSchema = z
   .object({
     starred: z.boolean().optional(),

@@ -58,6 +58,7 @@ export class FilesService {
       canManage: this.canManage(auth),
       folders: folders.map((folder) => ({
         id: folder.id,
+        parentFolderId: folder.parentFolderId,
         name: folder.name,
         fileCount: assets.filter(({ asset }) => asset.folderId === folder.id)
           .length,
@@ -85,11 +86,25 @@ export class FilesService {
     this.requireManage(auth);
     const parsed = createPortalFileFolderSchema.safeParse(input);
     if (!parsed.success) throw this.invalid();
+    if (parsed.data.parentFolderId) {
+      const [parent] = await this.database.db
+        .select({ id: fileFolders.id })
+        .from(fileFolders)
+        .where(
+          and(
+            eq(fileFolders.id, parsed.data.parentFolderId),
+            eq(fileFolders.workspaceId, auth.workspace.id),
+          ),
+        )
+        .limit(1);
+      if (!parent) throw this.notFound();
+    }
     const [folder] = await this.database.db
       .insert(fileFolders)
       .values({
         workspaceId: auth.workspace.id,
         createdByUserId: auth.user.id,
+        parentFolderId: parsed.data.parentFolderId ?? null,
         name: parsed.data.name,
       })
       .returning();

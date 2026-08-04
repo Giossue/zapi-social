@@ -16,6 +16,7 @@ export type FileAsset = {
 
 export type FileFolder = {
   id: string
+  parentFolderId: string | null
   name: string
   fileCount: number
   size: string

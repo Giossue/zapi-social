@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm"
 import {
+  type AnyPgColumn,
   boolean,
   index,
   integer,
@@ -605,6 +606,10 @@ export const fileFolders = pgTable(
     createdByUserId: uuid("created_by_user_id")
       .notNull()
       .references(() => users.id, { onDelete: "restrict" }),
+    parentFolderId: uuid("parent_folder_id").references(
+      (): AnyPgColumn => fileFolders.id,
+      { onDelete: "set null" }
+    ),
     name: varchar("name", { length: 160 }).notNull(),
     ...timestamps,
   },
@@ -615,6 +620,11 @@ export const fileFolders = pgTable(
     ),
     index("file_folders_workspace_updated_index").on(
       table.workspaceId,
+      table.updatedAt
+    ),
+    index("file_folders_workspace_parent_updated_index").on(
+      table.workspaceId,
+      table.parentFolderId,
       table.updatedAt
     ),
   ]

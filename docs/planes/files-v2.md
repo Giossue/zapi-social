@@ -12,7 +12,7 @@ REST y UI operativa implementados. La migración aditiva está aplicada; queda e
 
 ## Alcance V2 confirmado
 
-- Inventario aislado por workspace: carpetas y archivos con búsqueda, filtro, orden, vista grid/lista, favorito, creación/renombre de carpeta y papelera lógica.
+- Inventario aislado por workspace: carpetas jerárquicas y archivos con búsqueda, filtro, orden, vista grid/lista, favorito, creación/renombre de carpeta y papelera lógica. La navegación muestra breadcrumb y, dentro de una carpeta, únicamente sus subcarpetas directas.
 - API autenticada bajo `/v1/portal/files`; el servidor recibe y sirve archivos desde su volumen local, persiste metadatos y registra auditoría.
 - El frontend no recibe secretos ni accede a storage o PostgreSQL; consume `@workspace/api-client`.
 - Cualquier miembro activo puede consultar; solo owner o `admin` de workspace puede crear, renombrar, subir o enviar a papelera. Los archivos son propiedad de su workspace, no de la cuenta individual.
@@ -25,7 +25,7 @@ REST y UI operativa implementados. La migración aditiva está aplicada; queda e
 
 ## Modelo y contrato
 
-- `file_folders`: `workspace_id`, `name`, `created_by_user_id`, timestamps; nombre único por workspace.
+- `file_folders`: `workspace_id`, `parent_folder_id` opcional con FK local, `name`, `created_by_user_id`, timestamps; las carpetas existentes sin padre son raíz.
 - `file_assets`: `workspace_id`, `folder_id` opcional, propietario, `storage_key`, nombre, MIME, tamaño, estado (`pending|ready|trashed`), favorito, timestamps y `trashed_at`.
 - Flujo: crear asset pendiente + upload binario `application/octet-stream` por stream → API guarda en su volumen local y confirma `ready`; si falla, elimina el temporal y el asset pendiente. La eliminación es papelera lógica y no borra objetos de forma inmediata.
 - Endpoints implementados: listar, crear/renombrar carpeta, iniciar upload, subir binario, cambiar favorito/mover, mover a papelera y descargar autenticado.

@@ -20,6 +20,14 @@ import {
 } from "lucide-react"
 
 import { Badge } from "@workspace/ui/components/badge"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@workspace/ui/components/breadcrumb"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
@@ -325,7 +333,10 @@ export function FilesLibraryPage() {
     const name = folderName.trim()
     if (!name) return
     try {
-      await filesApi.createFolder({ name })
+      await filesApi.createFolder({
+        name,
+        parentFolderId: folderId === "all" ? null : folderId,
+      })
       setFolderName("")
       setFolderDialogOpen(false)
       await loadLibrary()
@@ -342,8 +353,32 @@ export function FilesLibraryPage() {
       ),
     [assetFilter, folderId, library?.assets, query]
   )
-  const hasFilters =
-    Boolean(query.trim()) || assetFilter !== "all" || folderId !== "all"
+  const folderById = useMemo(
+    () =>
+      new Map((library?.folders ?? []).map((folder) => [folder.id, folder])),
+    [library?.folders]
+  )
+  const currentFolderPath = useMemo(() => {
+    if (folderId === "all") return []
+    const path = [] as NonNullable<typeof library>["folders"][number][]
+    let current = folderById.get(folderId)
+    while (current) {
+      path.unshift(current)
+      current = current.parentFolderId
+        ? folderById.get(current.parentFolderId)
+        : undefined
+    }
+    return path
+  }, [folderById, folderId])
+  const visibleFolders = useMemo(
+    () =>
+      (library?.folders ?? []).filter(
+        (folder) =>
+          folder.parentFolderId === (folderId === "all" ? null : folderId)
+      ),
+    [folderId, library?.folders]
+  )
+  const hasFilters = Boolean(query.trim()) || assetFilter !== "all"
 
   function toggleAsset(id: string) {
     setSelectedAssetIds((current) =>
@@ -401,7 +436,38 @@ export function FilesLibraryPage() {
         </div>
       </div>
 
-      {library.folders.length > 0 ? (
+      {currentFolderPath.length > 0 ? (
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <button onClick={() => setFolderId("all")} type="button">
+                  Archivos
+                </button>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            {currentFolderPath.map((folder, index) => (
+              <BreadcrumbItem key={folder.id}>
+                <BreadcrumbSeparator />
+                {index === currentFolderPath.length - 1 ? (
+                  <BreadcrumbPage>{folder.name}</BreadcrumbPage>
+                ) : (
+                  <BreadcrumbLink asChild>
+                    <button
+                      onClick={() => setFolderId(folder.id)}
+                      type="button"
+                    >
+                      {folder.name}
+                    </button>
+                  </BreadcrumbLink>
+                )}
+              </BreadcrumbItem>
+            ))}
+          </BreadcrumbList>
+        </Breadcrumb>
+      ) : null}
+
+      {visibleFolders.length > 0 ? (
         <section
           className="flex flex-col gap-2"
           aria-labelledby="folders-heading"
@@ -411,11 +477,11 @@ export function FilesLibraryPage() {
               Carpetas
             </h2>
             <span className="text-sm text-muted-foreground">
-              {library.folders.length} carpetas
+              {visibleFolders.length} carpetas
             </span>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {library.folders.map((folder) => (
+            {visibleFolders.map((folder) => (
               <Card key={folder.id} size="sm">
                 <CardHeader>
                   <div className="flex min-w-0 items-center gap-2">
@@ -535,11 +601,17 @@ export function FilesLibraryPage() {
             description={
               hasFilters
                 ? "Prueba con otro término o restablece los filtros para consultar todos los archivos disponibles."
-                : "Sube un archivo o crea una carpeta para comenzar a organizar tu biblioteca."
+                : folderId === "all"
+                  ? "Sube un archivo o crea una carpeta para comenzar a organizar tu biblioteca."
+                  : "Crea una subcarpeta o sube un archivo para organizar este espacio."
             }
             icon={Search}
             title={
-              hasFilters ? "No encontramos archivos" : "Aún no tienes archivos"
+              hasFilters
+                ? "No encontramos archivos"
+                : folderId === "all"
+                  ? "Aún no tienes archivos"
+                  : "Esta carpeta está vacía"
             }
           />
         ) : view === "grid" ? (
