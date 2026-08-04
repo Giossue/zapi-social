@@ -154,20 +154,33 @@ function AssetCard({
   onTrash: (asset: FileAsset) => void
 }) {
   const { icon: AssetIcon, label } = assetKindMeta[asset.kind]
-  const [thumbnailUnavailable, setThumbnailUnavailable] = useState(false)
+  const [imageSource, setImageSource] = useState<
+    "thumbnail" | "preview" | "unavailable"
+  >(asset.thumbnailStatus === "ready" ? "thumbnail" : "preview")
+
+  useEffect(() => {
+    setImageSource(asset.thumbnailStatus === "ready" ? "thumbnail" : "preview")
+  }, [asset.id, asset.thumbnailStatus])
+
+  const imageUrl =
+    imageSource === "thumbnail"
+      ? filesApi.thumbnailUrl(asset.id)
+      : filesApi.previewUrl(asset.id)
 
   return (
     <Card className="group/file" size="sm">
       <CardContent>
         <div className="relative flex h-36 items-center justify-center rounded-lg bg-muted/50">
-          {asset.kind === "image" &&
-          asset.thumbnailStatus === "ready" &&
-          !thumbnailUnavailable ? (
+          {asset.kind === "image" && imageSource !== "unavailable" ? (
             <img
               alt=""
               className="h-full w-full rounded-lg object-cover"
-              onError={() => setThumbnailUnavailable(true)}
-              src={filesApi.thumbnailUrl(asset.id)}
+              onError={() =>
+                setImageSource((current) =>
+                  current === "thumbnail" ? "preview" : "unavailable"
+                )
+              }
+              src={imageUrl}
             />
           ) : (
             <AssetIcon

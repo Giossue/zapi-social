@@ -114,7 +114,7 @@ La implementación visual se hace primero en `diseño ideal` y se copia literalm
 - Diálogo “Mover a carpeta”: árbol navegable con breadcrumb, opción raíz, carpeta actual marcada y descendientes inválidos deshabilitados.
 - Papelera: confirmación contextual, feedback con toast y ruta/tabla de restauración; no usar toast como único mensaje cuando una acción esté bloqueada por Publishing.
 - Preview en Dialog/Sheet canónico: imagen con `img`, vídeo con controles nativos, audio con controles nativos y PDF inline. Tipos sin preview muestran metadata y descarga.
-- Las tarjetas muestran miniatura si `thumbnail_status=ready`; durante `pending` conservan placeholder del diseño canónico; ante `failed` muestran icono de tipo.
+- Las tarjetas muestran miniatura WebP si `thumbnail_status=ready`; mientras está pendiente, falta en un asset histórico o falla, las imágenes usan el preview autenticado original. Solo muestran el icono de tipo si ese preview también falla.
 - El grid y lista conservan loading, vacío inicial, vacío filtrado, error, permisos, responsive, foco y teclado.
 
 ### 6. Integración con Publishing
