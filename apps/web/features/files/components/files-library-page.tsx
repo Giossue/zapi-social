@@ -174,10 +174,6 @@ function AssetCard({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuGroup>
-                <DropdownMenuItem onSelect={() => onToggleStar(asset)}>
-                  <Star />
-                  {asset.starred ? "Quitar de favoritos" : "Añadir a favoritos"}
-                </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => onSelect(asset.id)}>
                   {selected ? "Quitar selección" : "Seleccionar"}
                 </DropdownMenuItem>
