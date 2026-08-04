@@ -21,8 +21,7 @@ async function bootstrap() {
     .getInstance()
     .addContentTypeParser(
       'application/octet-stream',
-      { parseAs: 'buffer' },
-      (_request, body, done) => done(null, body),
+      (_request, _payload, done) => done(null),
     );
   const webOrigins = Array.from(
     new Set([

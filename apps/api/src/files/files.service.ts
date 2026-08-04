@@ -1,6 +1,8 @@
-import { createReadStream } from 'node:fs';
-import { mkdir, rename, rm, writeFile } from 'node:fs/promises';
+import { createReadStream, createWriteStream } from 'node:fs';
+import { mkdir, rename, rm } from 'node:fs/promises';
 import { basename, join, resolve } from 'node:path';
+import { Transform } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { fileAssets, fileFolders, users } from '@workspace/database';
@@ -145,20 +147,55 @@ export class FilesService {
       );
     return { id: asset.id, uploadUrl: `/v1/portal/files/${asset.id}/upload` };
   }
-  async upload(session: Promise<PortalAuthSession>, id: string, body: unknown) {
+  async upload(
+    session: Promise<PortalAuthSession>,
+    id: string,
+    stream: NodeJS.ReadableStream,
+  ) {
     const auth = await session;
     this.requireManage(auth);
-    if (!Buffer.isBuffer(body)) throw this.invalid();
     const asset = await this.asset(auth, id, 'pending');
-    if (body.length !== asset.sizeBytes) throw this.invalid();
     const path = this.path(asset.storageKey);
-    await mkdir(resolve(path, '..'), { recursive: true });
-    await writeFile(`${path}.tmp`, body);
-    await rename(`${path}.tmp`, path);
-    await this.database.db
-      .update(fileAssets)
-      .set({ status: 'ready', updatedAt: new Date() })
-      .where(eq(fileAssets.id, asset.id));
+    const temporaryPath = `${path}.${crypto.randomUUID()}.tmp`;
+    let receivedBytes = 0;
+
+    const guard = new Transform({
+      transform: (chunk: Buffer, _encoding, callback) => {
+        receivedBytes += chunk.length;
+        if (receivedBytes > asset.sizeBytes) {
+          callback(this.invalid());
+          return;
+        }
+        callback(null, chunk);
+      },
+    });
+
+    try {
+      await mkdir(resolve(path, '..'), { recursive: true });
+      await pipeline(
+        stream,
+        guard,
+        createWriteStream(temporaryPath, { flags: 'wx' }),
+      );
+      if (receivedBytes !== asset.sizeBytes) throw this.invalid();
+      await rename(temporaryPath, path);
+      await this.database.db
+        .update(fileAssets)
+        .set({ status: 'ready', updatedAt: new Date() })
+        .where(eq(fileAssets.id, asset.id));
+    } catch (error) {
+      await rm(temporaryPath, { force: true });
+      await this.database.db
+        .delete(fileAssets)
+        .where(
+          and(
+            eq(fileAssets.id, asset.id),
+            eq(fileAssets.workspaceId, auth.workspace.id),
+            eq(fileAssets.status, 'pending'),
+          ),
+        );
+      throw error;
+    }
   }
   async updateAsset(
     session: Promise<PortalAuthSession>,

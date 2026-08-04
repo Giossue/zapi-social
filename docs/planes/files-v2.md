@@ -27,14 +27,14 @@ REST y UI operativa implementados. La migración aditiva está aplicada; queda e
 
 - `file_folders`: `workspace_id`, `name`, `created_by_user_id`, timestamps; nombre único por workspace.
 - `file_assets`: `workspace_id`, `folder_id` opcional, propietario, `storage_key`, nombre, MIME, tamaño, estado (`pending|ready|trashed`), favorito, timestamps y `trashed_at`.
-- Flujo: crear asset pendiente + upload binario `application/octet-stream` → API guarda en su volumen local y confirma `ready`; eliminación es papelera lógica y no borra objetos de forma inmediata.
+- Flujo: crear asset pendiente + upload binario `application/octet-stream` por stream → API guarda en su volumen local y confirma `ready`; si falla, elimina el temporal y el asset pendiente. La eliminación es papelera lógica y no borra objetos de forma inmediata.
 - Endpoints implementados: listar, crear/renombrar carpeta, iniciar upload, subir binario, cambiar favorito/mover, mover a papelera y descargar autenticado.
 
 ## Orden y evidencia
 
 `referencia auditada → plan → UI literal conectada a fixture → contratos Zod → schema/migración → Nest/S3 → api-client → Web REST → validación`.
 
-Infraestructura de producción: el servicio API debe usar un volumen persistente y privado montado en `/var/lib/zapi/files`, con `FILES_STORAGE_PATH=/var/lib/zapi/files`, y verificar sus backups. La subida atraviesa el proxy autenticado de Web, configurado a 100 MB para coincidir con el contrato de Files; deben desplegarse Web y API al publicar esta funcionalidad. La migración aditiva `0010_mighty_sprite.sql` se aplicó correctamente a PostgreSQL remoto el 2026-08-03.
+Infraestructura de producción: el servicio API debe usar un volumen persistente y privado montado en `/var/lib/zapi/files`, con `FILES_STORAGE_PATH=/var/lib/zapi/files`, y verificar sus backups. La API debe publicarse como `https://api.zapisocial.com`; Web usa `NEXT_PUBLIC_API_ORIGIN=https://api.zapisocial.com` para evitar el proxy de Next en uploads. Para compartir la sesión, API usa `COOKIE_DOMAIN=.zapisocial.com` y `COOKIE_SECURE=true`; se requiere iniciar sesión nuevamente al activar esa variable. El proxy de Web sigue como fallback local y tiene 100 MB, pero no es la ruta de producción para archivos. La migración aditiva `0010_mighty_sprite.sql` se aplicó correctamente a PostgreSQL remoto el 2026-08-03.
 
 ## Evidencia de cierre
 

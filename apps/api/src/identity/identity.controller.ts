@@ -109,10 +109,12 @@ export class IdentityController {
     sessionToken: string,
   ) {
     const secure = this.config.get<string>('COOKIE_SECURE') === 'true';
+    const domain = this.config.get<string>('COOKIE_DOMAIN');
     reply.setCookie(accessCookieName, accessToken, {
       httpOnly: true,
       sameSite: 'lax',
       secure,
+      domain,
       path: '/',
       maxAge: 60 * 15,
     });
@@ -120,13 +122,15 @@ export class IdentityController {
       httpOnly: true,
       sameSite: 'lax',
       secure,
+      domain,
       path: '/',
       maxAge: 60 * 60 * 24 * 30,
     });
   }
 
   private clearAuthenticationCookies(reply: FastifyReply) {
-    reply.clearCookie(accessCookieName, { path: '/' });
-    reply.clearCookie(sessionCookieName, { path: '/' });
+    const domain = this.config.get<string>('COOKIE_DOMAIN');
+    reply.clearCookie(accessCookieName, { path: '/', domain });
+    reply.clearCookie(sessionCookieName, { path: '/', domain });
   }
 }

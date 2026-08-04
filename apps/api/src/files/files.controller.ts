@@ -63,7 +63,7 @@ export class FilesController {
     await this.files.upload(
       this.access.requirePortalSession(request),
       id,
-      request.body,
+      request.raw,
     );
   }
   @Patch(':id') update(

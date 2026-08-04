@@ -1,6 +1,7 @@
 import { type NextRequest } from "next/server"
 
 export const dynamic = "force-dynamic"
+export const runtime = "nodejs"
 
 const apiOrigin = process.env.INTERNAL_API_ORIGIN ?? "http://127.0.0.1:3001"
 
@@ -15,12 +16,18 @@ async function proxy(request: NextRequest) {
   headers.delete("content-length")
 
   const hasBody = request.method !== "GET" && request.method !== "HEAD"
-  const response = await fetch(targetUrl, {
+  const init: RequestInit & { duplex?: "half" } = {
     method: request.method,
     headers,
-    body: hasBody ? await request.arrayBuffer() : undefined,
+    // Do not buffer uploads in the Web container. Files can be 100 MB and the
+    // API already validates the actual maximum while writing to its volume.
+    body: hasBody ? request.body : undefined,
     cache: "no-store",
-  })
+  }
+
+  if (hasBody) init.duplex = "half"
+
+  const response = await fetch(targetUrl, init)
 
   return new Response(response.body, {
     status: response.status,

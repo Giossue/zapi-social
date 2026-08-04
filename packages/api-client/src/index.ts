@@ -47,7 +47,7 @@ import type {
 const apiBaseUrl =
   typeof window === "undefined"
     ? (process.env.INTERNAL_API_URL ?? "http://127.0.0.1:3001")
-    : "/api"
+    : (process.env.NEXT_PUBLIC_API_ORIGIN ?? "/api")
 
 export class ApiError extends Error {
   constructor(
@@ -279,7 +279,17 @@ export const filesApi = {
       headers: { "content-type": "application/octet-stream" },
       body: file,
     })
-    if (!response.ok) throw new ApiError("REQUEST_FAILED", response.status)
+    if (!response.ok) {
+      const body = (await response.json().catch(() => null)) as {
+        code?: string
+        requestId?: string
+      } | null
+      throw new ApiError(
+        body?.code ?? "REQUEST_FAILED",
+        response.status,
+        body?.requestId
+      )
+    }
   },
 }
 
