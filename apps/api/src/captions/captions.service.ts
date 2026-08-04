@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { auditLogs, captions } from '@workspace/database';
+import { apiAuditLogs, captions } from '@workspace/database';
 import { and, desc, eq, ilike, or } from '@workspace/database/query';
 import {
   createPortalCaptionSchema,
@@ -97,7 +97,7 @@ export class CaptionsService {
           'CAPTION_CREATE_FAILED',
           HttpStatus.INTERNAL_SERVER_ERROR,
         );
-      await tx.insert(auditLogs).values({
+      await tx.insert(apiAuditLogs).values({
         workspaceId: session.workspace.id,
         actorUserId: session.user.id,
         event: 'caption.created',
@@ -150,7 +150,7 @@ export class CaptionsService {
         )
         .returning();
       if (!updated) throw this.notFound();
-      await tx.insert(auditLogs).values({
+      await tx.insert(apiAuditLogs).values({
         workspaceId: session.workspace.id,
         actorUserId: session.user.id,
         event: 'caption.updated',
@@ -178,7 +178,7 @@ export class CaptionsService {
         )
         .returning({ id: captions.id });
       if (!removed) throw this.notFound();
-      await tx.insert(auditLogs).values({
+      await tx.insert(apiAuditLogs).values({
         workspaceId: session.workspace.id,
         actorUserId: session.user.id,
         event: 'caption.deleted',

@@ -13,6 +13,7 @@ import { IntegrationsModule } from './integrations/integrations.module';
 import { PlansModule } from './plans/plans.module';
 import { FilesModule } from './files/files.module';
 import { PublishingModule } from './publishing/publishing.module';
+import { AuditModule } from './audit/audit.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { PublishingModule } from './publishing/publishing.module';
     PlansModule,
     FilesModule,
     PublishingModule,
+    AuditModule,
     IdentityModule,
     BullModule.forRoot({
       connection: {

@@ -22,6 +22,7 @@ import { WhatsAppProfileSyncScheduler } from './whatsapp-profile-sync/whatsapp-p
 import { FILE_DERIVATIVES_QUEUE } from './files/file-derivatives.constants';
 import { FileDerivativesBackfillScheduler } from './files/file-derivatives-backfill.scheduler';
 import { FileDerivativesProcessor } from './files/file-derivatives.processor';
+import { WorkerAuditService } from './audit/worker-audit.service';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { FileDerivativesProcessor } from './files/file-derivatives.processor';
   providers: [
     Aes256GcmService,
     DatabaseService,
+    WorkerAuditService,
     MetaProfileSyncScheduler,
     MetaProfileScheduleProcessor,
     MetaProfileSyncProcessor,

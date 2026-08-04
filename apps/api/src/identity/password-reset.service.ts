@@ -4,7 +4,7 @@ import {
   passwordResetRequestSchema,
 } from '@workspace/contracts';
 import {
-  auditLogs,
+  apiAuditLogs,
   authSessions,
   passwordResetTokens,
   users,
@@ -62,7 +62,7 @@ export class PasswordResetService {
         tokenHash: this.hashToken(token),
         expiresAt: new Date(now.getTime() + passwordResetLifetimeMilliseconds),
       });
-      await tx.insert(auditLogs).values({
+      await tx.insert(apiAuditLogs).values({
         actorUserId: user.id,
         event: 'auth.password_reset_requested',
         subjectType: 'user',
@@ -127,7 +127,7 @@ export class PasswordResetService {
             isNull(authSessions.revokedAt),
           ),
         );
-      await tx.insert(auditLogs).values({
+      await tx.insert(apiAuditLogs).values({
         actorUserId: result.userId,
         event: 'auth.password_reset_confirmed',
         subjectType: 'user',

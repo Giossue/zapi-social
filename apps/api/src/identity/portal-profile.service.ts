@@ -5,7 +5,7 @@ import {
   type PortalAuthSession,
   type PortalProfile,
 } from '@workspace/contracts';
-import { auditLogs, authSessions, users } from '@workspace/database';
+import { apiAuditLogs, authSessions, users } from '@workspace/database';
 import { and, eq, isNull } from '@workspace/database/query';
 import argon2 from 'argon2';
 import { DatabaseService } from '../database/database.service';
@@ -42,7 +42,7 @@ export class PortalProfileService {
     if (!user)
       throw new AppException('AUTH_SESSION_EXPIRED', HttpStatus.UNAUTHORIZED);
 
-    await this.database.db.insert(auditLogs).values({
+    await this.database.db.insert(apiAuditLogs).values({
       workspaceId: session.workspace.id,
       actorUserId: session.user.id,
       event: 'profile.updated',
@@ -107,7 +107,7 @@ export class PortalProfileService {
           ),
         );
 
-      await tx.insert(auditLogs).values({
+      await tx.insert(apiAuditLogs).values({
         workspaceId: session.workspace.id,
         actorUserId: session.user.id,
         event: 'profile.password_updated',

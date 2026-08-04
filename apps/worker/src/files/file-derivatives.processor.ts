@@ -10,12 +10,17 @@ import sharp from 'sharp';
 import type { Job } from 'bullmq';
 import { ConfigService } from '@nestjs/config';
 import { DatabaseService } from '../database/database.service';
+import { WorkerAuditService } from '../audit/worker-audit.service';
 import { FILE_DERIVATIVES_JOB, FILE_DERIVATIVES_QUEUE, type FileDerivativesJobData } from './file-derivatives.constants';
 
 @Injectable()
 @Processor(FILE_DERIVATIVES_QUEUE, { concurrency: 2 })
 export class FileDerivativesProcessor extends WorkerHost {
-  constructor(private readonly database: DatabaseService, config: ConfigService) { super(); this.root = resolve(config.get<string>('FILES_STORAGE_PATH') ?? './.data/files'); }
+  constructor(
+    private readonly database: DatabaseService,
+    private readonly audit: WorkerAuditService,
+    config: ConfigService,
+  ) { super(); this.root = resolve(config.get<string>('FILES_STORAGE_PATH') ?? './.data/files'); }
   private readonly root: string;
   async process(job: Job<FileDerivativesJobData>) {
     if (job.name !== FILE_DERIVATIVES_JOB) return;
@@ -32,9 +37,34 @@ export class FileDerivativesProcessor extends WorkerHost {
         : await this.videoThumbnail(source, temporary);
       await rename(temporary, target);
       await this.database.db.update(fileAssets).set({ width: metadata.width ?? null, height: metadata.height ?? null, thumbnailKey: key, thumbnailStatus: 'ready', thumbnailErrorCode: null, updatedAt: new Date() }).where(eq(fileAssets.id, asset.id));
+      await this.audit.write({
+        workspaceId: asset.workspaceId,
+        actorUserId: asset.createdByUserId,
+        event: 'files.thumbnail_generated',
+        severity: 'success',
+        outcome: 'succeeded',
+        queueName: FILE_DERIVATIVES_QUEUE,
+        jobId: job.id,
+        attempt: job.attemptsMade,
+        summary: `Thumbnail generated for ${asset.mimeType}`,
+        metadata: { fileAssetId: asset.id },
+      });
     } catch {
       await rm(temporary, { force: true });
       await this.database.db.update(fileAssets).set({ thumbnailStatus: 'failed', thumbnailErrorCode: 'THUMBNAIL_GENERATION_FAILED', updatedAt: new Date() }).where(eq(fileAssets.id, asset.id));
+      await this.audit.write({
+        workspaceId: asset.workspaceId,
+        actorUserId: asset.createdByUserId,
+        event: 'files.thumbnail_generated',
+        severity: 'error',
+        outcome: 'failed',
+        queueName: FILE_DERIVATIVES_QUEUE,
+        jobId: job.id,
+        attempt: job.attemptsMade,
+        errorCode: 'THUMBNAIL_GENERATION_FAILED',
+        summary: 'Thumbnail generation failed',
+        metadata: { fileAssetId: asset.id },
+      });
     }
   }
   private async videoThumbnail(source: string, target: string) {

@@ -186,10 +186,43 @@ export const passwordResetTokens = pgTable(
   ]
 )
 
-export const auditLogs = pgTable(
-  "audit_logs",
+export const auditReleases = pgTable(
+  "audit_releases",
   {
     id: uuid("id").defaultRandom().primaryKey(),
+    service: varchar("service", { length: 32 }).notNull(),
+    commitSha: varchar("commit_sha", { length: 64 }),
+    reference: varchar("reference", { length: 255 }),
+    deployedAt: timestamp("deployed_at", { withTimezone: true }).notNull(),
+    deployedByUserId: uuid("deployed_by_user_id").references(
+      () => users.id,
+      { onDelete: "set null" }
+    ),
+    metadata: jsonb("metadata")
+      .$type<Record<string, string>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("audit_releases_service_commit_unique").on(
+      table.service,
+      table.commitSha
+    ),
+    index("audit_releases_service_deployed_index").on(
+      table.service,
+      table.deployedAt
+    ),
+  ]
+)
+
+export const apiAuditLogs = pgTable(
+  "api_audit_logs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    releaseId: uuid("release_id").references(() => auditReleases.id, {
+      onDelete: "set null",
+    }),
     workspaceId: uuid("workspace_id").references(() => workspaces.id, {
       onDelete: "set null",
     }),
@@ -199,6 +232,19 @@ export const auditLogs = pgTable(
     event: varchar("event", { length: 160 }).notNull(),
     subjectType: varchar("subject_type", { length: 96 }),
     subjectId: uuid("subject_id"),
+    severity: varchar("severity", { length: 16 })
+      .$type<"success" | "warning" | "error">()
+      .notNull()
+      .default("success"),
+    outcome: varchar("outcome", { length: 32 }).notNull().default("succeeded"),
+    requestId: varchar("request_id", { length: 128 }),
+    httpMethod: varchar("http_method", { length: 12 }),
+    httpPath: varchar("http_path", { length: 512 }),
+    httpStatus: integer("http_status"),
+    ipAddress: varchar("ip_address", { length: 45 }),
+    userAgent: varchar("user_agent", { length: 512 }),
+    errorCode: varchar("error_code", { length: 96 }),
+    summary: varchar("summary", { length: 500 }),
     metadata: jsonb("metadata")
       .$type<Record<string, unknown>>()
       .notNull()
@@ -208,12 +254,127 @@ export const auditLogs = pgTable(
       .notNull(),
   },
   (table) => [
-    index("audit_logs_workspace_created_index").on(
+    index("api_audit_logs_workspace_created_index").on(
       table.workspaceId,
       table.createdAt
     ),
-    index("audit_logs_actor_created_index").on(
+    index("api_audit_logs_actor_created_index").on(
       table.actorUserId,
+      table.createdAt
+    ),
+    index("api_audit_logs_severity_created_index").on(
+      table.severity,
+      table.createdAt
+    ),
+    index("api_audit_logs_release_created_index").on(
+      table.releaseId,
+      table.createdAt
+    ),
+  ]
+)
+
+export const webAuditLogs = pgTable(
+  "web_audit_logs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    releaseId: uuid("release_id").references(() => auditReleases.id, {
+      onDelete: "set null",
+    }),
+    workspaceId: uuid("workspace_id").references(() => workspaces.id, {
+      onDelete: "set null",
+    }),
+    actorUserId: uuid("actor_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    event: varchar("event", { length: 160 }).notNull(),
+    severity: varchar("severity", { length: 16 })
+      .$type<"success" | "warning" | "error">()
+      .notNull()
+      .default("success"),
+    outcome: varchar("outcome", { length: 32 }).notNull().default("succeeded"),
+    pagePath: varchar("page_path", { length: 512 }),
+    requestId: varchar("request_id", { length: 128 }),
+    errorCode: varchar("error_code", { length: 96 }),
+    summary: varchar("summary", { length: 500 }),
+    metadata: jsonb("metadata")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("web_audit_logs_workspace_created_index").on(
+      table.workspaceId,
+      table.createdAt
+    ),
+    index("web_audit_logs_actor_created_index").on(
+      table.actorUserId,
+      table.createdAt
+    ),
+    index("web_audit_logs_severity_created_index").on(
+      table.severity,
+      table.createdAt
+    ),
+    index("web_audit_logs_release_created_index").on(
+      table.releaseId,
+      table.createdAt
+    ),
+  ]
+)
+
+export const workerAuditLogs = pgTable(
+  "worker_audit_logs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    releaseId: uuid("release_id").references(() => auditReleases.id, {
+      onDelete: "set null",
+    }),
+    workspaceId: uuid("workspace_id").references(() => workspaces.id, {
+      onDelete: "set null",
+    }),
+    actorUserId: uuid("actor_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    event: varchar("event", { length: 160 }).notNull(),
+    severity: varchar("severity", { length: 16 })
+      .$type<"success" | "warning" | "error">()
+      .notNull()
+      .default("success"),
+    outcome: varchar("outcome", { length: 32 }).notNull().default("succeeded"),
+    queueName: varchar("queue_name", { length: 128 }),
+    jobId: varchar("job_id", { length: 128 }),
+    attempt: integer("attempt"),
+    errorCode: varchar("error_code", { length: 96 }),
+    summary: varchar("summary", { length: 500 }),
+    metadata: jsonb("metadata")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("worker_audit_logs_workspace_created_index").on(
+      table.workspaceId,
+      table.createdAt
+    ),
+    index("worker_audit_logs_actor_created_index").on(
+      table.actorUserId,
+      table.createdAt
+    ),
+    index("worker_audit_logs_severity_created_index").on(
+      table.severity,
+      table.createdAt
+    ),
+    index("worker_audit_logs_queue_job_index").on(
+      table.queueName,
+      table.jobId
+    ),
+    index("worker_audit_logs_release_created_index").on(
+      table.releaseId,
       table.createdAt
     ),
   ]

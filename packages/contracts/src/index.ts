@@ -623,6 +623,52 @@ export const channelOAuthCallbackOutcomeSchema = z.enum([
   "failed",
 ])
 
+export const webAuditEventSchema = z
+  .object({
+    event: z.string().trim().min(3).max(160),
+    severity: z.enum(["success", "warning", "error"]),
+    outcome: z.string().trim().min(1).max(32),
+    pagePath: z.string().trim().startsWith("/").max(512).optional(),
+    requestId: z.string().trim().max(128).optional(),
+    errorCode: z.string().trim().max(96).optional(),
+    summary: z.string().trim().max(500).optional(),
+    metadata: z
+      .record(
+        z.string().max(64),
+        z.union([z.string(), z.number(), z.boolean(), z.null()]),
+      )
+      .refine((value) => Object.keys(value).length <= 20)
+      .optional(),
+  })
+  .strict()
+
+export type WebAuditEvent = z.infer<typeof webAuditEventSchema>
+
+export const adminAuditEventSchema = z.object({
+  id: z.uuid(),
+  source: z.enum(["web", "api", "worker"]),
+  event: z.string(),
+  severity: z.enum(["success", "warning", "error"]),
+  outcome: z.string(),
+  summary: z.string().nullable(),
+  errorCode: z.string().nullable(),
+  actorName: z.string().nullable(),
+  actorEmail: z.string().nullable(),
+  workspaceName: z.string().nullable(),
+  service: z.string().nullable(),
+  commitSha: z.string().nullable(),
+  createdAt: z.string().datetime(),
+})
+
+export const adminAuditEventsResponseSchema = z.object({
+  events: z.array(adminAuditEventSchema),
+})
+
+export type AdminAuditEvent = z.infer<typeof adminAuditEventSchema>
+export type AdminAuditEventsResponse = z.infer<
+  typeof adminAuditEventsResponseSchema
+>
+
 export type ChannelOAuthContext = z.infer<typeof channelOAuthContextSchema>
 export type ChannelOAuthStart = z.infer<typeof channelOAuthStartSchema>
 export type ChannelOAuthStateStatus = z.infer<

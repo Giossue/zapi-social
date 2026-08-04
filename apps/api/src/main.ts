@@ -8,6 +8,7 @@ import { NestFactory } from '@nestjs/core';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { AppModule } from './app.module';
 import { AppExceptionFilter } from './platform/errors/app-exception.filter';
+import { AuditService } from './audit/audit.service';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -37,6 +38,10 @@ async function bootstrap() {
   });
   app.useGlobalPipes(new ZodValidationPipe());
   app.useGlobalFilters(new AppExceptionFilter());
+  const audit = app.get(AuditService);
+  app.getHttpAdapter().getInstance().addHook('onResponse', (request, reply) =>
+    audit.logApiResponse(request, reply.statusCode).catch(() => undefined),
+  );
   app.enableShutdownHooks();
 
   const document = SwaggerModule.createDocument(

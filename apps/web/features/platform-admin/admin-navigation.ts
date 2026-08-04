@@ -133,6 +133,7 @@ export const adminNavigationGroups: readonly AdminNavigationGroup[] = [
         href: "/admin/settings/system-information",
         icon: Activity,
       },
+      { label: "Auditoría", href: "/admin/audit", icon: Activity },
     ],
   },
 ]

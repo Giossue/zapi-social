@@ -47,6 +47,7 @@ import type {
   CreatePortalPublishingPostsInput,
   UpdatePortalPublishingPostInput,
   PortalPublishingPost,
+  AdminAuditEventsResponse,
 } from "@workspace/contracts"
 
 const apiBaseUrl =
@@ -486,4 +487,11 @@ export const plansApi = {
     }),
   remove: (id: string) =>
     request<void>(`/v1/admin/plans/${id}`, { method: "DELETE" }),
+}
+
+export const auditApi = {
+  list: () =>
+    request<AdminAuditEventsResponse>("/v1/admin/audit-events", {
+      method: "GET",
+    }),
 }
