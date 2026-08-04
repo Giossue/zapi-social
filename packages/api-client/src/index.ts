@@ -81,10 +81,11 @@ type UpdateEmailSmtpIntegrationInput = {
 }
 
 async function request<T>(path: string, init: RequestInit): Promise<T> {
+  const sendsJson = init.method !== "GET" && init.method !== "HEAD"
   const response = await fetch(`${apiBaseUrl}${path}`, {
     ...init,
     credentials: "include",
-    headers: init.body
+    headers: sendsJson
       ? { "content-type": "application/json", ...init.headers }
       : init.headers,
   })

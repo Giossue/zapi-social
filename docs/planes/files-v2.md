@@ -91,6 +91,7 @@ Los endpoints definitivos se fijan tras diseñar la UI, pero el contrato objetiv
 
 - Listados paginados y por carpeta, con filtros de nombre, tipo, favoritos y estado. Web no carga el inventario completo para filtrar localmente.
 - Los contratos Zod describen cada input y DTO; `@workspace/api-client` deriva de ellos y no contiene reglas de negocio.
+- Las mutaciones sin cuerpo (eliminar, restaurar y purgar) declaran `Content-Type: application/json`; Fastify las acepta antes de aplicar autorización y ownership.
 - Las respuestas de error no incluyen path físico, MIME sin normalizar, stack trace ni información de otro workspace.
 
 ### 4. Worker y filesystem local
