@@ -531,8 +531,8 @@ export function FilesLibraryPage() {
           <DialogHeader>
             <DialogTitle>Subir archivos</DialogTitle>
             <DialogDescription>
-              Esta acción es un mock visual. La carga y el almacenamiento se
-              conectarán cuando exista el contrato REST de Files.
+              El archivo se guardará de forma privada en el almacenamiento
+              local del servidor.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
