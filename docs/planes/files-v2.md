@@ -110,12 +110,14 @@ Los endpoints definitivos se fijan tras diseñar la UI, pero el contrato objetiv
 La implementación visual se hace primero en `diseño ideal` y se copia literalmente a `apps/web/features/files`.
 
 - Menú contextual de archivo: descargar, renombrar, mover, enviar a papelera. Favorito permanece únicamente en la estrella de la tarjeta.
-- Menú contextual de carpeta: abrir, renombrar, mover, enviar a papelera.
+- La tarjeta de carpeta abre su contenido con clic o teclado y da feedback al pasar el cursor; su menú contextual solo contiene renombrar, mover y enviar a papelera.
+- La selección múltiple permite mover todos los archivos elegidos a una carpeta o a raíz, además de enviarlos a papelera; cada ID sigue validándose por API.
 - Diálogo de renombre: texto actual preseleccionado, error inline y extensión bloqueada/visible en archivos.
 - Diálogo “Mover a carpeta”: árbol navegable con breadcrumb, opción raíz, carpeta actual marcada y descendientes inválidos deshabilitados.
 - Papelera: confirmación contextual, feedback con toast y ruta/tabla de restauración; no usar toast como único mensaje cuando una acción esté bloqueada por Publishing.
 - Preview en Dialog/Sheet canónico: imagen con `img`, vídeo con controles nativos, audio con controles nativos y PDF inline. Tipos sin preview muestran metadata y descarga.
-- Las tarjetas y la lista muestran miniatura WebP si `thumbnail_status=ready`; mientras está pendiente, falta en un asset histórico o falla, las imágenes usan el preview autenticado original. Solo muestran el icono de tipo si ese preview también falla.
+- Las tarjetas y la lista muestran miniatura WebP si `thumbnail_status=ready`; imágenes y vídeos se encajan sin recorte dentro de su contenedor. Mientras está pendiente, falta en un asset histórico o falla, las imágenes usan el preview autenticado original y los vídeos el icono de tipo. Solo muestran el icono de tipo si ese preview también falla.
+- Las tarjetas muestran los metadatos de tipo y tamaño debajo de la línea de actualización y propietario, no superpuestos sobre la miniatura; sus casillas de selección mantienen contraste sobre cualquier contenido visual.
 - El grid y lista conservan loading, vacío inicial, vacío filtrado, error, permisos, responsive, foco y teclado.
 
 ### 6. Integración con Publishing

@@ -146,13 +146,28 @@ function AssetThumbnail({
   const { icon: AssetIcon } = assetKindMeta[asset.kind]
   const [imageSource, setImageSource] = useState<
     "thumbnail" | "preview" | "unavailable"
-  >(asset.thumbnailStatus === "ready" ? "thumbnail" : "preview")
+  >(
+    asset.thumbnailStatus === "ready"
+      ? "thumbnail"
+      : asset.kind === "image"
+        ? "preview"
+        : "unavailable"
+  )
 
   useEffect(() => {
-    setImageSource(asset.thumbnailStatus === "ready" ? "thumbnail" : "preview")
+    setImageSource(
+      asset.thumbnailStatus === "ready"
+        ? "thumbnail"
+        : asset.kind === "image"
+          ? "preview"
+          : "unavailable"
+    )
   }, [asset.id, asset.thumbnailStatus])
 
-  if (asset.kind !== "image" || imageSource === "unavailable")
+  if (
+    (asset.kind !== "image" && asset.kind !== "video") ||
+    imageSource === "unavailable"
+  )
     return <AssetIcon aria-hidden="true" className={fallbackClassName} />
 
   return (
@@ -161,7 +176,9 @@ function AssetThumbnail({
       className={imageClassName}
       onError={() =>
         setImageSource((current) =>
-          current === "thumbnail" ? "preview" : "unavailable"
+          current === "thumbnail" && asset.kind === "image"
+            ? "preview"
+            : "unavailable"
         )
       }
       src={
@@ -201,14 +218,15 @@ function AssetCard({
           <AssetThumbnail
             asset={asset}
             fallbackClassName="size-12 text-muted-foreground"
-            imageClassName="h-full w-full rounded-lg object-cover"
+            imageClassName="h-full w-full rounded-lg object-contain p-2"
           />
-          <Checkbox
-            aria-label={`Seleccionar ${asset.name}`}
-            checked={selected}
-            className="absolute top-2 left-2"
-            onCheckedChange={() => onSelect(asset.id)}
-          />
+          <div className="absolute top-2 left-2 rounded-md bg-background p-0.5 ring-1 ring-border">
+            <Checkbox
+              aria-label={`Seleccionar ${asset.name}`}
+              checked={selected}
+              onCheckedChange={() => onSelect(asset.id)}
+            />
+          </div>
           <Button
             aria-label={`${asset.starred ? "Quitar de favoritos" : "Añadir a favoritos"} ${asset.name}`}
             className={`absolute top-2 right-2 opacity-0 group-hover/file:opacity-100 focus-visible:opacity-100 ${
@@ -220,16 +238,15 @@ function AssetCard({
           >
             <Star className={asset.starred ? "fill-current" : undefined} />
           </Button>
-          <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 text-xs text-muted-foreground">
-            <span>{label}</span>
-            <span>{asset.size}</span>
-          </div>
         </div>
       </CardContent>
       <CardHeader>
         <CardTitle className="truncate">{asset.name}</CardTitle>
         <CardDescription className="truncate">
           Actualizado {asset.updatedAt} por {asset.owner}
+        </CardDescription>
+        <CardDescription className="truncate">
+          {label} · {asset.size}
         </CardDescription>
         <CardAction>
           <DropdownMenu>
@@ -330,7 +347,7 @@ function AssetsTable({
                   <AssetThumbnail
                     asset={asset}
                     fallbackClassName="size-5 shrink-0 text-muted-foreground"
-                    imageClassName="size-8 shrink-0 rounded object-cover"
+                    imageClassName="size-8 shrink-0 rounded object-contain p-0.5"
                   />
                   <div className="min-w-0">
                     <p className="truncate font-medium">{asset.name}</p>
@@ -409,6 +426,7 @@ export function FilesLibraryPage() {
   const [folderId, setFolderId] = useState<string | "all">("all")
   const [view, setView] = useState<FilesView>("grid")
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([])
+  const [bulkMoveOpen, setBulkMoveOpen] = useState(false)
   const [bulkTrashOpen, setBulkTrashOpen] = useState(false)
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [folderDialogOpen, setFolderDialogOpen] = useState(false)
@@ -614,6 +632,31 @@ export function FilesLibraryPage() {
     }
   }
 
+  async function moveSelectedAssets(parentFolderId: string | null) {
+    const ids = [...selectedAssetIds]
+    if (!ids.length) return
+    try {
+      const results = await Promise.allSettled(
+        ids.map((id) => filesApi.update(id, { folderId: parentFolderId }))
+      )
+      const failed = results.filter((result) => result.status === "rejected")
+      setBulkMoveOpen(false)
+      await loadLibrary()
+      setSelectedAssetIds([])
+      if (failed.length) {
+        toast.error(
+          failed.length === ids.length
+            ? "No se pudo mover ningún archivo"
+            : "Algunos archivos no se pudieron mover"
+        )
+        return
+      }
+      toast.success(ids.length === 1 ? "Archivo movido" : "Archivos movidos")
+    } catch {
+      toast.error("No se pudieron mover los archivos")
+    }
+  }
+
   async function trashSelectedAssets() {
     const ids = [...selectedAssetIds]
     if (!ids.length) return
@@ -728,7 +771,24 @@ export function FilesLibraryPage() {
           </div>
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {visibleFolders.map((folder) => (
-              <Card key={folder.id} size="sm">
+              <Card
+                className="cursor-pointer transition-colors hover:bg-accent/50"
+                key={folder.id}
+                onClick={(event) => {
+                  if (event.currentTarget.contains(event.target as Node))
+                    setFolderId(folder.id)
+                }}
+                onKeyDown={(event) => {
+                  if (event.target !== event.currentTarget) return
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault()
+                    setFolderId(folder.id)
+                  }
+                }}
+                role="link"
+                tabIndex={0}
+                size="sm"
+              >
                 <CardHeader>
                   <div className="flex min-w-0 items-center gap-2">
                     <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
@@ -748,6 +808,7 @@ export function FilesLibraryPage() {
                       <DropdownMenuTrigger asChild>
                         <Button
                           aria-label={`Acciones de ${folder.name}`}
+                          onClick={(event) => event.stopPropagation()}
                           size="icon-sm"
                           variant="ghost"
                         >
@@ -756,11 +817,6 @@ export function FilesLibraryPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuGroup>
-                          <DropdownMenuItem
-                            onSelect={() => setFolderId(folder.id)}
-                          >
-                            Abrir carpeta
-                          </DropdownMenuItem>
                           <DropdownMenuItem
                             onSelect={() => setRenameItem(folder)}
                           >
@@ -814,6 +870,14 @@ export function FilesLibraryPage() {
                 <Badge variant="info">
                   {selectedAssetIds.length} seleccionados
                 </Badge>
+                <Button
+                  onClick={() => setBulkMoveOpen(true)}
+                  size="sm"
+                  variant="brand-secondary"
+                >
+                  <FolderInput data-icon="inline-start" />
+                  Mover
+                </Button>
                 <Button
                   onClick={() => setBulkTrashOpen(true)}
                   size="sm"
@@ -1005,9 +1069,15 @@ export function FilesLibraryPage() {
       <FileMoveDialog
         folders={[...(library?.folders ?? [])]}
         item={moveItem}
-        onConfirm={moveManagedItem}
-        onOpenChange={(open) => !open && setMoveItem(null)}
-        open={Boolean(moveItem)}
+        onConfirm={moveItem ? moveManagedItem : moveSelectedAssets}
+        onOpenChange={(open) => {
+          if (!open) {
+            setMoveItem(null)
+            setBulkMoveOpen(false)
+          }
+        }}
+        open={Boolean(moveItem) || bulkMoveOpen}
+        selectedCount={bulkMoveOpen ? selectedAssetIds.length : undefined}
       />
       <FileTrashDialog
         item={trashItem}

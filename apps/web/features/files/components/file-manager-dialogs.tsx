@@ -131,18 +131,21 @@ export function FileRenameDialog({
 export function FileMoveDialog({
   folders,
   item,
+  selectedCount,
   onConfirm,
   onOpenChange,
   open,
 }: {
   folders: FileFolder[]
   item: ManagedItem | null
+  selectedCount?: number
   onConfirm: (folderId: string | null) => Promise<void>
   onOpenChange: (open: boolean) => void
   open: boolean
 }) {
   const [value, setValue] = useState("root")
-  useEffect(() => setValue("root"), [item])
+  const isBulkAction = selectedCount !== undefined
+  useEffect(() => setValue("root"), [item, selectedCount])
   const descendants = useMemo(() => {
     if (!item?.isFolder) return new Set<string>()
     const byParent = new Map<string, string[]>()
@@ -167,9 +170,15 @@ export function FileMoveDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            Mover {item?.isFolder ? "carpeta" : "archivo"}
+            {isBulkAction
+              ? "Mover archivos seleccionados"
+              : `Mover ${item?.isFolder ? "carpeta" : "archivo"}`}
           </DialogTitle>
-          <DialogDescription>Elige la carpeta de destino.</DialogDescription>
+          <DialogDescription>
+            {isBulkAction
+              ? `Elige la carpeta de destino para ${selectedCount} ${selectedCount === 1 ? "archivo" : "archivos"}.`
+              : "Elige la carpeta de destino."}
+          </DialogDescription>
         </DialogHeader>
         <Select onValueChange={setValue} value={value}>
           <SelectTrigger>
