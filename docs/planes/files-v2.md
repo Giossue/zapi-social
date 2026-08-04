@@ -34,7 +34,7 @@ REST y UI operativa implementados. La migración aditiva está aplicada; queda e
 
 `referencia auditada → plan → UI literal conectada a fixture → contratos Zod → schema/migración → Nest/S3 → api-client → Web REST → validación`.
 
-Pendiente de infraestructura: montar un volumen persistente y privado en el servicio API, configurar su ruta local fuera de Git y verificar backups. La migración aditiva `0010_mighty_sprite.sql` se aplicó correctamente a PostgreSQL remoto el 2026-08-03.
+Infraestructura de producción: el servicio API debe usar un volumen persistente y privado montado en `/var/lib/zapi/files`, con `FILES_STORAGE_PATH=/var/lib/zapi/files`, y verificar sus backups. La subida atraviesa el proxy autenticado de Web, configurado a 100 MB para coincidir con el contrato de Files; deben desplegarse Web y API al publicar esta funcionalidad. La migración aditiva `0010_mighty_sprite.sql` se aplicó correctamente a PostgreSQL remoto el 2026-08-03.
 
 ## Evidencia de cierre
 
