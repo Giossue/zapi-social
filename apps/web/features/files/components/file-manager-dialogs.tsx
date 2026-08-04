@@ -88,6 +88,59 @@ export function FilePreviewDialog({
   )
 }
 
+export function FileInfoDialog({
+  item,
+  onOpenChange,
+  open,
+}: {
+  item: FileAsset | null
+  onOpenChange: (open: boolean) => void
+  open: boolean
+}) {
+  const type =
+    item?.kind === "image"
+      ? "Imagen"
+      : item?.kind === "video"
+        ? "Vídeo"
+        : "Documento"
+  const details = [
+    ["Tipo", type],
+    ["Formato", item?.mimeType ?? "No disponible"],
+    ["Tamaño", item?.size ?? "No disponible"],
+    ["Última actualización", item?.updatedAt ?? "No disponible"],
+    ["Actualizado por", item?.owner ?? "No disponible"],
+  ]
+
+  return (
+    <Dialog onOpenChange={onOpenChange} open={open}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Información del archivo</DialogTitle>
+          <DialogDescription className="break-words">
+            {item?.name}
+          </DialogDescription>
+        </DialogHeader>
+        <dl className="grid gap-3 text-sm">
+          {details.map(([label, value]) => (
+            <div className="flex items-start justify-between gap-4" key={label}>
+              <dt className="text-muted-foreground">{label}</dt>
+              <dd className="min-w-0 text-right font-medium">{value}</dd>
+            </div>
+          ))}
+        </dl>
+        <DialogFooter>
+          <Button
+            onClick={() => onOpenChange(false)}
+            variant="brand-secondary"
+          >
+            Cerrar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 export function FileRenameDialog({
   item,
   onConfirm,

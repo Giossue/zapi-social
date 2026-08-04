@@ -109,7 +109,8 @@ Los endpoints definitivos se fijan tras diseñar la UI, pero el contrato objetiv
 
 La implementación visual se hace primero en `diseño ideal` y se copia literalmente a `apps/web/features/files`.
 
-- Menú contextual de archivo: descargar, renombrar, mover, enviar a papelera. Favorito permanece únicamente en la estrella de la tarjeta.
+- Menú contextual de archivo: vista previa, información, descargar, renombrar, mover y enviar a papelera. Favorito permanece únicamente en la estrella de la tarjeta.
+- Información abre un diálogo de solo lectura con nombre, tipo, MIME, tamaño, fecha de actualización y propietario, sin exponer IDs ni rutas internas.
 - La tarjeta de carpeta abre su contenido con clic o teclado y da feedback al pasar el cursor; su menú contextual solo contiene renombrar, mover y enviar a papelera.
 - La selección múltiple permite mover todos los archivos elegidos a una carpeta o a raíz, además de enviarlos a papelera; cada ID sigue validándose por API.
 - Diálogo de renombre: texto actual preseleccionado, error inline y extensión bloqueada/visible en archivos.

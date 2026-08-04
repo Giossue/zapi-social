@@ -15,6 +15,7 @@ import {
   FolderInput,
   Grid2X2,
   Image,
+  Info,
   List,
   MoreVertical,
   Search,
@@ -93,6 +94,7 @@ import {
   FilesPermissionState,
 } from "@/features/files/components/files-states"
 import {
+  FileInfoDialog,
   FileMoveDialog,
   FilePreviewDialog,
   FileRenameDialog,
@@ -196,6 +198,7 @@ function AssetCard({
   onSelect,
   onToggleStar,
   onPreview,
+  onInfo,
   onRename,
   onMove,
   onTrash,
@@ -205,6 +208,7 @@ function AssetCard({
   onSelect: (id: string) => void
   onToggleStar: (asset: FileAsset) => void
   onPreview: (asset: FileAsset) => void
+  onInfo: (asset: FileAsset) => void
   onRename: (asset: FileAsset) => void
   onMove: (asset: FileAsset) => void
   onTrash: (asset: FileAsset) => void
@@ -220,13 +224,12 @@ function AssetCard({
             fallbackClassName="size-12 text-muted-foreground"
             imageClassName="h-full w-full rounded-lg object-contain p-2"
           />
-          <div className="absolute top-2 left-2 rounded-md bg-background p-0.5 ring-1 ring-border">
-            <Checkbox
-              aria-label={`Seleccionar ${asset.name}`}
-              checked={selected}
-              onCheckedChange={() => onSelect(asset.id)}
-            />
-          </div>
+          <Checkbox
+            aria-label={`Seleccionar ${asset.name}`}
+            checked={selected}
+            className="absolute top-2 left-2 border-2 border-foreground bg-background data-[state=checked]:border-primary"
+            onCheckedChange={() => onSelect(asset.id)}
+          />
           <Button
             aria-label={`${asset.starred ? "Quitar de favoritos" : "Añadir a favoritos"} ${asset.name}`}
             className={`absolute top-2 right-2 opacity-0 group-hover/file:opacity-100 focus-visible:opacity-100 ${
@@ -264,6 +267,10 @@ function AssetCard({
                 <DropdownMenuItem onSelect={() => onPreview(asset)}>
                   <Eye />
                   Vista previa
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => onInfo(asset)}>
+                  <Info />
+                  Información
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <a href={filesApi.downloadUrl(asset.id)}>
@@ -303,6 +310,7 @@ function AssetsTable({
   selectedAssetIds,
   onSelect,
   onPreview,
+  onInfo,
   onRename,
   onMove,
   onTrash,
@@ -311,6 +319,7 @@ function AssetsTable({
   selectedAssetIds: readonly string[]
   onSelect: (id: string) => void
   onPreview: (asset: FileAsset) => void
+  onInfo: (asset: FileAsset) => void
   onRename: (asset: FileAsset) => void
   onMove: (asset: FileAsset) => void
   onTrash: (asset: FileAsset) => void
@@ -379,6 +388,10 @@ function AssetsTable({
                       <Eye />
                       Vista previa
                     </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => onInfo(asset)}>
+                      <Info />
+                      Información
+                    </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <a href={filesApi.downloadUrl(asset.id)}>
                         <Download />
@@ -432,6 +445,7 @@ export function FilesLibraryPage() {
   const [folderDialogOpen, setFolderDialogOpen] = useState(false)
   const [folderName, setFolderName] = useState("")
   const [previewAsset, setPreviewAsset] = useState<FileAsset | null>(null)
+  const [infoAsset, setInfoAsset] = useState<FileAsset | null>(null)
   const [renameItem, setRenameItem] = useState<
     (FileAsset | FileLibraryData["folders"][number]) | null
   >(null)
@@ -871,6 +885,7 @@ export function FilesLibraryPage() {
                   {selectedAssetIds.length} seleccionados
                 </Badge>
                 <Button
+                  className="leading-none"
                   onClick={() => setBulkMoveOpen(true)}
                   size="sm"
                   variant="brand-secondary"
@@ -879,6 +894,7 @@ export function FilesLibraryPage() {
                   Mover
                 </Button>
                 <Button
+                  className="leading-none"
                   onClick={() => setBulkTrashOpen(true)}
                   size="sm"
                   variant="destructive"
@@ -969,6 +985,7 @@ export function FilesLibraryPage() {
                 onSelect={toggleAsset}
                 onToggleStar={toggleStar}
                 onPreview={setPreviewAsset}
+                onInfo={setInfoAsset}
                 onRename={setRenameItem}
                 onMove={setMoveItem}
                 onTrash={setTrashItem}
@@ -983,6 +1000,7 @@ export function FilesLibraryPage() {
                 assets={assets}
                 onSelect={toggleAsset}
                 onPreview={setPreviewAsset}
+                onInfo={setInfoAsset}
                 onRename={setRenameItem}
                 onMove={setMoveItem}
                 onTrash={setTrashItem}
@@ -1059,6 +1077,11 @@ export function FilesLibraryPage() {
         item={previewAsset}
         onOpenChange={(open) => !open && setPreviewAsset(null)}
         open={Boolean(previewAsset)}
+      />
+      <FileInfoDialog
+        item={infoAsset}
+        onOpenChange={(open) => !open && setInfoAsset(null)}
+        open={Boolean(infoAsset)}
       />
       <FileRenameDialog
         item={renameItem}
