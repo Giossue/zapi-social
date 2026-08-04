@@ -12,12 +12,9 @@ import {
   Grid2X2,
   Image,
   List,
-  MoreHorizontal,
   MoreVertical,
   Search,
   Star,
-  Share2,
-  Sparkles,
   Upload,
   Video,
 } from "lucide-react"
@@ -113,21 +110,6 @@ function assetMatches(
   return matchesQuery && matchesFilter && matchesFolder
 }
 
-function AssetMeta({ asset }: { asset: FileAsset }) {
-  const { icon: AssetIcon, label } = assetKindMeta[asset.kind]
-
-  return (
-    <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-      <span className="flex items-center gap-1.5">
-        <AssetIcon aria-hidden="true" className="size-3.5" />
-        {label}
-      </span>
-      <span>{asset.size}</span>
-      {asset.dimensions ? <span>{asset.dimensions}</span> : null}
-    </div>
-  )
-}
-
 function AssetCard({
   asset,
   selected,
@@ -139,54 +121,63 @@ function AssetCard({
   onSelect: (id: string) => void
   onToggleStar: (asset: FileAsset) => void
 }) {
-  const { icon: AssetIcon } = assetKindMeta[asset.kind]
+  const { icon: AssetIcon, label } = assetKindMeta[asset.kind]
 
   return (
-    <Card variant={selected ? "interactive" : "subtle"}>
-      <CardHeader>
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
-            <AssetIcon
-              aria-hidden="true"
-              className="size-5 text-muted-foreground"
-            />
-          </div>
+    <Card className="group/file" size="sm">
+      <CardContent>
+        <div className="relative flex h-36 items-center justify-center rounded-lg bg-muted/50">
+          <AssetIcon
+            aria-hidden="true"
+            className="size-12 text-muted-foreground"
+          />
           <Button
             aria-label={`${asset.starred ? "Quitar de favoritos" : "Añadir a favoritos"} ${asset.name}`}
+            className={`absolute top-2 right-2 opacity-0 group-hover/file:opacity-100 focus-visible:opacity-100 ${
+              asset.starred ? "opacity-100" : ""
+            }`}
             onClick={() => onToggleStar(asset)}
             size="icon-sm"
-            variant="brand-secondary"
+            variant="secondary"
           >
             <Star className={asset.starred ? "fill-current" : undefined} />
           </Button>
-        </div>
-        <CardTitle className="truncate">{asset.name}</CardTitle>
-        <CardDescription>{asset.updatedAt}</CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-3">
-        <AssetMeta asset={asset} />
-        <div className="flex flex-wrap gap-1.5">
-          {asset.shared ? <Badge variant="info">Compartido</Badge> : null}
-          {asset.generatedWithAi ? (
-            <Badge variant="neutral">
-              <Sparkles data-icon="inline-start" />
-              Creado con AI
-            </Badge>
-          ) : null}
+          <div className="absolute inset-x-3 bottom-3 flex items-center justify-between gap-3 text-xs text-muted-foreground">
+            <span>{label}</span>
+            <span>{asset.size}</span>
+          </div>
         </div>
       </CardContent>
-      <CardFooter className="justify-between">
-        <span className="text-xs text-muted-foreground">
-          {selected ? "Seleccionado" : "Disponible"}
-        </span>
-        <Button
-          onClick={() => onSelect(asset.id)}
-          size="sm"
-          variant="brand-secondary"
-        >
-          {selected ? "Quitar" : "Seleccionar"}
-        </Button>
-      </CardFooter>
+      <CardHeader>
+        <CardTitle className="truncate">{asset.name}</CardTitle>
+        <CardDescription className="truncate">
+          Actualizado {asset.updatedAt} por {asset.owner}
+        </CardDescription>
+        <CardAction>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                aria-label={`Acciones de ${asset.name}`}
+                size="icon-sm"
+                variant="ghost"
+              >
+                <MoreVertical />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuGroup>
+                <DropdownMenuItem onSelect={() => onToggleStar(asset)}>
+                  <Star />
+                  {asset.starred ? "Quitar de favoritos" : "Añadir a favoritos"}
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => onSelect(asset.id)}>
+                  {selected ? "Quitar selección" : "Seleccionar"}
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </CardAction>
+      </CardHeader>
     </Card>
   )
 }
@@ -295,6 +286,7 @@ export function FilesLibraryPage() {
               : "document",
           size: formatSize(asset.sizeBytes),
           dimensions: null,
+          owner: asset.owner,
           updatedAt: new Intl.DateTimeFormat("es", {
             dateStyle: "medium",
           }).format(new Date(asset.modifiedAt)),
@@ -478,7 +470,7 @@ export function FilesLibraryPage() {
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="font-medium">{assets.length} archivos</p>
+            <p className="font-medium">Todos los archivos</p>
             {selectedAssetIds.length > 0 ? (
               <Badge variant="info">
                 {selectedAssetIds.length} seleccionados

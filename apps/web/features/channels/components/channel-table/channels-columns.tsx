@@ -205,7 +205,7 @@ export function createChannelsColumns({
                   size="compact"
                 >
                   <RefreshCw />
-                  Actualizar perfil
+                  Actualizar
                 </DropdownMenuItem>
                 {disconnected ? (
                   <DropdownMenuItem

@@ -8,6 +8,7 @@ export type FileAsset = {
   size: string
   dimensions: string | null
   updatedAt: string
+  owner: string
   shared: boolean
   generatedWithAi: boolean
   starred?: boolean
