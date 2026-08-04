@@ -2,6 +2,10 @@ FROM docker.io/oven/bun:1.3.14
 
 WORKDIR /app
 
+RUN apt-get update \
+  && apt-get install --no-install-recommends -y ffmpeg \
+  && rm -rf /var/lib/apt/lists/*
+
 COPY package.json bun.lock turbo.json tsconfig.json ./
 COPY apps/api/package.json apps/api/package.json
 COPY apps/web/package.json apps/web/package.json

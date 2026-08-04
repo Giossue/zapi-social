@@ -19,6 +19,8 @@ import {
 import { WhatsAppProfileScheduleProcessor } from './whatsapp-profile-sync/whatsapp-profile-schedule.processor';
 import { WhatsAppProfileSyncProcessor } from './whatsapp-profile-sync/whatsapp-profile-sync.processor';
 import { WhatsAppProfileSyncScheduler } from './whatsapp-profile-sync/whatsapp-profile-sync.scheduler';
+import { FILE_DERIVATIVES_QUEUE } from './files/file-derivatives.constants';
+import { FileDerivativesProcessor } from './files/file-derivatives.processor';
 
 @Module({
   imports: [
@@ -39,6 +41,7 @@ import { WhatsAppProfileSyncScheduler } from './whatsapp-profile-sync/whatsapp-p
       { name: META_PROFILE_SYNC_QUEUE },
       { name: WHATSAPP_PROFILE_SCHEDULE_QUEUE },
       { name: WHATSAPP_PROFILE_SYNC_QUEUE },
+      { name: FILE_DERIVATIVES_QUEUE },
     ),
   ],
   providers: [
@@ -50,6 +53,7 @@ import { WhatsAppProfileSyncScheduler } from './whatsapp-profile-sync/whatsapp-p
     WhatsAppProfileSyncScheduler,
     WhatsAppProfileScheduleProcessor,
     WhatsAppProfileSyncProcessor,
+    FileDerivativesProcessor,
   ],
 })
 export class AppModule {}

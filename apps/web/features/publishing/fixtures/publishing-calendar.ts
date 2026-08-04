@@ -33,6 +33,7 @@ export const publishingCalendarFixture: PublishingCalendarData = {
   posts: [
     {
       id: "post-1",
+      socialAccountId: "instagram-norte",
       date: "2026-07-28",
       time: "09:30",
       title: "Detrás de la nueva colección",
@@ -41,9 +42,11 @@ export const publishingCalendarFixture: PublishingCalendarData = {
       provider: "instagram",
       status: "published",
       hasMedia: true,
+      mediaAssetIds: ["campaign-launch"],
     },
     {
       id: "post-2",
+      socialAccountId: "facebook-norte",
       date: "2026-07-30",
       time: "10:00",
       title: "Ideas para agosto",
@@ -53,9 +56,11 @@ export const publishingCalendarFixture: PublishingCalendarData = {
       provider: "facebook",
       status: "scheduled",
       hasMedia: false,
+      mediaAssetIds: [],
     },
     {
       id: "post-3",
+      socialAccountId: "instagram-norte",
       date: "2026-07-31",
       time: "12:30",
       title: "Anuncio de producto",
@@ -64,9 +69,11 @@ export const publishingCalendarFixture: PublishingCalendarData = {
       provider: "instagram",
       status: "scheduled",
       hasMedia: true,
+      mediaAssetIds: ["campaign-launch"],
     },
     {
       id: "post-4",
+      socialAccountId: "facebook-norte",
       date: "2026-07-31",
       time: "16:00",
       title: "Actualización del equipo",
@@ -75,9 +82,11 @@ export const publishingCalendarFixture: PublishingCalendarData = {
       provider: "facebook",
       status: "draft",
       hasMedia: false,
+      mediaAssetIds: [],
     },
     {
       id: "post-5",
+      socialAccountId: "whatsapp-norte",
       date: "2026-08-01",
       time: "09:00",
       title: "Resumen de comunidad",
@@ -87,9 +96,11 @@ export const publishingCalendarFixture: PublishingCalendarData = {
       status: "failed",
       hasMedia: true,
       recoverable: true,
+      mediaAssetIds: ["campaign-launch"],
     },
     {
       id: "post-6",
+      socialAccountId: "instagram-norte",
       date: "2026-08-02",
       time: "18:00",
       title: "Consejo de fin de semana",
@@ -98,6 +109,7 @@ export const publishingCalendarFixture: PublishingCalendarData = {
       provider: "instagram",
       status: "processing",
       hasMedia: true,
+      mediaAssetIds: ["campaign-launch"],
     },
   ],
 }

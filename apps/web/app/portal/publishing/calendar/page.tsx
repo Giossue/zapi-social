@@ -1,8 +1,5 @@
-import { PublishingCalendarPage } from "@/features/publishing/components/publishing-calendar-page"
-import { getPublishingCalendarMock } from "@/features/publishing/mocks/publishing-calendar-repository"
+import { PublishingPageLoader } from "@/features/publishing/components/publishing-page-loader"
 
 export default async function PublishingCalendarRoutePage() {
-  const calendar = await getPublishingCalendarMock()
-
-  return <PublishingCalendarPage calendar={calendar} />
+  return <PublishingPageLoader />
 }

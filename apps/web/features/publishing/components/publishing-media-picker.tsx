@@ -20,23 +20,9 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@workspace/ui/components/toggle-group"
+import type { PublishingMediaAsset } from "@/features/publishing/types/publishing-calendar"
 
 type MediaKind = "image" | "video"
-
-type MediaAsset = {
-  id: string
-  kind: MediaKind
-  name: string
-}
-
-const mediaAssets: MediaAsset[] = [
-  { id: "campaign-launch", kind: "image", name: "Lanzamiento de campaña" },
-  { id: "studio-team", kind: "image", name: "Equipo en el estudio" },
-  { id: "product-reel", kind: "video", name: "Video de producto" },
-  { id: "community-event", kind: "image", name: "Evento de comunidad" },
-  { id: "behind-scenes", kind: "video", name: "Detrás de cámaras" },
-  { id: "brand-detail", kind: "image", name: "Detalle de marca" },
-]
 
 const filters: Array<{ label: string; value: MediaKind | "all" }> = [
   { label: "Todo", value: "all" },
@@ -45,11 +31,13 @@ const filters: Array<{ label: string; value: MediaKind | "all" }> = [
 ]
 
 type PublishingMediaPickerProps = {
+  assets: PublishingMediaAsset[]
   onChange: (assetId: string | null) => void
   selectedAssetId: string | null
 }
 
 export function PublishingMediaPicker({
+  assets,
   onChange,
   selectedAssetId,
 }: PublishingMediaPickerProps) {
@@ -57,13 +45,13 @@ export function PublishingMediaPicker({
   const [query, setQuery] = useState("")
   const visibleAssets = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("es")
-    return mediaAssets.filter(
+    return assets.filter(
       (asset) =>
         (kind === "all" || asset.kind === kind) &&
         (!normalizedQuery ||
           asset.name.toLocaleLowerCase("es").includes(normalizedQuery))
     )
-  }, [kind, query])
+  }, [assets, kind, query])
 
   return (
     <Card size="sm" variant="inset">

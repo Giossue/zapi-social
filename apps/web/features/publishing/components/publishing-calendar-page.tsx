@@ -32,6 +32,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
+import { ApiError, publishingApi } from "@workspace/api-client"
 import { PublishingAccountPicker } from "@/features/publishing/components/publishing-account-picker"
 import { PublishingCalendar } from "@/features/publishing/components/publishing-calendar"
 import { PublishingMediaPicker } from "@/features/publishing/components/publishing-media-picker"
@@ -45,20 +46,12 @@ import type {
   PublishingAccount,
   PublishingCalendarData,
   PublishingPost,
-  PublishingProvider,
-  PublishingStatus,
 } from "@/features/publishing/types/publishing-calendar"
 
 type PublishingSection = "calendar" | "queue" | "drafts"
 type ComposerMode = "draft" | "now" | "schedule"
 
 const defaultScheduleDate = "2026-08-03"
-
-const providerLabels: Record<PublishingProvider, string> = {
-  facebook: "Facebook",
-  instagram: "Instagram",
-  whatsapp: "WhatsApp",
-}
 
 const sectionLinks: Array<{
   href: string
@@ -74,32 +67,13 @@ const sectionLinks: Array<{
   { href: "/portal/publishing/drafts", label: "Borradores", value: "drafts" },
 ]
 
-function parseDate(value: string) {
-  return new Date(`${value}T12:00:00`)
-}
-
-function dateKey(date: Date) {
-  return [
-    date.getFullYear(),
-    String(date.getMonth() + 1).padStart(2, "0"),
-    String(date.getDate()).padStart(2, "0"),
-  ].join("-")
-}
-
-function postTitle(content: string) {
-  const normalized = content.trim().replace(/\s+/g, " ")
-
-  return normalized.length > 54
-    ? `${normalized.slice(0, 51)}…`
-    : normalized || "Publicación sin texto"
-}
-
 function ComposerDialog({
   accounts,
   editingPost,
   initialScheduledDate,
   onClose,
   onSave,
+  media,
   open,
 }: {
   accounts: PublishingAccount[]
@@ -109,23 +83,20 @@ function ComposerDialog({
   onSave: (input: {
     content: string
     selectedAccounts: string[]
-    hasMedia: boolean
+    mediaAssetIds: string[]
     mode: ComposerMode
     scheduledAt: string
-  }) => void
+  }) => Promise<void>
+  media: PublishingCalendarData["media"]
   open: boolean
 }) {
   const [content, setContent] = useState(() => editingPost?.content ?? "")
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>(() =>
-    editingPost
-      ? accounts
-          .filter((account) => account.provider === editingPost.provider)
-          .map((account) => account.id)
-      : []
+    editingPost ? [editingPost.socialAccountId] : []
   )
   const [selectedMediaAssetId, setSelectedMediaAssetId] = useState<
     string | null
-  >(() => (editingPost?.hasMedia ? "campaign-launch" : null))
+  >(() => editingPost?.mediaAssetIds[0] ?? null)
   const [mode, setMode] = useState<ComposerMode>(() =>
     editingPost?.status === "draft" ? "draft" : "schedule"
   )
@@ -157,7 +128,7 @@ function ComposerDialog({
             {editingPost ? "Editar publicación" : "Nueva publicación"}
           </DialogTitle>
           <DialogDescription>
-            El mock valida cada destino antes de guardar, programar o publicar.
+            Valida cada destino antes de guardar, programar o publicar.
           </DialogDescription>
         </DialogHeader>
 
@@ -187,6 +158,7 @@ function ComposerDialog({
             <Field>
               <FieldLabel>Media</FieldLabel>
               <PublishingMediaPicker
+                assets={media ?? []}
                 onChange={setSelectedMediaAssetId}
                 selectedAssetId={selectedMediaAssetId}
               />
@@ -239,9 +211,13 @@ function ComposerDialog({
               onSave({
                 content,
                 selectedAccounts,
-                hasMedia,
+                mediaAssetIds: selectedMediaAssetId
+                  ? [selectedMediaAssetId]
+                  : [],
                 mode,
-                scheduledAt: `${scheduledDate}T${scheduledTime}`,
+                scheduledAt: new Date(
+                  `${scheduledDate}T${scheduledTime}:00`
+                ).toISOString(),
               })
             }
           >
@@ -310,75 +286,79 @@ export function PublishingCalendarPage({
     setComposerOpen(true)
   }
 
-  function savePost({
+  async function savePost({
     content,
     selectedAccounts,
-    hasMedia,
+    mediaAssetIds,
     mode,
     scheduledAt,
   }: {
     content: string
     selectedAccounts: string[]
-    hasMedia: boolean
+    mediaAssetIds: string[]
     mode: ComposerMode
     scheduledAt: string
   }) {
-    const dateTime =
-      mode === "schedule"
-        ? new Date(scheduledAt)
-        : parseDate(calendar.focusDate)
-    const date = dateKey(dateTime)
-    const time = mode === "schedule" ? scheduledAt.slice(11, 16) : "Ahora"
-    const nextStatus: PublishingStatus =
-      mode === "draft" ? "draft" : mode === "now" ? "processing" : "scheduled"
-    const destinations = calendar.accounts.filter((account) =>
-      selectedAccounts.includes(account.id)
-    )
-    const nextPosts = destinations.map((account, index): PublishingPost => ({
-      id: `${Date.now()}-${account.id}-${index}`,
-      date,
-      time,
-      title: postTitle(content),
-      content,
-      channel: `${account.name} · ${providerLabels[account.provider]}`,
-      provider: account.provider,
-      status: nextStatus,
-      hasMedia,
-    }))
-
-    if (editingPost) {
-      setPosts((current) =>
-        current.map((post) =>
-          post.id === editingPost.id ? { ...post, ...nextPosts[0] } : post
+    try {
+      if (editingPost) {
+        const post = await publishingApi.update(editingPost.id, {
+          content,
+          mediaAssetIds,
+          mode,
+          scheduledAt: mode === "schedule" ? scheduledAt : null,
+        })
+        setPosts((current) =>
+          current.map((item) => (item.id === post.id ? post : item))
         )
-      )
-      toast.success("Los cambios del borrador se guardaron en este mock.")
-    } else {
-      setPosts((current) => [...nextPosts, ...current])
-      toast.success(
-        mode === "now"
-          ? `Iniciamos la operación para ${nextPosts.length} destino${nextPosts.length === 1 ? "" : "s"}.`
-          : mode === "draft"
-            ? "El borrador se guardó."
-            : `Programamos ${nextPosts.length} publicación${nextPosts.length === 1 ? "" : "es"}.`
+        toast.success("Los cambios se guardaron.")
+      } else {
+        const nextPosts = await publishingApi.create({
+          accountIds: selectedAccounts,
+          content,
+          mediaAssetIds,
+          mode,
+          ...(mode === "schedule" ? { scheduledAt } : {}),
+        })
+        setPosts((current) => [...nextPosts, ...current])
+        toast.success(
+          mode === "now"
+            ? `Iniciamos la operación para ${nextPosts.length} destino${nextPosts.length === 1 ? "" : "s"}.`
+            : mode === "draft"
+              ? "El borrador se guardó."
+              : `Programamos ${nextPosts.length} publicación${nextPosts.length === 1 ? "" : "es"}.`
+        )
+      }
+      setComposerOpen(false)
+      setEditingPost(null)
+    } catch (error) {
+      toast.error(
+        error instanceof ApiError && error.code === "VALIDATION_FAILED"
+          ? "Revisa las cuentas, media y fecha antes de continuar."
+          : "No pudimos guardar la publicación. Inténtalo de nuevo."
       )
     }
-    setComposerOpen(false)
-    setEditingPost(null)
   }
 
-  function retryPost(post: PublishingPost) {
-    setPosts((current) =>
-      current.map((item) =>
-        item.id === post.id ? { ...item, status: "processing" } : item
+  async function retryPost(post: PublishingPost) {
+    try {
+      const updated = await publishingApi.retry(post.id)
+      setPosts((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item))
       )
-    )
-    toast.success("El reintento se añadió a la cola mock.")
+      toast.success("El reintento se añadió a la cola.")
+    } catch {
+      toast.error("No pudimos reintentar la publicación.")
+    }
   }
 
-  function deletePost(post: PublishingPost) {
-    setPosts((current) => current.filter((item) => item.id !== post.id))
-    toast.success("El borrador se eliminó.")
+  async function deletePost(post: PublishingPost) {
+    try {
+      await publishingApi.remove(post.id)
+      setPosts((current) => current.filter((item) => item.id !== post.id))
+      toast.success("El borrador se eliminó.")
+    } catch {
+      toast.error("No pudimos eliminar el borrador.")
+    }
   }
 
   return (
@@ -498,6 +478,7 @@ export function PublishingCalendarPage({
             setEditingPost(null)
           }}
           onSave={savePost}
+          media={calendar.media}
           open={composerOpen}
         />
       ) : null}

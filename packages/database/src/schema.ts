@@ -611,12 +611,18 @@ export const fileFolders = pgTable(
       { onDelete: "set null" }
     ),
     name: varchar("name", { length: 160 }).notNull(),
+    status: varchar("status", { length: 16 })
+      .$type<"active" | "trashed">()
+      .notNull()
+      .default("active"),
+    trashedAt: timestamp("trashed_at", { withTimezone: true }),
     ...timestamps,
   },
   (table) => [
-    uniqueIndex("file_folders_workspace_name_unique").on(
+    uniqueIndex("file_folders_workspace_parent_name_unique").on(
       table.workspaceId,
-      table.name
+      sql`coalesce(${table.parentFolderId}, '00000000-0000-0000-0000-000000000000'::uuid)`,
+      sql`lower(${table.name})`
     ),
     index("file_folders_workspace_updated_index").on(
       table.workspaceId,
@@ -625,6 +631,11 @@ export const fileFolders = pgTable(
     index("file_folders_workspace_parent_updated_index").on(
       table.workspaceId,
       table.parentFolderId,
+      table.updatedAt
+    ),
+    index("file_folders_workspace_status_updated_index").on(
+      table.workspaceId,
+      table.status,
       table.updatedAt
     ),
   ]
@@ -646,7 +657,16 @@ export const fileAssets = pgTable(
     storageKey: varchar("storage_key", { length: 512 }).notNull(),
     name: varchar("name", { length: 255 }).notNull(),
     mimeType: varchar("mime_type", { length: 127 }).notNull(),
+    extension: varchar("extension", { length: 16 }),
     sizeBytes: integer("size_bytes").notNull(),
+    width: integer("width"),
+    height: integer("height"),
+    thumbnailKey: varchar("thumbnail_key", { length: 512 }),
+    thumbnailStatus: varchar("thumbnail_status", { length: 16 })
+      .$type<"pending" | "ready" | "failed" | "not_applicable">()
+      .notNull()
+      .default("not_applicable"),
+    thumbnailErrorCode: varchar("thumbnail_error_code", { length: 64 }),
     status: varchar("status", { length: 16 })
       .$type<"pending" | "ready" | "trashed">()
       .notNull()
@@ -666,5 +686,65 @@ export const fileAssets = pgTable(
       table.workspaceId,
       table.folderId
     ),
+    index("file_assets_workspace_thumbnail_index").on(
+      table.workspaceId,
+      table.thumbnailStatus
+    ),
+  ]
+)
+
+export const publishingPosts = pgTable(
+  "publishing_posts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    authorUserId: uuid("author_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    socialAccountId: uuid("social_account_id").references(
+      () => socialAccounts.id,
+      { onDelete: "restrict" }
+    ),
+    status: varchar("status", { length: 16 })
+      .$type<"draft" | "scheduled" | "processing" | "published" | "failed">()
+      .notNull()
+      .default("draft"),
+    content: varchar("content", { length: 10000 }).notNull().default(""),
+    scheduledAt: timestamp("scheduled_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    index("publishing_posts_workspace_status_index").on(
+      table.workspaceId,
+      table.status
+    ),
+    index("publishing_posts_workspace_scheduled_index").on(
+      table.workspaceId,
+      table.scheduledAt
+    ),
+    index("publishing_posts_social_account_index").on(table.socialAccountId),
+  ]
+)
+
+export const publishingPostMedia = pgTable(
+  "publishing_post_media",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    publishingPostId: uuid("publishing_post_id")
+      .notNull()
+      .references(() => publishingPosts.id, { onDelete: "cascade" }),
+    fileAssetId: uuid("file_asset_id")
+      .notNull()
+      .references(() => fileAssets.id, { onDelete: "restrict" }),
+    position: integer("position").notNull().default(0),
+  },
+  (table) => [
+    uniqueIndex("publishing_post_media_post_file_unique").on(
+      table.publishingPostId,
+      table.fileAssetId
+    ),
+    index("publishing_post_media_file_index").on(table.fileAssetId),
   ]
 )

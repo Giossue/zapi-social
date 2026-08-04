@@ -1,0 +1,2 @@
+DROP INDEX "file_folders_workspace_name_unique";--> statement-breakpoint
+CREATE UNIQUE INDEX "file_folders_workspace_parent_name_unique" ON "file_folders" USING btree ("workspace_id",coalesce("parent_folder_id", '00000000-0000-0000-0000-000000000000'::uuid),lower("name"));

@@ -6,7 +6,7 @@ export type PublishingStatus =
 export type PublishingAccount = {
   id: string
   name: string
-  assignedName?: string
+  assignedName?: string | null
   provider: PublishingProvider
   detail: string
   connected: boolean
@@ -14,6 +14,7 @@ export type PublishingAccount = {
 
 export type PublishingPost = {
   id: string
+  socialAccountId: string
   date: string
   time: string
   title: string
@@ -23,6 +24,14 @@ export type PublishingPost = {
   status: PublishingStatus
   hasMedia: boolean
   recoverable?: boolean
+  mediaAssetIds: string[]
+}
+
+export type PublishingMediaAsset = {
+  id: string
+  kind: "image" | "video"
+  name: string
+  thumbnailStatus: "pending" | "ready" | "failed" | "not_applicable"
 }
 
 export type PublishingCalendarData = {
@@ -30,4 +39,6 @@ export type PublishingCalendarData = {
   accounts: PublishingAccount[]
   posts: PublishingPost[]
   canView: boolean
+  canManage?: boolean
+  media?: PublishingMediaAsset[]
 }

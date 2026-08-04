@@ -5,6 +5,7 @@ type WorkerEnv = {
   REDIS_PORT: number;
   REDIS_USERNAME?: string;
   REDIS_PASSWORD?: string;
+  FILES_STORAGE_PATH: string;
 };
 
 export function validateEnv(config: Record<string, unknown>): WorkerEnv {
@@ -27,6 +28,7 @@ export function validateEnv(config: Record<string, unknown>): WorkerEnv {
     REDIS_PORT: redisPort,
     REDIS_USERNAME: optional(config, 'REDIS_USERNAME'),
     REDIS_PASSWORD: optional(config, 'REDIS_PASSWORD'),
+    FILES_STORAGE_PATH: optional(config, 'FILES_STORAGE_PATH') ?? './.data/files',
   };
 }
 

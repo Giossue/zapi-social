@@ -40,8 +40,13 @@ import type {
   PortalFilesResponse,
   PortalFilesQuery,
   CreatePortalFileFolderInput,
+  UpdatePortalFileFolderInput,
   UpdatePortalFileAssetInput,
   StartPortalFileUploadInput,
+  PortalPublishingResponse,
+  CreatePortalPublishingPostsInput,
+  UpdatePortalPublishingPostInput,
+  PortalPublishingPost,
 } from "@workspace/contracts"
 
 const apiBaseUrl =
@@ -260,6 +265,17 @@ export const filesApi = {
       method: "POST",
       body: JSON.stringify(input),
     }),
+  updateFolder: (id: string, input: UpdatePortalFileFolderInput) =>
+    request<unknown>(`/v1/portal/files/folders/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  removeFolder: (id: string) =>
+    request<void>(`/v1/portal/files/folders/${id}`, { method: "DELETE" }),
+  restoreFolder: (id: string) =>
+    request<void>(`/v1/portal/files/folders/${id}/restore`, { method: "POST" }),
+  purgeFolder: (id: string) =>
+    request<void>(`/v1/portal/files/folders/${id}/purge`, { method: "DELETE" }),
   update: (id: string, input: UpdatePortalFileAssetInput) =>
     request<unknown>(`/v1/portal/files/${id}`, {
       method: "PATCH",
@@ -267,6 +283,15 @@ export const filesApi = {
     }),
   remove: (id: string) =>
     request<void>(`/v1/portal/files/${id}`, { method: "DELETE" }),
+  restore: (id: string) =>
+    request<void>(`/v1/portal/files/${id}/restore`, { method: "POST" }),
+  purge: (id: string) =>
+    request<void>(`/v1/portal/files/${id}/purge`, { method: "DELETE" }),
+  trash: () =>
+    request<PortalFilesResponse>("/v1/portal/files/trash", { method: "GET" }),
+  previewUrl: (id: string) => `${apiBaseUrl}/v1/portal/files/${id}/preview`,
+  thumbnailUrl: (id: string) => `${apiBaseUrl}/v1/portal/files/${id}/thumbnail`,
+  downloadUrl: (id: string) => `${apiBaseUrl}/v1/portal/files/${id}/download`,
   startUpload: (input: StartPortalFileUploadInput) =>
     request<{ id: string; uploadUrl: string }>("/v1/portal/files/uploads", {
       method: "POST",
@@ -291,6 +316,29 @@ export const filesApi = {
       )
     }
   },
+}
+
+export const publishingApi = {
+  list: () =>
+    request<PortalPublishingResponse>("/v1/portal/publishing", {
+      method: "GET",
+    }),
+  create: (input: CreatePortalPublishingPostsInput) =>
+    request<PortalPublishingPost[]>("/v1/portal/publishing", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  update: (id: string, input: UpdatePortalPublishingPostInput) =>
+    request<PortalPublishingPost>(`/v1/portal/publishing/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) =>
+    request<void>(`/v1/portal/publishing/${id}`, { method: "DELETE" }),
+  retry: (id: string) =>
+    request<PortalPublishingPost>(`/v1/portal/publishing/${id}/retry`, {
+      method: "POST",
+    }),
 }
 
 export const channelsApi = {

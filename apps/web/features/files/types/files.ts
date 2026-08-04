@@ -4,6 +4,7 @@ export type FileAsset = {
   id: string
   name: string
   kind: FileAssetKind
+  mimeType?: string
   folderId: string | null
   size: string
   dimensions: string | null
@@ -12,6 +13,7 @@ export type FileAsset = {
   shared: boolean
   generatedWithAi: boolean
   starred?: boolean
+  thumbnailStatus?: "pending" | "ready" | "failed" | "not_applicable"
 }
 
 export type FileFolder = {

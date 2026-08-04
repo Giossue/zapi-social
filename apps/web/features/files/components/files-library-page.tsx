@@ -1,14 +1,18 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { filesApi } from "@workspace/api-client"
+import { ApiError, filesApi } from "@workspace/api-client"
 import { toast } from "@workspace/ui/components/toast"
 import Link from "next/link"
 import {
   Clock,
+  Download,
+  Eye,
+  FilePenLine,
   FileText,
   Folder,
   FolderPlus,
+  FolderInput,
   Grid2X2,
   Image,
   List,
@@ -16,6 +20,7 @@ import {
   Search,
   Star,
   Upload,
+  Trash2,
   Video,
 } from "lucide-react"
 
@@ -43,6 +48,7 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import {
@@ -82,6 +88,12 @@ import {
 } from "@workspace/ui/components/toggle-group"
 
 import { FilesPermissionState } from "@/features/files/components/files-states"
+import {
+  FileMoveDialog,
+  FilePreviewDialog,
+  FileRenameDialog,
+  FileTrashDialog,
+} from "@/features/files/components/file-manager-dialogs"
 import type {
   FileAsset,
   FileAssetKind,
@@ -123,22 +135,42 @@ function AssetCard({
   selected,
   onSelect,
   onToggleStar,
+  onPreview,
+  onRename,
+  onMove,
+  onTrash,
 }: {
   asset: FileAsset
   selected: boolean
   onSelect: (id: string) => void
   onToggleStar: (asset: FileAsset) => void
+  onPreview: (asset: FileAsset) => void
+  onRename: (asset: FileAsset) => void
+  onMove: (asset: FileAsset) => void
+  onTrash: (asset: FileAsset) => void
 }) {
   const { icon: AssetIcon, label } = assetKindMeta[asset.kind]
+  const [thumbnailUnavailable, setThumbnailUnavailable] = useState(false)
 
   return (
     <Card className="group/file" size="sm">
       <CardContent>
         <div className="relative flex h-36 items-center justify-center rounded-lg bg-muted/50">
-          <AssetIcon
-            aria-hidden="true"
-            className="size-12 text-muted-foreground"
-          />
+          {asset.kind === "image" &&
+          asset.thumbnailStatus === "ready" &&
+          !thumbnailUnavailable ? (
+            <img
+              alt=""
+              className="h-full w-full rounded-lg object-cover"
+              onError={() => setThumbnailUnavailable(true)}
+              src={filesApi.thumbnailUrl(asset.id)}
+            />
+          ) : (
+            <AssetIcon
+              aria-hidden="true"
+              className="size-12 text-muted-foreground"
+            />
+          )}
           <Button
             aria-label={`${asset.starred ? "Quitar de favoritos" : "Añadir a favoritos"} ${asset.name}`}
             className={`absolute top-2 right-2 opacity-0 group-hover/file:opacity-100 focus-visible:opacity-100 ${
@@ -174,8 +206,36 @@ function AssetCard({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuGroup>
+                <DropdownMenuItem onSelect={() => onPreview(asset)}>
+                  <Eye />
+                  Vista previa
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <a href={filesApi.downloadUrl(asset.id)}>
+                    <Download />
+                    Descargar
+                  </a>
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => onRename(asset)}>
+                  <FilePenLine />
+                  Renombrar
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => onMove(asset)}>
+                  <FolderInput />
+                  Mover
+                </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => onSelect(asset.id)}>
                   {selected ? "Quitar selección" : "Seleccionar"}
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuItem
+                  onSelect={() => onTrash(asset)}
+                  variant="destructive"
+                >
+                  <Trash2 />
+                  Enviar a papelera
                 </DropdownMenuItem>
               </DropdownMenuGroup>
             </DropdownMenuContent>
@@ -190,10 +250,18 @@ function AssetsTable({
   assets,
   selectedAssetIds,
   onSelect,
+  onPreview,
+  onRename,
+  onMove,
+  onTrash,
 }: {
   assets: readonly FileAsset[]
   selectedAssetIds: readonly string[]
   onSelect: (id: string) => void
+  onPreview: (asset: FileAsset) => void
+  onRename: (asset: FileAsset) => void
+  onMove: (asset: FileAsset) => void
+  onTrash: (asset: FileAsset) => void
 }) {
   return (
     <Table>
@@ -233,13 +301,45 @@ function AssetsTable({
                 {asset.updatedAt}
               </TableCell>
               <TableCell className="text-right">
-                <Button
-                  onClick={() => onSelect(asset.id)}
-                  size="sm"
-                  variant="brand-secondary"
-                >
-                  {selected ? "Quitar" : "Seleccionar"}
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      aria-label={`Acciones de ${asset.name}`}
+                      size="icon-sm"
+                      variant="brand-secondary"
+                    >
+                      <MoreVertical />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onSelect={() => onPreview(asset)}>
+                      <Eye />
+                      Vista previa
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <a href={filesApi.downloadUrl(asset.id)}>
+                        <Download />
+                        Descargar
+                      </a>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => onRename(asset)}>
+                      <FilePenLine />
+                      Renombrar
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => onMove(asset)}>
+                      <FolderInput />
+                      Mover
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onSelect={() => onTrash(asset)}
+                      variant="destructive"
+                    >
+                      <Trash2 />
+                      Enviar a papelera
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
           )
@@ -265,6 +365,22 @@ export function FilesLibraryPage() {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [folderDialogOpen, setFolderDialogOpen] = useState(false)
   const [folderName, setFolderName] = useState("")
+  const [previewAsset, setPreviewAsset] = useState<FileAsset | null>(null)
+  const [renameItem, setRenameItem] = useState<
+    (FileAsset | FileLibraryData["folders"][number]) | null
+  >(null)
+  const [moveItem, setMoveItem] = useState<
+    | ((FileAsset | FileLibraryData["folders"][number]) & {
+        isFolder?: boolean
+      })
+    | null
+  >(null)
+  const [trashItem, setTrashItem] = useState<
+    | ((FileAsset | FileLibraryData["folders"][number]) & {
+        isFolder?: boolean
+      })
+    | null
+  >(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const loadLibrary = useCallback(async () => {
@@ -288,6 +404,7 @@ export function FilesLibraryPage() {
             asset.kind === "image" || asset.kind === "video"
               ? asset.kind
               : "document",
+          mimeType: asset.mimeType,
           size: formatSize(asset.sizeBytes),
           dimensions: null,
           owner: asset.owner,
@@ -297,6 +414,7 @@ export function FilesLibraryPage() {
           shared: false,
           generatedWithAi: false,
           starred: asset.starred,
+          thumbnailStatus: asset.thumbnailStatus,
         })),
       })
     } catch {
@@ -396,6 +514,51 @@ export function FilesLibraryPage() {
     }
   }
 
+  async function renameManagedItem(name: string) {
+    if (!renameItem) return
+    try {
+      if ("kind" in renameItem) await filesApi.update(renameItem.id, { name })
+      else await filesApi.updateFolder(renameItem.id, { name })
+      setRenameItem(null)
+      await loadLibrary()
+      toast.success("Nombre actualizado")
+    } catch {
+      toast.error("No se pudo cambiar el nombre")
+    }
+  }
+
+  async function moveManagedItem(parentFolderId: string | null) {
+    if (!moveItem) return
+    try {
+      if (moveItem.isFolder)
+        await filesApi.updateFolder(moveItem.id, { parentFolderId })
+      else await filesApi.update(moveItem.id, { folderId: parentFolderId })
+      setMoveItem(null)
+      await loadLibrary()
+      toast.success("Elemento movido")
+    } catch {
+      toast.error("No se pudo mover el elemento")
+    }
+  }
+
+  async function trashManagedItem() {
+    if (!trashItem) return
+    try {
+      if (trashItem.isFolder) await filesApi.removeFolder(trashItem.id)
+      else await filesApi.remove(trashItem.id)
+      if (folderId !== "all" && trashItem.id === folderId) setFolderId("all")
+      setTrashItem(null)
+      await loadLibrary()
+      toast.success("Elemento enviado a papelera")
+    } catch (error) {
+      toast.error(
+        error instanceof ApiError && error.code === "FILE_IN_USE_BY_PUBLISHING"
+          ? "Este archivo se usa en Publishing y no puede enviarse a papelera."
+          : "No se pudo enviar el elemento a papelera"
+      )
+    }
+  }
+
   if (library === null) return null
   if (!library.canView) return <FilesPermissionState mode="library" />
 
@@ -414,6 +577,9 @@ export function FilesLibraryPage() {
           />
         </InputGroup>
         <div className="flex flex-wrap items-center gap-2">
+          <Button asChild variant="brand-secondary">
+            <Link href="/portal/files/trash">Papelera</Link>
+          </Button>
           <Button
             disabled={!library.canUpload}
             onClick={() => setFolderDialogOpen(true)}
@@ -510,6 +676,32 @@ export function FilesLibraryPage() {
                             onSelect={() => setFolderId(folder.id)}
                           >
                             Abrir carpeta
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onSelect={() => setRenameItem(folder)}
+                          >
+                            <FilePenLine />
+                            Renombrar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onSelect={() =>
+                              setMoveItem({ ...folder, isFolder: true })
+                            }
+                          >
+                            <FolderInput />
+                            Mover
+                          </DropdownMenuItem>
+                        </DropdownMenuGroup>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuGroup>
+                          <DropdownMenuItem
+                            onSelect={() =>
+                              setTrashItem({ ...folder, isFolder: true })
+                            }
+                            variant="destructive"
+                          >
+                            <Trash2 />
+                            Enviar a papelera
                           </DropdownMenuItem>
                         </DropdownMenuGroup>
                       </DropdownMenuContent>
@@ -618,6 +810,10 @@ export function FilesLibraryPage() {
                 key={asset.id}
                 onSelect={toggleAsset}
                 onToggleStar={toggleStar}
+                onPreview={setPreviewAsset}
+                onRename={setRenameItem}
+                onMove={setMoveItem}
+                onTrash={setTrashItem}
                 selected={selectedAssetIds.includes(asset.id)}
               />
             ))}
@@ -628,6 +824,10 @@ export function FilesLibraryPage() {
               <AssetsTable
                 assets={assets}
                 onSelect={toggleAsset}
+                onPreview={setPreviewAsset}
+                onRename={setRenameItem}
+                onMove={setMoveItem}
+                onTrash={setTrashItem}
                 selectedAssetIds={selectedAssetIds}
               />
             </CardContent>
@@ -697,6 +897,30 @@ export function FilesLibraryPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <FilePreviewDialog
+        item={previewAsset}
+        onOpenChange={(open) => !open && setPreviewAsset(null)}
+        open={Boolean(previewAsset)}
+      />
+      <FileRenameDialog
+        item={renameItem}
+        onConfirm={renameManagedItem}
+        onOpenChange={(open) => !open && setRenameItem(null)}
+        open={Boolean(renameItem)}
+      />
+      <FileMoveDialog
+        folders={[...(library?.folders ?? [])]}
+        item={moveItem}
+        onConfirm={moveManagedItem}
+        onOpenChange={(open) => !open && setMoveItem(null)}
+        open={Boolean(moveItem)}
+      />
+      <FileTrashDialog
+        item={trashItem}
+        onConfirm={trashManagedItem}
+        onOpenChange={(open) => !open && setTrashItem(null)}
+        open={Boolean(trashItem)}
+      />
     </div>
   )
 }

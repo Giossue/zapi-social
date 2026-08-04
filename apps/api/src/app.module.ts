@@ -12,6 +12,7 @@ import { IdentityModule } from './identity/identity.module';
 import { IntegrationsModule } from './integrations/integrations.module';
 import { PlansModule } from './plans/plans.module';
 import { FilesModule } from './files/files.module';
+import { PublishingModule } from './publishing/publishing.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { FilesModule } from './files/files.module';
     IntegrationsModule,
     PlansModule,
     FilesModule,
+    PublishingModule,
     IdentityModule,
     BullModule.forRoot({
       connection: {

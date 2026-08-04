@@ -1,0 +1,11 @@
+{
+    "schema_version": 2,
+    "commit": "3aaabaf3fe7fd648b42bad5c94232122eca586f4",
+    "indexed_at": "2026-08-04T10:48:43Z",
+    "project": "ZapiV2",
+    "nodes": 4619,
+    "edges": 9102,
+    "original_size": 4849664,
+    "compressed_size": 546211,
+    "compression_level": 9
+}

@@ -6,6 +6,7 @@ export {
   eq,
   gt,
   ilike,
+  inArray,
   isNull,
   or,
   sql,

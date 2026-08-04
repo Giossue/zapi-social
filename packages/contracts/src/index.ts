@@ -213,6 +213,7 @@ export const portalFileAssetSchema = z.object({
   ownerInitials: z.string(),
   modifiedAt: z.string().datetime(),
   starred: z.boolean(),
+  thumbnailStatus: z.enum(["pending", "ready", "failed", "not_applicable"]),
 })
 export const portalFileFolderSchema = z.object({
   id: z.uuid(),
@@ -235,6 +236,11 @@ export const portalFilesQuerySchema = z
     starred: z.coerce.boolean().optional(),
   })
   .strict()
+export const portalFileTrashQuerySchema = z
+  .object({
+    q: z.string().trim().min(1).max(255).optional(),
+  })
+  .strict()
 export const createPortalFileFolderSchema = z
   .object({
     name: z.string().trim().min(1).max(160),
@@ -242,12 +248,17 @@ export const createPortalFileFolderSchema = z
   })
   .strict()
 export const updatePortalFileFolderSchema = z
-  .object({ name: z.string().trim().min(1).max(160) })
+  .object({
+    name: z.string().trim().min(1).max(160).optional(),
+    parentFolderId: z.uuid().nullable().optional(),
+  })
   .strict()
+  .refine((input) => Object.keys(input).length > 0)
 export const updatePortalFileAssetSchema = z
   .object({
     starred: z.boolean().optional(),
     folderId: z.uuid().nullable().optional(),
+    name: z.string().trim().min(1).max(255).optional(),
   })
   .strict()
   .refine((input) => Object.keys(input).length > 0)
@@ -260,6 +271,91 @@ export const startPortalFileUploadSchema = z
   })
   .strict()
 export const completePortalFileUploadSchema = z.object({}).strict()
+
+export const publishingProviderSchema = z.enum([
+  "facebook",
+  "instagram",
+  "whatsapp",
+])
+export const publishingPostStatusSchema = z.enum([
+  "draft",
+  "scheduled",
+  "processing",
+  "published",
+  "failed",
+])
+export const portalPublishingAccountSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  assignedName: z.string().nullable(),
+  provider: publishingProviderSchema,
+  detail: z.string(),
+  connected: z.boolean(),
+})
+export const portalPublishingPostSchema = z.object({
+  id: z.uuid(),
+  socialAccountId: z.uuid(),
+  date: z.string(),
+  time: z.string(),
+  title: z.string(),
+  content: z.string(),
+  channel: z.string(),
+  provider: publishingProviderSchema,
+  status: publishingPostStatusSchema,
+  hasMedia: z.boolean(),
+  recoverable: z.boolean().optional(),
+  mediaAssetIds: z.array(z.uuid()),
+})
+export const portalPublishingResponseSchema = z.object({
+  canView: z.boolean(),
+  canManage: z.boolean(),
+  focusDate: z.string(),
+  accounts: z.array(portalPublishingAccountSchema),
+  posts: z.array(portalPublishingPostSchema),
+  media: z.array(
+    z.object({
+      id: z.uuid(),
+      kind: z.enum(["image", "video"]),
+      name: z.string(),
+      thumbnailStatus: z.enum(["pending", "ready", "failed", "not_applicable"]),
+    })
+  ),
+})
+const portalPublishingPostFields = {
+  content: z.string().trim().min(1).max(10000),
+  accountIds: z.array(z.uuid()).min(1).max(20),
+  mediaAssetIds: z.array(z.uuid()).max(10).default([]),
+  mode: z.enum(["draft", "now", "schedule"]),
+  scheduledAt: z.string().datetime().optional(),
+}
+export const createPortalPublishingPostsSchema = z
+  .object(portalPublishingPostFields)
+  .strict()
+  .superRefine((input, context) => {
+    if (input.mode === "schedule" && !input.scheduledAt) {
+      context.addIssue({
+        code: "custom",
+        path: ["scheduledAt"],
+        message: "La fecha programada es obligatoria.",
+      })
+    }
+    if (input.mode !== "schedule" && input.scheduledAt) {
+      context.addIssue({
+        code: "custom",
+        path: ["scheduledAt"],
+        message: "La fecha solo aplica al modo programado.",
+      })
+    }
+  })
+export const updatePortalPublishingPostSchema = z
+  .object({
+    content: z.string().trim().min(1).max(10000).optional(),
+    mediaAssetIds: z.array(z.uuid()).max(10).optional(),
+    mode: z.enum(["draft", "now", "schedule"]).optional(),
+    scheduledAt: z.string().datetime().nullable().optional(),
+  })
+  .strict()
+  .refine((input) => Object.keys(input).length > 0)
 
 export const portalDashboardSchema = z.object({
   welcome: z.object({ name: z.string() }),
@@ -419,6 +515,25 @@ export type UpdatePortalFileAssetInput = z.infer<
 >
 export type StartPortalFileUploadInput = z.infer<
   typeof startPortalFileUploadSchema
+>
+export type UpdatePortalFileFolderInput = z.infer<
+  typeof updatePortalFileFolderSchema
+>
+export type PortalFileTrashQuery = z.infer<typeof portalFileTrashQuerySchema>
+export type PublishingProvider = z.infer<typeof publishingProviderSchema>
+export type PublishingPostStatus = z.infer<typeof publishingPostStatusSchema>
+export type PortalPublishingAccount = z.infer<
+  typeof portalPublishingAccountSchema
+>
+export type PortalPublishingPost = z.infer<typeof portalPublishingPostSchema>
+export type PortalPublishingResponse = z.infer<
+  typeof portalPublishingResponseSchema
+>
+export type CreatePortalPublishingPostsInput = z.infer<
+  typeof createPortalPublishingPostsSchema
+>
+export type UpdatePortalPublishingPostInput = z.infer<
+  typeof updatePortalPublishingPostSchema
 >
 export type ChannelStatus = z.infer<typeof channelStatusSchema>
 export type ChannelAccount = z.infer<typeof channelAccountSchema>

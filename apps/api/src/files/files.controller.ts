@@ -47,6 +47,31 @@ export class FilesController {
       body,
     );
   }
+  @Get('trash') trash(@Req() request: FastifyRequest, @Query() query: unknown) {
+    return this.files.trash(this.access.requirePortalSession(request), query);
+  }
+  @Delete('folders/:id') @HttpCode(HttpStatus.NO_CONTENT) async removeFolder(
+    @Req() request: FastifyRequest,
+    @Param('id') id: string,
+  ) {
+    await this.files.removeFolder(
+      this.access.requirePortalSession(request),
+      id,
+    );
+  }
+  @Post('folders/:id/restore')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async restoreFolder(@Req() request: FastifyRequest, @Param('id') id: string) {
+    await this.files.restoreFolder(
+      this.access.requirePortalSession(request),
+      id,
+    );
+  }
+  @Delete('folders/:id/purge')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async purgeFolder(@Req() request: FastifyRequest, @Param('id') id: string) {
+    await this.files.purgeFolder(this.access.requirePortalSession(request), id);
+  }
   @Post('uploads') startUpload(
     @Req() request: FastifyRequest,
     @Body() body: unknown,
@@ -83,6 +108,18 @@ export class FilesController {
   ) {
     await this.files.remove(this.access.requirePortalSession(request), id);
   }
+  @Post(':id/restore') @HttpCode(HttpStatus.NO_CONTENT) async restore(
+    @Req() request: FastifyRequest,
+    @Param('id') id: string,
+  ) {
+    await this.files.restore(this.access.requirePortalSession(request), id);
+  }
+  @Delete(':id/purge') @HttpCode(HttpStatus.NO_CONTENT) async purge(
+    @Req() request: FastifyRequest,
+    @Param('id') id: string,
+  ) {
+    await this.files.purge(this.access.requirePortalSession(request), id);
+  }
   @Get(':id/download') async download(
     @Req() request: FastifyRequest,
     @Res() reply: FastifyReply,
@@ -97,6 +134,48 @@ export class FilesController {
       .header(
         'content-disposition',
         `attachment; filename="${file.name.replaceAll('"', '')}"`,
+      )
+      .send(file.stream);
+  }
+  @Get(':id/preview') async preview(
+    @Req() request: FastifyRequest,
+    @Res() reply: FastifyReply,
+    @Param('id') id: string,
+  ) {
+    const file = await this.files.preview(
+      this.access.requirePortalSession(request),
+      id,
+      request.headers.range,
+    );
+    if (file.partial)
+      reply
+        .code(HttpStatus.PARTIAL_CONTENT)
+        .header('accept-ranges', 'bytes')
+        .header('content-range', `bytes ${file.start}-${file.end}/${file.size}`)
+        .header('content-length', String(file.end - file.start + 1));
+    return reply
+      .type(file.mimeType)
+      .header(
+        'content-disposition',
+        `inline; filename="${file.name.replaceAll('"', '')}"`,
+      )
+      .send(file.stream);
+  }
+  @Get(':id/thumbnail') async thumbnail(
+    @Req() request: FastifyRequest,
+    @Res() reply: FastifyReply,
+    @Param('id') id: string,
+  ) {
+    const file = await this.files.thumbnail(
+      this.access.requirePortalSession(request),
+      id,
+    );
+    return reply
+      .type(file.mimeType)
+      .header('cache-control', 'private, max-age=3600')
+      .header(
+        'content-disposition',
+        `inline; filename="${file.name.replaceAll('"', '')}"`,
       )
       .send(file.stream);
   }

@@ -2,9 +2,9 @@
 
 ## Estado
 
-**Investigación Laravel completada; UI mock source-first implementada. Permisos de Teams y contrato/backend pendientes.**
+**El slice persistente de posts y media está implementado para proteger Files. Permisos de Teams, cuotas, auditoría y adapters de providers permanecen pendientes.**
 
-No implementar persistencia, adapters de providers ni workers hasta aprobar el MVP, permisos y transición de estados descritos aquí.
+Implementar ahora únicamente posts y adjuntos persistentes necesarios para ownership y protección de Files. No implementar adapters de providers ni workflows de Teams.
 
 ## Objetivo
 
@@ -176,16 +176,23 @@ Scheduler: solo encola IDs vencidos; no llama proveedores directamente
 - Se añaden `@fullcalendar/react` y `date-fns` como dependencias explícitas de `apps/web`; no se importa `diseño ideal` ni se añade un primitive global porque el renderer solo tiene consumidor Publishing.
 - El compositor conserva su flujo mock, editor y preview en dos columnas desde `lg`. El diálogo anula el límite `sm:max-w-sm` del primitive y ocupa hasta el 90% del viewport (máximo `80rem`), para que ambas columnas dispongan del espacio de trabajo previsto; en móvil usa el ancho disponible con márgenes seguros.
 - Cola y Borradores comparten una superficie operativa: KPIs con la jerarquía de `diseño ideal/dashboard/crm`, tabla con encabezado y filtros integrados, estado vacío y `TablePagination` común visible incluso con una sola página (10 filas por página), como Captions y Canales. Los conteos y acciones siguen procediendo del fixture Publishing mock.
-- Las mutaciones mock de Publishing (guardar, editar, borrar y reintentar) confirman mediante toast transitorio; no reservan un aviso persistente en la superficie operativa.
+- Las mutaciones de Publishing (guardar, editar, borrar y reintentar) usan REST y confirman mediante toast transitorio; no reservan un aviso persistente en la superficie operativa.
+
+### Slice persistente implementado
+
+- `GET/POST/PATCH/DELETE /v1/portal/publishing` y `POST /:id/retry` validan sesión Portal, workspace, cuentas conectadas y media `ready` del mismo workspace.
+- Cada cuenta destino crea su propio `publishing_posts.social_account_id`; los `fileAssetId` quedan ordenados en `publishing_post_media`.
+- Calendario, cola y borradores cargan el cliente REST. El estado React sólo funciona como caché de la respuesta después de una mutación, no como fuente de verdad fixture.
+- La migración `0014_tired_betty_ross` añade estado de papelera de carpetas y la cuenta destino; fue aplicada localmente junto con `0015_lyrical_cargill`.
 
 ## Secuencia de ejecución
 
 1. [x] Auditar Laravel, dependencias, proveedores y extensiones de origen.
 2. [ ] Aprobar alcance MVP, permisos y estados de transición.
 3. [x] Diseñar UI mock: calendar, composer, cola, empty/loading/error/permisos y preview/preflight. El calendario source-first usa FullCalendar, filtro de proveedor, mes/semana/día y compositor contextual. Evidencia: `apps/web/features/publishing/`, `apps/web/app/portal/publishing/` y `diseño ideal/src/app/(main)/dashboard/calendar/`.
-4. [ ] Definir contrato Zod + REST + errores públicos.
-5. [ ] Añadir schema/migración Drizzle y pruebas de constraints.
-6. [ ] Implementar API, ownership, cuotas y auditoría.
+4. [x] Definir contrato Zod + REST para posts persistentes, media y errores públicos de Files. Evidencia: `packages/contracts`, `packages/api-client` y `apps/api/src/publishing/`.
+5. [x] Añadir schema/migración Drizzle para cuenta destino, referencias de media y papelera de carpetas. Evidencia: migraciones `0013`–`0015`, aplicadas en `zapi_v2_local`.
+6. [ ] Implementar API completa, ownership granular, cuotas y auditoría. El CRUD persistente por workspace está realizado; Teams/cuotas/auditoría siguen pendientes.
 7. [ ] Implementar Worker, outbox, locks, reintentos y adapters autorizados de Facebook Page, Instagram Profile y WhatsApp Status.
-8. [ ] Sustituir mock por API y validar flujo end-to-end.
+8. [x] Sustituir mock por API en calendario, cola y borradores. Evidencia: rutas `apps/web/app/portal/publishing/*` y `publishingApi`; falta smoke autenticado con cuentas reales.
 9. [ ] Añadir aprobaciones, nuevos providers y productores AI/Bulk/RSS por fases.
