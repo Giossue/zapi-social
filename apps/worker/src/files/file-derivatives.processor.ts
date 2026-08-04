@@ -24,7 +24,7 @@ export class FileDerivativesProcessor extends WorkerHost {
     const source = resolve(this.root, asset.storageKey);
     const key = `${asset.storageKey}.thumb.webp`;
     const target = resolve(this.root, key);
-    const temporary = `${target}.${crypto.randomUUID()}.tmp`;
+    const temporary = `${target}.${crypto.randomUUID()}.tmp.webp`;
     try {
       await mkdir(resolve(target, '..'), { recursive: true });
       const metadata = asset.mimeType.startsWith('image/')
