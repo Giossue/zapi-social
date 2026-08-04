@@ -5,6 +5,7 @@ import { filesApi } from "@workspace/api-client"
 import { toast } from "@workspace/ui/components/toast"
 import Link from "next/link"
 import {
+  Clock,
   FileText,
   Folder,
   FolderPlus,
@@ -12,6 +13,7 @@ import {
   Image,
   List,
   MoreHorizontal,
+  MoreVertical,
   Search,
   Star,
   Share2,
@@ -24,12 +26,20 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
 import {
   Dialog,
   DialogContent,
@@ -340,7 +350,8 @@ export function FilesLibraryPage() {
       ),
     [assetFilter, folderId, library?.assets, query]
   )
-  const hasFilters = Boolean(query.trim()) || assetFilter !== "all" || folderId !== "all"
+  const hasFilters =
+    Boolean(query.trim()) || assetFilter !== "all" || folderId !== "all"
 
   function toggleAsset(id: string) {
     setSelectedAssetIds((current) =>
@@ -354,7 +365,9 @@ export function FilesLibraryPage() {
     try {
       await filesApi.update(asset.id, { starred: !asset.starred })
       await loadLibrary()
-      toast.success(asset.starred ? "Quitado de favoritos" : "Añadido a favoritos")
+      toast.success(
+        asset.starred ? "Quitado de favoritos" : "Añadido a favoritos"
+      )
     } catch {
       toast.error("No se pudo actualizar favoritos")
     }
@@ -396,41 +409,71 @@ export function FilesLibraryPage() {
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {library.folders.map((folder) => (
-          <Card key={folder.id} size="sm" variant="subtle">
-            <CardHeader>
-              <div className="flex items-center justify-between gap-3">
-                <Folder
-                  aria-hidden="true"
-                  className="size-5 text-muted-foreground"
-                />
-                <Badge variant={folderId === folder.id ? "default" : "neutral"}>
-                  {folder.fileCount} archivos
-                </Badge>
-              </div>
-              <CardTitle className="truncate">{folder.name}</CardTitle>
-              <CardDescription>{folder.updatedAt}</CardDescription>
-            </CardHeader>
-            <CardFooter className="justify-between">
-              <span className="text-xs text-muted-foreground">
-                {folder.size}
-              </span>
-              <Button
-                onClick={() =>
-                  setFolderId((current) =>
-                    current === folder.id ? "all" : folder.id
-                  )
-                }
-                size="sm"
-                variant="brand-secondary"
-              >
-                {folderId === folder.id ? "Ver todo" : "Abrir"}
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
+      {library.folders.length > 0 ? (
+        <section
+          className="flex flex-col gap-2"
+          aria-labelledby="folders-heading"
+        >
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-medium" id="folders-heading">
+              Carpetas
+            </h2>
+            <span className="text-sm text-muted-foreground">
+              {library.folders.length} carpetas
+            </span>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {library.folders.map((folder) => (
+              <Card key={folder.id} size="sm">
+                <CardHeader>
+                  <div className="flex min-w-0 items-center gap-2">
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                      <Folder aria-hidden="true" className="size-4.5" />
+                    </div>
+                    <div className="flex min-w-0 flex-col gap-1">
+                      <CardTitle className="truncate leading-none">
+                        {folder.name}
+                      </CardTitle>
+                      <CardDescription className="text-xs">
+                        {folder.fileCount} archivos
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <CardAction>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          aria-label={`Acciones de ${folder.name}`}
+                          size="icon-sm"
+                          variant="ghost"
+                        >
+                          <MoreVertical />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuGroup>
+                          <DropdownMenuItem
+                            onSelect={() => setFolderId(folder.id)}
+                          >
+                            Abrir carpeta
+                          </DropdownMenuItem>
+                        </DropdownMenuGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </CardAction>
+                </CardHeader>
+                <CardContent className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1.5">
+                    <Clock aria-hidden="true" className="size-3.5" />
+                    <span>Actualizada {folder.updatedAt}</span>
+                  </div>
+                  <span>{folder.size}</span>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -497,9 +540,15 @@ export function FilesLibraryPage() {
                 </Button>
               ) : undefined
             }
-            description={hasFilters ? "Prueba con otro término o restablece los filtros para consultar todos los archivos disponibles." : "Sube un archivo o crea una carpeta para comenzar a organizar tu biblioteca."}
+            description={
+              hasFilters
+                ? "Prueba con otro término o restablece los filtros para consultar todos los archivos disponibles."
+                : "Sube un archivo o crea una carpeta para comenzar a organizar tu biblioteca."
+            }
             icon={Search}
-            title={hasFilters ? "No encontramos archivos" : "Aún no tienes archivos"}
+            title={
+              hasFilters ? "No encontramos archivos" : "Aún no tienes archivos"
+            }
           />
         ) : view === "grid" ? (
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -531,8 +580,8 @@ export function FilesLibraryPage() {
           <DialogHeader>
             <DialogTitle>Subir archivos</DialogTitle>
             <DialogDescription>
-              El archivo se guardará de forma privada en el almacenamiento
-              local del servidor.
+              El archivo se guardará de forma privada en el almacenamiento local
+              del servidor.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
