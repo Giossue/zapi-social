@@ -97,6 +97,7 @@ Los endpoints definitivos se fijan tras diseñar la UI, pero el contrato objetiv
 
 - API solo valida, persiste el asset y encola los derivados. No ejecuta generación de miniaturas o lectura costosa de media dentro del request de subida.
 - Worker lee el binario desde el mismo volumen local, extrae metadata y genera derivados en un namespace interno separado del original.
+- Al arrancar, Worker reencola de forma idempotente hasta 100 imágenes o vídeos históricos `ready` sin derivado; el job conserva el ID determinista `thumbnail:<asset_id>`.
 - Imagen: dimensiones y miniatura WebP/AVIF con tamaño acotado.
 - Vídeo: duración, dimensiones y frame de portada; si la herramienta de media no está disponible, estado `failed` normalizado y fallback de icono.
 - Audio: duración y fallback visual; no necesita waveform en la primera entrega.
@@ -149,6 +150,6 @@ La implementación visual se hace primero en `diseño ideal` y se copia literalm
 - La subida no bufferiza el archivo entero en Web ni API.
 - Mover un archivo o carpeta no permite cruces de workspace ni ciclos.
 - Enviar a papelera no rompe publicaciones activas; restaurar recupera la ubicación cuando sea posible.
-- Preview y descarga son autenticados, no URLs estáticas del volumen.
+- Preview y descarga son autenticados, no URLs estáticas del volumen. Preview y miniatura declaran caché privada de una hora para evitar repetir la descarga al volver a la biblioteca.
 - Las miniaturas no bloquean la subida ni hacen que un archivo listo desaparezca si fallan.
 - La UI Portal es copia literal de la superficie aprobada en `diseño ideal`; solo datos, texto y handlers difieren.

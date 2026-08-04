@@ -20,6 +20,7 @@ import { WhatsAppProfileScheduleProcessor } from './whatsapp-profile-sync/whatsa
 import { WhatsAppProfileSyncProcessor } from './whatsapp-profile-sync/whatsapp-profile-sync.processor';
 import { WhatsAppProfileSyncScheduler } from './whatsapp-profile-sync/whatsapp-profile-sync.scheduler';
 import { FILE_DERIVATIVES_QUEUE } from './files/file-derivatives.constants';
+import { FileDerivativesBackfillScheduler } from './files/file-derivatives-backfill.scheduler';
 import { FileDerivativesProcessor } from './files/file-derivatives.processor';
 
 @Module({
@@ -53,6 +54,7 @@ import { FileDerivativesProcessor } from './files/file-derivatives.processor';
     WhatsAppProfileSyncScheduler,
     WhatsAppProfileScheduleProcessor,
     WhatsAppProfileSyncProcessor,
+    FileDerivativesBackfillScheduler,
     FileDerivativesProcessor,
   ],
 })
