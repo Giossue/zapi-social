@@ -47,9 +47,6 @@ export class FilesController {
       body,
     );
   }
-  @Get('trash') trash(@Req() request: FastifyRequest, @Query() query: unknown) {
-    return this.files.trash(this.access.requirePortalSession(request), query);
-  }
   @Delete('folders/:id') @HttpCode(HttpStatus.NO_CONTENT) async removeFolder(
     @Req() request: FastifyRequest,
     @Param('id') id: string,
@@ -58,19 +55,6 @@ export class FilesController {
       this.access.requirePortalSession(request),
       id,
     );
-  }
-  @Post('folders/:id/restore')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async restoreFolder(@Req() request: FastifyRequest, @Param('id') id: string) {
-    await this.files.restoreFolder(
-      this.access.requirePortalSession(request),
-      id,
-    );
-  }
-  @Delete('folders/:id/purge')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async purgeFolder(@Req() request: FastifyRequest, @Param('id') id: string) {
-    await this.files.purgeFolder(this.access.requirePortalSession(request), id);
   }
   @Post('uploads') startUpload(
     @Req() request: FastifyRequest,
@@ -107,18 +91,6 @@ export class FilesController {
     @Param('id') id: string,
   ) {
     await this.files.remove(this.access.requirePortalSession(request), id);
-  }
-  @Post(':id/restore') @HttpCode(HttpStatus.NO_CONTENT) async restore(
-    @Req() request: FastifyRequest,
-    @Param('id') id: string,
-  ) {
-    await this.files.restore(this.access.requirePortalSession(request), id);
-  }
-  @Delete(':id/purge') @HttpCode(HttpStatus.NO_CONTENT) async purge(
-    @Req() request: FastifyRequest,
-    @Param('id') id: string,
-  ) {
-    await this.files.purge(this.access.requirePortalSession(request), id);
   }
   @Get(':id/download') async download(
     @Req() request: FastifyRequest,

@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ApiError, filesApi } from "@workspace/api-client"
 import { toast } from "@workspace/ui/components/toast"
-import Link from "next/link"
 import {
   Clock,
   Download,
@@ -636,12 +635,12 @@ export function FilesLibraryPage() {
       if (folderId !== "all" && trashItem.id === folderId) setFolderId("all")
       setTrashItem(null)
       await loadLibrary()
-      toast.success("Elemento enviado a papelera")
+      toast.success("Elemento eliminado permanentemente")
     } catch (error) {
       toast.error(
         error instanceof ApiError && error.code === "FILE_IN_USE_BY_PUBLISHING"
-          ? "Este archivo se usa en Publishing y no puede enviarse a papelera."
-          : "No se pudo enviar el elemento a papelera"
+          ? "Este archivo se usa en Publishing y no puede eliminarse."
+          : "No se pudo eliminar el elemento"
       )
     }
   }
@@ -691,7 +690,9 @@ export function FilesLibraryPage() {
         return
       }
       toast.success(
-        ids.length === 1 ? "Archivo eliminado" : "Archivos eliminados"
+        ids.length === 1
+          ? "Archivo eliminado permanentemente"
+          : "Archivos eliminados permanentemente"
       )
     } catch {
       toast.error("No se pudieron eliminar los archivos")
@@ -718,9 +719,6 @@ export function FilesLibraryPage() {
           />
         </InputGroup>
         <div className="flex flex-wrap items-center gap-2">
-          <Button asChild variant="brand-secondary">
-            <Link href="/portal/files/trash">Papelera</Link>
-          </Button>
           <Button
             disabled={!library.canUpload}
             onClick={() => setFolderDialogOpen(true)}

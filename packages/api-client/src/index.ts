@@ -275,10 +275,6 @@ export const filesApi = {
     }),
   removeFolder: (id: string) =>
     request<void>(`/v1/portal/files/folders/${id}`, { method: "DELETE" }),
-  restoreFolder: (id: string) =>
-    request<void>(`/v1/portal/files/folders/${id}/restore`, { method: "POST" }),
-  purgeFolder: (id: string) =>
-    request<void>(`/v1/portal/files/folders/${id}/purge`, { method: "DELETE" }),
   update: (id: string, input: UpdatePortalFileAssetInput) =>
     request<unknown>(`/v1/portal/files/${id}`, {
       method: "PATCH",
@@ -286,12 +282,6 @@ export const filesApi = {
     }),
   remove: (id: string) =>
     request<void>(`/v1/portal/files/${id}`, { method: "DELETE" }),
-  restore: (id: string) =>
-    request<void>(`/v1/portal/files/${id}/restore`, { method: "POST" }),
-  purge: (id: string) =>
-    request<void>(`/v1/portal/files/${id}/purge`, { method: "DELETE" }),
-  trash: () =>
-    request<PortalFilesResponse>("/v1/portal/files/trash", { method: "GET" }),
   previewUrl: (id: string) => `${apiBaseUrl}/v1/portal/files/${id}/preview`,
   thumbnailUrl: (id: string) => `${apiBaseUrl}/v1/portal/files/${id}/thumbnail`,
   downloadUrl: (id: string) => `${apiBaseUrl}/v1/portal/files/${id}/download`,
