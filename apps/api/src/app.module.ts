@@ -15,6 +15,8 @@ import { FilesModule } from './files/files.module';
 import { PublishingModule } from './publishing/publishing.module';
 import { AuditModule } from './audit/audit.module';
 import { RssSchedulesModule } from './rss-schedules/rss-schedules.module';
+import { SupportModule } from './support/support.module';
+import { WatermarksModule } from './watermarks/watermarks.module';
 
 @Module({
   imports: [
@@ -37,6 +39,8 @@ import { RssSchedulesModule } from './rss-schedules/rss-schedules.module';
     FilesModule,
     PublishingModule,
     RssSchedulesModule,
+    SupportModule,
+    WatermarksModule,
     AuditModule,
     IdentityModule,
     BullModule.forRoot({

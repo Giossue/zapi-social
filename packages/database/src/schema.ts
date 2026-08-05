@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm"
 import {
   type AnyPgColumn,
   boolean,
+  check,
   date,
   foreignKey,
   index,
@@ -840,6 +841,10 @@ export const fileAssets = pgTable(
   },
   (table) => [
     uniqueIndex("file_assets_storage_key_unique").on(table.storageKey),
+    uniqueIndex("file_assets_id_workspace_unique").on(
+      table.id,
+      table.workspaceId
+    ),
     index("file_assets_workspace_status_updated_index").on(
       table.workspaceId,
       table.status,
@@ -909,6 +914,196 @@ export const publishingPostMedia = pgTable(
       table.fileAssetId
     ),
     index("publishing_post_media_file_index").on(table.fileAssetId),
+  ]
+)
+
+export const publishingWatermarks = pgTable(
+  "publishing_watermarks",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    createdByUserId: uuid("created_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    socialAccountId: uuid("social_account_id"),
+    imageFileAssetId: uuid("image_file_asset_id"),
+    type: varchar("type", { length: 16 }).$type<"image" | "text">().notNull(),
+    text: varchar("text", { length: 1000 }),
+    position: varchar("position", { length: 16 })
+      .$type<
+        "top-left" | "top-right" | "center" | "bottom-left" | "bottom-right"
+      >()
+      .notNull()
+      .default("bottom-right"),
+    opacityPercent: integer("opacity_percent").notNull().default(72),
+    scalePercent: integer("scale_percent").notNull().default(24),
+    textPreset: varchar("text_preset", { length: 24 })
+      .$type<"glass" | "solid-dark" | "solid-light" | "minimal">()
+      .notNull()
+      .default("glass"),
+    textColor: varchar("text_color", { length: 24 })
+      .$type<
+        | "brand-gradient"
+        | "sunset-gradient"
+        | "ocean-gradient"
+        | "dark"
+        | "white"
+      >()
+      .notNull()
+      .default("brand-gradient"),
+    textWeight: varchar("text_weight", { length: 16 })
+      .$type<"medium" | "semibold" | "bold">()
+      .notNull()
+      .default("semibold"),
+    ...timestamps,
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.socialAccountId, table.workspaceId],
+      foreignColumns: [socialAccounts.id, socialAccounts.workspaceId],
+      name: "publishing_watermarks_social_account_workspace_fk",
+    }).onDelete("restrict"),
+    foreignKey({
+      columns: [table.imageFileAssetId, table.workspaceId],
+      foreignColumns: [fileAssets.id, fileAssets.workspaceId],
+      name: "publishing_watermarks_image_file_workspace_fk",
+    }).onDelete("restrict"),
+    uniqueIndex("publishing_watermarks_workspace_target_unique").on(
+      table.workspaceId,
+      sql`coalesce(${table.socialAccountId}, '00000000-0000-0000-0000-000000000000'::uuid)`
+    ),
+    index("publishing_watermarks_workspace_updated_index").on(
+      table.workspaceId,
+      table.updatedAt
+    ),
+    index("publishing_watermarks_image_file_index").on(table.imageFileAssetId),
+    check(
+      "publishing_watermarks_type_check",
+      sql`${table.type} in ('image', 'text')`
+    ),
+    check(
+      "publishing_watermarks_content_check",
+      sql`(${table.type} = 'image' and ${table.imageFileAssetId} is not null and ${table.text} is null) or (${table.type} = 'text' and ${table.imageFileAssetId} is null and ${table.text} is not null and length(trim(${table.text})) > 0)`
+    ),
+    check(
+      "publishing_watermarks_position_check",
+      sql`${table.position} in ('top-left', 'top-right', 'center', 'bottom-left', 'bottom-right')`
+    ),
+    check(
+      "publishing_watermarks_opacity_check",
+      sql`${table.opacityPercent} between 5 and 100`
+    ),
+    check(
+      "publishing_watermarks_scale_check",
+      sql`${table.scalePercent} between 5 and 100`
+    ),
+  ]
+)
+
+export const supportCategories = pgTable(
+  "support_categories",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: varchar("name", { length: 120 }).notNull(),
+    slug: varchar("slug", { length: 120 }).notNull(),
+    description: varchar("description", { length: 280 }).notNull().default(""),
+    status: varchar("status", { length: 16 })
+      .$type<"active" | "inactive">()
+      .notNull()
+      .default("active"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("support_categories_slug_unique").on(table.slug),
+    index("support_categories_status_name_index").on(table.status, table.name),
+  ]
+)
+
+export const supportTickets = pgTable(
+  "support_tickets",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    requesterUserId: uuid("requester_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    categoryId: uuid("category_id")
+      .notNull()
+      .references(() => supportCategories.id, { onDelete: "restrict" }),
+    subject: varchar("subject", { length: 250 }).notNull(),
+    description: text("description").notNull(),
+    status: varchar("status", { length: 16 })
+      .$type<"open" | "resolved" | "closed">()
+      .notNull()
+      .default("open"),
+    requesterLastReadAt: timestamp("requester_last_read_at", {
+      withTimezone: true,
+    }),
+    supportLastReadAt: timestamp("support_last_read_at", {
+      withTimezone: true,
+    }),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    lastActivityAt: timestamp("last_activity_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("support_tickets_id_workspace_unique").on(
+      table.id,
+      table.workspaceId
+    ),
+    index("support_tickets_workspace_requester_activity_index").on(
+      table.workspaceId,
+      table.requesterUserId,
+      table.lastActivityAt
+    ),
+    index("support_tickets_workspace_status_activity_index").on(
+      table.workspaceId,
+      table.status,
+      table.lastActivityAt
+    ),
+    check(
+      "support_tickets_status_check",
+      sql`${table.status} in ('open', 'resolved', 'closed')`
+    ),
+  ]
+)
+
+export const supportTicketComments = pgTable(
+  "support_ticket_comments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    supportTicketId: uuid("support_ticket_id").notNull(),
+    workspaceId: uuid("workspace_id").notNull(),
+    authorUserId: uuid("author_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    authorRole: varchar("author_role", { length: 16 })
+      .$type<"requester" | "support">()
+      .notNull()
+      .default("requester"),
+    body: text("body").notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.supportTicketId, table.workspaceId],
+      foreignColumns: [supportTickets.id, supportTickets.workspaceId],
+      name: "support_ticket_comments_ticket_workspace_fk",
+    }).onDelete("cascade"),
+    index("support_ticket_comments_ticket_created_index").on(
+      table.supportTicketId,
+      table.createdAt
+    ),
+    check(
+      "support_ticket_comments_author_role_check",
+      sql`${table.authorRole} in ('requester', 'support')`
+    ),
   ]
 )
 

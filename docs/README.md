@@ -24,6 +24,8 @@ planes/        # decisiones, equivalencias Laravel → V2 y trabajo pendiente
 | Roles, sesión, Admin y Portal | [`planes/separacion-admin-portal.md`](./planes/separacion-admin-portal.md) |
 | Refactor visual de V2 desde `diseño ideal` | [`planes/refactor-visual-design-ideal-v2.md`](./planes/refactor-visual-design-ideal-v2.md) |
 | Channels, providers, contratos y equivalencia Laravel | [`planes/channels-v2.md`](./planes/channels-v2.md) |
+| Tickets de Portal y su futura administración | [`planes/support-v2.md`](./planes/support-v2.md) |
+| Reglas de marca de agua de Publishing | [`planes/watermarks-v2.md`](./planes/watermarks-v2.md) |
 | Gobernanza documental y de agentes | [`planes/gobernanza-agentes-v2.md`](./planes/gobernanza-agentes-v2.md) |
 
 ## Estado de una referencia

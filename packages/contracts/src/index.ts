@@ -636,6 +636,144 @@ export const runPortalRssScheduleSchema = z
   .object({ ignoreHistory: z.boolean().default(false) })
   .strict()
 
+export const portalSupportTicketStatusSchema = z.enum([
+  "open",
+  "resolved",
+  "closed",
+])
+export const portalSupportCategorySchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  slug: z.string(),
+  description: z.string(),
+})
+export const portalSupportTicketSchema = z.object({
+  id: z.uuid(),
+  category: portalSupportCategorySchema,
+  subject: z.string(),
+  description: z.string(),
+  status: portalSupportTicketStatusSchema,
+  commentCount: z.number().int().nonnegative(),
+  updatedAt: z.string().datetime(),
+  resolvedAt: z.string().datetime().nullable(),
+  createdAt: z.string().datetime(),
+})
+export const portalSupportTicketCommentSchema = z.object({
+  id: z.uuid(),
+  authorName: z.string(),
+  authorRole: z.enum(["requester", "support"]),
+  body: z.string(),
+  createdAt: z.string().datetime(),
+})
+export const portalSupportTicketDetailSchema = portalSupportTicketSchema.extend(
+  {
+    comments: z.array(portalSupportTicketCommentSchema),
+  }
+)
+export const portalSupportTicketsResponseSchema = z.object({
+  tickets: z.array(portalSupportTicketSchema),
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+  total: z.number().int().nonnegative(),
+})
+export const portalSupportTicketsQuerySchema = z
+  .object({
+    q: z.string().trim().min(1).max(255).optional(),
+    status: portalSupportTicketStatusSchema.optional(),
+    page: z.coerce.number().int().positive().default(1),
+    limit: z.coerce.number().int().min(1).max(50).default(20),
+  })
+  .strict()
+export const createPortalSupportTicketSchema = z
+  .object({
+    categoryId: z.uuid(),
+    subject: z.string().trim().min(1).max(250),
+    description: z.string().trim().min(1).max(5000),
+  })
+  .strict()
+export const createPortalSupportTicketCommentSchema = z
+  .object({ body: z.string().trim().min(1).max(5000) })
+  .strict()
+
+export const portalWatermarkTypeSchema = z.enum(["image", "text"])
+export const portalWatermarkPositionSchema = z.enum([
+  "top-left",
+  "top-right",
+  "center",
+  "bottom-left",
+  "bottom-right",
+])
+export const portalWatermarkTextPresetSchema = z.enum([
+  "glass",
+  "solid-dark",
+  "solid-light",
+  "minimal",
+])
+export const portalWatermarkTextColorSchema = z.enum([
+  "brand-gradient",
+  "sunset-gradient",
+  "ocean-gradient",
+  "dark",
+  "white",
+])
+export const portalWatermarkTextWeightSchema = z.enum([
+  "medium",
+  "semibold",
+  "bold",
+])
+export const portalWatermarkAccountSchema = z.object({
+  id: z.uuid(),
+  displayName: z.string(),
+  providerKey: z.string(),
+  capabilityKey: z.string(),
+})
+export const portalWatermarkSchema = z.object({
+  id: z.uuid(),
+  socialAccountId: z.uuid().nullable(),
+  type: portalWatermarkTypeSchema,
+  imageFileAssetId: z.uuid().nullable(),
+  text: z.string().nullable(),
+  position: portalWatermarkPositionSchema,
+  opacityPercent: z.number().int().min(5).max(100),
+  scalePercent: z.number().int().min(5).max(100),
+  textPreset: portalWatermarkTextPresetSchema,
+  textColor: portalWatermarkTextColorSchema,
+  textWeight: portalWatermarkTextWeightSchema,
+  updatedAt: z.string().datetime(),
+  createdAt: z.string().datetime(),
+})
+export const portalWatermarksResponseSchema = z.object({
+  canManage: z.boolean(),
+  accounts: z.array(portalWatermarkAccountSchema),
+  watermarks: z.array(portalWatermarkSchema),
+})
+const portalWatermarkInputBase = {
+  socialAccountId: z.uuid().nullable().optional(),
+  position: portalWatermarkPositionSchema.default("bottom-right"),
+  opacityPercent: z.number().int().min(5).max(100).default(72),
+  scalePercent: z.number().int().min(5).max(100).default(24),
+  textPreset: portalWatermarkTextPresetSchema.default("glass"),
+  textColor: portalWatermarkTextColorSchema.default("brand-gradient"),
+  textWeight: portalWatermarkTextWeightSchema.default("semibold"),
+}
+export const createPortalWatermarkSchema = z.discriminatedUnion("type", [
+  z
+    .object({
+      ...portalWatermarkInputBase,
+      type: z.literal("image"),
+      imageFileAssetId: z.uuid(),
+    })
+    .strict(),
+  z
+    .object({
+      ...portalWatermarkInputBase,
+      type: z.literal("text"),
+      text: z.string().trim().min(1).max(1000),
+    })
+    .strict(),
+])
+export const updatePortalWatermarkSchema = createPortalWatermarkSchema
+
 export const portalDashboardSchema = z.object({
   welcome: z.object({ name: z.string() }),
   primaryAction: dashboardActionSchema,
@@ -871,6 +1009,55 @@ export type UpdatePortalRssScheduleInput = z.infer<
 >
 export type RunPortalRssScheduleInput = z.infer<
   typeof runPortalRssScheduleSchema
+>
+export type PortalSupportTicketStatus = z.infer<
+  typeof portalSupportTicketStatusSchema
+>
+export type PortalSupportCategory = z.infer<typeof portalSupportCategorySchema>
+export type PortalSupportTicket = z.infer<typeof portalSupportTicketSchema>
+export type PortalSupportTicketComment = z.infer<
+  typeof portalSupportTicketCommentSchema
+>
+export type PortalSupportTicketDetail = z.infer<
+  typeof portalSupportTicketDetailSchema
+>
+export type PortalSupportTicketsResponse = z.infer<
+  typeof portalSupportTicketsResponseSchema
+>
+export type PortalSupportTicketsQuery = z.infer<
+  typeof portalSupportTicketsQuerySchema
+>
+export type CreatePortalSupportTicketInput = z.infer<
+  typeof createPortalSupportTicketSchema
+>
+export type CreatePortalSupportTicketCommentInput = z.infer<
+  typeof createPortalSupportTicketCommentSchema
+>
+export type PortalWatermarkType = z.infer<typeof portalWatermarkTypeSchema>
+export type PortalWatermarkPosition = z.infer<
+  typeof portalWatermarkPositionSchema
+>
+export type PortalWatermarkTextPreset = z.infer<
+  typeof portalWatermarkTextPresetSchema
+>
+export type PortalWatermarkTextColor = z.infer<
+  typeof portalWatermarkTextColorSchema
+>
+export type PortalWatermarkTextWeight = z.infer<
+  typeof portalWatermarkTextWeightSchema
+>
+export type PortalWatermarkAccount = z.infer<
+  typeof portalWatermarkAccountSchema
+>
+export type PortalWatermark = z.infer<typeof portalWatermarkSchema>
+export type PortalWatermarksResponse = z.infer<
+  typeof portalWatermarksResponseSchema
+>
+export type CreatePortalWatermarkInput = z.infer<
+  typeof createPortalWatermarkSchema
+>
+export type UpdatePortalWatermarkInput = z.infer<
+  typeof updatePortalWatermarkSchema
 >
 export type ChannelStatus = z.infer<typeof channelStatusSchema>
 export type ChannelAccount = z.infer<typeof channelAccountSchema>

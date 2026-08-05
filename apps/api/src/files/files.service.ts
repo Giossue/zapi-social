@@ -12,6 +12,7 @@ import {
   fileFolders,
   publishingPostMedia,
   publishingPosts,
+  publishingWatermarks,
   users,
 } from '@workspace/database';
 import {
@@ -626,22 +627,36 @@ export class FilesService {
         ).map((asset) => asset.id)
       : ids;
     if (!assetIds.length) return;
-    const [reference] = await this.database.db
-      .select({ id: publishingPostMedia.id })
-      .from(publishingPostMedia)
-      .innerJoin(
-        publishingPosts,
-        eq(publishingPostMedia.publishingPostId, publishingPosts.id),
-      )
-      .where(
-        and(
-          eq(publishingPosts.workspaceId, workspaceId),
-          inArray(publishingPostMedia.fileAssetId, assetIds),
-        ),
-      )
-      .limit(1);
-    if (reference)
+    const [[publishingReference], [watermarkReference]] = await Promise.all([
+      this.database.db
+        .select({ id: publishingPostMedia.id })
+        .from(publishingPostMedia)
+        .innerJoin(
+          publishingPosts,
+          eq(publishingPostMedia.publishingPostId, publishingPosts.id),
+        )
+        .where(
+          and(
+            eq(publishingPosts.workspaceId, workspaceId),
+            inArray(publishingPostMedia.fileAssetId, assetIds),
+          ),
+        )
+        .limit(1),
+      this.database.db
+        .select({ id: publishingWatermarks.id })
+        .from(publishingWatermarks)
+        .where(
+          and(
+            eq(publishingWatermarks.workspaceId, workspaceId),
+            inArray(publishingWatermarks.imageFileAssetId, assetIds),
+          ),
+        )
+        .limit(1),
+    ]);
+    if (publishingReference)
       throw new AppException('FILE_IN_USE_BY_PUBLISHING', HttpStatus.CONFLICT);
+    if (watermarkReference)
+      throw new AppException('FILE_IN_USE_BY_WATERMARK', HttpStatus.CONFLICT);
   }
 
   private async removePhysicalAssets(

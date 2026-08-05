@@ -61,6 +61,17 @@ import type {
   UpdatePortalRssScheduleInput,
   ValidatePortalRssFeedInput,
   RunPortalRssScheduleInput,
+  CreatePortalSupportTicketCommentInput,
+  CreatePortalSupportTicketInput,
+  CreatePortalWatermarkInput,
+  PortalSupportCategory,
+  PortalSupportTicket,
+  PortalSupportTicketDetail,
+  PortalSupportTicketsQuery,
+  PortalSupportTicketsResponse,
+  PortalWatermark,
+  PortalWatermarksResponse,
+  UpdatePortalWatermarkInput,
 } from "@workspace/contracts"
 
 const apiBaseUrl =
@@ -172,6 +183,18 @@ function portalRssRunsQueryString(
   query: Partial<PortalRssScheduleRunsQuery> = {}
 ) {
   const params = new URLSearchParams()
+  if (query.status) params.set("status", query.status)
+  if (query.page) params.set("page", String(query.page))
+  if (query.limit) params.set("limit", String(query.limit))
+  const serialized = params.toString()
+  return serialized ? `?${serialized}` : ""
+}
+
+function portalSupportTicketsQueryString(
+  query: Partial<PortalSupportTicketsQuery> = {}
+) {
+  const params = new URLSearchParams()
+  if (query.q) params.set("q", query.q)
   if (query.status) params.set("status", query.status)
   if (query.page) params.set("page", String(query.page))
   if (query.limit) params.set("limit", String(query.limit))
@@ -432,6 +455,59 @@ export const rssSchedulesApi = {
       `/v1/portal/rss-schedules/${id}/runs${portalRssRunsQueryString(query)}`,
       { method: "GET" }
     ),
+}
+
+export const supportApi = {
+  categories: () =>
+    request<PortalSupportCategory[]>("/v1/portal/support/categories", {
+      method: "GET",
+    }),
+  list: (query?: Partial<PortalSupportTicketsQuery>) =>
+    request<PortalSupportTicketsResponse>(
+      `/v1/portal/support${portalSupportTicketsQueryString(query)}`,
+      { method: "GET" }
+    ),
+  get: (id: string) =>
+    request<PortalSupportTicketDetail>(`/v1/portal/support/${id}`, {
+      method: "GET",
+    }),
+  create: (input: CreatePortalSupportTicketInput) =>
+    request<PortalSupportTicket>("/v1/portal/support", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  addComment: (id: string, input: CreatePortalSupportTicketCommentInput) =>
+    request<PortalSupportTicketDetail>(`/v1/portal/support/${id}/comments`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  resolve: (id: string) =>
+    request<PortalSupportTicket>(`/v1/portal/support/${id}/resolve`, {
+      method: "POST",
+    }),
+}
+
+export const watermarksApi = {
+  list: () =>
+    request<PortalWatermarksResponse>("/v1/portal/watermarks", {
+      method: "GET",
+    }),
+  get: (id: string) =>
+    request<PortalWatermark>(`/v1/portal/watermarks/${id}`, {
+      method: "GET",
+    }),
+  create: (input: CreatePortalWatermarkInput) =>
+    request<PortalWatermark>("/v1/portal/watermarks", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  update: (id: string, input: UpdatePortalWatermarkInput) =>
+    request<PortalWatermark>(`/v1/portal/watermarks/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) =>
+    request<void>(`/v1/portal/watermarks/${id}`, { method: "DELETE" }),
 }
 
 export const channelsApi = {
