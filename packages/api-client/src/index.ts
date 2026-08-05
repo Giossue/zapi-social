@@ -85,6 +85,7 @@ async function request<T>(path: string, init: RequestInit): Promise<T> {
   const sendsJson = init.method !== "GET" && init.method !== "HEAD"
   const response = await fetch(`${apiBaseUrl}${path}`, {
     ...init,
+    body: sendsJson && init.body === undefined ? "{}" : init.body,
     credentials: "include",
     headers: sendsJson
       ? { "content-type": "application/json", ...init.headers }
