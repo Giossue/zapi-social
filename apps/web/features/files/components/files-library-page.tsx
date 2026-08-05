@@ -465,7 +465,13 @@ export function FilesLibraryPage() {
 
   const loadLibrary = useCallback(async (page = 1, append = false) => {
     try {
-      const data = await filesApi.list({ page, limit: 50 })
+      const data = await filesApi.list({
+        page,
+        limit: 50,
+        folderId: folderId === "all" ? undefined : folderId,
+        q: query.trim() || undefined,
+        kind: assetFilter === "all" || assetFilter === "ai" ? undefined : assetFilter,
+      })
       setLoadError(false)
       const next: FileLibraryData = {
         canView: true,
@@ -512,7 +518,7 @@ export function FilesLibraryPage() {
         hasMore: false,
       })
     }
-  }, [])
+  }, [assetFilter, folderId, query])
 
   useEffect(() => {
     void loadLibrary()
@@ -1036,13 +1042,31 @@ export function FilesLibraryPage() {
           <DialogHeader>
             <DialogTitle>Subir archivos</DialogTitle>
             <DialogDescription>
-              El archivo se guardará de forma privada en el almacenamiento local
-              del servidor. Formatos permitidos: imágenes (JPG, PNG, WebP, GIF,
-              AVIF), vídeo (MP4, WebM, MOV), audio (MP3, WAV, M4A, OGG),
-              documentos (PDF, TXT, MD, JSON, CSV, RTF, DOC, DOCX, ODT), hojas
-              de cálculo (XLS, XLSX, ODS) y comprimidos (ZIP, 7Z, RAR, TAR, GZ).
+              Se guardará de forma privada y solo será visible para las personas
+              con acceso a este espacio de trabajo.
             </DialogDescription>
           </DialogHeader>
+          <div className="space-y-3 border-y border-border py-4">
+            <p className="text-sm font-medium">Formatos permitidos</p>
+            <dl className="grid gap-3 text-sm sm:grid-cols-2">
+              <div className="space-y-1">
+                <dt className="font-medium">Imágenes</dt>
+                <dd className="text-muted-foreground">JPG, PNG, WebP, GIF, AVIF</dd>
+              </div>
+              <div className="space-y-1">
+                <dt className="font-medium">Vídeo y audio</dt>
+                <dd className="text-muted-foreground">MP4, WebM, MOV · MP3, WAV, M4A, OGG</dd>
+              </div>
+              <div className="space-y-1">
+                <dt className="font-medium">Documentos</dt>
+                <dd className="text-muted-foreground">PDF, TXT, MD, JSON, CSV, RTF, DOC, DOCX, ODT</dd>
+              </div>
+              <div className="space-y-1">
+                <dt className="font-medium">Hojas y comprimidos</dt>
+                <dd className="text-muted-foreground">XLS, XLSX, ODS · ZIP, 7Z, RAR, TAR, GZ</dd>
+              </div>
+            </dl>
+          </div>
           <DialogFooter>
             <input
               className="sr-only"

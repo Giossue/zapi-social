@@ -407,10 +407,23 @@ export class FilesService {
       eq(fileAssets.workspaceId, auth.workspace.id),
       eq(fileAssets.status, assetStatus),
     ];
-    if (query?.folderId) filters.push(eq(fileAssets.folderId, query.folderId));
+    const folderFilters = [
+      eq(fileFolders.workspaceId, auth.workspace.id),
+      eq(fileFolders.status, status),
+    ];
+    if (query?.folderId) {
+      filters.push(eq(fileAssets.folderId, query.folderId));
+      folderFilters.push(eq(fileFolders.parentFolderId, query.folderId));
+    } else {
+      filters.push(isNull(fileAssets.folderId));
+      folderFilters.push(isNull(fileFolders.parentFolderId));
+    }
     if (query?.starred !== undefined)
       filters.push(eq(fileAssets.starred, query.starred));
-    if (q) filters.push(ilike(fileAssets.name, `%${q}%`));
+    if (q) {
+      filters.push(ilike(fileAssets.name, `%${q}%`));
+      folderFilters.push(ilike(fileFolders.name, `%${q}%`));
+    }
     const page = query?.page ?? 1;
     const limit = query?.limit ?? 50;
     const offset = (page - 1) * limit;
@@ -428,15 +441,14 @@ export class FilesService {
         .from(fileFolders)
         .where(
           and(
-            eq(fileFolders.workspaceId, auth.workspace.id),
-            eq(fileFolders.status, status),
+            ...folderFilters,
           ),
         )
         .orderBy(desc(fileFolders.updatedAt))
         .limit(limit)
         .offset(offset),
       this.database.db.select({ count: sql<number>`count(*)::int` }).from(fileAssets).where(and(...filters)),
-      this.database.db.select({ count: sql<number>`count(*)::int` }).from(fileFolders).where(and(eq(fileFolders.workspaceId, auth.workspace.id), eq(fileFolders.status, status))),
+      this.database.db.select({ count: sql<number>`count(*)::int` }).from(fileFolders).where(and(...folderFilters)),
     ]);
     const visibleAssets = query?.kind
       ? assets.filter(({ asset }) => this.kind(asset.mimeType) === query.kind)
