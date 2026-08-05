@@ -358,6 +358,284 @@ export const updatePortalPublishingPostSchema = z
   .strict()
   .refine((input) => Object.keys(input).length > 0)
 
+export const rssSchedulePermissionIds = [
+  "rss_schedules.view",
+  "rss_schedules.manage",
+] as const
+export const rssSchedulePermissionIdSchema = z.enum(rssSchedulePermissionIds)
+
+export const portalRssScheduleStatusSchema = z.enum(["active", "paused"])
+export const portalRssScheduleWeekdaySchema = z.enum([
+  "mon",
+  "tue",
+  "wed",
+  "thu",
+  "fri",
+  "sat",
+  "sun",
+])
+export const portalRssScheduleHistoryResultSchema = z.enum([
+  "queued",
+  "skipped",
+  "failed",
+  "published",
+])
+export const portalRssScheduleRunStatusSchema = z.enum([
+  "queued",
+  "running",
+  "succeeded",
+  "failed",
+])
+export const portalRssScheduleRunTriggerSchema = z.enum(["scheduled", "manual"])
+
+const weekdayOrder = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const
+const rssScheduleTimeSlotSchema = z
+  .string()
+  .regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, "La hora debe usar el formato HH:mm.")
+const rssScheduleTimeSlotsSchema = z
+  .array(rssScheduleTimeSlotSchema)
+  .min(1, "Incluye al menos un horario.")
+  .max(24)
+  .refine((slots) => new Set(slots).size === slots.length, {
+    message: "Los horarios no se pueden repetir.",
+  })
+  .transform((slots) => [...slots].sort())
+const rssScheduleWeekdaysSchema = z
+  .array(portalRssScheduleWeekdaySchema)
+  .min(1, "Incluye al menos un día.")
+  .max(7)
+  .refine((weekdays) => new Set(weekdays).size === weekdays.length, {
+    message: "Los días no se pueden repetir.",
+  })
+  .transform((weekdays) =>
+    [...weekdays].sort(
+      (left, right) => weekdayOrder.indexOf(left) - weekdayOrder.indexOf(right)
+    )
+  )
+const rssScheduleTargetIdsSchema = z
+  .array(z.uuid())
+  .min(1, "Selecciona al menos una cuenta.")
+  .max(20)
+  .refine((ids) => new Set(ids).size === ids.length, {
+    message: "Las cuentas no se pueden repetir.",
+  })
+const rssScheduleFeedUrlSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(2048)
+  .url("La URL del feed no es válida.")
+  .refine(
+    (value) => {
+      const protocol = new URL(value).protocol
+      return protocol === "http:" || protocol === "https:"
+    },
+    { message: "El feed debe usar HTTP o HTTPS." }
+  )
+const rssScheduleDateSchema = z
+  .string()
+  .date("La fecha debe usar el formato YYYY-MM-DD.")
+const defaultRssScheduleContentRules = {
+  includeLink: true,
+  includeSummary: true,
+  template: "{title}\n\n{summary}\n\nLeer más: {url}",
+}
+const portalRssScheduleContentRulesSchema = z
+  .object({
+    includeLink: z
+      .boolean()
+      .default(defaultRssScheduleContentRules.includeLink),
+    includeSummary: z
+      .boolean()
+      .default(defaultRssScheduleContentRules.includeSummary),
+    template: z
+      .string()
+      .trim()
+      .min(1)
+      .max(10000)
+      .default(defaultRssScheduleContentRules.template),
+  })
+  .strict()
+
+export const portalRssScheduleTargetSchema = z.object({
+  id: z.uuid(),
+  socialAccountId: z.uuid(),
+  displayName: z.string(),
+  providerKey: z.string(),
+  connected: z.boolean(),
+})
+export const portalRssScheduleSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  feedUrl: z.string().url(),
+  description: z.string(),
+  status: portalRssScheduleStatusSchema,
+  timezone: profileTimeZoneSchema,
+  timeSlots: z.array(rssScheduleTimeSlotSchema),
+  weekdays: z.array(portalRssScheduleWeekdaySchema),
+  startDate: rssScheduleDateSchema.nullable(),
+  endDate: rssScheduleDateSchema.nullable(),
+  contentRules: portalRssScheduleContentRulesSchema,
+  targets: z.array(portalRssScheduleTargetSchema),
+  lastCheckedAt: z.string().datetime().nullable(),
+  lastQueuedAt: z.string().datetime().nullable(),
+  nextRunAt: z.string().datetime().nullable(),
+  queuedCount: z.number().int().nonnegative(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+})
+export const portalRssScheduleHistorySchema = z.object({
+  id: z.uuid(),
+  rssScheduleId: z.uuid(),
+  rssScheduleTargetId: z.uuid(),
+  publishingPostId: z.uuid().nullable(),
+  targetName: z.string(),
+  itemGuid: z.string().nullable(),
+  itemUrl: z.string().url().nullable(),
+  title: z.string().nullable(),
+  result: portalRssScheduleHistoryResultSchema,
+  errorCode: z.string().nullable(),
+  queuedAt: z.string().datetime().nullable(),
+  publishedAt: z.string().datetime().nullable(),
+  createdAt: z.string().datetime(),
+})
+export const portalRssScheduleRunSchema = z.object({
+  id: z.uuid(),
+  rssScheduleId: z.uuid(),
+  trigger: portalRssScheduleRunTriggerSchema,
+  status: portalRssScheduleRunStatusSchema,
+  startedAt: z.string().datetime().nullable(),
+  finishedAt: z.string().datetime().nullable(),
+  feedItemsRead: z.number().int().nonnegative(),
+  queuedCount: z.number().int().nonnegative(),
+  skippedCount: z.number().int().nonnegative(),
+  failedCount: z.number().int().nonnegative(),
+  errorCode: z.string().nullable(),
+  createdAt: z.string().datetime(),
+})
+export const portalRssSchedulesResponseSchema = z.object({
+  canView: z.boolean(),
+  canManage: z.boolean(),
+  schedules: z.array(portalRssScheduleSchema),
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+  total: z.number().int().nonnegative(),
+})
+export const portalRssScheduleHistoriesResponseSchema = z.object({
+  histories: z.array(portalRssScheduleHistorySchema),
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+  total: z.number().int().nonnegative(),
+})
+export const portalRssScheduleRunsResponseSchema = z.object({
+  runs: z.array(portalRssScheduleRunSchema),
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+  total: z.number().int().nonnegative(),
+})
+export const portalRssFeedValidationSchema = z.object({
+  title: z.string().nullable(),
+  description: z.string().nullable(),
+  websiteUrl: z.string().url().nullable(),
+  itemCount: z.number().int().nonnegative(),
+  sampleItems: z.array(
+    z.object({
+      guid: z.string().nullable(),
+      title: z.string().nullable(),
+      url: z.string().url().nullable(),
+      publishedAt: z.string().datetime().nullable(),
+    })
+  ),
+})
+
+export const portalRssSchedulesQuerySchema = z
+  .object({
+    q: z.string().trim().min(1).max(255).optional(),
+    status: portalRssScheduleStatusSchema.optional(),
+    page: z.coerce.number().int().positive().default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(50),
+  })
+  .strict()
+export const portalRssScheduleHistoryQuerySchema = z
+  .object({
+    result: portalRssScheduleHistoryResultSchema.optional(),
+    page: z.coerce.number().int().positive().default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(50),
+  })
+  .strict()
+export const portalRssScheduleRunsQuerySchema = z
+  .object({
+    status: portalRssScheduleRunStatusSchema.optional(),
+    page: z.coerce.number().int().positive().default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(50),
+  })
+  .strict()
+export const portalRssScheduleIdSchema = z.object({ id: z.uuid() }).strict()
+export const validatePortalRssFeedSchema = z
+  .object({ feedUrl: rssScheduleFeedUrlSchema })
+  .strict()
+
+const portalRssScheduleInputFields = {
+  name: z.string().trim().min(1).max(160),
+  feedUrl: rssScheduleFeedUrlSchema,
+  description: z.string().trim().max(500).default(""),
+  status: portalRssScheduleStatusSchema.default("active"),
+  timezone: profileTimeZoneSchema,
+  timeSlots: rssScheduleTimeSlotsSchema,
+  weekdays: rssScheduleWeekdaysSchema,
+  startDate: rssScheduleDateSchema.nullable().optional(),
+  endDate: rssScheduleDateSchema.nullable().optional(),
+  contentRules: portalRssScheduleContentRulesSchema.default(
+    defaultRssScheduleContentRules
+  ),
+  targetSocialAccountIds: rssScheduleTargetIdsSchema,
+}
+
+export const createPortalRssScheduleSchema = z
+  .object(portalRssScheduleInputFields)
+  .strict()
+  .superRefine((input, context) => {
+    if (input.startDate && input.endDate && input.startDate > input.endDate) {
+      context.addIssue({
+        code: "custom",
+        path: ["endDate"],
+        message:
+          "La fecha final debe ser posterior o igual a la fecha inicial.",
+      })
+    }
+  })
+export const updatePortalRssScheduleSchema = z
+  .object({
+    name: portalRssScheduleInputFields.name.optional(),
+    feedUrl: portalRssScheduleInputFields.feedUrl.optional(),
+    description: z.string().trim().max(500).optional(),
+    status: portalRssScheduleStatusSchema.optional(),
+    timezone: profileTimeZoneSchema.optional(),
+    timeSlots: rssScheduleTimeSlotsSchema.optional(),
+    weekdays: rssScheduleWeekdaysSchema.optional(),
+    startDate: rssScheduleDateSchema.nullable().optional(),
+    endDate: rssScheduleDateSchema.nullable().optional(),
+    contentRules: portalRssScheduleContentRulesSchema.optional(),
+    targetSocialAccountIds: rssScheduleTargetIdsSchema.optional(),
+  })
+  .strict()
+  .refine((input) => Object.keys(input).length > 0, {
+    message: "Incluye al menos un campo para actualizar.",
+  })
+  .superRefine((input, context) => {
+    if (input.startDate && input.endDate && input.startDate > input.endDate) {
+      context.addIssue({
+        code: "custom",
+        path: ["endDate"],
+        message:
+          "La fecha final debe ser posterior o igual a la fecha inicial.",
+      })
+    }
+  })
+export const runPortalRssScheduleSchema = z
+  .object({ ignoreHistory: z.boolean().default(false) })
+  .strict()
+
 export const portalDashboardSchema = z.object({
   welcome: z.object({ name: z.string() }),
   primaryAction: dashboardActionSchema,
@@ -535,6 +813,65 @@ export type CreatePortalPublishingPostsInput = z.infer<
 export type UpdatePortalPublishingPostInput = z.infer<
   typeof updatePortalPublishingPostSchema
 >
+export type RssSchedulePermissionId = z.infer<
+  typeof rssSchedulePermissionIdSchema
+>
+export type PortalRssScheduleStatus = z.infer<
+  typeof portalRssScheduleStatusSchema
+>
+export type PortalRssScheduleWeekday = z.infer<
+  typeof portalRssScheduleWeekdaySchema
+>
+export type PortalRssScheduleHistoryResult = z.infer<
+  typeof portalRssScheduleHistoryResultSchema
+>
+export type PortalRssScheduleRunStatus = z.infer<
+  typeof portalRssScheduleRunStatusSchema
+>
+export type PortalRssScheduleRunTrigger = z.infer<
+  typeof portalRssScheduleRunTriggerSchema
+>
+export type PortalRssScheduleTarget = z.infer<
+  typeof portalRssScheduleTargetSchema
+>
+export type PortalRssSchedule = z.infer<typeof portalRssScheduleSchema>
+export type PortalRssScheduleHistory = z.infer<
+  typeof portalRssScheduleHistorySchema
+>
+export type PortalRssScheduleRun = z.infer<typeof portalRssScheduleRunSchema>
+export type PortalRssSchedulesResponse = z.infer<
+  typeof portalRssSchedulesResponseSchema
+>
+export type PortalRssScheduleHistoriesResponse = z.infer<
+  typeof portalRssScheduleHistoriesResponseSchema
+>
+export type PortalRssScheduleRunsResponse = z.infer<
+  typeof portalRssScheduleRunsResponseSchema
+>
+export type PortalRssFeedValidation = z.infer<
+  typeof portalRssFeedValidationSchema
+>
+export type PortalRssSchedulesQuery = z.infer<
+  typeof portalRssSchedulesQuerySchema
+>
+export type PortalRssScheduleHistoryQuery = z.infer<
+  typeof portalRssScheduleHistoryQuerySchema
+>
+export type PortalRssScheduleRunsQuery = z.infer<
+  typeof portalRssScheduleRunsQuerySchema
+>
+export type ValidatePortalRssFeedInput = z.infer<
+  typeof validatePortalRssFeedSchema
+>
+export type CreatePortalRssScheduleInput = z.infer<
+  typeof createPortalRssScheduleSchema
+>
+export type UpdatePortalRssScheduleInput = z.infer<
+  typeof updatePortalRssScheduleSchema
+>
+export type RunPortalRssScheduleInput = z.infer<
+  typeof runPortalRssScheduleSchema
+>
 export type ChannelStatus = z.infer<typeof channelStatusSchema>
 export type ChannelAccount = z.infer<typeof channelAccountSchema>
 export type ChannelMetrics = z.infer<typeof channelMetricsSchema>
@@ -635,7 +972,7 @@ export const webAuditEventSchema = z
     metadata: z
       .record(
         z.string().max(64),
-        z.union([z.string(), z.number(), z.boolean(), z.null()]),
+        z.union([z.string(), z.number(), z.boolean(), z.null()])
       )
       .refine((value) => Object.keys(value).length <= 20)
       .optional(),

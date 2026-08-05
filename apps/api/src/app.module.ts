@@ -14,6 +14,7 @@ import { PlansModule } from './plans/plans.module';
 import { FilesModule } from './files/files.module';
 import { PublishingModule } from './publishing/publishing.module';
 import { AuditModule } from './audit/audit.module';
+import { RssSchedulesModule } from './rss-schedules/rss-schedules.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { AuditModule } from './audit/audit.module';
     PlansModule,
     FilesModule,
     PublishingModule,
+    RssSchedulesModule,
     AuditModule,
     IdentityModule,
     BullModule.forRoot({

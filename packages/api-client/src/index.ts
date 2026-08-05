@@ -48,6 +48,19 @@ import type {
   UpdatePortalPublishingPostInput,
   PortalPublishingPost,
   AdminAuditEventsResponse,
+  CreatePortalRssScheduleInput,
+  PortalRssSchedule,
+  PortalRssFeedValidation,
+  PortalRssScheduleHistoriesResponse,
+  PortalRssScheduleHistoryQuery,
+  PortalRssScheduleRunsQuery,
+  PortalRssScheduleRunsResponse,
+  PortalRssScheduleRun,
+  PortalRssSchedulesQuery,
+  PortalRssSchedulesResponse,
+  UpdatePortalRssScheduleInput,
+  ValidatePortalRssFeedInput,
+  RunPortalRssScheduleInput,
 } from "@workspace/contracts"
 
 const apiBaseUrl =
@@ -128,6 +141,40 @@ function portalChannelsQueryString(query: Partial<PortalChannelsQuery> = {}) {
   if (query.sort) params.set("sort", query.sort)
   if (query.limit) params.set("limit", String(query.limit))
   if (query.cursor) params.set("cursor", query.cursor)
+  const serialized = params.toString()
+  return serialized ? `?${serialized}` : ""
+}
+
+function portalRssSchedulesQueryString(
+  query: Partial<PortalRssSchedulesQuery> = {}
+) {
+  const params = new URLSearchParams()
+  if (query.q) params.set("q", query.q)
+  if (query.status) params.set("status", query.status)
+  if (query.page) params.set("page", String(query.page))
+  if (query.limit) params.set("limit", String(query.limit))
+  const serialized = params.toString()
+  return serialized ? `?${serialized}` : ""
+}
+
+function portalRssHistoryQueryString(
+  query: Partial<PortalRssScheduleHistoryQuery> = {}
+) {
+  const params = new URLSearchParams()
+  if (query.result) params.set("result", query.result)
+  if (query.page) params.set("page", String(query.page))
+  if (query.limit) params.set("limit", String(query.limit))
+  const serialized = params.toString()
+  return serialized ? `?${serialized}` : ""
+}
+
+function portalRssRunsQueryString(
+  query: Partial<PortalRssScheduleRunsQuery> = {}
+) {
+  const params = new URLSearchParams()
+  if (query.status) params.set("status", query.status)
+  if (query.page) params.set("page", String(query.page))
+  if (query.limit) params.set("limit", String(query.limit))
   const serialized = params.toString()
   return serialized ? `?${serialized}` : ""
 }
@@ -334,6 +381,57 @@ export const publishingApi = {
     request<PortalPublishingPost>(`/v1/portal/publishing/${id}/retry`, {
       method: "POST",
     }),
+}
+
+export const rssSchedulesApi = {
+  validateFeed: (input: ValidatePortalRssFeedInput) =>
+    request<PortalRssFeedValidation>("/v1/portal/rss-schedules/validate-feed", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  list: (query?: Partial<PortalRssSchedulesQuery>) =>
+    request<PortalRssSchedulesResponse>(
+      `/v1/portal/rss-schedules${portalRssSchedulesQueryString(query)}`,
+      { method: "GET" }
+    ),
+  get: (id: string) =>
+    request<PortalRssSchedule>(`/v1/portal/rss-schedules/${id}`, {
+      method: "GET",
+    }),
+  create: (input: CreatePortalRssScheduleInput) =>
+    request<PortalRssSchedule>("/v1/portal/rss-schedules", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  update: (id: string, input: UpdatePortalRssScheduleInput) =>
+    request<PortalRssSchedule>(`/v1/portal/rss-schedules/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  toggle: (id: string) =>
+    request<PortalRssSchedule>(`/v1/portal/rss-schedules/${id}/toggle`, {
+      method: "POST",
+    }),
+  run: (
+    id: string,
+    input: RunPortalRssScheduleInput = { ignoreHistory: false }
+  ) =>
+    request<PortalRssScheduleRun>(`/v1/portal/rss-schedules/${id}/run`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) =>
+    request<void>(`/v1/portal/rss-schedules/${id}`, { method: "DELETE" }),
+  history: (id: string, query?: Partial<PortalRssScheduleHistoryQuery>) =>
+    request<PortalRssScheduleHistoriesResponse>(
+      `/v1/portal/rss-schedules/${id}/history${portalRssHistoryQueryString(query)}`,
+      { method: "GET" }
+    ),
+  runs: (id: string, query?: Partial<PortalRssScheduleRunsQuery>) =>
+    request<PortalRssScheduleRunsResponse>(
+      `/v1/portal/rss-schedules/${id}/runs${portalRssRunsQueryString(query)}`,
+      { method: "GET" }
+    ),
 }
 
 export const channelsApi = {

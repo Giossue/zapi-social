@@ -23,6 +23,14 @@ import { FILE_DERIVATIVES_QUEUE } from './files/file-derivatives.constants';
 import { FileDerivativesBackfillScheduler } from './files/file-derivatives-backfill.scheduler';
 import { FileDerivativesProcessor } from './files/file-derivatives.processor';
 import { WorkerAuditService } from './audit/worker-audit.service';
+import {
+  RSS_SCHEDULE_DISPATCH_QUEUE,
+  RSS_SCHEDULE_RUN_QUEUE,
+} from './rss-schedules/rss-schedules.constants';
+import { RssScheduleDispatchProcessor } from './rss-schedules/rss-schedule-dispatch.processor';
+import { RssScheduleDispatchScheduler } from './rss-schedules/rss-schedule-dispatch.scheduler';
+import { RssFeedReaderService } from './rss-schedules/rss-feed-reader.service';
+import { RssScheduleRunProcessor } from './rss-schedules/rss-schedule-run.processor';
 
 @Module({
   imports: [
@@ -44,6 +52,8 @@ import { WorkerAuditService } from './audit/worker-audit.service';
       { name: WHATSAPP_PROFILE_SCHEDULE_QUEUE },
       { name: WHATSAPP_PROFILE_SYNC_QUEUE },
       { name: FILE_DERIVATIVES_QUEUE },
+      { name: RSS_SCHEDULE_DISPATCH_QUEUE },
+      { name: RSS_SCHEDULE_RUN_QUEUE },
     ),
   ],
   providers: [
@@ -58,6 +68,10 @@ import { WorkerAuditService } from './audit/worker-audit.service';
     WhatsAppProfileSyncProcessor,
     FileDerivativesBackfillScheduler,
     FileDerivativesProcessor,
+    RssFeedReaderService,
+    RssScheduleDispatchScheduler,
+    RssScheduleDispatchProcessor,
+    RssScheduleRunProcessor,
   ],
 })
 export class AppModule {}

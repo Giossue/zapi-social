@@ -2,6 +2,8 @@ import { sql } from "drizzle-orm"
 import {
   type AnyPgColumn,
   boolean,
+  date,
+  foreignKey,
   index,
   integer,
   jsonb,
@@ -194,10 +196,9 @@ export const auditReleases = pgTable(
     commitSha: varchar("commit_sha", { length: 64 }),
     reference: varchar("reference", { length: 255 }),
     deployedAt: timestamp("deployed_at", { withTimezone: true }).notNull(),
-    deployedByUserId: uuid("deployed_by_user_id").references(
-      () => users.id,
-      { onDelete: "set null" }
-    ),
+    deployedByUserId: uuid("deployed_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
     metadata: jsonb("metadata")
       .$type<Record<string, string>>()
       .notNull()
@@ -369,10 +370,7 @@ export const workerAuditLogs = pgTable(
       table.severity,
       table.createdAt
     ),
-    index("worker_audit_logs_queue_job_index").on(
-      table.queueName,
-      table.jobId
-    ),
+    index("worker_audit_logs_queue_job_index").on(table.queueName, table.jobId),
     index("worker_audit_logs_release_created_index").on(
       table.releaseId,
       table.createdAt
@@ -467,6 +465,10 @@ export const socialAccounts = pgTable(
     index("social_accounts_workspace_provider_index").on(
       table.workspaceId,
       table.providerKey
+    ),
+    uniqueIndex("social_accounts_id_workspace_unique").on(
+      table.id,
+      table.workspaceId
     ),
   ]
 )
@@ -907,5 +909,206 @@ export const publishingPostMedia = pgTable(
       table.fileAssetId
     ),
     index("publishing_post_media_file_index").on(table.fileAssetId),
+  ]
+)
+
+export const rssSchedules = pgTable(
+  "rss_schedules",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    createdByUserId: uuid("created_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    name: varchar("name", { length: 160 }).notNull(),
+    feedUrl: text("feed_url").notNull(),
+    description: varchar("description", { length: 500 }).notNull().default(""),
+    status: varchar("status", { length: 16 })
+      .$type<"active" | "paused">()
+      .notNull()
+      .default("active"),
+    timezone: varchar("timezone", { length: 64 }).notNull(),
+    timeSlots: jsonb("time_slots")
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    weekdays: jsonb("weekdays")
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    startDate: date("start_date"),
+    endDate: date("end_date"),
+    contentRules: jsonb("content_rules")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    lastCheckedAt: timestamp("last_checked_at", { withTimezone: true }),
+    lastQueuedAt: timestamp("last_queued_at", { withTimezone: true }),
+    nextRunAt: timestamp("next_run_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("rss_schedules_id_workspace_unique").on(
+      table.id,
+      table.workspaceId
+    ),
+    index("rss_schedules_workspace_status_next_run_index").on(
+      table.workspaceId,
+      table.status,
+      table.nextRunAt
+    ),
+    index("rss_schedules_workspace_updated_index").on(
+      table.workspaceId,
+      table.updatedAt
+    ),
+  ]
+)
+
+export const rssScheduleTargets = pgTable(
+  "rss_schedule_targets",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    rssScheduleId: uuid("rss_schedule_id").notNull(),
+    workspaceId: uuid("workspace_id").notNull(),
+    socialAccountId: uuid("social_account_id").notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.rssScheduleId, table.workspaceId],
+      foreignColumns: [rssSchedules.id, rssSchedules.workspaceId],
+      name: "rss_schedule_targets_schedule_workspace_fk",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.socialAccountId, table.workspaceId],
+      foreignColumns: [socialAccounts.id, socialAccounts.workspaceId],
+      name: "rss_schedule_targets_social_account_workspace_fk",
+    }).onDelete("restrict"),
+    uniqueIndex("rss_schedule_targets_schedule_account_unique").on(
+      table.rssScheduleId,
+      table.socialAccountId
+    ),
+    uniqueIndex("rss_schedule_targets_id_schedule_workspace_unique").on(
+      table.id,
+      table.rssScheduleId,
+      table.workspaceId
+    ),
+    index("rss_schedule_targets_workspace_account_index").on(
+      table.workspaceId,
+      table.socialAccountId
+    ),
+  ]
+)
+
+export const rssScheduleHistories = pgTable(
+  "rss_schedule_histories",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    rssScheduleId: uuid("rss_schedule_id").notNull(),
+    rssScheduleTargetId: uuid("rss_schedule_target_id").notNull(),
+    workspaceId: uuid("workspace_id").notNull(),
+    publishingPostId: uuid("publishing_post_id").references(
+      () => publishingPosts.id,
+      { onDelete: "set null" }
+    ),
+    itemGuid: varchar("item_guid", { length: 1024 }),
+    itemUrl: text("item_url"),
+    contentHash: varchar("content_hash", { length: 64 }).notNull(),
+    title: varchar("title", { length: 500 }),
+    result: varchar("result", { length: 16 })
+      .$type<"queued" | "skipped" | "failed" | "published">()
+      .notNull(),
+    errorCode: varchar("error_code", { length: 96 }),
+    queuedAt: timestamp("queued_at", { withTimezone: true }),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    metadata: jsonb("metadata")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    ...timestamps,
+  },
+  (table) => [
+    foreignKey({
+      columns: [
+        table.rssScheduleTargetId,
+        table.rssScheduleId,
+        table.workspaceId,
+      ],
+      foreignColumns: [
+        rssScheduleTargets.id,
+        rssScheduleTargets.rssScheduleId,
+        rssScheduleTargets.workspaceId,
+      ],
+      name: "rss_schedule_histories_target_schedule_workspace_fk",
+    }).onDelete("cascade"),
+    uniqueIndex("rss_schedule_histories_schedule_target_hash_unique").on(
+      table.rssScheduleId,
+      table.rssScheduleTargetId,
+      table.contentHash
+    ),
+    index("rss_schedule_histories_schedule_created_index").on(
+      table.rssScheduleId,
+      table.createdAt
+    ),
+    index("rss_schedule_histories_target_result_created_index").on(
+      table.rssScheduleTargetId,
+      table.result,
+      table.createdAt
+    ),
+    index("rss_schedule_histories_workspace_created_index").on(
+      table.workspaceId,
+      table.createdAt
+    ),
+  ]
+)
+
+export const rssScheduleRuns = pgTable(
+  "rss_schedule_runs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    rssScheduleId: uuid("rss_schedule_id").notNull(),
+    workspaceId: uuid("workspace_id").notNull(),
+    trigger: varchar("trigger", { length: 16 })
+      .$type<"scheduled" | "manual">()
+      .notNull(),
+    triggeredByUserId: uuid("triggered_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    status: varchar("status", { length: 16 })
+      .$type<"queued" | "running" | "succeeded" | "failed">()
+      .notNull()
+      .default("queued"),
+    jobId: varchar("job_id", { length: 128 }),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+    feedItemsRead: integer("feed_items_read").notNull().default(0),
+    queuedCount: integer("queued_count").notNull().default(0),
+    skippedCount: integer("skipped_count").notNull().default(0),
+    failedCount: integer("failed_count").notNull().default(0),
+    errorCode: varchar("error_code", { length: 96 }),
+    metadata: jsonb("metadata")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    ...timestamps,
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.rssScheduleId, table.workspaceId],
+      foreignColumns: [rssSchedules.id, rssSchedules.workspaceId],
+      name: "rss_schedule_runs_schedule_workspace_fk",
+    }).onDelete("cascade"),
+    index("rss_schedule_runs_schedule_created_index").on(
+      table.rssScheduleId,
+      table.createdAt
+    ),
+    index("rss_schedule_runs_workspace_status_created_index").on(
+      table.workspaceId,
+      table.status,
+      table.createdAt
+    ),
+    index("rss_schedule_runs_job_id_index").on(table.jobId),
   ]
 )
