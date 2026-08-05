@@ -227,6 +227,10 @@ export const portalFilesResponseSchema = z.object({
   canManage: z.boolean(),
   folders: z.array(portalFileFolderSchema),
   files: z.array(portalFileAssetSchema),
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+  foldersTotal: z.number().int().nonnegative(),
+  filesTotal: z.number().int().nonnegative(),
 })
 export const portalFilesQuerySchema = z
   .object({
@@ -234,6 +238,8 @@ export const portalFilesQuerySchema = z
     folderId: z.uuid().optional(),
     kind: portalFileKindSchema.optional(),
     starred: z.coerce.boolean().optional(),
+    page: z.coerce.number().int().positive().default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(50),
   })
   .strict()
 export const portalFileTrashQuerySchema = z

@@ -437,6 +437,7 @@ export function FilesLibraryPage() {
   const [assetFilter, setAssetFilter] = useState<AssetFilter>("all")
   const [folderId, setFolderId] = useState<string | "all">("all")
   const [view, setView] = useState<FilesView>("grid")
+  const [loadingMore, setLoadingMore] = useState(false)
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([])
   const [bulkMoveOpen, setBulkMoveOpen] = useState(false)
   const [bulkTrashOpen, setBulkTrashOpen] = useState(false)
@@ -462,11 +463,11 @@ export function FilesLibraryPage() {
   >(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const loadLibrary = useCallback(async () => {
+  const loadLibrary = useCallback(async (page = 1, append = false) => {
     try {
-      const data = await filesApi.list()
+      const data = await filesApi.list({ page, limit: 50 })
       setLoadError(false)
-      setLibrary({
+      const next: FileLibraryData = {
         canView: true,
         canUpload: data.canManage,
         folders: data.folders.map((folder) => ({
@@ -496,7 +497,10 @@ export function FilesLibraryPage() {
           starred: asset.starred,
           thumbnailStatus: asset.thumbnailStatus,
         })),
-      })
+        page: data.page,
+        hasMore: data.files.length < data.filesTotal || data.folders.length < data.foldersTotal,
+      }
+      setLibrary((current) => append && current ? { ...next, folders: [...current.folders, ...next.folders], assets: [...current.assets, ...next.assets] } : next)
     } catch (error) {
       setLoadError(!(error instanceof ApiError && error.status === 403))
       setLibrary({
@@ -504,6 +508,8 @@ export function FilesLibraryPage() {
         canUpload: false,
         folders: [],
         assets: [],
+        page: 1,
+        hasMore: false,
       })
     }
   }, [])
@@ -1009,13 +1015,32 @@ export function FilesLibraryPage() {
         )}
       </div>
 
+      {library.hasMore ? (
+        <div className="flex justify-center">
+          <Button
+            disabled={loadingMore}
+            onClick={async () => {
+              setLoadingMore(true)
+              await loadLibrary(library.page + 1, true)
+              setLoadingMore(false)
+            }}
+            variant="brand-secondary"
+          >
+            {loadingMore ? "Cargando…" : "Cargar más"}
+          </Button>
+        </div>
+      ) : null}
+
       <Dialog onOpenChange={setUploadDialogOpen} open={uploadDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Subir archivos</DialogTitle>
             <DialogDescription>
               El archivo se guardará de forma privada en el almacenamiento local
-              del servidor.
+              del servidor. Formatos permitidos: imágenes (JPG, PNG, WebP, GIF,
+              AVIF), vídeo (MP4, WebM, MOV), audio (MP3, WAV, M4A, OGG),
+              documentos (PDF, TXT, MD, JSON, CSV, RTF, DOC, DOCX, ODT), hojas
+              de cálculo (XLS, XLSX, ODS) y comprimidos (ZIP, 7Z, RAR, TAR, GZ).
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

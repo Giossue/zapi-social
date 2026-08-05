@@ -21,6 +21,7 @@ import {
   ilike,
   inArray,
   isNull,
+  sql,
 } from '@workspace/database/query';
 import {
   createPortalFileFolderSchema,
@@ -399,7 +400,7 @@ export class FilesService {
     auth: PortalAuthSession,
     status: 'active' | 'trashed',
     q?: string,
-    query?: { folderId?: string; starred?: boolean; kind?: string },
+    query?: { folderId?: string; starred?: boolean; kind?: string; page?: number; limit?: number },
   ) {
     const assetStatus = status === 'active' ? 'ready' : 'trashed';
     const filters = [
@@ -410,13 +411,18 @@ export class FilesService {
     if (query?.starred !== undefined)
       filters.push(eq(fileAssets.starred, query.starred));
     if (q) filters.push(ilike(fileAssets.name, `%${q}%`));
-    const [assets, folders] = await Promise.all([
+    const page = query?.page ?? 1;
+    const limit = query?.limit ?? 50;
+    const offset = (page - 1) * limit;
+    const [assets, folders, [filesCount], [foldersCount]] = await Promise.all([
       this.database.db
         .select({ asset: fileAssets, owner: users.displayName })
         .from(fileAssets)
         .innerJoin(users, eq(fileAssets.createdByUserId, users.id))
         .where(and(...filters))
-        .orderBy(desc(fileAssets.updatedAt)),
+        .orderBy(desc(fileAssets.updatedAt))
+        .limit(limit)
+        .offset(offset),
       this.database.db
         .select()
         .from(fileFolders)
@@ -426,13 +432,21 @@ export class FilesService {
             eq(fileFolders.status, status),
           ),
         )
-        .orderBy(desc(fileFolders.updatedAt)),
+        .orderBy(desc(fileFolders.updatedAt))
+        .limit(limit)
+        .offset(offset),
+      this.database.db.select({ count: sql<number>`count(*)::int` }).from(fileAssets).where(and(...filters)),
+      this.database.db.select({ count: sql<number>`count(*)::int` }).from(fileFolders).where(and(eq(fileFolders.workspaceId, auth.workspace.id), eq(fileFolders.status, status))),
     ]);
     const visibleAssets = query?.kind
       ? assets.filter(({ asset }) => this.kind(asset.mimeType) === query.kind)
       : assets;
     return {
       canManage: this.canManage(auth),
+      page,
+      limit,
+      foldersTotal: foldersCount?.count ?? 0,
+      filesTotal: filesCount?.count ?? 0,
       folders: folders.map((folder) => ({
         id: folder.id,
         parentFolderId: folder.parentFolderId,

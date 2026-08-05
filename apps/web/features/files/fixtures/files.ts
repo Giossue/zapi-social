@@ -9,6 +9,8 @@ export const fileLibraryFixture: FileLibraryData = {
   canUpload: true,
   folders: [],
   assets: [],
+  page: 1,
+  hasMore: false,
 }
 
 export const onlineMediaSearchFixture: OnlineMediaSearchData = {

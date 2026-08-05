@@ -30,6 +30,8 @@ export type FileLibraryData = {
   canUpload: boolean
   folders: readonly FileFolder[]
   assets: readonly FileAsset[]
+  page: number
+  hasMore: boolean
 }
 
 export type OnlineMediaItem = {

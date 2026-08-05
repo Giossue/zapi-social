@@ -253,6 +253,8 @@ function portalFilesQueryString(query: Partial<PortalFilesQuery> = {}) {
   if (query.folderId) params.set("folderId", query.folderId)
   if (query.kind) params.set("kind", query.kind)
   if (query.starred !== undefined) params.set("starred", String(query.starred))
+  if (query.page) params.set("page", String(query.page))
+  if (query.limit) params.set("limit", String(query.limit))
   const value = params.toString()
   return value ? `?${value}` : ""
 }
