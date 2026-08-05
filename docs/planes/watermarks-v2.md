@@ -3,9 +3,10 @@
 ## Estado
 
 El backend está implementado en contrato, cliente REST y Nest. La migración
-`0018_gorgeous_doctor_faustus` es aditiva y pasó dentro de una transacción local
-revertida; aún no está aplicada a ninguna base. La interfaz canónica de
-`/portal/watermarks` se implementará después primero en `diseño ideal`.
+aditiva `0018_gorgeous_doctor_faustus` está aplicada a `zapi_v2_local`.
+Por solicitud explícita, el fixture funcional de `/portal/watermarks` se creó
+directamente en V2, reutilizando los patrones de formularios, diálogos y
+feedback ya canónicos del Portal.
 
 ## Referencia Laravel
 
@@ -62,8 +63,13 @@ leer para explicar qué reglas aplicarán en Publishing.
        de Files.
 3. [x] Añadir cliente REST tipado y prueba focal preparada para PostgreSQL
        local.
-4. [ ] Crear la interfaz canónica en Diseño Ideal y conectarla en Portal V2.
-5. [ ] Conectar el renderer temporal al Worker de entrega de Publishing cuando
+4. [x] Crear el fixture funcional directo en Portal V2: ámbito global o varias
+       cuentas, imagen o texto, controles, preview, guardado y eliminación
+       locales. La selección de destinos no altera el borrador ni la pestaña
+       activa del editor.
+5. [ ] Sustituir el fixture por `watermarksApi` y el selector sintético por la
+       biblioteca real de Files.
+6. [ ] Conectar el renderer temporal al Worker de entrega de Publishing cuando
        exista dicha entrega.
 
 ## Fuera de alcance inicial
@@ -78,10 +84,10 @@ leer para explicar qué reglas aplicarán en Publishing.
 - `packages/database`, `packages/contracts`, `packages/api-client` y
   `apps/api` pasan typecheck; Database, Contracts y API también pasan build.
   `packages/api-client` no declara un script de build.
-- La migración se ejecutó contra `zapi_v2_local` dentro de `BEGIN … ROLLBACK`:
-  creó las cuatro tablas, insertó las cuatro categorías iniciales y verificó
-  tres constraints/FKs críticos y tres índices. No permanecen tablas ni filas
-  porque terminó en `ROLLBACK`.
+- La migración se validó primero dentro de `BEGIN … ROLLBACK` y luego se aplicó
+  a `zapi_v2_local` con el rol `zapi_social`: el historial pasó de 18 a 19,
+  creó las cuatro tablas y las cuatro categorías iniciales, y verificó tres
+  constraints/FKs críticos y tres índices.
 - La migración crea primero los índices únicos compuestos requeridos por sus
   FKs compuestas; Drizzle generó esos índices al final, por lo que se reordenó
   únicamente la secuencia SQL para que PostgreSQL pueda aplicar la migración.
@@ -89,4 +95,9 @@ leer para explicar qué reglas aplicarán en Publishing.
   entre workspaces, rechazo de imágenes de otro workspace y el unique durable
   de una regla global. Exige explícitamente
   `SUPPORT_WATERMARKS_TEST_DATABASE_URL` apuntando sólo a
-  `zapi_v2_local`, por lo que se ejecutará después de aplicar `0018` localmente.
+  `zapi_v2_local`. Tras aplicar `0018`, pasó 2/2 y confirmó que la transacción
+  revierte sus fixtures: tickets, comentarios y reglas terminan en cero.
+- `apps/web` pasa `typecheck` y `build`; la salida de Next incluye
+  `/portal/watermarks`.
+- Tras ajustar el selector de destinos, `apps/web` vuelve a pasar `typecheck`
+  y el lint focal de `features/watermarks/components/watermarks-page.tsx`.

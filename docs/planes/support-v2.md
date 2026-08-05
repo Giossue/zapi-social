@@ -3,10 +3,10 @@
 ## Estado
 
 El backend está implementado en contrato, cliente REST y Nest. La migración
-`0018_gorgeous_doctor_faustus` es aditiva y pasó dentro de una transacción local
-revertida; aún no está aplicada a ninguna base. La interfaz canónica de
-`/portal/support` se creará después en `diseño ideal` y se copiará literalmente
-a V2.
+aditiva `0018_gorgeous_doctor_faustus` está aplicada a `zapi_v2_local`.
+Por solicitud explícita, el fixture funcional de `/portal/support` se creó
+directamente en V2, reutilizando los patrones de tablas, filtros, diálogos y
+estados ya canónicos del Portal.
 
 ## Referencia Laravel
 
@@ -63,8 +63,11 @@ ownership, conversaciones en cascada y listado por solicitante/actividad.
 2. [x] Implementar API Nest, ownership por solicitante y auditoría.
 3. [x] Añadir cliente REST tipado y prueba focal preparada para PostgreSQL
        local.
-4. [ ] Crear la interfaz canónica en Diseño Ideal y conectarla en Portal V2.
-5. [ ] Implementar el backoffice de soporte, asignaciones y notificaciones
+4. [x] Crear el fixture funcional directo en Portal V2: tabla, búsqueda,
+       filtros, creación y detalle con conversación local.
+5. [ ] Sustituir el fixture por `supportApi` y conservar los mismos estados de
+       carga, error, permisos y formulario.
+6. [ ] Implementar el backoffice de soporte, asignaciones y notificaciones
        cuando exista el alcance de Admin.
 
 ## Fuera de alcance inicial
@@ -78,11 +81,14 @@ ownership, conversaciones en cascada y listado por solicitante/actividad.
 - `packages/database`, `packages/contracts`, `packages/api-client` y
   `apps/api` pasan typecheck; Database, Contracts y API también pasan build.
   `packages/api-client` no declara un script de build.
-- La migración se ejecutó contra `zapi_v2_local` dentro de `BEGIN … ROLLBACK`:
-  creó las cuatro tablas, insertó las cuatro categorías iniciales y verificó
-  tres constraints/FKs críticos y tres índices. No permanecen tablas ni filas
-  porque terminó en `ROLLBACK`.
+- La migración se validó primero dentro de `BEGIN … ROLLBACK` y luego se aplicó
+  a `zapi_v2_local` con el rol `zapi_social`: el historial pasó de 18 a 19,
+  creó las cuatro tablas y las cuatro categorías iniciales, y verificó tres
+  constraints/FKs críticos y tres índices.
 - `apps/api/src/support-watermarks.integration.spec.ts` comprueba aislamiento
   entre workspaces y constraints de Watermarks. Exige explícitamente
   `SUPPORT_WATERMARKS_TEST_DATABASE_URL` apuntando sólo a
-  `zapi_v2_local`, por lo que se ejecutará después de aplicar `0018` localmente.
+  `zapi_v2_local`. Tras aplicar `0018`, pasó 2/2 y confirmó que la transacción
+  revierte sus fixtures: tickets, comentarios y reglas terminan en cero.
+- `apps/web` pasa `typecheck` y `build`; la salida de Next incluye
+  `/portal/support` y `/portal/support/[ticketId]`.
