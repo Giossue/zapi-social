@@ -24,6 +24,7 @@ import type {
   PortalRssSchedulesResponse,
   PortalRssScheduleWeekday,
 } from "@workspace/contracts"
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -450,8 +451,8 @@ function RssSchedules({
             </Select>
           </div>
 
-          {visibleRows.length ? (
-            <div className="flex flex-col gap-4">
+          <div className="flex flex-1 flex-col gap-4">
+            <div>
               <Table className="**:data-[slot='table-cell']:px-4 **:data-[slot='table-head']:px-4">
                 <TableHeader className="[&_tr]:border-t">
                   <TableRow>
@@ -470,154 +471,163 @@ function RssSchedules({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {visibleRows.map((row) => {
-                    const destinations = destinationsSummary(row.targets)
-                    const isPending = pendingId === row.id
+                  {visibleRows.length ? (
+                    visibleRows.map((row) => {
+                      const destinations = destinationsSummary(row.targets)
+                      const isPending = pendingId === row.id
 
-                    return (
-                      <TableRow
-                        className="border-border/60 hover:bg-white/2.5"
-                        key={row.id}
-                      >
-                        <TableCell className="px-3 py-4 align-middle">
-                          <div className="flex min-w-64 items-center gap-3">
-                            <div className="flex size-10 shrink-0 items-center justify-center rounded-md border">
-                              <Rss className="size-4" />
+                      return (
+                        <TableRow
+                          className="border-border/60 hover:bg-white/2.5"
+                          key={row.id}
+                        >
+                          <TableCell className="px-3 py-4 align-middle">
+                            <div className="flex min-w-64 items-center gap-3">
+                              <Avatar size="lg">
+                                <AvatarFallback>
+                                  <Rss className="size-4" />
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-medium text-foreground">
+                                  {row.name}
+                                </p>
+                                <p className="mt-0.5 flex items-center gap-1 truncate text-sm text-muted-foreground">
+                                  <ExternalLink className="size-3 shrink-0" />
+                                  {row.feedUrl}
+                                </p>
+                              </div>
                             </div>
-                            <div className="min-w-0">
-                              <p className="truncate text-sm font-medium text-foreground">
-                                {row.name}
-                              </p>
-                              <p className="mt-0.5 flex items-center gap-1 truncate text-sm text-muted-foreground">
-                                <ExternalLink className="size-3 shrink-0" />
-                                {row.feedUrl}
-                              </p>
+                          </TableCell>
+                          <TableCell className="px-3 py-4 align-middle">
+                            <div className="grid max-w-48 gap-0.5">
+                              <span className="truncate text-sm">
+                                {destinations.primary}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                {destinations.secondary}
+                              </span>
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="px-3 py-4 align-middle">
-                          <div className="grid max-w-48 gap-0.5">
-                            <span className="truncate text-sm">
-                              {destinations.primary}
+                          </TableCell>
+                          <TableCell className="px-3 py-4 align-middle">
+                            <span className="text-sm text-foreground">
+                              {row.nextRun}
                             </span>
-                            <span className="text-xs text-muted-foreground">
-                              {destinations.secondary}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="px-3 py-4 align-middle">
-                          <span className="text-sm text-foreground">
-                            {row.nextRun}
-                          </span>
-                        </TableCell>
-                        <TableCell className="px-3 py-4 align-middle">
-                          <div className="grid gap-0.5">
-                            <span className="text-sm">{row.lastRun}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {row.queued
-                                ? `${row.queued} borrador${row.queued === 1 ? "" : "es"} por revisar`
-                                : "Sin borradores generados"}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="px-3 py-4 align-middle">
-                          <Badge
-                            variant={
-                              row.status === "active" ? "default" : "secondary"
-                            }
-                          >
-                            {statusLabel[row.status]}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="px-3 py-4 align-middle">
-                          <div className="text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  aria-label={`Abrir acciones para ${row.name}`}
-                                  className="size-8 rounded-md text-muted-foreground hover:bg-muted/50"
-                                  disabled={!canManage || isPending}
-                                  size="icon-sm"
-                                  variant="outline"
-                                >
-                                  <MoreHorizontal className="size-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem
-                                  disabled={!canManage || isPending}
-                                  onSelect={() => void runNow(row.id)}
-                                >
-                                  <Play />
-                                  Ejecutar
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  disabled={!canManage || isPending}
-                                  onSelect={() => void toggle(row.id)}
-                                >
-                                  {row.status === "active" ? (
-                                    <Pause />
-                                  ) : (
+                          </TableCell>
+                          <TableCell className="px-3 py-4 align-middle">
+                            <div className="grid gap-0.5">
+                              <span className="text-sm">{row.lastRun}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {row.queued
+                                  ? `${row.queued} borrador${row.queued === 1 ? "" : "es"} por revisar`
+                                  : "Sin borradores generados"}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="px-3 py-4 align-middle">
+                            <Badge
+                              variant={
+                                row.status === "active"
+                                  ? "default"
+                                  : "secondary"
+                              }
+                            >
+                              {statusLabel[row.status]}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="px-3 py-4 align-middle">
+                            <div className="text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    aria-label={`Abrir acciones para ${row.name}`}
+                                    disabled={!canManage || isPending}
+                                    size="icon-sm"
+                                    variant="secondary"
+                                  >
+                                    <MoreHorizontal className="size-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem
+                                    disabled={!canManage || isPending}
+                                    onSelect={() => void runNow(row.id)}
+                                  >
                                     <Play />
-                                  )}
-                                  {row.status === "active"
-                                    ? "Pausar"
-                                    : "Reactivar"}
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  disabled={!canManage || isPending}
-                                  onSelect={() => void remove(row.id)}
-                                  variant="destructive"
-                                >
-                                  <Trash2 />
-                                  Eliminar
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
+                                    Ejecutar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    disabled={!canManage || isPending}
+                                    onSelect={() => void toggle(row.id)}
+                                  >
+                                    {row.status === "active" ? (
+                                      <Pause />
+                                    ) : (
+                                      <Play />
+                                    )}
+                                    {row.status === "active"
+                                      ? "Pausar"
+                                      : "Reactivar"}
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    disabled={!canManage || isPending}
+                                    onSelect={() => void remove(row.id)}
+                                    variant="destructive"
+                                  >
+                                    <Trash2 />
+                                    Eliminar
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
+                  ) : (
+                    <TableRow>
+                      <TableCell className="h-24 text-center" colSpan={6}>
+                        <Empty>
+                          <EmptyHeader>
+                            <EmptyMedia variant="icon">
+                              <Rss />
+                            </EmptyMedia>
+                            <EmptyTitle>
+                              {query || status !== "all"
+                                ? "No hay coincidencias"
+                                : "Aún no tienes programaciones RSS"}
+                            </EmptyTitle>
+                            <EmptyDescription>
+                              {query || status !== "all"
+                                ? "Prueba con otro término o restablece los filtros."
+                                : "Añade un feed y elige cuándo publicarlo en tus canales."}
+                            </EmptyDescription>
+                          </EmptyHeader>
+                          {query || status !== "all" ? (
+                            <Button onClick={resetFilters} variant="outline">
+                              Restablecer filtros
+                            </Button>
+                          ) : null}
+                        </Empty>
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
-              <TablePagination
-                canGoNext={page * pageSize < total}
-                canGoPrevious={page > 1}
-                itemLabel="programaciones"
-                mode="compact"
-                onNextPage={() => onPageChange(page + 1)}
-                onPreviousPage={() => onPageChange(page - 1)}
-                rangeEnd={rangeEnd}
-                rangeStart={rangeStart}
-                total={total}
-              />
             </div>
-          ) : (
-            <Empty>
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <Rss />
-                </EmptyMedia>
-                <EmptyTitle>
-                  {query || status !== "all"
-                    ? "No hay coincidencias"
-                    : "Aún no tienes programaciones RSS"}
-                </EmptyTitle>
-                <EmptyDescription>
-                  {query || status !== "all"
-                    ? "Prueba con otro término o restablece los filtros."
-                    : "Añade un feed y elige cuándo publicarlo en tus canales."}
-                </EmptyDescription>
-              </EmptyHeader>
-              {query || status !== "all" ? (
-                <Button onClick={resetFilters} variant="outline">
-                  Restablecer filtros
-                </Button>
-              ) : null}
-            </Empty>
-          )}
+            <TablePagination
+              canGoNext={page * pageSize < total}
+              canGoPrevious={page > 1}
+              itemLabel="programaciones"
+              mode="compact"
+              onNextPage={() => onPageChange(page + 1)}
+              onPreviousPage={() => onPageChange(page - 1)}
+              rangeEnd={rangeEnd}
+              rangeStart={rangeStart}
+              total={total}
+            />
+          </div>
         </CardContent>
       </Card>
 
