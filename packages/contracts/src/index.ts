@@ -201,7 +201,7 @@ export const portalFileKindSchema = z.enum([
   "spreadsheet",
   "video",
 ])
-export const portalFileStatusSchema = z.enum(["pending", "ready", "trashed"])
+export const portalFileStatusSchema = z.enum(["pending", "ready"])
 export const portalFileAssetSchema = z.object({
   id: z.uuid(),
   folderId: z.uuid().nullable(),
@@ -240,11 +240,6 @@ export const portalFilesQuerySchema = z
     starred: z.coerce.boolean().optional(),
     page: z.coerce.number().int().positive().default(1),
     limit: z.coerce.number().int().min(1).max(100).default(50),
-  })
-  .strict()
-export const portalFileTrashQuerySchema = z
-  .object({
-    q: z.string().trim().min(1).max(255).optional(),
   })
   .strict()
 export const createPortalFileFolderSchema = z
@@ -525,7 +520,6 @@ export type StartPortalFileUploadInput = z.infer<
 export type UpdatePortalFileFolderInput = z.infer<
   typeof updatePortalFileFolderSchema
 >
-export type PortalFileTrashQuery = z.infer<typeof portalFileTrashQuerySchema>
 export type PublishingProvider = z.infer<typeof publishingProviderSchema>
 export type PublishingPostStatus = z.infer<typeof publishingPostStatusSchema>
 export type PortalPublishingAccount = z.infer<

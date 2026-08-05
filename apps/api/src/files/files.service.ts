@@ -398,11 +398,11 @@ export class FilesService {
 
   private async library(
     auth: PortalAuthSession,
-    status: 'active' | 'trashed',
+    status: 'active',
     q?: string,
     query?: { folderId?: string; starred?: boolean; kind?: string; page?: number; limit?: number },
   ) {
-    const assetStatus = status === 'active' ? 'ready' : 'trashed';
+    const assetStatus = 'ready';
     const filters = [
       eq(fileAssets.workspaceId, auth.workspace.id),
       eq(fileAssets.status, assetStatus),
@@ -496,7 +496,7 @@ export class FilesService {
   private async asset(
     auth: PortalAuthSession,
     id: string,
-    status: 'pending' | 'ready' | 'trashed',
+    status: 'pending' | 'ready',
   ) {
     const [asset] = await this.database.db
       .select()
@@ -516,7 +516,7 @@ export class FilesService {
   private async folder(
     auth: PortalAuthSession,
     id: string,
-    status: 'active' | 'trashed',
+    status: 'active',
   ) {
     const [folder] = await this.database.db
       .select()
@@ -536,7 +536,7 @@ export class FilesService {
   private async folderExists(
     workspaceId: string,
     id: string,
-    status: 'active' | 'trashed',
+    status: 'active',
   ) {
     const [folder] = await this.database.db
       .select({ id: fileFolders.id })

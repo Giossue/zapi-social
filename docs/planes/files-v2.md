@@ -2,7 +2,7 @@
 
 ## Estado
 
-Inventario, carpetas jerárquicas, subida local en streaming, favorito, breadcrumb, acciones de archivo/carpeta, papelera y miniaturas autenticadas están implementados. Quedan fuera de este cierre la retención automática y la purga diferida por Worker.
+Inventario, carpetas jerárquicas, subida local en streaming, favorito, breadcrumb, acciones de archivo/carpeta, borrado permanente y miniaturas autenticadas están implementados. No hay papelera ni retención automática.
 
 La base local registra hasta `0015_lyrical_cargill`: `publishing_posts` y `publishing_post_media` son la referencia durable inicial para impedir enviar a papelera un archivo usado por Publishing.
 
@@ -20,8 +20,7 @@ No se implementa ninguna de las fases siguientes hasta aprobar explícitamente e
 - Cada recurso pertenece a un workspace. Cualquier lectura, preview, descarga, mutación o derivado comprueba sesión y ownership de workspace.
 - Solo `owner` y `admin` pueden subir, crear, renombrar, mover, eliminar, restaurar o purgar. Cualquier miembro activo puede listar, ver preview y descargar los recursos autorizados de su workspace.
 - Ninguna URL de archivo o miniatura será pública. Todo acceso pasa por API autenticada; el volumen nunca se expone como directorio HTTP.
-- La papelera es lógica. El archivo queda inaccesible desde biblioteca, preview, descarga y compositor mientras está en `trashed`; la purga física se ejecuta solo después de retención y verificación de referencias.
-- Los archivos usados por publicaciones `draft`, `processing` o `scheduled` no se pueden enviar a papelera ni purgar hasta retirar su referencia. Esta es una mejora necesaria para que Files no rompa Publishing.
+- Eliminar borra original, miniatura y registro de base de datos de inmediato. Los archivos usados por Publishing no se pueden eliminar hasta retirar su referencia.
 - La selección múltiple no es una fuente de verdad de negocio. Las acciones mutan por IDs validados por API y respetan ownership para cada recurso.
 
 ## Estado actual comprobado
