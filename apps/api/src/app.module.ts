@@ -17,6 +17,7 @@ import { AuditModule } from './audit/audit.module';
 import { RssSchedulesModule } from './rss-schedules/rss-schedules.module';
 import { SupportModule } from './support/support.module';
 import { WatermarksModule } from './watermarks/watermarks.module';
+import { TeamsModule } from './teams/teams.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { WatermarksModule } from './watermarks/watermarks.module';
     RssSchedulesModule,
     SupportModule,
     WatermarksModule,
+    TeamsModule,
     AuditModule,
     IdentityModule,
     BullModule.forRoot({

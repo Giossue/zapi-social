@@ -107,6 +107,83 @@ export const workspaceMemberships = pgTable(
   ]
 )
 
+export const workspaceInvitations = pgTable(
+  "workspace_invitations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    invitedByUserId: uuid("invited_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    emailNormalized: varchar("email_normalized", { length: 320 }).notNull(),
+    role: varchar("role", { length: 24 }).notNull().default("member"),
+    tokenHash: varchar("token_hash", { length: 128 }).notNull(),
+    status: varchar("status", { length: 24 }).notNull().default("pending"),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    acceptedByUserId: uuid("accepted_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("workspace_invitations_token_hash_unique").on(table.tokenHash),
+    index("workspace_invitations_workspace_status_expiry_index").on(
+      table.workspaceId,
+      table.status,
+      table.expiresAt
+    ),
+    index("workspace_invitations_email_status_index").on(
+      table.emailNormalized,
+      table.status
+    ),
+    check(
+      "workspace_invitations_role_check",
+      sql`${table.role} in ('admin', 'member')`
+    ),
+    check(
+      "workspace_invitations_status_check",
+      sql`${table.status} in ('pending', 'accepted', 'revoked', 'expired')`
+    ),
+  ]
+)
+
+export const workspaceMembershipAuditEvents = pgTable(
+  "workspace_membership_audit_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    actorUserId: uuid("actor_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    subjectUserId: uuid("subject_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    type: varchar("type", { length: 96 }).notNull(),
+    metadata: jsonb("metadata")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("workspace_membership_audit_workspace_created_index").on(
+      table.workspaceId,
+      table.createdAt
+    ),
+    index("workspace_membership_audit_subject_created_index").on(
+      table.subjectUserId,
+      table.createdAt
+    ),
+  ]
+)
+
 export const authIdentities = pgTable(
   "auth_identities",
   {

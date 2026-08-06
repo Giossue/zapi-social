@@ -23,6 +23,7 @@ import { DatabaseService } from '../database/database.service';
 import { Aes256GcmService } from '../platform/crypto/aes-256-gcm.service';
 import { AppException } from '../platform/errors/app-exception';
 import { passwordResetEmail } from './password-reset-email';
+import { teamInvitationEmail } from './team-invitation-email';
 
 const emailSmtpCapabilities = ['transactional_email'];
 
@@ -187,6 +188,30 @@ export class EmailService {
         },
         to: email,
         subject: 'Restablece tu contraseña de Zapi',
+        html,
+      });
+    } finally {
+      transporter.close();
+    }
+  }
+
+  async sendTeamInvitation(email: string, token: string): Promise<void> {
+    const configuration = await this.readReadyConfiguration();
+    const invitationUrl = new URL(
+      '/invite',
+      this.config.getOrThrow<string>('WEB_ORIGIN'),
+    );
+    invitationUrl.searchParams.set('token', token);
+    const html = await render(teamInvitationEmail(invitationUrl.toString()));
+    const transporter = this.transporter(configuration);
+    try {
+      await transporter.sendMail({
+        from: {
+          name: configuration.fromName,
+          address: configuration.fromEmail,
+        },
+        to: email,
+        subject: 'Te invitaron a un espacio de trabajo en Zapi',
         html,
       });
     } finally {

@@ -774,6 +774,69 @@ export const createPortalWatermarkSchema = z.discriminatedUnion("type", [
 ])
 export const updatePortalWatermarkSchema = createPortalWatermarkSchema
 
+export const portalTeamRoleSchema = z.enum(["owner", "admin", "member"])
+export const portalTeamInvitationRoleSchema = z.enum(["admin", "member"])
+export const portalTeamAccountSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  detail: z.string(),
+})
+export const portalTeamMemberSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  email: z.string().email(),
+  role: portalTeamRoleSchema,
+  joinedAt: z.string().datetime(),
+  accountIds: z.array(z.uuid()),
+})
+export const portalTeamInvitationSchema = z.object({
+  id: z.uuid(),
+  email: z.string().email(),
+  role: portalTeamInvitationRoleSchema,
+  expiresAt: z.string().datetime(),
+})
+export const portalTeamsResponseSchema = z.object({
+  canManage: z.boolean(),
+  accounts: z.array(portalTeamAccountSchema),
+  currentUserId: z.uuid(),
+  invitations: z.array(portalTeamInvitationSchema),
+  members: z.array(portalTeamMemberSchema),
+})
+export const createPortalTeamInvitationSchema = z
+  .object({
+    email: z.string().trim().email().max(320),
+    role: portalTeamInvitationRoleSchema.default("member"),
+  })
+  .strict()
+export const updatePortalTeamMemberRoleSchema = z
+  .object({ role: portalTeamRoleSchema })
+  .strict()
+export const replacePortalTeamAccountGrantsSchema = z
+  .object({ accountIds: z.array(z.uuid()).max(500) })
+  .strict()
+export const acceptPortalTeamInvitationSchema = z
+  .object({ token: z.string().min(32).max(512) })
+  .strict()
+export const portalTeamAuditEventSchema = z.object({
+  id: z.uuid(),
+  actorName: z.string().nullable(),
+  subjectName: z.string().nullable(),
+  type: z.string(),
+  createdAt: z.string().datetime(),
+})
+export const portalTeamAuditEventsResponseSchema = z.object({
+  events: z.array(portalTeamAuditEventSchema),
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+  total: z.number().int().nonnegative(),
+})
+export const portalTeamAuditEventsQuerySchema = z
+  .object({
+    page: z.coerce.number().int().positive().default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(50),
+  })
+  .strict()
+
 export const portalDashboardSchema = z.object({
   welcome: z.object({ name: z.string() }),
   primaryAction: dashboardActionSchema,
@@ -1058,6 +1121,33 @@ export type CreatePortalWatermarkInput = z.infer<
 >
 export type UpdatePortalWatermarkInput = z.infer<
   typeof updatePortalWatermarkSchema
+>
+export type PortalTeamRole = z.infer<typeof portalTeamRoleSchema>
+export type PortalTeamInvitationRole = z.infer<
+  typeof portalTeamInvitationRoleSchema
+>
+export type PortalTeamAccount = z.infer<typeof portalTeamAccountSchema>
+export type PortalTeamMember = z.infer<typeof portalTeamMemberSchema>
+export type PortalTeamInvitation = z.infer<typeof portalTeamInvitationSchema>
+export type PortalTeamsResponse = z.infer<typeof portalTeamsResponseSchema>
+export type CreatePortalTeamInvitationInput = z.infer<
+  typeof createPortalTeamInvitationSchema
+>
+export type UpdatePortalTeamMemberRoleInput = z.infer<
+  typeof updatePortalTeamMemberRoleSchema
+>
+export type ReplacePortalTeamAccountGrantsInput = z.infer<
+  typeof replacePortalTeamAccountGrantsSchema
+>
+export type AcceptPortalTeamInvitationInput = z.infer<
+  typeof acceptPortalTeamInvitationSchema
+>
+export type PortalTeamAuditEvent = z.infer<typeof portalTeamAuditEventSchema>
+export type PortalTeamAuditEventsResponse = z.infer<
+  typeof portalTeamAuditEventsResponseSchema
+>
+export type PortalTeamAuditEventsQuery = z.infer<
+  typeof portalTeamAuditEventsQuerySchema
 >
 export type ChannelStatus = z.infer<typeof channelStatusSchema>
 export type ChannelAccount = z.infer<typeof channelAccountSchema>

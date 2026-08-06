@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Laravel auditado; UI mock implementada. Contrato REST, persistencia y autorización server-side pendientes.**
+**Laravel auditado; UI mock y backend de Teams implementados en código. La migración `0019_minor_stick.sql` está aplicada a `zapi_v2_local` y a `zapi_v2` remoto; la validación verificó las dos tablas, sus dos constraints de invitación y los índices críticos.**
 
 Teams gobierna membresías del workspace y el alcance de cuentas para Publishing y Channels. No se implementarán autorizaciones provisionales en esos dominios: consumirán la política central definida aquí.
 
@@ -108,8 +108,8 @@ Estados: normal, loading, vacío, búsqueda sin resultados, error, sin permiso, 
 
 1. [x] Auditar Laravel y divergencias de seguridad.
 2. [x] Implementar UI mock con fixtures sintéticas. Evidencia: `apps/web/features/teams/` y `apps/web/app/portal/teams/`.
-3. [ ] Definir contratos Zod, capacidades y errores públicos.
-4. [ ] Añadir migración aditiva para invitaciones y auditoría; requiere confirmación antes de ejecutarse en PostgreSQL remoto.
-5. [ ] Implementar Nest, autorización central y tests de ownership/roles.
+3. [x] Definir contratos Zod, capacidades y errores públicos.
+4. [x] Añadir migración aditiva para invitaciones y auditoría; aplicada y verificada en `zapi_v2_local` y en `zapi_v2` remoto. La remota estaba en `0017`, por lo que se aplicó también su dependencia aditiva `0018` dentro de la misma transacción y se registraron ambos hashes de Drizzle; el historial remoto quedó en 20 migraciones.
+5. [ ] Implementar Nest, autorización central y tests de ownership/roles. Nest ya cubre listado, invitación/envío SMTP, aceptación, revocación, cambio de rol, grants y revocación de miembro; falta la prueba focal de ownership/roles.
 6. [ ] Sustituir mocks y conectar Publishing/Channels a la política central.
 7. [ ] Implementar transferencia de ownership y excepciones auditadas, si el producto las requiere.
