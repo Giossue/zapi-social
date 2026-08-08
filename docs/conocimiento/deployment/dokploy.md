@@ -9,10 +9,13 @@ Internet
 ├── app.zapisocial.com  → Web Next.js
 └── api.zapisocial.com  → API Nest
                              ├── PostgreSQL
-                             └── Redis / BullMQ
+                             ├── Redis / BullMQ
+                             └── volumen privado Files
+                                      ↑
+Worker Nest ───────────────────────────┘
 ```
 
-El worker se despliega como servicio interno sin dominio público. Procesa BullMQ para sincronización de perfiles; comparte PostgreSQL, Redis y la clave de cifrado de API.
+El worker se despliega como servicio interno sin dominio público. Procesa perfiles, derivados, RSS, Publishing, Bulk Posts, AI y webhooks; comparte PostgreSQL, Redis, la clave de cifrado y el volumen Files con API.
 
 ## Repositorio y rama
 
@@ -46,12 +49,13 @@ Activar certificados HTTPS en ambos. No exponer PostgreSQL ni Redis como dominio
 
 ## Dockerfiles
 
-Los dos servicios se construyen con contexto raíz porque dependen de workspaces compartidos.
+Los tres servicios se construyen con contexto raíz porque dependen de workspaces compartidos.
 
-| Servicio | Build type | Dockerfile       | Context path | Build stage |
-| -------- | ---------- | ---------------- | ------------ | ----------- |
-| Web      | Dockerfile | `Dockerfile.web` | `.`          | vacío       |
-| API      | Dockerfile | `Dockerfile.api` | `.`          | vacío       |
+| Servicio | Build type | Dockerfile          | Context path | Build stage |
+| -------- | ---------- | ------------------- | ------------ | ----------- |
+| Web      | Dockerfile | `Dockerfile.web`    | `.`          | vacío       |
+| API      | Dockerfile | `Dockerfile.api`    | `.`          | vacío       |
+| Worker   | Dockerfile | `Dockerfile.worker` | `.`          | vacío       |
 
 Los Dockerfiles se validaron con Podman. No definir un Start Command manual en Dokploy: debe usar el `CMD` de la imagen.
 
@@ -59,11 +63,11 @@ Los Dockerfiles se validaron con Podman. No definir un Start Command manual en D
 
 Los valores sensibles permanecen únicamente en Dokploy. En esta guía, `configurado en Dokploy` significa que el servicio tiene el valor real sin exponerlo en el repositorio.
 
-| Servicio | Entorno actual |
-| --- | --- |
-| Web Next | `NODE_ENV=production`, `INTERNAL_API_ORIGIN=https://api.zapisocial.com` |
-| API Nest | `NODE_ENV=production`, `API_HOST=0.0.0.0`, `API_PORT=3001`, `API_PUBLIC_ORIGIN=https://api.zapisocial.com`, `WEB_ORIGIN=https://app.zapisocial.com`, `COOKIE_SECURE=true`, `LOG_LEVEL=info`; base de datos, JWT, Redis y cifrado configurados en Dokploy. |
-| Worker Nest | Servicio interno; comparte base de datos, Redis y clave de cifrado configurados en Dokploy con API. |
+| Servicio    | Entorno actual                                                                                                                                                                                                                                                                                         |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Web Next    | `NODE_ENV=production`, `INTERNAL_API_ORIGIN=https://api.zapisocial.com`                                                                                                                                                                                                                                |
+| API Nest    | `NODE_ENV=production`, `API_HOST=0.0.0.0`, `API_PORT=3001`, `API_PUBLIC_ORIGIN=https://api.zapisocial.com`, `WEB_ORIGIN=https://app.zapisocial.com`, `COOKIE_SECURE=true`, `LOG_LEVEL=info`; base de datos, JWT, Redis, Files, cifrado y proveedores de media configurados en Dokploy cuando apliquen. |
+| Worker Nest | Servicio interno; comparte base de datos, Redis, clave de cifrado y volumen/ruta Files con API. `API_PUBLIC_ORIGIN` habilita media temporal de Instagram; las variables AI sólo se añaden al habilitar proveedor.                                                                                      |
 
 La etiqueta visual de un servicio en Dokploy no cambia esta responsabilidad: el bloque con `API_HOST`/`API_PORT` pertenece a API y el bloque con `INTERNAL_API_ORIGIN` pertenece a Web.
 
@@ -102,13 +106,24 @@ REDIS_PORT=6379
 REDIS_USERNAME=default
 REDIS_PASSWORD=REDIS_PASSWORD
 PROVIDER_INTEGRATIONS_ENCRYPTION_KEY=THE_SAME_STABLE_API_KEY
+FILES_STORAGE_PATH=/var/lib/zapi/files
+API_PUBLIC_ORIGIN=https://api.zapisocial.com
 LOG_LEVEL=info
+# Opcionales, sólo al habilitar AI:
+AI_PROVIDER_BASE_URL=https://PROVIDER_API_BASE/v1/
+AI_PROVIDER_API_KEY=PROVIDER_SECRET
+AI_TEXT_MODEL=APPROVED_TEXT_MODEL
+AI_IMAGE_MODEL=APPROVED_IMAGE_MODEL
 ```
 
 - `DATABASE_URL`, Redis y `PROVIDER_INTEGRATIONS_ENCRYPTION_KEY` son secretos del servicio Worker.
 - La clave de cifrado debe ser exactamente la misma que API para poder descifrar tokens de cuentas ya conectadas.
+- `FILES_STORAGE_PATH` debe coincidir con la ruta de montaje de API y apuntar al mismo volumen persistente.
+- `API_PUBLIC_ORIGIN` es necesaria en Worker para que Instagram reciba una URL HTTPS temporal firmada.
+- `AI_PROVIDER_API_KEY` es secreto. Base URL y modelos deben pertenecer a un proveedor compatible con OpenAI aprobado; sin configuración, las tareas AI dependientes del proveedor fallan de forma explícita.
+- `Dockerfile.worker` instala `ffmpeg`, que también aporta `ffprobe`, para thumbnails y watermarks de vídeo.
 - El Worker no recibe `JWT_ACCESS_SECRET`, `WEB_ORIGIN`, callbacks OAuth ni dominio público.
-- El sync de perfiles Meta se programa internamente cada cinco minutos y no requiere cron externo.
+- Schedulers de perfiles, RSS, Publishing, AI y webhooks se registran internamente y no requieren cron externo.
 
 ### API Nest
 
@@ -127,6 +142,10 @@ REDIS_USERNAME=default
 REDIS_PASSWORD=REDIS_PASSWORD
 LOG_LEVEL=info
 PROVIDER_INTEGRATIONS_ENCRYPTION_KEY=BASE64_32_BYTE_KEY
+FILES_STORAGE_PATH=/var/lib/zapi/files
+# Opcionales para Online Media:
+UNSPLASH_ACCESS_KEY=UNSPLASH_SECRET
+PEXELS_API_KEY=PEXELS_SECRET
 ```
 
 Notas:
@@ -136,6 +155,20 @@ Notas:
 - `DATABASE_URL`, JWT, Redis y clave de cifrado son secretos de Dokploy: nunca se versionan ni se copian a documentación, issues o chat.
 - `PROVIDER_INTEGRATIONS_ENCRYPTION_KEY` debe mantenerse estable. Rotarla requiere un proceso explícito de re-cifrado de configuraciones OAuth existentes.
 - Redis autenticado usa `REDIS_HOST`, `REDIS_PORT`, `REDIS_USERNAME` y `REDIS_PASSWORD` separados. No usar una URL Redis como valor de `REDIS_HOST`.
+- `UNSPLASH_ACCESS_KEY` y `PEXELS_API_KEY` se configuran sólo en API; nunca en Web. Puede habilitarse uno o ambos proveedores.
+
+## Volumen Files compartido
+
+API y Worker deben montar el mismo volumen persistente con idéntica ruta dentro del contenedor:
+
+```text
+Volume name: zapi-files-data
+Mount path API:    /var/lib/zapi/files
+Mount path Worker: /var/lib/zapi/files
+FILES_STORAGE_PATH=/var/lib/zapi/files
+```
+
+Un volumen con el mismo nombre pero datos independientes, o rutas internas distintas, rompe thumbnails, Bulk Posts, AI Images, Publishing y watermarks. Después de cambiar un mount se redeployan ambos servicios. El volumen no se monta en Web.
 
 ## Base de datos y migraciones
 
@@ -163,6 +196,8 @@ registrarlos como baseline; Drizzle aplicó después `0012`–`0015` normalmente
 No se modificaron ni eliminaron filas de `file_assets` durante esa operación.
 
 No ejecutar SQL destructivo ni aplicar migraciones sobre una base remota sin autorización explícita.
+
+El backend consolidado se validó localmente con `0020_mushy_peter_parker` y `0021_pale_thor`. Esa evidencia local no confirma que producción tenga las migraciones; debe verificarse y aplicarse en una ventana autorizada antes de desplegar código que dependa de sus tablas.
 
 ## Seed inicial de usuarios
 
@@ -225,4 +260,8 @@ https://app.zapisocial.com/login
 
 3. Registro/login y una consulta de Portal Channels.
 
-4. Revisar logs de API sin imprimir contraseñas, tokens, grants OAuth ni URLs de callback con `code` o `state`.
+4. Confirmar que API y Worker ven el mismo asset/thumbnail en `FILES_STORAGE_PATH`.
+
+5. Verificar que el Worker permanece activo y que los dispatchers no fallan por Redis, volumen, `ffmpeg` o variables AI.
+
+6. Revisar auditoría persistente y logs de contenedor sin imprimir contraseñas, tokens, grants OAuth ni URLs de callback con `code` o `state`.

@@ -13,7 +13,6 @@ import {
   socialAccounts,
 } from '@workspace/database';
 import {
-  portalChannelCapabilityKeySchema,
   selectPortalChannelCandidateSchema,
   startPortalChannelConnectionSchema,
   type PortalAuthSession,
@@ -220,9 +219,7 @@ export class ChannelConnectionsService {
     return this.serializeConnection(updated);
   }
 
-  async callback(
-    query: unknown,
-  ): Promise<{
+  async callback(query: unknown): Promise<{
     outcome: 'authorized' | 'denied' | 'failed';
     capabilityKey: string;
   }> {
@@ -293,12 +290,10 @@ export class ChannelConnectionsService {
       const context: MetaConnectionContext = {
         scopes,
         candidates: Object.fromEntries(
-          inserted
-            .map((candidate) => [
-              candidate.id,
-              byExternalId.get(candidate.externalId),
-            ])
-            .filter(([, value]) => value),
+          inserted.flatMap((candidate): Array<[string, CandidateContext]> => {
+            const value = byExternalId.get(candidate.externalId);
+            return value ? [[candidate.id, value]] : [];
+          }),
         ),
       };
       await this.database.db

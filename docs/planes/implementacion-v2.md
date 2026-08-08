@@ -6,23 +6,23 @@ Construir Zapi V2 como monorepo TypeScript independiente de Laravel. La aplicaci
 
 ## Decisiones cerradas
 
-| Área | Decisión |
-| --- | --- |
-| Runtime y workspaces | Bun 1.3 + Turborepo |
-| Web | Next.js App Router + React + TypeScript |
-| UI | Tailwind CSS 4 + shadcn/ui Radix Nova + Lucide |
-| Bloques UI | 21st.dev MCP, revisados y normalizados antes de usar |
-| Backend | NestJS sobre Fastify |
-| API | REST versionada `/v1` + OpenAPI/Swagger |
-| Contratos | Zod + `nestjs-zod`; cliente generado/consumido desde `@workspace/api-client` |
-| Base de datos | PostgreSQL 18 + Drizzle ORM + `postgres.js` |
-| Cache y jobs | Redis 8 + ioredis + BullMQ 5 |
-| Archivos | MinIO local; S3 compatible en producción |
-| Email local | Mailpit |
-| Auth | Argon2 + JWT access/refresh + cookies HTTP-only + Passport |
-| Logs | Pino + `nestjs-pino` |
-| Tests | Jest Nest inicial; Vitest/Testing Library/MSW/Playwright para Web |
-| Infra local | Podman + `infra/podman/compose.yaml` |
+| Área                 | Decisión                                                                                                                                      |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Runtime y workspaces | Bun 1.3 + Turborepo                                                                                                                           |
+| Web                  | Next.js App Router + React + TypeScript                                                                                                       |
+| UI                   | Tailwind CSS 4 + shadcn/ui Radix Nova + Lucide                                                                                                |
+| Bloques UI           | 21st.dev MCP, revisados y normalizados antes de usar                                                                                          |
+| Backend              | NestJS sobre Fastify                                                                                                                          |
+| API                  | REST versionada `/v1` + OpenAPI/Swagger                                                                                                       |
+| Contratos            | Zod + `nestjs-zod`; cliente generado/consumido desde `@workspace/api-client`                                                                  |
+| Base de datos        | PostgreSQL 18 + Drizzle ORM + `postgres.js`                                                                                                   |
+| Cache y jobs         | Redis 8 + ioredis + BullMQ 5                                                                                                                  |
+| Archivos             | Volumen privado compartido por API/Worker mediante `FILES_STORAGE_PATH`; una migración posterior a object storage requerirá adapter explícito |
+| Email local          | Mailpit                                                                                                                                       |
+| Auth                 | Argon2 + JWT access/refresh + cookies HTTP-only + Passport                                                                                    |
+| Logs                 | Pino + `nestjs-pino`                                                                                                                          |
+| Tests                | Jest Nest inicial; Vitest/Testing Library/MSW/Playwright para Web                                                                             |
+| Infra local          | Podman + `infra/podman/compose.yaml`                                                                                                          |
 
 ## Principios
 
@@ -32,7 +32,7 @@ Nest = reglas de negocio, permisos, API e integraciones.
 Worker = trabajos lentos y reintentos.
 PostgreSQL = fuente de verdad.
 Redis = cache, locks, rate limits y colas; nunca fuente de verdad.
-MinIO/S3 = archivos.
+Storage privado = archivos; PostgreSQL conserva metadata y referencias.
 ```
 
 - Next no importa Drizzle ni consulta PostgreSQL.
@@ -68,20 +68,20 @@ ZapiV2/
 
 ## Dominios V2
 
-| Dominio | Agrupa Laravel actual |
-| --- | --- |
-| `identity` | Fortify, usuarios, perfil, login social |
-| `workspaces` | Teams, Groups, miembros, permisos de workspace |
-| `channels` | AppChannels y proveedores Facebook, Instagram, X, LinkedIn, TikTok, WhatsApp |
-| `publishing` | publicaciones, captions, bulk posts, RSS, watermarks, URL shorteners |
-| `ai` | AI Studio, planner, content, image, video, review, semantic search |
-| `automation` | API keys, webhooks, logs y reglas |
-| `files` | archivos, media, avatars y storage |
-| `integrations` | OAuth, credenciales de proveedor y health externo |
-| `commerce` | planes, billing, pagos, créditos, cupones, afiliados, marketplace |
-| `content` | blogs, FAQ, idiomas y páginas públicas |
-| `support` | tickets, categorías, comentarios y etiquetas |
-| `admin` | capacidades administrativas sobre dominios, no backend duplicado |
+| Dominio        | Agrupa Laravel actual                                                        |
+| -------------- | ---------------------------------------------------------------------------- |
+| `identity`     | Fortify, usuarios, perfil, login social                                      |
+| `workspaces`   | Teams, Groups, miembros, permisos de workspace                               |
+| `channels`     | AppChannels y proveedores Facebook, Instagram, X, LinkedIn, TikTok, WhatsApp |
+| `publishing`   | publicaciones, captions, bulk posts, RSS, watermarks, URL shorteners         |
+| `ai`           | AI Studio, planner, content, image, video, review, semantic search           |
+| `automation`   | API keys, webhooks, logs y reglas                                            |
+| `files`        | archivos, media, avatars y storage                                           |
+| `integrations` | OAuth, credenciales de proveedor y health externo                            |
+| `commerce`     | planes, billing, pagos, créditos, cupones, afiliados, marketplace            |
+| `content`      | blogs, FAQ, idiomas y páginas públicas                                       |
+| `support`      | tickets, categorías, comentarios y etiquetas                                 |
+| `admin`        | capacidades administrativas sobre dominios, no backend duplicado             |
 
 ## REST API
 
@@ -114,31 +114,37 @@ zapi:rate-limit:*
 zapi:session:*
 ```
 
-Colas iniciales:
+Colas operativas actuales:
 
 ```text
-ai
-email
-publishing
-integrations
-media
-notifications
+ai-requests
+ai-schedule-dispatch
+publishing-delivery
+bulk-post-batches
+automation-webhooks
+file-derivatives
+rss-schedule-runs
+rss-schedule-dispatch
+meta-profile-sync
+meta-profile-schedule
+whatsapp-profile-sync
+whatsapp-profile-schedule
 ```
 
 Cada job requiere ID estable, idempotencia, reintentos limitados, logs y estado de negocio en PostgreSQL.
 
 ## Infraestructura local
 
-| Servicio | Puerto host | Propósito |
-| --- | ---: | --- |
-| PostgreSQL 18.4 | `5433` | datos locales |
-| Redis 8 | `6379` | cache, locks, BullMQ |
-| Mailpit SMTP | `1025` | captura de emails |
-| Mailpit UI | `8025` | inspección de emails |
-| MinIO API | `9000` | S3 local |
-| MinIO Console | `9001` | administración local |
-| Nest API | `3001` | REST y Swagger |
-| Next Web | `3000` | interfaz |
+| Servicio        | Puerto host | Propósito            |
+| --------------- | ----------: | -------------------- |
+| PostgreSQL 18.4 |      `5433` | datos locales        |
+| Redis 8         |      `6379` | cache, locks, BullMQ |
+| Mailpit SMTP    |      `1025` | captura de emails    |
+| Mailpit UI      |      `8025` | inspección de emails |
+| MinIO API       |      `9000` | S3 local             |
+| MinIO Console   |      `9001` | administración local |
+| Nest API        |      `3001` | REST y Swagger       |
+| Next Web        |      `3000` | interfaz             |
 
 Credenciales locales viven en `.env` ignorado. Solo `infra/podman/.env.example` se versiona.
 
@@ -185,15 +191,18 @@ Credenciales locales viven en `.env` ignorado. Solo `infra/podman/.env.example` 
 
 ### Fase 5 — Publishing e IA
 
-- [ ] Publicación, campañas, scheduler y workers idempotentes.
-- [ ] Media/MinIO, captions, watermarks y RSS.
-- [ ] AI Studio y límites de créditos.
+- [x] Publicación, scheduler, intentos durables y adapters iniciales. Evidencia: `apps/api/src/publishing`, `apps/worker/src/publishing` y [publishing-v2.md](./publishing-v2.md).
+- [x] Files en volumen compartido, captions, watermarks y RSS. Evidencia: planes específicos y pruebas locales RSS/Watermarks.
+- [x] AI Studio, programaciones y ledger de créditos. Evidencia: `apps/api/src/ai`, `apps/worker/src/ai` y [ai-studio-v2.md](./ai-studio-v2.md).
+- [ ] Campañas, labels, aprobaciones, cuotas y nuevos providers.
 
 ### Fase 6 — Commerce, support, automation y admin
 
-- [ ] Planes, pagos, créditos, afiliados y webhooks.
-- [ ] Tickets, notificaciones, API keys y automatización.
-- [ ] Admin sobre mismos módulos de dominio.
+- [x] Catálogo, inventario, órdenes, devoluciones y afiliados durables. Evidencia: [commerce-v2.md](./commerce-v2.md).
+- [x] Support Portal, API keys, API externa y webhooks firmados. Evidencia: [support-v2.md](./support-v2.md) y [automation-v2.md](./automation-v2.md).
+- [x] Groups, Bulk Posts y búsqueda/importación de media online. Evidencia: [groups-v2.md](./groups-v2.md), [bulk-posts-v2.md](./bulk-posts-v2.md) y [online-media-v2.md](./online-media-v2.md).
+- [ ] Gateway de pagos, checkout, suscripciones, facturas y webhooks de billing; no se implementan sin decisiones explícitas.
+- [ ] Notificaciones y operaciones Admin sobre los mismos módulos de dominio.
 
 ### Fase 7 — Migración y corte
 
@@ -216,7 +225,24 @@ Cada vertical se cierra solo con:
 
 ## Estado actual
 
-Foundation instalada. API Fastify y Worker existen, pero falta conectar configuración tipada/health al módulo y reemplazar el scaffold Nest restante. No hay funcionalidad de producto migrada todavía.
+La foundation y varias verticales Portal ya tienen contrato, API, persistencia y, cuando corresponde, Worker. La migración consolidada `0020_mushy_peter_parker` incorpora Groups, Bulk Posts, Automation, AI, intentos Publishing, Commerce, Affiliate y metadata de Files; `0021_pale_thor` añade FKs cross-workspace, cuotas AI seguras e inventario consistente.
+
+| Slice                                 | Backend                   | Web                                               |
+| ------------------------------------- | ------------------------- | ------------------------------------------------- |
+| Publishing, RSS, Support y Watermarks | REST/Worker operativo     | conectado a REST en sus superficies implementadas |
+| Groups, Bulk Posts y Automation       | REST/Worker operativo     | sólo placeholder genérico; falta página operativa |
+| AI Studio/AI Publishing               | REST/Worker operativo     | conserva fixtures en rutas AI                     |
+| Commerce y Affiliate                  | REST operativo            | Commerce usa mock; Affiliate sólo placeholder     |
+| Online Media                          | búsqueda/importación REST | conserva fixtures                                 |
+
+La capa Commerce no incluye pagos: no hay gateway, checkout, suscripción ni cobro inventado. Los pendientes de frontend no invalidan la persistencia, pero impiden considerar esas rutas cerradas de extremo a extremo.
+
+### Evidencia de cierre del backend consolidado
+
+- `0020_mushy_peter_parker` y `0021_pale_thor` aplicadas en `zapi_v2_local`; Drizzle registra 22 migraciones y se verificaron constraints/columnas representativas de cada dominio.
+- Typecheck exitoso en `packages/database`, `packages/contracts`, `packages/api-client`, `apps/api` y `apps/worker`.
+- Pruebas locales: `portal-backend-v2` 3/3, `rss-schedules` 2/2 y `support-watermarks` 2/2.
+- Lint focalizado del código nuevo API/Worker sin errores. El lint global conserva deuda previa ajena a este slice y no se presenta como validación superada.
 
 ## Gobernanza de ejecución
 

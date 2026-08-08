@@ -18,6 +18,77 @@ import { RssSchedulesModule } from './rss-schedules/rss-schedules.module';
 import { SupportModule } from './support/support.module';
 import { WatermarksModule } from './watermarks/watermarks.module';
 import { TeamsModule } from './teams/teams.module';
+import { GroupsModule } from './groups/groups.module';
+import { BulkPostsModule } from './bulk-posts/bulk-posts.module';
+import { AutomationModule } from './automation/automation.module';
+import { AiModule } from './ai/ai.module';
+import { CommerceModule } from './commerce/commerce.module';
+import { AffiliateModule } from './affiliate/affiliate.module';
+import { OnlineMediaModule } from './online-media/online-media.module';
+
+const pinoRedactPaths = [
+  'req.headers.authorization',
+  'req.headers.cookie',
+  'req.headers["set-cookie"]',
+  'req.headers["x-api-key"]',
+  'req.cookies',
+  'req.query.apiKey',
+  'req.query.code',
+  'req.query.signature',
+  'req.query.token',
+  'req.params.token',
+  'req.body.access_token',
+  'req.body.accessToken',
+  'req.body.apiKey',
+  'req.body.authorization',
+  'req.body.client_secret',
+  'req.body.clientSecret',
+  'req.body.cookie',
+  'req.body.credentials',
+  'req.body.currentPassword',
+  'req.body.newPassword',
+  'req.body.password',
+  'req.body.passwordConfirmation',
+  'req.body.refresh_token',
+  'req.body.refreshToken',
+  'req.body.secret',
+  'req.body.signingSecret',
+  'req.body.token',
+  'req.body.tokenHash',
+  'req.body.*.accessToken',
+  'req.body.*.apiKey',
+  'req.body.*.password',
+  'req.body.*.secret',
+  'req.body.*.token',
+  'res.headers["set-cookie"]',
+  'headers.authorization',
+  'headers.cookie',
+  'headers["set-cookie"]',
+  'headers["x-api-key"]',
+  'access_token',
+  'accessToken',
+  'accessTokenCiphertext',
+  'apiKey',
+  'authorization',
+  'client_secret',
+  'clientSecret',
+  'cookie',
+  'credentials',
+  'currentPassword',
+  'newPassword',
+  'password',
+  'passwordHash',
+  'pkceVerifier',
+  'refresh_token',
+  'refreshToken',
+  'refreshTokenCiphertext',
+  'secret',
+  'setCookie',
+  'signingSecret',
+  'signingSecretCiphertext',
+  'token',
+  'tokenHash',
+] as const;
 
 @Module({
   imports: [
@@ -25,6 +96,10 @@ import { TeamsModule } from './teams/teams.module';
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.LOG_LEVEL ?? 'info',
+        redact: {
+          censor: '[REDACTED]',
+          paths: [...pinoRedactPaths],
+        },
         autoLogging: {
           ignore: (request) =>
             request.url?.startsWith('/v1/oauth/channels/') ?? false,
@@ -43,6 +118,13 @@ import { TeamsModule } from './teams/teams.module';
     SupportModule,
     WatermarksModule,
     TeamsModule,
+    GroupsModule,
+    BulkPostsModule,
+    AutomationModule,
+    AiModule,
+    CommerceModule,
+    AffiliateModule,
+    OnlineMediaModule,
     AuditModule,
     IdentityModule,
     BullModule.forRoot({

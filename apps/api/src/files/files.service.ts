@@ -10,6 +10,7 @@ import { Queue } from 'bullmq';
 import {
   fileAssets,
   fileFolders,
+  bulkPostBatches,
   publishingPostMedia,
   publishingPosts,
   publishingWatermarks,
@@ -401,7 +402,13 @@ export class FilesService {
     auth: PortalAuthSession,
     status: 'active',
     q?: string,
-    query?: { folderId?: string; starred?: boolean; kind?: string; page?: number; limit?: number },
+    query?: {
+      folderId?: string;
+      starred?: boolean;
+      kind?: string;
+      page?: number;
+      limit?: number;
+    },
   ) {
     const assetStatus = 'ready';
     const filters = [
@@ -440,16 +447,18 @@ export class FilesService {
       this.database.db
         .select()
         .from(fileFolders)
-        .where(
-          and(
-            ...folderFilters,
-          ),
-        )
+        .where(and(...folderFilters))
         .orderBy(desc(fileFolders.updatedAt))
         .limit(limit)
         .offset(offset),
-      this.database.db.select({ count: sql<number>`count(*)::int` }).from(fileAssets).where(and(...filters)),
-      this.database.db.select({ count: sql<number>`count(*)::int` }).from(fileFolders).where(and(...folderFilters)),
+      this.database.db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(fileAssets)
+        .where(and(...filters)),
+      this.database.db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(fileFolders)
+        .where(and(...folderFilters)),
     ]);
     const visibleAssets = query?.kind
       ? assets.filter(({ asset }) => this.kind(asset.mimeType) === query.kind)
@@ -514,11 +523,7 @@ export class FilesService {
     return asset;
   }
 
-  private async folder(
-    auth: PortalAuthSession,
-    id: string,
-    status: 'active',
-  ) {
+  private async folder(auth: PortalAuthSession, id: string, status: 'active') {
     const [folder] = await this.database.db
       .select()
       .from(fileFolders)
@@ -627,36 +632,49 @@ export class FilesService {
         ).map((asset) => asset.id)
       : ids;
     if (!assetIds.length) return;
-    const [[publishingReference], [watermarkReference]] = await Promise.all([
-      this.database.db
-        .select({ id: publishingPostMedia.id })
-        .from(publishingPostMedia)
-        .innerJoin(
-          publishingPosts,
-          eq(publishingPostMedia.publishingPostId, publishingPosts.id),
-        )
-        .where(
-          and(
-            eq(publishingPosts.workspaceId, workspaceId),
-            inArray(publishingPostMedia.fileAssetId, assetIds),
-          ),
-        )
-        .limit(1),
-      this.database.db
-        .select({ id: publishingWatermarks.id })
-        .from(publishingWatermarks)
-        .where(
-          and(
-            eq(publishingWatermarks.workspaceId, workspaceId),
-            inArray(publishingWatermarks.imageFileAssetId, assetIds),
-          ),
-        )
-        .limit(1),
-    ]);
+    const [[publishingReference], [watermarkReference], [bulkReference]] =
+      await Promise.all([
+        this.database.db
+          .select({ id: publishingPostMedia.id })
+          .from(publishingPostMedia)
+          .innerJoin(
+            publishingPosts,
+            eq(publishingPostMedia.publishingPostId, publishingPosts.id),
+          )
+          .where(
+            and(
+              eq(publishingPosts.workspaceId, workspaceId),
+              inArray(publishingPostMedia.fileAssetId, assetIds),
+            ),
+          )
+          .limit(1),
+        this.database.db
+          .select({ id: publishingWatermarks.id })
+          .from(publishingWatermarks)
+          .where(
+            and(
+              eq(publishingWatermarks.workspaceId, workspaceId),
+              inArray(publishingWatermarks.imageFileAssetId, assetIds),
+            ),
+          )
+          .limit(1),
+        this.database.db
+          .select({ id: bulkPostBatches.id })
+          .from(bulkPostBatches)
+          .where(
+            and(
+              eq(bulkPostBatches.workspaceId, workspaceId),
+              inArray(bulkPostBatches.sourceFileAssetId, assetIds),
+            ),
+          )
+          .limit(1),
+      ]);
     if (publishingReference)
       throw new AppException('FILE_IN_USE_BY_PUBLISHING', HttpStatus.CONFLICT);
     if (watermarkReference)
       throw new AppException('FILE_IN_USE_BY_WATERMARK', HttpStatus.CONFLICT);
+    if (bulkReference)
+      throw new AppException('FILE_IN_USE_BY_BULK_POSTS', HttpStatus.CONFLICT);
   }
 
   private async removePhysicalAssets(

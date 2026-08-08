@@ -12,13 +12,10 @@ import {
   type AuthSession,
   type ChannelOAuthProviderKey,
   metaCapabilityScopeDefaults,
-  type MetaCapabilityKey,
   type MetaCapabilityScopes,
   type MetaIntegration,
   type MetaIntegrationConfiguration,
-  type TestMetaIntegrationInput,
   type TestMetaIntegrationResponse,
-  type UpdateMetaIntegrationInput,
   testWhatsAppStatusIntegrationSchema,
   updateWhatsAppStatusIntegrationSchema,
   whatsappStatusIntegrationConfigurationSchema,
@@ -31,7 +28,6 @@ import {
 import { providerIntegrations } from '@workspace/database';
 import { eq } from '@workspace/database/query';
 import { createHash } from 'node:crypto';
-import { z } from 'zod';
 import { DatabaseService } from '../database/database.service';
 import { Aes256GcmService } from '../platform/crypto/aes-256-gcm.service';
 import { AppException } from '../platform/errors/app-exception';
@@ -57,16 +53,9 @@ const whatsappStatusCapabilities = [
   },
 ];
 
-const oauthProviderConfigurationSchema = z
-  .object({
-    clientId: z.string().trim().min(1).max(4096),
-    clientSecret: z.string().trim().min(1).max(4096),
-  })
-  .strict();
-
-export type OAuthProviderConfiguration = z.infer<
-  typeof oauthProviderConfigurationSchema
-> & {
+export type OAuthProviderConfiguration = {
+  clientId: string;
+  clientSecret: string;
   capabilityScopes?: MetaCapabilityScopes;
 };
 

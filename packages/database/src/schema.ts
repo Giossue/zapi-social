@@ -12,6 +12,7 @@ import {
   pgTable,
   text,
   timestamp,
+  unique,
   uniqueIndex,
   uuid,
   varchar,
@@ -913,6 +914,10 @@ export const fileAssets = pgTable(
       .notNull()
       .default("pending"),
     starred: boolean("starred").notNull().default(false),
+    metadata: jsonb("metadata")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
     trashedAt: timestamp("trashed_at", { withTimezone: true }),
     ...timestamps,
   },
@@ -948,19 +953,37 @@ export const publishingPosts = pgTable(
     authorUserId: uuid("author_user_id")
       .notNull()
       .references(() => users.id, { onDelete: "restrict" }),
-    socialAccountId: uuid("social_account_id").references(
-      () => socialAccounts.id,
-      { onDelete: "restrict" }
-    ),
+    socialAccountId: uuid("social_account_id"),
     status: varchar("status", { length: 16 })
       .$type<"draft" | "scheduled" | "processing" | "published" | "failed">()
       .notNull()
       .default("draft"),
     content: varchar("content", { length: 10000 }).notNull().default(""),
     scheduledAt: timestamp("scheduled_at", { withTimezone: true }),
+    source: varchar("source", { length: 32 }).notNull().default("portal"),
+    externalReference: varchar("external_reference", { length: 255 }),
+    networkOptions: jsonb("network_options")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    providerResult: jsonb("provider_result")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    failureCode: varchar("failure_code", { length: 96 }),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
     ...timestamps,
   },
   (table) => [
+    foreignKey({
+      columns: [table.socialAccountId, table.workspaceId],
+      foreignColumns: [socialAccounts.id, socialAccounts.workspaceId],
+      name: "publishing_posts_account_workspace_fk",
+    }).onDelete("restrict"),
+    unique("publishing_posts_id_workspace_unique").on(
+      table.id,
+      table.workspaceId
+    ),
     index("publishing_posts_workspace_status_index").on(
       table.workspaceId,
       table.status
@@ -970,6 +993,14 @@ export const publishingPosts = pgTable(
       table.scheduledAt
     ),
     index("publishing_posts_social_account_index").on(table.socialAccountId),
+    uniqueIndex("publishing_posts_workspace_source_reference_account_unique")
+      .on(
+        table.workspaceId,
+        table.source,
+        table.externalReference,
+        table.socialAccountId
+      )
+      .where(sql`${table.externalReference} is not null`),
   ]
 )
 
@@ -977,20 +1008,78 @@ export const publishingPostMedia = pgTable(
   "publishing_post_media",
   {
     id: uuid("id").defaultRandom().primaryKey(),
-    publishingPostId: uuid("publishing_post_id")
-      .notNull()
-      .references(() => publishingPosts.id, { onDelete: "cascade" }),
-    fileAssetId: uuid("file_asset_id")
-      .notNull()
-      .references(() => fileAssets.id, { onDelete: "restrict" }),
+    publishingPostId: uuid("publishing_post_id").notNull(),
+    fileAssetId: uuid("file_asset_id").notNull(),
+    workspaceId: uuid("workspace_id").notNull(),
     position: integer("position").notNull().default(0),
   },
   (table) => [
+    foreignKey({
+      columns: [table.publishingPostId, table.workspaceId],
+      foreignColumns: [publishingPosts.id, publishingPosts.workspaceId],
+      name: "publishing_post_media_post_workspace_fk",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.fileAssetId, table.workspaceId],
+      foreignColumns: [fileAssets.id, fileAssets.workspaceId],
+      name: "publishing_post_media_file_workspace_fk",
+    }).onDelete("restrict"),
     uniqueIndex("publishing_post_media_post_file_unique").on(
       table.publishingPostId,
       table.fileAssetId
     ),
     index("publishing_post_media_file_index").on(table.fileAssetId),
+  ]
+)
+
+export const publishingPostAttempts = pgTable(
+  "publishing_post_attempts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    publishingPostId: uuid("publishing_post_id").notNull(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    attemptNumber: integer("attempt_number").notNull(),
+    status: varchar("status", { length: 16 })
+      .$type<"queued" | "processing" | "succeeded" | "failed">()
+      .notNull()
+      .default("queued"),
+    jobId: varchar("job_id", { length: 128 }).notNull(),
+    providerRequestId: varchar("provider_request_id", { length: 512 }),
+    response: jsonb("response")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    errorCode: varchar("error_code", { length: 96 }),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.publishingPostId, table.workspaceId],
+      foreignColumns: [publishingPosts.id, publishingPosts.workspaceId],
+      name: "publishing_post_attempts_post_workspace_fk",
+    }).onDelete("cascade"),
+    uniqueIndex("publishing_post_attempts_post_number_unique").on(
+      table.publishingPostId,
+      table.attemptNumber
+    ),
+    uniqueIndex("publishing_post_attempts_job_unique").on(table.jobId),
+    index("publishing_post_attempts_workspace_status_created_index").on(
+      table.workspaceId,
+      table.status,
+      table.createdAt
+    ),
+    check(
+      "publishing_post_attempts_status_check",
+      sql`${table.status} in ('queued', 'processing', 'succeeded', 'failed')`
+    ),
+    check(
+      "publishing_post_attempts_number_check",
+      sql`${table.attemptNumber} > 0`
+    ),
   ]
 )
 
@@ -1382,5 +1471,1059 @@ export const rssScheduleRuns = pgTable(
       table.createdAt
     ),
     index("rss_schedule_runs_job_id_index").on(table.jobId),
+  ]
+)
+
+export const accountGroups = pgTable(
+  "account_groups",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    createdByUserId: uuid("created_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    name: varchar("name", { length: 120 }).notNull(),
+    slug: varchar("slug", { length: 140 }).notNull(),
+    description: varchar("description", { length: 1000 }).notNull().default(""),
+    color: varchar("color", { length: 7 }).notNull().default("#2563eb"),
+    status: varchar("status", { length: 16 })
+      .$type<"active" | "inactive">()
+      .notNull()
+      .default("active"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("account_groups_workspace_slug_unique").on(
+      table.workspaceId,
+      table.slug
+    ),
+    unique("account_groups_id_workspace_unique").on(
+      table.id,
+      table.workspaceId
+    ),
+    index("account_groups_workspace_status_updated_index").on(
+      table.workspaceId,
+      table.status,
+      table.updatedAt
+    ),
+    check(
+      "account_groups_status_check",
+      sql`${table.status} in ('active', 'inactive')`
+    ),
+    check("account_groups_color_check", sql`${table.color} ~ '^#[0-9a-f]{6}$'`),
+  ]
+)
+
+export const accountGroupSocialAccounts = pgTable(
+  "account_group_social_accounts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    groupId: uuid("group_id").notNull(),
+    workspaceId: uuid("workspace_id").notNull(),
+    socialAccountId: uuid("social_account_id").notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.groupId, table.workspaceId],
+      foreignColumns: [accountGroups.id, accountGroups.workspaceId],
+      name: "account_group_social_accounts_group_workspace_fk",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.socialAccountId, table.workspaceId],
+      foreignColumns: [socialAccounts.id, socialAccounts.workspaceId],
+      name: "account_group_social_accounts_account_workspace_fk",
+    }).onDelete("cascade"),
+    uniqueIndex("account_group_social_accounts_group_account_unique").on(
+      table.groupId,
+      table.socialAccountId
+    ),
+    index("account_group_social_accounts_workspace_account_index").on(
+      table.workspaceId,
+      table.socialAccountId
+    ),
+  ]
+)
+
+export const bulkPostBatches = pgTable(
+  "bulk_post_batches",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    createdByUserId: uuid("created_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    sourceFileAssetId: uuid("source_file_asset_id").notNull(),
+    status: varchar("status", { length: 16 })
+      .$type<"queued" | "processing" | "completed" | "failed" | "cancelled">()
+      .notNull()
+      .default("queued"),
+    intervalMinutes: integer("interval_minutes").notNull().default(60),
+    timezone: varchar("timezone", { length: 64 }).notNull().default("UTC"),
+    jobId: varchar("job_id", { length: 128 }),
+    totalRows: integer("total_rows").notNull().default(0),
+    validRows: integer("valid_rows").notNull().default(0),
+    invalidRows: integer("invalid_rows").notNull().default(0),
+    createdPosts: integer("created_posts").notNull().default(0),
+    failedRows: integer("failed_rows").notNull().default(0),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+    errorCode: varchar("error_code", { length: 96 }),
+    metadata: jsonb("metadata")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    ...timestamps,
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.sourceFileAssetId, table.workspaceId],
+      foreignColumns: [fileAssets.id, fileAssets.workspaceId],
+      name: "bulk_post_batches_source_file_workspace_fk",
+    }).onDelete("restrict"),
+    unique("bulk_post_batches_id_workspace_unique").on(
+      table.id,
+      table.workspaceId
+    ),
+    index("bulk_post_batches_workspace_status_created_index").on(
+      table.workspaceId,
+      table.status,
+      table.createdAt
+    ),
+    index("bulk_post_batches_job_id_index").on(table.jobId),
+    check(
+      "bulk_post_batches_status_check",
+      sql`${table.status} in ('queued', 'processing', 'completed', 'failed', 'cancelled')`
+    ),
+    check(
+      "bulk_post_batches_interval_check",
+      sql`${table.intervalMinutes} between 1 and 10080`
+    ),
+  ]
+)
+
+export const bulkPostBatchTargets = pgTable(
+  "bulk_post_batch_targets",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    batchId: uuid("batch_id").notNull(),
+    workspaceId: uuid("workspace_id").notNull(),
+    socialAccountId: uuid("social_account_id").notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.batchId, table.workspaceId],
+      foreignColumns: [bulkPostBatches.id, bulkPostBatches.workspaceId],
+      name: "bulk_post_batch_targets_batch_workspace_fk",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.socialAccountId, table.workspaceId],
+      foreignColumns: [socialAccounts.id, socialAccounts.workspaceId],
+      name: "bulk_post_batch_targets_account_workspace_fk",
+    }).onDelete("restrict"),
+    uniqueIndex("bulk_post_batch_targets_batch_account_unique").on(
+      table.batchId,
+      table.socialAccountId
+    ),
+  ]
+)
+
+export const bulkPostRows = pgTable(
+  "bulk_post_rows",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    batchId: uuid("batch_id").notNull(),
+    workspaceId: uuid("workspace_id").notNull(),
+    rowNumber: integer("row_number").notNull(),
+    status: varchar("status", { length: 16 })
+      .$type<"pending" | "valid" | "invalid" | "processed" | "failed">()
+      .notNull()
+      .default("pending"),
+    payload: jsonb("payload")
+      .$type<Record<string, string>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    validationErrors: jsonb("validation_errors")
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    processedAt: timestamp("processed_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.batchId, table.workspaceId],
+      foreignColumns: [bulkPostBatches.id, bulkPostBatches.workspaceId],
+      name: "bulk_post_rows_batch_workspace_fk",
+    }).onDelete("cascade"),
+    uniqueIndex("bulk_post_rows_batch_row_unique").on(
+      table.batchId,
+      table.rowNumber
+    ),
+    index("bulk_post_rows_batch_status_index").on(table.batchId, table.status),
+    check(
+      "bulk_post_rows_status_check",
+      sql`${table.status} in ('pending', 'valid', 'invalid', 'processed', 'failed')`
+    ),
+  ]
+)
+
+export const bulkPostRowPosts = pgTable(
+  "bulk_post_row_posts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    bulkPostRowId: uuid("bulk_post_row_id")
+      .notNull()
+      .references(() => bulkPostRows.id, { onDelete: "cascade" }),
+    publishingPostId: uuid("publishing_post_id")
+      .notNull()
+      .references(() => publishingPosts.id, { onDelete: "cascade" }),
+    socialAccountId: uuid("social_account_id")
+      .notNull()
+      .references(() => socialAccounts.id, { onDelete: "restrict" }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("bulk_post_row_posts_row_account_unique").on(
+      table.bulkPostRowId,
+      table.socialAccountId
+    ),
+    uniqueIndex("bulk_post_row_posts_post_unique").on(table.publishingPostId),
+  ]
+)
+
+export const automationApiKeys = pgTable(
+  "automation_api_keys",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    createdByUserId: uuid("created_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    name: varchar("name", { length: 120 }).notNull(),
+    tokenPrefix: varchar("token_prefix", { length: 20 }).notNull(),
+    tokenHash: varchar("token_hash", { length: 128 }).notNull(),
+    permissions: jsonb("permissions")
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    status: varchar("status", { length: 16 })
+      .$type<"active" | "revoked">()
+      .notNull()
+      .default("active"),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("automation_api_keys_token_hash_unique").on(table.tokenHash),
+    index("automation_api_keys_workspace_status_created_index").on(
+      table.workspaceId,
+      table.status,
+      table.createdAt
+    ),
+    check(
+      "automation_api_keys_status_check",
+      sql`${table.status} in ('active', 'revoked')`
+    ),
+  ]
+)
+
+export const automationWebhooks = pgTable(
+  "automation_webhooks",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    createdByUserId: uuid("created_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    name: varchar("name", { length: 120 }).notNull(),
+    url: text("url").notNull(),
+    signingSecretCiphertext: text("signing_secret_ciphertext").notNull(),
+    events: jsonb("events")
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    enabled: boolean("enabled").notNull().default(true),
+    lastSentAt: timestamp("last_sent_at", { withTimezone: true }),
+    lastStatusCode: integer("last_status_code"),
+    ...timestamps,
+  },
+  (table) => [
+    unique("automation_webhooks_id_workspace_unique").on(
+      table.id,
+      table.workspaceId
+    ),
+    index("automation_webhooks_workspace_enabled_index").on(
+      table.workspaceId,
+      table.enabled
+    ),
+  ]
+)
+
+export const automationWebhookDeliveries = pgTable(
+  "automation_webhook_deliveries",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    webhookId: uuid("webhook_id").notNull(),
+    workspaceId: uuid("workspace_id").notNull(),
+    event: varchar("event", { length: 96 }).notNull(),
+    idempotencyKey: varchar("idempotency_key", { length: 160 }).notNull(),
+    payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
+    status: varchar("status", { length: 16 })
+      .$type<"queued" | "processing" | "succeeded" | "failed">()
+      .notNull()
+      .default("queued"),
+    attemptCount: integer("attempt_count").notNull().default(0),
+    nextAttemptAt: timestamp("next_attempt_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    responseStatus: integer("response_status"),
+    errorCode: varchar("error_code", { length: 96 }),
+    deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.webhookId, table.workspaceId],
+      foreignColumns: [automationWebhooks.id, automationWebhooks.workspaceId],
+      name: "automation_webhook_deliveries_webhook_workspace_fk",
+    }).onDelete("cascade"),
+    uniqueIndex("automation_webhook_deliveries_webhook_key_unique").on(
+      table.webhookId,
+      table.idempotencyKey
+    ),
+    index("automation_webhook_deliveries_status_next_attempt_index").on(
+      table.status,
+      table.nextAttemptAt
+    ),
+  ]
+)
+
+export const automationLogs = pgTable(
+  "automation_logs",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    apiKeyId: uuid("api_key_id").references(() => automationApiKeys.id, {
+      onDelete: "set null",
+    }),
+    webhookId: uuid("webhook_id").references(() => automationWebhooks.id, {
+      onDelete: "set null",
+    }),
+    direction: varchar("direction", { length: 16 })
+      .$type<"inbound" | "outbound">()
+      .notNull(),
+    event: varchar("event", { length: 96 }).notNull(),
+    requestId: varchar("request_id", { length: 128 }),
+    status: varchar("status", { length: 16 })
+      .$type<"accepted" | "succeeded" | "failed">()
+      .notNull(),
+    statusCode: integer("status_code"),
+    summary: varchar("summary", { length: 500 }),
+    metadata: jsonb("metadata")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("automation_logs_workspace_created_index").on(
+      table.workspaceId,
+      table.createdAt
+    ),
+    index("automation_logs_api_key_created_index").on(
+      table.apiKeyId,
+      table.createdAt
+    ),
+    index("automation_logs_webhook_created_index").on(
+      table.webhookId,
+      table.createdAt
+    ),
+    check(
+      "automation_logs_direction_check",
+      sql`${table.direction} in ('inbound', 'outbound')`
+    ),
+    check(
+      "automation_logs_status_check",
+      sql`${table.status} in ('accepted', 'succeeded', 'failed')`
+    ),
+  ]
+)
+
+export const workspaceCreditAccounts = pgTable(
+  "workspace_credit_accounts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    balanceUnits: integer("balance_units").notNull().default(0),
+    unlimited: boolean("unlimited").notNull().default(false),
+    cycleStartedAt: timestamp("cycle_started_at", { withTimezone: true }),
+    cycleEndsAt: timestamp("cycle_ends_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("workspace_credit_accounts_workspace_unique").on(
+      table.workspaceId
+    ),
+    check(
+      "workspace_credit_accounts_balance_check",
+      sql`${table.balanceUnits} >= 0`
+    ),
+  ]
+)
+
+export const aiWorkspaceSettings = pgTable(
+  "ai_workspace_settings",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    updatedByUserId: uuid("updated_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    preferredProvider: varchar("preferred_provider", { length: 64 })
+      .notNull()
+      .default("openai-compatible"),
+    preferredTextModel: varchar("preferred_text_model", { length: 160 }),
+    preferredImageModel: varchar("preferred_image_model", { length: 160 }),
+    brandVoice: varchar("brand_voice", { length: 5000 }).notNull().default(""),
+    defaultTone: varchar("default_tone", { length: 80 })
+      .notNull()
+      .default("cercano"),
+    language: varchar("language", { length: 16 }).notNull().default("es"),
+    enforceCredits: boolean("enforce_credits").notNull().default(false),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("ai_workspace_settings_workspace_unique").on(table.workspaceId),
+  ]
+)
+
+export const aiUserSettings = pgTable(
+  "ai_user_settings",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    defaultTone: varchar("default_tone", { length: 80 }),
+    language: varchar("language", { length: 16 }),
+    preferences: jsonb("preferences")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("ai_user_settings_workspace_user_unique").on(
+      table.workspaceId,
+      table.userId
+    ),
+  ]
+)
+
+export const aiRequests = pgTable(
+  "ai_requests",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    requestedByUserId: uuid("requested_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    kind: varchar("kind", { length: 32 })
+      .$type<
+        | "content"
+        | "image"
+        | "repurpose"
+        | "planner"
+        | "review"
+        | "timing"
+        | "search"
+        | "ai_publishing"
+      >()
+      .notNull(),
+    status: varchar("status", { length: 16 })
+      .$type<"queued" | "processing" | "succeeded" | "failed" | "cancelled">()
+      .notNull()
+      .default("queued"),
+    prompt: text("prompt").notNull(),
+    input: jsonb("input")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    result: jsonb("result")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    provider: varchar("provider", { length: 64 }),
+    model: varchar("model", { length: 160 }),
+    costUnits: integer("cost_units").notNull().default(0),
+    idempotencyKey: varchar("idempotency_key", { length: 160 }).notNull(),
+    jobId: varchar("job_id", { length: 128 }),
+    source: varchar("source", { length: 32 }).notNull().default("portal"),
+    errorCode: varchar("error_code", { length: 96 }),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("ai_requests_workspace_user_idempotency_unique").on(
+      table.workspaceId,
+      table.requestedByUserId,
+      table.idempotencyKey
+    ),
+    uniqueIndex("ai_requests_id_workspace_unique").on(
+      table.id,
+      table.workspaceId
+    ),
+    index("ai_requests_workspace_kind_created_index").on(
+      table.workspaceId,
+      table.kind,
+      table.createdAt
+    ),
+    index("ai_requests_workspace_status_created_index").on(
+      table.workspaceId,
+      table.status,
+      table.createdAt
+    ),
+    index("ai_requests_job_id_index").on(table.jobId),
+    check(
+      "ai_requests_kind_check",
+      sql`${table.kind} in ('content', 'image', 'repurpose', 'planner', 'review', 'timing', 'search', 'ai_publishing')`
+    ),
+    check(
+      "ai_requests_status_check",
+      sql`${table.status} in ('queued', 'processing', 'succeeded', 'failed', 'cancelled')`
+    ),
+    check("ai_requests_cost_check", sql`${table.costUnits} >= 0`),
+  ]
+)
+
+export const creditLedgerEntries = pgTable(
+  "credit_ledger_entries",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    actorUserId: uuid("actor_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    aiRequestId: uuid("ai_request_id").references(() => aiRequests.id, {
+      onDelete: "set null",
+    }),
+    type: varchar("type", { length: 16 })
+      .$type<"grant" | "debit" | "refund" | "adjustment">()
+      .notNull(),
+    action: varchar("action", { length: 96 }).notNull(),
+    units: integer("units").notNull(),
+    idempotencyKey: varchar("idempotency_key", { length: 200 }).notNull(),
+    metadata: jsonb("metadata")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("credit_ledger_entries_workspace_key_unique").on(
+      table.workspaceId,
+      table.idempotencyKey
+    ),
+    index("credit_ledger_entries_workspace_created_index").on(
+      table.workspaceId,
+      table.createdAt
+    ),
+    index("credit_ledger_entries_request_index").on(table.aiRequestId),
+    check(
+      "credit_ledger_entries_type_check",
+      sql`${table.type} in ('grant', 'debit', 'refund', 'adjustment')`
+    ),
+    check("credit_ledger_entries_units_check", sql`${table.units} <> 0`),
+  ]
+)
+
+export const aiPublishingSchedules = pgTable(
+  "ai_publishing_schedules",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    createdByUserId: uuid("created_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    name: varchar("name", { length: 160 }).notNull(),
+    prompt: text("prompt").notNull(),
+    status: varchar("status", { length: 16 })
+      .$type<"draft" | "active" | "paused">()
+      .notNull()
+      .default("draft"),
+    frequency: varchar("frequency", { length: 16 })
+      .$type<"daily" | "weekly">()
+      .notNull()
+      .default("daily"),
+    timezone: varchar("timezone", { length: 64 }).notNull(),
+    preferredTime: varchar("preferred_time", { length: 5 }).notNull(),
+    weekdays: jsonb("weekdays")
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    tone: varchar("tone", { length: 80 }).notNull().default("cercano"),
+    nextRunAt: timestamp("next_run_at", { withTimezone: true }),
+    lastRunAt: timestamp("last_run_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    unique("ai_publishing_schedules_id_workspace_unique").on(
+      table.id,
+      table.workspaceId
+    ),
+    index("ai_publishing_schedules_status_next_run_index").on(
+      table.status,
+      table.nextRunAt
+    ),
+    check(
+      "ai_publishing_schedules_status_check",
+      sql`${table.status} in ('draft', 'active', 'paused')`
+    ),
+    check(
+      "ai_publishing_schedules_frequency_check",
+      sql`${table.frequency} in ('daily', 'weekly')`
+    ),
+    check(
+      "ai_publishing_schedules_time_check",
+      sql`${table.preferredTime} ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$'`
+    ),
+  ]
+)
+
+export const aiPublishingScheduleTargets = pgTable(
+  "ai_publishing_schedule_targets",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    scheduleId: uuid("schedule_id").notNull(),
+    workspaceId: uuid("workspace_id").notNull(),
+    socialAccountId: uuid("social_account_id").notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.scheduleId, table.workspaceId],
+      foreignColumns: [
+        aiPublishingSchedules.id,
+        aiPublishingSchedules.workspaceId,
+      ],
+      name: "ai_publishing_schedule_targets_schedule_workspace_fk",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.socialAccountId, table.workspaceId],
+      foreignColumns: [socialAccounts.id, socialAccounts.workspaceId],
+      name: "ai_publishing_schedule_targets_account_workspace_fk",
+    }).onDelete("restrict"),
+    uniqueIndex("ai_publishing_schedule_targets_schedule_account_unique").on(
+      table.scheduleId,
+      table.socialAccountId
+    ),
+  ]
+)
+
+export const commerceProducts = pgTable(
+  "commerce_products",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    createdByUserId: uuid("created_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    name: varchar("name", { length: 240 }).notNull(),
+    sku: varchar("sku", { length: 96 }).notNull(),
+    description: text("description").notNull().default(""),
+    status: varchar("status", { length: 16 })
+      .$type<"active" | "inactive">()
+      .notNull()
+      .default("active"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("commerce_products_workspace_sku_unique").on(
+      table.workspaceId,
+      table.sku
+    ),
+    unique("commerce_products_id_workspace_unique").on(
+      table.id,
+      table.workspaceId
+    ),
+    index("commerce_products_workspace_status_updated_index").on(
+      table.workspaceId,
+      table.status,
+      table.updatedAt
+    ),
+    check(
+      "commerce_products_status_check",
+      sql`${table.status} in ('active', 'inactive')`
+    ),
+  ]
+)
+
+export const commerceInventoryLevels = pgTable(
+  "commerce_inventory_levels",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    productId: uuid("product_id").notNull(),
+    workspaceId: uuid("workspace_id").notNull(),
+    available: integer("available").notNull().default(0),
+    reserved: integer("reserved").notNull().default(0),
+    lowStockThreshold: integer("low_stock_threshold").notNull().default(5),
+    ...timestamps,
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.productId, table.workspaceId],
+      foreignColumns: [commerceProducts.id, commerceProducts.workspaceId],
+      name: "commerce_inventory_levels_product_workspace_fk",
+    }).onDelete("cascade"),
+    uniqueIndex("commerce_inventory_levels_product_unique").on(table.productId),
+    index("commerce_inventory_levels_workspace_available_index").on(
+      table.workspaceId,
+      table.available
+    ),
+    check(
+      "commerce_inventory_levels_nonnegative_check",
+      sql`${table.available} >= 0 and ${table.reserved} >= 0 and ${table.lowStockThreshold} >= 0`
+    ),
+    check(
+      "commerce_inventory_levels_reserved_available_check",
+      sql`${table.reserved} <= ${table.available}`
+    ),
+  ]
+)
+
+export const commerceOrders = pgTable(
+  "commerce_orders",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    createdByUserId: uuid("created_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    customerName: varchar("customer_name", { length: 240 }).notNull(),
+    customerEmail: varchar("customer_email", { length: 320 }),
+    channel: varchar("channel", { length: 16 })
+      .$type<"social" | "store" | "marketplace">()
+      .notNull(),
+    status: varchar("status", { length: 16 })
+      .$type<"processing" | "completed" | "attention" | "cancelled">()
+      .notNull()
+      .default("processing"),
+    currency: varchar("currency", { length: 3 }).notNull().default("USD"),
+    totalMinor: integer("total_minor").notNull().default(0),
+    externalReference: varchar("external_reference", { length: 255 }),
+    orderedAt: timestamp("ordered_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    unique("commerce_orders_id_workspace_unique").on(
+      table.id,
+      table.workspaceId
+    ),
+    uniqueIndex("commerce_orders_workspace_external_reference_unique")
+      .on(table.workspaceId, table.externalReference)
+      .where(sql`${table.externalReference} is not null`),
+    index("commerce_orders_workspace_ordered_index").on(
+      table.workspaceId,
+      table.orderedAt
+    ),
+    index("commerce_orders_workspace_status_ordered_index").on(
+      table.workspaceId,
+      table.status,
+      table.orderedAt
+    ),
+    check(
+      "commerce_orders_channel_check",
+      sql`${table.channel} in ('social', 'store', 'marketplace')`
+    ),
+    check(
+      "commerce_orders_status_check",
+      sql`${table.status} in ('processing', 'completed', 'attention', 'cancelled')`
+    ),
+    check("commerce_orders_total_check", sql`${table.totalMinor} >= 0`),
+  ]
+)
+
+export const commerceOrderItems = pgTable(
+  "commerce_order_items",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    commerceOrderId: uuid("commerce_order_id")
+      .notNull()
+      .references(() => commerceOrders.id, { onDelete: "cascade" }),
+    productId: uuid("product_id").references(() => commerceProducts.id, {
+      onDelete: "set null",
+    }),
+    name: varchar("name", { length: 240 }).notNull(),
+    sku: varchar("sku", { length: 96 }).notNull(),
+    quantity: integer("quantity").notNull(),
+    unitPriceMinor: integer("unit_price_minor").notNull(),
+    totalMinor: integer("total_minor").notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    index("commerce_order_items_order_index").on(table.commerceOrderId),
+    index("commerce_order_items_product_index").on(table.productId),
+    check(
+      "commerce_order_items_amount_check",
+      sql`${table.quantity} > 0 and ${table.unitPriceMinor} >= 0 and ${table.totalMinor} >= 0`
+    ),
+  ]
+)
+
+export const commerceReturnRequests = pgTable(
+  "commerce_return_requests",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    commerceOrderId: uuid("commerce_order_id").notNull(),
+    workspaceId: uuid("workspace_id").notNull(),
+    status: varchar("status", { length: 16 })
+      .$type<"requested" | "approved" | "rejected" | "completed">()
+      .notNull()
+      .default("requested"),
+    amountMinor: integer("amount_minor").notNull().default(0),
+    reason: varchar("reason", { length: 1000 }).notNull().default(""),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.commerceOrderId, table.workspaceId],
+      foreignColumns: [commerceOrders.id, commerceOrders.workspaceId],
+      name: "commerce_return_requests_order_workspace_fk",
+    }).onDelete("cascade"),
+    index("commerce_return_requests_workspace_status_created_index").on(
+      table.workspaceId,
+      table.status,
+      table.createdAt
+    ),
+    check(
+      "commerce_return_requests_status_check",
+      sql`${table.status} in ('requested', 'approved', 'rejected', 'completed')`
+    ),
+    check(
+      "commerce_return_requests_amount_check",
+      sql`${table.amountMinor} >= 0`
+    ),
+  ]
+)
+
+export const affiliateProfiles = pgTable(
+  "affiliate_profiles",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    code: varchar("code", { length: 48 }).notNull(),
+    status: varchar("status", { length: 16 })
+      .$type<"active" | "suspended">()
+      .notNull()
+      .default("active"),
+    commissionRateBps: integer("commission_rate_bps").notNull().default(1000),
+    payoutCurrency: varchar("payout_currency", { length: 3 })
+      .notNull()
+      .default("USD"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("affiliate_profiles_user_unique").on(table.userId),
+    uniqueIndex("affiliate_profiles_code_unique").on(table.code),
+    index("affiliate_profiles_status_created_index").on(
+      table.status,
+      table.createdAt
+    ),
+    check(
+      "affiliate_profiles_status_check",
+      sql`${table.status} in ('active', 'suspended')`
+    ),
+    check(
+      "affiliate_profiles_rate_check",
+      sql`${table.commissionRateBps} >= 0 and ${table.commissionRateBps} <= 10000`
+    ),
+  ]
+)
+
+export const affiliateReferrals = pgTable(
+  "affiliate_referrals",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    affiliateProfileId: uuid("affiliate_profile_id")
+      .notNull()
+      .references(() => affiliateProfiles.id, { onDelete: "cascade" }),
+    referredUserId: uuid("referred_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    status: varchar("status", { length: 16 })
+      .$type<"visited" | "registered" | "converted" | "cancelled">()
+      .notNull()
+      .default("visited"),
+    source: varchar("source", { length: 120 }),
+    landingPath: varchar("landing_path", { length: 500 }),
+    convertedAt: timestamp("converted_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("affiliate_referrals_referred_user_unique")
+      .on(table.referredUserId)
+      .where(sql`${table.referredUserId} is not null`),
+    index("affiliate_referrals_profile_status_created_index").on(
+      table.affiliateProfileId,
+      table.status,
+      table.createdAt
+    ),
+    check(
+      "affiliate_referrals_status_check",
+      sql`${table.status} in ('visited', 'registered', 'converted', 'cancelled')`
+    ),
+  ]
+)
+
+export const affiliateReferralVisits = pgTable(
+  "affiliate_referral_visits",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    affiliateProfileId: uuid("affiliate_profile_id")
+      .notNull()
+      .references(() => affiliateProfiles.id, { onDelete: "cascade" }),
+    referralId: uuid("referral_id")
+      .notNull()
+      .references(() => affiliateReferrals.id, { onDelete: "cascade" }),
+    fingerprintHash: varchar("fingerprint_hash", { length: 128 }),
+    referrer: varchar("referrer", { length: 1000 }),
+    userAgent: varchar("user_agent", { length: 1000 }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("affiliate_referral_visits_profile_created_index").on(
+      table.affiliateProfileId,
+      table.createdAt
+    ),
+    index("affiliate_referral_visits_referral_created_index").on(
+      table.referralId,
+      table.createdAt
+    ),
+  ]
+)
+
+export const affiliateCommissions = pgTable(
+  "affiliate_commissions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    affiliateProfileId: uuid("affiliate_profile_id")
+      .notNull()
+      .references(() => affiliateProfiles.id, { onDelete: "cascade" }),
+    referralId: uuid("referral_id").references(() => affiliateReferrals.id, {
+      onDelete: "set null",
+    }),
+    commerceOrderId: uuid("commerce_order_id").references(
+      () => commerceOrders.id,
+      { onDelete: "set null" }
+    ),
+    status: varchar("status", { length: 16 })
+      .$type<"pending" | "available" | "paid" | "cancelled">()
+      .notNull()
+      .default("pending"),
+    amountMinor: integer("amount_minor").notNull(),
+    currency: varchar("currency", { length: 3 }).notNull().default("USD"),
+    eligibleAt: timestamp("eligible_at", { withTimezone: true }),
+    paidAt: timestamp("paid_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    index("affiliate_commissions_profile_status_created_index").on(
+      table.affiliateProfileId,
+      table.status,
+      table.createdAt
+    ),
+    index("affiliate_commissions_order_index").on(table.commerceOrderId),
+    uniqueIndex("affiliate_commissions_order_unique")
+      .on(table.commerceOrderId)
+      .where(sql`${table.commerceOrderId} is not null`),
+    check(
+      "affiliate_commissions_status_check",
+      sql`${table.status} in ('pending', 'available', 'paid', 'cancelled')`
+    ),
+    check("affiliate_commissions_amount_check", sql`${table.amountMinor} > 0`),
+  ]
+)
+
+export const affiliateWithdrawals = pgTable(
+  "affiliate_withdrawals",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    affiliateProfileId: uuid("affiliate_profile_id")
+      .notNull()
+      .references(() => affiliateProfiles.id, { onDelete: "cascade" }),
+    requestedByUserId: uuid("requested_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    reviewedByUserId: uuid("reviewed_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    status: varchar("status", { length: 16 })
+      .$type<"requested" | "approved" | "paid" | "rejected">()
+      .notNull()
+      .default("requested"),
+    amountMinor: integer("amount_minor").notNull(),
+    currency: varchar("currency", { length: 3 }).notNull().default("USD"),
+    paymentReference: varchar("payment_reference", { length: 255 }),
+    notes: varchar("notes", { length: 1000 }),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    paidAt: timestamp("paid_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    index("affiliate_withdrawals_profile_status_created_index").on(
+      table.affiliateProfileId,
+      table.status,
+      table.createdAt
+    ),
+    check(
+      "affiliate_withdrawals_status_check",
+      sql`${table.status} in ('requested', 'approved', 'paid', 'rejected')`
+    ),
+    check("affiliate_withdrawals_amount_check", sql`${table.amountMinor} > 0`),
   ]
 )

@@ -44,6 +44,7 @@ import type {
   UpdatePortalFileAssetInput,
   StartPortalFileUploadInput,
   PortalPublishingResponse,
+  PortalPublishingQuery,
   CreatePortalPublishingPostsInput,
   UpdatePortalPublishingPostInput,
   PortalPublishingPost,
@@ -72,6 +73,59 @@ import type {
   PortalWatermark,
   PortalWatermarksResponse,
   UpdatePortalWatermarkInput,
+  AcceptPortalTeamInvitationInput,
+  CreatePortalAccountGroupInput,
+  CreatePortalAutomationApiKeyInput,
+  CreatePortalAutomationWebhookInput,
+  CreatePortalBulkPostBatchInput,
+  CreatePortalTeamInvitationInput,
+  CreatedPortalAutomationApiKey,
+  PortalAccountGroup,
+  PortalAutomationResponse,
+  PortalBulkPostBatch,
+  PortalBulkPostBatchDetail,
+  PortalBulkPostBatchesQuery,
+  PortalBulkPostBatchesResponse,
+  PortalBulkPostRowsQuery,
+  PortalGroupsQuery,
+  PortalGroupsResponse,
+  PortalTeamInvitation,
+  PortalTeamsResponse,
+  ReplacePortalTeamAccountGrantsInput,
+  UpdatePortalAccountGroupInput,
+  UpdatePortalAutomationWebhookInput,
+  UpdatedPortalAutomationWebhook,
+  UpdatePortalTeamMemberRoleInput,
+  CreatePortalAiPublishingScheduleInput,
+  CreatePortalAiRequestInput,
+  PortalAiDraftResult,
+  PortalAiPublishingSchedule,
+  PortalAiRequest,
+  PortalAiRequestsQuery,
+  PortalAiRequestsResponse,
+  PortalAiSettings,
+  PortalCreditsResponse,
+  UpdatePortalAiPublishingScheduleInput,
+  UpdatePortalAiSettingsInput,
+  UsePortalAiRequestAsDraftInput,
+  CaptureAffiliateReferralInput,
+  CapturedAffiliateReferral,
+  CreatePortalCommerceOrderInput,
+  CreatePortalCommerceProductInput,
+  CreatePortalCommerceReturnInput,
+  ImportPortalOnlineMediaInput,
+  ImportedPortalOnlineMedia,
+  PortalAffiliateDashboard,
+  PortalCommerceDashboard,
+  PortalCommerceOrder,
+  PortalCommerceProduct,
+  PortalCommerceQuery,
+  PortalCommerceReturn,
+  PortalOnlineMediaSearchQuery,
+  PortalOnlineMediaSearchResponse,
+  RequestPortalAffiliateWithdrawalInput,
+  UpdatePortalCommerceOrderInput,
+  UpdatePortalCommerceProductInput,
 } from "@workspace/contracts"
 
 const apiBaseUrl =
@@ -383,11 +437,25 @@ export const filesApi = {
   },
 }
 
+function portalPublishingQueryString(
+  query: Partial<PortalPublishingQuery> = {}
+) {
+  const params = new URLSearchParams()
+  if (query.from) params.set("from", query.from)
+  if (query.to) params.set("to", query.to)
+  if (query.page) params.set("page", String(query.page))
+  if (query.limit) params.set("limit", String(query.limit))
+  if (query.mediaLimit) params.set("mediaLimit", String(query.mediaLimit))
+  const serialized = params.toString()
+  return serialized ? `?${serialized}` : ""
+}
+
 export const publishingApi = {
-  list: () =>
-    request<PortalPublishingResponse>("/v1/portal/publishing", {
-      method: "GET",
-    }),
+  list: (query?: Partial<PortalPublishingQuery>) =>
+    request<PortalPublishingResponse>(
+      `/v1/portal/publishing${portalPublishingQueryString(query)}`,
+      { method: "GET" }
+    ),
   create: (input: CreatePortalPublishingPostsInput) =>
     request<PortalPublishingPost[]>("/v1/portal/publishing", {
       method: "POST",
@@ -508,6 +576,312 @@ export const watermarksApi = {
     }),
   remove: (id: string) =>
     request<void>(`/v1/portal/watermarks/${id}`, { method: "DELETE" }),
+}
+
+function portalGroupsQueryString(query: Partial<PortalGroupsQuery> = {}) {
+  const params = new URLSearchParams()
+  if (query.q) params.set("q", query.q)
+  if (query.status) params.set("status", query.status)
+  const serialized = params.toString()
+  return serialized ? `?${serialized}` : ""
+}
+
+export const groupsApi = {
+  list: (query?: Partial<PortalGroupsQuery>) =>
+    request<PortalGroupsResponse>(
+      `/v1/portal/groups${portalGroupsQueryString(query)}`,
+      { method: "GET" }
+    ),
+  create: (input: CreatePortalAccountGroupInput) =>
+    request<PortalAccountGroup>("/v1/portal/groups", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  update: (id: string, input: UpdatePortalAccountGroupInput) =>
+    request<PortalAccountGroup>(`/v1/portal/groups/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) =>
+    request<void>(`/v1/portal/groups/${id}`, { method: "DELETE" }),
+}
+
+function portalBulkPostsQueryString(
+  query: Partial<PortalBulkPostBatchesQuery> = {}
+) {
+  const params = new URLSearchParams()
+  if (query.status) params.set("status", query.status)
+  if (query.page) params.set("page", String(query.page))
+  if (query.limit) params.set("limit", String(query.limit))
+  const serialized = params.toString()
+  return serialized ? `?${serialized}` : ""
+}
+
+function portalBulkPostRowsQueryString(
+  query: Partial<PortalBulkPostRowsQuery> = {}
+) {
+  const params = new URLSearchParams()
+  if (query.status) params.set("status", query.status)
+  if (query.page) params.set("page", String(query.page))
+  if (query.limit) params.set("limit", String(query.limit))
+  const serialized = params.toString()
+  return serialized ? `?${serialized}` : ""
+}
+
+export const bulkPostsApi = {
+  list: (query?: Partial<PortalBulkPostBatchesQuery>) =>
+    request<PortalBulkPostBatchesResponse>(
+      `/v1/portal/bulk-posts${portalBulkPostsQueryString(query)}`,
+      { method: "GET" }
+    ),
+  get: (id: string, query?: Partial<PortalBulkPostRowsQuery>) =>
+    request<PortalBulkPostBatchDetail>(
+      `/v1/portal/bulk-posts/${id}${portalBulkPostRowsQueryString(query)}`,
+      { method: "GET" }
+    ),
+  create: (input: CreatePortalBulkPostBatchInput) =>
+    request<PortalBulkPostBatch>("/v1/portal/bulk-posts", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  cancel: (id: string) =>
+    request<void>(`/v1/portal/bulk-posts/${id}`, { method: "DELETE" }),
+}
+
+export const automationApi = {
+  get: () =>
+    request<PortalAutomationResponse>("/v1/portal/automation", {
+      method: "GET",
+    }),
+  createApiKey: (input: CreatePortalAutomationApiKeyInput) =>
+    request<CreatedPortalAutomationApiKey>("/v1/portal/automation/api-keys", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  revokeApiKey: (id: string) =>
+    request<void>(`/v1/portal/automation/api-keys/${id}`, {
+      method: "DELETE",
+    }),
+  createWebhook: (input: CreatePortalAutomationWebhookInput) =>
+    request<UpdatedPortalAutomationWebhook>("/v1/portal/automation/webhooks", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  updateWebhook: (id: string, input: UpdatePortalAutomationWebhookInput) =>
+    request<UpdatedPortalAutomationWebhook>(
+      `/v1/portal/automation/webhooks/${id}`,
+      { method: "PATCH", body: JSON.stringify(input) }
+    ),
+  removeWebhook: (id: string) =>
+    request<void>(`/v1/portal/automation/webhooks/${id}`, {
+      method: "DELETE",
+    }),
+}
+
+function portalAiRequestsQueryString(
+  query: Partial<PortalAiRequestsQuery> = {}
+) {
+  const params = new URLSearchParams()
+  if (query.kind) params.set("kind", query.kind)
+  if (query.status) params.set("status", query.status)
+  if (query.page) params.set("page", String(query.page))
+  if (query.limit) params.set("limit", String(query.limit))
+  const serialized = params.toString()
+  return serialized ? `?${serialized}` : ""
+}
+
+export const aiApi = {
+  listRequests: (query?: Partial<PortalAiRequestsQuery>) =>
+    request<PortalAiRequestsResponse>(
+      `/v1/portal/ai/requests${portalAiRequestsQueryString(query)}`,
+      { method: "GET" }
+    ),
+  createRequest: (input: CreatePortalAiRequestInput) =>
+    request<PortalAiRequest>("/v1/portal/ai/requests", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  getRequest: (id: string) =>
+    request<PortalAiRequest>(`/v1/portal/ai/requests/${id}`, {
+      method: "GET",
+    }),
+  cancelRequest: (id: string) =>
+    request<PortalAiRequest>(`/v1/portal/ai/requests/${id}/cancel`, {
+      method: "POST",
+    }),
+  useAsDraft: (id: string, input: UsePortalAiRequestAsDraftInput) =>
+    request<PortalAiDraftResult>(`/v1/portal/ai/requests/${id}/use-as-draft`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  getSettings: () =>
+    request<PortalAiSettings>("/v1/portal/ai/settings", { method: "GET" }),
+  updateSettings: (input: UpdatePortalAiSettingsInput) =>
+    request<PortalAiSettings>("/v1/portal/ai/settings", {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  getCredits: () =>
+    request<PortalCreditsResponse>("/v1/portal/ai/credits", {
+      method: "GET",
+    }),
+  listPublishingSchedules: () =>
+    request<PortalAiPublishingSchedule[]>(
+      "/v1/portal/ai/publishing-schedules",
+      { method: "GET" }
+    ),
+  createPublishingSchedule: (input: CreatePortalAiPublishingScheduleInput) =>
+    request<PortalAiPublishingSchedule>("/v1/portal/ai/publishing-schedules", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  updatePublishingSchedule: (
+    id: string,
+    input: UpdatePortalAiPublishingScheduleInput
+  ) =>
+    request<PortalAiPublishingSchedule>(
+      `/v1/portal/ai/publishing-schedules/${id}`,
+      { method: "PATCH", body: JSON.stringify(input) }
+    ),
+  runPublishingSchedule: (id: string) =>
+    request<PortalAiRequest>(`/v1/portal/ai/publishing-schedules/${id}/run`, {
+      method: "POST",
+    }),
+  removePublishingSchedule: (id: string) =>
+    request<void>(`/v1/portal/ai/publishing-schedules/${id}`, {
+      method: "DELETE",
+    }),
+}
+
+function portalCommerceQueryString(query: Partial<PortalCommerceQuery> = {}) {
+  const params = new URLSearchParams()
+  if (query.period) params.set("period", query.period)
+  if (query.channel) params.set("channel", query.channel)
+  const serialized = params.toString()
+  return serialized ? `?${serialized}` : ""
+}
+
+export const commerceApi = {
+  dashboard: (query?: Partial<PortalCommerceQuery>) =>
+    request<PortalCommerceDashboard>(
+      `/v1/portal/commerce${portalCommerceQueryString(query)}`,
+      { method: "GET" }
+    ),
+  products: () =>
+    request<PortalCommerceProduct[]>("/v1/portal/commerce/products", {
+      method: "GET",
+    }),
+  createProduct: (input: CreatePortalCommerceProductInput) =>
+    request<PortalCommerceProduct>("/v1/portal/commerce/products", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  updateProduct: (id: string, input: UpdatePortalCommerceProductInput) =>
+    request<PortalCommerceProduct>(`/v1/portal/commerce/products/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  createOrder: (input: CreatePortalCommerceOrderInput) =>
+    request<PortalCommerceOrder>("/v1/portal/commerce/orders", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  updateOrder: (id: string, input: UpdatePortalCommerceOrderInput) =>
+    request<PortalCommerceOrder>(`/v1/portal/commerce/orders/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  createReturn: (input: CreatePortalCommerceReturnInput) =>
+    request<PortalCommerceReturn>("/v1/portal/commerce/returns", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+}
+
+export const affiliateApi = {
+  dashboard: () =>
+    request<PortalAffiliateDashboard>("/v1/portal/affiliate", {
+      method: "GET",
+    }),
+  activate: () =>
+    request<NonNullable<PortalAffiliateDashboard["profile"]>>(
+      "/v1/portal/affiliate/activate",
+      { method: "POST" }
+    ),
+  requestWithdrawal: (input: RequestPortalAffiliateWithdrawalInput) =>
+    request<PortalAffiliateDashboard["withdrawals"][number]>(
+      "/v1/portal/affiliate/withdrawals",
+      { method: "POST", body: JSON.stringify(input) }
+    ),
+  capture: (input: CaptureAffiliateReferralInput) =>
+    request<CapturedAffiliateReferral>("/v1/public/affiliate/referrals", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+}
+
+function portalOnlineMediaQueryString(
+  query: Partial<PortalOnlineMediaSearchQuery>
+) {
+  const params = new URLSearchParams()
+  if (query.q) params.set("q", query.q)
+  if (query.provider) params.set("provider", query.provider)
+  if (query.type) params.set("type", query.type)
+  if (query.page) params.set("page", String(query.page))
+  if (query.perPage) params.set("perPage", String(query.perPage))
+  return `?${params.toString()}`
+}
+
+export const onlineMediaApi = {
+  search: (query: Partial<PortalOnlineMediaSearchQuery> & { q: string }) =>
+    request<PortalOnlineMediaSearchResponse>(
+      `/v1/portal/online-media/search${portalOnlineMediaQueryString(query)}`,
+      { method: "GET" }
+    ),
+  import: (input: ImportPortalOnlineMediaInput) =>
+    request<ImportedPortalOnlineMedia>("/v1/portal/online-media/imports", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+}
+
+export const teamsApi = {
+  list: () =>
+    request<PortalTeamsResponse>("/v1/portal/teams", { method: "GET" }),
+  createInvitation: (input: CreatePortalTeamInvitationInput) =>
+    request<PortalTeamInvitation>("/v1/portal/teams/invitations", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  acceptInvitation: (input: AcceptPortalTeamInvitationInput) =>
+    request<{ accepted: true }>("/v1/portal/teams/invitations/accept", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  revokeInvitation: (id: string) =>
+    request<void>(`/v1/portal/teams/invitations/${id}`, {
+      method: "DELETE",
+    }),
+  updateMemberRole: (userId: string, input: UpdatePortalTeamMemberRoleInput) =>
+    request<{ id: string; role: "owner" | "admin" | "member" }>(
+      `/v1/portal/teams/members/${userId}/role`,
+      {
+        method: "PATCH",
+        body: JSON.stringify(input),
+      }
+    ),
+  replaceAccountGrants: (
+    userId: string,
+    input: ReplacePortalTeamAccountGrantsInput
+  ) =>
+    request<{ accountIds: string[]; userId: string }>(
+      `/v1/portal/teams/members/${userId}/account-grants`,
+      { method: "PUT", body: JSON.stringify(input) }
+    ),
+  removeMember: (userId: string) =>
+    request<void>(`/v1/portal/teams/members/${userId}`, {
+      method: "DELETE",
+    }),
 }
 
 export const channelsApi = {

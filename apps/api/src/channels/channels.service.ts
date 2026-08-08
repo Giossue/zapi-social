@@ -137,7 +137,7 @@ export class ChannelsService {
       this.database.db
         .select({ connected: count() })
         .from(socialAccounts)
-        .where(and(baseWhere, this.connectedWhere())!),
+        .where(and(baseWhere, this.connectedWhere())),
     ]);
 
     const hasNextPage = rows.length > filters.limit;

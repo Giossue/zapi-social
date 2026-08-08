@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import {
   CalendarClock,
   CalendarDays,
@@ -254,6 +254,7 @@ export function PublishingCalendarPage({
   const [composerScheduledDate, setComposerScheduledDate] =
     useState(defaultScheduleDate)
   const [editingPost, setEditingPost] = useState<PublishingPost | null>(null)
+  const createIdempotencyKey = useRef<string | null>(null)
   const queuePosts = useMemo(
     () => posts.filter((post) => post.status !== "draft"),
     [posts]
@@ -281,6 +282,7 @@ export function PublishingCalendarPage({
     post: PublishingPost | null = null,
     scheduledDate = defaultScheduleDate
   ) {
+    createIdempotencyKey.current = post ? null : crypto.randomUUID()
     setEditingPost(post)
     setComposerScheduledDate(post?.date ?? scheduledDate)
     setComposerOpen(true)
@@ -312,9 +314,11 @@ export function PublishingCalendarPage({
         )
         toast.success("Los cambios se guardaron.")
       } else {
+        createIdempotencyKey.current ??= crypto.randomUUID()
         const nextPosts = await publishingApi.create({
           accountIds: selectedAccounts,
           content,
+          idempotencyKey: createIdempotencyKey.current,
           mediaAssetIds,
           mode,
           ...(mode === "schedule" ? { scheduledAt } : {}),
@@ -328,6 +332,7 @@ export function PublishingCalendarPage({
               : `Programamos ${nextPosts.length} publicación${nextPosts.length === 1 ? "" : "es"}.`
         )
       }
+      createIdempotencyKey.current = null
       setComposerOpen(false)
       setEditingPost(null)
     } catch (error) {
@@ -474,6 +479,7 @@ export function PublishingCalendarPage({
           editingPost={editingPost}
           initialScheduledDate={composerScheduledDate}
           onClose={() => {
+            createIdempotencyKey.current = null
             setComposerOpen(false)
             setEditingPost(null)
           }}

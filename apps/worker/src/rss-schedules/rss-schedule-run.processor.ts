@@ -12,6 +12,7 @@ import {
 import { and, eq, isNull, or } from '@workspace/database/query';
 import type { Job } from 'bullmq';
 import { WorkerAuditService } from '../audit/worker-audit.service';
+import { AutomationWebhookEventsService } from '../automation/automation-webhook-events.service';
 import { DatabaseService } from '../database/database.service';
 import {
   RSS_SCHEDULE_RUN_CONCURRENCY,
@@ -47,6 +48,7 @@ export class RssScheduleRunProcessor extends WorkerHost {
     private readonly database: DatabaseService,
     private readonly audit: WorkerAuditService,
     private readonly feeds: RssFeedReaderService,
+    private readonly events: AutomationWebhookEventsService,
   ) {
     super();
   }
@@ -261,7 +263,7 @@ export class RssScheduleRunProcessor extends WorkerHost {
     const now = new Date();
 
     try {
-      return await this.database.db.transaction(async (tx) => {
+      const postId = await this.database.db.transaction(async (tx) => {
         const [existing] = await tx
           .select({ id: rssScheduleHistories.id })
           .from(rssScheduleHistories)
@@ -273,7 +275,7 @@ export class RssScheduleRunProcessor extends WorkerHost {
             ),
           )
           .limit(1);
-        if (existing) return false;
+        if (existing) return null;
 
         const [history] = await tx
           .insert(rssScheduleHistories)
@@ -309,8 +311,16 @@ export class RssScheduleRunProcessor extends WorkerHost {
           .update(rssScheduleHistories)
           .set({ publishingPostId: post.id, updatedAt: now })
           .where(eq(rssScheduleHistories.id, history.id));
-        return true;
+        return post.id;
       });
+      if (!postId) return false;
+      await this.events.emit({
+        workspaceId: schedule.workspaceId,
+        event: 'post.created',
+        subjectId: postId,
+        payload: { postId, source: 'rss' },
+      });
+      return true;
     } catch (error) {
       if (this.isUniqueViolation(error)) return false;
       throw error;

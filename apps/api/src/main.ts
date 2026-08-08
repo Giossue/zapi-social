@@ -39,9 +39,12 @@ async function bootstrap() {
   app.useGlobalPipes(new ZodValidationPipe());
   app.useGlobalFilters(new AppExceptionFilter());
   const audit = app.get(AuditService);
-  app.getHttpAdapter().getInstance().addHook('onResponse', (request, reply) =>
-    audit.logApiResponse(request, reply.statusCode).catch(() => undefined),
-  );
+  app
+    .getHttpAdapter()
+    .getInstance()
+    .addHook('onResponse', (request, reply) =>
+      audit.logApiResponse(request, reply.statusCode).catch(() => undefined),
+    );
   app.enableShutdownHooks();
 
   const document = SwaggerModule.createDocument(

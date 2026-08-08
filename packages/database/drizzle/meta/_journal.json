@@ -141,6 +141,20 @@
       "when": 1786000693333,
       "tag": "0019_minor_stick",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1786169275787,
+      "tag": "0020_mushy_peter_parker",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1786170625737,
+      "tag": "0021_pale_thor",
+      "breakpoints": true
     }
   ]
 }

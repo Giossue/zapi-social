@@ -6,6 +6,11 @@ type WorkerEnv = {
   REDIS_USERNAME?: string;
   REDIS_PASSWORD?: string;
   FILES_STORAGE_PATH: string;
+  API_PUBLIC_ORIGIN?: string;
+  AI_PROVIDER_BASE_URL?: string;
+  AI_PROVIDER_API_KEY?: string;
+  AI_TEXT_MODEL?: string;
+  AI_IMAGE_MODEL?: string;
 };
 
 export function validateEnv(config: Record<string, unknown>): WorkerEnv {
@@ -28,7 +33,13 @@ export function validateEnv(config: Record<string, unknown>): WorkerEnv {
     REDIS_PORT: redisPort,
     REDIS_USERNAME: optional(config, 'REDIS_USERNAME'),
     REDIS_PASSWORD: optional(config, 'REDIS_PASSWORD'),
-    FILES_STORAGE_PATH: optional(config, 'FILES_STORAGE_PATH') ?? './.data/files',
+    FILES_STORAGE_PATH:
+      optional(config, 'FILES_STORAGE_PATH') ?? './.data/files',
+    API_PUBLIC_ORIGIN: optional(config, 'API_PUBLIC_ORIGIN'),
+    AI_PROVIDER_BASE_URL: optional(config, 'AI_PROVIDER_BASE_URL'),
+    AI_PROVIDER_API_KEY: optional(config, 'AI_PROVIDER_API_KEY'),
+    AI_TEXT_MODEL: optional(config, 'AI_TEXT_MODEL'),
+    AI_IMAGE_MODEL: optional(config, 'AI_IMAGE_MODEL'),
   };
 }
 

@@ -31,6 +31,23 @@ import { RssScheduleDispatchProcessor } from './rss-schedules/rss-schedule-dispa
 import { RssScheduleDispatchScheduler } from './rss-schedules/rss-schedule-dispatch.scheduler';
 import { RssFeedReaderService } from './rss-schedules/rss-feed-reader.service';
 import { RssScheduleRunProcessor } from './rss-schedules/rss-schedule-run.processor';
+import { BULK_POST_BATCH_QUEUE } from './bulk-posts/bulk-posts.constants';
+import { BulkPostBatchProcessor } from './bulk-posts/bulk-post-batch.processor';
+import {
+  AI_REQUEST_QUEUE,
+  AI_SCHEDULE_DISPATCH_QUEUE,
+} from './ai/ai.constants';
+import { AiRequestProcessor } from './ai/ai-request.processor';
+import { AiScheduleDispatchProcessor } from './ai/ai-schedule-dispatch.processor';
+import { AiScheduleDispatchScheduler } from './ai/ai-schedule-dispatch.scheduler';
+import { AUTOMATION_WEBHOOK_QUEUE } from './automation/automation.constants';
+import { AutomationWebhookEventsService } from './automation/automation-webhook-events.service';
+import { AutomationWebhookProcessor } from './automation/automation-webhook.processor';
+import { AutomationWebhookScheduler } from './automation/automation-webhook.scheduler';
+import { PUBLISHING_DELIVERY_QUEUE } from './publishing/publishing.constants';
+import { PublishingDeliveryProcessor } from './publishing/publishing-delivery.processor';
+import { PublishingDeliveryScheduler } from './publishing/publishing-delivery.scheduler';
+import { PublishingMediaPreparationService } from './publishing/publishing-media-preparation.service';
 
 @Module({
   imports: [
@@ -54,6 +71,11 @@ import { RssScheduleRunProcessor } from './rss-schedules/rss-schedule-run.proces
       { name: FILE_DERIVATIVES_QUEUE },
       { name: RSS_SCHEDULE_DISPATCH_QUEUE },
       { name: RSS_SCHEDULE_RUN_QUEUE },
+      { name: BULK_POST_BATCH_QUEUE },
+      { name: AI_REQUEST_QUEUE },
+      { name: AI_SCHEDULE_DISPATCH_QUEUE },
+      { name: AUTOMATION_WEBHOOK_QUEUE },
+      { name: PUBLISHING_DELIVERY_QUEUE },
     ),
   ],
   providers: [
@@ -72,6 +94,16 @@ import { RssScheduleRunProcessor } from './rss-schedules/rss-schedule-run.proces
     RssScheduleDispatchScheduler,
     RssScheduleDispatchProcessor,
     RssScheduleRunProcessor,
+    BulkPostBatchProcessor,
+    AiRequestProcessor,
+    AiScheduleDispatchProcessor,
+    AiScheduleDispatchScheduler,
+    AutomationWebhookEventsService,
+    AutomationWebhookProcessor,
+    AutomationWebhookScheduler,
+    PublishingDeliveryProcessor,
+    PublishingDeliveryScheduler,
+    PublishingMediaPreparationService,
   ],
 })
 export class AppModule {}

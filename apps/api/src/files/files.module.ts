@@ -5,7 +5,10 @@ import { FilesController } from './files.controller';
 import { FilesService } from './files.service';
 
 @Module({
-  imports: [IdentityModule, BullModule.registerQueue({ name: 'file-derivatives' })],
+  imports: [
+    IdentityModule,
+    BullModule.registerQueue({ name: 'file-derivatives' }),
+  ],
   controllers: [FilesController],
   providers: [FilesService],
 })

@@ -13,6 +13,7 @@ export const registerSchema = z.object({
   email: z.string().trim().email().max(320),
   password: passwordPolicy,
   displayName: z.string().trim().min(2).max(160),
+  referralId: z.uuid().optional(),
 })
 
 export const loginSchema = z.object({
@@ -307,6 +308,28 @@ export const portalPublishingPostSchema = z.object({
   recoverable: z.boolean().optional(),
   mediaAssetIds: z.array(z.uuid()),
 })
+export const portalPublishingQuerySchema = z
+  .object({
+    from: z.string().datetime().optional(),
+    to: z.string().datetime().optional(),
+    page: z.coerce.number().int().positive().default(1),
+    limit: z.coerce.number().int().min(1).max(200).default(100),
+    mediaLimit: z.coerce.number().int().min(1).max(200).default(100),
+  })
+  .strict()
+  .superRefine((input, context) => {
+    if (
+      input.from &&
+      input.to &&
+      new Date(input.from).valueOf() > new Date(input.to).valueOf()
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["to"],
+        message: "La fecha final debe ser posterior a la fecha inicial.",
+      })
+    }
+  })
 export const portalPublishingResponseSchema = z.object({
   canView: z.boolean(),
   canManage: z.boolean(),
@@ -321,8 +344,23 @@ export const portalPublishingResponseSchema = z.object({
       thumbnailStatus: z.enum(["pending", "ready", "failed", "not_applicable"]),
     })
   ),
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+  total: z.number().int().nonnegative(),
+  mediaLimit: z.number().int().positive(),
+  mediaTotal: z.number().int().nonnegative(),
+  range: z.object({
+    from: z.string().datetime(),
+    to: z.string().datetime(),
+  }),
 })
 const portalPublishingPostFields = {
+  idempotencyKey: z
+    .string()
+    .trim()
+    .min(1)
+    .max(160)
+    .regex(/^[A-Za-z0-9][A-Za-z0-9._:~-]*$/),
   content: z.string().trim().min(1).max(10000),
   accountIds: z.array(z.uuid()).min(1).max(20),
   mediaAssetIds: z.array(z.uuid()).max(10).default([]),
@@ -333,6 +371,20 @@ export const createPortalPublishingPostsSchema = z
   .object(portalPublishingPostFields)
   .strict()
   .superRefine((input, context) => {
+    if (new Set(input.accountIds).size !== input.accountIds.length) {
+      context.addIssue({
+        code: "custom",
+        path: ["accountIds"],
+        message: "No repitas cuentas destino.",
+      })
+    }
+    if (new Set(input.mediaAssetIds).size !== input.mediaAssetIds.length) {
+      context.addIssue({
+        code: "custom",
+        path: ["mediaAssetIds"],
+        message: "No repitas archivos.",
+      })
+    }
     if (input.mode === "schedule" && !input.scheduledAt) {
       context.addIssue({
         code: "custom",
@@ -1008,6 +1060,7 @@ export type PortalPublishingPost = z.infer<typeof portalPublishingPostSchema>
 export type PortalPublishingResponse = z.infer<
   typeof portalPublishingResponseSchema
 >
+export type PortalPublishingQuery = z.infer<typeof portalPublishingQuerySchema>
 export type CreatePortalPublishingPostsInput = z.infer<
   typeof createPortalPublishingPostsSchema
 >
@@ -1314,3 +1367,11 @@ export * from "./admin-integrations.js"
 export * from "./email.js"
 
 export * from "./admin-plans.js"
+
+export * from "./portal-core-v2.js"
+
+export * from "./ai-v2.js"
+
+export * from "./commerce-v2.js"
+
+export * from "./online-media-v2.js"

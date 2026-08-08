@@ -15,6 +15,8 @@ const schema = z.object({
   REDIS_USERNAME: z.string().min(1).optional(),
   REDIS_PASSWORD: z.string().min(1).optional(),
   FILES_STORAGE_PATH: z.string().min(1).default('./.data/files'),
+  UNSPLASH_ACCESS_KEY: z.string().min(1).optional(),
+  PEXELS_API_KEY: z.string().min(1).optional(),
 });
 
 export type Env = z.infer<typeof schema>;

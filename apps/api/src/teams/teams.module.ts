@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
 import { EmailModule } from '../email/email.module';
 import { IdentityModule } from '../identity/identity.module';
+import { TeamAccountAccessService } from './team-account-access.service';
 import { TeamsController } from './teams.controller';
 import { TeamsService } from './teams.service';
 
 @Module({
   imports: [EmailModule, IdentityModule],
   controllers: [TeamsController],
-  providers: [TeamsService],
+  providers: [TeamAccountAccessService, TeamsService],
+  exports: [TeamAccountAccessService],
 })
 export class TeamsModule {}

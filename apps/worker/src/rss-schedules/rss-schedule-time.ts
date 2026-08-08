@@ -55,7 +55,7 @@ export function nextRssScheduleRun(
     const dateKey = dateKeyFor(year, month, day);
     if (schedule.startDate && dateKey < schedule.startDate) continue;
     if (schedule.endDate && dateKey > schedule.endDate) return null;
-    if (!enabledWeekdays.has(weekdayByIndex[localDay.getUTCDay()]!)) continue;
+    if (!enabledWeekdays.has(weekdayByIndex[localDay.getUTCDay()])) continue;
 
     for (const slot of slots) {
       const [hour, minute] = slot.split(':').map(Number);

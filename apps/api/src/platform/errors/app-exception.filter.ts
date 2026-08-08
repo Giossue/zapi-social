@@ -17,7 +17,7 @@ export class AppExceptionFilter implements ExceptionFilter {
     const { status, code } = this.resolveException(exception);
     const requestId = request.id;
 
-    if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
+    if (status >= Number(HttpStatus.INTERNAL_SERVER_ERROR)) {
       request.log.error({ err: exception, code, requestId }, 'request failed');
     } else {
       request.log.warn({ code, requestId }, 'request rejected');
@@ -39,14 +39,14 @@ export class AppExceptionFilter implements ExceptionFilter {
       return {
         status,
         code:
-          status === HttpStatus.BAD_REQUEST
+          status === Number(HttpStatus.BAD_REQUEST)
             ? 'VALIDATION_FAILED'
             : 'REQUEST_FAILED',
       };
     }
 
     return {
-      status: HttpStatus.INTERNAL_SERVER_ERROR,
+      status: Number(HttpStatus.INTERNAL_SERVER_ERROR),
       code: 'INTERNAL_SERVER_ERROR',
     };
   }

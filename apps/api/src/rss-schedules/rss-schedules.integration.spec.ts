@@ -15,6 +15,7 @@ import type { PortalAuthSession } from '@workspace/contracts';
 import { DatabaseService } from '../database/database.service';
 import { AppException } from '../platform/errors/app-exception';
 import { RssFeedValidationService } from './rss-feed-validation.service';
+import type { RssScheduleRunJobData } from './rss-schedules.constants';
 import { RssSchedulesService } from './rss-schedules.service';
 
 const databaseUrl = process.env.RSS_SCHEDULES_TEST_DATABASE_URL;
@@ -28,7 +29,7 @@ const isLocalTestDatabase = (() => {
 })();
 
 const describeDatabase = isLocalTestDatabase ? describe : describe.skip;
-const rollback = Symbol('rollback');
+const rollback = new Error('Rollback RSS integration test.');
 const connection = isLocalTestDatabase ? createDatabase(databaseUrl!) : null;
 
 function portalSession(
@@ -130,7 +131,7 @@ describeDatabase('RSS schedules database contracts', () => {
       const service = new RssSchedulesService(
         { db: database } as DatabaseService,
         {} as RssFeedValidationService,
-        {} as Queue,
+        {} as Queue<RssScheduleRunJobData>,
       );
 
       await expect(

@@ -2,6 +2,8 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import {
   authSessions,
+  affiliateProfiles,
+  affiliateReferrals,
   users,
   workspaceMemberships,
   workspaces,
@@ -94,6 +96,29 @@ export class IdentityService {
         tokenHash: this.hashSessionToken(sessionToken),
         expiresAt: this.sessionExpiry(),
       });
+
+      if (data.referralId) {
+        await tx
+          .update(affiliateReferrals)
+          .set({
+            referredUserId: user.id,
+            status: 'registered',
+            updatedAt: new Date(),
+          })
+          .where(
+            and(
+              eq(affiliateReferrals.id, data.referralId),
+              eq(affiliateReferrals.status, 'visited'),
+              sql`exists (
+                select 1
+                from ${affiliateProfiles}
+                where ${affiliateProfiles.id} = ${affiliateReferrals.affiliateProfileId}
+                  and ${affiliateProfiles.status} = 'active'
+              )`,
+            ),
+          )
+          .returning({ id: affiliateReferrals.id });
+      }
 
       return {
         user,

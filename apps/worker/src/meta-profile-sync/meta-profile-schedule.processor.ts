@@ -47,7 +47,7 @@ export class MetaProfileScheduleProcessor extends WorkerHost {
           META_PROFILE_SYNC_JOB,
           { accountId: account.id },
           {
-            jobId: `meta-profile-sync:${account.id}`,
+            jobId: `meta-profile-sync-${account.id}`,
             attempts: 2,
             backoff: { type: 'exponential', delay: 5_000 },
             removeOnComplete: true,

@@ -12,7 +12,6 @@ import {
   type AdminPlansList,
   type AuthSession,
   type CreateAdminPlanInput,
-  type UpdateAdminPlanInput,
 } from '@workspace/contracts';
 import { plans } from '@workspace/database';
 import { and, asc, eq, sql } from '@workspace/database/query';
@@ -101,7 +100,7 @@ export class PlansService {
   }
 
   private async assertAvailable(
-    values: CreateAdminPlanInput | UpdateAdminPlanInput,
+    values: CreateAdminPlanInput,
     excludedPlanId?: string,
   ) {
     const [[nameMatch], [slugMatch], [defaultMatch]] = await Promise.all([
@@ -153,7 +152,7 @@ export class PlansService {
       featured: plan.featured,
       currency: plan.currency as AdminPlan['currency'],
       price: Number(plan.price),
-      billingType: plan.billingType as AdminPlan['billingType'],
+      billingType: plan.billingType,
       isFree: plan.isFree,
       isDefaultSignup: plan.isDefaultSignup,
       trialDays: plan.trialDays,

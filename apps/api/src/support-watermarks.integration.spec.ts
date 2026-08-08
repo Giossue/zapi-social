@@ -3,7 +3,6 @@ import {
   createDatabase,
   fileAssets,
   publishingWatermarks,
-  socialAccounts,
   supportCategories,
   users,
   workspaces,
@@ -26,7 +25,7 @@ const isLocalTestDatabase = (() => {
 })();
 
 const describeDatabase = isLocalTestDatabase ? describe : describe.skip;
-const rollback = Symbol('rollback');
+const rollback = new Error('Rollback Support and Watermarks integration test.');
 const connection = isLocalTestDatabase ? createDatabase(databaseUrl!) : null;
 
 function portalSession(

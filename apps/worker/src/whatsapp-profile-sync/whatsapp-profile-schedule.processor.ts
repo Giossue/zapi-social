@@ -45,7 +45,7 @@ export class WhatsAppProfileScheduleProcessor extends WorkerHost {
           WHATSAPP_PROFILE_SYNC_JOB,
           { accountId: account.id },
           {
-            jobId: `whatsapp-profile-sync:${account.id}`,
+            jobId: `whatsapp-profile-sync-${account.id}`,
             attempts: 2,
             backoff: { type: 'exponential', delay: 5_000 },
             removeOnComplete: true,

@@ -12,21 +12,25 @@ planes/        # decisiones, equivalencias Laravel → V2 y trabajo pendiente
 
 ## Cómo encontrar información
 
-| Necesito | Leer primero |
-| --- | --- |
-| Límites entre Web, API, Worker y packages | [`ARCHITECTURE.md`](../ARCHITECTURE.md) |
-| Tokens, primitives, 21st, UI, Next o Tailwind | [`reglas/design.md`](./reglas/design.md) |
-| Definition of Done, pruebas o revisión | [`reglas/calidad.md`](./reglas/calidad.md) |
-| Stack, paquetes y responsabilidades observadas | [`conocimiento/stack.md`](./conocimiento/stack.md) |
-| Despliegue, Dokploy o variables por servicio | [`conocimiento/deployment/dokploy.md`](./conocimiento/deployment/dokploy.md) |
-| Shell, navegación o sidebar Portal | [`conocimiento/ui/portal-sidebar.md`](./conocimiento/ui/portal-sidebar.md) |
-| Dirección y fases globales de V2 | [`planes/implementacion-v2.md`](./planes/implementacion-v2.md) |
-| Roles, sesión, Admin y Portal | [`planes/separacion-admin-portal.md`](./planes/separacion-admin-portal.md) |
-| Refactor visual de V2 desde `diseño ideal` | [`planes/refactor-visual-design-ideal-v2.md`](./planes/refactor-visual-design-ideal-v2.md) |
-| Channels, providers, contratos y equivalencia Laravel | [`planes/channels-v2.md`](./planes/channels-v2.md) |
-| Tickets de Portal y su futura administración | [`planes/support-v2.md`](./planes/support-v2.md) |
-| Reglas de marca de agua de Publishing | [`planes/watermarks-v2.md`](./planes/watermarks-v2.md) |
-| Gobernanza documental y de agentes | [`planes/gobernanza-agentes-v2.md`](./planes/gobernanza-agentes-v2.md) |
+| Necesito                                              | Leer primero                                                                                                                                                                                                                       |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Límites entre Web, API, Worker y packages             | [`ARCHITECTURE.md`](../ARCHITECTURE.md)                                                                                                                                                                                            |
+| Tokens, primitives, 21st, UI, Next o Tailwind         | [`reglas/design.md`](./reglas/design.md)                                                                                                                                                                                           |
+| Definition of Done, pruebas o revisión                | [`reglas/calidad.md`](./reglas/calidad.md)                                                                                                                                                                                         |
+| Stack, paquetes y responsabilidades observadas        | [`conocimiento/stack.md`](./conocimiento/stack.md)                                                                                                                                                                                 |
+| Despliegue, Dokploy o variables por servicio          | [`conocimiento/deployment/dokploy.md`](./conocimiento/deployment/dokploy.md)                                                                                                                                                       |
+| Shell, navegación o sidebar Portal                    | [`conocimiento/ui/portal-sidebar.md`](./conocimiento/ui/portal-sidebar.md)                                                                                                                                                         |
+| Dirección y fases globales de V2                      | [`planes/implementacion-v2.md`](./planes/implementacion-v2.md)                                                                                                                                                                     |
+| Roles, sesión, Admin y Portal                         | [`planes/separacion-admin-portal.md`](./planes/separacion-admin-portal.md)                                                                                                                                                         |
+| Refactor visual de V2 desde `diseño ideal`            | [`planes/refactor-visual-design-ideal-v2.md`](./planes/refactor-visual-design-ideal-v2.md)                                                                                                                                         |
+| Channels, providers, contratos y equivalencia Laravel | [`planes/channels-v2.md`](./planes/channels-v2.md)                                                                                                                                                                                 |
+| Publishing, AI, Bulk Posts y RSS                      | [`planes/publishing-v2.md`](./planes/publishing-v2.md), [`planes/ai-studio-v2.md`](./planes/ai-studio-v2.md), [`planes/bulk-posts-v2.md`](./planes/bulk-posts-v2.md), [`planes/rss-schedules-v2.md`](./planes/rss-schedules-v2.md) |
+| Groups y Automation                                   | [`planes/groups-v2.md`](./planes/groups-v2.md), [`planes/automation-v2.md`](./planes/automation-v2.md)                                                                                                                             |
+| Commerce y afiliados                                  | [`planes/commerce-v2.md`](./planes/commerce-v2.md)                                                                                                                                                                                 |
+| Búsqueda e importación de media online                | [`planes/online-media-v2.md`](./planes/online-media-v2.md)                                                                                                                                                                         |
+| Tickets de Portal y su futura administración          | [`planes/support-v2.md`](./planes/support-v2.md)                                                                                                                                                                                   |
+| Reglas de marca de agua de Publishing                 | [`planes/watermarks-v2.md`](./planes/watermarks-v2.md)                                                                                                                                                                             |
+| Gobernanza documental y de agentes                    | [`planes/gobernanza-agentes-v2.md`](./planes/gobernanza-agentes-v2.md)                                                                                                                                                             |
 
 ## Estado de una referencia
 

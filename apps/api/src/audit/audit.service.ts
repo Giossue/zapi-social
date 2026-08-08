@@ -37,7 +37,8 @@ export class AuditService {
       request.cookies[sessionCookieName],
     );
     const path = request.routeOptions.url ?? request.url.split('?')[0];
-    const severity = status >= 500 ? 'error' : status >= 400 ? 'warning' : 'success';
+    const severity =
+      status >= 500 ? 'error' : status >= 400 ? 'warning' : 'success';
 
     await this.database.db.insert(apiAuditLogs).values({
       workspaceId: session?.area === 'portal' ? session.workspace.id : null,
@@ -134,7 +135,10 @@ export class AuditService {
         .from(workerAuditLogs)
         .leftJoin(users, eq(workerAuditLogs.actorUserId, users.id))
         .leftJoin(workspaces, eq(workerAuditLogs.workspaceId, workspaces.id))
-        .leftJoin(auditReleases, eq(workerAuditLogs.releaseId, auditReleases.id))
+        .leftJoin(
+          auditReleases,
+          eq(workerAuditLogs.releaseId, auditReleases.id),
+        )
         .orderBy(desc(workerAuditLogs.createdAt))
         .limit(100),
     ]);
@@ -143,11 +147,19 @@ export class AuditService {
       events: [
         ...apiEvents.map((event) => ({ ...event, source: 'api' as const })),
         ...webEvents.map((event) => ({ ...event, source: 'web' as const })),
-        ...workerEvents.map((event) => ({ ...event, source: 'worker' as const })),
+        ...workerEvents.map((event) => ({
+          ...event,
+          source: 'worker' as const,
+        })),
       ]
-        .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime())
+        .sort(
+          (left, right) => right.createdAt.getTime() - left.createdAt.getTime(),
+        )
         .slice(0, 100)
-        .map((event) => ({ ...event, createdAt: event.createdAt.toISOString() })),
+        .map((event) => ({
+          ...event,
+          createdAt: event.createdAt.toISOString(),
+        })),
     };
   }
 }
