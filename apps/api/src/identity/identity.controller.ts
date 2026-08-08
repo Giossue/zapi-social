@@ -51,6 +51,7 @@ export class IdentityController {
       reply,
       authentication.accessToken,
       authentication.sessionToken,
+      authentication.remember,
     );
     return authentication.session;
   }
@@ -99,6 +100,7 @@ export class IdentityController {
       reply,
       authentication.accessToken,
       authentication.sessionToken,
+      authentication.remember,
     );
     return authentication.session;
   }
@@ -107,16 +109,20 @@ export class IdentityController {
     reply: FastifyReply,
     accessToken: string,
     sessionToken: string,
+    remember = true,
   ) {
     const secure = this.config.get<string>('COOKIE_SECURE') === 'true';
     const domain = this.config.get<string>('COOKIE_DOMAIN');
+    const persistentCookie = remember
+      ? { maxAge: 60 * 60 * 24 * 30 }
+      : {};
     reply.setCookie(accessCookieName, accessToken, {
       httpOnly: true,
       sameSite: 'lax',
       secure,
       domain,
       path: '/',
-      maxAge: 60 * 15,
+      ...persistentCookie,
     });
     reply.setCookie(sessionCookieName, sessionToken, {
       httpOnly: true,
@@ -124,7 +130,7 @@ export class IdentityController {
       secure,
       domain,
       path: '/',
-      maxAge: 60 * 60 * 24 * 30,
+      ...persistentCookie,
     });
   }
 

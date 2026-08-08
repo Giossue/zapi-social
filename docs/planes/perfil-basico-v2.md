@@ -65,7 +65,7 @@ Laravel exige autenticación y correo verificado para abrir Perfil. V2 conserva 
 ### Disponible
 
 - `users`: `id`, `email`, `username`, `display_name`, `password_hash`, `email_verified_at`, estado y timestamps.
-- Registro, login, refresh, logout y sesión Portal activos en `IdentityService`.
+- Registro, login, refresh, logout y sesión Portal activos en `IdentityService`. Login acepta `remember`; sin marcarlo crea cookies de sesión y vence en 24 horas, mientras que marcado persiste hasta 30 días.
 - Hash Argon2 para contraseña.
 - `AccountMenu` ya presenta `displayName` y correo.
 - Primitives compartidas para formulario, select, card, alert, skeleton y toast.

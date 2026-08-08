@@ -19,6 +19,7 @@ export const registerSchema = z.object({
 export const loginSchema = z.object({
   email: z.string().trim().email().max(320),
   password: z.string().min(1).max(128),
+  remember: z.boolean().default(false),
 })
 
 function isSupportedTimeZone(value: string) {

@@ -1,8 +1,7 @@
 import type { ReactNode } from "react"
 
-import { Button } from "@workspace/ui/components/button"
 import { Separator } from "@workspace/ui/components/separator"
-import { Circle, Command, Globe } from "lucide-react"
+import { Command, Globe } from "lucide-react"
 import Link from "next/link"
 
 import { AuthForm, type AuthMode } from "./auth-form"
@@ -60,18 +59,7 @@ export function AuthPage({ initialMode }: { initialMode: AuthMode }) {
               : "Ingresa tus datos para comenzar."}
           </p>
         </div>
-        <div className="space-y-4">
-          <Button className="w-full" disabled type="button" variant="secondary">
-            <Circle aria-hidden="true" />
-            Continuar con Google
-          </Button>
-          <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
-            <span className="relative z-10 bg-background px-2 text-muted-foreground">
-              O continúa con
-            </span>
-          </div>
-          <AuthForm initialMode={initialMode} />
-        </div>
+        <AuthForm initialMode={initialMode} />
       </div>
 
       <div className="absolute top-5 flex w-full justify-end px-10">

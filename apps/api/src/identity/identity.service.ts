@@ -21,7 +21,8 @@ import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { DatabaseService } from '../database/database.service';
 import { AppException } from '../platform/errors/app-exception';
 
-const sessionLifetimeSeconds = 60 * 60 * 24 * 30;
+const rememberedSessionLifetimeSeconds = 60 * 60 * 24 * 30;
+const temporarySessionLifetimeSeconds = 60 * 60 * 24;
 
 @Injectable()
 export class IdentityService {
@@ -183,10 +184,11 @@ export class IdentityService {
       activeWorkspaceId:
         session.area === 'portal' ? session.workspace.id : null,
       tokenHash: this.hashSessionToken(sessionToken),
-      expiresAt: this.sessionExpiry(),
+      remembered: data.remember,
+      expiresAt: this.sessionExpiry(data.remember),
     });
 
-    return this.buildAuthentication(session, sessionToken);
+    return { ...(await this.buildAuthentication(session, sessionToken)), remember: data.remember };
   }
 
   async getSession(
@@ -257,10 +259,23 @@ export class IdentityService {
       throw new AppException('AUTH_SESSION_EXPIRED', HttpStatus.UNAUTHORIZED);
     }
 
+    const [storedSession] = await this.database.db
+      .select({ remembered: authSessions.remembered })
+      .from(authSessions)
+      .where(
+        and(
+          eq(authSessions.tokenHash, this.hashSessionToken(sessionToken)),
+          isNull(authSessions.revokedAt),
+          gt(authSessions.expiresAt, new Date()),
+        ),
+      )
+      .limit(1);
+
     return {
       session,
       accessToken: await this.signAccessToken(session, sessionToken),
       sessionToken,
+      remember: storedSession?.remembered ?? false,
     };
   }
 
@@ -346,8 +361,11 @@ export class IdentityService {
     return createHash('sha256').update(token).digest('hex');
   }
 
-  private sessionExpiry() {
-    return new Date(Date.now() + sessionLifetimeSeconds * 1000);
+  private sessionExpiry(remember = true) {
+    const lifetime = remember
+      ? rememberedSessionLifetimeSeconds
+      : temporarySessionLifetimeSeconds;
+    return new Date(Date.now() + lifetime * 1000);
   }
 
   private personalWorkspaceSlug(displayName: string) {

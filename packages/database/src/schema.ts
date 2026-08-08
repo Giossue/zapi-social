@@ -233,6 +233,7 @@ export const authSessions = pgTable(
         onDelete: "set null",
       }
     ),
+    remembered: boolean("remembered").notNull().default(true),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     revokedAt: timestamp("revoked_at", { withTimezone: true }),
     ...timestamps,
