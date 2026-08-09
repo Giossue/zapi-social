@@ -31,14 +31,6 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog"
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -66,6 +58,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@workspace/ui/components/sheet"
 import { PageLoading } from "@workspace/ui/components/page-loading"
 import {
   Table,
@@ -85,8 +85,8 @@ import {
   Pencil,
   Plus,
   RefreshCw,
+  Save,
   Search,
-  Sparkles,
   Trash2,
   TriangleAlert,
   X,
@@ -836,116 +836,123 @@ function CaptionEditor({
   }
 
   return (
-    <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>
+    <Sheet onOpenChange={onOpenChange} open={open}>
+      <SheetContent
+        className="w-full gap-0 p-0 sm:max-w-lg lg:max-w-xl"
+        side="right"
+      >
+        <SheetHeader className="border-b">
+          <SheetTitle>
             {caption ? "Editar caption" : "Nuevo caption"}
-          </DialogTitle>
-          <DialogDescription>
+          </SheetTitle>
+          <SheetDescription>
             {caption
               ? "Actualiza el contenido y los metadatos que tu equipo necesita para reutilizarlo."
               : "Guarda un caption que puedas encontrar y adaptar en futuras publicaciones."}
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
         <form
-          className="flex flex-col gap-5"
+          className="flex min-h-0 flex-1 flex-col"
           onSubmit={(event) => void handleSubmit(event)}
         >
-          <FieldGroup className="grid gap-4 md:grid-cols-2">
-            <Field>
-              <FieldLabel htmlFor="caption-name">Nombre</FieldLabel>
-              <Input
-                id="caption-name"
-                maxLength={120}
-                onChange={(event) => updateValue("name", event.target.value)}
-                placeholder="Ej. Lanzamiento de colección"
-                required
-                value={values.name}
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="caption-tags">Etiquetas</FieldLabel>
-              <Input
-                id="caption-tags"
-                maxLength={1299}
-                onChange={(event) => updateValue("tags", event.target.value)}
-                placeholder="lanzamiento, producto"
-                value={values.tags}
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="caption-source">Origen</FieldLabel>
-              <Select
-                onValueChange={(value: CaptionSourceType) =>
-                  updateValue("sourceType", value)
-                }
-                value={values.sourceType}
-              >
-                <SelectTrigger id="caption-source" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="manual">Manual</SelectItem>
-                    <SelectItem value="ai">Generado por IA</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="caption-status">Estado</FieldLabel>
-              <Select
-                onValueChange={(value: CaptionStatus) =>
-                  updateValue("status", value)
-                }
-                value={values.status}
-              >
-                <SelectTrigger id="caption-status" className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="active">Activo</SelectItem>
-                    <SelectItem value="draft">Borrador</SelectItem>
-                    <SelectItem value="archived">Archivado</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </Field>
-          </FieldGroup>
-          <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="caption-content">Contenido</FieldLabel>
-              <Textarea
-                id="caption-content"
-                maxLength={10000}
-                onChange={(event) => updateValue("content", event.target.value)}
-                placeholder="Escribe el caption que quieres guardar"
-                required
-                rows={5}
-                value={values.content}
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="caption-notes">Notas internas</FieldLabel>
-              <Textarea
-                id="caption-notes"
-                maxLength={2000}
-                onChange={(event) => updateValue("notes", event.target.value)}
-                placeholder="Contexto, aprobaciones o instrucciones para el equipo"
-                rows={3}
-                value={values.notes}
-              />
-            </Field>
-          </FieldGroup>
-          {saveError ? <FieldError>{saveError}</FieldError> : null}
-          <DialogFooter>
+          <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4">
+            <FieldGroup className="grid gap-4 md:grid-cols-2">
+              <Field>
+                <FieldLabel htmlFor="caption-name">Nombre</FieldLabel>
+                <Input
+                  id="caption-name"
+                  maxLength={120}
+                  onChange={(event) => updateValue("name", event.target.value)}
+                  placeholder="Ej. Lanzamiento de colección"
+                  required
+                  value={values.name}
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="caption-tags">Etiquetas</FieldLabel>
+                <Input
+                  id="caption-tags"
+                  maxLength={1299}
+                  onChange={(event) => updateValue("tags", event.target.value)}
+                  placeholder="lanzamiento, producto"
+                  value={values.tags}
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="caption-source">Origen</FieldLabel>
+                <Select
+                  onValueChange={(value: CaptionSourceType) =>
+                    updateValue("sourceType", value)
+                  }
+                  value={values.sourceType}
+                >
+                  <SelectTrigger id="caption-source" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="manual">Manual</SelectItem>
+                      <SelectItem value="ai">Generado por IA</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="caption-status">Estado</FieldLabel>
+                <Select
+                  onValueChange={(value: CaptionStatus) =>
+                    updateValue("status", value)
+                  }
+                  value={values.status}
+                >
+                  <SelectTrigger id="caption-status" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="active">Activo</SelectItem>
+                      <SelectItem value="draft">Borrador</SelectItem>
+                      <SelectItem value="archived">Archivado</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </Field>
+            </FieldGroup>
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="caption-content">Contenido</FieldLabel>
+                <Textarea
+                  id="caption-content"
+                  maxLength={10000}
+                  onChange={(event) =>
+                    updateValue("content", event.target.value)
+                  }
+                  placeholder="Escribe el caption que quieres guardar"
+                  required
+                  rows={5}
+                  value={values.content}
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="caption-notes">Notas internas</FieldLabel>
+                <Textarea
+                  id="caption-notes"
+                  maxLength={2000}
+                  onChange={(event) => updateValue("notes", event.target.value)}
+                  placeholder="Contexto, aprobaciones o instrucciones para el equipo"
+                  rows={3}
+                  value={values.notes}
+                />
+              </Field>
+            </FieldGroup>
+            {saveError ? <FieldError>{saveError}</FieldError> : null}
+          </div>
+          <SheetFooter className="flex-row justify-end border-t">
             <Button
               disabled={pending}
               onClick={() => onOpenChange(false)}
               type="button"
-              variant="outline"
+              variant="brand-secondary"
             >
               Cancelar
             </Button>
@@ -953,13 +960,13 @@ function CaptionEditor({
               {pending ? (
                 <RefreshCw className="animate-spin" data-icon="inline-start" />
               ) : (
-                <Sparkles data-icon="inline-start" />
+                <Save aria-hidden="true" data-icon="inline-start" />
               )}
               {caption ? "Guardar cambios" : "Guardar caption"}
             </Button>
-          </DialogFooter>
+          </SheetFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   )
 }

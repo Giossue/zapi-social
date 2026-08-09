@@ -53,7 +53,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import { CircleAlert, LoaderCircle, MailPlus } from "lucide-react"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@workspace/ui/components/sheet"
+import { CircleAlert, LoaderCircle, MailPlus, Save } from "lucide-react"
 
 import { formatTeamDate, roleMeta } from "./team-utils"
 
@@ -88,71 +96,73 @@ export function InviteDialog({
   }
 
   return (
-    <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Invitar al workspace</DialogTitle>
-          <DialogDescription>
+    <Sheet onOpenChange={onOpenChange} open={open}>
+      <SheetContent className="w-full gap-0 p-0 sm:max-w-md" side="right">
+        <SheetHeader className="border-b">
+          <SheetTitle>Invitar al workspace</SheetTitle>
+          <SheetDescription>
             La invitación es privada, se vincula a este correo y caduca en siete
             días.
-          </DialogDescription>
-        </DialogHeader>
-        <form className="flex flex-col gap-5" onSubmit={submit}>
-          {error ? (
-            <Alert variant="destructive">
-              <CircleAlert aria-hidden="true" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          ) : null}
-          <FieldGroup>
-            <Field data-invalid={submitted && !validEmail}>
-              <FieldLabel htmlFor="team-invite-email">Correo</FieldLabel>
-              <InputGroup>
-                <InputGroupAddon align="inline-start">
-                  <MailPlus aria-hidden="true" />
-                </InputGroupAddon>
-                <InputGroupInput
-                  aria-invalid={submitted && !validEmail}
-                  autoComplete="email"
+          </SheetDescription>
+        </SheetHeader>
+        <form className="flex min-h-0 flex-1 flex-col" onSubmit={submit}>
+          <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4">
+            {error ? (
+              <Alert variant="destructive">
+                <CircleAlert aria-hidden="true" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            ) : null}
+            <FieldGroup>
+              <Field data-invalid={submitted && !validEmail}>
+                <FieldLabel htmlFor="team-invite-email">Correo</FieldLabel>
+                <InputGroup>
+                  <InputGroupAddon align="inline-start">
+                    <MailPlus aria-hidden="true" />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    aria-invalid={submitted && !validEmail}
+                    autoComplete="email"
+                    disabled={pending}
+                    id="team-invite-email"
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder="nombre@empresa.com"
+                    type="email"
+                    value={email}
+                  />
+                </InputGroup>
+                {submitted && !validEmail ? (
+                  <FieldError>Introduce un correo válido.</FieldError>
+                ) : null}
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="team-invite-role">Rol</FieldLabel>
+                <Select
                   disabled={pending}
-                  id="team-invite-email"
-                  onChange={(event) => setEmail(event.target.value)}
-                  placeholder="nombre@empresa.com"
-                  type="email"
-                  value={email}
-                />
-              </InputGroup>
-              {submitted && !validEmail ? (
-                <FieldError>Introduce un correo válido.</FieldError>
-              ) : null}
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="team-invite-role">Rol</FieldLabel>
-              <Select
-                disabled={pending}
-                onValueChange={(value) => setRole(value as InvitationRole)}
-                value={role}
-              >
-                <SelectTrigger id="team-invite-role">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="member">Miembro</SelectItem>
-                    {canInviteAdmin ? (
-                      <SelectItem value="admin">Administración</SelectItem>
-                    ) : null}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              <FieldDescription>
-                {role === "admin"
-                  ? "Accede a todas las cuentas y puede administrar miembros, excepto otros administradores."
-                  : "Solo trabaja con las cuentas que le asignes."}
-              </FieldDescription>
-            </Field>
-          </FieldGroup>
-          <DialogFooter>
+                  onValueChange={(value) => setRole(value as InvitationRole)}
+                  value={role}
+                >
+                  <SelectTrigger id="team-invite-role">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="member">Miembro</SelectItem>
+                      {canInviteAdmin ? (
+                        <SelectItem value="admin">Administración</SelectItem>
+                      ) : null}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                <FieldDescription>
+                  {role === "admin"
+                    ? "Accede a todas las cuentas y puede administrar miembros, excepto otros administradores."
+                    : "Solo trabaja con las cuentas que le asignes."}
+                </FieldDescription>
+              </Field>
+            </FieldGroup>
+          </div>
+          <SheetFooter className="flex-row justify-end border-t">
             <Button
               disabled={pending}
               onClick={() => onOpenChange(false)}
@@ -169,10 +179,10 @@ export function InviteDialog({
               )}
               {pending ? "Enviando..." : "Enviar invitación"}
             </Button>
-          </DialogFooter>
+          </SheetFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   )
 }
 
@@ -210,94 +220,96 @@ export function MemberAccessDialog({
   }
 
   return (
-    <Dialog onOpenChange={onOpenChange} open>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Acceso de {member.name}</DialogTitle>
-          <DialogDescription>
+    <Sheet onOpenChange={onOpenChange} open>
+      <SheetContent className="w-full gap-0 p-0 sm:max-w-md" side="right">
+        <SheetHeader className="border-b">
+          <SheetTitle>Acceso de {member.name}</SheetTitle>
+          <SheetDescription>
             El rol y las cuentas se validan nuevamente en API y Worker en cada
             operación.
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
         <form
-          className="flex flex-col gap-5"
+          className="flex min-h-0 flex-1 flex-col"
           onSubmit={(event) => {
             event.preventDefault()
             onSubmit({ accountIds, role })
           }}
         >
-          {error ? (
-            <Alert variant="destructive">
-              <CircleAlert aria-hidden="true" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          ) : null}
-          <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="team-member-role">Rol</FieldLabel>
-              {actorRole === "owner" ? (
-                <Select
-                  disabled={pending}
-                  onValueChange={(value) => setRole(value as InvitationRole)}
-                  value={role}
-                >
-                  <SelectTrigger id="team-member-role">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="member">Miembro</SelectItem>
-                      <SelectItem value="admin">Administración</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Badge variant={roleMeta[role].variant}>
-                  {roleMeta[role].label}
-                </Badge>
-              )}
-            </Field>
-            <FieldSet data-disabled={role === "admin" || pending}>
-              <FieldLegend variant="label">Cuentas asignadas</FieldLegend>
-              {role === "admin" ? (
-                <FieldDescription>
-                  Administración accede a todas las cuentas activas del
-                  workspace.
-                </FieldDescription>
-              ) : accounts.length ? (
-                <FieldGroup data-slot="checkbox-group" className="gap-3">
-                  {accounts.map((account) => {
-                    const controlId = `team-account-${account.id}`
-                    return (
-                      <Field key={account.id} orientation="horizontal">
-                        <Checkbox
-                          checked={accountIds.includes(account.id)}
-                          disabled={pending}
-                          id={controlId}
-                          onCheckedChange={(value) =>
-                            toggleAccount(account.id, value === true)
-                          }
-                        />
-                        <FieldLabel htmlFor={controlId}>
-                          <FieldContent>
-                            <FieldTitle>{account.name}</FieldTitle>
-                            <FieldDescription>
-                              {account.detail}
-                            </FieldDescription>
-                          </FieldContent>
-                        </FieldLabel>
-                      </Field>
-                    )
-                  })}
-                </FieldGroup>
-              ) : (
-                <FieldDescription>
-                  No hay cuentas activas para asignar.
-                </FieldDescription>
-              )}
-            </FieldSet>
-          </FieldGroup>
-          <DialogFooter>
+          <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4">
+            {error ? (
+              <Alert variant="destructive">
+                <CircleAlert aria-hidden="true" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            ) : null}
+            <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="team-member-role">Rol</FieldLabel>
+                {actorRole === "owner" ? (
+                  <Select
+                    disabled={pending}
+                    onValueChange={(value) => setRole(value as InvitationRole)}
+                    value={role}
+                  >
+                    <SelectTrigger id="team-member-role">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="member">Miembro</SelectItem>
+                        <SelectItem value="admin">Administración</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <Badge variant={roleMeta[role].variant}>
+                    {roleMeta[role].label}
+                  </Badge>
+                )}
+              </Field>
+              <FieldSet data-disabled={role === "admin" || pending}>
+                <FieldLegend variant="label">Cuentas asignadas</FieldLegend>
+                {role === "admin" ? (
+                  <FieldDescription>
+                    Administración accede a todas las cuentas activas del
+                    workspace.
+                  </FieldDescription>
+                ) : accounts.length ? (
+                  <FieldGroup data-slot="checkbox-group" className="gap-3">
+                    {accounts.map((account) => {
+                      const controlId = `team-account-${account.id}`
+                      return (
+                        <Field key={account.id} orientation="horizontal">
+                          <Checkbox
+                            checked={accountIds.includes(account.id)}
+                            disabled={pending}
+                            id={controlId}
+                            onCheckedChange={(value) =>
+                              toggleAccount(account.id, value === true)
+                            }
+                          />
+                          <FieldLabel htmlFor={controlId}>
+                            <FieldContent>
+                              <FieldTitle>{account.name}</FieldTitle>
+                              <FieldDescription>
+                                {account.detail}
+                              </FieldDescription>
+                            </FieldContent>
+                          </FieldLabel>
+                        </Field>
+                      )
+                    })}
+                  </FieldGroup>
+                ) : (
+                  <FieldDescription>
+                    No hay cuentas activas para asignar.
+                  </FieldDescription>
+                )}
+              </FieldSet>
+            </FieldGroup>
+          </div>
+          <SheetFooter className="flex-row justify-end border-t">
             <Button
               disabled={pending}
               onClick={() => onOpenChange(false)}
@@ -307,13 +319,17 @@ export function MemberAccessDialog({
               Cancelar
             </Button>
             <Button disabled={pending} type="submit">
-              {pending ? <LoaderCircle data-icon="inline-start" /> : null}
+              {pending ? (
+                <LoaderCircle data-icon="inline-start" />
+              ) : (
+                <Save aria-hidden="true" data-icon="inline-start" />
+              )}
               {pending ? "Guardando..." : "Guardar acceso"}
             </Button>
-          </DialogFooter>
+          </SheetFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   )
 }
 

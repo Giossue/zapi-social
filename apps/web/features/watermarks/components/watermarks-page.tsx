@@ -8,7 +8,11 @@ import {
   useMemo,
   useState,
 } from "react"
-import { filesApi } from "@workspace/api-client"
+import { ApiError, filesApi, watermarksApi } from "@workspace/api-client"
+import type {
+  CreatePortalWatermarkInput,
+  PortalWatermark,
+} from "@workspace/contracts"
 import {
   Check,
   ChevronDown,
@@ -84,6 +88,7 @@ import {
   SheetTitle,
 } from "@workspace/ui/components/sheet"
 import { Slider } from "@workspace/ui/components/slider"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { Toggle } from "@workspace/ui/components/toggle"
 import {
   Tabs,
@@ -97,11 +102,8 @@ import {
   ToggleGroupItem,
 } from "@workspace/ui/components/toggle-group"
 
-import {
-  watermarkAccountsFixture,
-  watermarksFixture,
-} from "@/features/watermarks/fixtures/watermarks"
 import type {
+  WatermarkAccount,
   WatermarkDraft,
   WatermarkImageAsset,
   WatermarkLibraryFolder,
@@ -197,6 +199,66 @@ const DRAFT_COMPARED_KEYS = [
   "textWeight",
 ] as const satisfies ReadonlyArray<keyof WatermarkDraft>
 
+function toWatermarkRule(watermark: PortalWatermark): WatermarkRule {
+  return {
+    id: watermark.id,
+    socialAccountId: watermark.socialAccountId,
+    type: watermark.type,
+    imageFileAssetId: watermark.imageFileAssetId,
+    text: watermark.text,
+    position: watermark.position,
+    opacityPercent: watermark.opacityPercent,
+    scalePercent: watermark.scalePercent,
+    textPreset: watermark.textPreset,
+    textColor: watermark.textColor,
+    textWeight: watermark.textWeight,
+    updatedAt: watermark.updatedAt,
+  }
+}
+
+/**
+ * El contrato es una unión discriminada estricta: `image` no admite `text` ni al
+ * revés. Devuelve `null` cuando falta el contenido obligatorio del modo activo.
+ */
+function toWatermarkInput(
+  draft: WatermarkDraft,
+  socialAccountId: string | null
+): CreatePortalWatermarkInput | null {
+  const shared = {
+    socialAccountId,
+    position: draft.position,
+    opacityPercent: draft.opacityPercent,
+    scalePercent: draft.scalePercent,
+    textPreset: draft.textPreset,
+    textColor: draft.textColor,
+    textWeight: draft.textWeight,
+  }
+
+  if (draft.type === "image") {
+    return draft.imageFileAssetId
+      ? { ...shared, type: "image", imageFileAssetId: draft.imageFileAssetId }
+      : null
+  }
+
+  const text = (draft.text ?? "").trim()
+  return text ? { ...shared, type: "text", text } : null
+}
+
+function watermarkErrorMessage(error: unknown) {
+  if (!(error instanceof ApiError))
+    return "No pudimos guardar los cambios. Inténtalo de nuevo."
+
+  if (error.code === "WATERMARK_TARGET_EXISTS")
+    return "Ese destino ya tiene una marca de agua. Recarga la página para verla."
+  if (error.status === 403)
+    return "No tienes permiso para administrar marcas de agua."
+  if (error.status === 404)
+    return "La marca de agua ya no existe. Recarga la página."
+  if (error.status === 400)
+    return "Revisa la imagen o el texto: el servidor rechazó la configuración."
+  return "No pudimos guardar los cambios. Inténtalo de nuevo."
+}
+
 function draftFromRule(rule: WatermarkRule | null): WatermarkDraft {
   if (rule) {
     return {
@@ -216,11 +278,13 @@ function draftFromRule(rule: WatermarkRule | null): WatermarkDraft {
 }
 
 function WatermarkScopePicker({
+  accounts,
   isGlobalScope,
   onGlobalSelect,
   onSelectedAccountIdsChange,
   selectedAccountIds,
 }: {
+  accounts: readonly WatermarkAccount[]
   isGlobalScope: boolean
   onGlobalSelect: () => void
   onSelectedAccountIdsChange: (accountIds: string[]) => void
@@ -230,12 +294,12 @@ function WatermarkScopePicker({
   const [provider, setProvider] =
     useState<(typeof accountProviderFilters)[number]["value"]>("all")
   const [query, setQuery] = useState("")
-  const selectedAccounts = watermarkAccountsFixture.filter((account) =>
+  const selectedAccounts = accounts.filter((account) =>
     selectedAccountIds.includes(account.id)
   )
   const filteredAccounts = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("es")
-    return watermarkAccountsFixture.filter((account) => {
+    return accounts.filter((account) => {
       const matchesProvider =
         provider === "all" || account.providerKey === provider
       const matchesQuery =
@@ -250,7 +314,7 @@ function WatermarkScopePicker({
 
       return matchesProvider && matchesQuery
     })
-  }, [provider, query])
+  }, [accounts, provider, query])
 
   function toggleAccount(accountId: string, checked: boolean) {
     onSelectedAccountIdsChange(
@@ -659,18 +723,48 @@ function WatermarkPreview({
 }
 
 export function WatermarksPage() {
-  const [rules, setRules] = useState<WatermarkRule[]>(watermarksFixture)
+  const [rules, setRules] = useState<WatermarkRule[]>([])
+  const [accounts, setAccounts] = useState<WatermarkAccount[]>([])
+  const [canManage, setCanManage] = useState(false)
+  const [listStatus, setListStatus] = useState<"loading" | "ready" | "error">(
+    "loading"
+  )
+  const [pending, setPending] = useState(false)
   const [isGlobalScope, setIsGlobalScope] = useState(true)
   const [selectedAccountIds, setSelectedAccountIds] = useState<string[]>([])
   const [imagePickerOpen, setImagePickerOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const library = useLibraryImages()
-  const canManage = true
-  const [draft, setDraft] = useState<WatermarkDraft>(() =>
-    draftFromRule(
-      watermarksFixture.find((rule) => rule.socialAccountId === null) ?? null
-    )
-  )
+  const [draft, setDraft] = useState<WatermarkDraft>(() => ({
+    ...defaultDraft,
+  }))
+
+  const loadRules = useCallback(async () => {
+    setListStatus("loading")
+    try {
+      const data = await watermarksApi.list()
+      setAccounts(
+        data.accounts.map(
+          ({ capabilityKey, displayName, id, providerKey }) => ({
+            capabilityKey,
+            displayName,
+            id,
+            providerKey,
+          })
+        )
+      )
+      setRules(data.watermarks.map(toWatermarkRule))
+      setCanManage(data.canManage)
+      setListStatus("ready")
+    } catch {
+      setListStatus("error")
+    }
+  }, [])
+
+  useEffect(() => {
+    void loadRules()
+  }, [loadRules])
+
   const targetAccountIds = isGlobalScope ? [null] : selectedAccountIds
   const targetRules = useMemo(
     () =>
@@ -693,12 +787,105 @@ export function WatermarksPage() {
     [baselineDraft, draft]
   )
   const isCreating = targetRules.length === 0
+  /** Al cambiar de objetivo el editor parte de lo que ese objetivo tiene guardado. */
+  const targetKey = isGlobalScope ? "global" : selectedAccountIds.join(",")
+  useEffect(() => {
+    setDraft(draftFromRule(targetRules[0] ?? null))
+    // El objetivo define la línea base; `targetRules` cambia también al recargar.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetKey, rules])
   /** Una marca sin contenido no se puede aplicar: imagen en modo imagen, texto en modo texto. */
   const hasContent =
     draft.type === "image"
       ? draft.imageFileAssetId !== null
       : (draft.text ?? "").trim() !== ""
-  const canSave = hasTarget && hasContent && (isCreating || isDirty)
+  const canSave =
+    canManage && hasTarget && hasContent && (isCreating || isDirty)
+
+  function updateDraft<Key extends keyof WatermarkDraft>(
+    key: Key,
+    value: WatermarkDraft[Key]
+  ) {
+    setDraft((current) => ({ ...current, [key]: value }))
+  }
+
+  async function save() {
+    if (!canSave || pending) return
+
+    setPending(true)
+    try {
+      const configuredByAccountId = new Map(
+        targetRules.map((rule) => [rule.socialAccountId, rule.id])
+      )
+      await Promise.all(
+        targetAccountIds.map((socialAccountId) => {
+          const payload = toWatermarkInput(draft, socialAccountId)
+          if (!payload) return Promise.resolve()
+          const existingId = configuredByAccountId.get(socialAccountId)
+          return existingId
+            ? watermarksApi.update(existingId, payload)
+            : watermarksApi.create(payload)
+        })
+      )
+      await loadRules()
+      toast.success(
+        isCreating ? "Marca de agua creada" : "Marca de agua actualizada"
+      )
+    } catch (error) {
+      toast.error(watermarkErrorMessage(error))
+    } finally {
+      setPending(false)
+    }
+  }
+
+  async function remove() {
+    if (!targetRules.length || pending) return
+
+    setPending(true)
+    try {
+      await Promise.all(
+        targetRules.map((rule) => watermarksApi.remove(rule.id))
+      )
+      await loadRules()
+      setDeleteOpen(false)
+      toast.success(
+        targetRules.length === 1
+          ? "Marca de agua eliminada"
+          : "Marcas de agua eliminadas"
+      )
+    } catch (error) {
+      toast.error(watermarkErrorMessage(error))
+    } finally {
+      setPending(false)
+    }
+  }
+
+  const selectedImage =
+    library.assets.find(({ id }) => id === draft.imageFileAssetId) ?? null
+
+  if (listStatus === "loading") return <PageLoading className="min-h-dvh" />
+
+  if (listStatus === "error") {
+    return (
+      <Card>
+        <CardContent>
+          <EmptyState
+            action={
+              <Button
+                onClick={() => void loadRules()}
+                variant="brand-secondary"
+              >
+                Reintentar
+              </Button>
+            }
+            description="Comprueba tu conexión e inténtalo de nuevo."
+            icon={TriangleAlert}
+            title="No pudimos cargar las marcas de agua"
+          />
+        </CardContent>
+      </Card>
+    )
+  }
 
   if (!canManage) {
     return (
@@ -713,60 +900,6 @@ export function WatermarksPage() {
       </Card>
     )
   }
-
-  function updateDraft<Key extends keyof WatermarkDraft>(
-    key: Key,
-    value: WatermarkDraft[Key]
-  ) {
-    setDraft((current) => ({ ...current, [key]: value }))
-  }
-
-  function save() {
-    if (!canSave) return
-
-    const now = new Date().toISOString()
-    setRules((current) => {
-      const targetIds = new Set(targetAccountIds)
-      const configuredTargetIds = new Set(
-        current
-          .filter((rule) => targetIds.has(rule.socialAccountId))
-          .map((rule) => rule.socialAccountId)
-      )
-      const updatedRules = current.map((rule) =>
-        targetIds.has(rule.socialAccountId)
-          ? {
-              ...rule,
-              ...draft,
-              socialAccountId: rule.socialAccountId,
-              updatedAt: now,
-            }
-          : rule
-      )
-      const createdRules = targetAccountIds
-        .filter((accountId) => !configuredTargetIds.has(accountId))
-        .map((socialAccountId, index) => ({
-          ...draft,
-          id: `fixture-watermark-${Date.now()}-${index}`,
-          socialAccountId,
-          updatedAt: now,
-        }))
-
-      return [...updatedRules, ...createdRules]
-    })
-    toast.success(
-      isCreating ? "Marca de agua creada" : "Marca de agua actualizada"
-    )
-  }
-
-  function remove() {
-    if (!targetRules.length) return
-    const targetRuleIds = new Set(targetRules.map(({ id }) => id))
-    setRules((current) => current.filter(({ id }) => !targetRuleIds.has(id)))
-    setDeleteOpen(false)
-  }
-
-  const selectedImage =
-    library.assets.find(({ id }) => id === draft.imageFileAssetId) ?? null
 
   return (
     <>
@@ -799,6 +932,7 @@ export function WatermarksPage() {
                 </span>
               </FieldLabel>
               <WatermarkScopePicker
+                accounts={accounts}
                 isGlobalScope={isGlobalScope}
                 onGlobalSelect={() => {
                   setIsGlobalScope(true)
@@ -1030,18 +1164,23 @@ export function WatermarksPage() {
         </CardContent>
       </Card>
       <div className="mt-3 flex justify-end">
-        <Button disabled={!canSave} onClick={save}>
-          {isCreating ? (
-            <>
-              <Plus aria-hidden="true" data-icon="inline-start" />
-              {isGlobalScope ? "Crear marca de agua" : "Aplicar a cuentas"}
-            </>
+        <Button
+          disabled={!canSave || pending}
+          onClick={() => void save()}
+          aria-busy={pending}
+        >
+          {pending ? (
+            <Spinner data-icon="inline-start" />
+          ) : isCreating ? (
+            <Plus aria-hidden="true" data-icon="inline-start" />
           ) : (
-            <>
-              <Save aria-hidden="true" data-icon="inline-start" />
-              Guardar cambios
-            </>
+            <Save aria-hidden="true" data-icon="inline-start" />
           )}
+          {isCreating
+            ? isGlobalScope
+              ? "Crear marca de agua"
+              : "Aplicar a cuentas"
+            : "Guardar cambios"}
         </Button>
       </div>
       <WatermarkImagePicker
@@ -1065,9 +1204,17 @@ export function WatermarksPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={remove} variant="destructive">
-              Eliminar marca
+            <AlertDialogCancel disabled={pending}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={pending}
+              onClick={(event) => {
+                event.preventDefault()
+                void remove()
+              }}
+              variant="destructive"
+            >
+              {pending ? <Spinner data-icon="inline-start" /> : null}
+              {pending ? "Eliminando..." : "Eliminar marca"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
