@@ -20,12 +20,12 @@ import {
 import {
   Field,
   FieldDescription,
-  FieldError,
   FieldGroup,
   FieldLabel,
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { PageLoading } from "@workspace/ui/components/page-loading"
+import { Separator } from "@workspace/ui/components/separator"
 import {
   Select,
   SelectContent,
@@ -35,14 +35,14 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { toast } from "@workspace/ui/components/toast"
 import {
-  CheckCircle2,
-  CircleAlert,
-  KeyRound,
-  Mail,
-  UserRound,
-} from "lucide-react"
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/tabs"
+import { toast } from "@workspace/ui/components/toast"
+import { CircleAlert, KeyRound, Save } from "lucide-react"
 import { useEffect, useMemo, useState, type FormEvent } from "react"
 import { announceSessionLogout } from "@/features/identity/components/session-synchronizer"
 import type { PortalProfile } from "@workspace/contracts"
@@ -80,6 +80,14 @@ function initials(name: string) {
     .toUpperCase()
 }
 
+function browserTimeZone() {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"
+  } catch {
+    return "UTC"
+  }
+}
+
 function profileError(error: unknown) {
   if (!(error instanceof ApiError)) {
     return "No pudimos guardar los cambios. Inténtalo de nuevo."
@@ -105,14 +113,13 @@ export function PortalProfilePage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [savingPreferences, setSavingPreferences] = useState(false)
-  const [preferencesError, setPreferencesError] = useState<string | null>(null)
   const [locale, setLocale] = useState<"" | "es" | "en">("")
   const [displayName, setDisplayName] = useState("")
   const [timezone, setTimezone] = useState("")
   const [savingPassword, setSavingPassword] = useState(false)
-  const [passwordError, setPasswordError] = useState<string | null>(null)
-  const [passwordConfirmationError, setPasswordConfirmationError] =
-    useState(false)
+  const [currentPassword, setCurrentPassword] = useState("")
+  const [newPassword, setNewPassword] = useState("")
+  const [passwordConfirmation, setPasswordConfirmation] = useState("")
 
   useEffect(() => {
     let active = true
@@ -123,7 +130,7 @@ export function PortalProfilePage() {
         setProfile(nextProfile)
         setDisplayName(nextProfile.displayName)
         setLocale(nextProfile.locale ?? "")
-        setTimezone(nextProfile.timezone ?? "")
+        setTimezone(nextProfile.timezone ?? browserTimeZone())
         setError(null)
       })
       .catch(() => {
@@ -151,24 +158,29 @@ export function PortalProfilePage() {
   async function savePreferences(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!profile) return
+    if (!displayName.trim()) {
+      toast.error("Completa el nombre visible.")
+      return
+    }
+    if (!timezone) {
+      toast.error("Selecciona tu zona horaria.")
+      return
+    }
 
-    setPreferencesError(null)
     setSavingPreferences(true)
     try {
       const nextProfile = await profileApi.update({
         displayName,
         locale: locale || null,
-        timezone: timezone.trim() || null,
+        timezone: timezone.trim(),
       })
       setProfile(nextProfile)
       setDisplayName(nextProfile.displayName)
       setLocale(nextProfile.locale ?? "")
-      setTimezone(nextProfile.timezone ?? "")
+      setTimezone(nextProfile.timezone ?? browserTimeZone())
       toast.success("Perfil actualizado.")
     } catch (nextError) {
-      const message = profileError(nextError)
-      setPreferencesError(message)
-      toast.error(message)
+      toast.error(profileError(nextError))
     } finally {
       setSavingPreferences(false)
     }
@@ -176,35 +188,31 @@ export function PortalProfilePage() {
 
   async function savePassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const form = new FormData(event.currentTarget)
-    const newPassword = String(form.get("newPassword") ?? "")
-    const passwordConfirmation = String(form.get("passwordConfirmation") ?? "")
-
-    setPasswordError(null)
-    setPasswordConfirmationError(false)
+    if (!currentPassword || !newPassword || !passwordConfirmation) {
+      toast.error("Completa todos los campos.")
+      return
+    }
     if (newPassword !== passwordConfirmation) {
-      const message = "Las contraseñas nuevas no coinciden."
-      setPasswordError(message)
-      setPasswordConfirmationError(true)
+      toast.error("Las contraseñas nuevas no coinciden.")
       return
     }
 
     setSavingPassword(true)
     try {
       await profileApi.changePassword({
-        currentPassword: String(form.get("currentPassword") ?? ""),
+        currentPassword,
         newPassword,
         passwordConfirmation,
       })
-      event.currentTarget.reset()
+      setCurrentPassword("")
+      setNewPassword("")
+      setPasswordConfirmation("")
       toast.success(
         "Contraseña actualizada. Inicia sesión de nuevo para continuar."
       )
       announceSessionLogout()
     } catch (nextError) {
-      const message = profileError(nextError)
-      setPasswordError(message)
-      toast.error(message)
+      toast.error(profileError(nextError))
     } finally {
       setSavingPassword(false)
     }
@@ -217,6 +225,9 @@ export function PortalProfilePage() {
     (displayName.trim() !== profile.displayName ||
       locale !== (profile.locale ?? "") ||
       timezone.trim() !== (profile.timezone ?? ""))
+  const passwordFormComplete = Boolean(
+    currentPassword && newPassword && passwordConfirmation
+  )
 
   if (!profile || error) {
     return (
@@ -243,298 +254,245 @@ export function PortalProfilePage() {
   }
 
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
-      <Card className="lg:row-span-2" size="sm" variant="subtle">
-        <CardHeader>
-          <CardTitle>Cuenta</CardTitle>
-          <CardDescription>
-            Información de acceso de tu usuario.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-5">
-          <div className="flex items-start gap-3">
-            <Avatar size="lg">
-              <AvatarFallback>
-                {initials(profile.displayName) || "Z"}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <p className="truncate leading-5 font-medium">
-                {profile.displayName}
-              </p>
-              {profile.username ? (
-                <p className="truncate text-sm text-muted-foreground">
-                  @{profile.username}
-                </p>
-              ) : null}
-            </div>
-          </div>
-
-          <dl className="flex flex-col gap-3 text-sm">
-            <div className="flex items-center gap-2">
-              <Mail className="size-4 shrink-0 text-muted-foreground" />
-              <dt className="text-muted-foreground">Correo</dt>
-              <dd className="ml-auto min-w-0 truncate text-right">
-                {profile.email}
-              </dd>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="size-4 shrink-0 text-muted-foreground" />
-              <dt className="text-muted-foreground">Estado</dt>
-              <dd className="ml-auto">
-                {profile.emailVerifiedAt ? (
-                  <Badge variant="success">Verificado</Badge>
-                ) : (
-                  <Badge variant="outline">Sin verificar</Badge>
-                )}
-              </dd>
-            </div>
-          </dl>
-        </CardContent>
-        <CardFooter>
-          <p className="text-sm text-muted-foreground">
-            Miembro desde {formatMemberSince(profile.createdAt)}
-          </p>
-        </CardFooter>
-      </Card>
-
-      <form
-        aria-busy={savingPreferences}
-        className="contents"
-        onSubmit={savePreferences}
+    <Tabs defaultValue="profile" className="mx-auto w-full max-w-4xl gap-4">
+      <TabsList
+        aria-label="Configuración de la cuenta"
+        className="w-full sm:w-fit"
       >
-        <Card className="lg:col-span-2" size="sm" variant="subtle">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <UserRound className="size-4" /> Perfil
-            </CardTitle>
-            <CardDescription>
-              Define cómo apareces y cómo el Portal presenta fechas para ti.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <FieldGroup>
-              {preferencesError ? (
-                <Alert id="profile-preferences-error" variant="destructive">
-                  <CircleAlert />
-                  <AlertTitle>No pudimos guardar el perfil</AlertTitle>
-                  <AlertDescription>{preferencesError}</AlertDescription>
-                </Alert>
-              ) : null}
-              <Field data-disabled={savingPreferences}>
-                <FieldLabel htmlFor="profile-display-name">
-                  Nombre visible <span aria-hidden="true">*</span>
-                </FieldLabel>
-                <Input
-                  aria-describedby={
-                    preferencesError ? "profile-preferences-error" : undefined
-                  }
-                  aria-invalid={preferencesError ? true : undefined}
-                  disabled={savingPreferences}
-                  id="profile-display-name"
-                  maxLength={160}
-                  name="displayName"
-                  onChange={(event) => {
-                    setDisplayName(event.target.value)
-                    setPreferencesError(null)
-                  }}
-                  required
-                  value={displayName}
-                />
-              </Field>
-              <FieldGroup className="grid gap-5 md:grid-cols-2">
+        <TabsTrigger value="profile">Perfil</TabsTrigger>
+        <TabsTrigger value="security">Seguridad</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="profile">
+        <form
+          aria-busy={savingPreferences}
+          noValidate
+          onSubmit={savePreferences}
+        >
+          <Card size="sm">
+            <CardHeader>
+              <CardTitle>Información personal</CardTitle>
+              <CardDescription>
+                Administra cómo apareces y tus preferencias del Portal.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                <Avatar size="lg">
+                  <AvatarFallback>
+                    {initials(profile.displayName) || "Z"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">{profile.displayName}</p>
+                  <p className="truncate text-sm text-muted-foreground">
+                    {profile.email}
+                  </p>
+                </div>
+                <div className="flex flex-col items-start gap-1 sm:items-end">
+                  {profile.emailVerifiedAt ? (
+                    <Badge variant="success">Verificado</Badge>
+                  ) : (
+                    <Badge variant="outline">Sin verificar</Badge>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Miembro desde {formatMemberSince(profile.createdAt)}
+                  </p>
+                </div>
+              </div>
+
+              <Separator />
+
+              <FieldGroup>
                 <Field data-disabled={savingPreferences}>
-                  <FieldLabel htmlFor="profile-locale">
-                    Idioma preferido
+                  <FieldLabel htmlFor="profile-display-name">
+                    Nombre visible{" "}
+                    <span aria-hidden="true" className="text-destructive">
+                      *
+                    </span>
                   </FieldLabel>
-                  <Select
+                  <Input
+                    aria-required="true"
                     disabled={savingPreferences}
-                    onValueChange={(value) => {
-                      setLocale(
-                        value === "system" ? "" : (value as "es" | "en")
-                      )
-                      setPreferencesError(null)
-                    }}
-                    value={locale || "system"}
-                  >
-                    <SelectTrigger
-                      aria-describedby={
-                        preferencesError
-                          ? "profile-preferences-error"
-                          : undefined
-                      }
-                      aria-invalid={preferencesError ? true : undefined}
-                      id="profile-locale"
-                    >
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem value="system">
-                          Usar idioma del Portal
-                        </SelectItem>
-                        <SelectItem value="es">Español</SelectItem>
-                        <SelectItem value="en">English</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                    id="profile-display-name"
+                    maxLength={160}
+                    name="displayName"
+                    onChange={(event) => setDisplayName(event.target.value)}
+                    value={displayName}
+                  />
                 </Field>
-                <Field data-disabled={savingPreferences}>
-                  <FieldLabel htmlFor="profile-timezone">
-                    Zona horaria
-                  </FieldLabel>
-                  <Select
-                    disabled={savingPreferences}
-                    onValueChange={(value) => {
-                      setTimezone(value === "unset" ? "" : value)
-                      setPreferencesError(null)
-                    }}
-                    value={timezone || "unset"}
-                  >
-                    <SelectTrigger
-                      aria-describedby={
-                        preferencesError
-                          ? "profile-preferences-error"
-                          : undefined
-                      }
-                      aria-invalid={preferencesError ? true : undefined}
-                      id="profile-timezone"
+                <FieldGroup className="grid gap-5 md:grid-cols-2">
+                  <Field data-disabled={savingPreferences}>
+                    <FieldLabel htmlFor="profile-locale">
+                      Idioma preferido
+                    </FieldLabel>
+                    <Select
+                      disabled={savingPreferences}
+                      onValueChange={(value) => {
+                        setLocale(
+                          value === "system" ? "" : (value as "es" | "en")
+                        )
+                      }}
+                      value={locale || "system"}
                     >
-                      <SelectValue placeholder="Selecciona zona horaria" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem value="unset">Sin zona horaria</SelectItem>
-                        {availableTimeZones.map((timeZone) => (
-                          <SelectItem key={timeZone} value={timeZone}>
-                            {timeZone}
+                      <SelectTrigger className="w-full" id="profile-locale">
+                        <SelectValue placeholder="Usar idioma del Portal" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectItem value="system">
+                            Usar idioma del Portal
                           </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </Field>
+                          <SelectItem value="es">Español</SelectItem>
+                          <SelectItem value="en">English</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field data-disabled={savingPreferences}>
+                    <FieldLabel htmlFor="profile-timezone">
+                      Zona horaria{" "}
+                      <span aria-hidden="true" className="text-destructive">
+                        *
+                      </span>
+                    </FieldLabel>
+                    <Select
+                      disabled={savingPreferences}
+                      onValueChange={setTimezone}
+                      value={timezone}
+                    >
+                      <SelectTrigger
+                        aria-required="true"
+                        className="w-full"
+                        id="profile-timezone"
+                      >
+                        <SelectValue placeholder="Selecciona zona horaria" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {availableTimeZones.map((timeZone) => (
+                            <SelectItem key={timeZone} value={timeZone}>
+                              {timeZone}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                </FieldGroup>
               </FieldGroup>
-            </FieldGroup>
-          </CardContent>
-          <CardFooter className="flex-col gap-3 sm:flex-row sm:justify-end">
+            </CardContent>
+          </Card>
+          <div className="mt-3 flex justify-end">
             <Button
-              disabled={savingPreferences || !preferencesChanged}
+              disabled={
+                savingPreferences ||
+                !displayName.trim() ||
+                !timezone ||
+                !preferencesChanged
+              }
               type="submit"
             >
               {savingPreferences ? <Spinner data-icon="inline-start" /> : null}
+              {!savingPreferences ? (
+                <Save aria-hidden="true" data-icon="inline-start" />
+              ) : null}
               Guardar perfil
             </Button>
-          </CardFooter>
-        </Card>
-      </form>
+          </div>
+        </form>
+      </TabsContent>
 
-      <form
-        aria-busy={savingPassword}
-        className="contents"
-        onSubmit={savePassword}
-      >
-        <Card className="lg:col-span-2" size="sm" variant="subtle">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <KeyRound className="size-4" /> Seguridad
-            </CardTitle>
-            <CardDescription>
-              Confirma tu contraseña actual antes de definir una nueva.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <FieldGroup>
-              {passwordError ? (
-                <Alert id="profile-password-error" variant="destructive">
-                  <CircleAlert />
-                  <AlertTitle>No pudimos actualizar la contraseña</AlertTitle>
-                  <AlertDescription>{passwordError}</AlertDescription>
-                </Alert>
-              ) : null}
-              <Field data-disabled={savingPassword}>
-                <FieldLabel htmlFor="current-password">
-                  Contraseña actual <span aria-hidden="true">*</span>
-                </FieldLabel>
-                <Input
-                  aria-describedby={
-                    passwordError ? "profile-password-error" : undefined
-                  }
-                  disabled={savingPassword}
-                  autoComplete="current-password"
-                  id="current-password"
-                  name="currentPassword"
-                  onChange={() => setPasswordError(null)}
-                  required
-                  type="password"
-                />
-              </Field>
-              <FieldGroup className="grid gap-5 md:grid-cols-2">
+      <TabsContent value="security">
+        <form aria-busy={savingPassword} noValidate onSubmit={savePassword}>
+          <Card size="sm">
+            <CardHeader>
+              <CardTitle>Cambiar contraseña</CardTitle>
+              <CardDescription>
+                Confirma tu contraseña actual antes de definir una nueva.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <FieldGroup>
                 <Field data-disabled={savingPassword}>
-                  <FieldLabel htmlFor="new-password">
-                    Nueva contraseña <span aria-hidden="true">*</span>
+                  <FieldLabel htmlFor="current-password">
+                    Contraseña actual{" "}
+                    <span aria-hidden="true" className="text-destructive">
+                      *
+                    </span>
                   </FieldLabel>
                   <Input
-                    aria-describedby={
-                      passwordError ? "profile-password-error" : undefined
-                    }
+                    aria-required="true"
+                    autoComplete="current-password"
                     disabled={savingPassword}
-                    autoComplete="new-password"
-                    id="new-password"
-                    name="newPassword"
-                    onChange={() => setPasswordError(null)}
-                    required
+                    id="current-password"
+                    name="currentPassword"
+                    onChange={(event) => setCurrentPassword(event.target.value)}
                     type="password"
+                    value={currentPassword}
                   />
                 </Field>
-                <Field
-                  data-disabled={savingPassword}
-                  data-invalid={passwordConfirmationError}
-                >
-                  <FieldLabel htmlFor="confirm-password">
-                    Confirmar nueva contraseña <span aria-hidden="true">*</span>
-                  </FieldLabel>
-                  <Input
-                    aria-describedby={
-                      passwordError ? "profile-password-error" : undefined
-                    }
-                    aria-invalid={passwordConfirmationError || undefined}
-                    disabled={savingPassword}
-                    autoComplete="new-password"
-                    id="confirm-password"
-                    name="passwordConfirmation"
-                    onChange={() => {
-                      setPasswordError(null)
-                      setPasswordConfirmationError(false)
-                    }}
-                    required
-                    type="password"
-                  />
-                  {passwordConfirmationError ? (
-                    <FieldError>
-                      Las contraseñas nuevas no coinciden.
-                    </FieldError>
-                  ) : null}
-                </Field>
+                <FieldGroup className="grid gap-5 md:grid-cols-2">
+                  <Field data-disabled={savingPassword}>
+                    <FieldLabel htmlFor="new-password">
+                      Nueva contraseña{" "}
+                      <span aria-hidden="true" className="text-destructive">
+                        *
+                      </span>
+                    </FieldLabel>
+                    <Input
+                      aria-required="true"
+                      autoComplete="new-password"
+                      disabled={savingPassword}
+                      id="new-password"
+                      name="newPassword"
+                      onChange={(event) => setNewPassword(event.target.value)}
+                      type="password"
+                      value={newPassword}
+                    />
+                  </Field>
+                  <Field data-disabled={savingPassword}>
+                    <FieldLabel htmlFor="confirm-password">
+                      Confirmar nueva contraseña{" "}
+                      <span aria-hidden="true" className="text-destructive">
+                        *
+                      </span>
+                    </FieldLabel>
+                    <Input
+                      aria-required="true"
+                      autoComplete="new-password"
+                      disabled={savingPassword}
+                      id="confirm-password"
+                      name="passwordConfirmation"
+                      onChange={(event) =>
+                        setPasswordConfirmation(event.target.value)
+                      }
+                      type="password"
+                      value={passwordConfirmation}
+                    />
+                  </Field>
+                </FieldGroup>
+                <FieldDescription>
+                  Mínimo 8 caracteres, con mayúscula, minúscula, número y
+                  carácter especial.
+                </FieldDescription>
               </FieldGroup>
-              <FieldDescription>
-                Mínimo 8 caracteres, con mayúscula, minúscula, número y carácter
-                especial.
-              </FieldDescription>
-            </FieldGroup>
-          </CardContent>
-          <CardFooter className="flex-col gap-3 sm:flex-row sm:justify-end">
+            </CardContent>
+          </Card>
+          <div className="mt-3 flex justify-end">
             <Button
-              disabled={savingPassword}
+              disabled={savingPassword || !passwordFormComplete}
               type="submit"
-              variant="brand-secondary"
             >
               {savingPassword ? <Spinner data-icon="inline-start" /> : null}
+              {!savingPassword ? (
+                <KeyRound aria-hidden="true" data-icon="inline-start" />
+              ) : null}
               Actualizar contraseña
             </Button>
-          </CardFooter>
-        </Card>
-      </form>
-    </div>
+          </div>
+        </form>
+      </TabsContent>
+    </Tabs>
   )
 }

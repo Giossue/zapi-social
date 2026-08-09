@@ -40,6 +40,8 @@ Los tokens expresan roles de interfaz; no son una paleta libre para elegir por g
 
 No aplicar clases de color a un primitive para cambiar su apariencia (`bg-*`, `text-*`, `border-*`, `dark:*`). Si falta un rol visual, se amplía el token o la variante en `packages/ui` con una decisión documentada, antes de usarlo en una feature.
 
+Toda acción principal incluye un icono semántico a la izquierda del texto con `data-icon="inline-start"`. Durante un estado pendiente, `Spinner` ocupa esa misma posición. No colocar el icono principal al final.
+
 ### Política de elevación y sombras
 
 Las sombras son tokens globales, no decoración por pantalla:
@@ -58,9 +60,12 @@ Features, rutas y shells no escriben `shadow-*`, `box-shadow`, `filter: drop-sha
 Antes de crear markup o un componente, ejecutar `codebase-memory` para comprobar qué existe realmente en `packages/ui` y revisar el [catálogo global](../../packages/ui/COMPONENTS.md). No responder por memoria ni asumir que un componente falta.
 
 - `componentes.md` contiene candidatos/comandos de 21st; no es el catálogo de componentes instalados. Consultarlo solo para inspiración o bloques externos.
-- Reutilizar el primitive o variante existente antes de crear uno nuevo. No duplicar `Button`, `Dialog`, `Input`, `Select`, `Table`, `Tooltip`, `Toast`, `Empty`, `Alert`, `Badge`, `Card` o `Skeleton`.
+- Reutilizar el primitive o variante existente antes de crear uno nuevo. No duplicar `Button`, `Dialog`, `Input`, `Select`, `Table`, `Tooltip`, `Toast`, `Empty`, `Alert`, `Badge`, `Card` o `PageLoading`.
 - No usar `Button` con `variant="ghost"` en producto. Las acciones secundarias, incluidas cancelar, cerrar e iconos, usan `variant="brand-secondary"`. La variante `ghost` permanece solo por compatibilidad interna hasta eliminarla de `packages/ui`.
 - Formularios usan primitives/Field actuales; no inputs estilizados locales.
+- Todo formulario de producto usa `noValidate`: nunca mostrar globos, mensajes o validación visual nativa del navegador. Los errores de campos y de envío se comunican con `toast.error`; `Alert` queda para estados persistentes de página, no para validación del formulario.
+- La acción principal de un formulario permanece deshabilitada hasta que todos sus campos obligatorios tengan valor. Después del submit, reglas como formato, coincidencia o política se validan en aplicación y sus errores se muestran por toast.
+- Todo campo obligatorio muestra `*` dentro de `FieldLabel` con `aria-hidden="true"` y `text-destructive`; el control usa `aria-required="true"`. Este marcador es composición simple, no un componente compartido.
 - Modal, dropdown, tooltip y drawer conservan primitive accesible; no z-index ni focus trap locales.
 - Un componente específico de dominio permanece en `features/<dominio>/components`.
 - Las tablas operativas paginadas usan `TablePagination`; no duplicar ese footer en una feature. Usar modo `compact` cuando el footer solo requiere rango y flechas —para datos remotos o locales— y modo `detailed` cuando la tabla necesita selector de filas, página y controles primera/anterior/siguiente/última.
@@ -108,6 +113,7 @@ Laravel referencia → pantalla Next → fixtures/mock → estados UI → contra
 - No implementar backend de módulo antes de aprobar diseño, estados y acciones mock, salvo solicitud explícita.
 - Fixtures son sintéticos, deterministas y nunca incluyen datos/tokens producción.
 - Cada pantalla cubre normal, loading, empty, error, permisos, móvil y claro/oscuro cuando aplique.
+- El estado de carga es **siempre** `PageLoading` (`@workspace/ui/components/page-loading`). Es el único loading del sistema: no se usan skeletons, barras de progreso ni loaders a medida, y el primitive `Skeleton` fue eliminado de `packages/ui`. Aplica a `app/**/loading.tsx`, a los estados `isLoading` de cliente y a las tarjetas que cargan por separado. Un loading de feature (`ChannelsLoading`, `TeamsLoading`, `IntegrationCardLoading`) solo puede envolver `PageLoading` con su contenedor —como mucho ajustando la altura vía `className`—, nunca reconstruir la forma del contenido. `Spinner` queda reservado para el interior de un control concreto, como un botón pendiente.
 - Los `EmptyState` operativos usan el tamaño de icono de las metric cards (`size-5`) como escala base. No repetir dentro del empty state una acción primaria que ya está disponible de forma persistente en el encabezado de la misma pantalla; se permiten acciones contextuales no redundantes, como **Reintentar** ante un error o **Limpiar filtros** ante una búsqueda sin resultados.
 - Next no accede directamente a PostgreSQL ni Redis.
 
@@ -128,13 +134,14 @@ Toda integración UI termina con:
 typecheck
 build/lint disponible
 diff sin CSS/tokens duplicados
-revisión visual manual cuando exista navegador
+aprobación visual del usuario
 ```
+
+En cambios visuales rutinarios, el agente edita y ejecuta las validaciones automáticas disponibles; el usuario aprueba el resultado visual. No iniciar o reiniciar servidores locales, capturar pantallas ni ejecutar smoke de navegador por defecto. Hacerlo solo si el usuario lo solicita o si existe un fallo visual o interactivo concreto que el build no permite diagnosticar.
 
 ## Calidad
 
 Para Definition of Done, pruebas, revisión y validación proporcional, consultar [calidad.md](./calidad.md).
-
 
 ## Regla source-first para `diseño ideal`
 
@@ -166,5 +173,5 @@ Queda prohibido crear un componente de dominio “inspirado” o una versión vi
 4. Mantener la lógica V2 mediante props, hooks o adapters. Solo son adaptables contenido, tipos, datos, handlers, rutas, permisos, sesión y accesibilidad indispensable.
 5. Auditar tokens antes de crear alguno. Un token nuevo se añade primero a la fuente `diseño ideal`, incluyendo claro/oscuro; la copia V2 solo refleja ese token cuando lo consume.
 6. No crear variantes, aliases, sombras, colores raw ni estilos compensatorios locales en V2. Una divergencia visual indispensable se documenta en el plan antes de aceptarla.
-7. Validar la fuente y el consumidor tras cambios compartidos: formato/check/build/lint disponible en ambos repositorios, `git diff --check` y smoke visual cuando haya navegador.
+7. Validar la fuente y el consumidor tras cambios compartidos: formato/check/build/lint disponible en ambos repositorios y `git diff --check`; la aprobación visual corresponde al usuario salvo solicitud explícita o un fallo concreto que requiera diagnóstico en navegador.
 8. Al cerrar una iteración, dejar la superficie pausada. Se reabre exclusivamente por una solicitud de producto nueva; no se hacen retoques preventivos.

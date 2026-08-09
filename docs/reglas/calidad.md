@@ -24,7 +24,7 @@ Los workspaces API y Worker tienen comandos `test`. Antes de ejecutar pruebas de
 
 | Tipo de cambio      | Validación mínima                                                                                                           |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| Ruta o UI Next      | Typecheck y lint/build disponible; estados mock; permisos; móvil; claro/oscuro; revisión visual si hay navegador.           |
+| Ruta o UI Next      | Typecheck y lint/build disponible; estados mock; permisos; móvil; claro/oscuro; aprobación visual del usuario.              |
 | Feature con mock    | Fixture determinista; loading, empty, error y permiso; interacción principal; composición dentro de `features/<dominio>`.   |
 | Contrato REST       | Schemas Zod, DTOs y errores consistentes; autorización; OpenAPI y cliente sincronizados si existen.                         |
 | API Nest            | Typecheck; test focal si existe; validación de entrada; ownership/permisos; no exponer entidades Drizzle.                   |

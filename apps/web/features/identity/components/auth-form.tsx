@@ -1,7 +1,6 @@
 "use client"
 
 import { ApiError, authApi } from "@workspace/api-client"
-import { Alert, AlertDescription } from "@workspace/ui/components/alert"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
@@ -17,20 +16,30 @@ import {
   InputGroupInput,
   InputGroupText,
 } from "@workspace/ui/components/input-group"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
 import {
   Check,
   Eye,
   EyeOff,
+  LogIn,
   LockKeyhole,
   Mail,
+  UserPlus,
   UserRound,
   X,
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState, type FormEvent } from "react"
+import { useEffect, useState, type FormEvent } from "react"
 
 import {
   getAreaDestination,
@@ -38,6 +47,34 @@ import {
 } from "@/features/identity/session-area"
 
 export type AuthMode = "login" | "register"
+
+const suggestedTimeZones = [
+  "America/Guayaquil",
+  "America/Bogota",
+  "America/Lima",
+  "America/Mexico_City",
+  "America/New_York",
+  "America/Los_Angeles",
+  "Europe/Madrid",
+  "UTC",
+]
+
+const availableTimeZones = [
+  ...new Set([
+    ...suggestedTimeZones,
+    ...(typeof Intl.supportedValuesOf === "function"
+      ? Intl.supportedValuesOf("timeZone")
+      : []),
+  ]),
+].sort((first, second) => first.localeCompare(second))
+
+function browserTimeZone() {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"
+  } catch {
+    return "UTC"
+  }
+}
 
 const authErrorMessages: Record<string, string> = {
   AUTH_EMAIL_ALREADY_REGISTERED: "Ya existe una cuenta con este correo.",
@@ -60,7 +97,12 @@ function passwordMeetsPolicy(password: string) {
 }
 
 function RequiredMark() {
-  return <span className="text-destructive"> *</span>
+  return (
+    <span aria-hidden="true" className="text-destructive">
+      {" "}
+      *
+    </span>
+  )
 }
 
 type PasswordRequirementProps = {
@@ -94,29 +136,40 @@ export function AuthForm({
 }) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [formError, setFormError] = useState<string | null>(null)
+  const [displayName, setDisplayName] = useState("")
+  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [passwordConfirmation, setPasswordConfirmation] = useState("")
+  const [timezone, setTimezone] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [showPasswordConfirmation, setShowPasswordConfirmation] =
     useState(false)
   const isLogin = initialMode === "login"
 
+  useEffect(() => {
+    if (!isLogin && !timezone) setTimezone(browserTimeZone())
+  }, [isLogin, timezone])
+
+  const formComplete = isLogin
+    ? Boolean(email.trim() && password)
+    : Boolean(
+        displayName.trim() &&
+        email.trim() &&
+        password &&
+        passwordConfirmation &&
+        timezone
+      )
+
   function reportError(message: string) {
-    setFormError(message)
     toast.error(message)
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setFormError(null)
 
     const form = new FormData(event.currentTarget)
-    const email = String(form.get("email") ?? "").trim()
-    const password = String(form.get("password") ?? "")
-    const passwordConfirmation = String(form.get("passwordConfirmation") ?? "")
 
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       reportError("Ingresa un correo electrónico válido.")
       return
     }
@@ -125,9 +178,12 @@ export function AuthForm({
       return
     }
     if (!isLogin) {
-      const displayName = String(form.get("displayName") ?? "").trim()
-      if (!displayName) {
+      if (!displayName.trim()) {
         reportError("Ingresa tu nombre.")
+        return
+      }
+      if (!timezone) {
+        reportError("Selecciona tu zona horaria.")
         return
       }
       if (!passwordMeetsPolicy(password)) {
@@ -151,9 +207,10 @@ export function AuthForm({
             remember: form.get("remember") === "on",
           })
         : await authApi.register({
-            displayName: String(form.get("displayName") ?? ""),
-            email,
+            displayName,
+            email: email.trim(),
             password,
+            timezone,
           })
       const area = getSessionArea(session)
       if (!area) {
@@ -189,11 +246,6 @@ export function AuthForm({
 
   return (
     <form className="flex flex-col gap-4" noValidate onSubmit={submit}>
-      {formError ? (
-        <Alert variant="destructive">
-          <AlertDescription>{formError}</AlertDescription>
-        </Alert>
-      ) : null}
       <FieldGroup className="gap-4">
         {!isLogin ? (
           <Field className="gap-1.5">
@@ -208,13 +260,15 @@ export function AuthForm({
                 </InputGroupText>
               </InputGroupAddon>
               <InputGroupInput
+                aria-required="true"
                 autoComplete="name"
                 id="register-name"
                 maxLength={160}
                 minLength={2}
                 name="displayName"
+                onChange={(event) => setDisplayName(event.target.value)}
                 placeholder="Tu nombre"
-                required
+                value={displayName}
               />
             </InputGroup>
           </Field>
@@ -231,13 +285,15 @@ export function AuthForm({
               </InputGroupText>
             </InputGroupAddon>
             <InputGroupInput
+              aria-required="true"
               autoComplete="email"
               id={`${initialMode}-email`}
               maxLength={320}
               name="email"
+              onChange={(event) => setEmail(event.target.value)}
               placeholder="tu@correo.com"
-              required
               type="email"
+              value={email}
             />
           </InputGroup>
         </Field>
@@ -254,14 +310,16 @@ export function AuthForm({
                 </InputGroupText>
               </InputGroupAddon>
               <InputGroupInput
+                aria-required="true"
                 autoComplete="current-password"
                 id="login-password"
                 maxLength={128}
                 minLength={1}
                 name="password"
+                onChange={(event) => setPassword(event.target.value)}
                 placeholder="••••••••"
-                required
                 type={showPassword ? "text" : "password"}
+                value={password}
               />
               <InputGroupAddon align="inline-end">
                 <InputGroupButton
@@ -288,6 +346,7 @@ export function AuthForm({
                 </InputGroupText>
               </InputGroupAddon>
               <InputGroupInput
+                aria-required="true"
                 autoComplete="new-password"
                 id="register-password"
                 maxLength={128}
@@ -295,7 +354,6 @@ export function AuthForm({
                 name="password"
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="••••••••"
-                required
                 type={showPassword ? "text" : "password"}
                 value={password}
               />
@@ -331,6 +389,7 @@ export function AuthForm({
                 </InputGroupText>
               </InputGroupAddon>
               <InputGroupInput
+                aria-required="true"
                 autoComplete="new-password"
                 id="register-password-confirmation"
                 maxLength={128}
@@ -340,7 +399,6 @@ export function AuthForm({
                   setPasswordConfirmation(event.target.value)
                 }
                 placeholder="••••••••"
-                required
                 type={showPasswordConfirmation ? "text" : "password"}
                 value={passwordConfirmation}
               />
@@ -400,6 +458,32 @@ export function AuthForm({
             </FieldContent>
           </Field>
         )}
+        {!isLogin ? (
+          <Field className="gap-1.5">
+            <FieldLabel htmlFor="register-timezone">
+              Zona horaria
+              <RequiredMark />
+            </FieldLabel>
+            <Select onValueChange={setTimezone} value={timezone}>
+              <SelectTrigger
+                aria-required="true"
+                className="w-full"
+                id="register-timezone"
+              >
+                <SelectValue placeholder="Selecciona tu zona horaria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {availableTimeZones.map((timeZone) => (
+                    <SelectItem key={timeZone} value={timeZone}>
+                      {timeZone}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </Field>
+        ) : null}
       </FieldGroup>
       {isLogin ? (
         <Link
@@ -409,10 +493,18 @@ export function AuthForm({
           ¿Olvidaste tu contraseña?
         </Link>
       ) : null}
-      <Button className="w-full" disabled={isSubmitting} type="submit">
+      <Button
+        className="w-full"
+        disabled={isSubmitting || !formComplete}
+        type="submit"
+      >
         {isSubmitting ? (
           <Spinner aria-label="Comprobando" data-icon="inline-start" />
-        ) : null}
+        ) : isLogin ? (
+          <LogIn aria-hidden="true" data-icon="inline-start" />
+        ) : (
+          <UserPlus aria-hidden="true" data-icon="inline-start" />
+        )}
         {isSubmitting
           ? "Comprobando…"
           : isLogin

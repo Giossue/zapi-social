@@ -58,7 +58,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import { Skeleton } from "@workspace/ui/components/skeleton"
+import { PageLoading } from "@workspace/ui/components/page-loading"
 import {
   Table,
   TableBody,
@@ -1092,15 +1092,7 @@ function ActivityTable({
   onRetry: () => void
 }) {
   if (loading && !data) {
-    return (
-      <div className="grid gap-px bg-border">
-        {Array.from({ length: 5 }).map((_, index) => (
-          <div className="bg-card px-4 py-4" key={index}>
-            <Skeleton className="h-10 w-full" />
-          </div>
-        ))}
-      </div>
-    )
+    return <PageLoading />
   }
   if (error) {
     return (

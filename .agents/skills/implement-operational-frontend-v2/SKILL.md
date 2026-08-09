@@ -25,5 +25,5 @@ description: Usa este skill para rutas Portal/Admin, tablas, formularios, diálo
 
 - No repetir títulos, resúmenes ni cards decorativos.
 - No exponer IDs, paths, nombres internos de providers ni diagnósticos técnicos.
-- No usar toast como único error de formulario.
+- Los errores de formulario se muestran mediante toast; no usar validación visual nativa del navegador.
 - No crear primitives locales ni colores, sombras o radios fuera de tokens/variantes compartidas.

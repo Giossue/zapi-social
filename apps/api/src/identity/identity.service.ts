@@ -36,8 +36,11 @@ export class IdentityService {
   async register(input: unknown) {
     const parsed = registerSchema.safeParse(input);
     if (!parsed.success) {
+      const passwordInvalid = parsed.error.issues.some(
+        (issue) => issue.path[0] === 'password',
+      );
       throw new AppException(
-        'AUTH_PASSWORD_POLICY_NOT_MET',
+        passwordInvalid ? 'AUTH_PASSWORD_POLICY_NOT_MET' : 'VALIDATION_FAILED',
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -66,6 +69,7 @@ export class IdentityService {
           email,
           displayName: data.displayName,
           passwordHash,
+          timezone: data.timezone,
           isPlatformAdmin: false,
         })
         .returning({

@@ -13,26 +13,26 @@ PATCH /v1/portal/profile
 POST  /v1/portal/profile/password
 ```
 
-| Acción | Estado objetivo |
-| --- | --- |
-| Ver nombre, correo y fecha de registro | incluido |
-| Editar nombre visible | incluido |
-| Editar idioma preferido | incluido |
-| Editar zona horaria IANA | incluido |
-| Cambiar contraseña | incluido |
-| Verificar contraseña actual | incluido |
-| Validar que el usuario solo modifica su propia cuenta | incluido |
-| Estados loading, error, vacío de zona/idioma, permisos, móvil y claro/oscuro | incluido |
+| Acción                                                                       | Estado objetivo |
+| ---------------------------------------------------------------------------- | --------------- |
+| Ver nombre, correo y fecha de registro                                       | incluido        |
+| Editar nombre visible                                                        | incluido        |
+| Editar idioma preferido                                                      | incluido        |
+| Editar zona horaria IANA                                                     | incluido        |
+| Cambiar contraseña                                                           | incluido        |
+| Verificar contraseña actual                                                  | incluido        |
+| Validar que el usuario solo modifica su propia cuenta                        | incluido        |
+| Estados loading, error, vacío de zona/idioma, permisos, móvil y claro/oscuro | incluido        |
 
 ## Fuera de alcance
 
-| Tema | Razón | Módulo posterior |
-| --- | --- | --- |
-| Avatar | `users` no tiene campos de archivo y MinIO no está preparado | Files / avatar de usuario |
-| 2FA, QR TOTP y recovery codes | flujo de seguridad, secretos cifrados y login con desafío | Identity security |
-| Cambio de correo | falta política Admin y ciclo de re-verificación | Identity / Admin auth rules |
-| Cambio de username | falta política Admin y contrato público de handle | Identity / Admin auth rules |
-| Billing e invoices | pertenece a Commerce | Billing |
+| Tema                          | Razón                                                        | Módulo posterior            |
+| ----------------------------- | ------------------------------------------------------------ | --------------------------- |
+| Avatar                        | `users` no tiene campos de archivo y MinIO no está preparado | Files / avatar de usuario   |
+| 2FA, QR TOTP y recovery codes | flujo de seguridad, secretos cifrados y login con desafío    | Identity security           |
+| Cambio de correo              | falta política Admin y ciclo de re-verificación              | Identity / Admin auth rules |
+| Cambio de username            | falta política Admin y contrato público de handle            | Identity / Admin auth rules |
+| Billing e invoices            | pertenece a Commerce                                         | Billing                     |
 
 El correo y el username se muestran como solo lectura. No se simula que puedan editarse.
 
@@ -123,14 +123,14 @@ type ChangePortalPasswordInput = {
 
 ## Autorización y errores
 
-| Caso | Resultado |
-| --- | --- |
-| Sin sesión Portal válida | `401` con código de sesión expirada |
-| Cuenta suspendida | `403` / sesión no disponible |
-| Password actual incorrecto | `400` con código seguro, sin revelar más detalle |
-| Política nueva inválida | `400` con código de política |
-| Timezone/locale inválidos | `400 VALIDATION_FAILED` |
-| Intento de enviar email, username, roles o workspace | ignorar/rechazar por schema estricto |
+| Caso                                                 | Resultado                                        |
+| ---------------------------------------------------- | ------------------------------------------------ |
+| Sin sesión Portal válida                             | `401` con código de sesión expirada              |
+| Cuenta suspendida                                    | `403` / sesión no disponible                     |
+| Password actual incorrecto                           | `400` con código seguro, sin revelar más detalle |
+| Política nueva inválida                              | `400` con código de política                     |
+| Timezone/locale inválidos                            | `400 VALIDATION_FAILED`                          |
+| Intento de enviar email, username, roles o workspace | ignorar/rechazar por schema estricto             |
 
 El endpoint nunca recibe ID de usuario. Siempre parte de la sesión autenticada.
 
@@ -141,6 +141,27 @@ El endpoint nunca recibe ID de usuario. Siempre parte de la sesión autenticada.
 3. Mostrar resumen de cuenta, formulario de preferencias y formulario de contraseña separados.
 4. Cubrir normal, loading, error de API, éxito, locale/timezone sin valor, contraseña incorrecta, móvil y claro/oscuro.
 5. Revisar composición visual antes de conectar API.
+
+## Refactor visual con tabs
+
+- Fuente canónica: `../diseño ideal/src/app/(main)/dashboard/profile/`.
+- La ruta usa las tabs **Perfil** y **Seguridad**, siguiendo el mismo primitive y densidad del resto del sistema.
+- **Perfil** concentra identidad, correo, verificación, antigüedad y preferencias en una sola superficie.
+- **Seguridad** mantiene el cambio de contraseña como contexto separado.
+- Las acciones de cada formulario quedan fuera de la card, alineadas a la derecha, sin una barra `CardFooter`.
+- Las acciones principales usan un icono semántico a la izquierda, según la regla global de diseño.
+- Los campos obligatorios muestran el asterisco con el token semántico `text-destructive`, igual que autenticación.
+- Los formularios desactivan la validación visual nativa: errores por toast y acción deshabilitada hasta completar los campos obligatorios.
+- La zona horaria es obligatoria también al editar el perfil. Usuarios heredados sin valor ven la zona detectada por el navegador para guardarla; la opción **Sin zona horaria** no existe.
+- Se conserva toda la lógica REST, validación, loading, errores, pending y cierre de sesión existentes. No cambian contratos, API ni persistencia.
+
+### Validación
+
+- [x] Fuente `diseño ideal` formateada, validada y revisada visualmente.
+- [x] Web V2 con lint, typecheck y build exitosos.
+- [x] Tabs, formularios y estados revisados en desktop/móvil y claro/oscuro.
+
+Evidencia local: Biome valida los dos archivos nuevos de la fuente; Playwright confirma cambio de tab y ausencia de overflow a 1440 px y 390 px en claro/oscuro. ESLint focal, typecheck y build Web pasan. El build global de `diseño ideal` compila la ruta, pero conserva el bloqueo preexistente por `@shadcn/react/questionnaire` durante su typecheck.
 
 ## Implementación
 

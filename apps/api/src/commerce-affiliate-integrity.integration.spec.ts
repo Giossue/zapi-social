@@ -268,12 +268,14 @@ describeDatabase('Commerce and affiliate data integrity', () => {
           displayName: `Claim A ${suffix}`,
           email: emails[0],
           password: 'Valid-password-1!',
+          timezone: 'America/Guayaquil',
           referralId: referral.id,
         }),
         service.register({
           displayName: `Claim B ${suffix}`,
           email: emails[1],
           password: 'Valid-password-1!',
+          timezone: 'America/Guayaquil',
           referralId: referral.id,
         }),
       ]);

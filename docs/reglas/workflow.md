@@ -7,6 +7,12 @@
 - Localizar primero la implementación exacta y leer solo el conjunto mínimo necesario para entender el flujo.
 - Buscar literales, rutas, configuraciones, handlers y relaciones con `rg`; usar un script temporal solo si una búsqueda compuesta reduce materialmente el trabajo.
 
+## Comunicación y ejecución
+
+- Usar comunicación breve en modo `/$caveman` mientras el usuario no lo desactive.
+- Para cambios visuales rutinarios: implementar, ejecutar el build y entregar el resultado para aprobación visual del usuario; no convertir la revisión en una secuencia de servidores, capturas o inspecciones locales.
+- Para backend: el agente asume la validación técnica proporcional y explica siempre, en lenguaje directo, qué cambió y qué significa para el producto u operación; no limitar el cierre a nombres de archivos o comandos.
+
 ## Entorno local y privilegios
 
 - Se autoriza leer y editar `.env` locales de este workspace sin confirmación adicional.

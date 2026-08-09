@@ -55,6 +55,42 @@ describeDatabase('Identity workspace context', () => {
     await connection?.client.end();
   });
 
+  it('requires and persists the registration timezone', async () => {
+    await inRollbackTransaction(async (database) => {
+      const service = new IdentityService(
+        { db: database } as DatabaseService,
+        new JwtService({ secret: 'identity-timezone-test-secret' }),
+      );
+      const email = `timezone-user-${randomUUID()}@example.test`;
+
+      await expectCode(
+        service.register({
+          displayName: 'Missing timezone',
+          email: `missing-timezone-${randomUUID()}@example.test`,
+          password: 'Valid-password-1!',
+        }),
+        'VALIDATION_FAILED',
+      );
+
+      await service.register({
+        displayName: 'Timezone user',
+        email,
+        password: 'Valid-password-1!',
+        timezone: 'America/Guayaquil',
+      });
+
+      const [storedUser] = await database
+        .select({
+          isPlatformAdmin: users.isPlatformAdmin,
+          timezone: users.timezone,
+        })
+        .from(users)
+        .where(eq(users.email, email));
+      expect(storedUser?.timezone).toBe('America/Guayaquil');
+      expect(storedUser?.isPlatformAdmin).toBe(false);
+    });
+  });
+
   it('lists memberships and activates only a workspace available to the session user', async () => {
     await inRollbackTransaction(async (database) => {
       const now = new Date();

@@ -9,19 +9,6 @@ const passwordPolicy = z
   .regex(/[0-9]/, "La contraseña debe incluir un número.")
   .regex(/[^A-Za-z0-9]/, "La contraseña debe incluir un carácter especial.")
 
-export const registerSchema = z.object({
-  email: z.string().trim().email().max(320),
-  password: passwordPolicy,
-  displayName: z.string().trim().min(2).max(160),
-  referralId: z.uuid().optional(),
-})
-
-export const loginSchema = z.object({
-  email: z.string().trim().email().max(320),
-  password: z.string().min(1).max(128),
-  remember: z.boolean().default(false),
-})
-
 function isSupportedTimeZone(value: string) {
   try {
     return (
@@ -40,6 +27,20 @@ const profileTimeZoneSchema = z
   .max(64)
   .refine(isSupportedTimeZone, "La zona horaria no es válida.")
 
+export const registerSchema = z.object({
+  email: z.string().trim().email().max(320),
+  password: passwordPolicy,
+  displayName: z.string().trim().min(2).max(160),
+  timezone: profileTimeZoneSchema,
+  referralId: z.uuid().optional(),
+})
+
+export const loginSchema = z.object({
+  email: z.string().trim().email().max(320),
+  password: z.string().min(1).max(128),
+  remember: z.boolean().default(false),
+})
+
 export const portalProfileSchema = z.object({
   id: z.uuid(),
   displayName: z.string(),
@@ -55,7 +56,7 @@ export const updatePortalProfileSchema = z
   .object({
     displayName: z.string().trim().min(2).max(160),
     locale: z.enum(["es", "en"]).nullable(),
-    timezone: profileTimeZoneSchema.nullable(),
+    timezone: profileTimeZoneSchema,
   })
   .strict()
 

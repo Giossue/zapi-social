@@ -21,7 +21,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import { Separator } from "@workspace/ui/components/separator"
-import { Skeleton } from "@workspace/ui/components/skeleton"
+import { PageLoading } from "@workspace/ui/components/page-loading"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
   AlertCircle,
@@ -116,19 +116,9 @@ function readInvitationToken() {
 function InvitationLoading() {
   return (
     <Card className="w-full max-w-lg">
-      <CardHeader>
-        <Skeleton className="size-10 rounded-lg" />
-        <Skeleton className="h-6 w-56" />
-        <Skeleton className="h-4 w-full" />
-      </CardHeader>
-      <CardContent className="flex flex-col gap-3">
-        <Skeleton className="h-14 w-full" />
-        <Skeleton className="h-14 w-full" />
+      <CardContent>
+        <PageLoading />
       </CardContent>
-      <CardFooter className="gap-2">
-        <Skeleton className="h-9 flex-1" />
-        <Skeleton className="h-9 flex-1" />
-      </CardFooter>
     </Card>
   )
 }

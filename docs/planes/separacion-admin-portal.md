@@ -106,14 +106,15 @@ GET  /v1/auth/session
 
 Reglas:
 
-| Acción           | PlatformAdmin       | PortalUser                                           |
-| ---------------- | ------------------- | ---------------------------------------------------- |
-| Login            | redirigir `/admin`  | redirigir `/portal/dashboard`                        |
-| Registro público | prohibido           | crea usuario + workspace personal + owner membership |
-| Logout           | `/login`            | `/login`                                             |
-| Refresh          | conserva área admin | conserva workspace activo                            |
+| Acción           | PlatformAdmin       | PortalUser                                                            |
+| ---------------- | ------------------- | --------------------------------------------------------------------- |
+| Login            | redirigir `/admin`  | redirigir `/portal/dashboard`                                         |
+| Registro público | prohibido           | crea usuario con zona horaria + workspace personal + owner membership |
+| Logout           | `/login`            | `/login`                                                              |
+| Refresh          | conserva área admin | conserva workspace activo                                             |
 
 El registro público nunca puede crear `is_platform_admin = true`.
+La zona horaria es obligatoria en el contrato de registro y se persiste en `users.timezone`; Web propone la zona detectada por el navegador y permite cambiarla antes de crear la cuenta.
 
 ## Guards de rutas y API
 
@@ -221,6 +222,7 @@ No forma parte de la primera migración de separación.
 - [x] Añadir `area` a contratos y API client.
 - [x] Cambiar `IdentityService.getSession()` para resolver PlatformAdmin sin workspace.
 - [x] Impedir registro público de PlatformAdmin.
+- [x] Exigir y persistir la zona horaria al registrar un PortalUser.
 - [x] Redirigir login por área.
 - [x] Invalidar o renovar sesiones emitidas con el contrato anterior.
 
@@ -254,9 +256,11 @@ No forma parte de la primera migración de separación.
 - [ ] Test: PortalUser login → `/portal/dashboard`.
 - [ ] Test: PlatformAdmin no accede a `/v1/portal/*`.
 - [ ] Test: PortalUser no accede a `/v1/admin/*`.
-- [ ] Test: registro público crea solamente PortalUser.
+- [x] Test: registro público crea solamente PortalUser y persiste su zona horaria obligatoria.
 - [ ] Test: seed no crea memberships para PlatformAdmin.
 - [x] Typecheck, build, migración en staging y revisión visual.
+
+Evidencia de registro con zona horaria: el test focal de Identity rechaza el payload sin `timezone`, crea únicamente un PortalUser y verifica `users.timezone`; contratos, API y Web completan build.
 
 ## Estado actual
 
