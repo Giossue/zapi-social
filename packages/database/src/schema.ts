@@ -1895,6 +1895,11 @@ export const workspaceCreditAccounts = pgTable(
     unlimited: boolean("unlimited").notNull().default(false),
     cycleStartedAt: timestamp("cycle_started_at", { withTimezone: true }),
     cycleEndsAt: timestamp("cycle_ends_at", { withTimezone: true }),
+    monthlyBudgetMicrousd: integer("monthly_budget_microusd"),
+    budgetAlertPercent: integer("budget_alert_percent").notNull().default(80),
+    budgetAlertsEnabled: boolean("budget_alerts_enabled")
+      .notNull()
+      .default(true),
     ...timestamps,
   },
   (table) => [
@@ -1904,6 +1909,14 @@ export const workspaceCreditAccounts = pgTable(
     check(
       "workspace_credit_accounts_balance_check",
       sql`${table.balanceUnits} >= 0`
+    ),
+    check(
+      "workspace_credit_accounts_budget_check",
+      sql`${table.monthlyBudgetMicrousd} is null or ${table.monthlyBudgetMicrousd} >= 0`
+    ),
+    check(
+      "workspace_credit_accounts_alert_percent_check",
+      sql`${table.budgetAlertPercent} between 1 and 100`
     ),
   ]
 )
@@ -1924,6 +1937,26 @@ export const aiWorkspaceSettings = pgTable(
     preferredTextModel: varchar("preferred_text_model", { length: 160 }),
     preferredImageModel: varchar("preferred_image_model", { length: 160 }),
     brandVoice: varchar("brand_voice", { length: 5000 }).notNull().default(""),
+    brandName: varchar("brand_name", { length: 160 }).notNull().default(""),
+    brandDescription: varchar("brand_description", { length: 5000 })
+      .notNull()
+      .default(""),
+    brandPersonality: varchar("brand_personality", { length: 80 })
+      .notNull()
+      .default("cercana"),
+    preferredWords: jsonb("preferred_words")
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    forbiddenWords: jsonb("forbidden_words")
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    requireHumanReview: boolean("require_human_review").notNull().default(true),
+    warnSensitiveClaims: boolean("warn_sensitive_claims")
+      .notNull()
+      .default(true),
+    redactPersonalData: boolean("redact_personal_data").notNull().default(true),
     defaultTone: varchar("default_tone", { length: 80 })
       .notNull()
       .default("cercano"),
@@ -1933,6 +1966,111 @@ export const aiWorkspaceSettings = pgTable(
   },
   (table) => [
     uniqueIndex("ai_workspace_settings_workspace_unique").on(table.workspaceId),
+  ]
+)
+
+export const aiModels = pgTable(
+  "ai_models",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    providerKey: varchar("provider_key", { length: 64 })
+      .notNull()
+      .references(() => providerIntegrations.providerKey, {
+        onDelete: "restrict",
+        onUpdate: "cascade",
+      }),
+    modelId: varchar("model_id", { length: 160 }).notNull(),
+    label: varchar("label", { length: 160 }).notNull(),
+    capability: varchar("capability", { length: 16 })
+      .$type<"text" | "image" | "video">()
+      .notNull(),
+    tier: varchar("tier", { length: 24 })
+      .$type<"quality" | "balanced" | "economy" | "specialized">()
+      .notNull(),
+    enabled: boolean("enabled").notNull().default(false),
+    deprecated: boolean("deprecated").notNull().default(false),
+    inputPriceMicrousdPerMillion: integer("input_price_microusd_per_million"),
+    outputPriceMicrousdPerMillion: integer("output_price_microusd_per_million"),
+    unitPriceMicrousd: integer("unit_price_microusd"),
+    metadata: jsonb("metadata")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("ai_models_provider_model_unique").on(
+      table.providerKey,
+      table.modelId
+    ),
+    index("ai_models_capability_enabled_index").on(
+      table.capability,
+      table.enabled
+    ),
+    check(
+      "ai_models_capability_check",
+      sql`${table.capability} in ('text', 'image', 'video')`
+    ),
+    check(
+      "ai_models_tier_check",
+      sql`${table.tier} in ('quality', 'balanced', 'economy', 'specialized')`
+    ),
+    check(
+      "ai_models_prices_check",
+      sql`(${table.inputPriceMicrousdPerMillion} is null or ${table.inputPriceMicrousdPerMillion} >= 0) and (${table.outputPriceMicrousdPerMillion} is null or ${table.outputPriceMicrousdPerMillion} >= 0) and (${table.unitPriceMicrousd} is null or ${table.unitPriceMicrousd} >= 0)`
+    ),
+  ]
+)
+
+export const aiModelRoutes = pgTable(
+  "ai_model_routes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    kind: varchar("kind", { length: 32 })
+      .$type<
+        | "content"
+        | "image"
+        | "video"
+        | "repurpose"
+        | "planner"
+        | "review"
+        | "timing"
+        | "search"
+        | "ai_publishing"
+      >()
+      .notNull(),
+    primaryModelId: uuid("primary_model_id").references(() => aiModels.id, {
+      onDelete: "restrict",
+    }),
+    fallbackModelId: uuid("fallback_model_id").references(() => aiModels.id, {
+      onDelete: "restrict",
+    }),
+    reasoningEffort: varchar("reasoning_effort", { length: 16 })
+      .$type<"none" | "low" | "medium" | "high" | "xhigh" | "max">()
+      .notNull()
+      .default("medium"),
+    costUnits: integer("cost_units").notNull().default(1),
+    enabled: boolean("enabled").notNull().default(true),
+    updatedByUserId: uuid("updated_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("ai_model_routes_kind_unique").on(table.kind),
+    check(
+      "ai_model_routes_kind_check",
+      sql`${table.kind} in ('content', 'image', 'video', 'repurpose', 'planner', 'review', 'timing', 'search', 'ai_publishing')`
+    ),
+    check(
+      "ai_model_routes_reasoning_check",
+      sql`${table.reasoningEffort} in ('none', 'low', 'medium', 'high', 'xhigh', 'max')`
+    ),
+    check("ai_model_routes_cost_check", sql`${table.costUnits} >= 0`),
+    check(
+      "ai_model_routes_fallback_check",
+      sql`${table.fallbackModelId} is null or ${table.fallbackModelId} <> ${table.primaryModelId}`
+    ),
   ]
 )
 
@@ -1972,10 +2110,12 @@ export const aiRequests = pgTable(
     requestedByUserId: uuid("requested_by_user_id")
       .notNull()
       .references(() => users.id, { onDelete: "restrict" }),
+    title: varchar("title", { length: 160 }).notNull().default("Generación AI"),
     kind: varchar("kind", { length: 32 })
       .$type<
         | "content"
         | "image"
+        | "video"
         | "repurpose"
         | "planner"
         | "review"
@@ -1999,11 +2139,21 @@ export const aiRequests = pgTable(
       .default(sql`'{}'::jsonb`),
     provider: varchar("provider", { length: 64 }),
     model: varchar("model", { length: 160 }),
+    providerRequestId: varchar("provider_request_id", { length: 255 }),
     costUnits: integer("cost_units").notNull().default(0),
+    progress: integer("progress").notNull().default(0),
+    schemaVersion: integer("schema_version").notNull().default(1),
+    inputTokens: integer("input_tokens").notNull().default(0),
+    outputTokens: integer("output_tokens").notNull().default(0),
+    estimatedCostMicrousd: integer("estimated_cost_microusd")
+      .notNull()
+      .default(0),
+    latencyMs: integer("latency_ms"),
     idempotencyKey: varchar("idempotency_key", { length: 160 }).notNull(),
     jobId: varchar("job_id", { length: 128 }),
     source: varchar("source", { length: 32 }).notNull().default("portal"),
     errorCode: varchar("error_code", { length: 96 }),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
     startedAt: timestamp("started_at", { withTimezone: true }),
     completedAt: timestamp("completed_at", { withTimezone: true }),
     ...timestamps,
@@ -2031,13 +2181,21 @@ export const aiRequests = pgTable(
     index("ai_requests_job_id_index").on(table.jobId),
     check(
       "ai_requests_kind_check",
-      sql`${table.kind} in ('content', 'image', 'repurpose', 'planner', 'review', 'timing', 'search', 'ai_publishing')`
+      sql`${table.kind} in ('content', 'image', 'video', 'repurpose', 'planner', 'review', 'timing', 'search', 'ai_publishing')`
     ),
     check(
       "ai_requests_status_check",
       sql`${table.status} in ('queued', 'processing', 'succeeded', 'failed', 'cancelled')`
     ),
     check("ai_requests_cost_check", sql`${table.costUnits} >= 0`),
+    check(
+      "ai_requests_progress_check",
+      sql`${table.progress} between 0 and 100`
+    ),
+    check(
+      "ai_requests_usage_check",
+      sql`${table.inputTokens} >= 0 and ${table.outputTokens} >= 0 and ${table.estimatedCostMicrousd} >= 0 and (${table.latencyMs} is null or ${table.latencyMs} >= 0)`
+    ),
   ]
 )
 

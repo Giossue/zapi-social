@@ -106,6 +106,13 @@ import type {
   TransferPortalTeamOwnershipInput,
   CreatePortalAiPublishingScheduleInput,
   CreatePortalAiRequestInput,
+  AdminAiConfiguration,
+  AdminAiModel,
+  AdminAiRoute,
+  AdminAiUsage,
+  ArchivePortalAiRequestInput,
+  CreateAdminAiModelInput,
+  PortalAiDashboard,
   PortalAiDraftResult,
   PortalAiPublishingSchedule,
   PortalAiRequest,
@@ -113,6 +120,13 @@ import type {
   PortalAiRequestsResponse,
   PortalAiSettings,
   PortalCreditsResponse,
+  UpdatePortalAiBudgetInput,
+  RenamePortalAiRequestInput,
+  RetryPortalAiRequestInput,
+  TestAdminAiProviderInput,
+  UpdateAdminAiModelInput,
+  UpdateAdminAiProviderInput,
+  UpdateAdminAiRouteInput,
   UpdatePortalAiPublishingScheduleInput,
   UpdatePortalAiSettingsInput,
   UsePortalAiRequestAsDraftInput,
@@ -697,6 +711,8 @@ function portalAiRequestsQueryString(
   const params = new URLSearchParams()
   if (query.kind) params.set("kind", query.kind)
   if (query.status) params.set("status", query.status)
+  if (query.search) params.set("search", query.search)
+  if (query.archived) params.set("archived", "true")
   if (query.page) params.set("page", String(query.page))
   if (query.limit) params.set("limit", String(query.limit))
   const serialized = params.toString()
@@ -704,6 +720,8 @@ function portalAiRequestsQueryString(
 }
 
 export const aiApi = {
+  dashboard: () =>
+    request<PortalAiDashboard>("/v1/portal/ai/dashboard", { method: "GET" }),
   listRequests: (query?: Partial<PortalAiRequestsQuery>) =>
     request<PortalAiRequestsResponse>(
       `/v1/portal/ai/requests${portalAiRequestsQueryString(query)}`,
@@ -722,6 +740,21 @@ export const aiApi = {
     request<PortalAiRequest>(`/v1/portal/ai/requests/${id}/cancel`, {
       method: "POST",
     }),
+  renameRequest: (id: string, input: RenamePortalAiRequestInput) =>
+    request<PortalAiRequest>(`/v1/portal/ai/requests/${id}/title`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  retryRequest: (id: string, input: RetryPortalAiRequestInput) =>
+    request<PortalAiRequest>(`/v1/portal/ai/requests/${id}/retry`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  archiveRequest: (id: string, input: ArchivePortalAiRequestInput) =>
+    request<PortalAiRequest>(`/v1/portal/ai/requests/${id}/archive`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
   useAsDraft: (id: string, input: UsePortalAiRequestAsDraftInput) =>
     request<PortalAiDraftResult>(`/v1/portal/ai/requests/${id}/use-as-draft`, {
       method: "POST",
@@ -737,6 +770,11 @@ export const aiApi = {
   getCredits: () =>
     request<PortalCreditsResponse>("/v1/portal/ai/credits", {
       method: "GET",
+    }),
+  updateBudget: (input: UpdatePortalAiBudgetInput) =>
+    request<PortalCreditsResponse>("/v1/portal/ai/credits/budget", {
+      method: "PATCH",
+      body: JSON.stringify(input),
     }),
   listPublishingSchedules: () =>
     request<PortalAiPublishingSchedule[]>(
@@ -764,6 +802,40 @@ export const aiApi = {
     request<void>(`/v1/portal/ai/publishing-schedules/${id}`, {
       method: "DELETE",
     }),
+}
+
+export const adminAiApi = {
+  configuration: () =>
+    request<AdminAiConfiguration>("/v1/admin/ai/configuration", {
+      method: "GET",
+    }),
+  testProvider: (input: TestAdminAiProviderInput) =>
+    request<{ testedAt: string; availableModelIds: string[] }>(
+      "/v1/admin/ai/provider/test",
+      { method: "POST", body: JSON.stringify(input) }
+    ),
+  updateProvider: (input: UpdateAdminAiProviderInput) =>
+    request<AdminAiConfiguration>("/v1/admin/ai/provider", {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  createModel: (input: CreateAdminAiModelInput) =>
+    request<AdminAiModel>("/v1/admin/ai/models", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  updateModel: (id: string, input: UpdateAdminAiModelInput) =>
+    request<AdminAiModel>(`/v1/admin/ai/models/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  updateRoute: (kind: string, input: UpdateAdminAiRouteInput) =>
+    request<AdminAiRoute>(`/v1/admin/ai/routes/${kind}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  usage: (days = 30) =>
+    request<AdminAiUsage>(`/v1/admin/ai/usage?days=${days}`, { method: "GET" }),
 }
 
 function portalCommerceQueryString(query: Partial<PortalCommerceQuery> = {}) {

@@ -1,8 +1,5 @@
-import { AIContentStudioPage } from "@/features/ai-studio/components/ai-content-studio-page"
-import { getAIContentStudioMock } from "@/features/ai-studio/mocks/ai-content-repository"
+import { AiStudio } from "@/features/ai-studio/components/ai-studio-page"
 
-export default async function AIContentRoutePage() {
-  const data = await getAIContentStudioMock()
-
-  return <AIContentStudioPage data={data} />
+export default function AIContentRoutePage() {
+  return <AiStudio view="content" />
 }

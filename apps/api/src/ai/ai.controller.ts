@@ -24,6 +24,11 @@ export class AiController {
     private readonly access: SessionAccessService,
   ) {}
 
+  @Get('dashboard')
+  async dashboard(@Req() request: FastifyRequest) {
+    return this.ai.dashboard(await this.access.requirePortalSession(request));
+  }
+
   @Get('requests')
   async listRequests(@Req() request: FastifyRequest, @Query() query: unknown) {
     return this.ai.listRequests(
@@ -56,6 +61,45 @@ export class AiController {
     );
   }
 
+  @Patch('requests/:id/title')
+  async renameRequest(
+    @Req() request: FastifyRequest,
+    @Param('id') id: string,
+    @Body() body: unknown,
+  ) {
+    return this.ai.renameRequest(
+      await this.access.requirePortalSession(request),
+      id,
+      body,
+    );
+  }
+
+  @Post('requests/:id/retry')
+  async retryRequest(
+    @Req() request: FastifyRequest,
+    @Param('id') id: string,
+    @Body() body: unknown,
+  ) {
+    return this.ai.retryRequest(
+      await this.access.requirePortalSession(request),
+      id,
+      body,
+    );
+  }
+
+  @Patch('requests/:id/archive')
+  async archiveRequest(
+    @Req() request: FastifyRequest,
+    @Param('id') id: string,
+    @Body() body: unknown,
+  ) {
+    return this.ai.archiveRequest(
+      await this.access.requirePortalSession(request),
+      id,
+      body,
+    );
+  }
+
   @Post('requests/:id/use-as-draft')
   async useAsDraft(
     @Req() request: FastifyRequest,
@@ -85,6 +129,14 @@ export class AiController {
   @Get('credits')
   async credits(@Req() request: FastifyRequest) {
     return this.ai.credits(await this.access.requirePortalSession(request));
+  }
+
+  @Patch('credits/budget')
+  async updateBudget(@Req() request: FastifyRequest, @Body() body: unknown) {
+    return this.ai.updateBudget(
+      await this.access.requirePortalSession(request),
+      body,
+    );
   }
 
   @Get('publishing-schedules')

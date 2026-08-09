@@ -67,7 +67,7 @@ Los valores sensibles permanecen únicamente en Dokploy. En esta guía, `configu
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Web Next    | `NODE_ENV=production`, `INTERNAL_API_ORIGIN=https://api.zapisocial.com`                                                                                                                                                                                                                                |
 | API Nest    | `NODE_ENV=production`, `API_HOST=0.0.0.0`, `API_PORT=3001`, `API_PUBLIC_ORIGIN=https://api.zapisocial.com`, `WEB_ORIGIN=https://app.zapisocial.com`, `COOKIE_SECURE=true`, `LOG_LEVEL=info`; base de datos, JWT, Redis, Files, cifrado y proveedores de media configurados en Dokploy cuando apliquen. |
-| Worker Nest | Servicio interno; comparte base de datos, Redis, clave de cifrado y volumen/ruta Files con API. `API_PUBLIC_ORIGIN` habilita media temporal de Instagram; las variables AI sólo se añaden al habilitar proveedor.                                                                                      |
+| Worker Nest | Servicio interno; comparte base de datos, Redis, clave de cifrado y volumen/ruta Files con API. `API_PUBLIC_ORIGIN` habilita media temporal de Instagram; proveedor y routing AI se administran en PostgreSQL desde Admin.                                                                             |
 
 La etiqueta visual de un servicio en Dokploy no cambia esta responsabilidad: el bloque con `API_HOST`/`API_PORT` pertenece a API y el bloque con `INTERNAL_API_ORIGIN` pertenece a Web.
 
@@ -109,18 +109,14 @@ PROVIDER_INTEGRATIONS_ENCRYPTION_KEY=THE_SAME_STABLE_API_KEY
 FILES_STORAGE_PATH=/var/lib/zapi/files
 API_PUBLIC_ORIGIN=https://api.zapisocial.com
 LOG_LEVEL=info
-# Opcionales, sólo al habilitar AI:
-AI_PROVIDER_BASE_URL=https://PROVIDER_API_BASE/v1/
-AI_PROVIDER_API_KEY=PROVIDER_SECRET
-AI_TEXT_MODEL=APPROVED_TEXT_MODEL
-AI_IMAGE_MODEL=APPROVED_IMAGE_MODEL
 ```
 
 - `DATABASE_URL`, Redis y `PROVIDER_INTEGRATIONS_ENCRYPTION_KEY` son secretos del servicio Worker.
 - La clave de cifrado debe ser exactamente la misma que API para poder descifrar tokens de cuentas ya conectadas.
 - `FILES_STORAGE_PATH` debe coincidir con la ruta de montaje de API y apuntar al mismo volumen persistente.
 - `API_PUBLIC_ORIGIN` es necesaria en Worker para que Instagram reciba una URL HTTPS temporal firmada.
-- `AI_PROVIDER_API_KEY` es secreto. Base URL y modelos deben pertenecer a un proveedor compatible con OpenAI aprobado; sin configuración, las tareas AI dependientes del proveedor fallan de forma explícita.
+- OpenAI se configura desde `Admin → Configuración AI`. La clave se cifra con `PROVIDER_INTEGRATIONS_ENCRYPTION_KEY`; el Worker no recibe claves ni modelos AI mediante variables de entorno.
+- Sin proveedor probado, habilitado y con una ruta de modelo válida, las tareas dependientes de OpenAI fallan de forma explícita y reembolsan el débito correspondiente.
 - `Dockerfile.worker` instala `ffmpeg`, que también aporta `ffprobe`, para thumbnails y watermarks de vídeo.
 - El Worker no recibe `JWT_ACCESS_SECRET`, `WEB_ORIGIN`, callbacks OAuth ni dominio público.
 - Schedulers de perfiles, RSS, Publishing, AI y webhooks se registran internamente y no requieren cron externo.

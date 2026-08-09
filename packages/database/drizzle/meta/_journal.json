@@ -176,6 +176,20 @@
       "when": 1786256050814,
       "tag": "0024_teams-invitation-backfill",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1786314830591,
+      "tag": "0025_mixed_krista_starr",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1786317427057,
+      "tag": "0026_ai_model_catalog_refresh",
+      "breakpoints": true
     }
   ]
 }

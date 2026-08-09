@@ -4,6 +4,8 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import {
   aiPublishingSchedules,
   aiPublishingScheduleTargets,
+  aiModelRoutes,
+  aiModels,
   aiRequests,
   aiUserSettings,
   aiWorkspaceSettings,
@@ -12,6 +14,7 @@ import {
   fileAssets,
   publishingPostMedia,
   publishingPosts,
+  providerIntegrations,
   socialAccounts,
   workspaceCreditAccounts,
 } from '@workspace/database';
@@ -21,14 +24,22 @@ import {
   desc,
   eq,
   gte,
+  ilike,
   inArray,
+  isNull,
+  or,
   sql,
 } from '@workspace/database/query';
 import {
   createPortalAiPublishingScheduleSchema,
   createPortalAiRequestSchema,
+  aiRequestInputSchemas,
+  archivePortalAiRequestSchema,
   portalAiRequestsQuerySchema,
+  renamePortalAiRequestSchema,
+  retryPortalAiRequestSchema,
   updatePortalAiPublishingScheduleSchema,
+  updatePortalAiBudgetSchema,
   updatePortalAiSettingsSchema,
   usePortalAiRequestAsDraftSchema,
   type AiRequestKind,
@@ -56,17 +67,6 @@ import {
 const managerRoles = new Set(['owner', 'admin']);
 const requestRateLimit = 10;
 const requestRateLimitWindowMilliseconds = 60_000;
-const costByKind: Record<AiRequestKind, number> = {
-  content: 1,
-  image: 4,
-  repurpose: 2,
-  planner: 3,
-  review: 1,
-  timing: 1,
-  search: 1,
-  ai_publishing: 2,
-};
-
 @Injectable()
 export class AiService {
   constructor(
@@ -87,10 +87,20 @@ export class AiService {
       eq(aiRequests.workspaceId, session.workspace.id),
       eq(aiRequests.requestedByUserId, session.user.id),
     ];
+    if (!parsed.data.archived) conditions.push(isNull(aiRequests.archivedAt));
     if (parsed.data.kind)
       conditions.push(eq(aiRequests.kind, parsed.data.kind));
     if (parsed.data.status) {
       conditions.push(eq(aiRequests.status, parsed.data.status));
+    }
+    if (parsed.data.search) {
+      const pattern = `%${parsed.data.search}%`;
+      conditions.push(
+        or(
+          ilike(aiRequests.title, pattern),
+          ilike(aiRequests.prompt, pattern),
+        )!,
+      );
     }
     const where = and(...conditions)!;
     const offset = (parsed.data.page - 1) * parsed.data.limit;
@@ -121,7 +131,151 @@ export class AiService {
   async createRequest(session: PortalAuthSession, input: unknown) {
     const parsed = createPortalAiRequestSchema.safeParse(input);
     if (!parsed.success) throw this.invalid();
-    return this.createRequestFromValues(session, parsed.data);
+    return this.createRequestFromValues(session, {
+      ...parsed.data,
+      input: aiRequestInputSchemas[parsed.data.kind].parse(parsed.data.input),
+    });
+  }
+
+  async dashboard(session: PortalAuthSession) {
+    const cycleStart = new Date();
+    cycleStart.setUTCDate(1);
+    cycleStart.setUTCHours(0, 0, 0, 0);
+    const [credits, requests, settings, provider, draftCount, requestStats] =
+      await Promise.all([
+        this.credits(session),
+        this.database.db
+          .select()
+          .from(aiRequests)
+          .where(
+            and(
+              eq(aiRequests.workspaceId, session.workspace.id),
+              eq(aiRequests.requestedByUserId, session.user.id),
+              isNull(aiRequests.archivedAt),
+            ),
+          )
+          .orderBy(desc(aiRequests.createdAt))
+          .limit(8),
+        this.ensureWorkspaceSettings(session),
+        this.database.db
+          .select({
+            enabled: providerIntegrations.enabled,
+            readiness: providerIntegrations.readiness,
+          })
+          .from(providerIntegrations)
+          .where(eq(providerIntegrations.providerKey, 'openai'))
+          .limit(1)
+          .then((rows) => rows[0] ?? null),
+        this.database.db
+          .select({ total: count() })
+          .from(publishingPosts)
+          .where(
+            and(
+              eq(publishingPosts.workspaceId, session.workspace.id),
+              eq(publishingPosts.status, 'draft'),
+              gte(
+                publishingPosts.createdAt,
+                new Date(Date.now() - 30 * 86_400_000),
+              ),
+            ),
+          )
+          .then((rows) => Number(rows[0]?.total ?? 0)),
+        this.database.db
+          .select({
+            queued: sql<number>`count(*) filter (where ${aiRequests.status} = 'queued')`,
+            processing: sql<number>`count(*) filter (where ${aiRequests.status} = 'processing')`,
+            succeededThisCycle: sql<number>`count(*) filter (where ${aiRequests.status} = 'succeeded' and ${aiRequests.createdAt} >= ${cycleStart})`,
+          })
+          .from(aiRequests)
+          .where(
+            and(
+              eq(aiRequests.workspaceId, session.workspace.id),
+              eq(aiRequests.requestedByUserId, session.user.id),
+              isNull(aiRequests.archivedAt),
+            ),
+          )
+          .then((rows) => rows[0]),
+      ]);
+    return {
+      enabled: true,
+      providerReady: Boolean(
+        provider?.enabled && provider.readiness === 'ready',
+      ),
+      credits: {
+        unlimited: credits.unlimited || !settings.enforceCredits,
+        balanceUnits: credits.balanceUnits,
+        usedUnits: credits.usedUnits,
+      },
+      counts: {
+        queued: Number(requestStats?.queued ?? 0),
+        processing: Number(requestStats?.processing ?? 0),
+        succeededThisCycle: Number(requestStats?.succeededThisCycle ?? 0),
+        draftsThisCycle: draftCount,
+      },
+      recentRequests: requests.map((row) => this.serializeRequest(row)),
+    };
+  }
+
+  async renameRequest(session: PortalAuthSession, id: string, input: unknown) {
+    const parsed = renamePortalAiRequestSchema.safeParse(input);
+    if (!parsed.success) throw this.invalid();
+    const requestId = this.parseId(id, 'AI_REQUEST_NOT_FOUND');
+    await this.findRequest(session, requestId);
+    const [updated] = await this.database.db
+      .update(aiRequests)
+      .set({ title: parsed.data.title, updatedAt: new Date() })
+      .where(
+        and(
+          eq(aiRequests.id, requestId),
+          eq(aiRequests.workspaceId, session.workspace.id),
+          eq(aiRequests.requestedByUserId, session.user.id),
+        ),
+      )
+      .returning();
+    if (!updated) throw this.failed();
+    return this.serializeRequest(updated);
+  }
+
+  async archiveRequest(session: PortalAuthSession, id: string, input: unknown) {
+    const parsed = archivePortalAiRequestSchema.safeParse(input);
+    if (!parsed.success) throw this.invalid();
+    const requestId = this.parseId(id, 'AI_REQUEST_NOT_FOUND');
+    await this.findRequest(session, requestId);
+    const [updated] = await this.database.db
+      .update(aiRequests)
+      .set({
+        archivedAt: parsed.data.archived ? new Date() : null,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(aiRequests.id, requestId),
+          eq(aiRequests.workspaceId, session.workspace.id),
+          eq(aiRequests.requestedByUserId, session.user.id),
+        ),
+      )
+      .returning();
+    if (!updated) throw this.failed();
+    return this.serializeRequest(updated);
+  }
+
+  async retryRequest(session: PortalAuthSession, id: string, input: unknown) {
+    const parsed = retryPortalAiRequestSchema.safeParse(input);
+    if (!parsed.success) throw this.invalid();
+    const previous = await this.findRequest(
+      session,
+      this.parseId(id, 'AI_REQUEST_NOT_FOUND'),
+    );
+    if (previous.status !== 'failed' && previous.status !== 'cancelled') {
+      throw new AppException('AI_REQUEST_NOT_CANCELLABLE', HttpStatus.CONFLICT);
+    }
+    return this.createRequestFromValues(session, {
+      kind: previous.kind,
+      prompt: previous.prompt,
+      input: previous.input,
+      idempotencyKey: parsed.data.idempotencyKey,
+      title: previous.title,
+    });
   }
 
   async cancelRequest(session: PortalAuthSession, id: string) {
@@ -175,11 +329,10 @@ export class AiService {
     if (request.status !== 'succeeded') {
       throw new AppException('AI_RESULT_NOT_READY', HttpStatus.CONFLICT);
     }
-    const content = this.resultText(request.result);
+    const result = request.result;
+    const content = this.resultText(result);
     const generatedAssetId =
-      typeof request.result.fileAssetId === 'string'
-        ? request.result.fileAssetId
-        : null;
+      typeof result.fileAssetId === 'string' ? result.fileAssetId : null;
     const mediaIds = [
       ...new Set([
         ...parsed.data.mediaAssetIds,
@@ -316,7 +469,19 @@ export class AiService {
   async updateSettings(session: PortalAuthSession, input: unknown) {
     const parsed = updatePortalAiSettingsSchema.safeParse(input);
     if (!parsed.success) throw this.invalid();
-    const workspaceFields = ['brandVoice', 'defaultTone', 'language'] as const;
+    const workspaceFields = [
+      'brandVoice',
+      'brandName',
+      'brandDescription',
+      'brandPersonality',
+      'preferredWords',
+      'forbiddenWords',
+      'requireHumanReview',
+      'warnSensitiveClaims',
+      'redactPersonalData',
+      'defaultTone',
+      'language',
+    ] as const;
     if (
       workspaceFields.some((field) => parsed.data[field] !== undefined) &&
       !managerRoles.has(session.workspace.role)
@@ -389,12 +554,18 @@ export class AiService {
 
   async credits(session: PortalAuthSession): Promise<PortalCreditsResponse> {
     const account = await this.ensureCreditAccount(session.workspace.id);
-    const entries = await this.database.db
-      .select()
-      .from(creditLedgerEntries)
-      .where(eq(creditLedgerEntries.workspaceId, session.workspace.id))
-      .orderBy(desc(creditLedgerEntries.createdAt))
-      .limit(100);
+    const [entries, routes] = await Promise.all([
+      this.database.db
+        .select()
+        .from(creditLedgerEntries)
+        .where(eq(creditLedgerEntries.workspaceId, session.workspace.id))
+        .orderBy(desc(creditLedgerEntries.createdAt))
+        .limit(100),
+      this.database.db
+        .select({ kind: aiModelRoutes.kind, units: aiModelRoutes.costUnits })
+        .from(aiModelRoutes)
+        .orderBy(aiModelRoutes.kind),
+    ]);
     return {
       unlimited: account.unlimited,
       balanceUnits: account.balanceUnits,
@@ -411,7 +582,39 @@ export class AiService {
         aiRequestId: entry.aiRequestId,
         createdAt: entry.createdAt.toISOString(),
       })),
+      costs: routes,
+      budget: {
+        monthlyMicrousd: account.monthlyBudgetMicrousd,
+        alertPercent: account.budgetAlertPercent,
+        alertsEnabled: account.budgetAlertsEnabled,
+      },
     };
+  }
+
+  async updateBudget(session: PortalAuthSession, input: unknown) {
+    this.requireManage(session);
+    const parsed = updatePortalAiBudgetSchema.safeParse(input);
+    if (!parsed.success) throw this.invalid();
+    await this.ensureCreditAccount(session.workspace.id);
+    await this.database.db.transaction(async (tx) => {
+      await tx
+        .update(workspaceCreditAccounts)
+        .set({
+          monthlyBudgetMicrousd: parsed.data.monthlyMicrousd,
+          budgetAlertPercent: parsed.data.alertPercent,
+          budgetAlertsEnabled: parsed.data.alertsEnabled,
+          updatedAt: new Date(),
+        })
+        .where(eq(workspaceCreditAccounts.workspaceId, session.workspace.id));
+      await tx.insert(apiAuditLogs).values({
+        workspaceId: session.workspace.id,
+        actorUserId: session.user.id,
+        event: 'ai.budget_updated',
+        subjectType: 'workspace_credit_account',
+        metadata: parsed.data,
+      });
+    });
+    return this.credits(session);
   }
 
   async listSchedules(session: PortalAuthSession) {
@@ -599,6 +802,7 @@ export class AiService {
       prompt: string;
       input: Record<string, unknown>;
       idempotencyKey: string;
+      title?: string;
     },
   ) {
     const existing = await this.database.db
@@ -633,13 +837,19 @@ export class AiService {
         HttpStatus.TOO_MANY_REQUESTS,
       );
     }
-    const costUnits = costByKind[values.kind];
-    const account = await this.ensureCreditAccount(session.workspace.id);
+    const execution = await this.resolveExecution(values.kind);
+    const costUnits = execution.costUnits;
+    const [account, workspaceSettings] = await Promise.all([
+      this.ensureCreditAccount(session.workspace.id),
+      this.ensureWorkspaceSettings(session),
+    ]);
+    const balanceDebited =
+      workspaceSettings.enforceCredits && !account.unlimited && costUnits > 0;
     const now = new Date();
     let request: typeof aiRequests.$inferSelect;
     try {
       request = await this.database.db.transaction(async (tx) => {
-        if (!account.unlimited) {
+        if (balanceDebited) {
           const [debited] = await tx
             .update(workspaceCreditAccounts)
             .set({
@@ -665,26 +875,37 @@ export class AiService {
           .values({
             workspaceId: session.workspace.id,
             requestedByUserId: session.user.id,
+            title:
+              values.title ??
+              values.prompt.trim().replace(/\s+/g, ' ').slice(0, 160),
             kind: values.kind,
             prompt: values.prompt,
             input: values.input,
             costUnits,
+            provider: execution.provider,
+            model: execution.model,
             idempotencyKey: values.idempotencyKey,
             createdAt: now,
             updatedAt: now,
           })
           .returning();
         if (!created) throw this.failed();
-        await tx.insert(creditLedgerEntries).values({
-          workspaceId: session.workspace.id,
-          actorUserId: session.user.id,
-          aiRequestId: created.id,
-          type: 'debit',
-          action: `ai.${values.kind}`,
-          units: -costUnits,
-          idempotencyKey: `ai-debit-${created.id}`,
-          metadata: { unlimited: account.unlimited },
-        });
+        if (costUnits > 0) {
+          await tx.insert(creditLedgerEntries).values({
+            workspaceId: session.workspace.id,
+            actorUserId: session.user.id,
+            aiRequestId: created.id,
+            type: 'debit',
+            action: `ai.${values.kind}`,
+            units: -costUnits,
+            idempotencyKey: `ai-debit-${created.id}`,
+            metadata: {
+              unlimited: account.unlimited,
+              enforcementEnabled: workspaceSettings.enforceCredits,
+              balanceDebited,
+            },
+          });
+        }
         await tx.insert(apiAuditLogs).values({
           workspaceId: session.workspace.id,
           actorUserId: session.user.id,
@@ -774,12 +995,24 @@ export class AiService {
       )
       .limit(1);
     if (existing.length) return;
-    const [account] = await tx
-      .select()
-      .from(workspaceCreditAccounts)
-      .where(eq(workspaceCreditAccounts.workspaceId, request.workspaceId))
-      .limit(1);
-    if (account && !account.unlimited) {
+    const [[account], [debit]] = await Promise.all([
+      tx
+        .select()
+        .from(workspaceCreditAccounts)
+        .where(eq(workspaceCreditAccounts.workspaceId, request.workspaceId))
+        .limit(1),
+      tx
+        .select({ metadata: creditLedgerEntries.metadata })
+        .from(creditLedgerEntries)
+        .where(
+          and(
+            eq(creditLedgerEntries.workspaceId, request.workspaceId),
+            eq(creditLedgerEntries.idempotencyKey, `ai-debit-${request.id}`),
+          ),
+        )
+        .limit(1),
+    ]);
+    if (account && debit?.metadata.balanceDebited === true) {
       await tx
         .update(workspaceCreditAccounts)
         .set({
@@ -788,6 +1021,7 @@ export class AiService {
         })
         .where(eq(workspaceCreditAccounts.id, account.id));
     }
+    if (request.costUnits === 0) return;
     await tx.insert(creditLedgerEntries).values({
       workspaceId: request.workspaceId,
       actorUserId,
@@ -833,6 +1067,57 @@ export class AiService {
       .limit(1);
     if (!account) throw this.failed();
     return account;
+  }
+
+  private async resolveExecution(kind: AiRequestKind) {
+    const [route] = await this.database.db
+      .select()
+      .from(aiModelRoutes)
+      .where(eq(aiModelRoutes.kind, kind))
+      .limit(1);
+    if (!route || !route.enabled) {
+      throw new AppException(
+        'AI_PROVIDER_NOT_READY',
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
+    }
+    if (kind === 'timing' || kind === 'search') {
+      return {
+        costUnits: route.costUnits,
+        provider: 'internal',
+        model: kind === 'timing' ? 'internal-analytics' : 'internal-search',
+      };
+    }
+    const [model, provider] = await Promise.all([
+      route.primaryModelId
+        ? this.database.db
+            .select()
+            .from(aiModels)
+            .where(eq(aiModels.id, route.primaryModelId))
+            .limit(1)
+            .then((rows) => rows[0] ?? null)
+        : Promise.resolve(null),
+      this.database.db
+        .select()
+        .from(providerIntegrations)
+        .where(eq(providerIntegrations.providerKey, 'openai'))
+        .limit(1)
+        .then((rows) => rows[0] ?? null),
+    ]);
+    const providerReady = Boolean(
+      provider?.enabled && provider.readiness === 'ready',
+    );
+    if (!providerReady || !model || !model.enabled || model.deprecated) {
+      throw new AppException(
+        'AI_PROVIDER_NOT_READY',
+        HttpStatus.SERVICE_UNAVAILABLE,
+      );
+    }
+    return {
+      costUnits: route.costUnits,
+      provider: 'openai',
+      model: model.modelId,
+    };
   }
 
   private async findRequest(session: PortalAuthSession, id: string) {
@@ -913,6 +1198,7 @@ export class AiService {
   ): PortalAiRequest {
     return {
       id: request.id,
+      title: request.title,
       kind: request.kind,
       status: request.status,
       prompt: request.prompt,
@@ -921,7 +1207,13 @@ export class AiService {
       provider: request.provider,
       model: request.model,
       costUnits: request.costUnits,
+      progress: request.progress,
+      inputTokens: request.inputTokens,
+      outputTokens: request.outputTokens,
+      estimatedCostMicrousd: request.estimatedCostMicrousd,
+      latencyMs: request.latencyMs,
       errorCode: request.errorCode,
+      archivedAt: request.archivedAt?.toISOString() ?? null,
       startedAt: request.startedAt?.toISOString() ?? null,
       completedAt: request.completedAt?.toISOString() ?? null,
       createdAt: request.createdAt.toISOString(),
@@ -938,6 +1230,14 @@ export class AiService {
       preferredTextModel: workspace.preferredTextModel,
       preferredImageModel: workspace.preferredImageModel,
       brandVoice: workspace.brandVoice,
+      brandName: workspace.brandName,
+      brandDescription: workspace.brandDescription,
+      brandPersonality: workspace.brandPersonality,
+      preferredWords: workspace.preferredWords,
+      forbiddenWords: workspace.forbiddenWords,
+      requireHumanReview: workspace.requireHumanReview,
+      warnSensitiveClaims: workspace.warnSensitiveClaims,
+      redactPersonalData: workspace.redactPersonalData,
       defaultTone: workspace.defaultTone,
       language: workspace.language,
       enforceCredits: workspace.enforceCredits,
@@ -971,12 +1271,21 @@ export class AiService {
     };
   }
 
-  private resultText(result: Record<string, unknown>) {
+  private resultText(result: Record<string, unknown>): string {
     if (typeof result.text === 'string') return result.text;
     if (Array.isArray(result.variants)) {
-      const first = result.variants.find((value) => typeof value === 'string');
+      const first: unknown = (result.variants as unknown[])[0];
       if (typeof first === 'string') return first;
+      if (first && typeof first === 'object') {
+        if ('caption' in first && typeof first.caption === 'string') {
+          return first.caption;
+        }
+        if ('content' in first && typeof first.content === 'string') {
+          return first.content;
+        }
+      }
     }
+    if (typeof result.revisedContent === 'string') return result.revisedContent;
     return '';
   }
 
