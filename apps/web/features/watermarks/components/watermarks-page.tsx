@@ -1,7 +1,13 @@
 "use client"
 
 import Image from "next/image"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from "react"
 import { filesApi } from "@workspace/api-client"
 import {
   Check,
@@ -16,6 +22,7 @@ import {
   ScanLine,
   Search,
   Sparkles,
+  Star,
   Trash2,
   TriangleAlert,
   X,
@@ -29,7 +36,6 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogMedia,
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
 import { Badge } from "@workspace/ui/components/badge"
@@ -43,14 +49,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { PageLoading } from "@workspace/ui/components/page-loading"
 import { toast } from "@workspace/ui/components/toast"
@@ -78,7 +76,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@workspace/ui/components/sheet"
 import { Slider } from "@workspace/ui/components/slider"
+import { Toggle } from "@workspace/ui/components/toggle"
 import {
   Tabs,
   TabsContent,
@@ -98,6 +104,7 @@ import {
 import type {
   WatermarkDraft,
   WatermarkImageAsset,
+  WatermarkLibraryFolder,
   WatermarkPosition,
   WatermarkRule,
   WatermarkTextColor,
@@ -390,12 +397,24 @@ function WatermarkScopePicker({
 /** Imágenes del administrador de archivos, únicas candidatas a marca de agua. */
 function useLibraryImages() {
   const [assets, setAssets] = useState<WatermarkImageAsset[]>([])
+  const [folders, setFolders] = useState<WatermarkLibraryFolder[]>([])
+  const [query, setQuery] = useState("")
+  const [folderId, setFolderId] = useState<string>("all")
+  const [starredOnly, setStarredOnly] = useState(false)
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading")
+  const deferredQuery = useDeferredValue(query)
+  const trimmedQuery = deferredQuery.trim()
 
   const load = useCallback(async () => {
     setStatus("loading")
     try {
-      const data = await filesApi.list({ kind: "image", limit: 100 })
+      const data = await filesApi.list({
+        kind: "image",
+        limit: 100,
+        ...(trimmedQuery ? { q: trimmedQuery } : {}),
+        ...(folderId === "all" ? {} : { folderId }),
+        ...(starredOnly ? { starred: true } : {}),
+      })
       setAssets(
         data.files.map((file) => ({
           id: file.id,
@@ -406,108 +425,179 @@ function useLibraryImages() {
               : filesApi.previewUrl(file.id),
         }))
       )
+      setFolders(data.folders.map(({ id, name }) => ({ id, name })))
       setStatus("ready")
     } catch {
       setAssets([])
       setStatus("error")
     }
-  }, [])
+  }, [folderId, starredOnly, trimmedQuery])
 
   useEffect(() => {
     void load()
   }, [load])
 
-  return { assets, reload: load, status }
+  return {
+    assets,
+    folderId,
+    folders,
+    query,
+    reload: load,
+    setFolderId,
+    setQuery,
+    setStarredOnly,
+    starredOnly,
+    status,
+  }
 }
 
 function WatermarkImagePicker({
-  assets,
+  library,
   onOpenChange,
-  onReload,
   onSelect,
   open,
   selectedId,
-  status,
 }: {
-  assets: readonly WatermarkImageAsset[]
+  library: ReturnType<typeof useLibraryImages>
   onOpenChange: (open: boolean) => void
-  onReload: () => void
   onSelect: (asset: WatermarkImageAsset) => void
   open: boolean
   selectedId: string | null
-  status: "loading" | "ready" | "error"
 }) {
+  const isFiltering =
+    library.query.trim() !== "" ||
+    library.folderId !== "all" ||
+    library.starredOnly
+
+  function clearFilters() {
+    library.setQuery("")
+    library.setFolderId("all")
+    library.setStarredOnly(false)
+  }
+
   return (
-    <Dialog onOpenChange={onOpenChange} open={open}>
-      <DialogContent className="sm:max-w-xl">
-        <DialogHeader>
-          <DialogTitle>Elegir archivo de la biblioteca</DialogTitle>
-          <DialogDescription>
+    <Sheet onOpenChange={onOpenChange} open={open}>
+      <SheetContent
+        className="w-full gap-0 p-0 sm:max-w-md lg:max-w-lg"
+        side="right"
+      >
+        <SheetHeader className="border-b">
+          <SheetTitle>Elegir archivo de la biblioteca</SheetTitle>
+          <SheetDescription>
             Selecciona una imagen cuadrada o con fondo transparente para usarla
             como marca de agua.
-          </DialogDescription>
-        </DialogHeader>
-        {status === "loading" ? <PageLoading /> : null}
-        {status === "error" ? (
-          <EmptyState
-            action={
-              <Button onClick={onReload} variant="brand-secondary">
-                Reintentar
-              </Button>
-            }
-            description="Comprueba tu conexión e inténtalo de nuevo."
-            icon={TriangleAlert}
-            title="No pudimos cargar tu biblioteca"
-          />
-        ) : null}
-        {status === "ready" && assets.length === 0 ? (
-          <EmptyState
-            description="Sube una imagen al administrador de archivos para usarla como marca de agua."
-            icon={ImageIcon}
-            title="Aún no tienes imágenes"
-          />
-        ) : null}
-        {status === "ready" && assets.length > 0 ? (
-          <div className="grid max-h-96 grid-cols-2 gap-3 overflow-y-auto sm:grid-cols-3">
-            {assets.map((asset) => {
-              const selected = asset.id === selectedId
-              return (
-                <button
-                  className={`group flex min-w-0 flex-col overflow-hidden rounded-lg border text-left transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none ${selected ? "border-primary" : "border-border"}`}
-                  key={asset.id}
-                  onClick={() => {
-                    onSelect(asset)
-                    onOpenChange(false)
-                  }}
-                  type="button"
-                >
-                  <span className="flex aspect-square items-center justify-center bg-muted p-5">
-                    {/* eslint-disable-next-line @next/next/no-img-element -- la biblioteca sirve las imágenes desde la API, fuera del optimizador de Next. */}
-                    <img
-                      alt=""
-                      className="max-h-full max-w-full object-contain"
-                      src={asset.previewSrc}
-                    />
-                  </span>
-                  <span className="truncate px-2.5 py-2 text-sm font-medium">
-                    {asset.name}
-                  </span>
-                </button>
-              )
-            })}
+          </SheetDescription>
+        </SheetHeader>
+        <div className="flex flex-col gap-3 border-b p-4">
+          <InputGroup>
+            <InputGroupAddon>
+              <Search />
+            </InputGroupAddon>
+            <InputGroupInput
+              aria-label="Buscar imágenes"
+              onChange={(event) => library.setQuery(event.target.value)}
+              placeholder="Buscar imágenes..."
+              value={library.query}
+            />
+          </InputGroup>
+          <div className="flex flex-wrap items-center gap-2">
+            <Select
+              onValueChange={library.setFolderId}
+              value={library.folderId}
+            >
+              <SelectTrigger aria-label="Carpeta" className="w-48">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="all">Todas las carpetas</SelectItem>
+                  {library.folders.map((folder) => (
+                    <SelectItem key={folder.id} value={folder.id}>
+                      {folder.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <Toggle
+              aria-label="Solo destacados"
+              onPressedChange={library.setStarredOnly}
+              pressed={library.starredOnly}
+            >
+              <Star aria-hidden="true" data-icon="inline-start" />
+              Destacados
+            </Toggle>
           </div>
-        ) : null}
-        <DialogFooter>
-          <Button
-            onClick={() => onOpenChange(false)}
-            type="button"
-            variant="outline"
-          >
-            Cancelar
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+        <div className="min-h-0 flex-1 overflow-y-auto p-4">
+          {library.status === "loading" ? <PageLoading /> : null}
+          {library.status === "error" ? (
+            <EmptyState
+              action={
+                <Button onClick={library.reload} variant="brand-secondary">
+                  Reintentar
+                </Button>
+              }
+              description="Comprueba tu conexión e inténtalo de nuevo."
+              icon={TriangleAlert}
+              title="No pudimos cargar tu biblioteca"
+            />
+          ) : null}
+          {library.status === "ready" && library.assets.length === 0 ? (
+            <EmptyState
+              action={
+                isFiltering ? (
+                  <Button onClick={clearFilters} variant="brand-secondary">
+                    Limpiar filtros
+                  </Button>
+                ) : null
+              }
+              description={
+                isFiltering
+                  ? "Prueba con otro término o quita los filtros."
+                  : "Sube una imagen al administrador de archivos para usarla como marca de agua."
+              }
+              icon={ImageIcon}
+              title={
+                isFiltering
+                  ? "No encontramos imágenes"
+                  : "Aún no tienes imágenes"
+              }
+            />
+          ) : null}
+          {library.status === "ready" && library.assets.length > 0 ? (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {library.assets.map((asset) => {
+                const selected = asset.id === selectedId
+                return (
+                  <button
+                    className={`group flex min-w-0 flex-col overflow-hidden rounded-lg border text-left transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none ${selected ? "border-primary" : "border-border"}`}
+                    key={asset.id}
+                    onClick={() => {
+                      onSelect(asset)
+                      onOpenChange(false)
+                    }}
+                    type="button"
+                  >
+                    <span className="flex aspect-square items-center justify-center bg-muted p-5">
+                      {/* eslint-disable-next-line @next/next/no-img-element -- la biblioteca sirve las imágenes desde la API, fuera del optimizador de Next. */}
+                      <img
+                        alt=""
+                        className="max-h-full max-w-full object-contain"
+                        src={asset.previewSrc}
+                      />
+                    </span>
+                    <span className="truncate px-2.5 py-2 text-sm font-medium">
+                      {asset.name}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          ) : null}
+        </div>
+      </SheetContent>
+    </Sheet>
   )
 }
 
@@ -526,13 +616,13 @@ function WatermarkPreview({
           Así se aplicará sobre el contenido al publicar.
         </CardDescription>
       </CardHeader>
-      <CardContent className="p-4">
-        <div className="relative mx-auto aspect-[4/5] w-full max-w-72 overflow-hidden rounded-lg border bg-muted">
+      <CardContent className="p-0">
+        <div className="relative aspect-[4/5] w-full overflow-hidden bg-muted">
           <Image
             alt="Publicación de ejemplo"
             className="object-cover"
             fill
-            sizes="288px"
+            sizes="(min-width: 1024px) 21rem, 100vw"
             src={previewContentSrc}
           />
           <div
@@ -603,7 +693,12 @@ export function WatermarksPage() {
     [baselineDraft, draft]
   )
   const isCreating = targetRules.length === 0
-  const canSave = hasTarget && (isCreating || isDirty)
+  /** Una marca sin contenido no se puede aplicar: imagen en modo imagen, texto en modo texto. */
+  const hasContent =
+    draft.type === "image"
+      ? draft.imageFileAssetId !== null
+      : (draft.text ?? "").trim() !== ""
+  const canSave = hasTarget && hasContent && (isCreating || isDirty)
 
   if (!canManage) {
     return (
@@ -697,7 +792,12 @@ export function WatermarksPage() {
         <CardContent className="grid gap-6 p-4 lg:grid-cols-[minmax(0,1fr)_21rem] lg:p-6">
           <div className="space-y-6">
             <Field>
-              <FieldLabel>Aplicar en</FieldLabel>
+              <FieldLabel>
+                Aplicar en{" "}
+                <span aria-hidden="true" className="text-destructive">
+                  *
+                </span>
+              </FieldLabel>
               <WatermarkScopePicker
                 isGlobalScope={isGlobalScope}
                 onGlobalSelect={() => {
@@ -727,7 +827,12 @@ export function WatermarksPage() {
               </TabsList>
               <TabsContent className="pt-4" value="image">
                 <Field>
-                  <FieldLabel>Archivo de la biblioteca</FieldLabel>
+                  <FieldLabel>
+                    Archivo de la biblioteca{" "}
+                    <span aria-hidden="true" className="text-destructive">
+                      *
+                    </span>
+                  </FieldLabel>
                   <button
                     className="flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
                     onClick={() => setImagePickerOpen(true)}
@@ -762,9 +867,13 @@ export function WatermarksPage() {
               <TabsContent className="pt-4" value="text">
                 <Field>
                   <FieldLabel htmlFor="watermark-text">
-                    Texto de la marca
+                    Texto de la marca{" "}
+                    <span aria-hidden="true" className="text-destructive">
+                      *
+                    </span>
                   </FieldLabel>
                   <Textarea
+                    aria-required="true"
                     id="watermark-text"
                     maxLength={1000}
                     onChange={(event) =>
@@ -936,20 +1045,15 @@ export function WatermarksPage() {
         </Button>
       </div>
       <WatermarkImagePicker
-        assets={library.assets}
+        library={library}
         onOpenChange={setImagePickerOpen}
-        onReload={library.reload}
         onSelect={(asset) => updateDraft("imageFileAssetId", asset.id)}
         open={imagePickerOpen}
         selectedId={draft.imageFileAssetId}
-        status={library.status}
       />
       <AlertDialog onOpenChange={setDeleteOpen} open={deleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogMedia>
-              <Trash2 />
-            </AlertDialogMedia>
             <AlertDialogTitle>
               {targetRules.length === 1
                 ? "¿Eliminar esta marca de agua?"

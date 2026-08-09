@@ -12,7 +12,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
-import { Input } from "@workspace/ui/components/input"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@workspace/ui/components/input-group"
 import {
   Select,
   SelectContent,
@@ -23,6 +27,12 @@ import {
 import type { FileAsset, FileFolder } from "@/features/files/types/files"
 
 type ManagedItem = (FileAsset | FileFolder) & { isFolder?: boolean }
+
+/** Sufijo `.ext` de un nombre, vacío si no lo tiene o si el punto abre el nombre. */
+function fileExtension(name: string) {
+  const dotIndex = name.lastIndexOf(".")
+  return dotIndex > 0 ? name.slice(dotIndex) : ""
+}
 
 export function FilePreviewDialog({
   item,
@@ -129,10 +139,7 @@ export function FileInfoDialog({
           ))}
         </dl>
         <DialogFooter>
-          <Button
-            onClick={() => onOpenChange(false)}
-            variant="brand-secondary"
-          >
+          <Button onClick={() => onOpenChange(false)} variant="brand-secondary">
             Cerrar
           </Button>
         </DialogFooter>
@@ -153,7 +160,15 @@ export function FileRenameDialog({
   open: boolean
 }) {
   const [name, setName] = useState("")
-  useEffect(() => setName(item?.name ?? ""), [item])
+  /** La extensión identifica el formato: se conserva y queda fuera del campo editable. */
+  const extension = item && "kind" in item ? fileExtension(item.name) : ""
+  useEffect(
+    () =>
+      setName(
+        item ? item.name.slice(0, item.name.length - extension.length) : ""
+      ),
+    [extension.length, item]
+  )
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent>
@@ -163,16 +178,27 @@ export function FileRenameDialog({
             Elige un nombre claro para encontrarlo después.
           </DialogDescription>
         </DialogHeader>
-        <Input
-          autoFocus
-          onChange={(event) => setName(event.target.value)}
-          value={name}
-        />
+        <InputGroup>
+          <InputGroupInput
+            autoFocus
+            aria-label="Nombre del archivo"
+            onChange={(event) => setName(event.target.value)}
+            value={name}
+          />
+          {extension ? (
+            <InputGroupAddon align="inline-end">
+              <span className="text-muted-foreground">{extension}</span>
+            </InputGroupAddon>
+          ) : null}
+        </InputGroup>
         <DialogFooter>
           <Button onClick={() => onOpenChange(false)} variant="brand-secondary">
             Cancelar
           </Button>
-          <Button disabled={!name.trim()} onClick={() => void onConfirm(name)}>
+          <Button
+            disabled={!name.trim()}
+            onClick={() => void onConfirm(`${name.trim()}${extension}`)}
+          >
             Guardar
           </Button>
         </DialogFooter>

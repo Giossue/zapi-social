@@ -20,6 +20,11 @@ export type WatermarkImageAsset = {
   previewSrc: string
 }
 
+export type WatermarkLibraryFolder = {
+  id: string
+  name: string
+}
+
 export type WatermarkRule = {
   id: string
   socialAccountId: string | null
