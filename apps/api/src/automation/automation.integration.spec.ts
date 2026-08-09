@@ -37,7 +37,7 @@ const encryptionKey = Buffer.alloc(32, 7).toString('base64');
 function portalSession(
   userId: string,
   workspace: { id: string; name: string; slug: string },
-  role = 'owner',
+  role: 'owner' | 'admin' | 'member' = 'owner',
 ): PortalAuthSession {
   return {
     area: 'portal',
@@ -47,6 +47,7 @@ function portalSession(
       id: userId,
     },
     workspace: { ...workspace, role },
+    workspaces: [{ ...workspace, role }],
   };
 }
 

@@ -19,7 +19,15 @@ import {
 } from "@workspace/ui/components/input-group"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
-import { Check, Eye, EyeOff, LockKeyhole, Mail, UserRound, X } from "lucide-react"
+import {
+  Check,
+  Eye,
+  EyeOff,
+  LockKeyhole,
+  Mail,
+  UserRound,
+  X,
+} from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState, type FormEvent } from "react"
@@ -60,7 +68,10 @@ type PasswordRequirementProps = {
   children: string
 }
 
-function PasswordRequirement({ fulfilled, children }: PasswordRequirementProps) {
+function PasswordRequirement({
+  fulfilled,
+  children,
+}: PasswordRequirementProps) {
   const Icon = fulfilled ? Check : X
 
   return (
@@ -74,14 +85,21 @@ function PasswordRequirement({ fulfilled, children }: PasswordRequirementProps) 
   )
 }
 
-export function AuthForm({ initialMode }: { initialMode: AuthMode }) {
+export function AuthForm({
+  initialMode,
+  returnTo,
+}: {
+  initialMode: AuthMode
+  returnTo?: "/invite"
+}) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [password, setPassword] = useState("")
   const [passwordConfirmation, setPasswordConfirmation] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [showPasswordConfirmation, setShowPasswordConfirmation] = useState(false)
+  const [showPasswordConfirmation, setShowPasswordConfirmation] =
+    useState(false)
   const isLogin = initialMode === "login"
 
   function reportError(message: string) {
@@ -138,16 +156,15 @@ export function AuthForm({ initialMode }: { initialMode: AuthMode }) {
             password,
           })
       const area = getSessionArea(session)
-      if (!isLogin) {
-        router.replace(getAreaDestination("portal"))
-      } else if (!area) {
+      if (!area) {
         reportError(
           "Tu sesión no incluye el área de acceso requerida. Vuelve a iniciar sesión."
         )
         return
-      } else {
-        router.replace(getAreaDestination(area))
       }
+      router.replace(
+        returnTo && area === "portal" ? returnTo : getAreaDestination(area)
+      )
       router.refresh()
     } catch (caught) {
       if (caught instanceof ApiError) {
@@ -181,7 +198,8 @@ export function AuthForm({ initialMode }: { initialMode: AuthMode }) {
         {!isLogin ? (
           <Field className="gap-1.5">
             <FieldLabel htmlFor="register-name">
-              Nombre<RequiredMark />
+              Nombre
+              <RequiredMark />
             </FieldLabel>
             <InputGroup>
               <InputGroupAddon>
@@ -203,7 +221,8 @@ export function AuthForm({ initialMode }: { initialMode: AuthMode }) {
         ) : null}
         <Field className="gap-1.5">
           <FieldLabel htmlFor={`${initialMode}-email`}>
-            Correo electrónico<RequiredMark />
+            Correo electrónico
+            <RequiredMark />
           </FieldLabel>
           <InputGroup>
             <InputGroupAddon>
@@ -224,7 +243,8 @@ export function AuthForm({ initialMode }: { initialMode: AuthMode }) {
         </Field>
         <Field className="gap-1.5">
           <FieldLabel htmlFor={`${initialMode}-password`}>
-            Contraseña<RequiredMark />
+            Contraseña
+            <RequiredMark />
           </FieldLabel>
           {isLogin ? (
             <InputGroup>
@@ -245,12 +265,18 @@ export function AuthForm({ initialMode }: { initialMode: AuthMode }) {
               />
               <InputGroupAddon align="inline-end">
                 <InputGroupButton
-                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  aria-label={
+                    showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                  }
                   onClick={() => setShowPassword((visible) => !visible)}
                   size="icon-xs"
                   variant="ghost"
                 >
-                  {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+                  {showPassword ? (
+                    <EyeOff aria-hidden="true" />
+                  ) : (
+                    <Eye aria-hidden="true" />
+                  )}
                 </InputGroupButton>
               </InputGroupAddon>
             </InputGroup>
@@ -275,12 +301,18 @@ export function AuthForm({ initialMode }: { initialMode: AuthMode }) {
               />
               <InputGroupAddon align="inline-end">
                 <InputGroupButton
-                  aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  aria-label={
+                    showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                  }
                   onClick={() => setShowPassword((visible) => !visible)}
                   size="icon-xs"
                   variant="ghost"
                 >
-                  {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+                  {showPassword ? (
+                    <EyeOff aria-hidden="true" />
+                  ) : (
+                    <Eye aria-hidden="true" />
+                  )}
                 </InputGroupButton>
               </InputGroupAddon>
             </InputGroup>
@@ -289,7 +321,8 @@ export function AuthForm({ initialMode }: { initialMode: AuthMode }) {
         {!isLogin ? (
           <Field className="gap-1.5">
             <FieldLabel htmlFor="register-password-confirmation">
-              Confirmar contraseña<RequiredMark />
+              Confirmar contraseña
+              <RequiredMark />
             </FieldLabel>
             <InputGroup>
               <InputGroupAddon>
@@ -303,7 +336,9 @@ export function AuthForm({ initialMode }: { initialMode: AuthMode }) {
                 maxLength={128}
                 minLength={8}
                 name="passwordConfirmation"
-                onChange={(event) => setPasswordConfirmation(event.target.value)}
+                onChange={(event) =>
+                  setPasswordConfirmation(event.target.value)
+                }
                 placeholder="••••••••"
                 required
                 type={showPasswordConfirmation ? "text" : "password"}
@@ -311,22 +346,48 @@ export function AuthForm({ initialMode }: { initialMode: AuthMode }) {
               />
               <InputGroupAddon align="inline-end">
                 <InputGroupButton
-                  aria-label={showPasswordConfirmation ? "Ocultar confirmación de contraseña" : "Mostrar confirmación de contraseña"}
-                  onClick={() => setShowPasswordConfirmation((visible) => !visible)}
+                  aria-label={
+                    showPasswordConfirmation
+                      ? "Ocultar confirmación de contraseña"
+                      : "Mostrar confirmación de contraseña"
+                  }
+                  onClick={() =>
+                    setShowPasswordConfirmation((visible) => !visible)
+                  }
                   size="icon-xs"
                   variant="ghost"
                 >
-                  {showPasswordConfirmation ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+                  {showPasswordConfirmation ? (
+                    <EyeOff aria-hidden="true" />
+                  ) : (
+                    <Eye aria-hidden="true" />
+                  )}
                 </InputGroupButton>
               </InputGroupAddon>
             </InputGroup>
             <ul className="space-y-1 pt-1">
-              <PasswordRequirement fulfilled={password.length >= 8}>8 caracteres o más</PasswordRequirement>
-              <PasswordRequirement fulfilled={/[A-Z]/.test(password)}>Una letra mayúscula</PasswordRequirement>
-              <PasswordRequirement fulfilled={/[a-z]/.test(password)}>Una letra minúscula</PasswordRequirement>
-              <PasswordRequirement fulfilled={/[0-9]/.test(password)}>Un número</PasswordRequirement>
-              <PasswordRequirement fulfilled={/[^A-Za-z0-9]/.test(password)}>Un carácter especial</PasswordRequirement>
-              <PasswordRequirement fulfilled={Boolean(password) && password === passwordConfirmation}>Las contraseñas coinciden</PasswordRequirement>
+              <PasswordRequirement fulfilled={password.length >= 8}>
+                8 caracteres o más
+              </PasswordRequirement>
+              <PasswordRequirement fulfilled={/[A-Z]/.test(password)}>
+                Una letra mayúscula
+              </PasswordRequirement>
+              <PasswordRequirement fulfilled={/[a-z]/.test(password)}>
+                Una letra minúscula
+              </PasswordRequirement>
+              <PasswordRequirement fulfilled={/[0-9]/.test(password)}>
+                Un número
+              </PasswordRequirement>
+              <PasswordRequirement fulfilled={/[^A-Za-z0-9]/.test(password)}>
+                Un carácter especial
+              </PasswordRequirement>
+              <PasswordRequirement
+                fulfilled={
+                  Boolean(password) && password === passwordConfirmation
+                }
+              >
+                Las contraseñas coinciden
+              </PasswordRequirement>
             </ul>
           </Field>
         ) : (

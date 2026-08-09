@@ -9,6 +9,7 @@ import {
 import { cn } from "@workspace/ui/lib/utils"
 
 import type { AccountProfile } from "@/components/account-menu"
+import type { ActiveWorkspace } from "@workspace/contracts"
 import { usePersistedSidebarState } from "@/hooks/use-persisted-sidebar-state"
 
 import { AccountMenu } from "../account-menu"
@@ -19,6 +20,7 @@ import type {
 } from "./navigation-types"
 import { DashboardSearchDialog } from "./search-dialog"
 import { ThemeSwitcher } from "./theme-switcher"
+import { WorkspaceSwitcher } from "./workspace-switcher"
 
 type DashboardShellProps = {
   areaLabel: string
@@ -29,6 +31,10 @@ type DashboardShellProps = {
   navigationLabel: string
   profile: AccountProfile
   sidebarStorageKey: string
+  workspaceContext?: {
+    activeWorkspace: ActiveWorkspace
+    workspaces: ActiveWorkspace[]
+  }
 }
 
 export function DashboardShell({
@@ -40,6 +46,7 @@ export function DashboardShell({
   navigationLabel,
   profile,
   sidebarStorageKey,
+  workspaceContext,
 }: DashboardShellProps) {
   const [collapsed, setCollapsed] = usePersistedSidebarState(sidebarStorageKey)
 
@@ -87,6 +94,9 @@ export function DashboardShell({
               <DashboardSearchDialog items={items} />
             </div>
             <div className="flex items-center gap-2">
+              {workspaceContext ? (
+                <WorkspaceSwitcher {...workspaceContext} />
+              ) : null}
               <ThemeSwitcher />
               <AccountMenu profile={profile} />
             </div>

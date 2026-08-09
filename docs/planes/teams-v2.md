@@ -2,9 +2,9 @@
 
 ## Estado al 2026-08-09
 
-**Fases 1 a 18 implementadas y validadas localmente.** `/portal/teams` consume REST real y ya no contiene fixtures ni repositorios mock. La UI, los contratos Zod, Nest y Drizzle comparten miembros, roles, grants, invitaciones, cupos, actividad, transferencia y abandono. Publishing, AI Publishing y Channels consumen la política central `TeamAccountAccessService`.
+**Fases 1 a 25 implementadas y validadas localmente.** `/portal/teams` consume REST real y ya no contiene fixtures ni repositorios mock. La UI, los contratos Zod, Nest y Drizzle comparten miembros, roles, grants, invitaciones, cupos, actividad, transferencia y abandono. El ingreso público por `/invite`, la continuidad de login/registro y el selector de workspace también están conectados a REST real. Publishing, AI Publishing y Channels consumen la política central `TeamAccountAccessService`.
 
-Las migraciones `0023_mature_whizzer.sql` y `0024_teams-invitation-backfill.sql` están aplicadas y verificadas en `zapi_v2_local`. Su aplicación y verificación en la base remota permanecen pendientes; no debe desplegarse código dependiente de esas columnas antes de completarlas allí siguiendo `docs/reglas/workflow.md`.
+Las migraciones `0023_mature_whizzer.sql` y `0024_teams-invitation-backfill.sql` están aplicadas y verificadas en `zapi_v2_local` y en la base remota. Ambas registran 25 migraciones Drizzle y comparten columnas, constraints e índice parcial de invitaciones pendientes.
 
 ## Objetivo de producto
 
@@ -43,20 +43,20 @@ Teams no será un chat ni un gestor de publicaciones. Esta frontera evita repeti
 
 ### Qué se conserva, adapta o descarta
 
-| Capacidad Laravel                                 | Decisión V2             | Motivo                                                                           |
-| ------------------------------------------------- | ----------------------- | -------------------------------------------------------------------------------- |
-| Vista de acceso propio                            | **Tomar**               | Un member debe entender su rol y cuentas sin necesitar permisos administrativos. |
-| Gestión de miembros y cuentas                     | **Tomar y tipar**       | Es el núcleo de Teams; los grants tendrán relaciones explícitas.                 |
-| Invitación con expiración, remitente y revocación | **Tomar y reforzar**    | Es estándar y útil, pero con token privado, hash y correo vinculado.             |
-| Límite de miembros                                | **Tomar**               | Evita invitar por encima del plan y hace visible la capacidad disponible.        |
-| Actividad de membresía                            | **Añadir**              | V2 ya persiste auditoría, pero falta una superficie consultable.                 |
-| Perfil básico del workspace                       | **Diferir**             | Nombre/icono pueden vivir luego en Settings; no bloquean la gestión del equipo.  |
-| Selector de workspace                             | **Diferir**             | Solo se justifica cuando el producto exponga multi-workspace al usuario.         |
-| Permisos JSON por persona                         | **Descartar**           | Duplica roles y genera privilegios implícitos difíciles de auditar.              |
-| Links abiertos, código corto y QR                 | **Descartar**           | Aumentan el riesgo de canje por una identidad distinta al correo invitado.       |
-| Módulos habilitados manualmente                   | **Descartar por ahora** | Las capacidades deben derivarse del producto/plan, no de flags libres en Teams.  |
-| Chat interno                                      | **Descartar**           | No se reconstruirá Slack dentro de Zapi; no pertenece al objetivo del módulo.    |
-| Aprobaciones y comentarios                        | **Mover a Publishing**  | El contexto y el ciclo de vida pertenecen al contenido que se revisa.            |
+| Capacidad Laravel                                 | Decisión V2             | Motivo                                                                                                               |
+| ------------------------------------------------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Vista de acceso propio                            | **Tomar**               | Un member debe entender su rol y cuentas sin necesitar permisos administrativos.                                     |
+| Gestión de miembros y cuentas                     | **Tomar y tipar**       | Es el núcleo de Teams; los grants tendrán relaciones explícitas.                                                     |
+| Invitación con expiración, remitente y revocación | **Tomar y reforzar**    | Es estándar y útil, pero con token privado, hash y correo vinculado.                                                 |
+| Límite de miembros                                | **Tomar**               | Evita invitar por encima del plan y hace visible la capacidad disponible.                                            |
+| Actividad de membresía                            | **Añadir**              | V2 ya persiste auditoría, pero falta una superficie consultable.                                                     |
+| Perfil básico del workspace                       | **Diferir**             | Nombre/icono pueden vivir luego en Settings; no bloquean la gestión del equipo.                                      |
+| Selector de workspace                             | **Añadir**              | Aceptar una invitación crea membresía en un segundo workspace; el usuario necesita ver y cambiar el contexto activo. |
+| Permisos JSON por persona                         | **Descartar**           | Duplica roles y genera privilegios implícitos difíciles de auditar.                                                  |
+| Links abiertos, código corto y QR                 | **Descartar**           | Aumentan el riesgo de canje por una identidad distinta al correo invitado.                                           |
+| Módulos habilitados manualmente                   | **Descartar por ahora** | Las capacidades deben derivarse del producto/plan, no de flags libres en Teams.                                      |
+| Chat interno                                      | **Descartar**           | No se reconstruirá Slack dentro de Zapi; no pertenece al objetivo del módulo.                                        |
+| Aprobaciones y comentarios                        | **Mover a Publishing**  | El contexto y el ciclo de vida pertenecen al contenido que se revisa.                                                |
 
 ## Decisiones V2
 
@@ -109,7 +109,7 @@ Los metadatos públicos nunca incluyen token, hash, credenciales ni payloads com
 
 ## Modelo existente
 
-La base conserva `workspaces`, `workspace_memberships`, `social_account_memberships`, `workspace_invitations` y `workspace_membership_audit_events`. `0019_minor_stick.sql` creó la base de membresías; `0023_mature_whizzer.sql` añadió cupos, entrega y unicidad de invitaciones, y `0024_teams-invitation-backfill.sql` sanea datos heredados de forma idempotente. Las dos últimas están aplicadas localmente y pendientes en remoto.
+La base conserva `workspaces`, `workspace_memberships`, `social_account_memberships`, `workspace_invitations` y `workspace_membership_audit_events`. `0019_minor_stick.sql` creó la base de membresías; `0023_mature_whizzer.sql` añadió cupos, entrega y unicidad de invitaciones, y `0024_teams-invitation-backfill.sql` sanea datos heredados de forma idempotente. Las dos últimas están aplicadas y verificadas localmente y en remoto.
 
 ```text
 workspace_invitations
@@ -208,10 +208,15 @@ Listado cronológico de eventos de acceso con actor, acción, sujeto y fecha. La
 - El menú contextual replica el patrón de Files: acciones normales, separador y destructiva al final.
 - Member recibe **Mi acceso**, sus cuentas y un directorio de solo lectura; los correos de terceros y las invitaciones no llegan en la respuesta.
 - Existen skeleton estructural, error con reintento, vacíos iniciales/filtrados, pending sin doble envío, cupos agotados y variantes desktop/móvil en claro/oscuro.
+- `/invite` recupera el token desde el fragmento privado, lo retira de la URL, obtiene un preview por POST y conserva el flujo durante login o registro.
+- El selector aparece en el shell de Portal cuando la sesión tiene dos o más workspaces activos.
+- Durante un despliegue escalonado, el shell tolera temporalmente una respuesta de sesión sin `workspaces`: conserva el workspace activo, oculta el selector y evita interrumpir Portal hasta que el API actualizado entregue la lista completa.
 
 ### REST Nest existente
 
 ```text
+POST   /v1/public/teams/invitations/preview
+POST   /v1/auth/workspaces/activate
 GET    /v1/portal/teams
 GET    /v1/portal/teams/activity
 POST   /v1/portal/teams/invitations
@@ -232,7 +237,56 @@ El endpoint de actividad filtra por categoría y texto, pagina en servidor y sol
 
 ### Errores públicos
 
-La vertical expone códigos estables, entre ellos `TEAM_ACCESS_DENIED`, `TEAM_MEMBER_ALREADY_EXISTS`, `INVITATION_EMAIL_MISMATCH`, `INVITATION_EXPIRED`, `INVITATION_ALREADY_USED`, `INVITATION_ALREADY_PENDING`, `INVITATION_RESEND_NOT_ALLOWED`, `ROLE_CHANGE_NOT_ALLOWED`, `ACCOUNT_GRANT_NOT_ALLOWED`, `MEMBER_LIMIT_REACHED` y `LAST_OWNER_PROTECTED`.
+La vertical expone códigos estables, entre ellos `TEAM_ACCESS_DENIED`, `TEAM_MEMBER_ALREADY_EXISTS`, `INVITATION_INVALID`, `INVITATION_EMAIL_MISMATCH`, `INVITATION_EXPIRED`, `INVITATION_ALREADY_USED`, `INVITATION_ALREADY_PENDING`, `INVITATION_RESEND_NOT_ALLOWED`, `ROLE_CHANGE_NOT_ALLOWED`, `ACCOUNT_GRANT_NOT_ALLOWED`, `MEMBER_LIMIT_REACHED` y `LAST_OWNER_PROTECTED`.
+
+## Plan de cierre — ingreso por invitación
+
+### Brecha de partida, cerrada al 2026-08-09
+
+- El correo generaba una URL sin una ruta Web que pudiera consumirla.
+- `teamsApi.acceptInvitation()` existía, pero ninguna superficie Web lo invocaba.
+- Login y registro no conservaban el contexto de invitación.
+- Aceptar creaba la membresía, pero no activaba el workspace invitado ni renovaba la cookie de acceso.
+- Una cuenta con varias membresías no tenía selector de workspace.
+
+### Resultado objetivo
+
+```text
+Correo con fragmento privado
+→ /invite recupera token sin enviarlo en URL al servidor
+→ preview público por POST
+→ login/registro con retorno preservado
+→ aceptación autenticada y ligada al mismo correo
+→ activación explícita del workspace invitado
+→ Portal abierto en el nuevo contexto
+```
+
+La invitación siempre pertenece a un **workspace**. Teams es la superficie que administra sus membresías, roles y grants; no crea una entidad paralela llamada equipo.
+
+### Superficies y estados
+
+- Crear primero en `diseño ideal` la ruta canónica `/invite`; copiar después composición y estados a V2.
+- La ruta pública cubre: loading, token ausente, inválido, usado, vencido, invitado sin sesión, sesión con correo distinto, aceptación pendiente, éxito y error recuperable.
+- Login y registro reciben solo un retorno interno permitido hacia `/invite`; el token permanece en `sessionStorage`, nunca en parámetros de esas rutas.
+- El shell de Portal muestra selector solo cuando existen dos o más workspaces activos. Cambiarlo actualiza la sesión actual, renueva autenticación y recarga el contexto.
+
+### Contrato y backend
+
+- `POST /v1/public/teams/invitations/preview`: recibe token en body y devuelve workspace, rol, correo invitado, existencia de cuenta, vencimiento y estado público normalizado.
+- `POST /v1/portal/teams/invitations/accept`: conserva validaciones actuales y devuelve el workspace aceptado.
+- `POST /v1/auth/workspaces/activate`: valida membresía activa, cambia `auth_sessions.active_workspace_id` para la sesión actual y renueva cookies.
+- `GET /v1/auth/session`, login, registro y refresh devuelven lista de workspaces activos para Portal.
+- No se requiere migración: `auth_sessions.active_workspace_id` y las relaciones de membresía ya existen.
+
+### Orden y criterios verificables
+
+19. [x] Crear y validar mock navegable `/invite` en `diseño ideal`.
+20. [x] Añadir schemas Zod, errores públicos y cliente REST para preview, aceptación y activación.
+21. [x] Implementar preview sin filtrar token/hash y activación limitada a membresías del usuario.
+22. [x] Hacer que aceptación devuelva workspace y que auth liste/active contextos con cookie renovada.
+23. [x] Implementar `/invite`, continuidad login/registro y selector de workspace copiando la fuente visual.
+24. [x] Probar cuenta existente, cuenta nueva, correo distinto, token inválido/vencido/usado, cupo agotado y cambio de workspace.
+25. [x] Validar typecheck, lint/build, smoke visual responsive y actualizar evidencia de cierre.
 
 ## Fuera de alcance de esta iteración
 
@@ -242,7 +296,7 @@ La vertical expone códigos estables, entre ellos `TEAM_ACCESS_DENIED`, `TEAM_ME
 - enlaces públicos, códigos cortos o QR de invitación;
 - grupos de acceso y aprobadores externos;
 - SSO, SCIM, dominio verificado, MFA obligatoria y administración corporativa de sesiones;
-- selector multi-workspace y edición completa del perfil del workspace;
+- edición completa del perfil del workspace;
 - compra o cambio de plan dentro de Teams;
 - automatizaciones del Worker, salvo que una acción futura requiera expiración o entrega asíncrona durable.
 
@@ -279,14 +333,17 @@ La vertical expone códigos estables, entre ellos `TEAM_ACCESS_DENIED`, `TEAM_ME
 
 - `0023` y `0024` aplicadas en `zapi_v2_local`: 25 migraciones registradas, índice parcial presente, cero duplicados pendientes y cero entregas heredadas en `pending`.
 - Pruebas de integración de Teams y política de acceso: **10 pass, 0 fail, 73 assertions**. Cubren privacidad, permisos por rol, cupos/duplicados, rotación de token, aceptación, revocación posterior inocua, ownership, workspace personal del destinatario, abandono, actividad y filtros de Publishing/AI/Channels.
+- Pruebas focales del cierre de invitaciones y sesión: **7 pass, 0 fail, 75 assertions**. Cubren preview para cuenta existente y nueva, correo distinto, token inválido/vencido/reutilizado, cupo agotado, aceptación idempotente y activación autorizada de workspace.
 - Typecheck global sin errores en siete paquetes ejecutables, incluido Worker; lint focal sin errores en Teams, Channels y rutas Web afectadas.
-- Build global exitoso: Nest API/Worker, Contracts, Database y Next Web; `/portal/teams` quedó incluida en la salida estática de producción.
+- Build focal exitoso para Contracts, Nest API y Next Web; `/invite` y `/portal/teams` aparecen en la salida de producción. El build global del repositorio de diseño conserva un bloqueo preexistente por `@shadcn/react/questionnaire`, ajeno a `/invite`; Biome sí valida los dos archivos nuevos.
 - Smoke autenticado de interacción: **2 pass** para búsqueda contextual/atajo, menús, diálogos, privacidad de tokens y correos. Revisión visual completada en desktop/móvil y temas claro/oscuro.
+- Smoke de navegador real del ingreso: enlace con fragmento → preview → registro → retorno a `/invite` → aceptación → membresía activa → activación del workspace. También se verificó que el token desaparece de la URL y que el layout responde en desktop/móvil.
+- Regresión del selector validada con una sesión sin `workspaces`: renderiza sin excepción y permanece oculto; typecheck, lint focal y build Web finalizan sin errores.
 - Los datos y sesiones sintéticos usados para QA se eliminaron y se verificó conteo cero.
-- La base remota no se modificó durante este cierre local: `0023` y `0024` siguen pendientes de aplicación y verificación antes del despliegue, conforme a `docs/reglas/workflow.md`.
+- `0023` y `0024` aplicadas y verificadas en la base remota: 25 migraciones registradas, columnas y constraints presentes, índice parcial creado, cero duplicados pendientes y health de API/PostgreSQL/Redis en `ok`.
 
 ## Criterio de cierre
 
-Teams se considera terminado cuando el mock aprobado, los contratos, la autorización, la persistencia y la UI conectada describen las mismas capacidades; existen pruebas de ownership y límites; no quedan datos mock en la ruta; y Publishing/Channels consumen la política central sin permisos paralelos.
+Teams se considera terminado cuando el mock aprobado, los contratos, la autorización, la persistencia y la UI conectada describen las mismas capacidades; existen pruebas de ownership, límites e ingreso por invitación; no quedan datos mock en la ruta; y Publishing/Channels consumen la política central sin permisos paralelos.
 
-Ese criterio se cumple en el entorno local. La promoción a remoto es una operación de despliegue separada que sigue pendiente de ejecutar y verificar para `0023` y `0024` conforme a la autorización permanente de `docs/reglas/workflow.md`.
+Ese criterio se cumple localmente. En remoto ya están verificados el schema y el historial Drizzle; la validación funcional en línea de `/invite` y `/portal/teams` corresponde al siguiente despliegue de esta implementación.

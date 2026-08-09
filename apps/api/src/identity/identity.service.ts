@@ -9,8 +9,10 @@ import {
   workspaces,
 } from '@workspace/database';
 import {
+  activateAuthWorkspaceSchema,
   loginSchema,
   registerSchema,
+  type ActiveWorkspace,
   type AuthSession,
   type PlatformAdminAuthSession,
   type PortalAuthSession,
@@ -124,7 +126,8 @@ export class IdentityService {
       return {
         user,
         area: 'portal' as const,
-        workspace: { ...workspace, role: 'owner' },
+        workspace: { ...workspace, role: 'owner' as const },
+        workspaces: [{ ...workspace, role: 'owner' as const }],
       };
     });
 
@@ -188,7 +191,10 @@ export class IdentityService {
       expiresAt: this.sessionExpiry(data.remember),
     });
 
-    return { ...(await this.buildAuthentication(session, sessionToken)), remember: data.remember };
+    return {
+      ...(await this.buildAuthentication(session, sessionToken)),
+      remember: data.remember,
+    };
   }
 
   async getSession(
@@ -227,30 +233,83 @@ export class IdentityService {
       return { user, area: 'admin' };
     }
     if (!session.activeWorkspaceId) return null;
+    const availableWorkspaces = await this.activeWorkspacesForUser(
+      session.userId,
+    );
+    const workspace = availableWorkspaces.find(
+      ({ id }) => id === session.activeWorkspaceId,
+    );
+    if (!workspace) return null;
+    return {
+      user,
+      area: 'portal' as const,
+      workspace,
+      workspaces: availableWorkspaces,
+    };
+  }
 
-    const [workspace] = await this.database.db
+  async activateWorkspace(sessionToken: string | undefined, input: unknown) {
+    const parsed = activateAuthWorkspaceSchema.safeParse(input);
+    if (!parsed.success)
+      throw new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
+    if (!sessionToken)
+      throw new AppException('AUTH_SESSION_EXPIRED', HttpStatus.UNAUTHORIZED);
+
+    const tokenHash = this.hashSessionToken(sessionToken);
+    const [storedSession] = await this.database.db
       .select({
-        id: workspaces.id,
-        name: workspaces.name,
-        slug: workspaces.slug,
-        role: workspaceMemberships.role,
+        userId: users.id,
+        email: users.email,
+        displayName: users.displayName,
+        isPlatformAdmin: users.isPlatformAdmin,
+        remembered: authSessions.remembered,
       })
-      .from(workspaceMemberships)
-      .innerJoin(
-        workspaces,
-        eq(workspaceMemberships.workspaceId, workspaces.id),
-      )
+      .from(authSessions)
+      .innerJoin(users, eq(authSessions.userId, users.id))
       .where(
         and(
-          eq(workspaceMemberships.workspaceId, session.activeWorkspaceId),
-          eq(workspaceMemberships.userId, session.userId),
-          eq(workspaceMemberships.status, 'active'),
+          eq(authSessions.tokenHash, tokenHash),
+          isNull(authSessions.revokedAt),
+          gt(authSessions.expiresAt, new Date()),
+          eq(users.status, 'active'),
         ),
       )
       .limit(1);
+    if (!storedSession || storedSession.isPlatformAdmin) {
+      throw new AppException('AUTH_SESSION_EXPIRED', HttpStatus.UNAUTHORIZED);
+    }
 
-    if (!workspace) return null;
-    return { user, area: 'portal', workspace };
+    const availableWorkspaces = await this.activeWorkspacesForUser(
+      storedSession.userId,
+    );
+    const workspace = availableWorkspaces.find(
+      ({ id }) => id === parsed.data.workspaceId,
+    );
+    if (!workspace) {
+      throw new AppException(
+        'AUTH_WORKSPACE_UNAVAILABLE',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    await this.database.db
+      .update(authSessions)
+      .set({ activeWorkspaceId: workspace.id, updatedAt: new Date() })
+      .where(eq(authSessions.tokenHash, tokenHash));
+    const session: PortalAuthSession = {
+      user: {
+        id: storedSession.userId,
+        email: storedSession.email,
+        displayName: storedSession.displayName,
+      },
+      area: 'portal',
+      workspace,
+      workspaces: availableWorkspaces,
+    };
+    return {
+      ...(await this.buildAuthentication(session, sessionToken)),
+      remember: storedSession.remembered,
+    };
   }
 
   async refresh(sessionToken: string | undefined) {
@@ -297,14 +356,15 @@ export class IdentityService {
     userId: string,
     user: PlatformAdminAuthSession['user'],
   ): Promise<PortalAuthSession> {
-    const workspace = await this.findActiveWorkspace(userId);
+    const availableWorkspaces = await this.activeWorkspacesForUser(userId);
+    const workspace = availableWorkspaces[0];
     if (!workspace) {
       throw new AppException(
         'AUTH_WORKSPACE_UNAVAILABLE',
         HttpStatus.FORBIDDEN,
       );
     }
-    return { user, area: 'portal', workspace };
+    return { user, area: 'portal', workspace, workspaces: availableWorkspaces };
   }
 
   private async buildAuthentication(
@@ -329,8 +389,10 @@ export class IdentityService {
     });
   }
 
-  private async findActiveWorkspace(userId: string) {
-    const [workspace] = await this.database.db
+  private async activeWorkspacesForUser(
+    userId: string,
+  ): Promise<ActiveWorkspace[]> {
+    const rows = await this.database.db
       .select({
         id: workspaces.id,
         name: workspaces.name,
@@ -348,9 +410,12 @@ export class IdentityService {
           eq(workspaceMemberships.status, 'active'),
         ),
       )
-      .limit(1);
+      .orderBy(workspaceMemberships.joinedAt);
 
-    return workspace;
+    return rows.map((workspace) => ({
+      ...workspace,
+      role: workspace.role as ActiveWorkspace['role'],
+    }));
   }
 
   private createSessionToken() {

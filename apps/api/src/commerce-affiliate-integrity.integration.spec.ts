@@ -79,6 +79,14 @@ async function seedWorkspace(database: Database, suffix: string) {
       role: 'owner',
       slug: `integrity-${suffix}`,
     },
+    workspaces: [
+      {
+        id: workspaceId,
+        name: `Integrity ${suffix}`,
+        role: 'owner',
+        slug: `integrity-${suffix}`,
+      },
+    ],
   };
   return { session, userId, workspaceId };
 }

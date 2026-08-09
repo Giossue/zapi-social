@@ -201,7 +201,7 @@ export class EmailService {
       '/invite',
       this.config.getOrThrow<string>('WEB_ORIGIN'),
     );
-    invitationUrl.searchParams.set('token', token);
+    invitationUrl.hash = new URLSearchParams({ token }).toString();
     const html = await render(teamInvitationEmail(invitationUrl.toString()));
     const transporter = this.transporter(configuration);
     try {

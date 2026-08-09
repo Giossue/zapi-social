@@ -105,6 +105,26 @@ export class IdentityController {
     return authentication.session;
   }
 
+  @Post('workspaces/activate')
+  @HttpCode(200)
+  async activateWorkspace(
+    @Req() request: FastifyRequest,
+    @Body() body: unknown,
+    @Res({ passthrough: true }) reply: FastifyReply,
+  ) {
+    const authentication = await this.identity.activateWorkspace(
+      request.cookies[sessionCookieName],
+      body,
+    );
+    this.setAuthenticationCookies(
+      reply,
+      authentication.accessToken,
+      authentication.sessionToken,
+      authentication.remember,
+    );
+    return authentication.session;
+  }
+
   private setAuthenticationCookies(
     reply: FastifyReply,
     accessToken: string,
@@ -113,9 +133,7 @@ export class IdentityController {
   ) {
     const secure = this.config.get<string>('COOKIE_SECURE') === 'true';
     const domain = this.config.get<string>('COOKIE_DOMAIN');
-    const persistentCookie = remember
-      ? { maxAge: 60 * 60 * 24 * 30 }
-      : {};
+    const persistentCookie = remember ? { maxAge: 60 * 60 * 24 * 30 } : {};
     reply.setCookie(accessCookieName, accessToken, {
       httpOnly: true,
       sameSite: 'lax',

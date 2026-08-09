@@ -1,5 +1,7 @@
 "use client"
 
+import type { PortalAuthSession } from "@workspace/contracts"
+
 import { DashboardShell } from "@/components/dashboard-shell/dashboard-shell"
 import {
   isPortalNavigationItemActive,
@@ -9,13 +11,14 @@ import {
 
 type AppShellProps = {
   children: React.ReactNode
-  profile: {
-    displayName: string
-    email: string
-  }
+  session: PortalAuthSession
 }
 
-export function AppShell({ children, profile }: AppShellProps) {
+export function AppShell({ children, session }: AppShellProps) {
+  const workspaces = session.workspaces?.length
+    ? session.workspaces
+    : [session.workspace]
+
   return (
     <DashboardShell
       areaLabel="Portal"
@@ -25,8 +28,12 @@ export function AppShell({ children, profile }: AppShellProps) {
       }
       items={portalNavigationGroups}
       navigationLabel="Navegación principal del portal"
-      profile={profile}
+      profile={session.user}
       sidebarStorageKey="zapi:portal-sidebar:v1"
+      workspaceContext={{
+        activeWorkspace: session.workspace,
+        workspaces,
+      }}
     >
       {children}
     </DashboardShell>

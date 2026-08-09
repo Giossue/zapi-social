@@ -2,6 +2,8 @@ import type {
   AdminPlan,
   AdminPlansList,
   AuthSession,
+  ActiveWorkspace,
+  ActivateAuthWorkspaceInput,
   CreateAdminPlanInput,
   LoginInput,
   MetaIntegration,
@@ -74,6 +76,8 @@ import type {
   PortalWatermarksResponse,
   UpdatePortalWatermarkInput,
   AcceptPortalTeamInvitationInput,
+  PreviewPortalTeamInvitationInput,
+  PublicPortalTeamInvitationPreview,
   CreatePortalAccountGroupInput,
   CreatePortalAutomationApiKeyInput,
   CreatePortalAutomationWebhookInput,
@@ -325,6 +329,11 @@ export const authApi = {
     }),
   logout: () => request<void>("/v1/auth/logout", { method: "POST" }),
   session: () => request<AuthSession>("/v1/auth/session", { method: "GET" }),
+  activateWorkspace: (input: ActivateAuthWorkspaceInput) =>
+    request<AuthSession>("/v1/auth/workspaces/activate", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
 }
 
 export const portalApi = {
@@ -862,6 +871,11 @@ function portalTeamActivityQueryString(
 }
 
 export const teamsApi = {
+  previewInvitation: (input: PreviewPortalTeamInvitationInput) =>
+    request<PublicPortalTeamInvitationPreview>(
+      "/v1/public/teams/invitations/preview",
+      { method: "POST", body: JSON.stringify(input) }
+    ),
   list: () =>
     request<PortalTeamsResponse>("/v1/portal/teams", { method: "GET" }),
   createInvitation: (input: CreatePortalTeamInvitationInput) =>
@@ -870,10 +884,13 @@ export const teamsApi = {
       body: JSON.stringify(input),
     }),
   acceptInvitation: (input: AcceptPortalTeamInvitationInput) =>
-    request<{ accepted: true }>("/v1/portal/teams/invitations/accept", {
-      method: "POST",
-      body: JSON.stringify(input),
-    }),
+    request<{ accepted: true; workspace: ActiveWorkspace }>(
+      "/v1/portal/teams/invitations/accept",
+      {
+        method: "POST",
+        body: JSON.stringify(input),
+      }
+    ),
   resendInvitation: (id: string) =>
     request<PortalTeamInvitation>(`/v1/portal/teams/invitations/${id}/resend`, {
       method: "POST",

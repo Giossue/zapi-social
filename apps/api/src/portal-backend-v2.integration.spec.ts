@@ -48,6 +48,7 @@ function portalSession(
       id: userId,
     },
     workspace: { ...workspace, role: 'owner' },
+    workspaces: [{ ...workspace, role: 'owner' }],
   };
 }
 

@@ -80,8 +80,12 @@ export const activeWorkspaceSchema = z.object({
   id: z.uuid(),
   name: z.string(),
   slug: z.string(),
-  role: z.string(),
+  role: z.enum(["owner", "admin", "member"]),
 })
+
+export const activateAuthWorkspaceSchema = z
+  .object({ workspaceId: z.uuid() })
+  .strict()
 
 export const platformAdminAuthSessionSchema = z.object({
   user: authUserSchema,
@@ -92,6 +96,7 @@ export const portalAuthSessionSchema = z.object({
   user: authUserSchema,
   area: z.literal("portal"),
   workspace: activeWorkspaceSchema,
+  workspaces: z.array(activeWorkspaceSchema).min(1),
 })
 
 export const authSessionSchema = z.discriminatedUnion("area", [
@@ -857,6 +862,17 @@ export const portalTeamInvitationSchema = z.object({
   expiresAt: z.string().datetime(),
   deliveryStatus: portalTeamInvitationDeliveryStatusSchema,
 })
+export const previewPortalTeamInvitationSchema = z
+  .object({ token: z.string().min(32).max(512) })
+  .strict()
+export const publicPortalTeamInvitationPreviewSchema = z.object({
+  workspaceName: z.string(),
+  invitedEmail: z.string().email(),
+  role: portalTeamInvitationRoleSchema,
+  expiresAt: z.string().datetime(),
+  accountExists: z.boolean(),
+  status: z.enum(["pending", "accepted"]),
+})
 export const portalTeamSeatUsageSchema = z.object({
   activeMembers: z.number().int().nonnegative(),
   pendingInvitations: z.number().int().nonnegative(),
@@ -1066,6 +1082,10 @@ export const updateProviderIntegrationSchema = z
 
 export type RegisterInput = z.infer<typeof registerSchema>
 export type LoginInput = z.infer<typeof loginSchema>
+export type ActiveWorkspace = z.infer<typeof activeWorkspaceSchema>
+export type ActivateAuthWorkspaceInput = z.infer<
+  typeof activateAuthWorkspaceSchema
+>
 export type PortalProfile = z.infer<typeof portalProfileSchema>
 export type UpdatePortalProfileInput = z.infer<typeof updatePortalProfileSchema>
 export type ChangePortalPasswordInput = z.infer<
@@ -1240,6 +1260,12 @@ export type PortalTeamInvitationDeliveryStatus = z.infer<
 export type PortalTeamAccount = z.infer<typeof portalTeamAccountSchema>
 export type PortalTeamMember = z.infer<typeof portalTeamMemberSchema>
 export type PortalTeamInvitation = z.infer<typeof portalTeamInvitationSchema>
+export type PreviewPortalTeamInvitationInput = z.infer<
+  typeof previewPortalTeamInvitationSchema
+>
+export type PublicPortalTeamInvitationPreview = z.infer<
+  typeof publicPortalTeamInvitationPreviewSchema
+>
 export type PortalTeamSeatUsage = z.infer<typeof portalTeamSeatUsageSchema>
 export type PortalTeamsResponse = z.infer<typeof portalTeamsResponseSchema>
 export type CreatePortalTeamInvitationInput = z.infer<

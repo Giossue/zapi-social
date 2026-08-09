@@ -1,6 +1,7 @@
 "use client"
 
 import type { ReactNode } from "react"
+import type { PortalAuthSession } from "@workspace/contracts"
 
 import { AppShell } from "@/components/app-shell"
 import { AreaAccessGate } from "@/features/identity/components/area-access-gate"
@@ -12,7 +13,9 @@ type PortalAreaLayoutProps = {
 export function PortalAreaLayout({ children }: PortalAreaLayoutProps) {
   return (
     <AreaAccessGate area="portal">
-      {(session) => <AppShell profile={session.user}>{children}</AppShell>}
+      {(session) => (
+        <AppShell session={session as PortalAuthSession}>{children}</AppShell>
+      )}
     </AreaAccessGate>
   )
 }

@@ -17,6 +17,18 @@ import type { FastifyRequest } from 'fastify';
 import { SessionAccessService } from '../identity/session-access.service';
 import { TeamsService } from './teams.service';
 
+@ApiTags('public-teams')
+@Controller('v1/public/teams')
+export class TeamsPublicController {
+  constructor(private readonly teams: TeamsService) {}
+
+  @Post('invitations/preview')
+  @HttpCode(200)
+  async previewInvitation(@Body() body: unknown) {
+    return this.teams.previewInvitation(body);
+  }
+}
+
 @ApiTags('portal-teams')
 @Controller('v1/portal/teams')
 export class TeamsController {

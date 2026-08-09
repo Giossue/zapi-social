@@ -43,8 +43,18 @@ export function AuthShell({ children }: AuthShellProps) {
   )
 }
 
-export function AuthPage({ initialMode }: { initialMode: AuthMode }) {
+export function AuthPage({
+  initialMode,
+  returnTo,
+}: {
+  initialMode: AuthMode
+  returnTo?: "/invite"
+}) {
   const isLogin = initialMode === "login"
+  const alternatePath = isLogin ? "/register" : "/login"
+  const alternateHref = returnTo
+    ? `${alternatePath}?returnTo=${encodeURIComponent(returnTo)}`
+    : alternatePath
 
   return (
     <AuthShell>
@@ -59,7 +69,7 @@ export function AuthPage({ initialMode }: { initialMode: AuthMode }) {
               : "Ingresa tus datos para comenzar."}
           </p>
         </div>
-        <AuthForm initialMode={initialMode} />
+        <AuthForm initialMode={initialMode} returnTo={returnTo} />
       </div>
 
       <div className="absolute top-5 flex w-full justify-end px-10">
@@ -67,7 +77,7 @@ export function AuthPage({ initialMode }: { initialMode: AuthMode }) {
           {isLogin ? "¿No tienes una cuenta? " : "¿Ya tienes una cuenta? "}
           <Link
             className="text-foreground"
-            href={isLogin ? "/register" : "/login"}
+            href={alternateHref}
             prefetch={false}
           >
             {isLogin ? "Crear cuenta" : "Iniciar sesión"}

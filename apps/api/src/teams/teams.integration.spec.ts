@@ -49,6 +49,7 @@ function portalSession(
     area: 'portal',
     user,
     workspace: { ...workspace, role },
+    workspaces: [{ ...workspace, role }],
   };
 }
 
@@ -267,6 +268,15 @@ describeDatabase('Teams lifecycle', () => {
       const originalToken = email.deliveries[0]?.token;
       expect(invitation.deliveryStatus).toBe('sent');
       expect(originalToken).toBeTruthy();
+      await expect(
+        service.previewInvitation({ token: originalToken }),
+      ).resolves.toMatchObject({
+        accountExists: true,
+        invitedEmail: invitedUser.email,
+        role: 'member',
+        status: 'pending',
+        workspaceName: scenario.workspace.name,
+      });
 
       await expectCode(
         service.createInvitation(scenario.ownerSession, {
@@ -303,7 +313,19 @@ describeDatabase('Teams lifecycle', () => {
       );
       await expect(
         service.acceptInvitation(invitedSession, { token: resentToken }),
-      ).resolves.toEqual({ accepted: true });
+      ).resolves.toMatchObject({
+        accepted: true,
+        workspace: { id: scenario.workspace.id, role: 'member' },
+      });
+      await expect(
+        service.previewInvitation({ token: resentToken }),
+      ).resolves.toMatchObject({ status: 'accepted' });
+      await expect(
+        service.acceptInvitation(invitedSession, { token: resentToken }),
+      ).resolves.toMatchObject({
+        accepted: true,
+        workspace: { id: scenario.workspace.id },
+      });
       const [membership] = await database
         .select()
         .from(workspaceMemberships)
@@ -331,6 +353,112 @@ describeDatabase('Teams lifecycle', () => {
         .from(workspaceInvitations)
         .where(eq(workspaceInvitations.id, invitation.id));
       expect(stillAccepted?.status).toBe('accepted');
+    });
+  });
+
+  it('previews invitations safely and rejects invalid, mismatched and expired access', async () => {
+    await inRollbackTransaction(async (database) => {
+      const scenario = await seedTeam(database, 'invitation-errors', 6);
+      const invitedUser = {
+        id: randomUUID(),
+        email: `new-invite-${randomUUID()}@example.test`,
+        displayName: 'New invited member',
+      };
+      const { email, service } = serviceFor(database);
+      const invitation = await service.createInvitation(scenario.ownerSession, {
+        email: invitedUser.email,
+        role: 'member',
+      });
+      const token = email.deliveries[0]?.token;
+      expect(token).toBeTruthy();
+      await expect(service.previewInvitation({ token })).resolves.toMatchObject(
+        {
+          accountExists: false,
+          invitedEmail: invitedUser.email,
+          status: 'pending',
+        },
+      );
+      await expectCode(
+        service.previewInvitation({ token: randomUUID() }),
+        'INVITATION_INVALID',
+      );
+      await expectCode(
+        service.acceptInvitation(scenario.memberSession, { token }),
+        'INVITATION_EMAIL_MISMATCH',
+      );
+
+      await database.insert(users).values({
+        ...invitedUser,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      await database
+        .update(workspaceInvitations)
+        .set({ expiresAt: new Date(Date.now() - 1_000) })
+        .where(eq(workspaceInvitations.id, invitation.id));
+      await expectCode(
+        service.previewInvitation({ token }),
+        'INVITATION_EXPIRED',
+      );
+      await expectCode(
+        service.acceptInvitation(
+          portalSession(invitedUser, scenario.workspace, 'member'),
+          { token },
+        ),
+        'INVITATION_EXPIRED',
+      );
+    });
+  });
+
+  it('keeps a pending invitation when the workspace fills before acceptance', async () => {
+    await inRollbackTransaction(async (database) => {
+      const scenario = await seedTeam(database, 'acceptance-limit', 4);
+      const invitedUser = {
+        id: randomUUID(),
+        email: `limited-invite-${randomUUID()}@example.test`,
+        displayName: 'Limited invited member',
+      };
+      const occupyingUser = {
+        id: randomUUID(),
+        email: `occupying-member-${randomUUID()}@example.test`,
+        displayName: 'Occupying member',
+      };
+      await database.insert(users).values(
+        [invitedUser, occupyingUser].map((user) => ({
+          ...user,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })),
+      );
+      const { email, service } = serviceFor(database);
+      const invitation = await service.createInvitation(scenario.ownerSession, {
+        email: invitedUser.email,
+        role: 'member',
+      });
+      const token = email.deliveries[0]?.token;
+      expect(token).toBeTruthy();
+
+      await database.insert(workspaceMemberships).values({
+        workspaceId: scenario.workspace.id,
+        userId: occupyingUser.id,
+        role: 'member',
+        status: 'active',
+        joinedAt: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+      await expectCode(
+        service.acceptInvitation(
+          portalSession(invitedUser, scenario.workspace, 'member'),
+          { token },
+        ),
+        'MEMBER_LIMIT_REACHED',
+      );
+      const [stillPending] = await database
+        .select({ status: workspaceInvitations.status })
+        .from(workspaceInvitations)
+        .where(eq(workspaceInvitations.id, invitation.id));
+      expect(stillPending?.status).toBe('pending');
     });
   });
 

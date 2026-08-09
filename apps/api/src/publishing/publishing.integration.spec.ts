@@ -50,6 +50,7 @@ function portalSession(
       id: userId,
     },
     workspace: { ...workspace, role },
+    workspaces: [{ ...workspace, role }],
   };
 }
 

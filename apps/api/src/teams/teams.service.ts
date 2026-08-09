@@ -26,6 +26,7 @@ import {
   acceptPortalTeamInvitationSchema,
   createPortalTeamInvitationSchema,
   portalTeamActivityQuerySchema,
+  previewPortalTeamInvitationSchema,
   replacePortalTeamAccountGrantsSchema,
   transferPortalTeamOwnershipSchema,
   updatePortalTeamMemberAccessSchema,
@@ -36,6 +37,7 @@ import {
   type PortalTeamActivityResponse,
   type PortalTeamInvitation,
   type PortalTeamsResponse,
+  type PublicPortalTeamInvitationPreview,
 } from '@workspace/contracts';
 import { DatabaseService } from '../database/database.service';
 import { EmailService } from '../email/email.service';
@@ -200,7 +202,7 @@ export class TeamsService {
       canInviteAdmin: session.workspace.role === 'owner',
       canViewActivity: canManage,
       currentUserId: session.user.id,
-      currentUserRole: session.workspace.role as 'owner' | 'admin' | 'member',
+      currentUserRole: session.workspace.role,
       workspace: { id: workspace.id, name: workspace.name },
       seatUsage: {
         activeMembers: memberRows.length,
@@ -588,6 +590,52 @@ export class TeamsService {
     });
   }
 
+  async previewInvitation(
+    input: unknown,
+  ): Promise<PublicPortalTeamInvitationPreview> {
+    const parsed = previewPortalTeamInvitationSchema.safeParse(input);
+    if (!parsed.success)
+      throw new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
+
+    const [row] = await this.database.db
+      .select({
+        invitation: workspaceInvitations,
+        workspaceName: workspaces.name,
+      })
+      .from(workspaceInvitations)
+      .innerJoin(
+        workspaces,
+        eq(workspaceInvitations.workspaceId, workspaces.id),
+      )
+      .where(eq(workspaceInvitations.tokenHash, this.hash(parsed.data.token)))
+      .limit(1);
+    if (!row || row.invitation.status === 'revoked') {
+      throw new AppException('INVITATION_INVALID', HttpStatus.NOT_FOUND);
+    }
+    if (
+      row.invitation.status === 'expired' ||
+      (row.invitation.status === 'pending' &&
+        row.invitation.expiresAt <= new Date())
+    ) {
+      throw new AppException('INVITATION_EXPIRED', HttpStatus.GONE);
+    }
+
+    const [account] = await this.database.db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(sql`lower(${users.email})`, row.invitation.emailNormalized))
+      .limit(1);
+
+    return {
+      workspaceName: row.workspaceName,
+      invitedEmail: row.invitation.emailNormalized,
+      role: row.invitation.role as 'admin' | 'member',
+      expiresAt: row.invitation.expiresAt.toISOString(),
+      accountExists: Boolean(account),
+      status: row.invitation.status as 'pending' | 'accepted',
+    };
+  }
+
   async acceptInvitation(session: PortalAuthSession, input: unknown) {
     const parsed = acceptPortalTeamInvitationSchema.safeParse(input);
     if (!parsed.success)
@@ -599,9 +647,12 @@ export class TeamsService {
       .from(workspaceInvitations)
       .where(eq(workspaceInvitations.tokenHash, tokenHash))
       .limit(1);
-    if (!invitation || invitation.status !== 'pending')
+    if (!invitation)
       throw new AppException('INVITATION_ALREADY_USED', HttpStatus.CONFLICT);
-    if (invitation.expiresAt <= now) {
+    if (
+      invitation.status === 'expired' ||
+      (invitation.status === 'pending' && invitation.expiresAt <= now)
+    ) {
       await this.database.db.transaction(async (tx) => {
         await tx
           .update(workspaceInvitations)
@@ -615,16 +666,57 @@ export class TeamsService {
       });
       throw new AppException('INVITATION_EXPIRED', HttpStatus.GONE);
     }
+    if (invitation.status === 'revoked')
+      throw new AppException('INVITATION_ALREADY_USED', HttpStatus.CONFLICT);
     if (
       invitation.emailNormalized !==
       session.user.email.toLocaleLowerCase('en-US')
     ) {
       throw new AppException('INVITATION_EMAIL_MISMATCH', HttpStatus.FORBIDDEN);
     }
+    if (invitation.status === 'accepted') {
+      if (invitation.acceptedByUserId !== session.user.id) {
+        throw new AppException('INVITATION_ALREADY_USED', HttpStatus.CONFLICT);
+      }
+      const [workspace] = await this.database.db
+        .select({
+          id: workspaces.id,
+          name: workspaces.name,
+          slug: workspaces.slug,
+        })
+        .from(workspaces)
+        .innerJoin(
+          workspaceMemberships,
+          and(
+            eq(workspaceMemberships.workspaceId, workspaces.id),
+            eq(workspaceMemberships.userId, session.user.id),
+            eq(workspaceMemberships.status, 'active'),
+          ),
+        )
+        .where(eq(workspaces.id, invitation.workspaceId))
+        .limit(1);
+      if (!workspace)
+        throw new AppException(
+          'AUTH_WORKSPACE_UNAVAILABLE',
+          HttpStatus.NOT_FOUND,
+        );
+      return {
+        accepted: true as const,
+        workspace: {
+          ...workspace,
+          role: invitation.role as 'admin' | 'member',
+        },
+      };
+    }
 
-    await this.database.db.transaction(async (tx) => {
+    const acceptedWorkspace = await this.database.db.transaction(async (tx) => {
       const [workspace] = await tx
-        .select({ id: workspaces.id, memberLimit: workspaces.memberLimit })
+        .select({
+          id: workspaces.id,
+          memberLimit: workspaces.memberLimit,
+          name: workspaces.name,
+          slug: workspaces.slug,
+        })
         .from(workspaces)
         .where(eq(workspaces.id, invitation.workspaceId))
         .for('update')
@@ -731,8 +823,14 @@ export class TeamsService {
           metadata: {},
         }),
       ]);
+      return {
+        id: workspace.id,
+        name: workspace.name,
+        slug: workspace.slug,
+        role: invitation.role as 'admin' | 'member',
+      };
     });
-    return { accepted: true as const };
+    return { accepted: true as const, workspace: acceptedWorkspace };
   }
 
   async updateMemberRole(
