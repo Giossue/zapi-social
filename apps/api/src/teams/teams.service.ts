@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import {
   apiAuditLogs,
   authSessions,
@@ -80,6 +80,8 @@ const activityTypesByCategory: Record<
 
 @Injectable()
 export class TeamsService {
+  private readonly logger = new Logger(TeamsService.name);
+
   constructor(
     private readonly database: DatabaseService,
     private readonly email: EmailService,
@@ -398,7 +400,13 @@ export class TeamsService {
       return created;
     });
 
-    await this.deliverInvitation(invitation.id, email, token);
+    await this.deliverInvitation(
+      invitation,
+      email,
+      token,
+      session.workspace.name,
+      session.user.displayName,
+    );
     const [delivered] = await this.database.db
       .select()
       .from(workspaceInvitations)
@@ -501,9 +509,11 @@ export class TeamsService {
     });
 
     await this.deliverInvitation(
-      invitation.invitation.id,
+      invitation.invitation,
       invitation.invitation.emailNormalized,
       token,
+      session.workspace.name,
+      invitation.invitedByName,
     );
     const [delivered] = await this.database.db
       .select()
@@ -830,6 +840,21 @@ export class TeamsService {
         role: invitation.role as 'admin' | 'member',
       };
     });
+    const inviter = await this.teamUser(invitation.invitedByUserId);
+    if (inviter) {
+      await this.deliverNotification(
+        'team.invitation_accepted',
+        invitation.workspaceId,
+        () =>
+          this.email.sendTeamInvitationAccepted({
+            email: inviter.email,
+            workspaceName: acceptedWorkspace.name,
+            memberName: session.user.displayName,
+            memberEmail: session.user.email,
+            role: acceptedWorkspace.role,
+          }),
+      );
+    }
     return { accepted: true as const, workspace: acceptedWorkspace };
   }
 
@@ -841,7 +866,8 @@ export class TeamsService {
     const parsed = updatePortalTeamMemberRoleSchema.safeParse(input);
     if (!parsed.success)
       throw new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
-    if (parsed.data.role === 'owner')
+    const role = parsed.data.role;
+    if (role === 'owner')
       throw new AppException('ROLE_CHANGE_NOT_ALLOWED', HttpStatus.FORBIDDEN);
     const now = new Date();
     await this.database.db.transaction(async (tx) => {
@@ -882,9 +908,9 @@ export class TeamsService {
         throw new AppException('ROLE_CHANGE_NOT_ALLOWED', HttpStatus.FORBIDDEN);
       await tx
         .update(workspaceMemberships)
-        .set({ role: parsed.data.role, updatedAt: now })
+        .set({ role, updatedAt: now })
         .where(eq(workspaceMemberships.id, member.id));
-      if (parsed.data.role === 'admin') {
+      if (role === 'admin') {
         await tx
           .delete(socialAccountMemberships)
           .where(eq(socialAccountMemberships.workspaceMembershipId, member.id));
@@ -897,18 +923,34 @@ export class TeamsService {
           subjectType: 'workspace_membership',
           subjectId: member.id,
           summary: 'Workspace member role updated',
-          metadata: { role: parsed.data.role },
+          metadata: { role },
         }),
         tx.insert(workspaceMembershipAuditEvents).values({
           workspaceId: session.workspace.id,
           actorUserId: session.user.id,
           subjectUserId: userId,
           type: 'team.member_role_updated',
-          metadata: { role: parsed.data.role },
+          metadata: { role },
         }),
       ]);
     });
-    return { id: userId, role: parsed.data.role };
+    const recipient = await this.teamUser(userId);
+    if (recipient) {
+      await this.deliverNotification(
+        'team.member_role_updated',
+        session.workspace.id,
+        () =>
+          this.email.sendTeamAccessUpdated({
+            email: recipient.email,
+            workspaceName: session.workspace.name,
+            recipientName: recipient.displayName,
+            actorName: session.user.displayName,
+            role,
+            accountCount: null,
+          }),
+      );
+    }
+    return { id: userId, role };
   }
 
   async updateMemberAccess(
@@ -1035,6 +1077,23 @@ export class TeamsService {
         }),
       ]);
     });
+    const recipient = await this.teamUser(userId);
+    if (recipient) {
+      await this.deliverNotification(
+        'team.member_access_updated',
+        session.workspace.id,
+        () =>
+          this.email.sendTeamAccessUpdated({
+            email: recipient.email,
+            workspaceName: session.workspace.name,
+            recipientName: recipient.displayName,
+            actorName: session.user.displayName,
+            role: parsed.data.role,
+            accountCount:
+              parsed.data.role === 'member' ? accountIds.length : null,
+          }),
+      );
+    }
     return {
       id: userId,
       role: parsed.data.role,
@@ -1148,6 +1207,22 @@ export class TeamsService {
         }),
       ]);
     });
+    const recipient = await this.teamUser(userId);
+    if (recipient) {
+      await this.deliverNotification(
+        'team.member_account_grants_replaced',
+        session.workspace.id,
+        () =>
+          this.email.sendTeamAccessUpdated({
+            email: recipient.email,
+            workspaceName: session.workspace.name,
+            recipientName: recipient.displayName,
+            actorName: session.user.displayName,
+            role: 'member',
+            accountCount: uniqueIds.length,
+          }),
+      );
+    }
     return { accountIds: uniqueIds, userId };
   }
 
@@ -1236,6 +1311,20 @@ export class TeamsService {
         }),
       ]);
     });
+    const recipient = await this.teamUser(userId);
+    if (recipient) {
+      await this.deliverNotification(
+        'team.member_revoked',
+        session.workspace.id,
+        () =>
+          this.email.sendTeamMemberRemoved({
+            email: recipient.email,
+            workspaceName: session.workspace.name,
+            recipientName: recipient.displayName,
+            actorName: session.user.displayName,
+          }),
+      );
+    }
   }
 
   async leaveWorkspace(session: PortalAuthSession) {
@@ -1386,6 +1475,35 @@ export class TeamsService {
         }),
       ]);
     });
+    const newOwner = await this.teamUser(parsed.data.targetUserId);
+    if (newOwner) {
+      await Promise.all([
+        this.deliverNotification(
+          'team.ownership_transferred.new_owner',
+          session.workspace.id,
+          () =>
+            this.email.sendTeamOwnershipTransferred({
+              email: newOwner.email,
+              workspaceName: session.workspace.name,
+              recipientName: newOwner.displayName,
+              counterpartName: session.user.displayName,
+              perspective: 'new-owner',
+            }),
+        ),
+        this.deliverNotification(
+          'team.ownership_transferred.previous_owner',
+          session.workspace.id,
+          () =>
+            this.email.sendTeamOwnershipTransferred({
+              email: session.user.email,
+              workspaceName: session.workspace.name,
+              recipientName: session.user.displayName,
+              counterpartName: newOwner.displayName,
+              perspective: 'previous-owner',
+            }),
+        ),
+      ]);
+    }
     return { ownerUserId: parsed.data.targetUserId };
   }
 
@@ -1478,21 +1596,56 @@ export class TeamsService {
     };
   }
 
+  private async teamUser(userId: string) {
+    const [user] = await this.database.db
+      .select({
+        email: users.email,
+        displayName: users.displayName,
+      })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    return user;
+  }
+
+  private async deliverNotification(
+    event: string,
+    workspaceId: string,
+    delivery: () => Promise<void>,
+  ) {
+    try {
+      await delivery();
+    } catch {
+      this.logger.warn(
+        `Team notification delivery failed: event=${event} workspace=${workspaceId}`,
+      );
+    }
+  }
+
   private async deliverInvitation(
-    invitationId: string,
+    invitation: typeof workspaceInvitations.$inferSelect,
     email: string,
     token: string,
+    workspaceName: string,
+    inviterName: string,
   ) {
     const tokenHash = this.hash(token);
     try {
-      await this.email.sendTeamInvitation(email, token);
+      await this.email.sendTeamInvitation({
+        email,
+        token,
+        workspaceName,
+        inviterName,
+        role: invitation.role as 'admin' | 'member',
+        expiresAt: invitation.expiresAt,
+      });
       const now = new Date();
       await this.database.db
         .update(workspaceInvitations)
         .set({ deliveryStatus: 'sent', lastSentAt: now, updatedAt: now })
         .where(
           and(
-            eq(workspaceInvitations.id, invitationId),
+            eq(workspaceInvitations.id, invitation.id),
             eq(workspaceInvitations.status, 'pending'),
             eq(workspaceInvitations.tokenHash, tokenHash),
           ),
@@ -1503,7 +1656,7 @@ export class TeamsService {
         .set({ deliveryStatus: 'failed', updatedAt: new Date() })
         .where(
           and(
-            eq(workspaceInvitations.id, invitationId),
+            eq(workspaceInvitations.id, invitation.id),
             eq(workspaceInvitations.status, 'pending'),
             eq(workspaceInvitations.tokenHash, tokenHash),
           ),

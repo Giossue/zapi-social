@@ -2,7 +2,7 @@
 
 ## Estado al 2026-08-09
 
-**Fases 1 a 25 implementadas y validadas localmente.** `/portal/teams` consume REST real y ya no contiene fixtures ni repositorios mock. La UI, los contratos Zod, Nest y Drizzle comparten miembros, roles, grants, invitaciones, cupos, actividad, transferencia y abandono. El ingreso público por `/invite`, la continuidad de login/registro y el selector de workspace también están conectados a REST real. Publishing, AI Publishing y Channels consumen la política central `TeamAccountAccessService`.
+**Fases 1 a 30 implementadas y validadas localmente.** `/portal/teams` consume REST real y ya no contiene fixtures ni repositorios mock. La UI, los contratos Zod, Nest y Drizzle comparten miembros, roles, grants, invitaciones, cupos, actividad, transferencia y abandono. El ingreso público por `/invite`, la continuidad de login/registro y el selector de workspace también están conectados a REST real. Publishing, AI Publishing y Channels consumen la política central `TeamAccountAccessService`. El correo transaccional suma seis plantillas centralizadas: una de autenticación y cinco de Teams.
 
 Las migraciones `0023_mature_whizzer.sql` y `0024_teams-invitation-backfill.sql` están aplicadas y verificadas en `zapi_v2_local` y en la base remota. Ambas registran 25 migraciones Drizzle y comparten columnas, constraints e índice parcial de invitaciones pendientes.
 
@@ -288,6 +288,28 @@ La invitación siempre pertenece a un **workspace**. Teams es la superficie que 
 24. [x] Probar cuenta existente, cuenta nueva, correo distinto, token inválido/vencido/usado, cupo agotado y cambio de workspace.
 25. [x] Validar typecheck, lint/build, smoke visual responsive y actualizar evidencia de cierre.
 
+## Plan — correos transaccionales de Teams
+
+### Estado de partida
+
+- V2 tenía dos plantillas de correo reales: restablecimiento de contraseña e invitación a workspace. No existía una tercera plantilla.
+- Teams solo enviaba la invitación básica; aceptación, cambio de acceso, eliminación y transferencia de propiedad no tenían plantilla ni aviso.
+
+### Alcance aprobado
+
+- Centralizar todas las plantillas en `apps/api/src/email/templates/` con layout común y contenido compatible con clientes de correo.
+- Teams tendrá cinco plantillas: invitación, invitación aceptada, acceso actualizado, miembro eliminado y propiedad transferida.
+- Invitación conserva entrega bloqueante y estado `sent/failed`. Los avisos posteriores se envían después del commit y no revierten una acción de negocio correcta si SMTP falla.
+- Todos los envíos usan exclusivamente la integración SMTP habilitada y probada en Admin. No se añaden credenciales, provider alterno ni migración.
+
+### Orden y criterios verificables
+
+26. [x] Crear layout común y reorganizar las dos plantillas existentes.
+27. [x] Crear las cuatro plantillas Teams adicionales con asuntos y datos mínimos.
+28. [x] Conectar invitación enriquecida y avisos posteriores a eventos Teams reales.
+29. [x] Probar render HTML/texto y entregas de invitación, aceptación, acceso, eliminación y ownership.
+30. [x] Validar typecheck, lint, build y registrar evidencia final.
+
 ## Fuera de alcance de esta iteración
 
 - chat, salas, menciones o mensajes directos;
@@ -339,6 +361,8 @@ La invitación siempre pertenece a un **workspace**. Teams es la superficie que 
 - Smoke autenticado de interacción: **2 pass** para búsqueda contextual/atajo, menús, diálogos, privacidad de tokens y correos. Revisión visual completada en desktop/móvil y temas claro/oscuro.
 - Smoke de navegador real del ingreso: enlace con fragmento → preview → registro → retorno a `/invite` → aceptación → membresía activa → activación del workspace. También se verificó que el token desaparece de la URL y que el layout responde en desktop/móvil.
 - Regresión del selector validada con una sesión sin `workspaces`: renderiza sin excepción y permanece oculto; typecheck, lint focal y build Web finalizan sin errores.
+- Plantillas de correo: **7 pass, 0 fail, 26 assertions** para HTML, texto plano y escape de contenido. Teams: **7 pass, 0 fail, 72 assertions** para invitación enriquecida y avisos de aceptación, acceso, eliminación y ownership; un fallo SMTP posterior al commit no revierte la acción.
+- Validación del cierre de correo: ESLint focal sin errores, typecheck y build de API exitosos. Las seis plantillas viven en `apps/api/src/email/templates/` y usan la integración SMTP configurada en Admin; no requirieron migración.
 - Los datos y sesiones sintéticos usados para QA se eliminaron y se verificó conteo cero.
 - `0023` y `0024` aplicadas y verificadas en la base remota: 25 migraciones registradas, columnas y constraints presentes, índice parcial creado, cero duplicados pendientes y health de API/PostgreSQL/Redis en `ok`.
 

@@ -32,10 +32,49 @@ const connection = isLocalTestDatabase ? createDatabase(databaseUrl!) : null;
 type TeamRole = 'owner' | 'admin' | 'member';
 
 class CapturingEmailService {
-  readonly deliveries: Array<{ email: string; token: string }> = [];
+  readonly deliveries: Array<{
+    email: string;
+    token: string;
+    workspaceName: string;
+    inviterName: string;
+    role: 'admin' | 'member';
+    expiresAt: Date;
+  }> = [];
+  readonly notifications: Array<{ type: string; email: string }> = [];
+  failNotifications = false;
 
-  sendTeamInvitation(email: string, token: string) {
-    this.deliveries.push({ email, token });
+  sendTeamInvitation(input: (typeof this.deliveries)[number]) {
+    this.deliveries.push(input);
+    return Promise.resolve();
+  }
+
+  sendTeamInvitationAccepted(input: { email: string }) {
+    return this.captureNotification('invitation-accepted', input.email);
+  }
+
+  sendTeamAccessUpdated(input: { email: string }) {
+    return this.captureNotification('access-updated', input.email);
+  }
+
+  sendTeamMemberRemoved(input: { email: string }) {
+    return this.captureNotification('member-removed', input.email);
+  }
+
+  sendTeamOwnershipTransferred(input: {
+    email: string;
+    perspective: 'new-owner' | 'previous-owner';
+  }) {
+    return this.captureNotification(
+      `ownership-${input.perspective}`,
+      input.email,
+    );
+  }
+
+  private captureNotification(type: string, email: string) {
+    if (this.failNotifications) {
+      return Promise.reject(new Error('Simulated SMTP failure.'));
+    }
+    this.notifications.push({ type, email });
     return Promise.resolve();
   }
 }
@@ -194,7 +233,7 @@ describeDatabase('Teams lifecycle', () => {
   it('shows managers full data and limits members to their own access', async () => {
     await inRollbackTransaction(async (database) => {
       const scenario = await seedTeam(database, 'privacy');
-      const { service } = serviceFor(database);
+      const { email, service } = serviceFor(database);
 
       const managerView = await service.list(scenario.ownerSession);
       const adminView = await service.list(scenario.adminSession);
@@ -244,6 +283,11 @@ describeDatabase('Teams lifecycle', () => {
         }),
         'ROLE_CHANGE_NOT_ALLOWED',
       );
+      await service.removeMember(scenario.adminSession, scenario.member.id);
+      expect(email.notifications).toContainEqual({
+        type: 'member-removed',
+        email: scenario.member.email,
+      });
     });
   });
 
@@ -268,6 +312,12 @@ describeDatabase('Teams lifecycle', () => {
       const originalToken = email.deliveries[0]?.token;
       expect(invitation.deliveryStatus).toBe('sent');
       expect(originalToken).toBeTruthy();
+      expect(email.deliveries[0]).toMatchObject({
+        email: invitedUser.email,
+        inviterName: scenario.owner.displayName,
+        role: 'member',
+        workspaceName: scenario.workspace.name,
+      });
       await expect(
         service.previewInvitation({ token: originalToken }),
       ).resolves.toMatchObject({
@@ -316,6 +366,10 @@ describeDatabase('Teams lifecycle', () => {
       ).resolves.toMatchObject({
         accepted: true,
         workspace: { id: scenario.workspace.id, role: 'member' },
+      });
+      expect(email.notifications).toContainEqual({
+        type: 'invitation-accepted',
+        email: scenario.owner.email,
       });
       await expect(
         service.previewInvitation({ token: resentToken }),
@@ -465,7 +519,7 @@ describeDatabase('Teams lifecycle', () => {
   it('protects ownership, transfers it atomically and then allows leaving', async () => {
     await inRollbackTransaction(async (database) => {
       const scenario = await seedTeam(database, 'ownership');
-      const { service } = serviceFor(database);
+      const { email, service } = serviceFor(database);
 
       await database.insert(workspaces).values({
         name: 'Admin personal workspace',
@@ -490,6 +544,12 @@ describeDatabase('Teams lifecycle', () => {
           targetUserId: scenario.admin.id,
         }),
       ).resolves.toEqual({ ownerUserId: scenario.admin.id });
+      expect(email.notifications).toEqual(
+        expect.arrayContaining([
+          { type: 'ownership-new-owner', email: scenario.admin.email },
+          { type: 'ownership-previous-owner', email: scenario.owner.email },
+        ]),
+      );
 
       const [workspace] = await database
         .select()
@@ -530,12 +590,16 @@ describeDatabase('Teams lifecycle', () => {
   it('exposes filtered activity only to managers', async () => {
     await inRollbackTransaction(async (database) => {
       const scenario = await seedTeam(database, 'activity');
-      const { service } = serviceFor(database);
+      const { email, service } = serviceFor(database);
       await service.updateMemberAccess(
         scenario.ownerSession,
         scenario.member.id,
         { role: 'member', accountIds: [scenario.accounts[1].id] },
       );
+      expect(email.notifications).toContainEqual({
+        type: 'access-updated',
+        email: scenario.member.email,
+      });
 
       const access = await service.listActivity(scenario.ownerSession, {
         category: 'access',
@@ -549,6 +613,36 @@ describeDatabase('Teams lifecycle', () => {
         service.listActivity(scenario.memberSession, {}),
         'TEAM_ACCESS_DENIED',
       );
+    });
+  });
+
+  it('keeps access changes when a notification cannot be delivered', async () => {
+    await inRollbackTransaction(async (database) => {
+      const scenario = await seedTeam(database, 'notification-failure');
+      const email = new CapturingEmailService();
+      email.failNotifications = true;
+      const { service } = serviceFor(database, email);
+
+      await expect(
+        service.updateMemberAccess(scenario.ownerSession, scenario.member.id, {
+          role: 'member',
+          accountIds: [scenario.accounts[1].id],
+        }),
+      ).resolves.toMatchObject({
+        id: scenario.member.id,
+        accountIds: [scenario.accounts[1].id],
+      });
+
+      const grants = await database
+        .select({ socialAccountId: socialAccountMemberships.socialAccountId })
+        .from(socialAccountMemberships)
+        .where(
+          eq(
+            socialAccountMemberships.workspaceMembershipId,
+            scenario.memberMembership.id,
+          ),
+        );
+      expect(grants).toEqual([{ socialAccountId: scenario.accounts[1].id }]);
     });
   });
 });

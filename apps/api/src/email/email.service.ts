@@ -19,11 +19,18 @@ import { eq } from '@workspace/database/query';
 import { render } from '@react-email/render';
 import { createHash } from 'node:crypto';
 import nodemailer from 'nodemailer';
+import type { ReactElement } from 'react';
 import { DatabaseService } from '../database/database.service';
 import { Aes256GcmService } from '../platform/crypto/aes-256-gcm.service';
 import { AppException } from '../platform/errors/app-exception';
-import { passwordResetEmail } from './password-reset-email';
-import { teamInvitationEmail } from './team-invitation-email';
+import {
+  passwordResetEmail,
+  teamAccessUpdatedEmail,
+  teamInvitationAcceptedEmail,
+  teamInvitationEmail,
+  teamMemberRemovedEmail,
+  teamOwnershipTransferredEmail,
+} from './templates';
 
 const emailSmtpCapabilities = ['transactional_email'];
 
@@ -172,13 +179,124 @@ export class EmailService {
   }
 
   async sendPasswordReset(email: string, token: string): Promise<void> {
-    const configuration = await this.readReadyConfiguration();
     const resetUrl = new URL(
       '/reset-password',
       this.config.getOrThrow<string>('WEB_ORIGIN'),
     );
     resetUrl.searchParams.set('token', token);
-    const html = await render(passwordResetEmail(resetUrl.toString()));
+    await this.sendEmail(
+      email,
+      'Restablece tu contraseña de Zapi',
+      passwordResetEmail(resetUrl.toString()),
+    );
+  }
+
+  async sendTeamInvitation(input: {
+    email: string;
+    token: string;
+    workspaceName: string;
+    inviterName: string;
+    role: 'admin' | 'member';
+    expiresAt: Date;
+  }): Promise<void> {
+    const invitationUrl = new URL(
+      '/invite',
+      this.config.getOrThrow<string>('WEB_ORIGIN'),
+    );
+    invitationUrl.hash = new URLSearchParams({ token: input.token }).toString();
+    await this.sendEmail(
+      input.email,
+      `Invitación a ${input.workspaceName} en Zapi`,
+      teamInvitationEmail({
+        invitationUrl: invitationUrl.toString(),
+        workspaceName: input.workspaceName,
+        inviterName: input.inviterName,
+        role: input.role,
+        expiresLabel: this.dateLabel(input.expiresAt),
+      }),
+    );
+  }
+
+  async sendTeamInvitationAccepted(input: {
+    email: string;
+    workspaceName: string;
+    memberName: string;
+    memberEmail: string;
+    role: 'admin' | 'member';
+  }): Promise<void> {
+    await this.sendEmail(
+      input.email,
+      `${input.memberName} aceptó tu invitación`,
+      teamInvitationAcceptedEmail({
+        ...input,
+        teamsUrl: this.webUrl('/portal/teams'),
+      }),
+    );
+  }
+
+  async sendTeamAccessUpdated(input: {
+    email: string;
+    workspaceName: string;
+    recipientName: string;
+    actorName: string;
+    role: 'admin' | 'member';
+    accountCount: number | null;
+  }): Promise<void> {
+    await this.sendEmail(
+      input.email,
+      `Tu acceso a ${input.workspaceName} fue actualizado`,
+      teamAccessUpdatedEmail({
+        ...input,
+        teamsUrl: this.webUrl('/portal/teams'),
+      }),
+    );
+  }
+
+  async sendTeamMemberRemoved(input: {
+    email: string;
+    workspaceName: string;
+    recipientName: string;
+    actorName: string;
+  }): Promise<void> {
+    await this.sendEmail(
+      input.email,
+      `Tu acceso a ${input.workspaceName} fue retirado`,
+      teamMemberRemovedEmail({
+        ...input,
+        portalUrl: this.webUrl('/portal/dashboard'),
+      }),
+    );
+  }
+
+  async sendTeamOwnershipTransferred(input: {
+    email: string;
+    workspaceName: string;
+    recipientName: string;
+    counterpartName: string;
+    perspective: 'new-owner' | 'previous-owner';
+  }): Promise<void> {
+    await this.sendEmail(
+      input.email,
+      input.perspective === 'new-owner'
+        ? `Ahora eres propietario de ${input.workspaceName}`
+        : `Transferiste la propiedad de ${input.workspaceName}`,
+      teamOwnershipTransferredEmail({
+        ...input,
+        teamsUrl: this.webUrl('/portal/teams'),
+      }),
+    );
+  }
+
+  private async sendEmail(
+    email: string,
+    subject: string,
+    template: ReactElement,
+  ): Promise<void> {
+    const configuration = await this.readReadyConfiguration();
+    const [html, text] = await Promise.all([
+      render(template),
+      render(template, { plainText: true }),
+    ]);
     const transporter = this.transporter(configuration);
     try {
       await transporter.sendMail({
@@ -187,36 +305,27 @@ export class EmailService {
           address: configuration.fromEmail,
         },
         to: email,
-        subject: 'Restablece tu contraseña de Zapi',
+        subject,
         html,
+        text,
       });
     } finally {
       transporter.close();
     }
   }
 
-  async sendTeamInvitation(email: string, token: string): Promise<void> {
-    const configuration = await this.readReadyConfiguration();
-    const invitationUrl = new URL(
-      '/invite',
+  private webUrl(path: string) {
+    return new URL(
+      path,
       this.config.getOrThrow<string>('WEB_ORIGIN'),
-    );
-    invitationUrl.hash = new URLSearchParams({ token }).toString();
-    const html = await render(teamInvitationEmail(invitationUrl.toString()));
-    const transporter = this.transporter(configuration);
-    try {
-      await transporter.sendMail({
-        from: {
-          name: configuration.fromName,
-          address: configuration.fromEmail,
-        },
-        to: email,
-        subject: 'Te invitaron a un espacio de trabajo en Zapi',
-        html,
-      });
-    } finally {
-      transporter.close();
-    }
+    ).toString();
+  }
+
+  private dateLabel(date: Date) {
+    return new Intl.DateTimeFormat('es', {
+      dateStyle: 'long',
+      timeZone: 'UTC',
+    }).format(date);
   }
 
   private async readReadyConfiguration(): Promise<EmailSmtpIntegrationConfiguration> {
@@ -275,7 +384,7 @@ export class EmailService {
       providerKey: emailSmtpIntegrationProviderKey,
       label: 'SMTP',
       description:
-        'Entrega de correo transaccional para flujos de autenticación.',
+        'Entrega de correo transaccional para autenticación y espacios de trabajo.',
       enabled,
       readiness: this.readiness(enabled, Boolean(configuration), tested),
       host: configuration?.host ?? null,
