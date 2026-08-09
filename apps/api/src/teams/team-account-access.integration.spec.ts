@@ -20,7 +20,10 @@ import type { PortalAuthSession } from '@workspace/contracts';
 import type { AiRequestJobData } from '../ai/ai.constants';
 import { AiService } from '../ai/ai.service';
 import { AutomationEventsService } from '../automation/automation-events.service';
+import { ChannelsService } from '../channels/channels.service';
+import { WhatsAppStatusConnectionsService } from '../channels/whatsapp-status-connections.service';
 import { DatabaseService } from '../database/database.service';
+import { IntegrationsService } from '../integrations/integrations.service';
 import { AppException } from '../platform/errors/app-exception';
 import type { PublishingDeliveryJobData } from '../publishing/publishing.constants';
 import { PublishingService } from '../publishing/publishing.service';
@@ -67,6 +70,17 @@ function fakeQueue<T>(): Queue<T> {
   return {
     add: () => Promise.resolve({ id: `test-job-${randomUUID()}` }),
   } as unknown as Queue<T>;
+}
+
+function fakeIntegrations(): IntegrationsService {
+  return {
+    getWhatsAppStatus: () =>
+      Promise.resolve({
+        enabled: false,
+        readiness: 'not_configured',
+        capabilities: [],
+      }),
+  } as unknown as IntegrationsService;
 }
 
 async function inRollbackTransaction(
@@ -257,6 +271,32 @@ describeDatabase('Team account access policy', () => {
       expect(ownerView.posts.map(({ id }) => id).sort()).toEqual(
         [grantedPost?.id, ungrantedPost?.id].sort(),
       );
+    });
+  });
+
+  it('filters Channels inventory and totals to the member grants', async () => {
+    await inRollbackTransaction(async (database) => {
+      const scenario = await seedAccessScenario(database, 'channels');
+      const databaseService = { db: database } as DatabaseService;
+      const access = new TeamAccountAccessService(databaseService);
+      const service = new ChannelsService(
+        databaseService,
+        fakeIntegrations(),
+        {} as WhatsAppStatusConnectionsService,
+        access,
+      );
+
+      const memberView = await service.list(scenario.memberSession, {});
+      const ownerView = await service.list(scenario.ownerSession, {});
+
+      expect(memberView.accounts.map(({ id }) => id)).toEqual([
+        scenario.grantedAccountId,
+      ]);
+      expect(memberView.summary.total).toBe(1);
+      expect(ownerView.accounts.map(({ id }) => id).sort()).toEqual(
+        [scenario.grantedAccountId, scenario.ungrantedAccountId].sort(),
+      );
+      expect(ownerView.summary.total).toBe(2);
     });
   });
 

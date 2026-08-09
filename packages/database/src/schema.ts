@@ -61,6 +61,7 @@ export const workspaces = pgTable(
     name: varchar("name", { length: 160 }).notNull(),
     slug: varchar("slug", { length: 96 }).notNull(),
     kind: varchar("kind", { length: 24 }).notNull().default("personal"),
+    memberLimit: integer("member_limit"),
     enabledModules: jsonb("enabled_modules")
       .$type<string[]>()
       .notNull()
@@ -72,6 +73,10 @@ export const workspaces = pgTable(
     uniqueIndex("workspaces_personal_owner_unique")
       .on(table.ownerUserId)
       .where(sql`${table.kind} = 'personal'`),
+    check(
+      "workspaces_member_limit_check",
+      sql`${table.memberLimit} is null or ${table.memberLimit} > 0`
+    ),
   ]
 )
 
@@ -122,6 +127,10 @@ export const workspaceInvitations = pgTable(
     role: varchar("role", { length: 24 }).notNull().default("member"),
     tokenHash: varchar("token_hash", { length: 128 }).notNull(),
     status: varchar("status", { length: 24 }).notNull().default("pending"),
+    deliveryStatus: varchar("delivery_status", { length: 24 })
+      .notNull()
+      .default("pending"),
+    lastSentAt: timestamp("last_sent_at", { withTimezone: true }),
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     acceptedByUserId: uuid("accepted_by_user_id").references(() => users.id, {
       onDelete: "set null",
@@ -131,6 +140,9 @@ export const workspaceInvitations = pgTable(
   },
   (table) => [
     uniqueIndex("workspace_invitations_token_hash_unique").on(table.tokenHash),
+    uniqueIndex("workspace_invitations_pending_email_unique")
+      .on(table.workspaceId, table.emailNormalized)
+      .where(sql`${table.status} = 'pending'`),
     index("workspace_invitations_workspace_status_expiry_index").on(
       table.workspaceId,
       table.status,
@@ -147,6 +159,10 @@ export const workspaceInvitations = pgTable(
     check(
       "workspace_invitations_status_check",
       sql`${table.status} in ('pending', 'accepted', 'revoked', 'expired')`
+    ),
+    check(
+      "workspace_invitations_delivery_status_check",
+      sql`${table.deliveryStatus} in ('pending', 'sent', 'failed')`
     ),
   ]
 )

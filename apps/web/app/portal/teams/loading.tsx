@@ -1,5 +1,5 @@
-import { PageLoading } from "@workspace/ui/components/page-loading"
+import { TeamsLoading } from "@/features/teams/components/teams-loading"
 
 export default function TeamsLoadingPage() {
-  return <PageLoading />
+  return <TeamsLoading />
 }

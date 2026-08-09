@@ -8,6 +8,7 @@ description: Usa este skill al cambiar schema, persistencia, migraciones o trans
 ## Leer antes
 
 - `AGENTS.md`
+- `docs/reglas/workflow.md`
 - `ARCHITECTURE.md`
 - `docs/reglas/calidad.md`
 - Plan de dominio y schema/migraciones afectados.
@@ -24,6 +25,6 @@ description: Usa este skill al cambiar schema, persistencia, migraciones o trans
 ## Guardrails
 
 - Cambios destructivos requieren plan explícito de datos y mitigación.
-- No aplicar mutaciones ni migraciones a PostgreSQL remoto sin aprobación expresa.
+- Las autorizaciones, comprobaciones y límites para bases local/remota viven exclusivamente en `docs/reglas/workflow.md`; aplicarlos sin redefinirlos ni pedir confirmaciones adicionales ya resueltas allí.
 - Nunca copiar datos o secretos de Laravel como datos de migración o fixture.
 - PostgreSQL es fuente de verdad; Redis no sustituye constraints ni estado durable.

@@ -50,7 +50,7 @@ No se implementa ninguna de las fases siguientes hasta aprobar explícitamente e
 - Crear una entidad durable de papelera o ampliar `file_assets` con `purge_after` y `deleted_by_user_id`. La decisión de schema se toma al diseñar la restauración de carpetas: una carpeta eliminada debe restaurar su árbol sin perder los padres originales.
 - Definir una referencia durable entre Publishing y Files antes de bloquear borrado: tabla de adjuntos/referencias o consulta canónica sobre las entidades de Publishing, nunca inspección informal de JSON desde Web.
 - Añadir índices por `workspace_id + status + folder_id`, por assets pendientes de derivados y por retención de papelera.
-- Todas las migraciones serán aditivas y se verifican localmente antes de aplicarlas a PostgreSQL remoto. No se aplica una migración remota sin autorización explícita en el turno de implementación.
+- Todas las migraciones serán aditivas y se verifican localmente antes de aplicarlas a PostgreSQL remoto. La aplicación local/remota sigue exclusivamente la autorización y las comprobaciones de `docs/reglas/workflow.md`.
 
 ### 2. Política de carga y tipos permitidos
 
@@ -133,7 +133,7 @@ La implementación visual se hace primero en `diseño ideal` y se copia literalm
 1. Diseñar en `diseño ideal` los menús, renombre, mover, papelera y preview; aprobar estados visuales y responsive.
 2. Copiar literalmente la superficie aprobada a V2, inicialmente con adapters/fixtures coherentes.
 3. Actualizar plan, contratos Zod y cliente REST.
-4. Crear migraciones aditivas y aplicar solamente con autorización explícita.
+4. Crear migraciones aditivas y aplicarlas en local/remoto siguiendo `docs/reglas/workflow.md`.
 5. Implementar API: ownership, validación de tipos, renombre, movimiento seguro, papelera/restauración y preview autenticado.
 6. Implementar referencias de Publishing y reglas de bloqueo de borrado.
 7. Implementar Worker de metadata, thumbnails y purga.

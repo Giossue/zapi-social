@@ -829,6 +829,11 @@ export const updatePortalWatermarkSchema = createPortalWatermarkSchema
 
 export const portalTeamRoleSchema = z.enum(["owner", "admin", "member"])
 export const portalTeamInvitationRoleSchema = z.enum(["admin", "member"])
+export const portalTeamInvitationDeliveryStatusSchema = z.enum([
+  "pending",
+  "sent",
+  "failed",
+])
 export const portalTeamAccountSchema = z.object({
   id: z.uuid(),
   name: z.string(),
@@ -837,7 +842,7 @@ export const portalTeamAccountSchema = z.object({
 export const portalTeamMemberSchema = z.object({
   id: z.uuid(),
   name: z.string(),
-  email: z.string().email(),
+  email: z.string().email().nullable(),
   role: portalTeamRoleSchema,
   joinedAt: z.string().datetime(),
   accountIds: z.array(z.uuid()),
@@ -846,14 +851,32 @@ export const portalTeamInvitationSchema = z.object({
   id: z.uuid(),
   email: z.string().email(),
   role: portalTeamInvitationRoleSchema,
+  invitedByName: z.string(),
+  createdAt: z.string().datetime(),
+  lastSentAt: z.string().datetime().nullable(),
   expiresAt: z.string().datetime(),
+  deliveryStatus: portalTeamInvitationDeliveryStatusSchema,
+})
+export const portalTeamSeatUsageSchema = z.object({
+  activeMembers: z.number().int().nonnegative(),
+  pendingInvitations: z.number().int().nonnegative(),
+  used: z.number().int().nonnegative(),
+  limit: z.number().int().positive().nullable(),
 })
 export const portalTeamsResponseSchema = z.object({
   canManage: z.boolean(),
+  canInviteAdmin: z.boolean(),
+  canViewActivity: z.boolean(),
   accounts: z.array(portalTeamAccountSchema),
   currentUserId: z.uuid(),
+  currentUserRole: portalTeamRoleSchema,
   invitations: z.array(portalTeamInvitationSchema),
   members: z.array(portalTeamMemberSchema),
+  seatUsage: portalTeamSeatUsageSchema,
+  workspace: z.object({
+    id: z.uuid(),
+    name: z.string(),
+  }),
 })
 export const createPortalTeamInvitationSchema = z
   .object({
@@ -864,27 +887,58 @@ export const createPortalTeamInvitationSchema = z
 export const updatePortalTeamMemberRoleSchema = z
   .object({ role: portalTeamRoleSchema })
   .strict()
+export const updatePortalTeamMemberAccessSchema = z
+  .object({
+    role: portalTeamInvitationRoleSchema,
+    accountIds: z.array(z.uuid()).max(500),
+  })
+  .strict()
 export const replacePortalTeamAccountGrantsSchema = z
   .object({ accountIds: z.array(z.uuid()).max(500) })
   .strict()
 export const acceptPortalTeamInvitationSchema = z
   .object({ token: z.string().min(32).max(512) })
   .strict()
-export const portalTeamAuditEventSchema = z.object({
+export const transferPortalTeamOwnershipSchema = z
+  .object({ targetUserId: z.uuid() })
+  .strict()
+export const portalTeamActivityCategorySchema = z.enum([
+  "all",
+  "invitations",
+  "members",
+  "access",
+  "ownership",
+])
+export const portalTeamActivityEventTypeSchema = z.enum([
+  "team.invitation_created",
+  "team.invitation_resent",
+  "team.invitation_revoked",
+  "team.invitation_expired",
+  "team.invitation_accepted",
+  "team.member_role_updated",
+  "team.member_access_updated",
+  "team.member_account_grants_replaced",
+  "team.member_revoked",
+  "team.member_left",
+  "team.ownership_transferred",
+])
+export const portalTeamActivityEventSchema = z.object({
   id: z.uuid(),
   actorName: z.string().nullable(),
   subjectName: z.string().nullable(),
-  type: z.string(),
+  type: portalTeamActivityEventTypeSchema,
   createdAt: z.string().datetime(),
 })
-export const portalTeamAuditEventsResponseSchema = z.object({
-  events: z.array(portalTeamAuditEventSchema),
+export const portalTeamActivityResponseSchema = z.object({
+  events: z.array(portalTeamActivityEventSchema),
   page: z.number().int().positive(),
   limit: z.number().int().positive(),
   total: z.number().int().nonnegative(),
 })
-export const portalTeamAuditEventsQuerySchema = z
+export const portalTeamActivityQuerySchema = z
   .object({
+    category: portalTeamActivityCategorySchema.default("all"),
+    q: z.string().trim().max(255).optional(),
     page: z.coerce.number().int().positive().default(1),
     limit: z.coerce.number().int().min(1).max(100).default(50),
   })
@@ -1180,9 +1234,13 @@ export type PortalTeamRole = z.infer<typeof portalTeamRoleSchema>
 export type PortalTeamInvitationRole = z.infer<
   typeof portalTeamInvitationRoleSchema
 >
+export type PortalTeamInvitationDeliveryStatus = z.infer<
+  typeof portalTeamInvitationDeliveryStatusSchema
+>
 export type PortalTeamAccount = z.infer<typeof portalTeamAccountSchema>
 export type PortalTeamMember = z.infer<typeof portalTeamMemberSchema>
 export type PortalTeamInvitation = z.infer<typeof portalTeamInvitationSchema>
+export type PortalTeamSeatUsage = z.infer<typeof portalTeamSeatUsageSchema>
 export type PortalTeamsResponse = z.infer<typeof portalTeamsResponseSchema>
 export type CreatePortalTeamInvitationInput = z.infer<
   typeof createPortalTeamInvitationSchema
@@ -1190,18 +1248,32 @@ export type CreatePortalTeamInvitationInput = z.infer<
 export type UpdatePortalTeamMemberRoleInput = z.infer<
   typeof updatePortalTeamMemberRoleSchema
 >
+export type UpdatePortalTeamMemberAccessInput = z.infer<
+  typeof updatePortalTeamMemberAccessSchema
+>
 export type ReplacePortalTeamAccountGrantsInput = z.infer<
   typeof replacePortalTeamAccountGrantsSchema
 >
 export type AcceptPortalTeamInvitationInput = z.infer<
   typeof acceptPortalTeamInvitationSchema
 >
-export type PortalTeamAuditEvent = z.infer<typeof portalTeamAuditEventSchema>
-export type PortalTeamAuditEventsResponse = z.infer<
-  typeof portalTeamAuditEventsResponseSchema
+export type TransferPortalTeamOwnershipInput = z.infer<
+  typeof transferPortalTeamOwnershipSchema
 >
-export type PortalTeamAuditEventsQuery = z.infer<
-  typeof portalTeamAuditEventsQuerySchema
+export type PortalTeamActivityCategory = z.infer<
+  typeof portalTeamActivityCategorySchema
+>
+export type PortalTeamActivityEventType = z.infer<
+  typeof portalTeamActivityEventTypeSchema
+>
+export type PortalTeamActivityEvent = z.infer<
+  typeof portalTeamActivityEventSchema
+>
+export type PortalTeamActivityResponse = z.infer<
+  typeof portalTeamActivityResponseSchema
+>
+export type PortalTeamActivityQuery = z.infer<
+  typeof portalTeamActivityQuerySchema
 >
 export type ChannelStatus = z.infer<typeof channelStatusSchema>
 export type ChannelAccount = z.infer<typeof channelAccountSchema>

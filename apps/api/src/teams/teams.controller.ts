@@ -9,6 +9,7 @@ import {
   Patch,
   Put,
   Post,
+  Query,
   Req,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
@@ -27,6 +28,14 @@ export class TeamsController {
   @Get()
   async list(@Req() request: FastifyRequest) {
     return this.teams.list(await this.access.requirePortalSession(request));
+  }
+
+  @Get('activity')
+  async listActivity(@Req() request: FastifyRequest, @Query() query: unknown) {
+    return this.teams.listActivity(
+      await this.access.requirePortalSession(request),
+      query,
+    );
   }
 
   @Post('invitations')
@@ -48,6 +57,17 @@ export class TeamsController {
     return this.teams.acceptInvitation(
       await this.access.requirePortalSession(request),
       body,
+    );
+  }
+
+  @Post('invitations/:id/resend')
+  async resendInvitation(
+    @Req() request: FastifyRequest,
+    @Param('id') id: string,
+  ) {
+    return this.teams.resendInvitation(
+      await this.access.requirePortalSession(request),
+      id,
     );
   }
 
@@ -89,6 +109,19 @@ export class TeamsController {
     );
   }
 
+  @Put('members/:userId/access')
+  async updateMemberAccess(
+    @Req() request: FastifyRequest,
+    @Param('userId') userId: string,
+    @Body() body: unknown,
+  ) {
+    return this.teams.updateMemberAccess(
+      await this.access.requirePortalSession(request),
+      userId,
+      body,
+    );
+  }
+
   @Delete('members/:userId')
   @HttpCode(HttpStatus.NO_CONTENT)
   async removeMember(
@@ -98,6 +131,24 @@ export class TeamsController {
     await this.teams.removeMember(
       await this.access.requirePortalSession(request),
       userId,
+    );
+  }
+
+  @Post('leave')
+  async leaveWorkspace(@Req() request: FastifyRequest) {
+    return this.teams.leaveWorkspace(
+      await this.access.requirePortalSession(request),
+    );
+  }
+
+  @Post('ownership/transfer')
+  async transferOwnership(
+    @Req() request: FastifyRequest,
+    @Body() body: unknown,
+  ) {
+    return this.teams.transferOwnership(
+      await this.access.requirePortalSession(request),
+      body,
     );
   }
 }

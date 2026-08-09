@@ -42,13 +42,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@workspace/ui/components/empty"
+import { EmptyState } from "@workspace/ui/components/empty-state"
 import {
   InputGroup,
   InputGroupAddon,
@@ -588,28 +582,26 @@ function RssSchedules({
                   ) : (
                     <TableRow>
                       <TableCell className="h-24 text-center" colSpan={6}>
-                        <Empty>
-                          <EmptyHeader>
-                            <EmptyMedia variant="icon">
-                              <Rss />
-                            </EmptyMedia>
-                            <EmptyTitle>
-                              {query || status !== "all"
-                                ? "No hay coincidencias"
-                                : "Aún no tienes programaciones RSS"}
-                            </EmptyTitle>
-                            <EmptyDescription>
-                              {query || status !== "all"
-                                ? "Prueba con otro término o restablece los filtros."
-                                : "Añade un feed y elige cuándo publicarlo en tus canales."}
-                            </EmptyDescription>
-                          </EmptyHeader>
-                          {query || status !== "all" ? (
-                            <Button onClick={resetFilters} variant="outline">
-                              Restablecer filtros
-                            </Button>
-                          ) : null}
-                        </Empty>
+                        <EmptyState
+                          action={
+                            query || status !== "all" ? (
+                              <Button onClick={resetFilters} variant="outline">
+                                Restablecer filtros
+                              </Button>
+                            ) : null
+                          }
+                          description={
+                            query || status !== "all"
+                              ? "Prueba con otro término o restablece los filtros."
+                              : "Añade un feed y elige cuándo publicarlo en tus canales."
+                          }
+                          icon={Rss}
+                          title={
+                            query || status !== "all"
+                              ? "No hay coincidencias"
+                              : "Aún no tienes programaciones RSS"
+                          }
+                        />
                       </TableCell>
                     </TableRow>
                   )}

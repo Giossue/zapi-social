@@ -1,36 +1,39 @@
-# Instrucciones de trabajo
+# Índice de trabajo para agentes
 
-## Repositorios de referencia
+Lee este archivo primero. Es un **índice**, no una copia de las reglas: cada norma vive en un único documento canónico y se actualiza allí.
 
-- `../ZapiV2`: destino de todo el trabajo. Aquí se implementa y valida V2.
-- `../ZapiSocial`: primera versión Laravel. Se consulta únicamente para copiar la lógica útil y mejorarla al implementarla en V2; no se replica su arquitectura.
-- `../diseño ideal`: fuente visual canónica. De aquí se copia literalmente el diseño de V2: colores, tabs, cards, búsquedas, filtros, hovers, responsividad, tablas y cualquier otra superficie visual.
+## Carga obligatoria y precedencia
 
-Cuando el usuario diga “copia el estilo”, se debe copiar la página o componente de `../diseño ideal` tal cual: DOM/JSX, clases, spacing, primitives, estados visuales y responsive. En V2 solo se sustituyen el contenido, textos, datos, rutas, handlers, permisos y lógica reales. No crear una adaptación, reinterpretación ni una versión inspirada.
+- Antes de buscar, planificar, editar, ejecutar comandos o responder sobre el repositorio, clasificar la tarea con la tabla de este índice y leer **completamente** todos los documentos indicados en las filas aplicables.
+- Si una tarea pertenece a varias categorías, leer la unión de sus fuentes. Una búsqueda con `rg`, un fragmento o un resumen previo ayudan a localizar información, pero no sustituyen la lectura completa de una fuente marcada como **Lee antes**.
+- No ejecutar una skill local hasta haber leído su `SKILL.md` y las fuentes canónicas que este índice o la propia skill exijan para la tarea.
+- Dentro de las instrucciones propias del repositorio, `docs/reglas/` define las normas obligatorias; `ARCHITECTURE.md` define responsabilidades; `docs/planes/`, `docs/conocimiento/` y los catálogos describen sus ámbitos; las skills locales describen el procedimiento y no pueden redefinir permisos ni guardrails canónicos.
+- Si una skill, plan, documento de conocimiento o catálogo contradice una regla canónica, seguir `docs/reglas/` y corregir la referencia secundaria contradictoria dentro del mismo cambio. No resolver el conflicto pidiendo una aprobación que la regla canónica ya concede.
+- Cada norma se escribe una sola vez. Los documentos secundarios deben enlazar a su fuente de verdad en vez de copiarla.
 
-## Descubrimiento de código
+## Contexto fijo
 
-No usar MCP graph ni búsqueda semántica para descubrir archivos o código.
+- `../ZapiV2`: destino de todo el trabajo y validación de V2.
+- `../ZapiSocial`: referencia Laravel para auditar comportamiento útil; no se replica su arquitectura.
+- `../diseño ideal`: fuente visual canónica. Cuando exista una superficie equivalente, se copia literalmente su composición a V2 y solo se adaptan datos, rutas, handlers, permisos y lógica real.
 
-Antes de leer archivos, crear y ejecutar búsquedas inteligentes, acotadas y rápidas con scripts de shell, priorizando `rg --files`, `rg` y filtros por directorio, extensión y término. El objetivo es localizar primero la implementación exacta y reducir lecturas innecesarias.
+## Qué leer antes de actuar
 
-Una vez localizado el archivo o conjunto mínimo de archivos, leer solo lo necesario para entender el flujo y realizar el trabajo. Usar `rg` para literales, rutas, configuraciones, componentes, handlers y relaciones entre módulos; recurrir a un script temporal solo cuando una búsqueda compuesta aporte una reducción real de tiempo.
+| Si vas a… | Lee antes | Actualiza al cambiar… |
+| --- | --- | --- |
+| Ubicar código, usar `.env`, privilegios, PostgreSQL o migraciones Drizzle | [`docs/reglas/workflow.md`](./docs/reglas/workflow.md) | Ese mismo archivo si cambia una norma operativa o de acceso a datos. |
+| Diseñar o refactorizar UI, usar primitives, tokens, 21st, Next o Tailwind | [`docs/reglas/design.md`](./docs/reglas/design.md) y [`packages/ui/COMPONENTS.md`](./packages/ui/COMPONENTS.md) | `design.md` para reglas; `COMPONENTS.md` al añadir, quitar o promover un primitive/pattern global. |
+| Cerrar un cambio, validar, revisar o actualizar documentación | [`docs/reglas/calidad.md`](./docs/reglas/calidad.md) | El documento canónico del dominio y evidencia de validación en plan/PR. |
+| Entender límites de Web, API, Worker, paquetes o dependencias | [`ARCHITECTURE.md`](./ARCHITECTURE.md) | `ARCHITECTURE.md` si cambia una responsabilidad transversal. |
+| Cambiar una vertical de producto | El plan pertinente en [`docs/planes/`](./docs/planes/) y la referencia Laravel equivalente | El plan de esa vertical al cambiar decisiones, equivalencias, alcance o estado. |
+| Consultar estado técnico, stack, despliegue o navegación actual | [`docs/README.md`](./docs/README.md) para elegir el documento de `conocimiento/` correcto | El archivo de `conocimiento/` que sea fuente de verdad del hecho observado. |
 
-## Entorno local y privilegios
+## Orden mínimo de lectura
 
-- El agente tiene autorización explícita para leer y editar archivos `.env` locales de este workspace. Son configuración local bajo el control del usuario; no hace falta pedir confirmación adicional para ello.
-- Para inspección o cambios locales que requieran privilegios, invocar `pkexec` directamente para solicitar al usuario la autenticación gráfica. No usar `sudo` ni pedirle al usuario que ejecute el comando por cuenta propia salvo que `pkexec` no esté disponible.
-- Los cambios con privilegios deben limitarse al objetivo verificado: base de datos local, rol local, permisos locales o servicio local correspondiente.
+1. Este índice.
+2. La regla correspondiente al tipo de cambio.
+3. La arquitectura cuando el cambio cruza áreas del monorepo.
+4. El plan del dominio y la referencia Laravel cuando el cambio es funcional.
+5. Para UI, el catálogo de componentes y la fuente equivalente en `diseño ideal` antes de escribir markup.
 
-## Migraciones locales de Drizzle
-
-- El agente está autorizado a crear y aplicar, sin confirmación adicional, las migraciones y modificaciones de datos estrictamente necesarias para la implementación solicitada, tanto en `zapi_v2_local` como en la base remota configurada de Zapi V2. Toda migración aplicable debe ejecutarse en ambas y terminar con el mismo schema, constraints y versión de historial Drizzle; si una no puede aplicarse, no se declara el cambio terminado. Antes de escribir, debe comprobar conexión, base, rol, historial Drizzle y alcance exacto; después, verificar schema, constraints y datos afectados. Esta autorización no permite operaciones destructivas ajenas al cambio ni borrar datos fuera de un objetivo explícitamente identificado.
-- Antes de ejecutar `db:migrate`, verificar que el `DATABASE_URL` local apunte a una base alcanzable y que el rol exista.
-- Si el schema físico contiene una migración pero `drizzle.__drizzle_migrations` no la registra, nunca borrar ni recrear tablas existentes. Comparar primero columnas, constraints e índices contra el SQL de migración; si coinciden, hacer un baseline explícito y verificable antes de continuar.
-- La base local actual es `zapi_v2_local`. Su historial registra `0000`–`0006`, contiene `captions` equivalente a `0009`, y requiere aplicar/baselinar ordenadamente `0007`–`0009` antes de las migraciones Files `0010`–`0012`.
-
-## Base de datos remota
-
-- La conexión remota está definida localmente en el servicio PostgreSQL `zapi_v2`, dentro de `/home/giossue/.pg_service.conf`; la contraseña se resuelve desde `/home/giossue/.pgpass`. Nunca copiar, imprimir, versionar ni incluir credenciales en comandos, documentación o logs.
-- Inspeccionar o verificar la remota con `PGSERVICE=zapi_v2 PGSERVICEFILE=/home/giossue/.pg_service.conf psql`. Confirmar siempre `current_database()`, `current_user` e historial `drizzle.__drizzle_migrations` antes y después de una migración.
-- Drizzle requiere `DATABASE_URL`: construirlo en memoria a partir de esos archivos locales, sin mostrarlo, y ejecutar `bun run db:migrate` desde `packages/database`. Antes de aplicar, probar el SQL nuevo dentro de `BEGIN` / `ROLLBACK` con el servicio remoto cuando sea compatible con transacción.
+No documentar secretos, tokens, datos de producción ni valores de `.env`.

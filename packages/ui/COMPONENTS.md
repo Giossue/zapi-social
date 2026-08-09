@@ -15,7 +15,7 @@ Este inventario refleja los módulos reales de `packages/ui/src/components/`. No
 | `Collapsible` | `@workspace/ui/components/collapsible` | Mostrar u ocultar contenido secundario. |
 | `Command` | `@workspace/ui/components/command` | Paleta de comandos y selección filtrable. |
 | `ContextMenu` | `@workspace/ui/components/context-menu` | Acciones contextuales al interactuar con un recurso. |
-| `DropdownMenu` | `@workspace/ui/components/dropdown-menu` | Acciones secundarias y menús contextuales. |
+| `DropdownMenu` | `@workspace/ui/components/dropdown-menu` | Acciones secundarias y menús contextuales. Para acciones sobre un recurso, usar el disparador de tres puntos verticales, agrupar acciones normales y separar la acción destructiva con `DropdownMenuSeparator` + `DropdownMenuItem variant="destructive"`. |
 | `Menubar` | `@workspace/ui/components/menubar` | Barra de menús de aplicación. |
 | `NavigationMenu` | `@workspace/ui/components/navigation-menu` | Navegación horizontal estructurada. |
 | `Pagination` | `@workspace/ui/components/pagination` | Navegación entre páginas de resultados. |

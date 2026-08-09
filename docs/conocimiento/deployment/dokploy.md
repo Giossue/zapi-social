@@ -195,9 +195,9 @@ La base tenía físicamente `0009`–`0011` sin sus filas en
 registrarlos como baseline; Drizzle aplicó después `0012`–`0015` normalmente.
 No se modificaron ni eliminaron filas de `file_assets` durante esa operación.
 
-No ejecutar SQL destructivo ni aplicar migraciones sobre una base remota sin autorización explícita.
+La autorización operativa, comprobaciones y límites para migraciones locales y remotas viven exclusivamente en [`docs/reglas/workflow.md`](../../reglas/workflow.md). Esta guía de despliegue no los redefine.
 
-El backend consolidado se validó localmente con `0020_mushy_peter_parker` y `0021_pale_thor`. Esa evidencia local no confirma que producción tenga las migraciones; debe verificarse y aplicarse en una ventana autorizada antes de desplegar código que dependa de sus tablas.
+El backend consolidado se validó localmente con `0020_mushy_peter_parker` y `0021_pale_thor`. Esa evidencia local no confirma que producción tenga las migraciones; deben verificarse y aplicarse durante la ventana de despliegue antes de publicar código que dependa de sus tablas, siguiendo `docs/reglas/workflow.md`.
 
 ## Seed inicial de usuarios
 

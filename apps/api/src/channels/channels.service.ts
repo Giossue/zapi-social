@@ -22,11 +22,13 @@ import {
   desc,
   eq,
   gt,
+  inArray,
   isNull,
   sql,
 } from '@workspace/database/query';
 import { DatabaseService } from '../database/database.service';
 import { IntegrationsService } from '../integrations/integrations.service';
+import { TeamAccountAccessService } from '../teams/team-account-access.service';
 import { WhatsAppStatusConnectionsService } from './whatsapp-status-connections.service';
 
 const managerRoles = new Set(['owner', 'admin']);
@@ -105,6 +107,7 @@ export class ChannelsService {
     private readonly database: DatabaseService,
     private readonly integrations: IntegrationsService,
     private readonly whatsapp: WhatsAppStatusConnectionsService,
+    private readonly accountAccess: TeamAccountAccessService,
   ) {}
 
   async list(
@@ -112,7 +115,17 @@ export class ChannelsService {
     query: unknown,
   ): Promise<PortalChannelsResponse> {
     const filters = this.parse(portalChannelsQuerySchema.safeParse(query));
-    const baseWhere = this.listWhere(session.workspace.id, filters);
+    const scope = await this.accountAccess.resolve(session);
+    const accountScopeWhere = scope.unrestricted
+      ? undefined
+      : scope.accountIds.size
+        ? inArray(socialAccounts.id, [...scope.accountIds])
+        : sql`false`;
+    const baseWhere = this.listWhere(
+      session.workspace.id,
+      filters,
+      accountScopeWhere,
+    );
     const pageWhere = filters.cursor
       ? and(
           baseWhere,
@@ -260,11 +273,14 @@ export class ChannelsService {
   private listWhere(
     workspaceId: string,
     filters: PortalChannelsQuery,
+    accountScopeWhere?: Condition,
   ): Condition {
     const conditions: Condition[] = [
       eq(socialAccounts.workspaceId, workspaceId),
       this.capabilityScopeWhere(),
     ];
+
+    if (accountScopeWhere) conditions.push(accountScopeWhere);
 
     if (filters.provider) conditions.push(this.providerWhere(filters.provider));
     if (filters.capability) {

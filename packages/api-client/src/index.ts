@@ -90,12 +90,16 @@ import type {
   PortalGroupsQuery,
   PortalGroupsResponse,
   PortalTeamInvitation,
+  PortalTeamActivityQuery,
+  PortalTeamActivityResponse,
   PortalTeamsResponse,
   ReplacePortalTeamAccountGrantsInput,
   UpdatePortalAccountGroupInput,
   UpdatePortalAutomationWebhookInput,
   UpdatedPortalAutomationWebhook,
+  UpdatePortalTeamMemberAccessInput,
   UpdatePortalTeamMemberRoleInput,
+  TransferPortalTeamOwnershipInput,
   CreatePortalAiPublishingScheduleInput,
   CreatePortalAiRequestInput,
   PortalAiDraftResult,
@@ -845,6 +849,18 @@ export const onlineMediaApi = {
     }),
 }
 
+function portalTeamActivityQueryString(
+  query: Partial<PortalTeamActivityQuery> = {}
+) {
+  const params = new URLSearchParams()
+  if (query.category) params.set("category", query.category)
+  if (query.q) params.set("q", query.q)
+  if (query.page) params.set("page", String(query.page))
+  if (query.limit) params.set("limit", String(query.limit))
+  const serialized = params.toString()
+  return serialized ? `?${serialized}` : ""
+}
+
 export const teamsApi = {
   list: () =>
     request<PortalTeamsResponse>("/v1/portal/teams", { method: "GET" }),
@@ -857,6 +873,10 @@ export const teamsApi = {
     request<{ accepted: true }>("/v1/portal/teams/invitations/accept", {
       method: "POST",
       body: JSON.stringify(input),
+    }),
+  resendInvitation: (id: string) =>
+    request<PortalTeamInvitation>(`/v1/portal/teams/invitations/${id}/resend`, {
+      method: "POST",
     }),
   revokeInvitation: (id: string) =>
     request<void>(`/v1/portal/teams/invitations/${id}`, {
@@ -878,9 +898,33 @@ export const teamsApi = {
       `/v1/portal/teams/members/${userId}/account-grants`,
       { method: "PUT", body: JSON.stringify(input) }
     ),
+  updateMemberAccess: (
+    userId: string,
+    input: UpdatePortalTeamMemberAccessInput
+  ) =>
+    request<{
+      id: string
+      role: "admin" | "member"
+      accountIds: string[]
+    }>(`/v1/portal/teams/members/${userId}/access`, {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
   removeMember: (userId: string) =>
     request<void>(`/v1/portal/teams/members/${userId}`, {
       method: "DELETE",
+    }),
+  listActivity: (query?: Partial<PortalTeamActivityQuery>) =>
+    request<PortalTeamActivityResponse>(
+      `/v1/portal/teams/activity${portalTeamActivityQueryString(query)}`,
+      { method: "GET" }
+    ),
+  leaveWorkspace: () =>
+    request<{ left: true }>("/v1/portal/teams/leave", { method: "POST" }),
+  transferOwnership: (input: TransferPortalTeamOwnershipInput) =>
+    request<{ ownerUserId: string }>("/v1/portal/teams/ownership/transfer", {
+      method: "POST",
+      body: JSON.stringify(input),
     }),
 }
 
