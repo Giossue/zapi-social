@@ -1,10 +1,9 @@
 import type {
   WatermarkAccount,
-  WatermarkImageAsset,
   WatermarkRule,
 } from "@/features/watermarks/types/watermarks"
 
-/** Datos sintéticos locales para revisar el editor antes de conectar Files y REST. */
+/** Datos sintéticos locales para las reglas; las imágenes vienen de Files. */
 export const watermarkAccountsFixture: WatermarkAccount[] = [
   {
     id: "7fb068aa-82ef-4208-8da6-86e76cd2195c",
@@ -26,30 +25,12 @@ export const watermarkAccountsFixture: WatermarkAccount[] = [
   },
 ]
 
-export const watermarkImageAssetsFixture: WatermarkImageAsset[] = [
-  {
-    id: "8d3a1045-3a86-4649-bdc9-e34294d5a1af",
-    name: "Logo Zapi principal.png",
-    previewSrc: "/brand/zapi-logo.png",
-  },
-  {
-    id: "9cf9b237-b241-4cde-a9de-b6db2c41d302",
-    name: "Logo Zapi claro.png",
-    previewSrc: "/brand/logo-light.png",
-  },
-  {
-    id: "0fb04d39-51c5-4336-abeb-e58d94c1ee13",
-    name: "Logo Zapi oscuro.png",
-    previewSrc: "/brand/logo-dark.png",
-  },
-]
-
 export const watermarksFixture: WatermarkRule[] = [
   {
     id: "1b9f17cf-7ee5-4c0c-8b84-6a9f7c0db9a3",
     socialAccountId: null,
     type: "image",
-    imageFileAssetId: watermarkImageAssetsFixture[0]!.id,
+    imageFileAssetId: null,
     text: null,
     position: "bottom-right",
     opacityPercent: 76,
