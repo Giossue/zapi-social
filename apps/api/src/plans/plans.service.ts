@@ -13,7 +13,7 @@ import {
   type AuthSession,
   type CreateAdminPlanInput,
 } from '@workspace/contracts';
-import { plans } from '@workspace/database';
+import { plans, workspacePlanAssignments } from '@workspace/database';
 import { and, asc, eq, sql } from '@workspace/database/query';
 import { z } from 'zod';
 import { DatabaseService } from '../database/database.service';
@@ -25,8 +25,15 @@ export class PlansService {
   async list(query: unknown): Promise<AdminPlansList> {
     const filters = this.parse(adminPlansQuerySchema.safeParse(query));
     const rows = await this.database.db
-      .select()
+      .select({
+        plan: plans,
+        subscriberCount: sql<number>`count(${workspacePlanAssignments.id})::int`,
+      })
       .from(plans)
+      .leftJoin(
+        workspacePlanAssignments,
+        eq(workspacePlanAssignments.planId, plans.id),
+      )
       .where(
         and(
           filters.q
@@ -41,9 +48,12 @@ export class PlansService {
             : undefined,
         ),
       )
+      .groupBy(plans.id)
       .orderBy(asc(plans.position), asc(plans.createdAt));
 
-    return { plans: rows.map((plan) => this.serialize(plan)) };
+    return {
+      plans: rows.map((row) => this.serialize(row.plan, row.subscriberCount)),
+    };
   }
 
   async create(session: AuthSession, input: unknown): Promise<AdminPlan> {
@@ -91,6 +101,14 @@ export class PlansService {
   async remove(session: AuthSession, id: string): Promise<void> {
     void session;
     const planId = this.parseId(id);
+    const [assignment] = await this.database.db
+      .select({ id: workspacePlanAssignments.id })
+      .from(workspacePlanAssignments)
+      .where(eq(workspacePlanAssignments.planId, planId))
+      .limit(1);
+    if (assignment) {
+      throw new ConflictException('Plan has subscribers');
+    }
     const [plan] = await this.database.db
       .delete(plans)
       .where(eq(plans.id, planId))
@@ -143,7 +161,10 @@ export class PlansService {
     return this.parse(z.uuid().safeParse(id));
   }
 
-  private serialize(plan: typeof plans.$inferSelect): AdminPlan {
+  private serialize(
+    plan: typeof plans.$inferSelect,
+    subscriberCount = 0,
+  ): AdminPlan {
     return {
       id: plan.id,
       name: plan.name,
@@ -159,7 +180,7 @@ export class PlansService {
       position: plan.position,
       description: plan.description,
       permissionIds: plan.permissionIds,
-      subscriberCount: 0,
+      subscriberCount,
       createdAt: plan.createdAt.toISOString(),
       updatedAt: plan.updatedAt.toISOString(),
     };

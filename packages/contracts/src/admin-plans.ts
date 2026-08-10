@@ -49,7 +49,7 @@ export const updateAdminPlanSchema = adminPlanValuesSchema
 
 export const adminPlanSchema = adminPlanValuesSchema.extend({
   id: z.uuid(),
-  subscriberCount: z.literal(0),
+  subscriberCount: z.number().int().nonnegative(),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 })

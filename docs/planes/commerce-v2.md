@@ -4,7 +4,7 @@
 
 El backend operativo de catálogo, inventario, órdenes, devoluciones y afiliados está implementado. `/portal/commerce` todavía usa su repositorio mock; `/portal/affiliate` cae en el placeholder genérico. Deben conectarse a `commerceApi` y `affiliateApi` respectivamente.
 
-Este slice **no es billing ni checkout**. No existe un gateway de pagos aprobado y, por tanto, no se crean cobros, suscripciones, facturas, reembolsos bancarios ni webhooks de pago sintéticos.
+Este slice **no es billing ni checkout**. Polar.sh fue elegido como única pasarela, pero su implementación pertenece al plan [`billing-polar-v2.md`](./billing-polar-v2.md). Mientras ese backend no exista, Commerce no crea cobros, suscripciones, facturas, reembolsos ni webhooks de pago sintéticos.
 
 ## Alcance Commerce
 
@@ -69,5 +69,6 @@ La migración Drizzle del slice es `0020_mushy_peter_parker`; `0021_pale_thor` a
 - [x] Typecheck de Database, Contracts, API Client y API.
 - [x] Prueba local transaccional: reserva tres unidades, completa una sola vez y termina con `available=7`, `reserved=0` (`portal-backend-v2`, 3/3 en el conjunto).
 - [ ] Conectar Commerce a REST y sustituir el placeholder Affiliate por una página operativa.
-- [ ] Aprobar gateway, impuestos, moneda, renovaciones y política de webhooks antes de construir billing/checkout.
-- [ ] Crear flujo Admin para revisar devoluciones, comisiones y retiros.
+- [x] Aprobar Polar.sh como gateway único y separar su alcance en `billing-polar-v2.md`.
+- [ ] Implementar impuestos, moneda, renovaciones y política idempotente de webhooks dentro de Billing.
+- [x] Crear flujo Admin para revisar comisiones y retiros; devoluciones de Commerce continúan como pendiente de su propia UI Admin.

@@ -190,6 +190,27 @@
       "when": 1786317427057,
       "tag": "0026_ai_model_catalog_refresh",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1786319875484,
+      "tag": "0027_normal_screwball",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1786335364423,
+      "tag": "0028_nappy_ulik",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1786336127321,
+      "tag": "0029_curly_shadowcat",
+      "breakpoints": true
     }
   ]
 }

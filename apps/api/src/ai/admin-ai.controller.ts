@@ -27,17 +27,27 @@ export class AdminAiController {
     return this.ai.configuration();
   }
 
-  @Post('provider/test')
-  async testProvider(@Req() request: FastifyRequest, @Body() input: unknown) {
+  @Post('providers/:providerKey/test')
+  async testProvider(
+    @Req() request: FastifyRequest,
+    @Param('providerKey') providerKey: string,
+    @Body() input: unknown,
+  ) {
     return this.ai.testProvider(
+      providerKey,
       input,
       await this.access.requirePlatformAdmin(request),
     );
   }
 
-  @Patch('provider')
-  async updateProvider(@Req() request: FastifyRequest, @Body() input: unknown) {
+  @Patch('providers/:providerKey')
+  async updateProvider(
+    @Req() request: FastifyRequest,
+    @Param('providerKey') providerKey: string,
+    @Body() input: unknown,
+  ) {
     return this.ai.updateProvider(
+      providerKey,
       input,
       await this.access.requirePlatformAdmin(request),
     );

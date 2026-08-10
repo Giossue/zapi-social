@@ -141,7 +141,7 @@ export class AiService {
     const cycleStart = new Date();
     cycleStart.setUTCDate(1);
     cycleStart.setUTCHours(0, 0, 0, 0);
-    const [credits, requests, settings, provider, draftCount, requestStats] =
+    const [credits, requests, settings, providers, draftCount, requestStats] =
       await Promise.all([
         this.credits(session),
         this.database.db
@@ -163,9 +163,9 @@ export class AiService {
             readiness: providerIntegrations.readiness,
           })
           .from(providerIntegrations)
-          .where(eq(providerIntegrations.providerKey, 'openai'))
-          .limit(1)
-          .then((rows) => rows[0] ?? null),
+          .where(
+            inArray(providerIntegrations.providerKey, ['openai', 'atlascloud']),
+          ),
         this.database.db
           .select({ total: count() })
           .from(publishingPosts)
@@ -198,8 +198,8 @@ export class AiService {
       ]);
     return {
       enabled: true,
-      providerReady: Boolean(
-        provider?.enabled && provider.readiness === 'ready',
+      providerReady: providers.some(
+        (provider) => provider.enabled && provider.readiness === 'ready',
       ),
       credits: {
         unlimited: credits.unlimited || !settings.enforceCredits,
@@ -837,7 +837,7 @@ export class AiService {
         HttpStatus.TOO_MANY_REQUESTS,
       );
     }
-    const execution = await this.resolveExecution(values.kind);
+    const execution = await this.resolveExecution(values.kind, values.input);
     const costUnits = execution.costUnits;
     const [account, workspaceSettings] = await Promise.all([
       this.ensureCreditAccount(session.workspace.id),
@@ -1069,7 +1069,10 @@ export class AiService {
     return account;
   }
 
-  private async resolveExecution(kind: AiRequestKind) {
+  private async resolveExecution(
+    kind: AiRequestKind,
+    input: Record<string, unknown>,
+  ) {
     const [route] = await this.database.db
       .select()
       .from(aiModelRoutes)
@@ -1088,26 +1091,41 @@ export class AiService {
         model: kind === 'timing' ? 'internal-analytics' : 'internal-search',
       };
     }
-    const [model, provider] = await Promise.all([
-      route.primaryModelId
-        ? this.database.db
-            .select()
-            .from(aiModels)
-            .where(eq(aiModels.id, route.primaryModelId))
-            .limit(1)
-            .then((rows) => rows[0] ?? null)
-        : Promise.resolve(null),
-      this.database.db
-        .select()
-        .from(providerIntegrations)
-        .where(eq(providerIntegrations.providerKey, 'openai'))
-        .limit(1)
-        .then((rows) => rows[0] ?? null),
-    ]);
+    const usesReferences =
+      (kind === 'image' || kind === 'video') &&
+      Array.isArray(input.referenceAssetIds) &&
+      input.referenceAssetIds.length > 0;
+    const selectedModelId = usesReferences
+      ? route.referenceModelId
+      : route.primaryModelId;
+    const model = selectedModelId
+      ? this.database.db
+          .select()
+          .from(aiModels)
+          .where(eq(aiModels.id, selectedModelId))
+          .limit(1)
+          .then((rows) => rows[0] ?? null)
+      : Promise.resolve(null);
+    const resolvedModel = await model;
+    const provider = resolvedModel
+      ? await this.database.db
+          .select()
+          .from(providerIntegrations)
+          .where(
+            eq(providerIntegrations.providerKey, resolvedModel.providerKey),
+          )
+          .limit(1)
+          .then((rows) => rows[0] ?? null)
+      : null;
     const providerReady = Boolean(
       provider?.enabled && provider.readiness === 'ready',
     );
-    if (!providerReady || !model || !model.enabled || model.deprecated) {
+    if (
+      !providerReady ||
+      !resolvedModel ||
+      !resolvedModel.enabled ||
+      resolvedModel.deprecated
+    ) {
       throw new AppException(
         'AI_PROVIDER_NOT_READY',
         HttpStatus.SERVICE_UNAVAILABLE,
@@ -1115,8 +1133,8 @@ export class AiService {
     }
     return {
       costUnits: route.costUnits,
-      provider: 'openai',
-      model: model.modelId,
+      provider: resolvedModel.providerKey,
+      model: resolvedModel.modelId,
     };
   }
 

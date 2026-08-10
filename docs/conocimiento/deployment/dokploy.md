@@ -115,8 +115,8 @@ LOG_LEVEL=info
 - La clave de cifrado debe ser exactamente la misma que API para poder descifrar tokens de cuentas ya conectadas.
 - `FILES_STORAGE_PATH` debe coincidir con la ruta de montaje de API y apuntar al mismo volumen persistente.
 - `API_PUBLIC_ORIGIN` es necesaria en Worker para que Instagram reciba una URL HTTPS temporal firmada.
-- OpenAI se configura desde `Admin → Configuración AI`. La clave se cifra con `PROVIDER_INTEGRATIONS_ENCRYPTION_KEY`; el Worker no recibe claves ni modelos AI mediante variables de entorno.
-- Sin proveedor probado, habilitado y con una ruta de modelo válida, las tareas dependientes de OpenAI fallan de forma explícita y reembolsan el débito correspondiente.
+- OpenAI (texto) y AtlasCloud (imagen/video) se configuran desde `Admin → Configuración AI`. Cada clave se cifra con `PROVIDER_INTEGRATIONS_ENCRYPTION_KEY`; el Worker no recibe claves ni modelos AI mediante variables de entorno.
+- Sin el proveedor requerido probado, habilitado y con una ruta compatible, la tarea falla de forma explícita y reembolsa el débito correspondiente.
 - `Dockerfile.worker` instala `ffmpeg`, que también aporta `ffprobe`, para thumbnails y watermarks de vídeo.
 - El Worker no recibe `JWT_ACCESS_SECRET`, `WEB_ORIGIN`, callbacks OAuth ni dominio público.
 - Schedulers de perfiles, RSS, Publishing, AI y webhooks se registran internamente y no requieren cron externo.

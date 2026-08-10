@@ -1468,6 +1468,8 @@ export * from "./email.js"
 
 export * from "./admin-plans.js"
 
+export * from "./admin-operations.js"
+
 export * from "./portal-core-v2.js"
 
 export * from "./ai-v2.js"

@@ -4,9 +4,11 @@ import {
   authSessions,
   affiliateProfiles,
   affiliateReferrals,
+  plans,
   users,
   workspaceMemberships,
   workspaces,
+  workspacePlanAssignments,
 } from '@workspace/database';
 import {
   activateAuthWorkspaceSchema,
@@ -96,6 +98,20 @@ export class IdentityService {
         userId: user.id,
         role: 'owner',
       });
+
+      const [defaultPlan] = await tx
+        .select({ id: plans.id })
+        .from(plans)
+        .where(and(eq(plans.isDefaultSignup, true), eq(plans.status, 'active')))
+        .limit(1);
+      if (defaultPlan) {
+        await tx.insert(workspacePlanAssignments).values({
+          workspaceId: workspace.id,
+          planId: defaultPlan.id,
+          source: 'signup',
+          updatedByUserId: user.id,
+        });
+      }
 
       await tx.insert(authSessions).values({
         userId: user.id,

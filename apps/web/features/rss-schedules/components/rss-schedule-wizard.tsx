@@ -27,12 +27,14 @@ import { Input } from "@workspace/ui/components/input"
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
 import { Switch } from "@workspace/ui/components/switch"
 import { Textarea } from "@workspace/ui/components/textarea"
+import { TimePicker } from "@workspace/ui/components/time-picker"
 
 export type RssScheduleWizardInput = {
   contentRules: {
@@ -397,11 +399,13 @@ export function RssScheduleWizard({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {frequencyOptions.map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
+                    <SelectGroup>
+                      {frequencyOptions.map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
                 <FieldError>{errors.frequency}</FieldError>
@@ -416,14 +420,14 @@ export function RssScheduleWizard({
                     <span className="sr-only"> obligatorio</span>
                   </span>
                 </FieldLabel>
-                <Input
+                <TimePicker
                   aria-invalid={Boolean(errors.preferredTime)}
+                  aria-required={true}
                   id="rss-time"
-                  onChange={(event) => {
-                    setPreferredTime(event.target.value)
+                  onValueChange={(value) => {
+                    setPreferredTime(value)
                     clearError("preferredTime")
                   }}
-                  type="time"
                   value={preferredTime}
                 />
                 <FieldError>{errors.preferredTime}</FieldError>

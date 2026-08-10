@@ -124,7 +124,7 @@ describeDatabase('AI Studio integration', () => {
     });
   });
 
-  it('loads seeded OpenAI models and rejects incompatible routing', async () => {
+  it('loads OpenAI and AtlasCloud models and rejects incompatible routing', async () => {
     await inRollbackTransaction(async (database) => {
       const scenario = await seedWorkspace(database);
       const service = new AdminAiService(
@@ -136,34 +136,50 @@ describeDatabase('AI Studio integration', () => {
       );
       const session = { area: 'admin' as const, user: scenario.user };
       const configuration = await service.configuration();
-      expect(configuration.provider).toMatchObject({
-        providerKey: 'openai',
-        apiKeyConfigured: false,
-      });
+      expect(configuration.providers).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            providerKey: 'openai',
+            apiKeyConfigured: false,
+          }),
+          expect.objectContaining({
+            providerKey: 'atlascloud',
+            apiKeyConfigured: false,
+          }),
+        ]),
+      );
       expect(configuration.models.map((model) => model.modelId)).toEqual(
         expect.arrayContaining([
           'gpt-5.6-sol',
           'gpt-5.6-terra',
           'gpt-5.6-luna',
-          'gpt-image-2',
+          'openai/gpt-image-2/text-to-image',
+          'bytedance/seedance-2.0/text-to-video',
         ]),
       );
       const imageModel = configuration.models.find(
         (model) => model.capability === 'image',
       );
-      await expect(
-        service.updateRoute(
+      try {
+        await service.updateRoute(
           'content',
           {
             primaryModelId: imageModel?.id ?? null,
             fallbackModelId: null,
+            referenceModelId: null,
+            referenceFallbackModelId: null,
             reasoningEffort: 'medium',
             costUnits: 2,
             enabled: true,
           },
           session,
-        ),
-      ).rejects.toMatchObject({ code: 'AI_MODEL_ROUTE_INVALID' });
+        );
+        throw new Error('Expected incompatible routing to be rejected');
+      } catch (error) {
+        expect((error as { code?: string }).code).toBe(
+          'AI_MODEL_ROUTE_INVALID',
+        );
+      }
     });
   });
 });

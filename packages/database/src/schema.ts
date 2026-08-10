@@ -2045,6 +2045,13 @@ export const aiModelRoutes = pgTable(
     fallbackModelId: uuid("fallback_model_id").references(() => aiModels.id, {
       onDelete: "restrict",
     }),
+    referenceModelId: uuid("reference_model_id").references(() => aiModels.id, {
+      onDelete: "restrict",
+    }),
+    referenceFallbackModelId: uuid("reference_fallback_model_id").references(
+      () => aiModels.id,
+      { onDelete: "restrict" }
+    ),
     reasoningEffort: varchar("reasoning_effort", { length: 16 })
       .$type<"none" | "low" | "medium" | "high" | "xhigh" | "max">()
       .notNull()
@@ -2070,6 +2077,10 @@ export const aiModelRoutes = pgTable(
     check(
       "ai_model_routes_fallback_check",
       sql`${table.fallbackModelId} is null or ${table.fallbackModelId} <> ${table.primaryModelId}`
+    ),
+    check(
+      "ai_model_routes_reference_fallback_check",
+      sql`${table.referenceFallbackModelId} is null or ${table.referenceFallbackModelId} <> ${table.referenceModelId}`
     ),
   ]
 )
@@ -2636,6 +2647,7 @@ export const affiliateCommissions = pgTable(
       () => commerceOrders.id,
       { onDelete: "set null" }
     ),
+    externalReference: varchar("external_reference", { length: 200 }),
     status: varchar("status", { length: 16 })
       .$type<"pending" | "available" | "paid" | "cancelled">()
       .notNull()
@@ -2656,6 +2668,9 @@ export const affiliateCommissions = pgTable(
     uniqueIndex("affiliate_commissions_order_unique")
       .on(table.commerceOrderId)
       .where(sql`${table.commerceOrderId} is not null`),
+    uniqueIndex("affiliate_commissions_external_reference_unique")
+      .on(table.externalReference)
+      .where(sql`${table.externalReference} is not null`),
     check(
       "affiliate_commissions_status_check",
       sql`${table.status} in ('pending', 'available', 'paid', 'cancelled')`
@@ -2700,5 +2715,379 @@ export const affiliateWithdrawals = pgTable(
       sql`${table.status} in ('requested', 'approved', 'paid', 'rejected')`
     ),
     check("affiliate_withdrawals_amount_check", sql`${table.amountMinor} > 0`),
+  ]
+)
+
+export const workspacePlanAssignments = pgTable(
+  "workspace_plan_assignments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    planId: uuid("plan_id")
+      .notNull()
+      .references(() => plans.id, { onDelete: "restrict" }),
+    source: varchar("source", { length: 24 })
+      .$type<"signup" | "admin" | "subscription">()
+      .notNull()
+      .default("admin"),
+    updatedByUserId: uuid("updated_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("workspace_plan_assignments_workspace_unique").on(
+      table.workspaceId
+    ),
+    index("workspace_plan_assignments_plan_index").on(table.planId),
+    check(
+      "workspace_plan_assignments_source_check",
+      sql`${table.source} in ('signup', 'admin', 'subscription')`
+    ),
+  ]
+)
+
+export const creditPackages = pgTable(
+  "credit_packages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: varchar("name", { length: 160 }).notNull(),
+    slug: varchar("slug", { length: 96 }).notNull(),
+    description: varchar("description", { length: 500 }).notNull().default(""),
+    units: integer("units").notNull(),
+    priceMinor: integer("price_minor").notNull(),
+    currency: varchar("currency", { length: 3 }).notNull().default("USD"),
+    status: varchar("status", { length: 16 })
+      .$type<"active" | "hidden">()
+      .notNull()
+      .default("active"),
+    featured: boolean("featured").notNull().default(false),
+    position: integer("position").notNull().default(1),
+    createdByUserId: uuid("created_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    updatedByUserId: uuid("updated_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("credit_packages_name_unique").on(table.name),
+    uniqueIndex("credit_packages_slug_unique").on(table.slug),
+    index("credit_packages_status_position_index").on(
+      table.status,
+      table.position
+    ),
+    check("credit_packages_units_check", sql`${table.units} > 0`),
+    check("credit_packages_price_check", sql`${table.priceMinor} >= 0`),
+    check("credit_packages_position_check", sql`${table.position} > 0`),
+    check(
+      "credit_packages_status_check",
+      sql`${table.status} in ('active', 'hidden')`
+    ),
+  ]
+)
+
+export const billingCoupons = pgTable(
+  "billing_coupons",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    externalDiscountId: varchar("external_discount_id", { length: 160 }),
+    name: varchar("name", { length: 160 }).notNull(),
+    code: varchar("code", { length: 64 }).notNull(),
+    type: varchar("type", { length: 16 })
+      .$type<"percentage" | "fixed">()
+      .notNull(),
+    value: integer("value").notNull(),
+    currency: varchar("currency", { length: 3 }),
+    duration: varchar("duration", { length: 16 })
+      .$type<"once" | "forever">()
+      .notNull()
+      .default("once"),
+    eligiblePlanIds: jsonb("eligible_plan_ids")
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    startsAt: timestamp("starts_at", { withTimezone: true }),
+    endsAt: timestamp("ends_at", { withTimezone: true }),
+    maxRedemptions: integer("max_redemptions"),
+    redemptionCount: integer("redemption_count").notNull().default(0),
+    status: varchar("status", { length: 16 })
+      .$type<"active" | "inactive">()
+      .notNull()
+      .default("active"),
+    syncStatus: varchar("sync_status", { length: 16 })
+      .$type<"pending" | "synced" | "failed">()
+      .notNull()
+      .default("pending"),
+    createdByUserId: uuid("created_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    updatedByUserId: uuid("updated_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("billing_coupons_code_unique").on(sql`upper(${table.code})`),
+    uniqueIndex("billing_coupons_external_discount_unique")
+      .on(table.externalDiscountId)
+      .where(sql`${table.externalDiscountId} is not null`),
+    index("billing_coupons_status_created_index").on(
+      table.status,
+      table.createdAt
+    ),
+    check("billing_coupons_value_check", sql`${table.value} > 0`),
+    check(
+      "billing_coupons_max_redemptions_check",
+      sql`${table.maxRedemptions} is null or ${table.maxRedemptions} > 0`
+    ),
+    check(
+      "billing_coupons_redemption_count_check",
+      sql`${table.redemptionCount} >= 0`
+    ),
+    check(
+      "billing_coupons_type_check",
+      sql`${table.type} in ('percentage', 'fixed')`
+    ),
+    check(
+      "billing_coupons_percentage_check",
+      sql`${table.type} <> 'percentage' or ${table.value} <= 10000`
+    ),
+    check(
+      "billing_coupons_fixed_currency_check",
+      sql`${table.type} <> 'fixed' or ${table.currency} is not null`
+    ),
+    check(
+      "billing_coupons_dates_check",
+      sql`${table.endsAt} is null or ${table.startsAt} is null or ${table.endsAt} > ${table.startsAt}`
+    ),
+    check(
+      "billing_coupons_status_check",
+      sql`${table.status} in ('active', 'inactive')`
+    ),
+    check(
+      "billing_coupons_sync_status_check",
+      sql`${table.syncStatus} in ('pending', 'synced', 'failed')`
+    ),
+  ]
+)
+
+export const billingSubscriptions = pgTable(
+  "billing_subscriptions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    externalSubscriptionId: varchar("external_subscription_id", {
+      length: 160,
+    }).notNull(),
+    externalCustomerId: varchar("external_customer_id", { length: 160 }),
+    externalProductId: varchar("external_product_id", { length: 160 }),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "restrict" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    planId: uuid("plan_id")
+      .notNull()
+      .references(() => plans.id, { onDelete: "restrict" }),
+    status: varchar("status", { length: 24 })
+      .$type<
+        | "incomplete"
+        | "trialing"
+        | "active"
+        | "past_due"
+        | "paused"
+        | "canceled"
+        | "unpaid"
+      >()
+      .notNull(),
+    amountMinor: integer("amount_minor").notNull(),
+    currency: varchar("currency", { length: 3 }).notNull().default("USD"),
+    interval: varchar("interval", { length: 16 })
+      .$type<"month" | "year">()
+      .notNull(),
+    cancelAtPeriodEnd: boolean("cancel_at_period_end").notNull().default(false),
+    currentPeriodStartsAt: timestamp("current_period_starts_at", {
+      withTimezone: true,
+    }),
+    currentPeriodEndsAt: timestamp("current_period_ends_at", {
+      withTimezone: true,
+    }),
+    canceledAt: timestamp("canceled_at", { withTimezone: true }),
+    endedAt: timestamp("ended_at", { withTimezone: true }),
+    metadata: jsonb("metadata")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("billing_subscriptions_external_unique").on(
+      table.externalSubscriptionId
+    ),
+    index("billing_subscriptions_workspace_status_index").on(
+      table.workspaceId,
+      table.status
+    ),
+    index("billing_subscriptions_user_created_index").on(
+      table.userId,
+      table.createdAt
+    ),
+    check("billing_subscriptions_amount_check", sql`${table.amountMinor} >= 0`),
+    check(
+      "billing_subscriptions_interval_check",
+      sql`${table.interval} in ('month', 'year')`
+    ),
+    check(
+      "billing_subscriptions_status_check",
+      sql`${table.status} in ('incomplete', 'trialing', 'active', 'past_due', 'paused', 'canceled', 'unpaid')`
+    ),
+  ]
+)
+
+export const billingPayments = pgTable(
+  "billing_payments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    externalOrderId: varchar("external_order_id", { length: 160 }).notNull(),
+    externalCheckoutId: varchar("external_checkout_id", { length: 160 }),
+    invoiceNumber: varchar("invoice_number", { length: 96 }),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "restrict" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    planId: uuid("plan_id").references(() => plans.id, {
+      onDelete: "restrict",
+    }),
+    creditPackageId: uuid("credit_package_id").references(
+      () => creditPackages.id,
+      { onDelete: "restrict" }
+    ),
+    subscriptionId: uuid("subscription_id").references(
+      () => billingSubscriptions.id,
+      { onDelete: "set null" }
+    ),
+    productType: varchar("product_type", { length: 16 })
+      .$type<"plan" | "credits">()
+      .notNull(),
+    productLabel: varchar("product_label", { length: 200 }).notNull(),
+    status: varchar("status", { length: 24 })
+      .$type<
+        "pending" | "paid" | "partially_refunded" | "refunded" | "failed"
+      >()
+      .notNull()
+      .default("pending"),
+    amountMinor: integer("amount_minor").notNull(),
+    refundedAmountMinor: integer("refunded_amount_minor").notNull().default(0),
+    currency: varchar("currency", { length: 3 }).notNull().default("USD"),
+    paidAt: timestamp("paid_at", { withTimezone: true }),
+    metadata: jsonb("metadata")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("billing_payments_external_order_unique").on(
+      table.externalOrderId
+    ),
+    index("billing_payments_workspace_created_index").on(
+      table.workspaceId,
+      table.createdAt
+    ),
+    index("billing_payments_user_created_index").on(
+      table.userId,
+      table.createdAt
+    ),
+    check("billing_payments_amount_check", sql`${table.amountMinor} >= 0`),
+    check(
+      "billing_payments_refunded_amount_check",
+      sql`${table.refundedAmountMinor} >= 0 and ${table.refundedAmountMinor} <= ${table.amountMinor}`
+    ),
+    check(
+      "billing_payments_product_reference_check",
+      sql`(${table.productType} = 'plan' and ${table.planId} is not null and ${table.creditPackageId} is null) or (${table.productType} = 'credits' and ${table.planId} is null and ${table.creditPackageId} is not null)`
+    ),
+    check(
+      "billing_payments_product_type_check",
+      sql`${table.productType} in ('plan', 'credits')`
+    ),
+    check(
+      "billing_payments_status_check",
+      sql`${table.status} in ('pending', 'paid', 'partially_refunded', 'refunded', 'failed')`
+    ),
+  ]
+)
+
+export const billingRefunds = pgTable(
+  "billing_refunds",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    externalRefundId: varchar("external_refund_id", { length: 160 }).notNull(),
+    paymentId: uuid("payment_id")
+      .notNull()
+      .references(() => billingPayments.id, { onDelete: "restrict" }),
+    requestedByUserId: uuid("requested_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    status: varchar("status", { length: 16 })
+      .$type<"pending" | "succeeded" | "failed" | "canceled">()
+      .notNull()
+      .default("pending"),
+    amountMinor: integer("amount_minor").notNull(),
+    reason: varchar("reason", { length: 32 }).notNull().default("other"),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("billing_refunds_external_unique").on(table.externalRefundId),
+    index("billing_refunds_payment_created_index").on(
+      table.paymentId,
+      table.createdAt
+    ),
+    check("billing_refunds_amount_check", sql`${table.amountMinor} > 0`),
+    check(
+      "billing_refunds_status_check",
+      sql`${table.status} in ('pending', 'succeeded', 'failed', 'canceled')`
+    ),
+  ]
+)
+
+export const billingWebhookEvents = pgTable(
+  "billing_webhook_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    externalEventId: varchar("external_event_id", { length: 200 }).notNull(),
+    eventType: varchar("event_type", { length: 96 }).notNull(),
+    payloadHash: varchar("payload_hash", { length: 64 }).notNull(),
+    status: varchar("status", { length: 16 })
+      .$type<"processing" | "processed" | "failed">()
+      .notNull()
+      .default("processing"),
+    processedAt: timestamp("processed_at", { withTimezone: true }),
+    errorCode: varchar("error_code", { length: 96 }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("billing_webhook_events_external_unique").on(
+      table.externalEventId
+    ),
+    index("billing_webhook_events_status_created_index").on(
+      table.status,
+      table.createdAt
+    ),
+    check(
+      "billing_webhook_events_status_check",
+      sql`${table.status} in ('processing', 'processed', 'failed')`
+    ),
   ]
 )

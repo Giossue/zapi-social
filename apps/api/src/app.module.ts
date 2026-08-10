@@ -25,12 +25,14 @@ import { AiModule } from './ai/ai.module';
 import { CommerceModule } from './commerce/commerce.module';
 import { AffiliateModule } from './affiliate/affiliate.module';
 import { OnlineMediaModule } from './online-media/online-media.module';
+import { BillingModule } from './billing/billing.module';
 
 const pinoRedactPaths = [
   'req.headers.authorization',
   'req.headers.cookie',
   'req.headers["set-cookie"]',
   'req.headers["x-api-key"]',
+  'req.headers["webhook-signature"]',
   'req.cookies',
   'req.query.apiKey',
   'req.query.code',
@@ -65,6 +67,7 @@ const pinoRedactPaths = [
   'headers.cookie',
   'headers["set-cookie"]',
   'headers["x-api-key"]',
+  'headers["webhook-signature"]',
   'access_token',
   'accessToken',
   'accessTokenCiphertext',
@@ -125,6 +128,7 @@ const pinoRedactPaths = [
     CommerceModule,
     AffiliateModule,
     OnlineMediaModule,
+    BillingModule,
     AuditModule,
     IdentityModule,
     BullModule.forRoot({

@@ -156,10 +156,15 @@ username
 ```text
 /admin
 /admin/integrations
-/admin/users                 # futuro
+/admin/users                 # operativo
 /admin/workspaces            # futuro
-/admin/plans                 # futuro
-/admin/audit                 # futuro
+/admin/plans                 # operativo
+/admin/credits               # operativo
+/admin/affiliate             # operativo
+/admin/coupons               # operativo Polar
+/admin/payments              # operativo Polar
+/admin/subscriptions         # operativo Polar
+/admin/audit                 # operativo
 ```
 
 `/admin/integrations` administra configuración global de providers y no representa una pantalla de cliente.

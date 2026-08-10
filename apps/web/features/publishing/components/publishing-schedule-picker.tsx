@@ -1,6 +1,6 @@
 "use client"
 
-import { CalendarDays, Clock3 } from "lucide-react"
+import { CalendarDays } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Calendar } from "@workspace/ui/components/calendar"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
@@ -9,14 +9,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@workspace/ui/components/popover"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
+import { TimePicker } from "@workspace/ui/components/time-picker"
 
 type PublishingSchedulePickerProps = {
   date: string
@@ -24,11 +17,6 @@ type PublishingSchedulePickerProps = {
   onTimeChange: (value: string) => void
   time: string
 }
-
-const hours = Array.from({ length: 24 }, (_, value) =>
-  String(value).padStart(2, "0")
-)
-const minutes = ["00", "15", "30", "45"]
 
 function toDateKey(value: Date) {
   return [
@@ -44,7 +32,6 @@ export function PublishingSchedulePicker({
   onTimeChange,
   time,
 }: PublishingSchedulePickerProps) {
-  const [hour, minute] = time.split(":")
   const selectedDate = new Date(`${date}T12:00:00`)
 
   return (
@@ -75,45 +62,7 @@ export function PublishingSchedulePicker({
       </Field>
       <Field>
         <FieldLabel>Hora</FieldLabel>
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-          <Select
-            onValueChange={(value) =>
-              onTimeChange(`${value}:${minute ?? "00"}`)
-            }
-            value={hour}
-          >
-            <SelectTrigger aria-label="Hora">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {hours.map((value) => (
-                  <SelectItem key={value} value={value}>
-                    {value}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <Clock3 aria-hidden="true" className="text-muted-foreground" />
-          <Select
-            onValueChange={(value) => onTimeChange(`${hour ?? "00"}:${value}`)}
-            value={minute}
-          >
-            <SelectTrigger aria-label="Minuto">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {minutes.map((value) => (
-                  <SelectItem key={value} value={value}>
-                    {value}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
+        <TimePicker onValueChange={onTimeChange} value={time} />
       </Field>
     </div>
   )

@@ -1,5 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto';
+import { lookup } from 'node:dns/promises';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { isIP } from 'node:net';
 import { relative, resolve } from 'node:path';
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
@@ -49,7 +51,7 @@ type AiModelRow = typeof aiModels.$inferSelect;
 type ProviderIntegrationRow = typeof providerIntegrations.$inferSelect;
 
 type Execution = {
-  provider: 'internal' | 'openai';
+  provider: 'internal' | 'openai' | 'atlascloud';
   apiKey?: string;
   primaryModel: AiModelRow | null;
   fallbackModel: AiModelRow | null;
@@ -284,7 +286,7 @@ export class AiRequestProcessor extends WorkerHost {
     }
     return {
       result,
-      provider: 'openai',
+      provider: execution.provider,
       model: generated.model.modelId,
       providerRequestId: generated.providerRequestId,
       inputTokens: generated.inputTokens,
@@ -310,25 +312,38 @@ export class AiRequestProcessor extends WorkerHost {
     if (!route?.enabled) {
       throw new AiProcessingError('AI_PROVIDER_NOT_CONFIGURED', true);
     }
-    const modelIds = [route.primaryModelId, route.fallbackModelId].filter(
+    const usesReferences =
+      (request.kind === 'image' || request.kind === 'video') &&
+      Array.isArray(request.input.referenceAssetIds) &&
+      request.input.referenceAssetIds.length > 0;
+    const primaryModelId = usesReferences
+      ? route.referenceModelId
+      : route.primaryModelId;
+    const fallbackModelId = usesReferences
+      ? route.referenceFallbackModelId
+      : route.fallbackModelId;
+    const modelIds = [primaryModelId, fallbackModelId].filter(
       (value): value is string => Boolean(value),
     );
-    const [models, provider]: [AiModelRow[], ProviderIntegrationRow | null] =
-      await Promise.all([
-        modelIds.length
-          ? this.database.db
-              .select()
-              .from(aiModels)
-              .where(inArray(aiModels.id, modelIds))
-          : Promise.resolve([]),
-        this.openAiProvider(),
-      ]);
+    const models: AiModelRow[] = modelIds.length
+      ? await this.database.db
+          .select()
+          .from(aiModels)
+          .where(inArray(aiModels.id, modelIds))
+      : [];
+    const configuredPrimaryModel =
+      models.find((model) => model.id === primaryModelId) ?? null;
     const primaryModel =
       models.find((model) => model.modelId === request.model) ??
-      models.find((model) => model.id === route.primaryModelId) ??
-      null;
+      configuredPrimaryModel;
     const fallbackModel =
-      models.find((model) => model.id === route.fallbackModelId) ?? null;
+      models.find(
+        (model) =>
+          model.id === fallbackModelId && model.id !== primaryModel?.id,
+      ) ?? null;
+    const provider = primaryModel
+      ? await this.provider(primaryModel.providerKey)
+      : null;
     if (
       !provider?.enabled ||
       provider.readiness !== 'ready' ||
@@ -338,12 +353,22 @@ export class AiRequestProcessor extends WorkerHost {
     ) {
       throw new AiProcessingError('AI_PROVIDER_NOT_CONFIGURED', true);
     }
-    const apiKey = this.decryptApiKey(provider.configurationCiphertext);
+    if (
+      fallbackModel &&
+      fallbackModel.providerKey !== primaryModel.providerKey
+    ) {
+      throw new AiProcessingError('AI_PROVIDER_NOT_CONFIGURED', true);
+    }
+    const providerKey = this.supportedProviderKey(primaryModel.providerKey);
+    const apiKey = this.decryptApiKey(
+      provider.configurationCiphertext,
+      providerKey,
+    );
     if (!apiKey) {
       throw new AiProcessingError('AI_PROVIDER_NOT_CONFIGURED', true);
     }
     return {
-      provider: 'openai',
+      provider: providerKey,
       apiKey,
       primaryModel,
       fallbackModel:
@@ -354,11 +379,13 @@ export class AiRequestProcessor extends WorkerHost {
     };
   }
 
-  private async openAiProvider(): Promise<ProviderIntegrationRow | null> {
+  private async provider(
+    providerKey: string,
+  ): Promise<ProviderIntegrationRow | null> {
     const [provider] = await this.database.db
       .select()
       .from(providerIntegrations)
-      .where(eq(providerIntegrations.providerKey, 'openai'))
+      .where(eq(providerIntegrations.providerKey, providerKey))
       .limit(1);
     return provider ?? null;
   }
@@ -368,7 +395,11 @@ export class AiRequestProcessor extends WorkerHost {
     execution: Execution,
     instructions: string,
   ): Promise<OpenAiTextOutcome> {
-    if (!execution.apiKey || !execution.primaryModel) {
+    if (
+      execution.provider !== 'openai' ||
+      !execution.apiKey ||
+      !execution.primaryModel
+    ) {
       throw new AiProcessingError('AI_PROVIDER_NOT_CONFIGURED', true);
     }
     const models = [execution.primaryModel, execution.fallbackModel].filter(
@@ -434,120 +465,299 @@ export class AiRequestProcessor extends WorkerHost {
         ),
       };
     }
-    throw (
-      lastError ?? new AiProcessingError('AI_PROVIDER_REQUEST_FAILED', false)
-    );
+    if (lastError instanceof Error) throw lastError;
+    throw new AiProcessingError('AI_PROVIDER_REQUEST_FAILED', false);
   }
 
   private async generateImage(
     request: AiRequestRow,
     execution: Execution,
   ): Promise<GenerationOutcome> {
-    if (!execution.apiKey || !execution.primaryModel) {
+    if (
+      execution.provider !== 'atlascloud' ||
+      !execution.apiKey ||
+      !execution.primaryModel
+    ) {
       throw new AiProcessingError('AI_IMAGE_PROVIDER_NOT_CONFIGURED', true);
     }
-    const aspectRatio =
-      typeof request.input.aspectRatio === 'string'
-        ? request.input.aspectRatio
-        : '1:1';
-    const size =
-      aspectRatio === '9:16'
-        ? '1024x1536'
-        : aspectRatio === '16:9'
-          ? '1536x1024'
-          : '1024x1024';
-    const referenceIds = Array.isArray(request.input.referenceAssetIds)
+    const references = await this.referenceImageDataUris(request, 10);
+    const availableModels = [
+      execution.primaryModel,
+      execution.fallbackModel,
+    ].filter((model): model is AiModelRow => Boolean(model));
+    const models = request.providerRequestId
+      ? availableModels.filter((model) => model.modelId === request.model)
+      : availableModels;
+    if (!models.length) {
+      throw new AiProcessingError('AI_PROVIDER_RESPONSE_INVALID', true);
+    }
+    let lastError: unknown = null;
+    for (const [index, model] of models.entries()) {
+      let predictionId =
+        model.modelId === request.model ? request.providerRequestId : null;
+      try {
+        if (!predictionId) {
+          predictionId = await this.submitAtlasPrediction(
+            'generateImage',
+            buildAtlasImagePayload(model.modelId, request, references),
+            execution.apiKey,
+          );
+          await this.persistAtlasPrediction(
+            request.id,
+            predictionId,
+            10,
+            model.modelId,
+          );
+        }
+        const prediction = await this.pollAtlasPrediction(
+          request.id,
+          predictionId,
+          execution.apiKey,
+          5 * 60_000,
+          2_000,
+        );
+        if (prediction.hasNsfwContents.some(Boolean)) {
+          throw new AiProcessingError('AI_PROVIDER_RESPONSE_INVALID', true);
+        }
+        const outputUrl = firstAtlasOutput(prediction);
+        if (!outputUrl) {
+          throw new AiProcessingError('AI_PROVIDER_RESPONSE_INVALID', true);
+        }
+        const buffer = await downloadPublicMedia(outputUrl, 30 * 1024 * 1024);
+        return await this.storeAtlasImage(request, model, predictionId, buffer);
+      } catch (error) {
+        lastError = error;
+        if (predictionId || index === models.length - 1) throw error;
+      }
+    }
+    if (lastError instanceof Error) throw lastError;
+    throw new AiProcessingError('AI_PROVIDER_REQUEST_FAILED', false);
+  }
+
+  private async generateVideo(
+    request: AiRequestRow,
+    execution: Execution,
+  ): Promise<GenerationOutcome> {
+    if (
+      execution.provider !== 'atlascloud' ||
+      !execution.apiKey ||
+      !execution.primaryModel
+    ) {
+      throw new AiProcessingError('AI_VIDEO_PROVIDER_NOT_CONFIGURED', true);
+    }
+    const references = await this.referenceImageDataUris(request, 9);
+    const availableModels = [
+      execution.primaryModel,
+      execution.fallbackModel,
+    ].filter((model): model is AiModelRow => Boolean(model));
+    const models = request.providerRequestId
+      ? availableModels.filter((model) => model.modelId === request.model)
+      : availableModels;
+    if (!models.length) {
+      throw new AiProcessingError('AI_PROVIDER_RESPONSE_INVALID', true);
+    }
+    let lastError: unknown = null;
+    for (const [index, model] of models.entries()) {
+      let predictionId =
+        model.modelId === request.model ? request.providerRequestId : null;
+      try {
+        if (!predictionId) {
+          predictionId = await this.submitAtlasPrediction(
+            'generateVideo',
+            buildAtlasVideoPayload(model.modelId, request, references),
+            execution.apiKey,
+          );
+          await this.persistAtlasPrediction(
+            request.id,
+            predictionId,
+            10,
+            model.modelId,
+          );
+        }
+        const prediction = await this.pollAtlasPrediction(
+          request.id,
+          predictionId,
+          execution.apiKey,
+          10 * 60_000,
+          5_000,
+        );
+        if (prediction.hasNsfwContents.some(Boolean)) {
+          throw new AiProcessingError('AI_PROVIDER_RESPONSE_INVALID', true);
+        }
+        const outputUrl = firstAtlasOutput(prediction);
+        if (!outputUrl) {
+          throw new AiProcessingError('AI_PROVIDER_RESPONSE_INVALID', true);
+        }
+        const buffer = await downloadPublicMedia(outputUrl, 250 * 1024 * 1024);
+        return await this.storeAtlasVideo(request, model, predictionId, buffer);
+      } catch (error) {
+        lastError = error;
+        if (predictionId || index === models.length - 1) throw error;
+      }
+    }
+    if (lastError instanceof Error) throw lastError;
+    throw new AiProcessingError('AI_PROVIDER_REQUEST_FAILED', false);
+  }
+
+  private async referenceImageDataUris(request: AiRequestRow, maximum: number) {
+    const ids = Array.isArray(request.input.referenceAssetIds)
       ? request.input.referenceAssetIds.filter(
           (value): value is string => typeof value === 'string',
         )
       : [];
-    let response: Response;
-    if (referenceIds.length) {
-      const assets = await this.database.db
-        .select()
-        .from(fileAssets)
-        .where(
-          and(
-            eq(fileAssets.workspaceId, request.workspaceId),
-            eq(fileAssets.status, 'ready'),
-            inArray(fileAssets.id, referenceIds),
-          ),
-        );
-      if (
-        assets.length !== referenceIds.length ||
-        assets.some((asset) => !asset.mimeType.startsWith('image/'))
-      ) {
+    if (!ids.length) return [];
+    if (ids.length > maximum || new Set(ids).size !== ids.length) {
+      throw new AiProcessingError('AI_IMAGE_REFERENCE_INVALID', true);
+    }
+    const rows = await this.database.db
+      .select()
+      .from(fileAssets)
+      .where(
+        and(
+          eq(fileAssets.workspaceId, request.workspaceId),
+          eq(fileAssets.status, 'ready'),
+          inArray(fileAssets.id, ids),
+        ),
+      );
+    const byId = new Map(rows.map((asset) => [asset.id, asset]));
+    if (
+      rows.length !== ids.length ||
+      rows.some(
+        (asset) =>
+          !['image/jpeg', 'image/png', 'image/webp'].includes(asset.mimeType) ||
+          asset.sizeBytes > 30 * 1024 * 1024,
+      )
+    ) {
+      throw new AiProcessingError('AI_IMAGE_REFERENCE_INVALID', true);
+    }
+    const values: string[] = [];
+    for (const id of ids) {
+      const asset = byId.get(id);
+      if (!asset) {
         throw new AiProcessingError('AI_IMAGE_REFERENCE_INVALID', true);
       }
-      const form = new FormData();
-      form.set('model', execution.primaryModel.modelId);
-      form.set('prompt', request.prompt);
-      form.set(
-        'quality',
-        typeof request.input.quality === 'string'
-          ? request.input.quality
-          : 'medium',
-      );
-      form.set('size', size);
-      for (const asset of assets) {
-        const path = resolve(this.storageRoot, asset.storageKey);
-        const pathFromRoot = relative(this.storageRoot, path);
-        if (pathFromRoot.startsWith('..') || pathFromRoot.includes('\0')) {
-          throw new AiProcessingError('AI_IMAGE_REFERENCE_INVALID', true);
-        }
-        const source = await readFile(path);
-        form.append(
-          'image[]',
-          new Blob([source], { type: asset.mimeType }),
-          asset.name,
-        );
+      const path = resolve(this.storageRoot, asset.storageKey);
+      const pathFromRoot = relative(this.storageRoot, path);
+      if (pathFromRoot.startsWith('..') || pathFromRoot.includes('\0')) {
+        throw new AiProcessingError('AI_IMAGE_REFERENCE_INVALID', true);
       }
-      response = await fetch('https://api.openai.com/v1/images/edits', {
-        method: 'POST',
-        headers: { authorization: `Bearer ${execution.apiKey}` },
-        body: form,
-        signal: AbortSignal.timeout(180_000),
-      });
-    } else {
-      response = await fetch('https://api.openai.com/v1/images/generations', {
-        method: 'POST',
-        headers: {
-          authorization: `Bearer ${execution.apiKey}`,
-          'content-type': 'application/json',
+      const source = await readFile(path);
+      if (source.length !== asset.sizeBytes) {
+        throw new AiProcessingError('AI_IMAGE_REFERENCE_INVALID', true);
+      }
+      values.push(`data:${asset.mimeType};base64,${source.toString('base64')}`);
+    }
+    return values;
+  }
+
+  private async submitAtlasPrediction(
+    endpoint: 'generateImage' | 'generateVideo',
+    payload: Record<string, unknown>,
+    apiKey: string,
+  ) {
+    let response: Response;
+    try {
+      response = await fetch(
+        `https://api.atlascloud.ai/api/v1/model/${endpoint}`,
+        {
+          method: 'POST',
+          headers: {
+            authorization: `Bearer ${apiKey}`,
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+          signal: AbortSignal.timeout(120_000),
         },
-        body: JSON.stringify({
-          model: execution.primaryModel.modelId,
-          prompt: request.prompt,
-          quality:
-            typeof request.input.quality === 'string'
-              ? request.input.quality
-              : 'medium',
-          size,
-        }),
-        signal: AbortSignal.timeout(180_000),
-      });
+      );
+    } catch {
+      throw new AiProcessingError('AI_PROVIDER_REQUEST_FAILED', false);
     }
     if (!response.ok) {
-      throw new AiProcessingError(
-        response.status === 429
-          ? 'AI_PROVIDER_RATE_LIMITED'
-          : 'AI_PROVIDER_REQUEST_FAILED',
-        response.status >= 400 &&
-          response.status < 500 &&
-          response.status !== 429,
-      );
+      throw atlasResponseError(response.status);
     }
-    const payload = (await response.json()) as {
-      id?: unknown;
-      data?: Array<{ b64_json?: unknown; revised_prompt?: unknown }>;
-      usage?: { input_tokens?: unknown; output_tokens?: unknown };
-    };
-    const encoded = payload.data?.[0]?.b64_json;
-    if (typeof encoded !== 'string') {
+    const prediction = atlasPredictionPayload(await response.json());
+    if (!prediction.id) {
       throw new AiProcessingError('AI_PROVIDER_RESPONSE_INVALID', true);
     }
-    const buffer = Buffer.from(encoded, 'base64');
-    if (!buffer.length || buffer.length > 25 * 1024 * 1024) {
+    return prediction.id;
+  }
+
+  private async pollAtlasPrediction(
+    requestId: string,
+    predictionId: string,
+    apiKey: string,
+    timeoutMilliseconds: number,
+    intervalMilliseconds: number,
+  ) {
+    const startedAt = Date.now();
+    while (Date.now() - startedAt < timeoutMilliseconds) {
+      let response: Response;
+      try {
+        response = await fetch(
+          `https://api.atlascloud.ai/api/v1/model/prediction/${encodeURIComponent(predictionId)}`,
+          {
+            headers: { authorization: `Bearer ${apiKey}` },
+            signal: AbortSignal.timeout(30_000),
+          },
+        );
+      } catch {
+        throw new AiProcessingError('AI_PROVIDER_REQUEST_FAILED', false);
+      }
+      if (!response.ok) throw atlasResponseError(response.status);
+      const prediction = atlasPredictionPayload(await response.json());
+      if (
+        prediction.status === 'completed' ||
+        prediction.status === 'succeeded'
+      ) {
+        return prediction;
+      }
+      if (
+        prediction.status === 'failed' ||
+        prediction.status === 'timeout' ||
+        prediction.status === 'canceled' ||
+        prediction.status === 'cancelled'
+      ) {
+        throw new AiProcessingError('AI_PROVIDER_REQUEST_FAILED', true);
+      }
+      const elapsed = Date.now() - startedAt;
+      const estimatedProgress =
+        10 + Math.floor((elapsed / timeoutMilliseconds) * 80);
+      await this.persistAtlasPrediction(
+        requestId,
+        predictionId,
+        Math.max(10, Math.min(90, prediction.progress || estimatedProgress)),
+      );
+      await wait(intervalMilliseconds);
+    }
+    throw new AiProcessingError('AI_PROVIDER_REQUEST_FAILED', false);
+  }
+
+  private async persistAtlasPrediction(
+    requestId: string,
+    predictionId: string,
+    progress: number,
+    model?: string,
+  ) {
+    await this.database.db
+      .update(aiRequests)
+      .set({
+        providerRequestId: predictionId,
+        progress,
+        ...(model ? { model } : {}),
+        updatedAt: new Date(),
+      })
+      .where(
+        and(eq(aiRequests.id, requestId), eq(aiRequests.status, 'processing')),
+      );
+  }
+
+  private async storeAtlasImage(
+    request: AiRequestRow,
+    model: AiModelRow,
+    predictionId: string,
+    buffer: Buffer,
+  ): Promise<GenerationOutcome> {
+    if (!buffer.length || buffer.length > 30 * 1024 * 1024) {
       throw new AiProcessingError('AI_IMAGE_BINARY_INVALID', true);
     }
     const metadata = await sharp(buffer).metadata();
@@ -558,8 +768,9 @@ export class AiRequestProcessor extends WorkerHost {
       throw new AiProcessingError('AI_IMAGE_BINARY_INVALID', true);
     }
     const id = randomUUID();
-    const storageKey = `${request.workspaceId}/${id}`;
-    const thumbnailKey = `${storageKey}.thumb.webp`;
+    const extension = metadata.format === 'jpeg' ? 'jpg' : metadata.format;
+    const storageKey = `${request.workspaceId}/${id}.${extension}`;
+    const thumbnailKey = `${request.workspaceId}/${id}.thumb.webp`;
     const sourcePath = resolve(this.storageRoot, storageKey);
     const thumbnailPath = resolve(this.storageRoot, thumbnailKey);
     try {
@@ -575,7 +786,6 @@ export class AiRequestProcessor extends WorkerHost {
         })
         .webp({ quality: 82 })
         .toFile(thumbnailPath);
-      const extension = metadata.format === 'jpeg' ? 'jpg' : metadata.format;
       const [asset] = await this.database.db
         .insert(fileAssets)
         .values({
@@ -584,7 +794,10 @@ export class AiRequestProcessor extends WorkerHost {
           createdByUserId: request.requestedByUserId,
           storageKey,
           name: `AI ${request.prompt.slice(0, 80).trim()}.${extension}`,
-          mimeType: `image/${metadata.format}`,
+          mimeType:
+            metadata.format === 'jpeg'
+              ? 'image/jpeg'
+              : `image/${metadata.format}`,
           extension,
           sizeBytes: buffer.length,
           width: metadata.width ?? null,
@@ -592,12 +805,17 @@ export class AiRequestProcessor extends WorkerHost {
           thumbnailKey,
           thumbnailStatus: 'ready',
           status: 'ready',
-          metadata: { source: 'ai', aiRequestId: request.id },
+          metadata: {
+            source: 'ai',
+            aiRequestId: request.id,
+            provider: 'atlascloud',
+            model: model.modelId,
+            providerRequestId: predictionId,
+            referenceAssetIds: request.input.referenceAssetIds ?? [],
+          },
         })
         .returning({ id: fileAssets.id });
       if (!asset) throw new AiProcessingError('AI_IMAGE_STORE_FAILED', false);
-      const inputTokens = safeInteger(payload.usage?.input_tokens);
-      const outputTokens = safeInteger(payload.usage?.output_tokens);
       return {
         result: {
           assets: [
@@ -607,21 +825,14 @@ export class AiRequestProcessor extends WorkerHost {
               height: metadata.height ?? null,
             },
           ],
-          revisedPrompt:
-            typeof payload.data?.[0]?.revised_prompt === 'string'
-              ? payload.data[0].revised_prompt
-              : null,
+          revisedPrompt: null,
         },
-        provider: 'openai',
-        model: execution.primaryModel.modelId,
-        providerRequestId: typeof payload.id === 'string' ? payload.id : null,
-        inputTokens,
-        outputTokens,
-        estimatedCostMicrousd: estimateTextCost(
-          execution.primaryModel,
-          inputTokens,
-          outputTokens,
-        ),
+        provider: 'atlascloud',
+        model: model.modelId,
+        providerRequestId: predictionId,
+        inputTokens: 0,
+        outputTokens: 0,
+        estimatedCostMicrousd: model.unitPriceMicrousd ?? 0,
       };
     } catch (error) {
       await Promise.all([
@@ -632,90 +843,12 @@ export class AiRequestProcessor extends WorkerHost {
     }
   }
 
-  private async generateVideo(
+  private async storeAtlasVideo(
     request: AiRequestRow,
-    execution: Execution,
+    model: AiModelRow,
+    predictionId: string,
+    buffer: Buffer,
   ): Promise<GenerationOutcome> {
-    if (!execution.apiKey || !execution.primaryModel) {
-      throw new AiProcessingError('AI_VIDEO_PROVIDER_NOT_CONFIGURED', true);
-    }
-    const seconds =
-      typeof request.input.durationSeconds === 'number'
-        ? request.input.durationSeconds
-        : 8;
-    const size = request.input.aspectRatio === '16:9' ? '1280x720' : '720x1280';
-    const createdResponse = await fetch('https://api.openai.com/v1/videos', {
-      method: 'POST',
-      headers: {
-        authorization: `Bearer ${execution.apiKey}`,
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: execution.primaryModel.modelId,
-        prompt: request.prompt,
-        seconds,
-        size,
-      }),
-      signal: AbortSignal.timeout(60_000),
-    });
-    if (!createdResponse.ok) {
-      throw new AiProcessingError(
-        createdResponse.status === 429
-          ? 'AI_PROVIDER_RATE_LIMITED'
-          : 'AI_PROVIDER_REQUEST_FAILED',
-        createdResponse.status >= 400 &&
-          createdResponse.status < 500 &&
-          createdResponse.status !== 429,
-      );
-    }
-    let video = (await createdResponse.json()) as VideoJobPayload;
-    if (typeof video.id !== 'string') {
-      throw new AiProcessingError('AI_PROVIDER_RESPONSE_INVALID', true);
-    }
-    let videoId = video.id;
-    const deadline = Date.now() + 8 * 60_000;
-    while (video.status !== 'completed') {
-      if (video.status === 'failed' || video.status === 'cancelled') {
-        throw new AiProcessingError('AI_PROVIDER_REQUEST_FAILED', true);
-      }
-      if (Date.now() >= deadline) {
-        throw new AiProcessingError('AI_PROVIDER_REQUEST_FAILED', false);
-      }
-      await wait(5_000);
-      const statusResponse = await fetch(
-        `https://api.openai.com/v1/videos/${encodeURIComponent(videoId)}`,
-        {
-          headers: { authorization: `Bearer ${execution.apiKey}` },
-          signal: AbortSignal.timeout(30_000),
-        },
-      );
-      if (!statusResponse.ok) {
-        throw new AiProcessingError('AI_PROVIDER_REQUEST_FAILED', false);
-      }
-      video = (await statusResponse.json()) as VideoJobPayload;
-      if (typeof video.id === 'string') videoId = video.id;
-      const progress = Math.max(10, Math.min(95, safeInteger(video.progress)));
-      await this.database.db
-        .update(aiRequests)
-        .set({ progress, providerRequestId: videoId, updatedAt: new Date() })
-        .where(
-          and(
-            eq(aiRequests.id, request.id),
-            eq(aiRequests.status, 'processing'),
-          ),
-        );
-    }
-    const contentResponse = await fetch(
-      `https://api.openai.com/v1/videos/${encodeURIComponent(videoId)}/content`,
-      {
-        headers: { authorization: `Bearer ${execution.apiKey}` },
-        signal: AbortSignal.timeout(120_000),
-      },
-    );
-    if (!contentResponse.ok) {
-      throw new AiProcessingError('AI_PROVIDER_REQUEST_FAILED', false);
-    }
-    const buffer = Buffer.from(await contentResponse.arrayBuffer());
     if (
       buffer.length < 16 ||
       buffer.length > 250 * 1024 * 1024 ||
@@ -723,6 +856,17 @@ export class AiRequestProcessor extends WorkerHost {
     ) {
       throw new AiProcessingError('AI_VIDEO_BINARY_INVALID', true);
     }
+    const durationSeconds =
+      typeof request.input.durationSeconds === 'number'
+        ? request.input.durationSeconds
+        : 8;
+    const ratio = request.input.aspectRatio;
+    const dimensions =
+      ratio === '16:9'
+        ? { width: 1920, height: 1080 }
+        : ratio === '1:1'
+          ? { width: 1080, height: 1080 }
+          : { width: 1080, height: 1920 };
     const id = randomUUID();
     const storageKey = `${request.workspaceId}/${id}.mp4`;
     const sourcePath = resolve(this.storageRoot, storageKey);
@@ -740,15 +884,18 @@ export class AiRequestProcessor extends WorkerHost {
           mimeType: 'video/mp4',
           extension: 'mp4',
           sizeBytes: buffer.length,
-          width: size === '1280x720' ? 1280 : 720,
-          height: size === '1280x720' ? 720 : 1280,
+          width: dimensions.width,
+          height: dimensions.height,
           thumbnailStatus: 'not_applicable',
           status: 'ready',
           metadata: {
             source: 'ai',
             aiRequestId: request.id,
-            providerRequestId: videoId,
-            durationSeconds: seconds,
+            provider: 'atlascloud',
+            model: model.modelId,
+            providerRequestId: predictionId,
+            durationSeconds,
+            referenceAssetIds: request.input.referenceAssetIds ?? [],
           },
         })
         .returning({ id: fileAssets.id });
@@ -756,17 +903,16 @@ export class AiRequestProcessor extends WorkerHost {
       return {
         result: {
           fileAssetId: asset.id,
-          durationSeconds: seconds,
-          width: size === '1280x720' ? 1280 : 720,
-          height: size === '1280x720' ? 720 : 1280,
+          durationSeconds,
+          width: dimensions.width,
+          height: dimensions.height,
         },
-        provider: 'openai',
-        model: execution.primaryModel.modelId,
-        providerRequestId: videoId,
+        provider: 'atlascloud',
+        model: model.modelId,
+        providerRequestId: predictionId,
         inputTokens: 0,
         outputTokens: 0,
-        estimatedCostMicrousd:
-          (execution.primaryModel.unitPriceMicrousd ?? 0) * seconds,
+        estimatedCostMicrousd: (model.unitPriceMicrousd ?? 0) * durationSeconds,
       };
     } catch (error) {
       await rm(sourcePath, { force: true });
@@ -1056,10 +1202,13 @@ export class AiRequestProcessor extends WorkerHost {
     });
   }
 
-  private decryptApiKey(ciphertext: string) {
+  private decryptApiKey(
+    ciphertext: string,
+    providerKey: 'openai' | 'atlascloud',
+  ) {
     try {
       const parsed = JSON.parse(
-        this.encryption.decrypt(ciphertext, 'ai:openai'),
+        this.encryption.decrypt(ciphertext, `ai:${providerKey}`),
       ) as unknown;
       if (
         parsed &&
@@ -1074,6 +1223,11 @@ export class AiRequestProcessor extends WorkerHost {
       return null;
     }
     return null;
+  }
+
+  private supportedProviderKey(value: string): 'openai' | 'atlascloud' {
+    if (value === 'openai' || value === 'atlascloud') return value;
+    throw new AiProcessingError('AI_PROVIDER_NOT_CONFIGURED', true);
   }
 
   private internalOutcome(
@@ -1152,11 +1306,246 @@ type OpenAiResponsePayload = {
   usage?: { input_tokens?: unknown; output_tokens?: unknown };
 };
 
-type VideoJobPayload = {
-  id?: unknown;
-  status?: unknown;
-  progress?: unknown;
+type AtlasPrediction = {
+  id: string | null;
+  status: string;
+  outputs: unknown[];
+  progress: number;
+  hasNsfwContents: boolean[];
 };
+
+export function buildAtlasImagePayload(
+  modelId: string,
+  request: { prompt: string; input: Record<string, unknown> },
+  references: string[],
+) {
+  const aspectRatio =
+    typeof request.input.aspectRatio === 'string'
+      ? request.input.aspectRatio
+      : '1:1';
+  const quality =
+    request.input.quality === 'low' ||
+    request.input.quality === 'medium' ||
+    request.input.quality === 'high'
+      ? request.input.quality
+      : 'medium';
+  const edit = modelId.includes('/edit');
+  if (edit && !references.length) {
+    throw new AiProcessingError('AI_IMAGE_REFERENCE_INVALID', true);
+  }
+  if (!edit && references.length) {
+    throw new AiProcessingError('AI_MODEL_ROUTE_INVALID', true);
+  }
+  const payload: Record<string, unknown> = {
+    model: modelId,
+    prompt: request.prompt,
+    enable_sync_mode: false,
+    enable_base64_output: false,
+  };
+  if (references.length) payload.images = references;
+  if (modelId.startsWith('openai/gpt-image-2/')) {
+    payload.size = atlasGptImageSize(aspectRatio);
+    payload.quality = quality;
+    payload.output_format = 'jpeg';
+    return payload;
+  }
+  payload.aspect_ratio = aspectRatio;
+  payload.resolution = atlasImageResolution(modelId, quality);
+  payload.output_format = 'jpeg';
+  payload.media_resolution = 'high';
+  payload.enable_web_search = false;
+  if (modelId.includes('nano-banana-2/')) {
+    payload.thinking_level = 'high';
+    payload.enable_image_search = false;
+  }
+  return payload;
+}
+
+export function buildAtlasVideoPayload(
+  modelId: string,
+  request: { prompt: string; input: Record<string, unknown> },
+  references: string[],
+) {
+  const payload: Record<string, unknown> = {
+    model: modelId,
+    prompt: request.prompt,
+    duration:
+      typeof request.input.durationSeconds === 'number'
+        ? request.input.durationSeconds
+        : 8,
+    resolution: '1080p-SR',
+    ratio:
+      request.input.aspectRatio === '16:9'
+        ? '16:9'
+        : request.input.aspectRatio === '1:1'
+          ? '1:1'
+          : '9:16',
+    generate_audio: true,
+    watermark: false,
+    return_last_frame: false,
+  };
+  if (modelId.endsWith('/image-to-video')) {
+    if (!references.length) {
+      throw new AiProcessingError('AI_IMAGE_REFERENCE_INVALID', true);
+    }
+    payload.image = references[0];
+    if (references[1]) payload.last_image = references[1];
+  } else if (modelId.endsWith('/reference-to-video')) {
+    if (!references.length) {
+      throw new AiProcessingError('AI_IMAGE_REFERENCE_INVALID', true);
+    }
+    payload.reference_images = references.slice(0, 9);
+  } else if (references.length) {
+    throw new AiProcessingError('AI_MODEL_ROUTE_INVALID', true);
+  }
+  return payload;
+}
+
+function atlasGptImageSize(aspectRatio: string) {
+  if (aspectRatio === '16:9') return '2560x1440';
+  if (aspectRatio === '9:16') return '1440x2560';
+  return '1536x1536';
+}
+
+function atlasImageResolution(modelId: string, quality: string) {
+  if (modelId.includes('ultra')) return quality === 'high' ? '8k' : '4k';
+  if (quality === 'high') return '4k';
+  if (quality === 'low') return '1k';
+  return '2k';
+}
+
+function atlasPredictionPayload(payload: unknown): AtlasPrediction {
+  const root = record(payload);
+  const value = record(root.data ?? root);
+  return {
+    id: typeof value.id === 'string' && value.id.trim() ? value.id : null,
+    status:
+      typeof value.status === 'string'
+        ? value.status.trim().toLowerCase()
+        : 'processing',
+    outputs: Array.isArray(value.outputs) ? value.outputs : [],
+    progress: Math.max(0, Math.min(100, safeInteger(value.progress))),
+    hasNsfwContents: Array.isArray(value.has_nsfw_contents)
+      ? value.has_nsfw_contents.map(Boolean)
+      : [],
+  };
+}
+
+function firstAtlasOutput(prediction: AtlasPrediction) {
+  for (const output of prediction.outputs) {
+    if (typeof output === 'string' && output.trim()) return output.trim();
+    const value = record(output);
+    const candidate =
+      typeof value.url === 'string'
+        ? value.url
+        : typeof value.output_url === 'string'
+          ? value.output_url
+          : null;
+    if (candidate?.trim()) return candidate.trim();
+  }
+  return null;
+}
+
+function atlasResponseError(status: number) {
+  return new AiProcessingError(
+    status === 429 ? 'AI_PROVIDER_RATE_LIMITED' : 'AI_PROVIDER_REQUEST_FAILED',
+    status >= 400 && status < 500 && status !== 429,
+  );
+}
+
+async function downloadPublicMedia(urlValue: string, maximumBytes: number) {
+  let url = await publicHttpsUrl(urlValue);
+  for (let redirects = 0; redirects <= 3; redirects++) {
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        redirect: 'manual',
+        signal: AbortSignal.timeout(180_000),
+      });
+    } catch {
+      throw new AiProcessingError('AI_PROVIDER_REQUEST_FAILED', false);
+    }
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get('location');
+      if (!location || redirects === 3) {
+        throw new AiProcessingError('AI_PROVIDER_RESPONSE_INVALID', true);
+      }
+      url = await publicHttpsUrl(new URL(location, url).toString());
+      continue;
+    }
+    if (!response.ok) throw atlasResponseError(response.status);
+    const declaredLength = Number(response.headers.get('content-length'));
+    if (Number.isFinite(declaredLength) && declaredLength > maximumBytes) {
+      throw new AiProcessingError('AI_PROVIDER_RESPONSE_INVALID', true);
+    }
+    const buffer = Buffer.from(await response.arrayBuffer());
+    if (!buffer.length || buffer.length > maximumBytes) {
+      throw new AiProcessingError('AI_PROVIDER_RESPONSE_INVALID', true);
+    }
+    return buffer;
+  }
+  throw new AiProcessingError('AI_PROVIDER_RESPONSE_INVALID', true);
+}
+
+async function publicHttpsUrl(value: string) {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new AiProcessingError('AI_PROVIDER_RESPONSE_INVALID', true);
+  }
+  if (url.protocol !== 'https:' || url.username || url.password) {
+    throw new AiProcessingError('AI_PROVIDER_RESPONSE_INVALID', true);
+  }
+  const hostname = url.hostname.toLowerCase();
+  if (hostname === 'localhost' || hostname.endsWith('.local')) {
+    throw new AiProcessingError('AI_PROVIDER_RESPONSE_INVALID', true);
+  }
+  const addresses = isIP(hostname)
+    ? [{ address: hostname }]
+    : await lookup(hostname, { all: true }).catch(() => []);
+  if (
+    !addresses.length ||
+    addresses.some(({ address }) => privateIp(address))
+  ) {
+    throw new AiProcessingError('AI_PROVIDER_RESPONSE_INVALID', true);
+  }
+  return url;
+}
+
+function privateIp(address: string) {
+  const normalized = address.toLowerCase();
+  if (normalized === '::1' || normalized === '::') return true;
+  if (
+    normalized.startsWith('fc') ||
+    normalized.startsWith('fd') ||
+    /^fe[89ab]/.test(normalized)
+  ) {
+    return true;
+  }
+  const ipv4 = normalized.startsWith('::ffff:')
+    ? normalized.slice(7)
+    : normalized;
+  if (isIP(ipv4) !== 4) return false;
+  const [a, b] = ipv4.split('.').map(Number);
+  return (
+    a === 0 ||
+    a === 10 ||
+    a === 127 ||
+    (a === 100 && b >= 64 && b <= 127) ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168) ||
+    (a === 198 && (b === 18 || b === 19)) ||
+    a >= 224
+  );
+}
+
+function record(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
 
 export function extractResponseText(payload: OpenAiResponsePayload) {
   if (typeof payload.output_text === 'string' && payload.output_text.trim()) {

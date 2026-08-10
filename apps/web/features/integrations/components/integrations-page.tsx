@@ -5,6 +5,7 @@ import { WhatsAppStatusIntegrationCard } from "./whatsapp-status-integration-car
 import { EmailSmtpIntegrationCard } from "./email-smtp-integration-card"
 import { IntegrationCardLoading } from "./integration-card-loading"
 import { IntegrationInsetCard } from "./integration-inset-card"
+import { PolarIntegrationPreview } from "./polar-integration-card"
 import type { MetaIntegration } from "@workspace/contracts"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -122,6 +123,7 @@ type Draft = {
 }
 
 type TestState = "not-tested" | "testing" | "passed" | "failed"
+type ProviderTab = "meta" | "whatsapp" | "email" | "polar"
 
 const statusCopy = {
   ready: { label: "Listo", variant: "success" as const },
@@ -200,9 +202,7 @@ export function IntegrationsPage() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [activeProvider, setActiveProvider] = useState<
-    "meta" | "whatsapp" | "email"
-  >("meta")
+  const [activeProvider, setActiveProvider] = useState<ProviderTab>("meta")
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -384,15 +384,14 @@ export function IntegrationsPage() {
     return (
       <div className="space-y-6">
         <Tabs
-          onValueChange={(value) =>
-            setActiveProvider(value as "meta" | "whatsapp" | "email")
-          }
+          onValueChange={(value) => setActiveProvider(value as ProviderTab)}
           value={activeProvider}
         >
           <TabsList aria-label="Proveedor de integración">
             <TabsTrigger value="meta">Meta</TabsTrigger>
             <TabsTrigger value="whatsapp">WhatsApp Status</TabsTrigger>
             <TabsTrigger value="email">Correo SMTP</TabsTrigger>
+            <TabsTrigger value="polar">Polar.sh</TabsTrigger>
           </TabsList>
         </Tabs>
         <IntegrationCardLoading />
@@ -414,15 +413,14 @@ export function IntegrationsPage() {
   return (
     <div className="space-y-6">
       <Tabs
-        onValueChange={(value) =>
-          setActiveProvider(value as "meta" | "whatsapp" | "email")
-        }
+        onValueChange={(value) => setActiveProvider(value as ProviderTab)}
         value={activeProvider}
       >
         <TabsList aria-label="Proveedor de integración">
           <TabsTrigger value="meta">Meta</TabsTrigger>
           <TabsTrigger value="whatsapp">WhatsApp Status</TabsTrigger>
           <TabsTrigger value="email">Correo SMTP</TabsTrigger>
+          <TabsTrigger value="polar">Polar.sh</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -568,8 +566,10 @@ export function IntegrationsPage() {
         </>
       ) : activeProvider === "whatsapp" ? (
         <WhatsAppStatusIntegrationCard />
-      ) : (
+      ) : activeProvider === "email" ? (
         <EmailSmtpIntegrationCard />
+      ) : (
+        <PolarIntegrationPreview />
       )}
 
       <Dialog

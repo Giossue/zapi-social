@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react"
 import {
   Check,
-  Crown,
   Ellipsis,
   Pencil,
   Plus,
@@ -11,14 +10,17 @@ import {
   Sparkles,
   Trash2,
   Users,
+  WalletCards,
 } from "lucide-react"
 
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
+  CardAction,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
@@ -33,16 +35,23 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { Input } from "@workspace/ui/components/input"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@workspace/ui/components/input-group"
 import { PageLoading } from "@workspace/ui/components/page-loading"
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -50,6 +59,15 @@ import {
 import { Switch } from "@workspace/ui/components/switch"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { ScrollArea } from "@workspace/ui/components/scroll-area"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
+import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { toast } from "@workspace/ui/components/toast"
 
 import { planPermissionGroups } from "../fixtures/plans"
@@ -111,129 +129,6 @@ function formatPrice(plan: AdminPlan) {
     currency: plan.currency,
     maximumFractionDigits: 0,
   }).format(plan.price)
-}
-
-function PlanBadges({ plan }: { plan: AdminPlan }) {
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      <Badge variant={plan.status === "active" ? "success" : "neutral"}>
-        {statusLabels[plan.status]}
-      </Badge>
-      {plan.featured ? (
-        <Badge variant="warning">
-          <Sparkles aria-hidden="true" />
-          Destacado
-        </Badge>
-      ) : null}
-      {plan.isDefaultSignup ? (
-        <Badge variant="neutral">Registro predeterminado</Badge>
-      ) : null}
-      {plan.isFree ? <Badge variant="neutral">Gratis</Badge> : null}
-    </div>
-  )
-}
-
-function PlanCard({
-  plan,
-  onDelete,
-  onEdit,
-}: {
-  plan: AdminPlan
-  onDelete: (plan: AdminPlan) => void
-  onEdit: (plan: AdminPlan) => void
-}) {
-  const trialLabel =
-    plan.trialDays > 0 ? `${plan.trialDays} días de prueba` : "Sin prueba"
-
-  return (
-    <Card className="gap-5" variant="surface">
-      <CardHeader className="gap-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 space-y-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <CardTitle className="text-base">{plan.name}</CardTitle>
-              {plan.featured ? (
-                <Crown
-                  aria-label="Plan destacado"
-                  className="size-4 text-warning"
-                />
-              ) : null}
-            </div>
-            <CardDescription>/{plan.slug}</CardDescription>
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                aria-label={`Acciones para ${plan.name}`}
-                size="icon-sm"
-                variant="brand-secondary"
-              >
-                <Ellipsis />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" size="compact">
-              <DropdownMenuItem onSelect={() => onEdit(plan)} size="compact">
-                <Pencil />
-                Editar plan
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive"
-                onSelect={() => onDelete(plan)}
-                size="compact"
-              >
-                <Trash2 />
-                Eliminar plan
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-        <PlanBadges plan={plan} />
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <p className="min-h-10 text-sm leading-relaxed text-muted-foreground">
-          {plan.description}
-        </p>
-        <dl className="grid grid-cols-2 gap-x-4 gap-y-3 border-y border-border py-4 text-sm">
-          <div className="space-y-0.5">
-            <dt className="text-xs text-muted-foreground">Precio</dt>
-            <dd className="font-semibold">{formatPrice(plan)}</dd>
-          </div>
-          <div className="space-y-0.5">
-            <dt className="text-xs text-muted-foreground">Cobro</dt>
-            <dd className="font-medium">
-              {plan.isFree ? "—" : billingLabels[plan.billingType]}
-            </dd>
-          </div>
-          <div className="space-y-0.5">
-            <dt className="text-xs text-muted-foreground">Prueba</dt>
-            <dd className="font-medium">{trialLabel}</dd>
-          </div>
-          <div className="space-y-0.5">
-            <dt className="text-xs text-muted-foreground">Orden</dt>
-            <dd className="font-medium">#{plan.position}</dd>
-          </div>
-        </dl>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Users aria-hidden="true" className="size-4" />
-          <span>
-            <strong className="font-medium text-foreground">
-              {plan.subscriberCount.toLocaleString("es")}
-            </strong>{" "}
-            suscriptores
-          </span>
-        </div>
-        <Button
-          className="w-full"
-          onClick={() => onEdit(plan)}
-          variant="brand-secondary"
-        >
-          <Pencil data-icon="inline-start" />
-          Editar
-        </Button>
-      </CardContent>
-    </Card>
-  )
 }
 
 function PermissionGroups({
@@ -332,7 +227,12 @@ function PlanEditorDialog({
   const [featured, setFeatured] = useState(plan.featured)
   const [isDefaultSignup, setIsDefaultSignup] = useState(plan.isDefaultSignup)
   const [permissionIds, setPermissionIds] = useState([...plan.permissionIds])
+  const [name, setName] = useState(plan.name)
+  const [slug, setSlug] = useState(plan.slug)
   const isEditing = Boolean(plan.id)
+  const formComplete = Boolean(
+    name.trim() && slug.trim() && permissionIds.length > 0
+  )
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -385,7 +285,7 @@ function PlanEditorDialog({
 
     try {
       await onSave({
-        id: plan.id || `plan-${slug}`,
+        id: plan.id,
         name,
         slug,
         status: String(formData.get("status")) as PlanStatus,
@@ -423,25 +323,41 @@ function PlanEditorDialog({
           scrollbarClassName="translate-x-6"
           type="always"
         >
-          <form className="grid gap-6 px-6 pt-5 pr-12 pb-6" onSubmit={submit}>
+          <form
+            className="grid gap-6 px-6 pt-5 pr-12 pb-6"
+            noValidate
+            onSubmit={submit}
+          >
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="grid gap-1.5 text-sm font-medium">
-                Nombre
+                <span>
+                  Nombre{" "}
+                  <span aria-hidden="true" className="text-destructive">
+                    *
+                  </span>
+                </span>
                 <Input
-                  defaultValue={plan.name}
+                  aria-required="true"
                   maxLength={80}
                   name="name"
-                  required
+                  onChange={(event) => setName(event.target.value)}
+                  value={name}
                 />
               </label>
               <label className="grid gap-1.5 text-sm font-medium">
-                Slug
+                <span>
+                  Slug{" "}
+                  <span aria-hidden="true" className="text-destructive">
+                    *
+                  </span>
+                </span>
                 <Input
-                  defaultValue={plan.slug}
+                  aria-required="true"
                   maxLength={80}
                   name="slug"
+                  onChange={(event) => setSlug(event.target.value)}
                   placeholder="mi-plan"
-                  required
+                  value={slug}
                 />
               </label>
               <label className="grid gap-1.5 text-sm font-medium">
@@ -451,8 +367,10 @@ function PlanEditorDialog({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">Activo</SelectItem>
-                    <SelectItem value="inactive">Inactivo</SelectItem>
+                    <SelectGroup>
+                      <SelectItem value="active">Activo</SelectItem>
+                      <SelectItem value="inactive">Inactivo</SelectItem>
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
               </label>
@@ -463,8 +381,10 @@ function PlanEditorDialog({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="USD">USD</SelectItem>
-                    <SelectItem value="EUR">EUR</SelectItem>
+                    <SelectGroup>
+                      <SelectItem value="USD">USD</SelectItem>
+                      <SelectItem value="EUR">EUR</SelectItem>
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
               </label>
@@ -486,8 +406,10 @@ function PlanEditorDialog({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="monthly">Mensual</SelectItem>
-                    <SelectItem value="yearly">Anual</SelectItem>
+                    <SelectGroup>
+                      <SelectItem value="monthly">Mensual</SelectItem>
+                      <SelectItem value="yearly">Anual</SelectItem>
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
               </label>
@@ -563,7 +485,7 @@ function PlanEditorDialog({
               >
                 Cancelar
               </Button>
-              <Button type="submit">
+              <Button disabled={!formComplete} type="submit">
                 {isEditing ? (
                   <Check data-icon="inline-start" />
                 ) : (
@@ -622,6 +544,8 @@ export function PlansPage() {
   const [featuredFilter, setFeaturedFilter] = useState<
     "all" | "featured" | "standard"
   >("all")
+  const [pageIndex, setPageIndex] = useState(0)
+  const [pageSize, setPageSize] = useState(10)
   const [editor, setEditor] = useState<AdminPlan | "create" | null>(null)
   const [planToDelete, setPlanToDelete] = useState<AdminPlan | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -667,6 +591,7 @@ export function PlansPage() {
     setStatusFilter("all")
     setBillingFilter("all")
     setFeaturedFilter("all")
+    setPageIndex(0)
   }
 
   async function savePlan(plan: AdminPlan) {
@@ -713,6 +638,20 @@ export function PlansPage() {
     billingFilter !== "all" ||
     featuredFilter !== "all"
   )
+  const pageCount = Math.max(1, Math.ceil(plans.length / pageSize))
+  const currentPageIndex = Math.min(pageIndex, pageCount - 1)
+  const paginatedPlans = plans.slice(
+    currentPageIndex * pageSize,
+    (currentPageIndex + 1) * pageSize
+  )
+  const rangeStart = plans.length === 0 ? 0 : currentPageIndex * pageSize + 1
+  const rangeEnd = Math.min((currentPageIndex + 1) * pageSize, plans.length)
+  const activePlans = plans.filter((plan) => plan.status === "active").length
+  const subscriberCount = plans.reduce(
+    (total, plan) => total + plan.subscriberCount,
+    0
+  )
+  const featuredPlans = plans.filter((plan) => plan.featured).length
 
   if (!hasPermission) {
     return (
@@ -744,112 +683,323 @@ export function PlansPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-end">
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">Planes</h1>
+          <p className="text-sm text-muted-foreground">
+            Configura el catálogo, precios, permisos y disponibilidad de cada
+            plan.
+          </p>
+        </div>
         <Button onClick={() => setEditor("create")}>
           <Plus data-icon="inline-start" />
           Crear plan
         </Button>
       </div>
-      <section aria-label="Filtrar planes">
-        <Card className="py-4" variant="surface">
-          <CardContent className="grid gap-3 md:grid-cols-[minmax(0,1fr)_10rem_10rem_10rem]">
-            <label className="relative">
-              <Search
-                aria-hidden="true"
-                className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
-              />
-              <span className="sr-only">Buscar planes</span>
-              <Input
-                className="pl-9"
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Buscar por nombre o slug"
-                value={query}
-              />
-            </label>
-            <Select
-              onValueChange={(value) =>
-                setStatusFilter(value as "all" | PlanStatus)
-              }
-              value={statusFilter}
-            >
-              <SelectTrigger aria-label="Filtrar por estado">
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los estados</SelectItem>
-                <SelectItem value="active">Activos</SelectItem>
-                <SelectItem value="inactive">Inactivos</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select
-              onValueChange={(value) =>
-                setBillingFilter(value as "all" | PlanBillingType)
-              }
-              value={billingFilter}
-            >
-              <SelectTrigger aria-label="Filtrar por cobro">
-                <SelectValue placeholder="Cobro" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todo cobro</SelectItem>
-                <SelectItem value="monthly">Mensual</SelectItem>
-                <SelectItem value="yearly">Anual</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select
-              onValueChange={(value) =>
-                setFeaturedFilter(value as "all" | "featured" | "standard")
-              }
-              value={featuredFilter}
-            >
-              <SelectTrigger aria-label="Filtrar por destacado">
-                <SelectValue placeholder="Visibilidad" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los planes</SelectItem>
-                <SelectItem value="featured">Destacados</SelectItem>
-                <SelectItem value="standard">No destacados</SelectItem>
-              </SelectContent>
-            </Select>
-          </CardContent>
-        </Card>
-      </section>
       {isLoading ? (
-        <PageLoading />
-      ) : plans.length > 0 ? (
-        <section
-          aria-label="Listado de planes"
-          className="grid gap-4 md:grid-cols-2 xl:grid-cols-3"
-        >
-          {plans.map((plan) => (
-            <PlanCard
-              key={plan.id}
-              onDelete={setPlanToDelete}
-              onEdit={setEditor}
-              plan={plan}
-            />
-          ))}
-        </section>
+        <PageLoading className="min-h-80" />
       ) : (
-        <Card variant="surface">
-          <EmptyState
-            action={
-              hasActiveFilters ? (
-                <Button onClick={resetFilters} variant="brand-secondary">
-                  Restablecer filtros
-                </Button>
-              ) : undefined
-            }
-            description={
-              hasActiveFilters
-                ? "No hay planes que coincidan con los filtros actuales."
-                : "Aún no hay planes configurados. Crea el primero para comenzar."
-            }
-            icon={Search}
-            title={hasActiveFilters ? "No encontramos planes" : "No hay planes"}
-          />
-        </Card>
+        <>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {[
+              {
+                label: "Planes",
+                value: plans.length.toLocaleString("es"),
+                description: "Opciones visibles",
+                icon: WalletCards,
+              },
+              {
+                label: "Activos",
+                value: activePlans.toLocaleString("es"),
+                description: "Disponibles hoy",
+                icon: Check,
+              },
+              {
+                label: "Suscriptores",
+                value: subscriberCount.toLocaleString("es"),
+                description: "Cuentas en esta vista",
+                icon: Users,
+              },
+              {
+                label: "Destacados",
+                value: featuredPlans.toLocaleString("es"),
+                description: "Ofertas principales",
+                icon: Sparkles,
+              },
+            ].map((metric) => {
+              const MetricIcon = metric.icon
+              return (
+                <Card key={metric.label} size="sm">
+                  <CardHeader>
+                    <CardTitle className="text-sm text-muted-foreground">
+                      {metric.label}
+                    </CardTitle>
+                    <CardAction>
+                      <MetricIcon
+                        aria-hidden="true"
+                        className="size-4 text-muted-foreground"
+                      />
+                    </CardAction>
+                  </CardHeader>
+                  <CardContent className="space-y-1">
+                    <p className="text-2xl font-semibold tracking-tight">
+                      {metric.value}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {metric.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+
+          <Card>
+            <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 xl:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
+              <CardTitle>Planes</CardTitle>
+              <CardDescription>
+                {plans.length} resultados en esta vista.
+              </CardDescription>
+              <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap gap-2 justify-self-stretch xl:col-start-2 xl:row-span-2 xl:row-start-1 xl:w-auto xl:flex-nowrap xl:justify-self-end">
+                <InputGroup className="w-full md:w-64">
+                  <InputGroupAddon align="inline-start">
+                    <Search />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    onChange={(event) => {
+                      setQuery(event.target.value)
+                      setPageIndex(0)
+                    }}
+                    placeholder="Buscar por nombre o slug..."
+                    value={query}
+                  />
+                </InputGroup>
+                <Select
+                  onValueChange={(value) => {
+                    setStatusFilter(value as "all" | PlanStatus)
+                    setPageIndex(0)
+                  }}
+                  value={statusFilter}
+                >
+                  <SelectTrigger
+                    aria-label="Filtrar por estado"
+                    className="w-full sm:w-40"
+                  >
+                    <SelectValue placeholder="Estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="all">Todos los estados</SelectItem>
+                      <SelectItem value="active">Activos</SelectItem>
+                      <SelectItem value="inactive">Inactivos</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                <Select
+                  onValueChange={(value) => {
+                    setBillingFilter(value as "all" | PlanBillingType)
+                    setPageIndex(0)
+                  }}
+                  value={billingFilter}
+                >
+                  <SelectTrigger
+                    aria-label="Filtrar por cobro"
+                    className="w-full sm:w-36"
+                  >
+                    <SelectValue placeholder="Cobro" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="all">Todo cobro</SelectItem>
+                      <SelectItem value="monthly">Mensual</SelectItem>
+                      <SelectItem value="yearly">Anual</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                <Select
+                  onValueChange={(value) => {
+                    setFeaturedFilter(value as "all" | "featured" | "standard")
+                    setPageIndex(0)
+                  }}
+                  value={featuredFilter}
+                >
+                  <SelectTrigger
+                    aria-label="Filtrar por destacado"
+                    className="w-full sm:w-40"
+                  >
+                    <SelectValue placeholder="Visibilidad" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="all">Todos los planes</SelectItem>
+                      <SelectItem value="featured">Destacados</SelectItem>
+                      <SelectItem value="standard">No destacados</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </CardAction>
+            </CardHeader>
+            <CardContent className="px-0">
+              {plans.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Plan</TableHead>
+                      <TableHead>Precio</TableHead>
+                      <TableHead>Cobro</TableHead>
+                      <TableHead>Prueba</TableHead>
+                      <TableHead>Suscriptores</TableHead>
+                      <TableHead>Permisos</TableHead>
+                      <TableHead>Estado</TableHead>
+                      <TableHead className="text-right">Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedPlans.map((plan) => (
+                      <TableRow key={plan.id}>
+                        <TableCell>
+                          <div className="grid gap-1">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <span className="font-medium">{plan.name}</span>
+                              {plan.featured ? (
+                                <Badge variant="warning">
+                                  <Sparkles aria-hidden="true" />
+                                  Destacado
+                                </Badge>
+                              ) : null}
+                              {plan.isDefaultSignup ? (
+                                <Badge variant="neutral">Predeterminado</Badge>
+                              ) : null}
+                            </div>
+                            <span className="text-xs text-muted-foreground">
+                              /{plan.slug}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {formatPrice(plan)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="grid gap-0.5">
+                            <span>
+                              {plan.isFree
+                                ? "—"
+                                : billingLabels[plan.billingType]}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              Orden #{plan.position}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {plan.trialDays > 0
+                            ? `${plan.trialDays} días`
+                            : "Sin prueba"}
+                        </TableCell>
+                        <TableCell>
+                          {plan.subscriberCount.toLocaleString("es")}
+                        </TableCell>
+                        <TableCell>{plan.permissionIds.length}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              plan.status === "active" ? "success" : "neutral"
+                            }
+                          >
+                            {statusLabels[plan.status]}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                aria-label={`Acciones para ${plan.name}`}
+                                size="icon-sm"
+                                variant="brand-secondary"
+                              >
+                                <Ellipsis />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" size="compact">
+                              <DropdownMenuGroup>
+                                <DropdownMenuItem
+                                  onSelect={() => setEditor(plan)}
+                                  size="compact"
+                                >
+                                  <Pencil />
+                                  Editar plan
+                                </DropdownMenuItem>
+                              </DropdownMenuGroup>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuGroup>
+                                <DropdownMenuItem
+                                  onSelect={() => setPlanToDelete(plan)}
+                                  size="compact"
+                                  variant="destructive"
+                                >
+                                  <Trash2 />
+                                  Eliminar plan
+                                </DropdownMenuItem>
+                              </DropdownMenuGroup>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <EmptyState
+                  action={
+                    hasActiveFilters ? (
+                      <Button onClick={resetFilters} variant="brand-secondary">
+                        Restablecer filtros
+                      </Button>
+                    ) : undefined
+                  }
+                  description={
+                    hasActiveFilters
+                      ? "No hay planes que coincidan con los filtros actuales."
+                      : "Aún no hay planes configurados. Crea el primero para comenzar."
+                  }
+                  icon={Search}
+                  title={
+                    hasActiveFilters ? "No encontramos planes" : "No hay planes"
+                  }
+                />
+              )}
+            </CardContent>
+            <CardFooter className="border-t">
+              <TablePagination
+                canGoNext={currentPageIndex < pageCount - 1}
+                canGoPrevious={currentPageIndex > 0}
+                itemLabel="planes"
+                mode="detailed"
+                onFirstPage={() => setPageIndex(0)}
+                onLastPage={() => setPageIndex(pageCount - 1)}
+                onNextPage={() =>
+                  setPageIndex((current) =>
+                    Math.min(current + 1, pageCount - 1)
+                  )
+                }
+                onPageSizeChange={(value) => {
+                  setPageSize(value)
+                  setPageIndex(0)
+                }}
+                onPreviousPage={() =>
+                  setPageIndex((current) => Math.max(current - 1, 0))
+                }
+                page={currentPageIndex + 1}
+                pageCount={pageCount}
+                pageSize={pageSize}
+                rangeEnd={rangeEnd}
+                rangeStart={rangeStart}
+                total={plans.length}
+              />
+            </CardFooter>
+          </Card>
+        </>
       )}
       {planForEditor ? (
         <PlanEditorDialog

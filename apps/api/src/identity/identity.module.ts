@@ -27,6 +27,6 @@ import { SessionAccessService } from './session-access.service';
     SessionAccessService,
     PortalProfileService,
   ],
-  exports: [IdentityService, SessionAccessService],
+  exports: [IdentityService, PasswordResetService, SessionAccessService],
 })
 export class IdentityModule {}

@@ -31,6 +31,16 @@ export const aiReasoningEffortSchema = z.enum([
 
 export const aiModelCapabilitySchema = z.enum(["text", "image", "video"])
 
+export const adminAiProviderKeySchema = z.enum(["openai", "atlascloud"])
+
+export const aiModelModeSchema = z.enum([
+  "text-to-image",
+  "image-to-image",
+  "text-to-video",
+  "image-to-video",
+  "reference-to-video",
+])
+
 const aiPlatformSchema = z.enum([
   "instagram",
   "facebook",
@@ -58,18 +68,26 @@ const imageInputSchema = z
     objective: z.string().trim().min(1).max(160).default("engagement"),
     aspectRatio: z.enum(["1:1", "9:16", "16:9"]).default("1:1"),
     quality: z.enum(["low", "medium", "high"]).default("medium"),
-    referenceAssetIds: z.array(z.uuid()).max(10).default([]),
+    referenceAssetIds: z
+      .array(z.uuid())
+      .max(10)
+      .refine((ids) => new Set(ids).size === ids.length)
+      .default([]),
   })
   .strict()
 
 const videoInputSchema = z
   .object({
     objective: z.string().trim().min(1).max(160).default("engagement"),
-    aspectRatio: z.enum(["9:16", "16:9"]).default("9:16"),
+    aspectRatio: z.enum(["9:16", "16:9", "1:1"]).default("9:16"),
     durationSeconds: z
       .union([z.literal(4), z.literal(8), z.literal(12)])
       .default(8),
-    referenceAssetIds: z.array(z.uuid()).max(1).default([]),
+    referenceAssetIds: z
+      .array(z.uuid())
+      .max(9)
+      .refine((ids) => new Set(ids).size === ids.length)
+      .default([]),
   })
   .strict()
 
@@ -474,7 +492,7 @@ export const adminAiProviderReadinessSchema = z.enum([
 
 export const adminAiModelSchema = z.object({
   id: z.uuid(),
-  providerKey: z.literal("openai"),
+  providerKey: adminAiProviderKeySchema,
   modelId: z.string().min(1).max(160),
   label: z.string().min(1).max(160),
   capability: aiModelCapabilitySchema,
@@ -484,27 +502,33 @@ export const adminAiModelSchema = z.object({
   inputPriceMicrousdPerMillion: z.number().int().nonnegative().nullable(),
   outputPriceMicrousdPerMillion: z.number().int().nonnegative().nullable(),
   unitPriceMicrousd: z.number().int().nonnegative().nullable(),
+  modes: z.array(aiModelModeSchema),
 })
 
 export const adminAiRouteSchema = z.object({
   kind: aiRequestKindSchema,
   primaryModelId: z.uuid().nullable(),
   fallbackModelId: z.uuid().nullable(),
+  referenceModelId: z.uuid().nullable(),
+  referenceFallbackModelId: z.uuid().nullable(),
   reasoningEffort: aiReasoningEffortSchema,
   costUnits: z.number().int().min(0).max(10000),
   enabled: z.boolean(),
 })
 
 export const adminAiConfigurationSchema = z.object({
-  provider: z.object({
-    providerKey: z.literal("openai"),
-    label: z.literal("OpenAI"),
-    enabled: z.boolean(),
-    readiness: adminAiProviderReadinessSchema,
-    apiKeyConfigured: z.boolean(),
-    lastTestedAt: z.string().datetime().nullable(),
-    readinessIssues: z.array(z.string()),
-  }),
+  providers: z.array(
+    z.object({
+      providerKey: adminAiProviderKeySchema,
+      label: z.string(),
+      capabilities: z.array(aiModelCapabilitySchema),
+      enabled: z.boolean(),
+      readiness: adminAiProviderReadinessSchema,
+      apiKeyConfigured: z.boolean(),
+      lastTestedAt: z.string().datetime().nullable(),
+      readinessIssues: z.array(z.string()),
+    })
+  ),
   models: z.array(adminAiModelSchema),
   routes: z.array(adminAiRouteSchema),
 })
@@ -521,12 +545,13 @@ export const updateAdminAiProviderSchema = z
 
 export const createAdminAiModelSchema = z
   .object({
+    providerKey: adminAiProviderKeySchema,
     modelId: z
       .string()
       .trim()
       .min(1)
       .max(160)
-      .regex(/^[A-Za-z0-9._:-]+$/),
+      .regex(/^[A-Za-z0-9._:/-]+$/),
     label: z.string().trim().min(1).max(160),
     capability: aiModelCapabilitySchema,
     tier: z.enum(["quality", "balanced", "economy", "specialized"]),
@@ -545,11 +570,12 @@ export const createAdminAiModelSchema = z
       .nullable()
       .default(null),
     unitPriceMicrousd: z.number().int().nonnegative().nullable().default(null),
+    modes: z.array(aiModelModeSchema).max(5).default([]),
   })
   .strict()
 
 export const updateAdminAiModelSchema = createAdminAiModelSchema
-  .omit({ modelId: true })
+  .omit({ providerKey: true, modelId: true })
   .partial()
   .refine((input) => Object.keys(input).length > 0)
 
@@ -557,6 +583,8 @@ export const updateAdminAiRouteSchema = z
   .object({
     primaryModelId: z.uuid().nullable(),
     fallbackModelId: z.uuid().nullable(),
+    referenceModelId: z.uuid().nullable(),
+    referenceFallbackModelId: z.uuid().nullable(),
     reasoningEffort: aiReasoningEffortSchema,
     costUnits: z.number().int().min(0).max(10000),
     enabled: z.boolean(),
@@ -678,6 +706,8 @@ export const updatePortalAiPublishingScheduleSchema = z
 export type AiRequestKind = z.infer<typeof aiRequestKindSchema>
 export type AiRequestStatus = z.infer<typeof aiRequestStatusSchema>
 export type AiReasoningEffort = z.infer<typeof aiReasoningEffortSchema>
+export type AdminAiProviderKey = z.infer<typeof adminAiProviderKeySchema>
+export type AiModelMode = z.infer<typeof aiModelModeSchema>
 export type PortalAiRequest = z.infer<typeof portalAiRequestSchema>
 export type PortalAiRequestsResponse = z.infer<
   typeof portalAiRequestsResponseSchema

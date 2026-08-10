@@ -47,6 +47,7 @@ export class AffiliateService {
       referrals,
       conversions,
       commissionTotals,
+      withdrawalTotals,
       commissions,
       withdrawals,
     ] = await Promise.all([
@@ -67,6 +68,18 @@ export class AffiliateService {
           ),
         ),
       this.database.db
+        .select({
+          reservedMinor: sql<number>`coalesce(sum(${affiliateWithdrawals.amountMinor}) filter (where ${affiliateWithdrawals.status} in ('requested', 'approved')), 0)::int`,
+          paidMinor: sql<number>`coalesce(sum(${affiliateWithdrawals.amountMinor}) filter (where ${affiliateWithdrawals.status} = 'paid'), 0)::int`,
+        })
+        .from(affiliateWithdrawals)
+        .where(
+          and(
+            eq(affiliateWithdrawals.affiliateProfileId, profile.id),
+            eq(affiliateWithdrawals.currency, profile.payoutCurrency),
+          ),
+        ),
+      this.database.db
         .select()
         .from(affiliateCommissions)
         .where(eq(affiliateCommissions.affiliateProfileId, profile.id))
@@ -80,6 +93,7 @@ export class AffiliateService {
         .limit(100),
     ]);
     const totals = commissionTotals[0];
+    const withdrawalAmounts = withdrawalTotals[0];
     return {
       profile: {
         id: profile.id,
@@ -94,8 +108,13 @@ export class AffiliateService {
         referrals,
         conversions,
         pendingMinor: totals?.pendingMinor ?? 0,
-        availableMinor: totals?.availableMinor ?? 0,
-        paidMinor: totals?.paidMinor ?? 0,
+        availableMinor: Math.max(
+          0,
+          (totals?.availableMinor ?? 0) -
+            (withdrawalAmounts?.reservedMinor ?? 0) -
+            (withdrawalAmounts?.paidMinor ?? 0),
+        ),
+        paidMinor: withdrawalAmounts?.paidMinor ?? totals?.paidMinor ?? 0,
         currency: profile.payoutCurrency,
       },
       commissions: commissions.map((commission) => ({
@@ -176,7 +195,11 @@ export class AffiliateService {
           .where(
             and(
               eq(affiliateWithdrawals.affiliateProfileId, profile.id),
-              inArray(affiliateWithdrawals.status, ['requested', 'approved']),
+              inArray(affiliateWithdrawals.status, [
+                'requested',
+                'approved',
+                'paid',
+              ]),
               eq(affiliateWithdrawals.currency, profile.payoutCurrency),
             ),
           ),

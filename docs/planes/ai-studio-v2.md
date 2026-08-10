@@ -31,19 +31,21 @@ publicar.
   unificado.
 - `input` y `result` se validan por herramienta. Los trabajos conservan título,
   progreso, tokens, coste estimado, latencia, provider/modelo y archivado.
-- Worker usa OpenAI Responses API para texto, GPT Image para generación/edición y
-  el flujo durable de Videos API cuando Admin habilite un modelo de video válido.
-  Timing y búsqueda son procesos internos honestos; no se presentan como métricas
-  externas ni búsqueda semántica.
-- Admin dispone de `/admin/settings/ai`: clave OpenAI cifrada, prueba obligatoria,
-  activación, catálogo de modelos, routing principal/respaldo por herramienta,
-  razonamiento, coste en créditos y consumo agregado.
-- Catálogo inicial oficial: `gpt-5.6-sol` (calidad), `gpt-5.6-terra`
-  (equilibrado), `gpt-5.6-luna` (economía), `gpt-image-2` y `sora-2`. Sora 2 queda
-  deshabilitado y marcado obsoleto; no se activa silenciosamente un modelo legacy.
-- Las migraciones `0025_mixed_krista_starr.sql` y
-  `0026_ai_model_catalog_refresh.sql` están aplicadas en `zapi_v2_local` y
-  `zapi_v2`: 27 entradas Drizzle, cinco modelos y nueve rutas en ambas bases.
+- Worker usa OpenAI Responses API solo para texto y AtlasCloud para imagen y
+  video. Los trabajos de media se envían de forma asíncrona, conservan el
+  `prediction_id`, reanudan polling sin duplicar el job remoto y guardan el
+  resultado validado en Files. Timing y búsqueda son procesos internos honestos.
+- Admin dispone de `/admin/settings/ai`: claves separadas de OpenAI y AtlasCloud,
+  cifrado, prueba obligatoria, activación, catálogo de modelos, routing
+  principal/respaldo con y sin referencias, razonamiento, créditos y consumo.
+- Catálogo activo: `gpt-5.6-sol`, `gpt-5.6-terra` y `gpt-5.6-luna` para texto;
+  ocho modelos AtlasCloud para texto-a-imagen/imagen-a-imagen y tres variantes de
+  Seedance 2 para texto-a-video, imagen-a-video y referencias-a-video. Los modelos
+  directos de media de OpenAI quedan deshabilitados y obsoletos.
+- Las migraciones `0025_mixed_krista_starr.sql`,
+  `0026_ai_model_catalog_refresh.sql` y `0027_normal_screwball.sql` están
+  aplicadas en `zapi_v2_local` y `zapi_v2`: 28 entradas Drizzle, cinco modelos
+  OpenAI, once AtlasCloud y nueve rutas en ambas bases.
 - Los créditos respetan `enforceCredits`, el reembolso es idempotente y solo
   devuelve saldo realmente debitado. Owner/Admin puede mantener presupuesto y
   alerta mensual desde Portal.
@@ -356,6 +358,10 @@ eliminar draft y ver ejecuciones.
 **Regla:** genera borradores en Publishing. Publicación directa queda desactivada
 hasta existir aprobación explícita, permisos y política de conciliación.
 
+**Control horario:** reutiliza literalmente el patrón de Publishing: selector de
+hora, icono de reloj y selector de minutos en intervalos de 15. Se conserva como
+`HH:mm`; no se usa el picker nativo del navegador.
+
 ### 12. Ajustes AI
 
 **Mis preferencias:** idioma, tono, plataformas, duración Planner, estilo/ratio de
@@ -383,8 +389,17 @@ límites por workspace/usuario y presupuesto por periodo.
 **Providers:** estado, credencial cifrada, prueba de conexión, capacidades y modelo
 permitido. Solo server-side.
 
+OpenAI atiende texto; AtlasCloud atiende imagen y video. Cada credencial usa AAD
+propio (`ai:openai` y `ai:atlascloud`) y nunca se entrega al navegador. La prueba
+AtlasCloud consulta balance mediante su API pública autenticada antes de permitir
+la activación.
+
 **Routing:** provider/modelo por tarea; fallback solo hacia provider alterno real,
 registrado y compatible, nunca contenido local fingido.
+
+Imagen y video mantienen rutas distintas para solicitudes sin referencias y con
+referencias. Imagen admite hasta diez archivos; video hasta nueve. Solo se aceptan
+JPG, PNG o WebP de hasta 30 MB, pertenecientes al workspace y en estado `ready`.
 
 **Gobernanza:** feature flags, costes, límites de plan, templates/categorías,
 presupuestos, salud de colas, uso, tokens, coste estimado, latencia y errores.
@@ -468,6 +483,13 @@ Toda migración será aditiva, Drizzle, verificada local/remoto según
 ## Worker y providers
 
 - Una cola o routing claro por capacidad; estado durable siempre en PostgreSQL.
+- OpenAI ejecuta texto. AtlasCloud ejecuta imagen y video mediante
+  `generateImage`, `generateVideo` y polling de `prediction/{id}`.
+- Las referencias privadas se leen desde Files y se convierten a data URI solo en
+  Worker; no se publican ni se entregan como URLs temporales al proveedor.
+- Un retry reutiliza el `prediction_id` persistido. El fallback solo puede entrar
+  si el envío falló antes de recibir ese identificador, evitando duplicar trabajos
+  facturables.
 - Jobs estables, retries limitados, backoff y clasificación de error permanente o
   transitorio.
 - Cancelación solo cuando no pueda existir consumo remoto ambiguo.
@@ -605,11 +627,12 @@ Toda migración será aditiva, Drizzle, verificada local/remoto según
 
 Evidencia final de esta entrega:
 
-- Migraciones `0025_mixed_krista_starr` y `0026_ai_model_catalog_refresh`
-  aplicadas y verificadas en local y remoto con el mismo historial.
+- Migraciones `0025_mixed_krista_starr`, `0026_ai_model_catalog_refresh` y
+  `0027_normal_screwball` aplicadas y verificadas en local y remoto con el mismo
+  historial de 28 entradas.
 - `bun run typecheck` y `bun run build` correctos para Database, Contracts, API
   Client, API, Worker y Web; Next generó las 13 superficies de Portal y Admin AI.
-- Seis pruebas AI pasan: cuatro de contrato/procesamiento Worker y dos de
+- Ocho pruebas AI pasan: seis de contrato/procesamiento Worker y dos de
   integración API/PostgreSQL con rollback.
 - Lint focal API/Worker sin errores ni advertencias; lint focal Web sin errores.
 - Escaneo focal de secretos y `git diff --check` correctos.
@@ -634,6 +657,6 @@ La vertical no se considera cerrada por tener backend genérico. Cada módulo ci
 solo cuando fuente visual aprobada, UI V2, contrato tipado, autorización,
 persistencia, Worker/provider, pruebas y documentación describen el mismo flujo.
 
-**Siguiente validación operativa:** configurar y probar una clave OpenAI desde
-Admin, desplegar API/Web/Worker y ejecutar un smoke autenticado contra el
-provider. No se guarda ni registra la clave en la evidencia.
+**Siguiente validación operativa:** configurar y probar las claves OpenAI y
+AtlasCloud desde Admin, desplegar API/Web/Worker y ejecutar un smoke autenticado
+por capacidad. No se guarda ni registra ninguna clave en la evidencia.

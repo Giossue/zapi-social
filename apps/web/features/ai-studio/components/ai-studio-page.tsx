@@ -105,6 +105,7 @@ import {
   TabsTrigger,
 } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
+import { TimePicker } from "@workspace/ui/components/time-picker"
 import { toast } from "@workspace/ui/components/toast"
 
 import {
@@ -928,7 +929,7 @@ function CreationWorkspace({ view }: { view: CreationView }) {
                   objective,
                   aspectRatio: option,
                   durationSeconds: 8,
-                  referenceAssetIds: referenceAssetIds.slice(0, 1),
+                  referenceAssetIds,
                 }
               : view === "repurpose"
                 ? {
@@ -954,18 +955,44 @@ function CreationWorkspace({ view }: { view: CreationView }) {
     }
   }
 
-  async function uploadReference(file: File) {
+  async function uploadReferences(files: File[]) {
+    const maximum = view === "video" ? 9 : 10
+    const available = maximum - referenceAssetIds.length
+    const selected = files.slice(0, available)
+    if (!selected.length) {
+      toast.error(`Puedes usar hasta ${maximum} imágenes de referencia.`)
+      return
+    }
+    if (
+      selected.some(
+        (file) =>
+          !["image/jpeg", "image/png", "image/webp"].includes(file.type) ||
+          file.size > 30 * 1024 * 1024
+      )
+    ) {
+      toast.error("Usa imágenes JPG, PNG o WEBP de máximo 30 MB.")
+      return
+    }
     setPending(true)
     try {
-      const upload = await filesApi.startUpload({
-        name: file.name,
-        mimeType: file.type || "application/octet-stream",
-        sizeBytes: file.size,
-        folderId: null,
-      })
-      await filesApi.upload(upload.id, file)
-      setReferenceAssetIds([upload.id])
-      toast.success("Referencia añadida.")
+      const uploadedIds = await Promise.all(
+        selected.map(async (file) => {
+          const upload = await filesApi.startUpload({
+            name: file.name,
+            mimeType: file.type,
+            sizeBytes: file.size,
+            folderId: null,
+          })
+          await filesApi.upload(upload.id, file)
+          return upload.id
+        })
+      )
+      setReferenceAssetIds((current) => [...current, ...uploadedIds])
+      toast.success(
+        uploadedIds.length === 1
+          ? "Referencia añadida."
+          : `${uploadedIds.length} referencias añadidas.`
+      )
     } catch {
       toast.error("No pudimos subir la referencia.")
     } finally {
@@ -1047,11 +1074,9 @@ function CreationWorkspace({ view }: { view: CreationView }) {
                           <SelectGroup>
                             {isMedia ? (
                               <>
-                                {view === "image" ? (
-                                  <SelectItem value="1:1">
-                                    Cuadrado · 1:1
-                                  </SelectItem>
-                                ) : null}
+                                <SelectItem value="1:1">
+                                  Cuadrado · 1:1
+                                </SelectItem>
                                 <SelectItem value="9:16">
                                   Vertical · 9:16
                                 </SelectItem>
@@ -1072,16 +1097,20 @@ function CreationWorkspace({ view }: { view: CreationView }) {
                     </Field>
                   </div>
                 ) : null}
-                {view === "image" ? (
+                {isMedia ? (
                   <div className="rounded-lg border border-dashed p-4">
                     <div className="flex items-center gap-3">
                       <div className="flex size-9 items-center justify-center rounded-lg bg-muted">
                         <Upload className="size-4" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-medium">Añadir referencia</p>
+                        <p className="text-sm font-medium">
+                          Añadir referencias
+                        </p>
                         <p className="text-xs text-muted-foreground">
-                          Imagen opcional para orientar estilo y composición.
+                          {view === "video"
+                            ? "Hasta 9 imágenes para animación, personaje, estilo o escena."
+                            : "Hasta 10 imágenes para orientar estilo, composición o edición."}
                         </p>
                       </div>
                       <Button
@@ -1091,16 +1120,20 @@ function CreationWorkspace({ view }: { view: CreationView }) {
                         variant="brand-secondary"
                       >
                         <Upload data-icon="inline-start" />{" "}
-                        {referenceAssetIds.length ? "Cambiar" : "Seleccionar"}
+                        {referenceAssetIds.length
+                          ? `Añadir más · ${referenceAssetIds.length}`
+                          : "Seleccionar"}
                       </Button>
                       <input
                         ref={fileInput}
                         className="hidden"
                         type="file"
-                        accept="image/*"
+                        accept="image/jpeg,image/png,image/webp"
+                        multiple
                         onChange={(event) => {
-                          const file = event.target.files?.[0]
-                          if (file) void uploadReference(file)
+                          const files = Array.from(event.target.files ?? [])
+                          if (files.length) void uploadReferences(files)
+                          event.target.value = ""
                         }}
                       />
                     </div>
@@ -2409,18 +2442,20 @@ function FunctionalAutomation() {
                       Nombre <RequiredMark />
                     </FieldLabel>
                     <Input
+                      aria-required={true}
                       value={name}
                       onChange={(event) => setName(event.target.value)}
                     />
                   </Field>
                   <Field>
-                    <FieldLabel>
+                    <FieldLabel htmlFor="automation-time">
                       Hora <RequiredMark />
                     </FieldLabel>
-                    <Input
-                      type="time"
+                    <TimePicker
+                      aria-required={true}
+                      id="automation-time"
+                      onValueChange={setTime}
                       value={time}
-                      onChange={(event) => setTime(event.target.value)}
                     />
                   </Field>
                 </div>
@@ -2429,6 +2464,7 @@ function FunctionalAutomation() {
                     Instrucción <RequiredMark />
                   </FieldLabel>
                   <Textarea
+                    aria-required="true"
                     rows={4}
                     value={prompt}
                     onChange={(event) => setPrompt(event.target.value)}
@@ -2439,7 +2475,7 @@ function FunctionalAutomation() {
                     Cuenta de destino <RequiredMark />
                   </FieldLabel>
                   <Select value={accountId} onValueChange={setAccountId}>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger aria-required="true" className="w-full">
                       <SelectValue placeholder="Selecciona una cuenta" />
                     </SelectTrigger>
                     <SelectContent>
@@ -2456,7 +2492,9 @@ function FunctionalAutomation() {
           </Card>
           <div className="flex justify-end">
             <Button
-              disabled={pending || !name.trim() || !prompt.trim() || !accountId}
+              disabled={
+                pending || !name.trim() || !time || !prompt.trim() || !accountId
+              }
               type="submit"
             >
               <Save data-icon="inline-start" /> Guardar automatización

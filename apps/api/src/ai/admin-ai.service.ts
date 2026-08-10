@@ -27,8 +27,10 @@ import {
   updateAdminAiRouteSchema,
   type AdminAiConfiguration,
   type AdminAiModel,
+  type AdminAiProviderKey,
   type AdminAiRoute,
   type AdminAiUsage,
+  type AiModelMode,
   type AiRequestKind,
   type AuthSession,
 } from '@workspace/contracts';
@@ -36,10 +38,26 @@ import { DatabaseService } from '../database/database.service';
 import { Aes256GcmService } from '../platform/crypto/aes-256-gcm.service';
 import { AppException } from '../platform/errors/app-exception';
 
-const providerKey = 'openai' as const;
-const providerLabel = 'OpenAI' as const;
-const providerAad = 'ai:openai';
 const openAiModelsUrl = 'https://api.openai.com/v1/models';
+const atlasCloudBalanceUrl = 'https://api.atlascloud.ai/public/v1/balance';
+
+const providerSpecs: Record<
+  AdminAiProviderKey,
+  {
+    label: string;
+    aad: string;
+    capabilities: Array<'text' | 'image' | 'video'>;
+  }
+> = {
+  openai: { label: 'OpenAI', aad: 'ai:openai', capabilities: ['text'] },
+  atlascloud: {
+    label: 'AtlasCloud',
+    aad: 'ai:atlascloud',
+    capabilities: ['image', 'video'],
+  },
+};
+
+const providerKeys = Object.keys(providerSpecs) as AdminAiProviderKey[];
 
 const capabilityByKind: Record<
   AiRequestKind,
@@ -52,11 +70,21 @@ const capabilityByKind: Record<
   planner: 'text',
   review: 'text',
   timing: null,
-  search: 'text',
+  search: null,
   ai_publishing: 'text',
 };
 
 type ProviderConfiguration = { apiKey: string };
+
+const mediaModesByKind: Partial<
+  Record<AiRequestKind, { primary: AiModelMode; reference: AiModelMode[] }>
+> = {
+  image: { primary: 'text-to-image', reference: ['image-to-image'] },
+  video: {
+    primary: 'text-to-video',
+    reference: ['image-to-video', 'reference-to-video'],
+  },
+};
 
 @Injectable()
 export class AdminAiService {
@@ -66,39 +94,65 @@ export class AdminAiService {
   ) {}
 
   async configuration(): Promise<AdminAiConfiguration> {
-    const provider = await this.ensureProvider();
-    const [models, routes] = await Promise.all([
+    await this.ensureProviders();
+    const [providers, models, routes] = await Promise.all([
+      this.database.db
+        .select()
+        .from(providerIntegrations)
+        .where(inArray(providerIntegrations.providerKey, providerKeys)),
       this.database.db
         .select()
         .from(aiModels)
-        .where(eq(aiModels.providerKey, providerKey))
-        .orderBy(aiModels.capability, aiModels.tier, aiModels.label),
+        .where(inArray(aiModels.providerKey, providerKeys))
+        .orderBy(
+          aiModels.providerKey,
+          aiModels.capability,
+          aiModels.tier,
+          aiModels.label,
+        ),
       this.database.db.select().from(aiModelRoutes).orderBy(aiModelRoutes.kind),
     ]);
     return {
-      provider: {
-        providerKey,
-        label: providerLabel,
-        enabled: provider.enabled,
-        readiness: this.publicReadiness(provider.readiness),
-        apiKeyConfigured: Boolean(provider.configurationCiphertext),
-        lastTestedAt: provider.lastTestedAt?.toISOString() ?? null,
-        readinessIssues: provider.readinessIssues,
-      },
+      providers: providerKeys.map((providerKey) => {
+        const provider = providers.find(
+          (candidate) => candidate.providerKey === providerKey,
+        );
+        if (!provider) throw this.failed();
+        const spec = providerSpecs[providerKey];
+        return {
+          providerKey,
+          label: spec.label,
+          capabilities: spec.capabilities,
+          enabled: provider.enabled,
+          readiness: this.publicReadiness(provider.readiness),
+          apiKeyConfigured: Boolean(provider.configurationCiphertext),
+          lastTestedAt: provider.lastTestedAt?.toISOString() ?? null,
+          readinessIssues: provider.readinessIssues,
+        };
+      }),
       models: models.map((model) => this.serializeModel(model)),
       routes: routes.map((route) => this.serializeRoute(route)),
     };
   }
 
-  async testProvider(input: unknown, session: AuthSession) {
+  async testProvider(
+    providerKeyValue: string,
+    input: unknown,
+    session: AuthSession,
+  ) {
+    const providerKey = this.parseProviderKey(providerKeyValue);
     const parsed = testAdminAiProviderSchema.safeParse(input);
     if (!parsed.success) throw this.invalid();
-    const provider = await this.ensureProvider();
+    const provider = await this.ensureProvider(providerKey);
     const configuration = this.resolveConfiguration(
+      providerKey,
       parsed.data.apiKey,
       provider.configurationCiphertext,
     );
-    const availableModels = await this.verifyOpenAi(configuration.apiKey);
+    const availableModels = await this.verifyProvider(
+      providerKey,
+      configuration.apiKey,
+    );
     const testedAt = new Date();
     const fingerprint = this.fingerprint(configuration.apiKey);
     const replacementPending = Boolean(
@@ -132,18 +186,27 @@ export class AdminAiService {
       });
     });
     return {
+      providerKey,
       testedAt: testedAt.toISOString(),
       availableModelIds: [...availableModels].sort(),
     };
   }
 
-  async updateProvider(input: unknown, session: AuthSession) {
+  async updateProvider(
+    providerKeyValue: string,
+    input: unknown,
+    session: AuthSession,
+  ) {
+    const providerKey = this.parseProviderKey(providerKeyValue);
     const parsed = updateAdminAiProviderSchema.safeParse(input);
     if (!parsed.success) throw this.invalid();
-    const provider = await this.ensureProvider();
+    const provider = await this.ensureProvider(providerKey);
     const configuration = parsed.data.apiKey
       ? { apiKey: parsed.data.apiKey }
-      : this.decryptConfiguration(provider.configurationCiphertext);
+      : this.decryptConfiguration(
+          providerKey,
+          provider.configurationCiphertext,
+        );
     const configured = Boolean(configuration);
     const fingerprint = configuration
       ? this.fingerprint(configuration.apiKey)
@@ -158,7 +221,10 @@ export class AdminAiService {
       );
     }
     const ciphertext = configuration
-      ? this.encryption().encrypt(JSON.stringify(configuration), providerAad)
+      ? this.encryption().encrypt(
+          JSON.stringify(configuration),
+          providerSpecs[providerKey].aad,
+        )
       : null;
     const readiness = parsed.data.enabled
       ? tested
@@ -178,9 +244,9 @@ export class AdminAiService {
         .set({
           enabled: parsed.data.enabled,
           readiness,
-          capabilities: ['text', 'image', 'video'],
+          capabilities: providerSpecs[providerKey].capabilities,
           enabledCapabilityKeys: parsed.data.enabled
-            ? ['text', 'image', 'video']
+            ? providerSpecs[providerKey].capabilities
             : [],
           configurationCiphertext: ciphertext,
           readinessIssues: issues,
@@ -201,11 +267,15 @@ export class AdminAiService {
   async createModel(input: unknown, session: AuthSession) {
     const parsed = createAdminAiModelSchema.safeParse(input);
     if (!parsed.success) throw this.invalid();
-    await this.ensureProvider();
+    await this.ensureProvider(parsed.data.providerKey);
+    const { modes, ...modelValues } = parsed.data;
     try {
       const [created] = await this.database.db
         .insert(aiModels)
-        .values({ providerKey, ...parsed.data })
+        .values({
+          ...modelValues,
+          metadata: { modes },
+        })
         .returning();
       if (!created) throw this.failed();
       await this.auditModel(session, 'created', created.id, {
@@ -222,6 +292,14 @@ export class AdminAiService {
     const modelId = z.uuid().safeParse(id);
     const parsed = updateAdminAiModelSchema.safeParse(input);
     if (!modelId.success || !parsed.success) throw this.invalid();
+    const [existing] = await this.database.db
+      .select()
+      .from(aiModels)
+      .where(eq(aiModels.id, modelId.data))
+      .limit(1);
+    if (!existing) {
+      throw new AppException('AI_MODEL_NOT_FOUND', HttpStatus.NOT_FOUND);
+    }
     if (parsed.data.enabled === false || parsed.data.deprecated === true) {
       const [activeRoute] = await this.database.db
         .select({ id: aiModelRoutes.id })
@@ -232,6 +310,8 @@ export class AdminAiService {
             or(
               eq(aiModelRoutes.primaryModelId, modelId.data),
               eq(aiModelRoutes.fallbackModelId, modelId.data),
+              eq(aiModelRoutes.referenceModelId, modelId.data),
+              eq(aiModelRoutes.referenceFallbackModelId, modelId.data),
             ),
           ),
         )
@@ -243,15 +323,22 @@ export class AdminAiService {
         );
       }
     }
+    const { modes, ...modelValues } = parsed.data;
     const [updated] = await this.database.db
       .update(aiModels)
-      .set({ ...parsed.data, updatedAt: new Date() })
-      .where(
-        and(
-          eq(aiModels.id, modelId.data),
-          eq(aiModels.providerKey, providerKey),
-        ),
-      )
+      .set({
+        ...modelValues,
+        ...(modes
+          ? {
+              metadata: {
+                ...(existing.metadata ?? {}),
+                modes,
+              },
+            }
+          : {}),
+        updatedAt: new Date(),
+      })
+      .where(eq(aiModels.id, modelId.data))
       .returning();
     if (!updated) {
       throw new AppException('AI_MODEL_NOT_FOUND', HttpStatus.NOT_FOUND);
@@ -267,42 +354,94 @@ export class AdminAiService {
     const parsed = updateAdminAiRouteSchema.safeParse(input);
     if (!kind.success || !parsed.success) throw this.invalid();
     const expectedCapability = capabilityByKind[kind.data];
+    const mediaModes = mediaModesByKind[kind.data];
     const values =
       expectedCapability === null
         ? {
             ...parsed.data,
             primaryModelId: null,
             fallbackModelId: null,
+            referenceModelId: null,
+            referenceFallbackModelId: null,
             reasoningEffort: 'none' as const,
           }
-        : parsed.data;
+        : mediaModes
+          ? { ...parsed.data, reasoningEffort: 'none' as const }
+          : parsed.data;
     if (
-      values.primaryModelId &&
-      values.fallbackModelId === values.primaryModelId
+      (values.primaryModelId &&
+        values.fallbackModelId === values.primaryModelId) ||
+      (values.referenceModelId &&
+        values.referenceFallbackModelId === values.referenceModelId)
     ) {
       throw new AppException(
         'AI_MODEL_ROUTE_INVALID',
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
-    const ids = [values.primaryModelId, values.fallbackModelId].filter(
-      (value): value is string => Boolean(value),
-    );
+    const ids = [
+      ...new Set(
+        [
+          values.primaryModelId,
+          values.fallbackModelId,
+          values.referenceModelId,
+          values.referenceFallbackModelId,
+        ].filter((value): value is string => Boolean(value)),
+      ),
+    ];
     const models = ids.length
       ? await this.database.db
           .select()
           .from(aiModels)
           .where(inArray(aiModels.id, ids))
       : [];
-    if (
+    const byId = new Map(models.map((model) => [model.id, model]));
+    const primary = values.primaryModelId
+      ? byId.get(values.primaryModelId)
+      : null;
+    const fallback = values.fallbackModelId
+      ? byId.get(values.fallbackModelId)
+      : null;
+    const reference = values.referenceModelId
+      ? byId.get(values.referenceModelId)
+      : null;
+    const referenceFallback = values.referenceFallbackModelId
+      ? byId.get(values.referenceFallbackModelId)
+      : null;
+    const invalidModels =
       models.length !== ids.length ||
       models.some(
         (model) =>
-          model.providerKey !== providerKey ||
           model.capability !== expectedCapability ||
           (values.enabled && (!model.enabled || model.deprecated)),
-      ) ||
-      (values.enabled && expectedCapability && !values.primaryModelId)
+      );
+    const invalidProviders = mediaModes
+      ? models.some((model) => model.providerKey !== 'atlascloud')
+      : models.some((model) => model.providerKey !== 'openai');
+    const invalidFallback =
+      Boolean(fallback && primary?.providerKey !== fallback.providerKey) ||
+      Boolean(
+        referenceFallback &&
+        reference?.providerKey !== referenceFallback.providerKey,
+      );
+    const invalidModes = mediaModes
+      ? !this.modelSupportsMode(primary, [mediaModes.primary]) ||
+        !this.modelSupportsMode(reference, mediaModes.reference) ||
+        Boolean(
+          fallback && !this.modelSupportsMode(fallback, [mediaModes.primary]),
+        ) ||
+        Boolean(
+          referenceFallback &&
+          !this.modelSupportsMode(referenceFallback, mediaModes.reference),
+        )
+      : Boolean(values.referenceModelId || values.referenceFallbackModelId);
+    if (
+      invalidModels ||
+      invalidProviders ||
+      invalidFallback ||
+      invalidModes ||
+      (values.enabled && expectedCapability && !primary) ||
+      (values.enabled && mediaModes && !reference)
     ) {
       throw new AppException(
         'AI_MODEL_ROUTE_INVALID',
@@ -386,14 +525,19 @@ export class AdminAiService {
     };
   }
 
-  private async ensureProvider() {
+  private async ensureProviders() {
+    await Promise.all(providerKeys.map((key) => this.ensureProvider(key)));
+  }
+
+  private async ensureProvider(providerKey: AdminAiProviderKey) {
+    const spec = providerSpecs[providerKey];
     await this.database.db
       .insert(providerIntegrations)
       .values({
         providerKey,
         enabled: false,
         readiness: 'disabled',
-        capabilities: ['text', 'image', 'video'],
+        capabilities: spec.capabilities,
         enabledCapabilityKeys: [],
         readinessIssues: [],
       })
@@ -408,12 +552,13 @@ export class AdminAiService {
   }
 
   private resolveConfiguration(
+    providerKey: AdminAiProviderKey,
     apiKey: string | undefined,
     ciphertext: string | null,
   ) {
     const configuration = apiKey
       ? { apiKey }
-      : this.decryptConfiguration(ciphertext);
+      : this.decryptConfiguration(providerKey, ciphertext);
     if (!configuration) {
       throw new AppException(
         'AI_PROVIDER_CONFIGURATION_INVALID',
@@ -424,12 +569,13 @@ export class AdminAiService {
   }
 
   private decryptConfiguration(
+    providerKey: AdminAiProviderKey,
     ciphertext: string | null,
   ): ProviderConfiguration | null {
     if (!ciphertext) return null;
     try {
       const parsed = JSON.parse(
-        this.encryption().decrypt(ciphertext, providerAad),
+        this.encryption().decrypt(ciphertext, providerSpecs[providerKey].aad),
       ) as unknown;
       if (
         !parsed ||
@@ -444,6 +590,16 @@ export class AdminAiService {
     } catch {
       return null;
     }
+  }
+
+  private async verifyProvider(
+    providerKey: AdminAiProviderKey,
+    apiKey: string,
+  ) {
+    if (providerKey === 'atlascloud') {
+      return this.verifyAtlasCloud(apiKey);
+    }
+    return this.verifyOpenAi(apiKey);
   }
 
   private async verifyOpenAi(apiKey: string) {
@@ -472,10 +628,29 @@ export class AdminAiService {
     );
   }
 
+  private async verifyAtlasCloud(apiKey: string) {
+    let response: Response;
+    try {
+      response = await fetch(atlasCloudBalanceUrl, {
+        headers: { authorization: `Bearer ${apiKey}` },
+        signal: AbortSignal.timeout(20_000),
+      });
+    } catch {
+      throw new AppException('AI_PROVIDER_NOT_READY', HttpStatus.BAD_GATEWAY);
+    }
+    if (response.status === 401 || (!response.ok && response.status !== 403)) {
+      throw new AppException(
+        'AI_PROVIDER_CONFIGURATION_INVALID',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+    return new Set<string>();
+  }
+
   private serializeModel(model: typeof aiModels.$inferSelect): AdminAiModel {
     return {
       id: model.id,
-      providerKey,
+      providerKey: this.parseProviderKey(model.providerKey),
       modelId: model.modelId,
       label: model.label,
       capability: model.capability,
@@ -485,6 +660,7 @@ export class AdminAiService {
       inputPriceMicrousdPerMillion: model.inputPriceMicrousdPerMillion,
       outputPriceMicrousdPerMillion: model.outputPriceMicrousdPerMillion,
       unitPriceMicrousd: model.unitPriceMicrousd,
+      modes: this.modelModes(model),
     };
   }
 
@@ -495,6 +671,8 @@ export class AdminAiService {
       kind: route.kind,
       primaryModelId: route.primaryModelId,
       fallbackModelId: route.fallbackModelId,
+      referenceModelId: route.referenceModelId,
+      referenceFallbackModelId: route.referenceFallbackModelId,
       reasoningEffort: route.reasoningEffort,
       costUnits: route.costUnits,
       enabled: route.enabled,
@@ -522,6 +700,34 @@ export class AdminAiService {
     }
     if (value === 'incomplete' || value === 'error') return value;
     return 'incomplete' as const;
+  }
+
+  private parseProviderKey(value: string): AdminAiProviderKey {
+    if (value === 'openai' || value === 'atlascloud') return value;
+    throw this.invalid();
+  }
+
+  private modelModes(model: typeof aiModels.$inferSelect): AiModelMode[] {
+    const modes = Array.isArray(model.metadata.modes)
+      ? model.metadata.modes
+      : [];
+    return modes.filter(
+      (mode): mode is AiModelMode =>
+        mode === 'text-to-image' ||
+        mode === 'image-to-image' ||
+        mode === 'text-to-video' ||
+        mode === 'image-to-video' ||
+        mode === 'reference-to-video',
+    );
+  }
+
+  private modelSupportsMode(
+    model: typeof aiModels.$inferSelect | null | undefined,
+    modes: AiModelMode[],
+  ) {
+    return Boolean(
+      model && this.modelModes(model).some((mode) => modes.includes(mode)),
+    );
   }
 
   private fingerprint(apiKey: string) {

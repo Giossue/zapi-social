@@ -108,6 +108,7 @@ import type {
   CreatePortalAiRequestInput,
   AdminAiConfiguration,
   AdminAiModel,
+  AdminAiProviderKey,
   AdminAiRoute,
   AdminAiUsage,
   ArchivePortalAiRequestInput,
@@ -148,6 +149,12 @@ import type {
   RequestPortalAffiliateWithdrawalInput,
   UpdatePortalCommerceOrderInput,
   UpdatePortalCommerceProductInput,
+  AdminOperationActionKey,
+  AdminOperationModule,
+  AdminOperationView,
+  AdminOperationMutationResult,
+  PolarIntegration,
+  UpdatePolarIntegrationInput,
 } from "@workspace/contracts"
 
 const apiBaseUrl =
@@ -230,6 +237,21 @@ function portalChannelsQueryString(query: Partial<PortalChannelsQuery> = {}) {
   if (query.cursor) params.set("cursor", query.cursor)
   const serialized = params.toString()
   return serialized ? `?${serialized}` : ""
+}
+
+function adminOperationsQueryString(query: {
+  tab: string
+  q?: string
+  status?: string
+  page?: number
+  pageSize?: number
+}) {
+  const params = new URLSearchParams({ tab: query.tab })
+  if (query.q) params.set("q", query.q)
+  if (query.status && query.status !== "all") params.set("status", query.status)
+  if (query.page) params.set("page", String(query.page))
+  if (query.pageSize) params.set("pageSize", String(query.pageSize))
+  return `?${params.toString()}`
 }
 
 function portalRssSchedulesQueryString(
@@ -809,13 +831,23 @@ export const adminAiApi = {
     request<AdminAiConfiguration>("/v1/admin/ai/configuration", {
       method: "GET",
     }),
-  testProvider: (input: TestAdminAiProviderInput) =>
-    request<{ testedAt: string; availableModelIds: string[] }>(
-      "/v1/admin/ai/provider/test",
-      { method: "POST", body: JSON.stringify(input) }
-    ),
-  updateProvider: (input: UpdateAdminAiProviderInput) =>
-    request<AdminAiConfiguration>("/v1/admin/ai/provider", {
+  testProvider: (
+    providerKey: AdminAiProviderKey,
+    input: TestAdminAiProviderInput
+  ) =>
+    request<{
+      providerKey: AdminAiProviderKey
+      testedAt: string
+      availableModelIds: string[]
+    }>(`/v1/admin/ai/providers/${providerKey}/test`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  updateProvider: (
+    providerKey: AdminAiProviderKey,
+    input: UpdateAdminAiProviderInput
+  ) =>
+    request<AdminAiConfiguration>(`/v1/admin/ai/providers/${providerKey}`, {
       method: "PATCH",
       body: JSON.stringify(input),
     }),
@@ -1161,6 +1193,54 @@ export const plansApi = {
     }),
   remove: (id: string) =>
     request<void>(`/v1/admin/plans/${id}`, { method: "DELETE" }),
+}
+
+export const adminOperationsApi = {
+  view: (
+    module: AdminOperationModule,
+    query: {
+      tab: string
+      q?: string
+      status?: string
+      page?: number
+      pageSize?: number
+    }
+  ) =>
+    request<AdminOperationView>(
+      `/v1/admin/operations/${module}${adminOperationsQueryString(query)}`,
+      { method: "GET" }
+    ),
+  create: (module: AdminOperationModule, values: string[]) =>
+    request<AdminOperationMutationResult>(`/v1/admin/operations/${module}`, {
+      method: "POST",
+      body: JSON.stringify({ values }),
+    }),
+  action: (
+    module: AdminOperationModule,
+    tab: string,
+    id: string,
+    action: AdminOperationActionKey,
+    values?: string[]
+  ) =>
+    request<AdminOperationMutationResult>(
+      `/v1/admin/operations/${module}/${tab}/${id}/actions`,
+      {
+        method: "POST",
+        body: JSON.stringify({ action, values }),
+      }
+    ),
+}
+
+export const polarApi = {
+  get: () =>
+    request<PolarIntegration>("/v1/admin/integrations/polar", {
+      method: "GET",
+    }),
+  save: (input: UpdatePolarIntegrationInput) =>
+    request<PolarIntegration>("/v1/admin/integrations/polar", {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
 }
 
 export const auditApi = {

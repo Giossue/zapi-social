@@ -1,0 +1,4 @@
+ALTER TABLE "billing_subscriptions" DROP CONSTRAINT "billing_subscriptions_status_check";--> statement-breakpoint
+ALTER TABLE "affiliate_commissions" ADD COLUMN "external_reference" varchar(200);--> statement-breakpoint
+CREATE UNIQUE INDEX "affiliate_commissions_external_reference_unique" ON "affiliate_commissions" USING btree ("external_reference") WHERE "affiliate_commissions"."external_reference" is not null;--> statement-breakpoint
+ALTER TABLE "billing_subscriptions" ADD CONSTRAINT "billing_subscriptions_status_check" CHECK ("billing_subscriptions"."status" in ('incomplete', 'trialing', 'active', 'past_due', 'paused', 'canceled', 'unpaid'));

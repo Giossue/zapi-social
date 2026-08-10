@@ -4,6 +4,7 @@ import { adminAiApi, ApiError } from "@workspace/api-client"
 import type {
   AdminAiConfiguration,
   AdminAiModel,
+  AdminAiProviderKey,
   AdminAiRoute,
   AdminAiUsage,
   AiRequestKind,
@@ -55,7 +56,7 @@ import {
   ShieldCheck,
   Sparkles,
 } from "lucide-react"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 const kindLabels: Record<AiRequestKind, string> = {
   content: "Crear contenido",
@@ -90,6 +91,17 @@ const readinessCopy = {
   error: { label: "Error", variant: "destructive" as const },
 }
 
+type ProviderDraft = {
+  apiKey: string
+  enabled: boolean
+  tested: boolean
+}
+
+const emptyProviderDrafts: Record<AdminAiProviderKey, ProviderDraft> = {
+  openai: { apiKey: "", enabled: false, tested: false },
+  atlascloud: { apiKey: "", enabled: false, tested: false },
+}
+
 function errorMessage(error: unknown) {
   if (error instanceof ApiError) {
     if (error.code === "AI_PROVIDER_CONFIGURATION_INVALID") {
@@ -118,9 +130,7 @@ export function AiConfigurationPage() {
   const [configuration, setConfiguration] =
     useState<AdminAiConfiguration | null>(null)
   const [usage, setUsage] = useState<AdminAiUsage | null>(null)
-  const [apiKey, setApiKey] = useState("")
-  const [providerEnabled, setProviderEnabled] = useState(false)
-  const [tested, setTested] = useState(false)
+  const [providerDrafts, setProviderDrafts] = useState(emptyProviderDrafts)
   const [pending, setPending] = useState<string | null>(null)
   const [loadError, setLoadError] = useState(false)
 
@@ -133,7 +143,22 @@ export function AiConfigurationPage() {
       ])
       setConfiguration(nextConfiguration)
       setUsage(nextUsage)
-      setProviderEnabled(nextConfiguration.provider.enabled)
+      setProviderDrafts((current) => ({
+        openai: {
+          ...current.openai,
+          enabled:
+            nextConfiguration.providers.find(
+              (provider) => provider.providerKey === "openai"
+            )?.enabled ?? false,
+        },
+        atlascloud: {
+          ...current.atlascloud,
+          enabled:
+            nextConfiguration.providers.find(
+              (provider) => provider.providerKey === "atlascloud"
+            )?.enabled ?? false,
+        },
+      }))
     } catch {
       setLoadError(true)
       setConfiguration(null)
@@ -145,54 +170,71 @@ export function AiConfigurationPage() {
     void load()
   }, [load])
 
-  async function testProvider() {
+  async function testProvider(providerKey: AdminAiProviderKey) {
     if (!configuration) return
-    if (!configuration.provider.apiKeyConfigured && apiKey.trim().length < 20) {
-      toast.error("Ingresa una clave de OpenAI válida.")
+    const provider = configuration.providers.find(
+      (candidate) => candidate.providerKey === providerKey
+    )
+    const draft = providerDrafts[providerKey]
+    if (!provider?.apiKeyConfigured && draft.apiKey.trim().length < 20) {
+      toast.error(
+        `Ingresa una clave de ${provider?.label ?? "proveedor"} válida.`
+      )
       return
     }
-    setPending("provider-test")
+    setPending(`provider-test-${providerKey}`)
     try {
-      const result = await adminAiApi.testProvider(
-        apiKey.trim() ? { apiKey: apiKey.trim() } : {}
+      await adminAiApi.testProvider(
+        providerKey,
+        draft.apiKey.trim() ? { apiKey: draft.apiKey.trim() } : {}
       )
-      setTested(true)
-      toast.success(
-        `Conexión correcta. OpenAI devolvió ${result.availableModelIds.length} modelos.`
-      )
+      setProviderDrafts((current) => ({
+        ...current,
+        [providerKey]: { ...current[providerKey], tested: true },
+      }))
+      toast.success(`Conexión con ${provider?.label} correcta.`)
       await load()
     } catch (error) {
-      setTested(false)
+      setProviderDrafts((current) => ({
+        ...current,
+        [providerKey]: { ...current[providerKey], tested: false },
+      }))
       toast.error(errorMessage(error))
     } finally {
       setPending(null)
     }
   }
 
-  async function saveProvider() {
+  async function saveProvider(providerKey: AdminAiProviderKey) {
     if (!configuration) return
-    if (!configuration.provider.apiKeyConfigured && apiKey.trim().length < 20) {
+    const provider = configuration.providers.find(
+      (candidate) => candidate.providerKey === providerKey
+    )
+    const draft = providerDrafts[providerKey]
+    if (!provider?.apiKeyConfigured && draft.apiKey.trim().length < 20) {
       toast.error("Ingresa y prueba la clave antes de guardar.")
       return
     }
-    if (
-      providerEnabled &&
-      !tested &&
-      configuration.provider.readiness !== "ready"
-    ) {
-      toast.error("Prueba la conexión antes de habilitar OpenAI.")
+    if (draft.enabled && !draft.tested && provider?.readiness !== "ready") {
+      toast.error(`Prueba la conexión antes de habilitar ${provider?.label}.`)
       return
     }
-    setPending("provider-save")
+    setPending(`provider-save-${providerKey}`)
     try {
-      const next = await adminAiApi.updateProvider({
-        enabled: providerEnabled,
-        ...(apiKey.trim() ? { apiKey: apiKey.trim() } : {}),
+      const next = await adminAiApi.updateProvider(providerKey, {
+        enabled: draft.enabled,
+        ...(draft.apiKey.trim() ? { apiKey: draft.apiKey.trim() } : {}),
       })
       setConfiguration(next)
-      setApiKey("")
-      setTested(false)
-      toast.success("Configuración de OpenAI guardada.")
+      setProviderDrafts((current) => ({
+        ...current,
+        [providerKey]: {
+          ...current[providerKey],
+          apiKey: "",
+          tested: false,
+        },
+      }))
+      toast.success(`Configuración de ${provider?.label} guardada.`)
     } catch (error) {
       toast.error(errorMessage(error))
     } finally {
@@ -230,6 +272,8 @@ export function AiConfigurationPage() {
       const updated = await adminAiApi.updateRoute(route.kind, {
         primaryModelId: route.primaryModelId,
         fallbackModelId: route.fallbackModelId,
+        referenceModelId: route.referenceModelId,
+        referenceFallbackModelId: route.referenceFallbackModelId,
         reasoningEffort: route.reasoningEffort,
         costUnits: route.costUnits,
         enabled: route.enabled,
@@ -284,7 +328,15 @@ export function AiConfigurationPage() {
     )
   }
 
-  const status = readinessCopy[configuration.provider.readiness]
+  const readyProviders = configuration.providers.filter(
+    (provider) => provider.readiness === "ready"
+  ).length
+  const status =
+    readyProviders === configuration.providers.length
+      ? readinessCopy.ready
+      : readyProviders > 0
+        ? readinessCopy.untested
+        : readinessCopy.disabled
 
   return (
     <section className="space-y-6 py-4">
@@ -299,7 +351,8 @@ export function AiConfigurationPage() {
           </p>
         </div>
         <Badge variant={status.variant}>
-          <CheckCircle2 data-icon="inline-start" /> {status.label}
+          <CheckCircle2 data-icon="inline-start" /> {readyProviders}/
+          {configuration.providers.length} listos
         </Badge>
       </div>
 
@@ -312,94 +365,129 @@ export function AiConfigurationPage() {
         </TabsList>
 
         <TabsContent value="provider" className="space-y-4 pt-3">
-          <Card variant="subtle">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <KeyRound className="size-4" /> OpenAI
-              </CardTitle>
-              <CardDescription>
-                La clave se cifra en el servidor y no vuelve a mostrarse.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              <div className="space-y-2">
-                <label htmlFor="openai-key" className="text-sm font-medium">
-                  Clave API
-                  {!configuration.provider.apiKeyConfigured ? (
-                    <span className="text-destructive"> *</span>
-                  ) : null}
-                </label>
-                <Input
-                  id="openai-key"
-                  type="password"
-                  autoComplete="new-password"
-                  value={apiKey}
-                  onChange={(event) => {
-                    setApiKey(event.target.value)
-                    setTested(false)
-                  }}
-                  placeholder={
-                    configuration.provider.apiKeyConfigured
-                      ? "Clave configurada; escribe otra para reemplazarla"
-                      : "sk-..."
-                  }
-                />
-              </div>
-              <div className="flex items-center justify-between gap-4 rounded-lg border p-3">
-                <div>
-                  <p className="font-medium">Habilitar OpenAI</p>
-                  <p className="text-sm text-muted-foreground">
-                    Permite que las herramientas activas envíen trabajos al
-                    proveedor.
-                  </p>
-                </div>
-                <Switch
-                  checked={providerEnabled}
-                  onCheckedChange={setProviderEnabled}
-                  aria-label="Habilitar OpenAI"
-                />
-              </div>
-              <div className="flex flex-wrap justify-end gap-2">
-                <Button
-                  variant="brand-secondary"
-                  disabled={pending !== null}
-                  onClick={() => void testProvider()}
-                >
-                  {pending === "provider-test" ? (
-                    <LoaderCircle
-                      className="animate-spin"
-                      data-icon="inline-start"
+          {configuration.providers.map((provider) => {
+            const draft = providerDrafts[provider.providerKey]
+            const providerStatus = readinessCopy[provider.readiness]
+            const testing = pending === `provider-test-${provider.providerKey}`
+            const saving = pending === `provider-save-${provider.providerKey}`
+            return (
+              <Card key={provider.providerKey} variant="subtle">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <KeyRound /> {provider.label}
+                    <Badge variant={providerStatus.variant}>
+                      {providerStatus.label}
+                    </Badge>
+                  </CardTitle>
+                  <CardDescription>
+                    Gestiona{" "}
+                    {provider.capabilities
+                      .map((capability) =>
+                        capabilityLabels[capability].toLowerCase()
+                      )
+                      .join(" y ")}
+                    . La clave se cifra y no vuelve a mostrarse.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col gap-5">
+                  <div className="flex flex-col gap-2">
+                    <label
+                      htmlFor={`${provider.providerKey}-key`}
+                      className="text-sm font-medium"
+                    >
+                      Clave API
+                      {!provider.apiKeyConfigured ? (
+                        <span className="text-destructive"> *</span>
+                      ) : null}
+                    </label>
+                    <Input
+                      id={`${provider.providerKey}-key`}
+                      type="password"
+                      autoComplete="new-password"
+                      value={draft.apiKey}
+                      onChange={(event) =>
+                        setProviderDrafts((current) => ({
+                          ...current,
+                          [provider.providerKey]: {
+                            ...current[provider.providerKey],
+                            apiKey: event.target.value,
+                            tested: false,
+                          },
+                        }))
+                      }
+                      placeholder={
+                        provider.apiKeyConfigured
+                          ? "Clave configurada; escribe otra para reemplazarla"
+                          : provider.providerKey === "atlascloud"
+                            ? "apikey-..."
+                            : "sk-..."
+                      }
                     />
-                  ) : (
-                    <ShieldCheck data-icon="inline-start" />
-                  )}
-                  Probar conexión
-                </Button>
-                <Button
-                  disabled={pending !== null}
-                  onClick={() => void saveProvider()}
-                >
-                  {pending === "provider-save" ? (
-                    <LoaderCircle
-                      className="animate-spin"
-                      data-icon="inline-start"
+                  </div>
+                  <div className="flex items-center justify-between gap-4 rounded-lg border p-3">
+                    <div>
+                      <p className="font-medium">Habilitar {provider.label}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Activa únicamente las capacidades indicadas arriba.
+                      </p>
+                    </div>
+                    <Switch
+                      checked={draft.enabled}
+                      onCheckedChange={(enabled) =>
+                        setProviderDrafts((current) => ({
+                          ...current,
+                          [provider.providerKey]: {
+                            ...current[provider.providerKey],
+                            enabled,
+                          },
+                        }))
+                      }
+                      aria-label={`Habilitar ${provider.label}`}
                     />
-                  ) : (
-                    <Save data-icon="inline-start" />
-                  )}
-                  Guardar proveedor
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                  </div>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <Button
+                      variant="brand-secondary"
+                      disabled={pending !== null}
+                      onClick={() => void testProvider(provider.providerKey)}
+                    >
+                      {testing ? (
+                        <LoaderCircle
+                          className="animate-spin"
+                          data-icon="inline-start"
+                        />
+                      ) : (
+                        <ShieldCheck data-icon="inline-start" />
+                      )}
+                      Probar conexión
+                    </Button>
+                    <Button
+                      disabled={pending !== null}
+                      onClick={() => void saveProvider(provider.providerKey)}
+                    >
+                      {saving ? (
+                        <LoaderCircle
+                          className="animate-spin"
+                          data-icon="inline-start"
+                        />
+                      ) : (
+                        <Save data-icon="inline-start" />
+                      )}
+                      Guardar proveedor
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })}
         </TabsContent>
-
         <TabsContent value="models" className="pt-3">
           <Card className="overflow-hidden p-0" variant="subtle">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Modelo</TableHead>
+                  <TableHead>Proveedor</TableHead>
                   <TableHead>Capacidad</TableHead>
                   <TableHead>Perfil</TableHead>
                   <TableHead>Estado</TableHead>
@@ -414,6 +502,11 @@ export function AiConfigurationPage() {
                       <p className="font-mono text-xs text-muted-foreground">
                         {model.modelId}
                       </p>
+                    </TableCell>
+                    <TableCell>
+                      {configuration.providers.find(
+                        (provider) => provider.providerKey === model.providerKey
+                      )?.label ?? model.providerKey}
                     </TableCell>
                     <TableCell>{capabilityLabels[model.capability]}</TableCell>
                     <TableCell>{tierLabels[model.tier]}</TableCell>
@@ -478,14 +571,29 @@ function RouteCard({
   const capability =
     route.kind === "image" ? "image" : route.kind === "video" ? "video" : "text"
   const internal = route.kind === "timing" || route.kind === "search"
-  const options = useMemo(
-    () =>
-      models.filter(
-        (model) =>
-          model.capability === capability && model.enabled && !model.deprecated
-      ),
-    [capability, models]
+  const media = route.kind === "image" || route.kind === "video"
+  const primaryModes =
+    route.kind === "image" ? ["text-to-image"] : ["text-to-video"]
+  const referenceModes =
+    route.kind === "image"
+      ? ["image-to-image"]
+      : ["image-to-video", "reference-to-video"]
+  const options = models.filter(
+    (model) =>
+      model.capability === capability &&
+      model.enabled &&
+      !model.deprecated &&
+      (!media || model.modes.some((mode) => primaryModes.includes(mode)))
   )
+  const referenceOptions = media
+    ? models.filter(
+        (model) =>
+          model.capability === capability &&
+          model.enabled &&
+          !model.deprecated &&
+          model.modes.some((mode) => referenceModes.includes(mode))
+      )
+    : []
 
   return (
     <Card variant="subtle">
@@ -496,7 +604,9 @@ function RouteCard({
         <CardDescription>
           {internal
             ? "Esta herramienta se resuelve dentro de Zapi y no consume un modelo externo."
-            : `Elige el modelo principal y el respaldo para ${capabilityLabels[capability].toLowerCase()}.`}
+            : media
+              ? "Separa la generación desde texto de la generación con archivos de referencia."
+              : `Elige el modelo principal y el respaldo para ${capabilityLabels[capability].toLowerCase()}.`}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -505,7 +615,7 @@ function RouteCard({
             <>
               <div className="space-y-2">
                 <label className="text-sm font-medium">
-                  Modelo principal
+                  {media ? "Principal · sin referencias" : "Modelo principal"}
                   {route.enabled ? (
                     <span className="text-destructive"> *</span>
                   ) : null}
@@ -533,7 +643,7 @@ function RouteCard({
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">
-                  Modelo de respaldo
+                  {media ? "Respaldo · sin referencias" : "Modelo de respaldo"}
                 </label>
                 <Select
                   value={route.fallbackModelId ?? "none"}
@@ -558,25 +668,89 @@ function RouteCard({
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Razonamiento</label>
-                <Select
-                  value={route.reasoningEffort}
-                  onValueChange={(value) =>
-                    onChange({ reasoningEffort: value as AiReasoningEffort })
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Ninguno</SelectItem>
-                    <SelectItem value="low">Bajo</SelectItem>
-                    <SelectItem value="medium">Medio</SelectItem>
-                    <SelectItem value="high">Alto</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {media ? (
+                <>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Principal · con referencias
+                      {route.enabled ? (
+                        <span className="text-destructive"> *</span>
+                      ) : null}
+                    </label>
+                    <Select
+                      value={route.referenceModelId ?? "none"}
+                      onValueChange={(value) =>
+                        onChange({
+                          referenceModelId: value === "none" ? null : value,
+                        })
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecciona" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Sin modelo</SelectItem>
+                        {referenceOptions.map((model) => (
+                          <SelectItem key={model.id} value={model.id}>
+                            {model.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Respaldo · con referencias
+                    </label>
+                    <Select
+                      value={route.referenceFallbackModelId ?? "none"}
+                      onValueChange={(value) =>
+                        onChange({
+                          referenceFallbackModelId:
+                            value === "none" ? null : value,
+                        })
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Selecciona" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Sin respaldo</SelectItem>
+                        {referenceOptions
+                          .filter(
+                            (model) => model.id !== route.referenceModelId
+                          )
+                          .map((model) => (
+                            <SelectItem key={model.id} value={model.id}>
+                              {model.label}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              ) : null}
+              {!media ? (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Razonamiento</label>
+                  <Select
+                    value={route.reasoningEffort}
+                    onValueChange={(value) =>
+                      onChange({ reasoningEffort: value as AiReasoningEffort })
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Ninguno</SelectItem>
+                      <SelectItem value="low">Bajo</SelectItem>
+                      <SelectItem value="medium">Medio</SelectItem>
+                      <SelectItem value="high">Alto</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : null}
             </>
           ) : null}
           <div className="space-y-2">
@@ -606,7 +780,9 @@ function RouteCard({
           <Button
             onClick={onSave}
             disabled={
-              pending || (route.enabled && !internal && !route.primaryModelId)
+              pending ||
+              (route.enabled && !internal && !route.primaryModelId) ||
+              (route.enabled && media && !route.referenceModelId)
             }
           >
             {pending ? (
