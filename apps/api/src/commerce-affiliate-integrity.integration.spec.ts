@@ -16,6 +16,7 @@ import type { PortalAuthSession } from '@workspace/contracts';
 import { AffiliateService } from './affiliate/affiliate.service';
 import { CommerceService } from './commerce/commerce.service';
 import { DatabaseService } from './database/database.service';
+import { CaptchaService } from './captcha/captcha.service';
 import { IdentityService } from './identity/identity.service';
 import { AppException } from './platform/errors/app-exception';
 
@@ -32,6 +33,9 @@ const isLocalTestDatabase = (() => {
 const describeDatabase = isLocalTestDatabase ? describe : describe.skip;
 const rollback = new Error('Rollback commerce and affiliate integrity test.');
 const connection = isLocalTestDatabase ? createDatabase(databaseUrl!) : null;
+const captchaDisabled = {
+  verifyAuthenticationToken: () => Promise.resolve(),
+} as unknown as CaptchaService;
 
 async function inRollbackTransaction(
   callback: (database: Database) => Promise<void>,
@@ -261,6 +265,7 @@ describeDatabase('Commerce and affiliate data integrity', () => {
       const service = new IdentityService(
         { db: connection.db } as DatabaseService,
         new JwtService({ secret: 'identity-integrity-test-secret' }),
+        captchaDisabled,
       );
 
       const registrations = await Promise.all([

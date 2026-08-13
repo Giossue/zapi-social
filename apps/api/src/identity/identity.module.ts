@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { EmailModule } from '../email/email.module';
+import { CaptchaModule } from '../captcha/captcha.module';
 import { IdentityController } from './identity.controller';
 import { IdentityService } from './identity.service';
 import { PasswordResetService } from './password-reset.service';
@@ -12,6 +13,7 @@ import { SessionAccessService } from './session-access.service';
 @Module({
   imports: [
     EmailModule,
+    CaptchaModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({

@@ -29,9 +29,10 @@ export class IdentityController {
   @Post('register')
   async register(
     @Body() body: unknown,
+    @Req() request: FastifyRequest,
     @Res({ passthrough: true }) reply: FastifyReply,
   ) {
-    const authentication = await this.identity.register(body);
+    const authentication = await this.identity.register(body, request.ip);
     this.setAuthenticationCookies(
       reply,
       authentication.accessToken,
@@ -44,9 +45,10 @@ export class IdentityController {
   @HttpCode(200)
   async login(
     @Body() body: unknown,
+    @Req() request: FastifyRequest,
     @Res({ passthrough: true }) reply: FastifyReply,
   ) {
-    const authentication = await this.identity.login(body);
+    const authentication = await this.identity.login(body, request.ip);
     this.setAuthenticationCookies(
       reply,
       authentication.accessToken,

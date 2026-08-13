@@ -2,7 +2,7 @@
 
 ## Estado y alcance
 
-Las rutas principales de plataforma ya tienen superficies propias. Este plan cubre las 17 entradas restantes del sidebar Admin que todavía caen en el placeholder genérico. La entrega actual es exclusivamente visual y usa fixtures sintéticas; no crea contratos, endpoints, tablas ni migraciones.
+Las rutas principales de plataforma ya tienen superficies propias. Este plan cubre las 16 entradas restantes del sidebar Admin que todavía caen en el placeholder genérico. La entrega actual es exclusivamente visual y usa fixtures sintéticas; no crea contratos, endpoints, tablas ni migraciones. Captcha dejó este alcance: su superficie real se documenta en [`turnstile-v2.md`](./turnstile-v2.md).
 
 Fuente canónica: `diseño ideal/src/app/(main)/dashboard/admin-modules`. La copia V2 vive bajo `features/platform-admin-mockups` y conserva el patrón final de tablas, sheets y formularios.
 
@@ -33,7 +33,7 @@ Fuente canónica: `diseño ideal/src/app/(main)/dashboard/admin-modules`. La cop
 
 1. [x] Auditar navegación Admin y módulos Laravel equivalentes.
 2. [x] Crear y validar la fuente canónica navegable en `diseño ideal`.
-3. [x] Copiar las 17 superficies a ZapiV2 y retirar el placeholder de cada entrada del sidebar.
+3. [x] Copiar las 16 superficies restantes a ZapiV2 y retirar el placeholder de cada entrada del sidebar; Captcha ya es una integración real.
 4. [x] Validar fuente y consumidor con formato, typecheck/build, lint focal y `git diff --check`.
 5. [ ] Obtener aprobación visual del usuario.
 6. [ ] Diseñar contratos y backend por vertical únicamente después de aprobar los mockups.
@@ -41,7 +41,7 @@ Fuente canónica: `diseño ideal/src/app/(main)/dashboard/admin-modules`. La cop
 ## Evidencia — 10 de agosto de 2026
 
 - Fuente navegable creada en `/dashboard/admin-modules`; `npm run build` correcto y Biome focal sin diagnósticos.
-- Las 17 rutas Admin aparecen explícitamente en el build de ZapiV2 y ya no resuelven mediante el placeholder dinámico.
+- Las 16 rutas Admin mock aparecen explícitamente en el build de ZapiV2 y ya no resuelven mediante el placeholder dinámico. Captcha se valida en su plan funcional propio.
 - Web: lint focal, `tsc --noEmit` y `next build` correctos.
 - No se levantaron servidores ni se hizo revisión visual automatizada; la aprobación visual corresponde al usuario.
 
@@ -52,7 +52,7 @@ Fuente canónica: `diseño ideal/src/app/(main)/dashboard/admin-modules`. La cop
 - Los formularios mantienen `noValidate`, `aria-required`, asterisco rojo, estado pendiente y bloqueo por campos obligatorios; una edición o ajuste sin cambios no puede guardarse.
 - La separación tonal se resolvió en la fuente canónica y en primitives compartidos, no con colores locales de la feature.
 - Fuente: Biome focal sin diagnósticos, `tsc --noEmit`, `next build` y `git diff --check` correctos.
-- ZapiV2: lint focal Web sin errores, typecheck de Web y `packages/ui`, build Web con las 17 rutas y `git diff --check` correctos. Los warnings de lint restantes pertenecen a efectos preexistentes en Planes, Carousel y hooks responsive; no fueron introducidos por esta revisión.
+- ZapiV2: lint focal Web sin errores, typecheck de Web y `packages/ui`, build Web con las 16 rutas mock y `git diff --check` correctos. Los warnings de lint restantes pertenecen a efectos preexistentes en Planes, Carousel y hooks responsive; no fueron introducidos por esta revisión.
 
 ## Retiro de módulos — 12 de agosto de 2026
 

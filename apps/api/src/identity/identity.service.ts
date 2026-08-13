@@ -24,6 +24,7 @@ import argon2 from 'argon2';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { DatabaseService } from '../database/database.service';
 import { AppException } from '../platform/errors/app-exception';
+import { CaptchaService } from '../captcha/captcha.service';
 
 const rememberedSessionLifetimeSeconds = 60 * 60 * 24 * 30;
 const temporarySessionLifetimeSeconds = 60 * 60 * 24;
@@ -33,9 +34,10 @@ export class IdentityService {
   constructor(
     private readonly database: DatabaseService,
     private readonly jwt: JwtService,
+    private readonly captcha: CaptchaService,
   ) {}
 
-  async register(input: unknown) {
+  async register(input: unknown, remoteIp?: string) {
     const parsed = registerSchema.safeParse(input);
     if (!parsed.success) {
       const passwordInvalid = parsed.error.issues.some(
@@ -47,6 +49,7 @@ export class IdentityService {
       );
     }
     const data = parsed.data;
+    await this.captcha.verifyAuthenticationToken(data.turnstileToken, remoteIp);
     const email = data.email.toLowerCase();
     const passwordHash = await argon2.hash(data.password);
     const sessionToken = this.createSessionToken();
@@ -154,7 +157,7 @@ export class IdentityService {
     return this.buildAuthentication(session, sessionToken);
   }
 
-  async login(input: unknown) {
+  async login(input: unknown, remoteIp?: string) {
     const parsed = loginSchema.safeParse(input);
     if (!parsed.success) {
       throw new AppException(
@@ -163,6 +166,7 @@ export class IdentityService {
       );
     }
     const data = parsed.data;
+    await this.captcha.verifyAuthenticationToken(data.turnstileToken, remoteIp);
     const email = data.email.toLowerCase();
     const [user] = await this.database.db
       .select({

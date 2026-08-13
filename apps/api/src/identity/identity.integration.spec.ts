@@ -11,6 +11,7 @@ import {
 import { eq } from '@workspace/database/query';
 import { DatabaseService } from '../database/database.service';
 import { AppException } from '../platform/errors/app-exception';
+import { CaptchaService } from '../captcha/captcha.service';
 import { IdentityService } from './identity.service';
 
 const databaseUrl = process.env.IDENTITY_TEST_DATABASE_URL;
@@ -25,6 +26,9 @@ const isLocalTestDatabase = (() => {
 const describeDatabase = isLocalTestDatabase ? describe : describe.skip;
 const rollback = new Error('Rollback Identity integration test.');
 const connection = isLocalTestDatabase ? createDatabase(databaseUrl!) : null;
+const captchaDisabled = {
+  verifyAuthenticationToken: () => Promise.resolve(),
+} as unknown as CaptchaService;
 
 async function inRollbackTransaction(
   callback: (database: Database) => Promise<void>,
@@ -60,6 +64,7 @@ describeDatabase('Identity workspace context', () => {
       const service = new IdentityService(
         { db: database } as DatabaseService,
         new JwtService({ secret: 'identity-timezone-test-secret' }),
+        captchaDisabled,
       );
       const email = `timezone-user-${randomUUID()}@example.test`;
 
@@ -181,6 +186,7 @@ describeDatabase('Identity workspace context', () => {
       const service = new IdentityService(
         { db: database } as DatabaseService,
         new JwtService({ secret: 'identity-workspace-test-secret' }),
+        captchaDisabled,
       );
       const initial = await service.getSession(sessionToken);
       expect(initial?.area).toBe('portal');

@@ -26,6 +26,8 @@ import { CommerceModule } from './commerce/commerce.module';
 import { AffiliateModule } from './affiliate/affiliate.module';
 import { OnlineMediaModule } from './online-media/online-media.module';
 import { BillingModule } from './billing/billing.module';
+import { CaptchaAdminModule } from './captcha/captcha-admin.module';
+import { CaptchaModule } from './captcha/captcha.module';
 
 const pinoRedactPaths = [
   'req.headers.authorization',
@@ -54,9 +56,11 @@ const pinoRedactPaths = [
   'req.body.refresh_token',
   'req.body.refreshToken',
   'req.body.secret',
+  'req.body.secretKey',
   'req.body.signingSecret',
   'req.body.token',
   'req.body.tokenHash',
+  'req.body.turnstileToken',
   'req.body.*.accessToken',
   'req.body.*.apiKey',
   'req.body.*.password',
@@ -86,11 +90,13 @@ const pinoRedactPaths = [
   'refreshToken',
   'refreshTokenCiphertext',
   'secret',
+  'secretKey',
   'setCookie',
   'signingSecret',
   'signingSecretCiphertext',
   'token',
   'tokenHash',
+  'turnstileToken',
 ] as const;
 
 @Module({
@@ -110,6 +116,7 @@ const pinoRedactPaths = [
       },
     }),
     DatabaseModule,
+    CaptchaModule,
     CaptionsModule,
     ChannelsModule,
     DashboardModule,
@@ -131,6 +138,7 @@ const pinoRedactPaths = [
     BillingModule,
     AuditModule,
     IdentityModule,
+    CaptchaAdminModule,
     BullModule.forRoot({
       connection: {
         host: process.env.REDIS_HOST ?? '127.0.0.1',

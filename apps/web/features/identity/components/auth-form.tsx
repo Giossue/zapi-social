@@ -1,6 +1,7 @@
 "use client"
 
 import { ApiError, authApi } from "@workspace/api-client"
+import type { PublicTurnstileConfiguration } from "@workspace/contracts"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
@@ -39,12 +40,13 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useState, type FormEvent } from "react"
+import { useCallback, useEffect, useState, type FormEvent } from "react"
 
 import {
   getAreaDestination,
   getSessionArea,
 } from "@/features/identity/session-area"
+import { TurnstileWidget } from "./turnstile-widget"
 
 export type AuthMode = "login" | "register"
 
@@ -79,6 +81,10 @@ function browserTimeZone() {
 const authErrorMessages: Record<string, string> = {
   AUTH_EMAIL_ALREADY_REGISTERED: "Ya existe una cuenta con este correo.",
   AUTH_INVALID_CREDENTIALS: "Correo o contraseña incorrectos.",
+  AUTH_CAPTCHA_INVALID:
+    "Completa la verificación de seguridad e inténtalo de nuevo.",
+  AUTH_CAPTCHA_UNAVAILABLE:
+    "No pudimos verificar la seguridad. Inténtalo nuevamente.",
   AUTH_PASSWORD_POLICY_NOT_MET:
     "La contraseña no cumple los requisitos de seguridad.",
   AUTH_SESSION_EXPIRED: "Tu sesión terminó. Inicia sesión de nuevo.",
@@ -144,20 +150,73 @@ export function AuthForm({
   const [showPassword, setShowPassword] = useState(false)
   const [showPasswordConfirmation, setShowPasswordConfirmation] =
     useState(false)
+  const [turnstile, setTurnstile] =
+    useState<PublicTurnstileConfiguration | null>(null)
+  const [turnstileLoading, setTurnstileLoading] = useState(true)
+  const [turnstileLoadFailed, setTurnstileLoadFailed] = useState(false)
+  const [turnstileWidgetFailed, setTurnstileWidgetFailed] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState("")
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0)
   const isLogin = initialMode === "login"
 
   useEffect(() => {
     if (!isLogin && !timezone) setTimezone(browserTimeZone())
   }, [isLogin, timezone])
 
+  useEffect(() => {
+    let active = true
+    void authApi
+      .turnstileConfiguration()
+      .then((configuration) => {
+        if (!active) return
+        setTurnstile(configuration)
+      })
+      .catch((error: unknown) => {
+        if (!active) return
+        setTurnstileLoadFailed(true)
+        if (error instanceof ApiError && error.status >= 500) {
+          console.error("Turnstile configuration request failed", {
+            code: error.code,
+            requestId: error.requestId,
+          })
+        }
+        toast.error("No pudimos cargar la verificación de seguridad.")
+      })
+      .finally(() => {
+        if (active) setTurnstileLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const onTurnstileTokenChange = useCallback((token: string) => {
+    setTurnstileToken(token)
+    if (token) setTurnstileWidgetFailed(false)
+  }, [])
+
+  const onTurnstileError = useCallback(() => {
+    setTurnstileToken("")
+    setTurnstileWidgetFailed(true)
+    toast.error("No pudimos cargar la verificación de seguridad.")
+  }, [])
+
+  const captchaComplete = Boolean(
+    !turnstileLoading &&
+    !turnstileLoadFailed &&
+    !turnstileWidgetFailed &&
+    (!turnstile?.enabled || turnstileToken)
+  )
+
   const formComplete = isLogin
-    ? Boolean(email.trim() && password)
+    ? Boolean(email.trim() && password && captchaComplete)
     : Boolean(
         displayName.trim() &&
         email.trim() &&
         password &&
         passwordConfirmation &&
-        timezone
+        timezone &&
+        captchaComplete
       )
 
   function reportError(message: string) {
@@ -175,6 +234,10 @@ export function AuthForm({
     }
     if (!password) {
       reportError("Ingresa tu contraseña.")
+      return
+    }
+    if (turnstile?.enabled && !turnstileToken) {
+      reportError("Completa la verificación de seguridad.")
       return
     }
     if (!isLogin) {
@@ -205,12 +268,14 @@ export function AuthForm({
             email,
             password,
             remember: form.get("remember") === "on",
+            ...(turnstile?.enabled ? { turnstileToken } : {}),
           })
         : await authApi.register({
             displayName,
             email: email.trim(),
             password,
             timezone,
+            ...(turnstile?.enabled ? { turnstileToken } : {}),
           })
       const area = getSessionArea(session)
       if (!area) {
@@ -225,6 +290,12 @@ export function AuthForm({
       router.refresh()
     } catch (caught) {
       if (caught instanceof ApiError) {
+        if (
+          caught.code === "AUTH_CAPTCHA_INVALID" ||
+          caught.code === "AUTH_CAPTCHA_UNAVAILABLE"
+        ) {
+          setTurnstileResetKey((current) => current + 1)
+        }
         if (caught.status >= 500) {
           console.error("Auth request failed", {
             code: caught.code,
@@ -483,6 +554,14 @@ export function AuthForm({
               </SelectContent>
             </Select>
           </Field>
+        ) : null}
+        {turnstile?.enabled && turnstile.siteKey ? (
+          <TurnstileWidget
+            onError={onTurnstileError}
+            onTokenChange={onTurnstileTokenChange}
+            resetKey={turnstileResetKey}
+            siteKey={turnstile.siteKey}
+          />
         ) : null}
       </FieldGroup>
       {isLogin ? (

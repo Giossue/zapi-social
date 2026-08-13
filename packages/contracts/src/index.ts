@@ -27,19 +27,43 @@ const profileTimeZoneSchema = z
   .max(64)
   .refine(isSupportedTimeZone, "La zona horaria no es válida.")
 
+const turnstileTokenSchema = z.string().trim().min(1).max(4096)
+
 export const registerSchema = z.object({
   email: z.string().trim().email().max(320),
   password: passwordPolicy,
   displayName: z.string().trim().min(2).max(160),
   timezone: profileTimeZoneSchema,
   referralId: z.uuid().optional(),
+  turnstileToken: turnstileTokenSchema.optional(),
 })
 
 export const loginSchema = z.object({
   email: z.string().trim().email().max(320),
   password: z.string().min(1).max(128),
   remember: z.boolean().default(false),
+  turnstileToken: turnstileTokenSchema.optional(),
 })
+
+export const publicTurnstileConfigurationSchema = z.object({
+  enabled: z.boolean(),
+  siteKey: z.string().nullable(),
+})
+
+export const adminTurnstileConfigurationSchema = z.object({
+  enabled: z.boolean(),
+  readiness: z.enum(["ready", "incomplete", "disabled"]),
+  siteKey: z.string().nullable(),
+  secretConfigured: z.boolean(),
+})
+
+export const updateAdminTurnstileConfigurationSchema = z
+  .object({
+    enabled: z.boolean(),
+    siteKey: z.string().trim().max(255),
+    secretKey: z.string().trim().min(1).max(512).optional(),
+  })
+  .strict()
 
 export const portalProfileSchema = z.object({
   id: z.uuid(),
@@ -1083,6 +1107,15 @@ export const updateProviderIntegrationSchema = z
 
 export type RegisterInput = z.infer<typeof registerSchema>
 export type LoginInput = z.infer<typeof loginSchema>
+export type PublicTurnstileConfiguration = z.infer<
+  typeof publicTurnstileConfigurationSchema
+>
+export type AdminTurnstileConfiguration = z.infer<
+  typeof adminTurnstileConfigurationSchema
+>
+export type UpdateAdminTurnstileConfigurationInput = z.infer<
+  typeof updateAdminTurnstileConfigurationSchema
+>
 export type ActiveWorkspace = z.infer<typeof activeWorkspaceSchema>
 export type ActivateAuthWorkspaceInput = z.infer<
   typeof activateAuthWorkspaceSchema

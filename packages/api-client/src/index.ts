@@ -1,6 +1,7 @@
 import type {
   AdminPlan,
   AdminPlansList,
+  AdminTurnstileConfiguration,
   AuthSession,
   ActiveWorkspace,
   ActivateAuthWorkspaceInput,
@@ -24,6 +25,7 @@ import type {
   EmailSmtpIntegration,
   PasswordResetConfirmInput,
   PasswordResetRequestInput,
+  PublicTurnstileConfiguration,
   TestEmailSmtpIntegrationResponse,
   RequestPortalChannelProfileSyncResponse,
   StartPortalChannelConnectionInput,
@@ -32,6 +34,7 @@ import type {
   TestMetaIntegrationInput,
   TestMetaIntegrationResponse,
   UpdateAdminPlanInput,
+  UpdateAdminTurnstileConfigurationInput,
   UpdateMetaIntegrationInput,
   UpdatePortalChannelInput,
   CreatePortalCaptionInput,
@@ -355,6 +358,10 @@ export const authApi = {
       method: "POST",
       body: JSON.stringify(input),
     }),
+  turnstileConfiguration: () =>
+    request<PublicTurnstileConfiguration>("/v1/auth/turnstile", {
+      method: "GET",
+    }),
   requestPasswordReset: (input: PasswordResetRequestInput) =>
     request<{ accepted: true }>("/v1/auth/password-reset/request", {
       method: "POST",
@@ -370,6 +377,18 @@ export const authApi = {
   activateWorkspace: (input: ActivateAuthWorkspaceInput) =>
     request<AuthSession>("/v1/auth/workspaces/activate", {
       method: "POST",
+      body: JSON.stringify(input),
+    }),
+}
+
+export const adminTurnstileApi = {
+  get: () =>
+    request<AdminTurnstileConfiguration>("/v1/admin/settings/turnstile", {
+      method: "GET",
+    }),
+  update: (input: UpdateAdminTurnstileConfigurationInput) =>
+    request<AdminTurnstileConfiguration>("/v1/admin/settings/turnstile", {
+      method: "PATCH",
       body: JSON.stringify(input),
     }),
 }

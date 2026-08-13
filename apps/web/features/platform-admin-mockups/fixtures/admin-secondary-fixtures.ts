@@ -30,7 +30,6 @@ export type AdminSecondaryModuleKey =
   | "ai-report"
   | "settings-general"
   | "settings-auth"
-  | "settings-captcha"
   | "settings-analytics"
   | "settings-static-pages"
   | "settings-cache"
@@ -889,46 +888,6 @@ export const adminSecondaryDefinitions: Record<
       },
     ],
     title: "Reglas de autenticación",
-  },
-  "settings-captcha": {
-    description: "Protección antiabuso para formularios públicos sensibles.",
-    icon: ShieldCheck,
-    kind: "settings",
-    sections: [
-      {
-        description: "Selecciona proveedor y formularios protegidos.",
-        fields: [
-          toggle(
-            "enabled",
-            "Captcha habilitado",
-            true,
-            "Aplica protección en los flujos seleccionados."
-          ),
-          select("provider", "Proveedor", "Cloudflare Turnstile", [
-            "Cloudflare Turnstile",
-            "Google reCAPTCHA",
-          ]),
-          text("siteKey", "Clave pública", "0x4AAAAA••••••••"),
-          text("secretKey", "Clave secreta", "••••••••••••••••"),
-          toggle(
-            "login",
-            "Proteger inicio de sesión",
-            true,
-            "Valida intentos de acceso."
-          ),
-          toggle(
-            "register",
-            "Proteger registro",
-            true,
-            "Valida altas públicas."
-          ),
-        ],
-        key: "captcha",
-        label: "Captcha",
-        title: "Configuración de Captcha",
-      },
-    ],
-    title: "Captcha",
   },
   "settings-analytics": {
     description: "Medición pública y scripts permitidos en el sitio.",

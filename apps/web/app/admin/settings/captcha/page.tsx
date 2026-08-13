@@ -1,5 +1,5 @@
-import { AdminSecondaryModuleMockup } from "@/features/platform-admin-mockups/components/admin-secondary-module-mockup"
+import { AdminTurnstileSettingsPage } from "@/features/platform-admin/components/admin-turnstile-settings-page"
 
 export default function AdminCaptchaSettingsPage() {
-  return <AdminSecondaryModuleMockup moduleKey="settings-captcha" />
+  return <AdminTurnstileSettingsPage />
 }
