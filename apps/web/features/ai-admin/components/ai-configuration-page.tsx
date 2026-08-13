@@ -12,6 +12,7 @@ import type {
 } from "@workspace/contracts"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { DataTableHeader } from "@workspace/ui/components/data-table-controls"
 import {
   Card,
   CardContent,
@@ -20,16 +21,20 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
+import { MetricCard } from "@workspace/ui/components/metric-card"
 import { PageLoading } from "@workspace/ui/components/page-loading"
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
 import { Switch } from "@workspace/ui/components/switch"
+import { Spinner } from "@workspace/ui/components/spinner"
 import {
   Table,
   TableBody,
@@ -38,6 +43,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
+import { TablePagination } from "@workspace/ui/components/table-pagination"
 import {
   Tabs,
   TabsContent,
@@ -47,16 +53,19 @@ import {
 import { toast } from "@workspace/ui/components/toast"
 import {
   Activity,
+  CircleDollarSign,
+  CircleX,
   CheckCircle2,
   KeyRound,
-  LoaderCircle,
   RefreshCw,
   Route,
   Save,
   ShieldCheck,
   Sparkles,
 } from "lucide-react"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+
+const TABLE_PAGE_SIZE = 10
 
 const kindLabels: Record<AiRequestKind, string> = {
   content: "Crear contenido",
@@ -133,16 +142,43 @@ export function AiConfigurationPage() {
   const [providerDrafts, setProviderDrafts] = useState(emptyProviderDrafts)
   const [pending, setPending] = useState<string | null>(null)
   const [loadError, setLoadError] = useState(false)
+  const [forbidden, setForbidden] = useState(false)
+  const [usageError, setUsageError] = useState(false)
+  const [modelQuery, setModelQuery] = useState("")
+  const [modelPage, setModelPage] = useState(1)
+
+  const filteredModels = useMemo(() => {
+    const normalized = modelQuery.trim().toLocaleLowerCase("es")
+    if (!normalized) return configuration?.models ?? []
+    return (configuration?.models ?? []).filter((model) =>
+      [model.label, model.modelId, model.providerKey, model.capability].some(
+        (value) => value.toLocaleLowerCase("es").includes(normalized)
+      )
+    )
+  }, [configuration?.models, modelQuery])
+  const modelPageCount = Math.max(
+    1,
+    Math.ceil(filteredModels.length / TABLE_PAGE_SIZE)
+  )
+  const safeModelPage = Math.min(modelPage, modelPageCount)
+  const visibleModels = filteredModels.slice(
+    (safeModelPage - 1) * TABLE_PAGE_SIZE,
+    safeModelPage * TABLE_PAGE_SIZE
+  )
+  const modelRangeStart = filteredModels.length
+    ? (safeModelPage - 1) * TABLE_PAGE_SIZE + 1
+    : 0
+  const modelRangeEnd = filteredModels.length
+    ? modelRangeStart + visibleModels.length - 1
+    : 0
 
   const load = useCallback(async () => {
     setLoadError(false)
+    setForbidden(false)
+    setUsageError(false)
     try {
-      const [nextConfiguration, nextUsage] = await Promise.all([
-        adminAiApi.configuration(),
-        adminAiApi.usage(30),
-      ])
+      const nextConfiguration = await adminAiApi.configuration()
       setConfiguration(nextConfiguration)
-      setUsage(nextUsage)
       setProviderDrafts((current) => ({
         openai: {
           ...current.openai,
@@ -159,10 +195,19 @@ export function AiConfigurationPage() {
             )?.enabled ?? false,
         },
       }))
-    } catch {
+    } catch (error) {
+      setForbidden(error instanceof ApiError && error.status === 403)
       setLoadError(true)
       setConfiguration(null)
       setUsage(null)
+      return
+    }
+
+    try {
+      setUsage(await adminAiApi.usage(30))
+    } catch {
+      setUsage(null)
+      setUsageError(true)
     }
   }, [])
 
@@ -315,13 +360,23 @@ export function AiConfigurationPage() {
     return (
       <Card variant="subtle">
         <EmptyState
-          icon={Activity}
-          title="Configuración AI no disponible"
-          description="No pudimos cargar los proveedores y modelos."
+          icon={forbidden ? ShieldCheck : Activity}
+          title={
+            forbidden
+              ? "No tienes acceso a configuración AI"
+              : "Configuración AI no disponible"
+          }
+          description={
+            forbidden
+              ? "Solicita a un administrador el permiso necesario."
+              : "No pudimos cargar los proveedores y modelos."
+          }
           action={
-            <Button onClick={() => void load()} variant="brand-secondary">
-              <RefreshCw data-icon="inline-start" /> Reintentar
-            </Button>
+            !forbidden ? (
+              <Button onClick={() => void load()} variant="brand-secondary">
+                <RefreshCw data-icon="inline-start" /> Reintentar
+              </Button>
+            ) : undefined
           }
         />
       </Card>
@@ -339,12 +394,12 @@ export function AiConfigurationPage() {
         : readinessCopy.disabled
 
   return (
-    <section className="space-y-6 py-4">
+    <section className="flex flex-col gap-6 py-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">
+          <h1 className="text-2xl font-semibold tracking-tight">
             Configuración AI
-          </h2>
+          </h1>
           <p className="text-sm text-muted-foreground">
             Define la conexión, los modelos y qué usa cada herramienta del
             Portal.
@@ -357,19 +412,27 @@ export function AiConfigurationPage() {
       </div>
 
       <Tabs defaultValue="provider">
-        <TabsList>
+        <TabsList className="flex h-auto flex-wrap">
           <TabsTrigger value="provider">Proveedor</TabsTrigger>
           <TabsTrigger value="models">Modelos</TabsTrigger>
           <TabsTrigger value="routing">Rutas</TabsTrigger>
           <TabsTrigger value="usage">Uso</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="provider" className="space-y-4 pt-3">
+        <TabsContent value="provider" className="flex flex-col gap-4 pt-3">
           {configuration.providers.map((provider) => {
             const draft = providerDrafts[provider.providerKey]
             const providerStatus = readinessCopy[provider.readiness]
             const testing = pending === `provider-test-${provider.providerKey}`
             const saving = pending === `provider-save-${provider.providerKey}`
+            const complete = Boolean(
+              provider.apiKeyConfigured || draft.apiKey.trim().length >= 20
+            )
+            const dirty = Boolean(
+              draft.apiKey.trim() || draft.enabled !== provider.enabled
+            )
+            const canEnable =
+              !draft.enabled || draft.tested || provider.readiness === "ready"
             return (
               <Card key={provider.providerKey} variant="subtle">
                 <CardHeader>
@@ -390,21 +453,21 @@ export function AiConfigurationPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-5">
-                  <div className="flex flex-col gap-2">
-                    <label
-                      htmlFor={`${provider.providerKey}-key`}
-                      className="text-sm font-medium"
-                    >
+                  <Field>
+                    <FieldLabel htmlFor={`${provider.providerKey}-key`}>
                       Clave API
                       {!provider.apiKeyConfigured ? (
-                        <span className="text-destructive"> *</span>
+                        <span aria-hidden="true" className="text-destructive">
+                          *
+                        </span>
                       ) : null}
-                    </label>
+                    </FieldLabel>
                     <Input
-                      id={`${provider.providerKey}-key`}
-                      type="password"
+                      aria-required={
+                        provider.apiKeyConfigured ? undefined : "true"
+                      }
                       autoComplete="new-password"
-                      value={draft.apiKey}
+                      id={`${provider.providerKey}-key`}
                       onChange={(event) =>
                         setProviderDrafts((current) => ({
                           ...current,
@@ -422,54 +485,56 @@ export function AiConfigurationPage() {
                             ? "apikey-..."
                             : "sk-..."
                       }
+                      type="password"
+                      value={draft.apiKey}
                     />
-                  </div>
-                  <div className="flex items-center justify-between gap-4 rounded-lg border p-3">
-                    <div>
-                      <p className="font-medium">Habilitar {provider.label}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Activa únicamente las capacidades indicadas arriba.
-                      </p>
-                    </div>
-                    <Switch
-                      checked={draft.enabled}
-                      onCheckedChange={(enabled) =>
-                        setProviderDrafts((current) => ({
-                          ...current,
-                          [provider.providerKey]: {
-                            ...current[provider.providerKey],
-                            enabled,
-                          },
-                        }))
-                      }
-                      aria-label={`Habilitar ${provider.label}`}
-                    />
-                  </div>
+                  </Field>
+                  <Card variant="inset">
+                    <CardContent className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="font-medium">
+                          Habilitar {provider.label}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Activa únicamente las capacidades indicadas arriba.
+                        </p>
+                      </div>
+                      <Switch
+                        aria-label={`Habilitar ${provider.label}`}
+                        checked={draft.enabled}
+                        onCheckedChange={(enabled) =>
+                          setProviderDrafts((current) => ({
+                            ...current,
+                            [provider.providerKey]: {
+                              ...current[provider.providerKey],
+                              enabled,
+                            },
+                          }))
+                        }
+                      />
+                    </CardContent>
+                  </Card>
                   <div className="flex flex-wrap justify-end gap-2">
                     <Button
-                      variant="brand-secondary"
-                      disabled={pending !== null}
+                      disabled={pending !== null || !complete}
                       onClick={() => void testProvider(provider.providerKey)}
+                      variant="brand-secondary"
                     >
                       {testing ? (
-                        <LoaderCircle
-                          className="animate-spin"
-                          data-icon="inline-start"
-                        />
+                        <Spinner data-icon="inline-start" size={16} />
                       ) : (
                         <ShieldCheck data-icon="inline-start" />
                       )}
                       Probar conexión
                     </Button>
                     <Button
-                      disabled={pending !== null}
+                      disabled={
+                        pending !== null || !complete || !dirty || !canEnable
+                      }
                       onClick={() => void saveProvider(provider.providerKey)}
                     >
                       {saving ? (
-                        <LoaderCircle
-                          className="animate-spin"
-                          data-icon="inline-start"
-                        />
+                        <Spinner data-icon="inline-start" size={16} />
                       ) : (
                         <Save data-icon="inline-start" />
                       )}
@@ -482,59 +547,95 @@ export function AiConfigurationPage() {
           })}
         </TabsContent>
         <TabsContent value="models" className="pt-3">
-          <Card className="overflow-hidden p-0" variant="subtle">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Modelo</TableHead>
-                  <TableHead>Proveedor</TableHead>
-                  <TableHead>Capacidad</TableHead>
-                  <TableHead>Perfil</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="text-right">Habilitado</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {configuration.models.map((model) => (
-                  <TableRow key={model.id}>
-                    <TableCell>
-                      <p className="font-medium">{model.label}</p>
-                      <p className="font-mono text-xs text-muted-foreground">
-                        {model.modelId}
-                      </p>
-                    </TableCell>
-                    <TableCell>
-                      {configuration.providers.find(
-                        (provider) => provider.providerKey === model.providerKey
-                      )?.label ?? model.providerKey}
-                    </TableCell>
-                    <TableCell>{capabilityLabels[model.capability]}</TableCell>
-                    <TableCell>{tierLabels[model.tier]}</TableCell>
-                    <TableCell>
-                      <Badge variant={model.deprecated ? "warning" : "success"}>
-                        {model.deprecated ? "Obsoleto" : "Disponible"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Switch
-                        checked={model.enabled}
-                        disabled={
-                          pending === `model-${model.id}` || model.deprecated
-                        }
-                        onCheckedChange={(checked) =>
-                          void toggleModel(model, checked)
-                        }
-                        aria-label={`Habilitar ${model.label}`}
-                      />
-                    </TableCell>
+          <Card variant="subtle">
+            <DataTableHeader
+              description="Activa los modelos disponibles para las rutas de generación."
+              search={{
+                ariaLabel: "Buscar modelos AI",
+                onChange: (value) => {
+                  setModelQuery(value)
+                  setModelPage(1)
+                },
+                placeholder: "Buscar modelos...",
+                value: modelQuery,
+              }}
+              title="Modelos"
+            />
+            <CardContent className="flex flex-col gap-4 px-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Modelo</TableHead>
+                    <TableHead>Proveedor</TableHead>
+                    <TableHead>Capacidad</TableHead>
+                    <TableHead>Perfil</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead className="text-right">Habilitado</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {visibleModels.map((model) => (
+                    <TableRow key={model.id}>
+                      <TableCell>
+                        <p className="font-medium">{model.label}</p>
+                        <p className="font-mono text-xs text-muted-foreground">
+                          {model.modelId}
+                        </p>
+                      </TableCell>
+                      <TableCell>
+                        {configuration.providers.find(
+                          (provider) =>
+                            provider.providerKey === model.providerKey
+                        )?.label ?? model.providerKey}
+                      </TableCell>
+                      <TableCell>
+                        {capabilityLabels[model.capability]}
+                      </TableCell>
+                      <TableCell>{tierLabels[model.tier]}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={model.deprecated ? "warning" : "success"}
+                        >
+                          {model.deprecated ? "Obsoleto" : "Disponible"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Switch
+                          checked={model.enabled}
+                          disabled={
+                            pending === `model-${model.id}` || model.deprecated
+                          }
+                          onCheckedChange={(checked) =>
+                            void toggleModel(model, checked)
+                          }
+                          aria-label={`Habilitar ${model.label}`}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <TablePagination
+                canGoNext={safeModelPage < modelPageCount}
+                canGoPrevious={safeModelPage > 1}
+                itemLabel="modelos"
+                onNextPage={() =>
+                  setModelPage((current) =>
+                    Math.min(current + 1, modelPageCount)
+                  )
+                }
+                onPreviousPage={() =>
+                  setModelPage((current) => Math.max(current - 1, 1))
+                }
+                rangeEnd={modelRangeEnd}
+                rangeStart={modelRangeStart}
+                total={filteredModels.length}
+              />
+            </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="routing" className="space-y-3 pt-3">
+        <TabsContent value="routing" className="flex flex-col gap-3 pt-3">
           {configuration.routes.map((route) => (
             <RouteCard
               key={route.kind}
@@ -547,8 +648,12 @@ export function AiConfigurationPage() {
           ))}
         </TabsContent>
 
-        <TabsContent value="usage" className="space-y-4 pt-3">
-          <UsagePanel usage={usage} />
+        <TabsContent value="usage" className="flex flex-col gap-4 pt-3">
+          <UsagePanel
+            error={usageError}
+            onRetry={() => void load()}
+            usage={usage}
+          />
         </TabsContent>
       </Tabs>
     </section>
@@ -609,15 +714,17 @@ function RouteCard({
               : `Elige el modelo principal y el respaldo para ${capabilityLabels[capability].toLowerCase()}.`}
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="flex flex-col gap-4">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {!internal ? (
             <>
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 <label className="text-sm font-medium">
                   {media ? "Principal · sin referencias" : "Modelo principal"}
                   {route.enabled ? (
-                    <span className="text-destructive"> *</span>
+                    <span aria-hidden="true" className="text-destructive">
+                      *
+                    </span>
                   ) : null}
                 </label>
                 <Select
@@ -628,20 +735,25 @@ function RouteCard({
                     })
                   }
                 >
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger
+                    aria-required={route.enabled ? "true" : undefined}
+                    className="w-full"
+                  >
                     <SelectValue placeholder="Selecciona" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Sin modelo</SelectItem>
-                    {options.map((model) => (
-                      <SelectItem key={model.id} value={model.id}>
-                        {model.label}
-                      </SelectItem>
-                    ))}
+                    <SelectGroup>
+                      <SelectItem value="none">Sin modelo</SelectItem>
+                      {options.map((model) => (
+                        <SelectItem key={model.id} value={model.id}>
+                          {model.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
+              <div className="flex flex-col gap-2">
                 <label className="text-sm font-medium">
                   {media ? "Respaldo · sin referencias" : "Modelo de respaldo"}
                 </label>
@@ -657,24 +769,28 @@ function RouteCard({
                     <SelectValue placeholder="Selecciona" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Sin respaldo</SelectItem>
-                    {options
-                      .filter((model) => model.id !== route.primaryModelId)
-                      .map((model) => (
-                        <SelectItem key={model.id} value={model.id}>
-                          {model.label}
-                        </SelectItem>
-                      ))}
+                    <SelectGroup>
+                      <SelectItem value="none">Sin respaldo</SelectItem>
+                      {options
+                        .filter((model) => model.id !== route.primaryModelId)
+                        .map((model) => (
+                          <SelectItem key={model.id} value={model.id}>
+                            {model.label}
+                          </SelectItem>
+                        ))}
+                    </SelectGroup>
                   </SelectContent>
                 </Select>
               </div>
               {media ? (
                 <>
-                  <div className="space-y-2">
+                  <div className="flex flex-col gap-2">
                     <label className="text-sm font-medium">
                       Principal · con referencias
                       {route.enabled ? (
-                        <span className="text-destructive"> *</span>
+                        <span aria-hidden="true" className="text-destructive">
+                          *
+                        </span>
                       ) : null}
                     </label>
                     <Select
@@ -685,20 +801,25 @@ function RouteCard({
                         })
                       }
                     >
-                      <SelectTrigger className="w-full">
+                      <SelectTrigger
+                        aria-required={route.enabled ? "true" : undefined}
+                        className="w-full"
+                      >
                         <SelectValue placeholder="Selecciona" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">Sin modelo</SelectItem>
-                        {referenceOptions.map((model) => (
-                          <SelectItem key={model.id} value={model.id}>
-                            {model.label}
-                          </SelectItem>
-                        ))}
+                        <SelectGroup>
+                          <SelectItem value="none">Sin modelo</SelectItem>
+                          {referenceOptions.map((model) => (
+                            <SelectItem key={model.id} value={model.id}>
+                              {model.label}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
+                  <div className="flex flex-col gap-2">
                     <label className="text-sm font-medium">
                       Respaldo · con referencias
                     </label>
@@ -715,23 +836,25 @@ function RouteCard({
                         <SelectValue placeholder="Selecciona" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">Sin respaldo</SelectItem>
-                        {referenceOptions
-                          .filter(
-                            (model) => model.id !== route.referenceModelId
-                          )
-                          .map((model) => (
-                            <SelectItem key={model.id} value={model.id}>
-                              {model.label}
-                            </SelectItem>
-                          ))}
+                        <SelectGroup>
+                          <SelectItem value="none">Sin respaldo</SelectItem>
+                          {referenceOptions
+                            .filter(
+                              (model) => model.id !== route.referenceModelId
+                            )
+                            .map((model) => (
+                              <SelectItem key={model.id} value={model.id}>
+                                {model.label}
+                              </SelectItem>
+                            ))}
+                        </SelectGroup>
                       </SelectContent>
                     </Select>
                   </div>
                 </>
               ) : null}
               {!media ? (
-                <div className="space-y-2">
+                <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium">Razonamiento</label>
                   <Select
                     value={route.reasoningEffort}
@@ -743,17 +866,19 @@ function RouteCard({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Ninguno</SelectItem>
-                      <SelectItem value="low">Bajo</SelectItem>
-                      <SelectItem value="medium">Medio</SelectItem>
-                      <SelectItem value="high">Alto</SelectItem>
+                      <SelectGroup>
+                        <SelectItem value="none">Ninguno</SelectItem>
+                        <SelectItem value="low">Bajo</SelectItem>
+                        <SelectItem value="medium">Medio</SelectItem>
+                        <SelectItem value="high">Alto</SelectItem>
+                      </SelectGroup>
                     </SelectContent>
                   </Select>
                 </div>
               ) : null}
             </>
           ) : null}
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <label className="text-sm font-medium">Costo en créditos</label>
             <Input
               type="number"
@@ -786,7 +911,7 @@ function RouteCard({
             }
           >
             {pending ? (
-              <LoaderCircle className="animate-spin" data-icon="inline-start" />
+              <Spinner data-icon="inline-start" size={16} />
             ) : (
               <Save data-icon="inline-start" />
             )}
@@ -798,63 +923,156 @@ function RouteCard({
   )
 }
 
-function UsagePanel({ usage }: { usage: AdminAiUsage | null }) {
+function UsagePanel({
+  error,
+  onRetry,
+  usage,
+}: {
+  error: boolean
+  onRetry: () => void
+  usage: AdminAiUsage | null
+}) {
+  const [query, setQuery] = useState("")
+  const [page, setPage] = useState(1)
+  const filteredItems = useMemo(() => {
+    const normalized = query.trim().toLocaleLowerCase("es")
+    if (!normalized) return usage?.byModel ?? []
+    return (usage?.byModel ?? []).filter((item) =>
+      item.model.toLocaleLowerCase("es").includes(normalized)
+    )
+  }, [query, usage?.byModel])
+  const pageCount = Math.max(
+    1,
+    Math.ceil(filteredItems.length / TABLE_PAGE_SIZE)
+  )
+  const safePage = Math.min(page, pageCount)
+  const visibleItems = filteredItems.slice(
+    (safePage - 1) * TABLE_PAGE_SIZE,
+    safePage * TABLE_PAGE_SIZE
+  )
+  const rangeStart = filteredItems.length
+    ? (safePage - 1) * TABLE_PAGE_SIZE + 1
+    : 0
+  const rangeEnd = filteredItems.length
+    ? rangeStart + visibleItems.length - 1
+    : 0
+
+  if (error) {
+    return (
+      <Card variant="subtle">
+        <EmptyState
+          action={
+            <Button onClick={onRetry} variant="brand-secondary">
+              <RefreshCw data-icon="inline-start" /> Reintentar
+            </Button>
+          }
+          description="La configuración sigue disponible; solo falló el resumen de consumo."
+          icon={Activity}
+          title="No se pudo cargar el uso AI"
+        />
+      </Card>
+    )
+  }
   if (!usage) return <PageLoading aria-label="Cargando uso AI" />
   const metrics = [
-    ["Solicitudes", number(usage.requests)],
-    ["Correctas", number(usage.succeeded)],
-    ["Fallidas", number(usage.failed)],
-    ["Costo estimado", money(usage.estimatedCostMicrousd)],
+    {
+      description: `Últimos ${usage.periodDays} días`,
+      icon: Activity,
+      label: "Solicitudes",
+      value: number(usage.requests),
+    },
+    {
+      description: "Finalizadas correctamente",
+      icon: CheckCircle2,
+      label: "Correctas",
+      value: number(usage.succeeded),
+    },
+    {
+      description: "Solicitudes con error",
+      icon: CircleX,
+      label: "Fallidas",
+      value: number(usage.failed),
+    },
+    {
+      description: "Consumo calculado",
+      icon: CircleDollarSign,
+      label: "Costo estimado",
+      value: money(usage.estimatedCostMicrousd),
+    },
   ]
   return (
     <>
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {metrics.map(([label, value]) => (
-          <Card key={label} size="sm" variant="subtle">
-            <CardHeader>
-              <CardDescription>{label}</CardDescription>
-              <CardTitle className="text-xl">{value}</CardTitle>
-            </CardHeader>
-          </Card>
+        {metrics.map((metric) => (
+          <MetricCard key={metric.label} {...metric} />
         ))}
       </div>
-      <Card className="overflow-hidden p-0" variant="subtle">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Modelo</TableHead>
-              <TableHead>Solicitudes</TableHead>
-              <TableHead>Tokens entrada</TableHead>
-              <TableHead>Tokens salida</TableHead>
-              <TableHead>Costo estimado</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {usage.byModel.length ? (
-              usage.byModel.map((item) => (
-                <TableRow key={item.model}>
-                  <TableCell className="font-mono text-xs">
-                    {item.model}
-                  </TableCell>
-                  <TableCell>{number(item.requests)}</TableCell>
-                  <TableCell>{number(item.inputTokens)}</TableCell>
-                  <TableCell>{number(item.outputTokens)}</TableCell>
-                  <TableCell>{money(item.estimatedCostMicrousd)}</TableCell>
-                </TableRow>
-              ))
-            ) : (
+      <Card variant="subtle">
+        <DataTableHeader
+          description={`Consumo por modelo durante los últimos ${usage.periodDays} días.`}
+          search={{
+            ariaLabel: "Buscar consumo por modelo",
+            onChange: (value) => {
+              setQuery(value)
+              setPage(1)
+            },
+            placeholder: "Buscar modelo...",
+            value: query,
+          }}
+          title="Uso por modelo"
+        />
+        <CardContent className="flex flex-col gap-4 px-0">
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="h-28 text-center text-muted-foreground"
-                >
-                  <Sparkles className="mx-auto mb-2 size-5" /> Aún no hay
-                  consumo AI.
-                </TableCell>
+                <TableHead>Modelo</TableHead>
+                <TableHead>Solicitudes</TableHead>
+                <TableHead>Tokens entrada</TableHead>
+                <TableHead>Tokens salida</TableHead>
+                <TableHead>Costo estimado</TableHead>
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {visibleItems.length ? (
+                visibleItems.map((item) => (
+                  <TableRow key={item.model}>
+                    <TableCell className="font-mono text-xs">
+                      {item.model}
+                    </TableCell>
+                    <TableCell>{number(item.requests)}</TableCell>
+                    <TableCell>{number(item.inputTokens)}</TableCell>
+                    <TableCell>{number(item.outputTokens)}</TableCell>
+                    <TableCell>{money(item.estimatedCostMicrousd)}</TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="h-28 text-center text-muted-foreground"
+                  >
+                    <Sparkles className="mx-auto mb-2 size-5" /> Aún no hay
+                    consumo AI.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+          <TablePagination
+            canGoNext={safePage < pageCount}
+            canGoPrevious={safePage > 1}
+            itemLabel="modelos"
+            onNextPage={() =>
+              setPage((current) => Math.min(current + 1, pageCount))
+            }
+            onPreviousPage={() =>
+              setPage((current) => Math.max(current - 1, 1))
+            }
+            rangeEnd={rangeEnd}
+            rangeStart={rangeStart}
+            total={filteredItems.length}
+          />
+        </CardContent>
       </Card>
       <p className="text-xs text-muted-foreground">
         Últimos {usage.periodDays} días · Latencia media{" "}

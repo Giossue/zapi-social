@@ -2,7 +2,9 @@
 
 ## Estado
 
-El backend de grupos de cuentas está implementado; `/portal/groups` todavía cae en el placeholder genérico de rutas y debe crear su superficie operativa conectada a `groupsApi`.
+El backend de grupos de cuentas está implementado; `/portal/groups` ya tiene un mockup source-first navegable con métricas, búsqueda, filtro, listado y sheet de creación. La siguiente fase es conectarlo a `groupsApi`.
+
+Las métricas del mockup siguen el patrón de `/admin/users`: cards `subtle` individuales con etiqueta e icono en el header, valor y contexto breve en el contenido. La tabla de grupos conserva el foco visual y sus interacciones locales.
 
 Un grupo es una clasificación privada del workspace sobre cuentas sociales existentes. No crea equipos, membresías ni permisos nuevos.
 
@@ -33,4 +35,5 @@ Base: `/v1/portal/groups`, siempre con sesión Portal.
 - [x] Contratos, API, cliente, schema y migración `0020_mushy_peter_parker`.
 - [x] Migración aplicada en `zapi_v2_local` y typecheck de Database, Contracts, API Client y API.
 - [x] Prueba local confirma aislamiento: otro workspace no lista ni elimina el grupo (`portal-backend-v2`, 3/3 en el conjunto).
-- [ ] Sustituir el placeholder genérico por una página conectada a `groupsApi` y validar estados vacío/error/permisos.
+- [x] Sustituir el placeholder genérico por un mockup source-first navegable, copiado desde `diseño ideal/src/app/(main)/dashboard/portal-modules`.
+- [ ] Conectar el mockup a `groupsApi` y validar estados de carga, error y permisos con respuestas reales.

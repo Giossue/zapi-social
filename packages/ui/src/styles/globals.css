@@ -36,7 +36,6 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
@@ -80,7 +79,6 @@ These serve as the fallback; there is no separate default.css file. */
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
   --success: oklch(0.627 0.194 149.214);
   --success-foreground: oklch(0.985 0.01 149.214);
   --warning: oklch(0.795 0.184 86.047);
@@ -107,7 +105,7 @@ These serve as the fallback; there is no separate default.css file. */
   /* fonts */
   --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
-  --background: oklch(1 0 0);
+  --background: oklch(0.985 0 0);
   --foreground: oklch(0.145 0 0);
 }
 
@@ -127,7 +125,6 @@ These serve as the fallback; there is no separate default.css file. */
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.145 0 0);
   --success: oklch(0.723 0.191 149.214);
   --success-foreground: oklch(0.145 0 0);
   --warning: oklch(0.795 0.184 86.047);

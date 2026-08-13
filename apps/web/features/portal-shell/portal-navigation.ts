@@ -12,7 +12,6 @@ import {
   PenLine,
   Rss,
   Share2,
-  ShoppingBag,
   Sparkles,
   Users,
   WandSparkles,
@@ -121,10 +120,6 @@ export const portalNavigationGroups: readonly PortalNavigationGroup[] = [
   {
     label: "Ayuda",
     items: [{ label: "Soporte", href: "/portal/support", icon: LifeBuoy }],
-  },
-  {
-    label: "Commerce",
-    items: [{ label: "Commerce", href: "/portal/commerce", icon: ShoppingBag }],
   },
   {
     label: "Aplicaciones",

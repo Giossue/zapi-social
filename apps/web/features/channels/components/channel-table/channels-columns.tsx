@@ -4,7 +4,11 @@
 import type { ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontal, Pencil, RefreshCw, Trash2 } from "lucide-react"
 
-import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/avatar"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -95,7 +99,10 @@ function AvatarCell({ account }: { account: PortalChannelAccount }) {
   return (
     <Avatar size="lg">
       {account.avatarUrl ? (
-        <AvatarImage alt={`Avatar de ${account.displayName}`} src={account.avatarUrl} />
+        <AvatarImage
+          alt={`Avatar de ${account.displayName}`}
+          src={account.avatarUrl}
+        />
       ) : null}
       <AvatarFallback>{capabilityInitials(account)}</AvatarFallback>
     </Avatar>
@@ -117,18 +124,29 @@ function AccountCell({ account }: { account: PortalChannelAccount }) {
     <div className="flex items-center gap-3">
       <AvatarCell account={account} />
       <div className="min-w-0">
-        <div className="truncate font-medium text-foreground text-sm">{account.displayName}</div>
-        <div className="truncate text-muted-foreground text-sm">{externalIdentity ?? "—"}</div>
+        <div className="truncate text-sm font-medium text-foreground">
+          {account.displayName}
+        </div>
+        <div className="truncate text-sm text-muted-foreground">
+          {externalIdentity ?? "—"}
+        </div>
       </div>
     </div>
   )
 }
 
-function CapabilityCell({ capabilityKey, provider }: Pick<PortalChannelAccount, "capabilityKey" | "provider">) {
+function CapabilityCell({
+  capabilityKey,
+  provider,
+}: Pick<PortalChannelAccount, "capabilityKey" | "provider">) {
   return (
     <div className="grid gap-0.5">
-      <span className="whitespace-nowrap">{capabilityLabels[capabilityKey]}</span>
-      <span className="text-muted-foreground text-xs">{providerLabels[provider]}</span>
+      <span className="whitespace-nowrap">
+        {capabilityLabels[capabilityKey]}
+      </span>
+      <span className="text-xs text-muted-foreground">
+        {providerLabels[provider]}
+      </span>
     </div>
   )
 }
@@ -159,7 +177,9 @@ export function createChannelsColumns({
     {
       accessorKey: "provider",
       header: "Proveedor",
-      cell: ({ row }) => <div className="text-sm">{providerLabel(row.original)}</div>,
+      cell: ({ row }) => (
+        <div className="text-sm">{providerLabel(row.original)}</div>
+      ),
     },
     {
       accessorKey: "status",
@@ -170,7 +190,9 @@ export function createChannelsColumns({
       accessorKey: "connectedAt",
       header: "Conectado el",
       cell: ({ row }) => (
-        <div className="text-foreground text-sm">{formatConnectionDate(row.original.connectedAt)}</div>
+        <div className="text-sm text-foreground">
+          {formatConnectionDate(row.original.connectedAt)}
+        </div>
       ),
     },
     {
@@ -189,13 +211,16 @@ export function createChannelsColumns({
                   aria-label={`Abrir acciones para ${account.displayName}`}
                   className="size-8 rounded-md text-muted-foreground hover:bg-muted/50"
                   size="icon-sm"
-                  variant="ghost"
+                  variant="brand-secondary"
                 >
                   <MoreHorizontal className="size-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" size="compact">
-                <DropdownMenuItem onSelect={() => onEdit(account)} size="compact">
+                <DropdownMenuItem
+                  onSelect={() => onEdit(account)}
+                  size="compact"
+                >
                   <Pencil />
                   Editar
                 </DropdownMenuItem>

@@ -4,7 +4,14 @@ import { Area, CartesianGrid, ComposedChart, XAxis } from "recharts"
 import Link from "next/link"
 
 import { Button } from "@workspace/ui/components/button"
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card"
 import {
   type ChartConfig,
   ChartContainer,
@@ -40,16 +47,18 @@ export function PerformanceOverview({ tools }: { tools: DashboardTool[] }) {
   const primaryTool = tools[0]
 
   return (
-    <Card className="@container/card">
+    <Card className="@container/card" variant="subtle">
       <CardHeader>
         <CardTitle className="leading-none">Uso de herramientas AI</CardTitle>
         <CardDescription>
-          <span className="@[540px]/card:block hidden">Usos registrados por cada herramienta de tu espacio de trabajo</span>
+          <span className="hidden @[540px]/card:block">
+            Usos registrados por cada herramienta de tu espacio de trabajo
+          </span>
           <span className="@[540px]/card:hidden">Usos por herramienta</span>
         </CardDescription>
         <CardAction className="flex items-center gap-2">
           <Select defaultValue="tools">
-            <SelectTrigger size="sm" className="w-28">
+            <SelectTrigger className="w-max max-w-full" size="sm">
               <SelectValue placeholder="Herramientas" />
             </SelectTrigger>
             <SelectContent>
@@ -61,7 +70,7 @@ export function PerformanceOverview({ tools }: { tools: DashboardTool[] }) {
           </Select>
 
           <Select defaultValue="uses">
-            <SelectTrigger size="sm" className="w-32">
+            <SelectTrigger className="w-max max-w-full" size="sm">
               <SelectValue placeholder="Usos" />
             </SelectTrigger>
             <SelectContent>
@@ -85,20 +94,45 @@ export function PerformanceOverview({ tools }: { tools: DashboardTool[] }) {
       </CardHeader>
 
       <CardContent>
-        <ChartContainer config={chartConfig} className="aspect-auto h-80 w-full">
+        <ChartContainer
+          config={chartConfig}
+          className="aspect-auto h-80 w-full"
+        >
           <ComposedChart data={chartData} margin={{ top: 0 }}>
             <defs>
               <linearGradient id="fillUses" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-uses)" stopOpacity={0.36} />
-                <stop offset="95%" stopColor="var(--color-uses)" stopOpacity={0.04} />
+                <stop
+                  offset="5%"
+                  stopColor="var(--color-uses)"
+                  stopOpacity={0.36}
+                />
+                <stop
+                  offset="95%"
+                  stopColor="var(--color-uses)"
+                  stopOpacity={0.04}
+                />
               </linearGradient>
             </defs>
             <CartesianGrid vertical={false} strokeOpacity={0.5} />
 
-            <XAxis dataKey="label" tickLine={false} axisLine={false} tickMargin={8} minTickGap={48} />
+            <XAxis
+              dataKey="label"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              minTickGap={48}
+            />
 
-            <ChartTooltip cursor={false} content={<ChartTooltipContent className="w-50" indicator="line" />} />
-            <ChartLegend verticalAlign="top" content={<ChartLegendContent className="mb-5 justify-end" />} />
+            <ChartTooltip
+              cursor={false}
+              content={
+                <ChartTooltipContent className="w-50" indicator="line" />
+              }
+            />
+            <ChartLegend
+              verticalAlign="top"
+              content={<ChartLegendContent className="mb-5 justify-end" />}
+            />
 
             <Area
               dataKey="uses"

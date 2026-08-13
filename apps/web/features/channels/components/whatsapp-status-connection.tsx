@@ -3,14 +3,9 @@
 import { channelConnectionsApi } from "@workspace/api-client"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
-import {
-  CircleAlert,
-  LoaderCircle,
-  QrCode,
-  RefreshCw,
-  Smartphone,
-} from "lucide-react"
+import { CircleAlert, QrCode, RefreshCw, Smartphone } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import type { PortalChannelAccount } from "../types/channels"
 
@@ -160,6 +155,9 @@ export function WhatsAppStatusConnection({
           setConnection(null)
           setErrorCode(result.publicError?.code ?? null)
           setError(true)
+          toast.error(
+            "No pudimos completar la conexión con WhatsApp. Genera un QR nuevo."
+          )
         }
       } catch (pollError) {
         console.error("WhatsApp QR status failed", pollError)
@@ -187,10 +185,7 @@ export function WhatsAppStatusConnection({
     return (
       <Card variant="inset">
         <CardContent className="flex items-center gap-3 py-5 text-sm text-muted-foreground">
-          <LoaderCircle
-            aria-hidden="true"
-            className="size-5 animate-spin text-primary"
-          />
+          <Spinner aria-label="Generando código QR" />
           Generando un QR de un solo uso…
         </CardContent>
       </Card>
@@ -228,7 +223,10 @@ export function WhatsAppStatusConnection({
             <p className="mt-1 text-sm text-muted-foreground">
               En WhatsApp abre Dispositivos vinculados y confirma la conexión.
             </p>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p
+              aria-live="polite"
+              className="mt-2 text-sm text-muted-foreground"
+            >
               {isStarting
                 ? "Actualizando QR…"
                 : `Este QR se actualiza en ${countdownLabel(expiresIn)}.`}
@@ -240,7 +238,14 @@ export function WhatsAppStatusConnection({
             type="button"
             variant="brand-secondary"
           >
-            <RefreshCw data-icon="inline-start" />
+            {isStarting ? (
+              <Spinner
+                aria-label="Actualizando código QR"
+                data-icon="inline-start"
+              />
+            ) : (
+              <RefreshCw data-icon="inline-start" />
+            )}
             Generar otro QR
           </Button>
         </CardContent>
@@ -278,7 +283,14 @@ export function WhatsAppStatusConnection({
           onClick={() => void start()}
           type="button"
         >
-          <Smartphone data-icon="inline-start" />
+          {isStarting ? (
+            <Spinner
+              aria-label="Generando código QR"
+              data-icon="inline-start"
+            />
+          ) : (
+            <Smartphone data-icon="inline-start" />
+          )}
           Generar QR
         </Button>
       </div>

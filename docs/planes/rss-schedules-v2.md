@@ -44,13 +44,20 @@ Los eventos relevantes también escriben en `api_audit_logs` o `worker_audit_log
 
 No existe una pantalla RSS equivalente en `diseño ideal`; por tanto se creará primero, desde cero, en `../diseño ideal/src/app/(main)/dashboard/rss-schedules/`, usando exclusivamente sus componentes ya instalados:
 
-- **Listado:** una `Card` operativa con `InputGroup`, `Select`, `Table`, `Badge`, `DropdownMenu`, `Empty`, `Dialog`/`AlertDialog` y `TablePagination`. La cabecera agrupa nombre, descripción, búsqueda y `Crear programación`; los filtros van en una fila propia. Columnas: feed (nombre + URL), destinos (canal principal + cantidad adicional), próxima ejecución, actividad (último run + cola), estado y acciones. No hay switch duplicando el estado: ejecutar, pausar/reactivar y eliminar viven en el menú contextual.
-- **Formulario:** diálogo de cuatro pasos con indicador centrado y conectado: Feed → Destinos y horarios → Reglas → Revisión. Usa `Input`, `Textarea`, `Select`, `Switch`, `Calendar`, `Checkbox`, `FieldError` y `Button`. URL de feed, nombre, al menos un destino, frecuencia y hora son obligatorios: llevan asterisco, `aria-invalid` y error inline; el paso no avanza hasta corregirlos. No se adapta un módulo existente de V2.
+- **Listado:** una `Card` operativa con `DataTableHeader`,
+  `DataTableToolbar`, `DataTableFilter`, `Table`, `Badge`, `DropdownMenu`,
+  `Empty`, `Dialog`/`AlertDialog` y `TablePagination`. La cabecera agrupa
+  nombre, descripción, búsqueda y `Crear programación`; los filtros van en una
+  fila propia adaptable. Columnas: feed (nombre + URL), destinos (canal
+  principal + cantidad adicional), próxima ejecución, actividad (último run +
+  cola), estado y acciones. No hay switch duplicando el estado: ejecutar,
+  pausar/reactivar y eliminar viven en el menú contextual.
+- **Formulario:** diálogo de cuatro pasos con indicador centrado y conectado: Feed → Destinos y horarios → Reglas → Revisión. Usa `Input`, `Textarea`, `Select`, `Switch`, `Checkbox`, `TimePicker`, `Card`, `Button` y `Spinner`. El formulario usa `noValidate`: URL de feed, nombre, al menos un destino, frecuencia y hora llevan asterisco rojo y `aria-required`; la acción principal permanece bloqueada hasta completar el paso. Los errores de formato, validación del feed o guardado se comunican por toast, sin `FieldError` ni validación nativa. No se adapta un módulo existente de V2.
 - **Detalle/actividad:** `Dialog` con ejecuciones e historial paginado; muestra resultado, fechas y contenido seguro, nunca XML crudo ni errores internos.
 
 Después de aprobar la fuente, se copia literalmente a `apps/web/features/rss-schedules`; únicamente se sustituyen fixtures, handlers, rutas, permisos y datos reales.
 
-Estados obligatorios: loading, vacío inicial sin canales, vacío filtrado, feed inválido, sin permiso, validación inline, ejecución pendiente, error de Worker y confirmación de eliminación.
+Estados obligatorios: loading, vacío inicial sin canales, vacío filtrado, feed inválido, sin permiso, validación mediante toast, validación/creación pendiente con `Spinner`, error de Worker y confirmación de eliminación.
 
 ## Contrato REST propuesto
 
@@ -87,3 +94,4 @@ Estados obligatorios: loading, vacío inicial sin canales, vacío filtrado, feed
 - Fase 5: `apps/api`, `packages/api-client` y `apps/web` pasan `bun run typecheck`; Web también pasa `bun run build`. La API expone listado paginado, detalle, creación, edición, pausa/reactivación, eliminación, historial, runs, validación y ejecución manual. Todo ID se resuelve dentro del workspace de sesión y las mutaciones exigen `owner` o `admin`. La validación limita a 10 intentos por usuario y workspace por minuto, descarga solo una URL HTTP(S) pública resuelta antes de conectar, sin redirects, con timeout de 8 s y máximo de 1 MB; devuelve únicamente metadatos y una muestra saneada. Ejecutar crea un `rss_schedule_run` y un job con ID sin `:` que la fase 6 consume. No existen pruebas API focales todavía (`jest --runInBand` no encontró archivos `*.spec.ts`).
 - Fase 6: `apps/worker` pasa `bun run typecheck` y `bun run build`. La prueba focal `rss-schedule-time.spec.ts` pasa 3 casos: zona horaria persistida, siguiente día habilitado y límite de fecha final. El job repetible, la recuperación de runs en cola, la creación de borradores y sus auditorías se implementaron sin tocar la base remota.
 - Fase 7: `apps/api` pasa typecheck/build y `bun run test:rss-schedules` pasa dos pruebas de integración con PostgreSQL local. La prueba solo acepta `zapi_v2_local` en loopback y cada caso revierte su transacción: confirma que una programación de otro workspace responde como no encontrada y que PostgreSQL rechaza un segundo historial con la misma programación, destino y `content_hash` (`23505`). El runner Jest existente no puede cargar el workspace ESM `@workspace/database`; esta suite usa el runner nativo de Bun de forma explícita.
+- Consistencia de formulario (12 de agosto de 2026): el wizard canónico y su copia Portal eliminan validación nativa y errores inline, usan `TimePicker`, toast, `Spinner`, iconos al inicio y bloqueo por completitud/pending. Pasaron `biome check` y `tsc --noEmit` en `diseño ideal`; en V2 pasaron Prettier focal, ESLint focal, typecheck Web y `git diff --check` focal.

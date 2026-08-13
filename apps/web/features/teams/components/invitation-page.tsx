@@ -25,9 +25,13 @@ import { PageLoading } from "@workspace/ui/components/page-loading"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
   AlertCircle,
+  ArrowRight,
   CheckCircle2,
   Clock3,
+  LogIn,
   MailCheck,
+  RotateCcw,
+  UserRoundCog,
   Users,
 } from "lucide-react"
 import Link from "next/link"
@@ -235,7 +239,9 @@ export function InvitationPage() {
         </CardHeader>
         <CardFooter>
           <Button asChild className="w-full">
-            <Link href="/portal/teams">Abrir espacio de trabajo</Link>
+            <Link href="/portal/teams">
+              <ArrowRight data-icon="inline-start" /> Abrir espacio de trabajo
+            </Link>
           </Button>
         </CardFooter>
       </Card>
@@ -246,25 +252,29 @@ export function InvitationPage() {
   if (problem) {
     let problemAction = (
       <Button asChild className="flex-1">
-        <Link href={`/login?returnTo=${returnToInvite}`}>Iniciar sesión</Link>
+        <Link href={`/login?returnTo=${returnToInvite}`}>
+          <LogIn data-icon="inline-start" /> Iniciar sesión
+        </Link>
       </Button>
     )
     if (state === "error") {
       problemAction = (
         <Button className="flex-1" onClick={retryInvitation}>
-          Reintentar
+          <RotateCcw data-icon="inline-start" /> Reintentar
         </Button>
       )
     } else if (state === "mismatch") {
       problemAction = (
         <Button className="flex-1" onClick={() => void switchAccount()}>
-          Usar otra cuenta
+          <UserRoundCog data-icon="inline-start" /> Usar otra cuenta
         </Button>
       )
     } else if (state === "full" && session?.area === "portal") {
       problemAction = (
         <Button asChild className="flex-1">
-          <Link href="/portal/teams">Volver a Teams</Link>
+          <Link href="/portal/teams">
+            <Users data-icon="inline-start" /> Volver a Teams
+          </Link>
         </Button>
       )
     }
@@ -369,7 +379,9 @@ export function InvitationPage() {
         >
           {state === "accepting" ? (
             <Spinner aria-label="Aceptando" data-icon="inline-start" />
-          ) : null}
+          ) : (
+            <MailCheck data-icon="inline-start" />
+          )}
           {primaryLabel}
         </Button>
         <Button asChild className="flex-1" variant="outline">

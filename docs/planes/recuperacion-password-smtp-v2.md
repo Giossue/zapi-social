@@ -59,6 +59,11 @@ timeoutSeconds
 - Test valida conexión SMTP y puede enviar un correo de prueba al email especificado.
 - GET nunca devuelve password; responde solo `passwordConfigured`.
 - Guardar requiere prueba correcta del mismo borrador si se habilita envío.
+- La pestaña muestra únicamente estado y resumen del servidor; la edición se
+  realiza en un `Sheet` lateral derecho ancho, sin modal ni formulario
+  incrustado. El sheet usa encabezado con divisor, card independiente de
+  disponibilidad y secciones separadas para servidor/remitente, opciones
+  adicionales y prueba del borrador.
 
 ### Recuperación pública
 
@@ -75,6 +80,13 @@ API:
 POST /v1/auth/password-reset/request
 POST /v1/auth/password-reset/confirm
 ```
+
+La composición canónica vive en
+`diseño ideal/src/app/(main)/auth/_components/recovery-form.tsx`. Los campos
+son controlados, no usan validación nativa del navegador, muestran `*` rojo y
+`aria-required`; la acción principal permanece deshabilitada hasta que el
+correo o las contraseñas sean válidos. Los fallos se comunican únicamente por
+toast.
 
 Reglas:
 

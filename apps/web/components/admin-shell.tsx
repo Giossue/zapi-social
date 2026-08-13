@@ -15,7 +15,6 @@ type AdminShellProps = {
 export function AdminShell({ children, profile }: AdminShellProps) {
   return (
     <DashboardShell
-      areaLabel="Plataforma"
       homeHref="/admin/dashboard"
       isItemActive={(item, pathname) =>
         isAdminNavigationItemActive(item as AdminNavigationLink, pathname)

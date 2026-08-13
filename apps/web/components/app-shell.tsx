@@ -21,7 +21,6 @@ export function AppShell({ children, session }: AppShellProps) {
 
   return (
     <DashboardShell
-      areaLabel="Portal"
       homeHref="/portal/dashboard"
       isItemActive={(item, pathname) =>
         isPortalNavigationItemActive(item as PortalNavigationLink, pathname)

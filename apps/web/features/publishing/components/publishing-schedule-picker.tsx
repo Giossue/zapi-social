@@ -13,6 +13,7 @@ import { TimePicker } from "@workspace/ui/components/time-picker"
 
 type PublishingSchedulePickerProps = {
   date: string
+  isRequired?: boolean
   onDateChange: (value: string) => void
   onTimeChange: (value: string) => void
   time: string
@@ -28,6 +29,7 @@ function toDateKey(value: Date) {
 
 export function PublishingSchedulePicker({
   date,
+  isRequired = false,
   onDateChange,
   onTimeChange,
   time,
@@ -37,10 +39,23 @@ export function PublishingSchedulePicker({
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       <Field>
-        <FieldLabel>Fecha</FieldLabel>
+        <FieldLabel>
+          Fecha{" "}
+          {isRequired ? (
+            <span aria-hidden="true" className="text-destructive">
+              *
+            </span>
+          ) : null}
+        </FieldLabel>
         <Popover>
           <PopoverTrigger asChild>
-            <Button className="justify-start" variant="surface">
+            <Button
+              aria-required={isRequired}
+              className="justify-start"
+              role="combobox"
+              type="button"
+              variant="surface"
+            >
               <CalendarDays data-icon="inline-start" />
               {selectedDate.toLocaleDateString("es", {
                 day: "numeric",
@@ -61,8 +76,20 @@ export function PublishingSchedulePicker({
         </Popover>
       </Field>
       <Field>
-        <FieldLabel>Hora</FieldLabel>
-        <TimePicker onValueChange={onTimeChange} value={time} />
+        <FieldLabel htmlFor="publishing-scheduled-time">
+          Hora{" "}
+          {isRequired ? (
+            <span aria-hidden="true" className="text-destructive">
+              *
+            </span>
+          ) : null}
+        </FieldLabel>
+        <TimePicker
+          aria-required={isRequired}
+          id="publishing-scheduled-time"
+          onValueChange={onTimeChange}
+          value={time}
+        />
       </Field>
     </div>
   )

@@ -26,47 +26,50 @@ Este inventario refleja los módulos reales de `packages/ui/src/components/`. No
 
 ## Formularios y selección
 
-| Componente     | Importación                              | Uso principal                                                          |
-| -------------- | ---------------------------------------- | ---------------------------------------------------------------------- |
-| `Calendar`     | `@workspace/ui/components/calendar`      | Selección accesible de fechas; combinar con `Popover` para campos.     |
-| `Checkbox`     | `@workspace/ui/components/checkbox`      | Selección múltiple o booleana.                                         |
-| `Combobox`     | `@workspace/ui/components/combobox`      | Selección con búsqueda.                                                |
-| `Field`        | `@workspace/ui/components/field`         | Estructura, etiqueta, descripción y error de campos de formulario.     |
-| `Input`        | `@workspace/ui/components/input`         | Entrada de texto de una línea.                                         |
-| `InputGroup`   | `@workspace/ui/components/input-group`   | Campo con addons o acciones integradas.                                |
-| `InputOTP`     | `@workspace/ui/components/input-otp`     | Captura segmentada de códigos de un solo uso.                          |
-| `Label`        | `@workspace/ui/components/label`         | Etiqueta accesible para controles.                                     |
-| `NativeSelect` | `@workspace/ui/components/native-select` | Compatibilidad interna o heredada; no usar en superficies de producto. |
-| `RadioGroup`   | `@workspace/ui/components/radio-group`   | Una opción entre alternativas exclusivas.                              |
-| `Select`       | `@workspace/ui/components/select`        | Selecciones con opciones acotadas.                                     |
-| `Slider`       | `@workspace/ui/components/slider`        | Selección continua o de rango.                                         |
-| `Switch`       | `@workspace/ui/components/switch`        | Ajustes binarios inmediatos.                                           |
-| `Textarea`     | `@workspace/ui/components/textarea`      | Entrada de texto multilínea.                                           |
-| `TimePicker`   | `@workspace/ui/components/time-picker`   | Hora y minutos compartidos por Publishing y programaciones.            |
+| Componente     | Importación                              | Uso principal                                                                    |
+| -------------- | ---------------------------------------- | -------------------------------------------------------------------------------- |
+| `Calendar`     | `@workspace/ui/components/calendar`      | Selección accesible de fechas; combinar con `Popover` para campos.               |
+| `Checkbox`     | `@workspace/ui/components/checkbox`      | Selección múltiple o booleana.                                                   |
+| `Combobox`     | `@workspace/ui/components/combobox`      | Selección con búsqueda.                                                          |
+| `Field`        | `@workspace/ui/components/field`         | Estructura, etiqueta, descripción y error de campos de formulario.               |
+| `Input`        | `@workspace/ui/components/input`         | Entrada de texto de una línea; usa `background` para contrastar dentro de cards. |
+| `InputGroup`   | `@workspace/ui/components/input-group`   | Campo con addons o acciones integradas.                                          |
+| `InputOTP`     | `@workspace/ui/components/input-otp`     | Captura segmentada de códigos de un solo uso.                                    |
+| `Label`        | `@workspace/ui/components/label`         | Etiqueta accesible para controles.                                               |
+| `NativeSelect` | `@workspace/ui/components/native-select` | Compatibilidad interna o heredada; no usar en superficies de producto.           |
+| `RadioGroup`   | `@workspace/ui/components/radio-group`   | Una opción entre alternativas exclusivas.                                        |
+| `Select`       | `@workspace/ui/components/select`        | Selecciones acotadas; el trigger conserva el plano `background`.                 |
+| `Slider`       | `@workspace/ui/components/slider`        | Selección continua o de rango.                                                   |
+| `Switch`       | `@workspace/ui/components/switch`        | Ajustes binarios inmediatos.                                                     |
+| `Textarea`     | `@workspace/ui/components/textarea`      | Entrada multilínea; usa `background` dentro de superficies agrupadas.            |
+| `TimePicker`   | `@workspace/ui/components/time-picker`   | Hora y minutos compartidos por Publishing y programaciones.                      |
 
 ## Superficies, datos y contenido
 
-| Componente        | Importación                                 | Uso principal                                                                                                                          |
-| ----------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `AspectRatio`     | `@workspace/ui/components/aspect-ratio`     | Mantener proporciones de contenido visual.                                                                                             |
-| `Attachment`      | `@workspace/ui/components/attachment`       | Presentación de adjuntos.                                                                                                              |
-| `Avatar`          | `@workspace/ui/components/avatar`           | Identidad visual de una persona o entidad; incluir fallback.                                                                           |
-| `Badge`           | `@workspace/ui/components/badge`            | Estados y etiquetas de dominio, incluidas variantes `success`, `warning` e `info`.                                                     |
-| `Bubble`          | `@workspace/ui/components/bubble`           | Contenido compacto de conversación o estado.                                                                                           |
-| `Card`            | `@workspace/ui/components/card`             | Superficies con variantes semánticas `subtle`, `surface`, `inset` e `interactive`.                                                     |
-| `Carousel`        | `@workspace/ui/components/carousel`         | Colecciones navegables de elementos visuales.                                                                                          |
-| `Chart`           | `@workspace/ui/components/chart`            | Gráficos con tokens compartidos.                                                                                                       |
-| `Item`            | `@workspace/ui/components/item`             | Filas y elementos compuestos reutilizables.                                                                                            |
-| `Kbd`             | `@workspace/ui/components/kbd`              | Representación de atajos de teclado.                                                                                                   |
-| `Marker`          | `@workspace/ui/components/marker`           | Marcadores visuales pequeños y semánticos.                                                                                             |
-| `Message`         | `@workspace/ui/components/message`          | Mensajes de conversación.                                                                                                              |
-| `MessageScroller` | `@workspace/ui/components/message-scroller` | Región de scroll para historiales de mensajes.                                                                                         |
-| `Progress`        | `@workspace/ui/components/progress`         | Progreso determinado o indeterminado.                                                                                                  |
-| `Resizable`       | `@workspace/ui/components/resizable`        | Paneles redimensionables.                                                                                                              |
-| `ScrollArea`      | `@workspace/ui/components/scroll-area`      | Regiones con scroll contenido.                                                                                                         |
-| `Separator`       | `@workspace/ui/components/separator`        | Separación semántica entre bloques o acciones.                                                                                         |
-| `Table`           | `@workspace/ui/components/table`            | Datos tabulares y listados operativos.                                                                                                 |
-| `TablePagination` | `@workspace/ui/components/table-pagination` | Footer estándar: modo `compact` con rango y flechas, y modo `detailed` con selección opcional, filas por página y controles completos. |
+| Componente                                                 | Importación                                    | Uso principal                                                                                                                                                                                       |
+| ---------------------------------------------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AspectRatio`                                              | `@workspace/ui/components/aspect-ratio`        | Mantener proporciones de contenido visual.                                                                                                                                                          |
+| `Attachment`                                               | `@workspace/ui/components/attachment`          | Presentación de adjuntos.                                                                                                                                                                           |
+| `Avatar`                                                   | `@workspace/ui/components/avatar`              | Identidad visual de una persona o entidad; incluir fallback.                                                                                                                                        |
+| `Badge`                                                    | `@workspace/ui/components/badge`               | Estados y etiquetas de dominio, incluidas variantes `success`, `warning` e `info`.                                                                                                                  |
+| `Bubble`                                                   | `@workspace/ui/components/bubble`              | Contenido compacto de conversación o estado.                                                                                                                                                        |
+| `Card`                                                     | `@workspace/ui/components/card`                | Superficies con variantes semánticas `subtle`, `surface`, `inset` e `interactive`.                                                                                                                  |
+| `CollectionHeader`                                         | `@workspace/ui/components/collection-header`   | Título y descripción de ruta o colección fuera de una card; usar antes de tablas con métricas, tabs o contexto superior.                                                                            |
+| `Carousel`                                                 | `@workspace/ui/components/carousel`            | Colecciones navegables de elementos visuales.                                                                                                                                                       |
+| `Chart`                                                    | `@workspace/ui/components/chart`               | Gráficos con tokens compartidos.                                                                                                                                                                    |
+| `Item`                                                     | `@workspace/ui/components/item`                | Filas y elementos compuestos reutilizables.                                                                                                                                                         |
+| `Kbd`                                                      | `@workspace/ui/components/kbd`                 | Representación de atajos de teclado.                                                                                                                                                                |
+| `Marker`                                                   | `@workspace/ui/components/marker`              | Marcadores visuales pequeños y semánticos.                                                                                                                                                          |
+| `Message`                                                  | `@workspace/ui/components/message`             | Mensajes de conversación.                                                                                                                                                                           |
+| `MessageScroller`                                          | `@workspace/ui/components/message-scroller`    | Región de scroll para historiales de mensajes.                                                                                                                                                      |
+| `MetricCard`                                               | `@workspace/ui/components/metric-card`         | Métricas operativas: etiqueta e icono en el encabezado, valor y contexto breve; mantiene el patrón de `/admin/users`.                                                                               |
+| `Progress`                                                 | `@workspace/ui/components/progress`            | Progreso determinado o indeterminado.                                                                                                                                                               |
+| `Resizable`                                                | `@workspace/ui/components/resizable`           | Paneles redimensionables.                                                                                                                                                                           |
+| `ScrollArea`                                               | `@workspace/ui/components/scroll-area`         | Regiones con scroll contenido.                                                                                                                                                                      |
+| `Separator`                                                | `@workspace/ui/components/separator`           | Separación semántica entre bloques o acciones.                                                                                                                                                      |
+| `Table`                                                    | `@workspace/ui/components/table`               | Datos tabulares y listados operativos; incorpora la densidad de Channels, encabezado `muted` de peso normal, padding uniforme y borde/hover compartidos.                                            |
+| `DataTableHeader` / `DataTableToolbar` / `DataTableFilter` | `@workspace/ui/components/data-table-controls` | Composición canónica de tablas operativas: contexto opcional, búsqueda/acción y filtros adaptables; sin contexto, búsqueda queda a la izquierda y acción al extremo derecho; nunca muestra conteos. |
+| `TablePagination`                                          | `@workspace/ui/components/table-pagination`    | Único lugar para el total de resultados y único footer de tablas: rango a la izquierda y navegación anterior/siguiente a la derecha.                                                                |
 
 ## Feedback, overlays y utilidades de interfaz
 
@@ -81,6 +84,7 @@ Este inventario refleja los módulos reales de `packages/ui/src/components/`. No
 | `HoverCard`         | `@workspace/ui/components/hover-card`   | Información suplementaria al pasar el cursor.                                                                                                |
 | `Popover`           | `@workspace/ui/components/popover`      | Contenido contextual anclado; contenedor de Calendar y controles compactos.                                                                  |
 | `PageLoading`       | `@workspace/ui/components/page-loading` | **Único** estado de carga de rutas, páginas, secciones y tarjetas. No existe alternativa: no hay skeletons ni loaders a medida.              |
+| `RetryButton`       | `@workspace/ui/components/retry-button` | Acción compartida de reintento con icono izquierdo y estado pending opcional.                                                                |
 | `Sheet`             | `@workspace/ui/components/sheet`        | Panel lateral accesible.                                                                                                                     |
 | `Sonner`            | `@workspace/ui/components/sonner`       | Adaptador de Sonner cuando se necesita su componente de host.                                                                                |
 | `Spinner`           | `@workspace/ui/components/spinner`      | Indicador de carga embebido en un control concreto (botón pendiente, input asíncrono). Para cargar una región completa se usa `PageLoading`. |

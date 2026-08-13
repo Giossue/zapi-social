@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Req } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { FastifyRequest } from 'fastify';
 import { SessionAccessService } from '../identity/session-access.service';
@@ -21,6 +21,14 @@ export class BillingPolarController {
   @Patch()
   async save(@Req() request: FastifyRequest, @Body() body: unknown) {
     return this.polar.save(
+      body,
+      await this.access.requirePlatformAdmin(request),
+    );
+  }
+
+  @Post('test')
+  async test(@Req() request: FastifyRequest, @Body() body: unknown) {
+    return this.polar.test(
       body,
       await this.access.requirePlatformAdmin(request),
     );

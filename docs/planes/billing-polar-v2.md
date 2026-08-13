@@ -36,22 +36,45 @@ No se recuperan Stripe, PayPal, pagos manuales ni ningún otro gateway eliminado
 
 ## Superficies Admin
 
-| Ruta                   | Alcance del mockup                                                                    |
-| ---------------------- | ------------------------------------------------------------------------------------- |
-| `/admin/integrations`  | Configuración Polar: estado, ambiente, credenciales, productos, checkout y endpoints. |
-| `/admin/users`         | Cuentas Portal, acceso, plan, workspace y estado.                                     |
-| `/admin/plans`         | Catálogo operativo con métricas, filtros, tabla paginada, permisos y CRUD real.       |
-| `/admin/credits`       | Tabs Paquetes, Movimientos y Uso.                                                     |
-| `/admin/affiliate`     | Tabs Afiliados, Comisiones y Retiros.                                                 |
-| `/admin/coupons`       | Descuentos, límites, planes y vigencia.                                               |
-| `/admin/payments`      | Historial exclusivo de Polar, detalle, sincronización y reembolsos.                   |
-| `/admin/subscriptions` | Renovaciones, mora, cancelación al final y revocación inmediata.                      |
+| Ruta                   | Alcance del mockup                                                              |
+| ---------------------- | ------------------------------------------------------------------------------- |
+| `/admin/integrations`  | Configuración Polar: estado, ambiente, credenciales, productos y checkout.      |
+| `/admin/users`         | Cuentas Portal, acceso, plan, workspace y estado.                               |
+| `/admin/plans`         | Catálogo operativo con métricas, filtros, tabla paginada, permisos y CRUD real. |
+| `/admin/credits`       | Tabs Paquetes, Movimientos y Uso.                                               |
+| `/admin/affiliate`     | Tabs Afiliados, Comisiones y Retiros.                                           |
+| `/admin/coupons`       | Descuentos, límites, planes y vigencia.                                         |
+| `/admin/payments`      | Historial exclusivo de Polar, detalle, sincronización y reembolsos.             |
+| `/admin/subscriptions` | Renovaciones, mora, cancelación al final y revocación inmediata.                |
 
 ## Fuente visual
 
-`diseño ideal` ya contiene el patrón de tabla de usuarios. Para las superficies sin equivalente exacto se creó el demo canónico `/dashboard/platform`, reutilizando su densidad de card, toolbar, filtros, tabla, menú contextual y `TablePagination`. El demo incluye ahora Planes como superficie canónica; Zapi V2 copia esa composición sobre `/admin/plans` y conserva sus filtros adicionales de cobro y visibilidad, además del REST/CRUD existente.
+`diseño ideal` conserva el catálogo general en `/dashboard/platform`, la
+composición unificada de proveedores en `/dashboard/platform/integrations` y la
+superficie exacta de Planes en `/dashboard/platform/plans`. Esta última es la
+fuente canónica navegable de métricas, filtros, tabla, formulario y
+confirmación destructiva; sus estados alternos se revisan con
+`?state=loading`, `?state=error` y `?state=forbidden`. Zapi V2 copia esa
+composición sobre `/admin/plans` y mantiene el REST/CRUD existente.
+Las cuatro métricas de Planes reutilizan el `MetricCard` compartido de
+`/admin/users`; la fuente y V2 ya no mantienen JSX paralelo para esas cards.
 
-Todas las tablas de Usuarios, Créditos, Afiliados, Cupones, Pagos y Suscripciones usan `TablePagination` en modo detallado. El cambio de tab, búsqueda, estado o tamaño reinicia la página para evitar rangos vacíos.
+En `/admin/integrations`, Polar se presenta como una card de resumen igual que
+los demás proveedores. Credenciales, productos y opciones de checkout se
+editan en un `Sheet` lateral derecho basado en el patrón operativo de
+`/portal/teams`. Webhooks, retornos y eventos requeridos se muestran fuera del
+sheet como secciones de solo lectura dentro de la misma card de resumen de
+Polar, con icono junto a cada título, y no forman parte del formulario. El
+sheet usa el mismo ancho ampliado que Meta, WhatsApp Status y SMTP para admitir
+etiquetas extensas sin colisiones, encabezado con divisor y la misma card de
+disponibilidad compartida por todos los proveedores; no existe un formulario
+Polar incrustado en la página ni un diálogo modal de configuración.
+
+Todas las tablas de Usuarios, Créditos, Afiliados, Cupones, Pagos y
+Suscripciones usan el patrón canónico de Channels: `DataTableHeader` para
+título, búsqueda y acción; `DataTableToolbar`/`DataTableFilter` para filtros
+sin anchos fijos; y el único `TablePagination` compacto. El cambio de tab,
+búsqueda o estado reinicia la página para evitar rangos vacíos.
 
 La única divergencia visual deliberada al copiar a V2 es el color semántico de estados: Zapi V2 usa las variantes globales `success`, `warning`, `neutral` y `destructive` de `Badge`; el repositorio fuente todavía no expone todas esas variantes.
 
@@ -63,11 +86,16 @@ POST /v1/admin/operations/:module
 POST /v1/admin/operations/:module/:tab/:id/actions
 
 GET   /v1/admin/integrations/polar
+POST  /v1/admin/integrations/polar/test
 PATCH /v1/admin/integrations/polar
 POST  /v1/webhooks/polar
 ```
 
 - Todas las rutas Admin exigen `PlatformAdmin`; el webhook es público pero requiere firma Standard Webhooks válida.
+- `POST /test` combina el borrador con los secretos write-only ya guardados,
+  valida credenciales y productos contra el ambiente Polar seleccionado y
+  persiste únicamente su fingerprint y la fecha de prueba. Un `PATCH` activo
+  se rechaza si el borrador no coincide exactamente con esa última prueba.
 - Los secretos se guardan cifrados en `provider_integrations` y Web sólo recibe indicadores redactados.
 - `billing_webhook_events.external_event_id` hace idempotente cada entrega; un evento fallido con el mismo hash puede reintentarse y un ID reutilizado con otro payload se rechaza.
 - `order.paid` crea el pago una sola vez y, según metadata validada, asigna plan o acredita el paquete en el libro existente de créditos.
@@ -119,6 +147,19 @@ Importes se guardan en unidad menor e ISO-4217. Pagos y reembolsos no se borran;
 - Zapi V2 Web: typecheck y build correctos; lint completo con 0 errores y 50 advertencias previas.
 - `git diff --check` correcto en ambos repositorios.
 
+## Evidencia de seguridad de acciones en Planes — 12 de agosto de 2026
+
+- Guardar y eliminar exponen estado pendiente, deshabilitan sus controles y
+  usan un bloqueo inmediato para impedir solicitudes duplicadas.
+- Eliminar usa `AlertDialog`; si `subscriberCount` es mayor que cero explica
+  cuántas asignaciones bloquean la operación y no ofrece una eliminación que
+  la API rechazará. Un conflicto por conteo desactualizado también se comunica
+  mediante toast.
+- Los campos obligatorios muestran asterisco semántico, `aria-required` y
+  mantienen deshabilitada la acción principal hasta estar completos.
+- Los estados superiores de error y acceso restringido usan la superficie
+  estándar `Card variant="subtle"`.
+
 ## Evidencia de cierre funcional
 
 - Migraciones `0028` y `0029` probadas con `BEGIN/ROLLBACK` y aplicadas en `zapi_v2_local` y el servicio remoto `zapi_v2`; ambas bases registran 30 migraciones, siete tablas nuevas y los constraints críticos esperados.
@@ -127,3 +168,21 @@ Importes se guardan en unidad menor e ISO-4217. Pagos y reembolsos no se borran;
 - Prueba transaccional reversible: guardar credenciales Polar y comprobar que el ciphertext no contiene el secreto ni la respuesta lo expone.
 - Prueba focal: una firma Polar inválida responde como prohibida antes de tocar persistencia.
 - Los diez listados Admin ejecutaron consultas reales contra la base local sin errores.
+
+## Evidencia del refactor de Integraciones
+
+- Meta, WhatsApp Status, SMTP y Polar usan `Sheet` lateral derecho para editar
+  configuración, con ancho ampliado y secciones verticales; la ruta ya no
+  importa ni renderiza diálogos de configuración.
+- Los scopes de Meta se muestran como checkboxes persistentes y adaptables;
+  los obligatorios se identifican únicamente con un asterisco rojo, sin badge.
+- Cada sheet usa `SheetContent` como única región de scroll vertical, sin
+  contenedores desplazables anidados, para alcanzar todos los campos y
+  acciones en formularios largos. Todos los campos obligatorios muestran el
+  asterisco semántico rojo definido por la regla UI.
+- Polar conserva el contrato `GET/PATCH /v1/admin/integrations/polar`; el cambio
+  añade `POST /test`, mantiene secretos write-only e impide guardar una
+  configuración activa sin comprobación vigente.
+- La prueba focal de `BillingPolarService` confirma que API rechaza un borrador
+  activo cuyo fingerprint no coincide con la última comprobación Polar.
+- Typecheck, lint focal y build Web correctos; lint focal sin errores.

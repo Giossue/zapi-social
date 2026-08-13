@@ -16,13 +16,13 @@ Estados actuales: `draft`, `scheduled`, `processing`, `published` y `failed`.
 
 Base: `/v1/portal/publishing`, con sesión Portal y scope de workspace.
 
-| Método y ruta     | Responsabilidad                                         |
-| ----------------- | ------------------------------------------------------- |
+| Método y ruta     | Responsabilidad                                                               |
+| ----------------- | ----------------------------------------------------------------------------- |
 | `GET /`           | Cargar cuentas publicables y posts/media acotados por rango, página y límite. |
-| `POST /`          | Crear borradores, programaciones o entregas inmediatas con `idempotencyKey`. |
-| `PATCH /:id`      | Editar un post `draft`, `scheduled` o `failed`.         |
-| `DELETE /:id`     | Eliminar únicamente un borrador.                        |
-| `POST /:id/retry` | Reencolar un fallo recuperable.                         |
+| `POST /`          | Crear borradores, programaciones o entregas inmediatas con `idempotencyKey`.  |
+| `PATCH /:id`      | Editar un post `draft`, `scheduled` o `failed`.                               |
+| `DELETE /:id`     | Eliminar únicamente un borrador.                                              |
+| `POST /:id/retry` | Reencolar un fallo recuperable.                                               |
 
 Sólo `owner` y `admin` mutan. La API verifica que cuentas estén activas/no desconectadas, tengan capability soportada y que cada archivo sea imagen/vídeo `ready` del mismo workspace. Instagram y WhatsApp exigen media.
 
@@ -85,7 +85,12 @@ La migración `0020_mushy_peter_parker` añade intentos, procedencia/resultados 
 
 - Calendario fuente-canónica usa FullCalendar con vistas mes/semana/día y compositor contextual.
 - Cola y borradores consumen `publishingApi`; el estado React es caché de respuesta, no fuente fixture.
+- Cola y borradores reutilizan `MetricCard` para sus resúmenes operativos, con
+  icono semántico y contexto breve por estado, igual que AI Publishing.
 - Las mutaciones confirman con toast y preservan estados loading/empty/error.
+- El compositor usa `noValidate`, marca campos obligatorios, bloquea el submit incompleto y muestra `Spinner` durante la mutación; eliminar un borrador exige confirmación con `AlertDialog`.
+- `/portal/ai-publishing` ya tiene un mockup source-first con métricas, búsqueda, filtros, listado y sheet de automatización. Conserva fixtures hasta conectarse a los endpoints `aiApi.*PublishingSchedule`.
+- Las métricas de AI Publishing siguen el patrón de `/admin/users`: cards `subtle` individuales con etiqueta e icono en el header, valor y contexto breve en el contenido. La tabla de automatizaciones sigue siendo la superficie principal; no cambia sus acciones mock ni el pendiente REST.
 
 ## Evidencia y pendientes
 
@@ -93,6 +98,9 @@ La migración `0020_mushy_peter_parker` añade intentos, procedencia/resultados 
 - [x] Worker con scheduler, claim, intentos y adapters Facebook/Instagram/WhatsApp Status.
 - [x] Watermarks efímeros de imagen/vídeo y endpoint temporal firmado.
 - [x] Productores Bulk, RSS, AI y Automation conectados.
+- [x] Compositor y confirmación de borrado validados con Biome + TypeScript en `diseño ideal` y ESLint + typecheck de Web en V2.
+- [x] Mockup source-first navegable para AI Publishing, copiado desde `diseño ideal/src/app/(main)/dashboard/portal-modules`.
+- [ ] Conectar AI Publishing a los endpoints de schedules sin cambiar la composición aprobada.
 - [x] `0020_mushy_peter_parker` y `0021_pale_thor` aplicadas localmente; existen `publishing_post_attempts`, FKs compuestas y pasan typechecks de Database, Contracts, API Client, API y Worker.
 - [x] Pruebas locales RSS 2/2 y Support/Watermarks 2/2; lint focalizado del código nuevo API/Worker sin errores.
 - [ ] Smoke real por provider y verificación de scopes/tokens en entorno de prueba.

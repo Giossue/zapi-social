@@ -8,6 +8,7 @@ function PageLoading({ className, ...props }: React.ComponentProps<"div">) {
       aria-busy="true"
       aria-label="Cargando contenido"
       className={cn("flex min-h-64 items-center justify-center", className)}
+      role="status"
       {...props}
     >
       <Spinner size={28} />

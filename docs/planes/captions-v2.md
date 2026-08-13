@@ -95,7 +95,12 @@ type Caption = {
 ## Reemplazo visual source-first — 2026-08-03
 
 - La fuente visual canónica se reestructuró primero en `diseño ideal/src/app/(main)/dashboard/captions/_components/caption-library.tsx` junto con `caption-types.ts`, tomando como base literal la densidad tabular de `dashboard/users` que alimenta Channels.
-- `apps/web/features/captions/components/captions-library-page.tsx` copia el inventario tabular: card operativo, búsqueda, filtros compactos, filas Caption/Origen/Estado/Etiquetas/Actualizado/Acciones y dropdown. Usa `TablePagination` en modo compacto como footer estándar, con páginas locales de diez filas; conserva `captionsApi.list/create/update/remove`, filtros locales, loading, empty inicial/filtrado, error, 403 y CRUD.
+- `apps/web/features/captions/components/captions-library-page.tsx` copia el
+  inventario tabular: card operativo, búsqueda, filtros compactos, filas
+  Caption/Origen/Estado/Etiquetas/Actualizado/Acciones y dropdown. Usa los
+  controles canónicos de tabla y el único `TablePagination`, con páginas
+  locales de diez filas; conserva `captionsApi.list/create/update/remove`,
+  filtros locales, loading, empty inicial/filtrado, error, 403 y CRUD.
 - El selector de estados de demo queda excluido de V2: los estados visibles proceden exclusivamente de la respuesta REST y de los datos locales ya cargados. Se retiraron las metric cards y el grid de captions rechazados; el conteo queda integrado en la barra de filtros.
 - Ante `ApiError` con `code === "AUTH_SESSION_EXPIRED"` en carga o mutaciones, la ruta ejecuta `useRouter().replace("/login")`; no muestra un error técnico ni el error genérico de la biblioteca.
 - `updatedAt` ISO se presenta como fecha legible. Los fallos de guardado permanecen visibles en el formulario; los toasts son feedback secundario.

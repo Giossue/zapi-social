@@ -29,14 +29,10 @@ import {
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { Field, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
+import { RetryButton } from "@workspace/ui/components/retry-button"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
-import {
-  Link2,
-  LoaderCircle,
-  LockKeyhole,
-  Trash2,
-  TriangleAlert,
-} from "lucide-react"
+import { Link2, LockKeyhole, Save, Trash2, TriangleAlert } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react"
 
@@ -154,16 +150,16 @@ function EditChannelDialog({
   onSave: (displayName: string) => void
   pending: boolean
 }) {
+  const [displayName, setDisplayName] = useState(account?.displayName ?? "")
+
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const displayName = String(
-      new FormData(event.currentTarget).get("displayName") ?? ""
-    ).trim()
-    if (!displayName) {
+    const normalizedDisplayName = displayName.trim()
+    if (!normalizedDisplayName) {
       toast.error("Introduce un nombre visible para el canal.")
       return
     }
-    onSave(displayName)
+    onSave(normalizedDisplayName)
   }
 
   return (
@@ -175,19 +171,22 @@ function EditChannelDialog({
             Este cambio solo actualiza el nombre visible en Zapi.
           </DialogDescription>
         </DialogHeader>
-        <form className="flex flex-col gap-4" onSubmit={submit}>
+        <form className="flex flex-col gap-4" noValidate onSubmit={submit}>
           <FieldGroup className="gap-4">
             <Field className="gap-1.5">
               <FieldLabel htmlFor="channel-display-name">
                 Nombre visible
+                <span aria-hidden="true" className="text-destructive">
+                  *
+                </span>
               </FieldLabel>
               <Input
-                defaultValue={account?.displayName}
+                aria-required="true"
                 id="channel-display-name"
-                key={account?.id}
                 maxLength={255}
                 name="displayName"
-                required
+                onChange={(event) => setDisplayName(event.target.value)}
+                value={displayName}
               />
             </Field>
           </FieldGroup>
@@ -196,17 +195,19 @@ function EditChannelDialog({
               disabled={pending}
               onClick={() => onOpenChange(false)}
               type="button"
-              variant="outline"
+              variant="brand-secondary"
             >
               Cancelar
             </Button>
-            <Button disabled={pending} type="submit">
+            <Button disabled={pending || !displayName.trim()} type="submit">
               {pending ? (
-                <LoaderCircle
-                  className="animate-spin"
+                <Spinner
+                  aria-label="Guardando nombre del canal"
                   data-icon="inline-start"
                 />
-              ) : null}
+              ) : (
+                <Save data-icon="inline-start" />
+              )}
               Guardar cambios
             </Button>
           </DialogFooter>
@@ -249,7 +250,7 @@ function DeleteChannelDialog({
             variant="destructive"
           >
             {pending ? (
-              <LoaderCircle className="animate-spin" data-icon="inline-start" />
+              <Spinner aria-label="Eliminando canal" data-icon="inline-start" />
             ) : (
               <Trash2 data-icon="inline-start" />
             )}
@@ -611,9 +612,7 @@ export function LiveChannelsPage() {
       <Card variant="subtle">
         <CardContent>
           <EmptyState
-            action={
-              <Button onClick={() => void loadChannels()}>Reintentar</Button>
-            }
+            action={<RetryButton onClick={() => void loadChannels()} />}
             description="Comprueba tu conexión e inténtalo de nuevo."
             icon={TriangleAlert}
             title="No pudimos cargar los canales"
@@ -670,6 +669,7 @@ export function LiveChannelsPage() {
       />
       <EditChannelDialog
         account={editingAccount}
+        key={editingAccount?.id ?? "closed"}
         onOpenChange={(open) => !open && setEditingAccount(null)}
         onSave={(displayName) => void renameAccount(displayName)}
         pending={pendingAccountId === editingAccount?.id}

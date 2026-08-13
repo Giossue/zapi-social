@@ -1,31 +1,36 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { type MouseEvent, useMemo, useState } from "react"
 import {
   CalendarClock,
   FilePenLine,
   Image,
   ListFilter,
   RotateCcw,
-  Search,
   Trash2,
 } from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@workspace/ui/components/alert-dialog"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
+  DataTableFilter,
+  DataTableHeader,
+  DataTableToolbar,
+} from "@workspace/ui/components/data-table-controls"
+import { CollectionHeader } from "@workspace/ui/components/collection-header"
+import { Card, CardContent } from "@workspace/ui/components/card"
 import { EmptyState } from "@workspace/ui/components/empty-state"
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@workspace/ui/components/input-group"
+import { MetricCard } from "@workspace/ui/components/metric-card"
 import {
   Item,
   ItemActions,
@@ -35,14 +40,6 @@ import {
   ItemTitle,
 } from "@workspace/ui/components/item"
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
-import {
   Table,
   TableBody,
   TableCell,
@@ -51,6 +48,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
+import { Spinner } from "@workspace/ui/components/spinner"
 import type {
   PublishingPost,
   PublishingProvider,
@@ -100,16 +98,33 @@ function PostActions({
 }: {
   mode: "drafts" | "queue"
   onContinue?: (post: PublishingPost) => void
-  onDelete?: (post: PublishingPost) => void
+  onDelete?: (post: PublishingPost) => boolean | void | Promise<boolean | void>
   onRetry?: (post: PublishingPost) => void
   post: PublishingPost
 }) {
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deletePending, setDeletePending] = useState(false)
+
+  async function confirmDelete(event: MouseEvent<HTMLButtonElement>) {
+    event.preventDefault()
+    if (!onDelete || deletePending) return
+
+    setDeletePending(true)
+    try {
+      const deleted = await onDelete(post)
+      if (deleted !== false) setDeleteOpen(false)
+    } finally {
+      setDeletePending(false)
+    }
+  }
+
   return (
     <div className="flex flex-wrap items-center gap-2">
       {mode === "drafts" && onContinue ? (
         <Button
           onClick={() => onContinue(post)}
           size="sm"
+          type="button"
           variant="brand-secondary"
         >
           <FilePenLine data-icon="inline-start" />
@@ -120,20 +135,57 @@ function PostActions({
       post.status === "failed" &&
       post.recoverable &&
       onRetry ? (
-        <Button onClick={() => onRetry(post)} size="sm">
+        <Button onClick={() => onRetry(post)} size="sm" type="button">
           <RotateCcw data-icon="inline-start" />
           Reintentar
         </Button>
       ) : null}
       {mode === "drafts" && onDelete ? (
-        <Button
-          aria-label={`Eliminar ${post.title}`}
-          onClick={() => onDelete(post)}
-          size="icon-sm"
-          variant="brand-secondary"
+        <AlertDialog
+          onOpenChange={(nextOpen) => !deletePending && setDeleteOpen(nextOpen)}
+          open={deleteOpen}
         >
-          <Trash2 />
-        </Button>
+          <AlertDialogTrigger asChild>
+            <Button
+              aria-label={`Eliminar ${post.title}`}
+              size="icon-sm"
+              type="button"
+              variant="brand-secondary"
+            >
+              <Trash2 />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent size="sm">
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Eliminar borrador?</AlertDialogTitle>
+              <AlertDialogDescription>
+                El borrador “{post.title}” se eliminará definitivamente. Esta
+                acción no se puede deshacer.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                disabled={deletePending}
+                variant="brand-secondary"
+              >
+                Cancelar
+              </AlertDialogCancel>
+              <AlertDialogAction
+                disabled={deletePending}
+                onClick={confirmDelete}
+                type="button"
+                variant="destructive"
+              >
+                {deletePending ? (
+                  <Spinner data-icon="inline-start" />
+                ) : (
+                  <Trash2 data-icon="inline-start" />
+                )}
+                {deletePending ? "Eliminando..." : "Eliminar borrador"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       ) : null}
     </div>
   )
@@ -148,7 +200,7 @@ function PostCard({
 }: {
   mode: "drafts" | "queue"
   onContinue?: (post: PublishingPost) => void
-  onDelete?: (post: PublishingPost) => void
+  onDelete?: (post: PublishingPost) => boolean | void | Promise<boolean | void>
   onRetry?: (post: PublishingPost) => void
   post: PublishingPost
 }) {
@@ -189,25 +241,17 @@ function PostCard({
 export function PublishingMetrics({
   items,
 }: {
-  items: Array<{ icon: typeof CalendarClock; label: string; value: number }>
+  items: Array<{
+    description: string
+    icon: typeof CalendarClock
+    label: string
+    value: number
+  }>
 }) {
   return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-      {items.map(({ icon: Icon, label, value }) => (
-        <Card key={label}>
-          <CardHeader>
-            <CardDescription>{label}</CardDescription>
-            <CardAction>
-              <Icon
-                aria-hidden="true"
-                className="size-4 text-muted-foreground"
-              />
-            </CardAction>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl leading-none tracking-tight">{value}</p>
-          </CardContent>
-        </Card>
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      {items.map((item) => (
+        <MetricCard key={item.label} {...item} />
       ))}
     </div>
   )
@@ -222,7 +266,7 @@ export function PublishingPostsTable({
 }: {
   mode: "drafts" | "queue"
   onContinue?: (post: PublishingPost) => void
-  onDelete?: (post: PublishingPost) => void
+  onDelete?: (post: PublishingPost) => boolean | void | Promise<boolean | void>
   onRetry?: (post: PublishingPost) => void
   posts: PublishingPost[]
 }) {
@@ -271,182 +315,177 @@ export function PublishingPostsTable({
 
   return (
     <div className="flex flex-col gap-4">
-      <Card>
-        <CardHeader className="gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="min-w-0 space-y-1">
-            <CardTitle>{tableTitle}</CardTitle>
-            <CardDescription>{tableDescription}</CardDescription>
-          </div>
-          <div className="grid w-full gap-3 sm:grid-cols-2 lg:w-auto lg:grid-cols-[minmax(14rem,1fr)_11rem_11rem_auto]">
-            <InputGroup>
-              <InputGroupAddon>
-                <Search aria-hidden="true" />
-              </InputGroupAddon>
-              <InputGroupInput
-                aria-label="Buscar publicaciones"
-                onChange={(event) => {
-                  setQuery(event.target.value)
-                  setPage(1)
-                }}
-                placeholder="Buscar publicaciones"
-                value={query}
-              />
-            </InputGroup>
-            <Select
+      <CollectionHeader
+        description={tableDescription}
+        level="h2"
+        title={tableTitle}
+      />
+      <Card variant="subtle">
+        <DataTableHeader
+          search={{
+            ariaLabel: "Buscar publicaciones",
+            onChange: (value) => {
+              setQuery(value)
+              setPage(1)
+            },
+            placeholder: "Buscar publicaciones",
+            value: query,
+          }}
+        />
+        <CardContent className="flex flex-col gap-4 px-0">
+          <DataTableToolbar
+            actions={
+              hasFilters ? (
+                <Button
+                  onClick={clearFilters}
+                  size="sm"
+                  variant="brand-secondary"
+                >
+                  <ListFilter data-icon="inline-start" />
+                  Limpiar
+                </Button>
+              ) : undefined
+            }
+          >
+            <DataTableFilter
+              ariaLabel="Filtrar por red"
+              label="Red"
               onValueChange={(value) => {
                 setProvider(value as PublishingProvider | "all")
                 setPage(1)
               }}
+              options={[
+                { label: "Todas las redes", value: "all" },
+                { label: "Facebook", value: "facebook" },
+                { label: "Instagram", value: "instagram" },
+                { label: "WhatsApp", value: "whatsapp" },
+              ]}
               value={provider}
-            >
-              <SelectTrigger aria-label="Filtrar por red" className="w-full">
-                <SelectValue placeholder="Red" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="all">Todas las redes</SelectItem>
-                  <SelectItem value="facebook">Facebook</SelectItem>
-                  <SelectItem value="instagram">Instagram</SelectItem>
-                  <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            <Select
+            />
+            <DataTableFilter
+              ariaLabel="Filtrar por estado"
+              label="Estado"
               onValueChange={(value) => {
                 setStatus(value as PublishingStatus | "all")
                 setPage(1)
               }}
+              options={
+                mode === "drafts"
+                  ? [
+                      { label: "Todos los estados", value: "all" },
+                      { label: "Borrador", value: "draft" },
+                    ]
+                  : [
+                      { label: "Todos los estados", value: "all" },
+                      { label: "Programada", value: "scheduled" },
+                      { label: "En proceso", value: "processing" },
+                      { label: "Fallida", value: "failed" },
+                      { label: "Publicada", value: "published" },
+                    ]
+              }
               value={status}
-            >
-              <SelectTrigger aria-label="Filtrar por estado" className="w-full">
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="all">Todos los estados</SelectItem>
-                  {mode === "drafts" ? (
-                    <SelectItem value="draft">Borrador</SelectItem>
-                  ) : (
-                    <>
-                      <SelectItem value="scheduled">Programada</SelectItem>
-                      <SelectItem value="processing">En proceso</SelectItem>
-                      <SelectItem value="failed">Fallida</SelectItem>
-                      <SelectItem value="published">Publicada</SelectItem>
-                    </>
-                  )}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            {hasFilters ? (
-              <Button
-                onClick={clearFilters}
-                size="sm"
-                variant="brand-secondary"
-              >
-                <ListFilter data-icon="inline-start" />
-                Limpiar
-              </Button>
-            ) : null}
-          </div>
-        </CardHeader>
+            />
+          </DataTableToolbar>
 
-        {pagePosts.length ? (
-          <CardContent className="flex flex-col gap-4 px-0">
-            <div className="hidden overflow-hidden md:block">
-              <Table>
-                <TableHeader className="border-t **:data-[slot='table-head']:h-11 **:data-[slot='table-head']:font-medium **:data-[slot='table-head']:text-foreground">
-                  <TableRow>
-                    <TableHead className="pl-4">Publicación</TableHead>
-                    <TableHead>Cuenta</TableHead>
-                    <TableHead>Fecha</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead className="pr-4 text-right">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody className="**:data-[slot='table-row']:border-border/50">
-                  {pagePosts.map((post) => (
-                    <TableRow key={post.id}>
-                      <TableCell className="max-w-72 pl-4">
-                        <p className="truncate font-medium">{post.title}</p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {post.hasMedia ? "Con archivo" : "Solo texto"}
-                        </p>
-                      </TableCell>
-                      <TableCell>
-                        <p className="max-w-48 truncate">{post.channel}</p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {providerLabels[post.provider]}
-                        </p>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {formatDate(post)} · {post.time}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={statusVariants[post.status]}>
-                          {statusLabels[post.status]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="pr-4 text-right">
-                        <div className="inline-flex">
-                          <PostActions
-                            mode={mode}
-                            onContinue={onContinue}
-                            onDelete={onDelete}
-                            onRetry={onRetry}
-                            post={post}
-                          />
-                        </div>
-                      </TableCell>
+          {pagePosts.length ? (
+            <>
+              <div className="hidden overflow-hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="pl-4">Publicación</TableHead>
+                      <TableHead>Cuenta</TableHead>
+                      <TableHead>Fecha</TableHead>
+                      <TableHead>Estado</TableHead>
+                      <TableHead className="pr-4 text-right">
+                        Acciones
+                      </TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {pagePosts.map((post) => (
+                      <TableRow key={post.id}>
+                        <TableCell className="max-w-72 pl-4">
+                          <p className="truncate font-medium">{post.title}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {post.hasMedia ? "Con archivo" : "Solo texto"}
+                          </p>
+                        </TableCell>
+                        <TableCell>
+                          <p className="max-w-48 truncate">{post.channel}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {providerLabels[post.provider]}
+                          </p>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {formatDate(post)} · {post.time}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={statusVariants[post.status]}>
+                            {statusLabels[post.status]}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="pr-4 text-right">
+                          <div className="inline-flex">
+                            <PostActions
+                              mode={mode}
+                              onContinue={onContinue}
+                              onDelete={onDelete}
+                              onRetry={onRetry}
+                              post={post}
+                            />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <div className="flex flex-col gap-3 px-4 md:hidden">
+                {pagePosts.map((post) => (
+                  <PostCard
+                    key={post.id}
+                    mode={mode}
+                    onContinue={onContinue}
+                    onDelete={onDelete}
+                    onRetry={onRetry}
+                    post={post}
+                  />
+                ))}
+              </div>
+              <TablePagination
+                canGoNext={currentPage < pageCount}
+                canGoPrevious={currentPage > 1}
+                itemLabel="publicaciones"
+                onNextPage={() => setPage((value) => value + 1)}
+                onPreviousPage={() => setPage((value) => value - 1)}
+                rangeEnd={pageRangeEnd}
+                rangeStart={pageRangeStart}
+                total={filteredPosts.length}
+              />
+            </>
+          ) : (
+            <div className="px-4">
+              <EmptyState
+                description={
+                  hasFilters
+                    ? "Prueba otros filtros o limpia la búsqueda para ver las publicaciones disponibles."
+                    : mode === "drafts"
+                      ? "Guarda una publicación como borrador para continuarla después."
+                      : "Cuando programes o publiques una pieza, su progreso aparecerá aquí por cada destino."
+                }
+                icon={mode === "drafts" ? FilePenLine : CalendarClock}
+                title={
+                  hasFilters
+                    ? "No encontramos publicaciones"
+                    : mode === "drafts"
+                      ? "Todavía no hay borradores"
+                      : "La cola está vacía"
+                }
+              />
             </div>
-            <div className="flex flex-col gap-3 px-4 md:hidden">
-              {pagePosts.map((post) => (
-                <PostCard
-                  key={post.id}
-                  mode={mode}
-                  onContinue={onContinue}
-                  onDelete={onDelete}
-                  onRetry={onRetry}
-                  post={post}
-                />
-              ))}
-            </div>
-            <TablePagination
-              canGoNext={currentPage < pageCount}
-              canGoPrevious={currentPage > 1}
-              itemLabel="publicaciones"
-              mode="compact"
-              onNextPage={() => setPage((value) => value + 1)}
-              onPreviousPage={() => setPage((value) => value - 1)}
-              rangeEnd={pageRangeEnd}
-              rangeStart={pageRangeStart}
-              total={filteredPosts.length}
-            />
-          </CardContent>
-        ) : (
-          <CardContent>
-            <EmptyState
-              description={
-                hasFilters
-                  ? "Prueba otros filtros o limpia la búsqueda para ver las publicaciones disponibles."
-                  : mode === "drafts"
-                    ? "Guarda una publicación como borrador para continuarla después."
-                    : "Cuando programes o publiques una pieza, su progreso aparecerá aquí por cada destino."
-              }
-              icon={mode === "drafts" ? FilePenLine : CalendarClock}
-              title={
-                hasFilters
-                  ? "No encontramos publicaciones"
-                  : mode === "drafts"
-                    ? "Todavía no hay borradores"
-                    : "La cola está vacía"
-              }
-            />
-          </CardContent>
-        )}
+          )}
+        </CardContent>
       </Card>
     </div>
   )

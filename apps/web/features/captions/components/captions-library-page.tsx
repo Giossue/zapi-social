@@ -23,13 +23,12 @@ import {
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
+  DataTableFilter,
+  DataTableHeader,
+  DataTableToolbar,
+} from "@workspace/ui/components/data-table-controls"
+import { CollectionHeader } from "@workspace/ui/components/collection-header"
+import { Card, CardContent } from "@workspace/ui/components/card"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,18 +37,8 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { EmptyState } from "@workspace/ui/components/empty-state"
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@workspace/ui/components/field"
+import { Field, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@workspace/ui/components/input-group"
 import {
   Select,
   SelectContent,
@@ -67,6 +56,7 @@ import {
   SheetTitle,
 } from "@workspace/ui/components/sheet"
 import { PageLoading } from "@workspace/ui/components/page-loading"
+import { RetryButton } from "@workspace/ui/components/retry-button"
 import {
   Table,
   TableBody,
@@ -77,6 +67,7 @@ import {
 } from "@workspace/ui/components/table"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { Textarea } from "@workspace/ui/components/textarea"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
 import {
   FileText,
@@ -84,7 +75,6 @@ import {
   MoreHorizontal,
   Pencil,
   Plus,
-  RefreshCw,
   Save,
   Search,
   Trash2,
@@ -349,12 +339,12 @@ function CaptionsTable({
   return (
     <div className="flex flex-1 flex-col gap-4">
       <div>
-        <Table className="**:data-[slot=table-cell]:px-4 **:data-[slot=table-head]:px-4">
-          <TableHeader className="[&_tr]:border-t">
+        <Table>
+          <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className="py-4 font-normal">
+                  <TableHead key={header.id}>
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -369,12 +359,9 @@ function CaptionsTable({
           <TableBody>
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  className="border-border/60 hover:bg-white/2.5"
-                >
+                <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="px-3 py-4 align-middle">
+                    <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
@@ -397,7 +384,6 @@ function CaptionsTable({
         canGoNext={table.getCanNextPage()}
         canGoPrevious={table.getCanPreviousPage()}
         itemLabel="captions"
-        mode="compact"
         onNextPage={() => table.nextPage()}
         onPreviousPage={() => table.previousPage()}
         rangeEnd={rangeEnd}
@@ -613,7 +599,7 @@ export function CaptionsLibraryPage() {
 
   if (!hasPermission) {
     return (
-      <Card>
+      <Card variant="subtle">
         <CardContent>
           <EmptyState
             description="Pide acceso a un administrador del espacio de trabajo."
@@ -627,12 +613,10 @@ export function CaptionsLibraryPage() {
 
   if (hasLoadError) {
     return (
-      <Card>
+      <Card variant="subtle">
         <CardContent>
           <EmptyState
-            action={
-              <Button onClick={() => void loadCaptions()}>Reintentar</Button>
-            }
+            action={<RetryButton onClick={() => void loadCaptions()} />}
             description="No pudimos cargar la biblioteca en este momento. Inténtalo de nuevo."
             icon={TriangleAlert}
             title="No pudimos cargar los captions"
@@ -664,75 +648,29 @@ export function CaptionsLibraryPage() {
 
   return (
     <>
-      <Card>
-        <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
-          <CardTitle className="text-xl leading-none">
-            Biblioteca de captions
-          </CardTitle>
-          <CardDescription className="max-w-sm leading-snug">
-            Gestiona textos reutilizables para mantener una voz consistente en
-            tus publicaciones.
-          </CardDescription>
-          <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
-            <InputGroup className="h-7 w-full md:w-64">
-              <InputGroupAddon align="inline-start">
-                <Search className="size-3.5" />
-              </InputGroupAddon>
-              <InputGroupInput
-                aria-label="Buscar captions"
-                className="h-7"
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Buscar captions..."
-                value={searchQuery}
-              />
-            </InputGroup>
+      <CollectionHeader
+        description="Gestiona textos reutilizables para mantener una voz consistente en tus publicaciones."
+        title="Biblioteca de captions"
+      />
+      <Card variant="subtle">
+        <DataTableHeader
+          action={
             <Button onClick={openCreateEditor} size="sm" type="button">
               <Plus />
               Nuevo caption
             </Button>
-          </CardAction>
-        </CardHeader>
+          }
+          search={{
+            ariaLabel: "Buscar captions",
+            onChange: setSearchQuery,
+            placeholder: "Buscar captions...",
+            value: searchQuery,
+          }}
+        />
         <CardContent className="flex flex-col gap-4 px-0">
-          <div className="flex flex-wrap items-center justify-between gap-3 px-4">
-            <div className="flex flex-wrap items-center gap-3">
-              <Select
-                onValueChange={(value: CaptionSourceType | "all") =>
-                  setSourceFilter(value)
-                }
-                value={sourceFilter}
-              >
-                <SelectTrigger size="sm">
-                  <span className="text-muted-foreground">Origen:</span>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent position="popper" align="start">
-                  <SelectGroup>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="manual">Manual</SelectItem>
-                    <SelectItem value="ai">Generado por IA</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              <Select
-                onValueChange={(value: CaptionStatus | "all") =>
-                  setStatusFilter(value)
-                }
-                value={statusFilter}
-              >
-                <SelectTrigger size="sm">
-                  <span className="text-muted-foreground">Estado:</span>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent position="popper" align="start">
-                  <SelectGroup>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="active">Activo</SelectItem>
-                    <SelectItem value="draft">Borrador</SelectItem>
-                    <SelectItem value="archived">Archivado</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              {hasActiveFilters ? (
+          <DataTableToolbar
+            actions={
+              hasActiveFilters ? (
                 <Button
                   onClick={clearFilters}
                   size="sm"
@@ -742,9 +680,37 @@ export function CaptionsLibraryPage() {
                   <X />
                   Limpiar
                 </Button>
-              ) : null}
-            </div>
-          </div>
+              ) : undefined
+            }
+          >
+            <DataTableFilter
+              ariaLabel="Filtrar por origen"
+              label="Origen"
+              onValueChange={(value) =>
+                setSourceFilter(value as CaptionSourceType | "all")
+              }
+              options={[
+                { label: "Todos", value: "all" },
+                { label: "Manual", value: "manual" },
+                { label: "Generado por IA", value: "ai" },
+              ]}
+              value={sourceFilter}
+            />
+            <DataTableFilter
+              ariaLabel="Filtrar por estado"
+              label="Estado"
+              onValueChange={(value) =>
+                setStatusFilter(value as CaptionStatus | "all")
+              }
+              options={[
+                { label: "Todos", value: "all" },
+                { label: "Activo", value: "active" },
+                { label: "Borrador", value: "draft" },
+                { label: "Archivado", value: "archived" },
+              ]}
+              value={statusFilter}
+            />
+          </DataTableToolbar>
           <CaptionsTable
             captions={filteredCaptions}
             emptyState={emptyState}
@@ -793,7 +759,7 @@ export function CaptionsLibraryPage() {
               variant="destructive"
             >
               {pending ? (
-                <RefreshCw className="animate-spin" data-icon="inline-start" />
+                <Spinner aria-label="Eliminando" data-icon="inline-start" />
               ) : null}
               Eliminar caption
             </AlertDialogAction>
@@ -820,7 +786,7 @@ function CaptionEditor({
   const [values, setValues] = useState<CaptionEditorValues>(() =>
     caption ? toEditorValues(caption) : emptyEditorValues
   )
-  const [saveError, setSaveError] = useState<string | null>(null)
+  const formComplete = Boolean(values.name.trim() && values.content.trim())
 
   function updateValue<Key extends keyof CaptionEditorValues>(
     key: Key,
@@ -831,8 +797,12 @@ function CaptionEditor({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setSaveError(null)
-    setSaveError(await onSave(values))
+    if (!formComplete) {
+      toast.error("Completa todos los campos obligatorios.")
+      return
+    }
+    const saveError = await onSave(values)
+    if (saveError) toast.error(saveError)
   }
 
   return (
@@ -853,18 +823,24 @@ function CaptionEditor({
         </SheetHeader>
         <form
           className="flex min-h-0 flex-1 flex-col"
+          noValidate
           onSubmit={(event) => void handleSubmit(event)}
         >
           <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4">
             <FieldGroup className="grid gap-4 md:grid-cols-2">
               <Field>
-                <FieldLabel htmlFor="caption-name">Nombre</FieldLabel>
+                <FieldLabel htmlFor="caption-name">
+                  Nombre
+                  <span aria-hidden="true" className="text-destructive">
+                    *
+                  </span>
+                </FieldLabel>
                 <Input
+                  aria-required="true"
                   id="caption-name"
                   maxLength={120}
                   onChange={(event) => updateValue("name", event.target.value)}
                   placeholder="Ej. Lanzamiento de colección"
-                  required
                   value={values.name}
                 />
               </Field>
@@ -879,14 +855,23 @@ function CaptionEditor({
                 />
               </Field>
               <Field>
-                <FieldLabel htmlFor="caption-source">Origen</FieldLabel>
+                <FieldLabel htmlFor="caption-source">
+                  Origen
+                  <span aria-hidden="true" className="text-destructive">
+                    *
+                  </span>
+                </FieldLabel>
                 <Select
                   onValueChange={(value: CaptionSourceType) =>
                     updateValue("sourceType", value)
                   }
                   value={values.sourceType}
                 >
-                  <SelectTrigger id="caption-source" className="w-full">
+                  <SelectTrigger
+                    aria-required="true"
+                    className="w-full"
+                    id="caption-source"
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -898,14 +883,23 @@ function CaptionEditor({
                 </Select>
               </Field>
               <Field>
-                <FieldLabel htmlFor="caption-status">Estado</FieldLabel>
+                <FieldLabel htmlFor="caption-status">
+                  Estado
+                  <span aria-hidden="true" className="text-destructive">
+                    *
+                  </span>
+                </FieldLabel>
                 <Select
                   onValueChange={(value: CaptionStatus) =>
                     updateValue("status", value)
                   }
                   value={values.status}
                 >
-                  <SelectTrigger id="caption-status" className="w-full">
+                  <SelectTrigger
+                    aria-required="true"
+                    className="w-full"
+                    id="caption-status"
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -920,15 +914,20 @@ function CaptionEditor({
             </FieldGroup>
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor="caption-content">Contenido</FieldLabel>
+                <FieldLabel htmlFor="caption-content">
+                  Contenido
+                  <span aria-hidden="true" className="text-destructive">
+                    *
+                  </span>
+                </FieldLabel>
                 <Textarea
+                  aria-required="true"
                   id="caption-content"
                   maxLength={10000}
                   onChange={(event) =>
                     updateValue("content", event.target.value)
                   }
                   placeholder="Escribe el caption que quieres guardar"
-                  required
                   rows={5}
                   value={values.content}
                 />
@@ -945,7 +944,6 @@ function CaptionEditor({
                 />
               </Field>
             </FieldGroup>
-            {saveError ? <FieldError>{saveError}</FieldError> : null}
           </div>
           <SheetFooter className="flex-row justify-end border-t">
             <Button
@@ -956,9 +954,9 @@ function CaptionEditor({
             >
               Cancelar
             </Button>
-            <Button disabled={pending} type="submit">
+            <Button disabled={pending || !formComplete} type="submit">
               {pending ? (
-                <RefreshCw className="animate-spin" data-icon="inline-start" />
+                <Spinner aria-label="Guardando" data-icon="inline-start" />
               ) : (
                 <Save aria-hidden="true" data-icon="inline-start" />
               )}

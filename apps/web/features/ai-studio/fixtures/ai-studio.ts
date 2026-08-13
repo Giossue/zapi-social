@@ -245,33 +245,6 @@ export const automations = [
   },
 ]
 
-export const creditRows = [
-  {
-    amount: "−12",
-    date: "Hoy, 18:04",
-    detail: "Reel producto destacado",
-    type: "Generación de video",
-  },
-  {
-    amount: "−4",
-    date: "Hoy, 17:21",
-    detail: "Campaña hamburguesa agosto",
-    type: "Generación de imagen",
-  },
-  {
-    amount: "+100",
-    date: "1 ago, 09:00",
-    detail: "Renovación mensual",
-    type: "Recarga del plan",
-  },
-  {
-    amount: "−3",
-    date: "31 jul, 15:42",
-    detail: "Calendario editorial",
-    type: "Planificador",
-  },
-]
-
 export const timingRows = [
   {
     account: "Instagram · Zapi Burger",

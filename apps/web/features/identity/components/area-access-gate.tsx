@@ -1,10 +1,10 @@
 "use client"
 
 import { ApiError, authApi } from "@workspace/api-client"
-import { Button } from "@workspace/ui/components/button"
 import { Card } from "@workspace/ui/components/card"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { PageLoading } from "@workspace/ui/components/page-loading"
+import { RetryButton } from "@workspace/ui/components/retry-button"
 import { ShieldAlert } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useState, type ReactNode } from "react"
@@ -77,14 +77,12 @@ export function AreaAccessGate({ area, children }: AreaAccessGateProps) {
   if (state.status === "error") {
     return (
       <main className="mx-auto flex min-h-dvh w-full max-w-7xl items-center p-4 sm:p-6 lg:p-8">
-        <Card variant="surface" className="w-full max-w-lg">
+        <Card variant="subtle" className="w-full max-w-lg">
           <EmptyState
             icon={ShieldAlert}
             title="No pudimos verificar tu acceso"
             description={state.message}
-            action={
-              <Button onClick={() => void validateSession()}>Reintentar</Button>
-            }
+            action={<RetryButton onClick={() => void validateSession()} />}
           />
         </Card>
       </main>

@@ -56,10 +56,10 @@ No se copiarán secretos, tokens, cuentas ni recursos reales de Laravel a V2. La
 
 ## Separación Admin y Portal
 
-| Área | Ruta V2 | Responsabilidad |
-| --- | --- | --- |
-| PlatformAdmin | `/admin/integrations` | Configuración global, readiness y diagnóstico del proveedor |
-| PortalUser | `/portal/channels` | Inventario, conexión, reconexión y operación de cuentas del workspace |
+| Área          | Ruta V2               | Responsabilidad                                                       |
+| ------------- | --------------------- | --------------------------------------------------------------------- |
+| PlatformAdmin | `/admin/integrations` | Configuración global, readiness y diagnóstico del proveedor           |
+| PortalUser    | `/portal/channels`    | Inventario, conexión, reconexión y operación de cuentas del workspace |
 
 La separación de identidad está definida en [separacion-admin-portal.md](./separacion-admin-portal.md). PlatformAdmin no posee canales ni puede iniciar conexiones de cliente.
 
@@ -67,15 +67,15 @@ No existe en Laravel un CRUD administrativo global de `social_accounts`; V2 tamp
 
 ## Referencia Laravel auditada
 
-| Superficie | Legacy | Referencia |
-| --- | --- | --- |
-| Hub Admin | `/admin/integrations` | `modules/AppIntegrations/Livewire/IntegrationHub.php` |
-| Registro modular | `register_channel_module()` | `modules/AppChannels/Support/helpers.php` |
-| Catálogo de capacidades | `ChannelCatalog` | `modules/AppChannels/Support/ChannelCatalog.php` |
-| Portal | `/portal/channels` | `modules/AppChannels/Livewire/PortalDashboard.php` |
-| Cuentas conectadas | `social_accounts` | `modules/AppChannels/Models/SocialAccount.php` |
-| Scope workspace | `TeamWorkspaceAccess` | `modules/AppTeams/Support/TeamWorkspaceAccess.php` |
-| Límites de plan | `ChannelPlanAccess` | `modules/AppChannels/Support/ChannelPlanAccess.php` |
+| Superficie              | Legacy                      | Referencia                                            |
+| ----------------------- | --------------------------- | ----------------------------------------------------- |
+| Hub Admin               | `/admin/integrations`       | `modules/AppIntegrations/Livewire/IntegrationHub.php` |
+| Registro modular        | `register_channel_module()` | `modules/AppChannels/Support/helpers.php`             |
+| Catálogo de capacidades | `ChannelCatalog`            | `modules/AppChannels/Support/ChannelCatalog.php`      |
+| Portal                  | `/portal/channels`          | `modules/AppChannels/Livewire/PortalDashboard.php`    |
+| Cuentas conectadas      | `social_accounts`           | `modules/AppChannels/Models/SocialAccount.php`        |
+| Scope workspace         | `TeamWorkspaceAccess`       | `modules/AppTeams/Support/TeamWorkspaceAccess.php`    |
+| Límites de plan         | `ChannelPlanAccess`         | `modules/AppChannels/Support/ChannelPlanAccess.php`   |
 
 Laravel registra el provider desde cada módulo de canal. El Hub Admin renderiza los campos declarados por dicho módulo; no tiene una lista de inputs OAuth fija.
 
@@ -85,10 +85,10 @@ Laravel registra el provider desde cada módulo de canal. El Hub Admin renderiza
 
 Meta agrupa dos capabilities distintas bajo la infraestructura Meta, pero cada una tiene callback, scopes y picker propios.
 
-| Capability | Configuración global Laravel | Flujo Portal Laravel |
-| --- | --- | --- |
-| `facebook_page` | enabled, app ID, app secret, Graph API version, permisos, callback OAuth y callback de eliminación de datos | OAuth → lista páginas elegibles → picker → persistencia idempotente |
-| `instagram_profile` | enabled, app ID, app secret, Graph API version, permisos y callback OAuth | OAuth Meta → lista perfiles Business/Creator elegibles → picker → persistencia idempotente |
+| Capability          | Configuración global Laravel                                                                                | Flujo Portal Laravel                                                                       |
+| ------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `facebook_page`     | enabled, app ID, app secret, Graph API version, permisos, callback OAuth y callback de eliminación de datos | OAuth → lista páginas elegibles → picker → persistencia idempotente                        |
+| `instagram_profile` | enabled, app ID, app secret, Graph API version, permisos y callback OAuth                                   | OAuth Meta → lista perfiles Business/Creator elegibles → picker → persistencia idempotente |
 
 Rutas auditadas:
 
@@ -115,10 +115,10 @@ V2 no considera Meta listo hasta incluir el endpoint de borrado de datos y su au
 
 LinkedIn Profile y LinkedIn Page son capabilities separadas. Laravel actualmente permite configuración independiente para cada una.
 
-| Capability | Configuración global Laravel | Flujo Portal Laravel |
-| --- | --- | --- |
-| `linkedin_profile` | enabled, app ID, app secret, scopes member, callback | OAuth → perfil del miembro → persistencia |
-| `linkedin_page` | enabled, app ID, app secret, scopes de organizaciones, callback | OAuth → lista organizaciones/páginas administrables → picker → persistencia |
+| Capability         | Configuración global Laravel                                    | Flujo Portal Laravel                                                        |
+| ------------------ | --------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| `linkedin_profile` | enabled, app ID, app secret, scopes member, callback            | OAuth → perfil del miembro → persistencia                                   |
+| `linkedin_page`    | enabled, app ID, app secret, scopes de organizaciones, callback | OAuth → lista organizaciones/páginas administrables → picker → persistencia |
 
 ```text
 /portal/channels/linkedin/profile/connect
@@ -388,18 +388,34 @@ guardando
 secreto existente no revelado / secreto reemplazado
 ```
 
+La ruta conserva el resumen operativo de cada proveedor en su card. Toda
+edición de configuración se abre en un `Sheet` lateral derecho ancho,
+siguiendo el patrón de gestión de acceso de `/portal/teams`; no se usan
+diálogos ni formularios completos incrustados en la página. Los grupos largos
+se presentan como secciones verticales. Todos los sheets comparten encabezado
+con divisor inferior y una card independiente para la disponibilidad del
+proveedor. No se anidan cards de sección: en Meta, cada tipo de canal es una
+card directa dentro de su sección. Sus permisos se muestran como una lista
+persistente de checkboxes con etiquetas que pueden envolver varias líneas y
+los obligatorios se identifican solo con un asterisco rojo; no se ocultan
+dentro de dropdowns estrechos ni se usan badges de obligatoriedad.
+Cerrar o cancelar el sheet descarta el borrador local. El `SheetContent`
+completo usa una sola región de scroll vertical, sin contenedores desplazables
+anidados, para que los formularios largos siempre permitan alcanzar todos los
+campos y acciones.
+
 La pantalla muestra instrucciones específicas de cada provider: scopes, callback(s), versión Graph para Meta y requisitos del conector GOWA para WhatsApp. No mostrará campos de OAuth para WhatsApp.
 
 ### Portal Channels
 
 Regla de bloqueo de conexión nueva:
 
-| Estado efectivo | Acción y etiqueta Portal |
-| --- | --- |
-| Provider incompleto, sin test vigente, apagado o capability apagada | Bloqueado · **Próximamente** |
-| Provider listo + capability activa + feature de plan permitida | **Conectar** |
-| Feature de plan ausente o límite de una conexión nueva alcanzado | Bloqueado · **No incluido en tu plan** o límite alcanzado |
-| Cuenta existente desconectada | **Reconectar**, incluso si el límite ya está alcanzado |
+| Estado efectivo                                                     | Acción y etiqueta Portal                                  |
+| ------------------------------------------------------------------- | --------------------------------------------------------- |
+| Provider incompleto, sin test vigente, apagado o capability apagada | Bloqueado · **Próximamente**                              |
+| Provider listo + capability activa + feature de plan permitida      | **Conectar**                                              |
+| Feature de plan ausente o límite de una conexión nueva alcanzado    | Bloqueado · **No incluido en tu plan** o límite alcanzado |
+| Cuenta existente desconectada                                       | **Reconectar**, incluso si el límite ya está alcanzado    |
 
 ```text
 loading

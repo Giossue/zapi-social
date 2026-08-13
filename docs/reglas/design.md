@@ -20,6 +20,7 @@ Para un mismo rol visual, ambas áreas usan el mismo primitive y la misma varian
 - `className` compone layout, ancho, posición, grid y spacing. No reescribe estilo visual de una primitive.
 - No usar hero cards: evitar cards introductorias grandes con eyebrow, icono y descripción que duplican el contexto de la ruta. La pantalla empieza con su contenido operativo.
 - No duplicar el título ni la descripción de una ruta cuando el shell ya los muestra en su encabezado. La ruta empieza por acciones o contenido operativo.
+- Las métricas operativas reutilizan `MetricCard`: `Card subtle` compacta, etiqueta e icono semántico propio en el encabezado, valor y contexto breve debajo. No crear tarjetas de métricas locales ni reutilizar un icono genérico para métricas distintas.
 
 ### Política de uso de color
 
@@ -39,6 +40,8 @@ Los tokens expresan roles de interfaz; no son una paleta libre para elegir por g
 | Estado de dominio              | `success`, `warning`, `info`, `destructive` mediante `Badge`, `Alert`, `Toast` o primitive existente | Éxito, advertencia, información y error. No usar `primary` para comunicar salud o peligro.                               |
 
 No aplicar clases de color a un primitive para cambiar su apariencia (`bg-*`, `text-*`, `border-*`, `dark:*`). Si falta un rol visual, se amplía el token o la variante en `packages/ui` con una decisión documentada, antes de usarlo en una feature.
+
+La jerarquía de superficies debe seguir siendo perceptible en claro y oscuro: el lienzo usa `background`, las cards estándar usan `Card variant="subtle"`, los controles dentro de cards recuperan `background` y los encabezados de tabla usan el plano `muted` definido por `TableHeader`. Esta separación vive en tokens y primitives globales; una feature no añade fondos locales para corregir una pantalla plana.
 
 Toda acción principal incluye un icono semántico a la izquierda del texto con `data-icon="inline-start"`. Durante un estado pendiente, `Spinner` ocupa esa misma posición. No colocar el icono principal al final.
 
@@ -73,7 +76,30 @@ Antes de crear markup o un componente, ejecutar `codebase-memory` para comprobar
 - Todo campo obligatorio muestra `*` dentro de `FieldLabel` con `aria-hidden="true"` y `text-destructive`; el control usa `aria-required="true"`. Este marcador es composición simple, no un componente compartido.
 - Modal, dropdown, tooltip y drawer conservan primitive accesible; no z-index ni focus trap locales.
 - Un componente específico de dominio permanece en `features/<dominio>/components`.
-- Las tablas operativas paginadas usan `TablePagination`; no duplicar ese footer en una feature. Usar modo `compact` cuando el footer solo requiere rango y flechas —para datos remotos o locales— y modo `detailed` cuando la tabla necesita selector de filas, página y controles primera/anterior/siguiente/última.
+- Antes de cerrar cambios que afecten Portal o Admin, ejecutar `bun run audit:portal-admin-ui`. El auditor estático cubre todas sus rutas y features de una vez: tabs con scrollbar nativo, formularios sin `noValidate`, pickers nativos, conteos duplicados, contexto duplicado en tablas Portal y enlaces visibles sin ruta. Para CI o cierre estricto se usa `python3 scripts/audit_portal_admin_ui.py --fail-on-findings`. El auditor no sustituye build, typecheck ni revisión visual.
+- `TabsList` nunca usa `overflow-x-auto` ni `overflow-y-auto`: las pestañas visibles envuelven con `flex h-auto flex-wrap` para no mostrar scrollbar nativo.
+- Crear, editar o ver un registro desde una tabla operativa abre `Sheet` lateral, incluidos formularios y detalle de fila. `AlertDialog` permanece para confirmaciones destructivas. Channels conserva su flujo actual como excepción explícita; no introducir otra excepción sin decisión documentada.
+- Las tablas operativas usan `CollectionHeader`, `DataTableHeader`,
+  `DataTableToolbar` y `DataTableFilter` para fijar jerarquía, búsqueda, acción
+  y filtros. Cada ruta muestra una sola vez su título y descripción: si tabs,
+  métricas u otras secciones necesitan una cabecera superior,
+  `DataTableHeader` se usa sin contexto y conserva únicamente búsqueda y acción;
+  si la tabla es la superficie principal —como Channels—, la card aloja también
+  ese contexto. La acción que crea o administra filas siempre queda junto a la
+  búsqueda dentro de `DataTableHeader`, no en la cabecera superior. Sin contexto,
+  la búsqueda se alinea a la izquierda y la acción al extremo derecho; con
+  contexto, los controles permanecen a la derecha de su título. Una
+  descripción de tabla explica su propósito y nunca repite su cantidad; el
+  total aparece exclusivamente en `TablePagination`. Los filtros no reciben
+  anchos fijos: deben envolver a otra línea sin cortar su texto. Toda tabla
+  paginada usa el único `TablePagination`, con rango a la izquierda y
+  anterior/siguiente a la derecha; no se duplican footers ni selectores de filas
+  por página dentro de features.
+- El primitive `Table` fija la densidad visual de Channels para Portal y Admin:
+  encabezado `muted` con peso normal y borde superior/inferior, celdas con el
+  mismo padding y filas con borde/hover semánticos. Una feature solo puede
+  añadir alineación, visibilidad responsive, truncado o ancho motivado por sus
+  datos; no redefine padding, fondo, peso del encabezado, borde ni hover.
 - Un pattern pasa a `packages/ui` solo si su contrato es genérico y será reutilizable por tres o más features. Todo primitive o pattern global añadido, creado o promovido debe añadir o actualizar su fila en `packages/ui/COMPONENTS.md` dentro del mismo cambio.
 
 ## 21st.dev MCP y CLI

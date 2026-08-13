@@ -4,7 +4,6 @@ import {
   BadgeDollarSign,
   BarChart3,
   Bot,
-  Braces,
   BrainCircuit,
   Cable,
   CreditCard,
@@ -16,9 +15,7 @@ import {
   KeyRound,
   Languages,
   LayoutDashboard,
-  Menu,
   PackageCheck,
-  Palette,
   PlugZap,
   ReceiptText,
   Settings2,
@@ -41,7 +38,9 @@ export type AdminNavigationGroup = {
 export const adminNavigationGroups: readonly AdminNavigationGroup[] = [
   {
     label: "General",
-    items: [{ label: "Resumen", href: "/admin", icon: LayoutDashboard }],
+    items: [
+      { label: "Resumen", href: "/admin/dashboard", icon: LayoutDashboard },
+    ],
   },
   {
     label: "Plataforma",
@@ -76,7 +75,6 @@ export const adminNavigationGroups: readonly AdminNavigationGroup[] = [
         icon: FileQuestion,
       },
       { label: "Idiomas", href: "/admin/languages", icon: Languages },
-      { label: "Menú público", href: "/admin/menu-builder", icon: Menu },
     ],
   },
   {
@@ -121,7 +119,6 @@ export const adminNavigationGroups: readonly AdminNavigationGroup[] = [
         href: "/admin/settings/static-pages",
         icon: Globe2,
       },
-      { label: "Temas", href: "/admin/themes", icon: Palette },
       { label: "Cache", href: "/admin/settings/cache", icon: Workflow },
       {
         label: "Tareas programadas",
@@ -142,10 +139,7 @@ export function isAdminNavigationItemActive(
   item: AdminNavigationLink,
   pathname: string
 ) {
-  return (
-    pathname === item.href ||
-    (item.href !== "/admin" && pathname.startsWith(`${item.href}/`))
-  )
+  return pathname === item.href || pathname.startsWith(`${item.href}/`)
 }
 
 export function getAdminNavigationItem(pathname: string) {

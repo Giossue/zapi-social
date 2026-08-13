@@ -2,7 +2,7 @@
 
 ## Estado
 
-El backend de API keys, API externa y webhooks salientes está implementado. `/portal/automation` todavía cae en el placeholder genérico de rutas y debe construir su página sobre `automationApi`.
+El backend de API keys, API externa y webhooks salientes está implementado. `/portal/automation` ya tiene un mockup source-first navegable con pestañas separadas para claves, webhooks y actividad; su siguiente fase es conectar esa composición a `automationApi`.
 
 ## Administración Portal
 
@@ -52,6 +52,7 @@ Autenticación con `Authorization: Bearer <token>` o `X-API-Key`:
 - [x] Contratos, API, cliente, schema y Worker en `0020_mushy_peter_parker`; `0021_pale_thor` aporta las restricciones cross-workspace de los posts producidos.
 - [x] Migración aplicada localmente y typecheck de Database, Contracts, API Client, API y Worker.
 - [x] Lint focalizado del código nuevo API/Worker sin errores.
-- [ ] Sustituir el placeholder por una página conectada a `automationApi`.
+- [x] Sustituir el placeholder por un mockup source-first navegable, copiado desde `diseño ideal/src/app/(main)/dashboard/portal-modules`.
+- [ ] Conectar claves, webhooks y actividad a `automationApi` sin cambiar la composición aprobada.
 - [x] Pruebas unitarias de rechazo SSRF, HTTPS obligatorio y validación de IP pública; queda pendiente el smoke HTTP firmado de extremo a extremo.
 - [ ] Añadir rate limit por key antes de exponer la API a terceros.

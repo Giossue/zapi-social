@@ -1,6 +1,7 @@
 "use client"
 
 import { ApiError, integrationsApi } from "@workspace/api-client"
+import { IntegrationAvailabilityCard } from "./integration-availability-card"
 import { IntegrationInsetCard } from "./integration-inset-card"
 import { IntegrationCardLoading } from "./integration-card-loading"
 import type { WhatsAppStatusIntegration } from "@workspace/contracts"
@@ -13,22 +14,25 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { Field, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
-import { Switch } from "@workspace/ui/components/switch"
+import { RetryButton } from "@workspace/ui/components/retry-button"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@workspace/ui/components/sheet"
 import { toast } from "@workspace/ui/components/toast"
+import { Spinner } from "@workspace/ui/components/spinner"
 import {
   CheckCircle2,
   Circle,
   CircleAlert,
   KeyRound,
-  LoaderCircle,
   LockKeyhole,
   PlugZap,
   Save,
@@ -135,6 +139,12 @@ export function WhatsAppStatusIntegrationCard() {
     () => Boolean(draft && integration && isDirty(draft, integration)),
     [draft, integration]
   )
+  const complete = Boolean(
+    draft &&
+    draft.baseUrl.trim() &&
+    draft.basicAuthUsername.trim() &&
+    (integration?.basicAuthPasswordConfigured || draft.basicAuthPassword.trim())
+  )
 
   function closeConfiguration() {
     setDraft(null)
@@ -211,7 +221,7 @@ export function WhatsAppStatusIntegrationCard() {
           : {}),
       })
       setIntegration(saved)
-      setDraft(draftFrom(saved))
+      setDraft(null)
       setTestState("not-tested")
       toast.success("Configuración de WhatsApp Status guardada.")
     } catch (error) {
@@ -232,7 +242,7 @@ export function WhatsAppStatusIntegrationCard() {
   if (loadError || !integration) {
     return (
       <EmptyState
-        action={<Button onClick={() => void load()}>Reintentar</Button>}
+        action={<RetryButton onClick={() => void load()} />}
         description="No fue posible obtener el estado de WhatsApp Status."
         icon={PlugZap}
         title="Integración no disponible"
@@ -245,11 +255,10 @@ export function WhatsAppStatusIntegrationCard() {
       <Card variant="subtle">
         <CardHeader className="gap-4 border-b border-border pb-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0 space-y-2">
+            <div className="flex min-w-0 flex-col gap-2">
               <div className="flex flex-wrap items-center gap-2">
                 <CardTitle>{integration.label}</CardTitle>
                 <ProviderStatus readiness={integration.readiness} />
-                <Badge variant="neutral">GOWA · Basic Auth</Badge>
               </div>
               <CardDescription>{integration.description}</CardDescription>
             </div>
@@ -265,10 +274,10 @@ export function WhatsAppStatusIntegrationCard() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="space-y-7">
+        <CardContent className="flex flex-col gap-7">
           <section
             aria-labelledby="whatsapp-capability-title"
-            className="space-y-3"
+            className="flex flex-col gap-3"
           >
             <div className="flex items-center gap-2">
               <KeyRound
@@ -299,7 +308,7 @@ export function WhatsAppStatusIntegrationCard() {
 
           <section
             aria-labelledby="whatsapp-configuration-title"
-            className="space-y-3"
+            className="flex flex-col gap-3"
           >
             <div className="flex items-center gap-2">
               <LockKeyhole
@@ -345,94 +354,113 @@ export function WhatsAppStatusIntegrationCard() {
         </CardContent>
       </Card>
 
-      <Dialog
-        onOpenChange={(open) => !open && closeConfiguration()}
+      <Sheet
+        onOpenChange={(open) => !open && !saving && closeConfiguration()}
         open={draft !== null}
       >
-        <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto">
+        <SheetContent
+          className="w-full gap-0 overflow-y-auto overscroll-contain p-0 sm:max-w-xl"
+          side="right"
+        >
           {draft ? (
-            <>
-              <DialogHeader>
-                <DialogTitle>Configurar WhatsApp Status</DialogTitle>
-              </DialogHeader>
-              <form
-                className="space-y-5"
-                noValidate
-                onSubmit={saveConfiguration}
-              >
-                <IntegrationInsetCard className="space-y-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-sm font-medium">
-                        Disponibilidad del proveedor
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {draft.enabled
-                          ? "Puede ofrecer WhatsApp Status cuando el conector esté probado."
-                          : "WhatsApp Status no estará disponible en el portal."}
-                      </p>
-                    </div>
-                    <Switch
-                      aria-label="Habilitar WhatsApp Status"
-                      checked={draft.enabled}
-                      onCheckedChange={(enabled) => updateDraft({ enabled })}
-                    />
-                  </div>
-                </IntegrationInsetCard>
+            <form
+              className="flex min-h-full flex-col"
+              noValidate
+              onSubmit={saveConfiguration}
+            >
+              <SheetHeader className="border-b">
+                <SheetTitle>Configurar WhatsApp Status</SheetTitle>
+                <SheetDescription>
+                  Conecta GOWA y controla si el canal está disponible en el
+                  Portal.
+                </SheetDescription>
+              </SheetHeader>
+              <div className="flex flex-col gap-6 p-4">
+                <IntegrationAvailabilityCard
+                  ariaLabel="Habilitar WhatsApp Status"
+                  checked={draft.enabled}
+                  description={
+                    draft.enabled
+                      ? "Puede ofrecer WhatsApp Status cuando el conector esté probado."
+                      : "WhatsApp Status no estará disponible en el portal."
+                  }
+                  onCheckedChange={(enabled) => updateDraft({ enabled })}
+                  title="Disponibilidad del proveedor"
+                />
 
-                <div className="grid gap-4">
-                  <label className="grid gap-1.5">
-                    <span className="text-sm font-medium">
-                      URL base del conector GOWA
-                    </span>
-                    <Input
-                      onChange={(event) =>
-                        updateDraft({ baseUrl: event.target.value })
-                      }
-                      placeholder="https://gowa.example.com"
-                      required
-                      type="url"
-                      value={draft.baseUrl}
-                    />
-                  </label>
-                  <label className="grid gap-1.5">
-                    <span className="text-sm font-medium">
-                      Usuario Basic Auth
-                    </span>
-                    <Input
-                      autoComplete="username"
-                      onChange={(event) =>
-                        updateDraft({ basicAuthUsername: event.target.value })
-                      }
-                      required
-                      value={draft.basicAuthUsername}
-                    />
-                  </label>
-                  <label className="grid gap-1.5">
-                    <span className="text-sm font-medium">
-                      Contraseña Basic Auth
-                    </span>
-                    <Input
-                      autoComplete="new-password"
-                      onChange={(event) =>
-                        updateDraft({ basicAuthPassword: event.target.value })
-                      }
-                      placeholder={
-                        integration.basicAuthPasswordConfigured
-                          ? "••••••••••••"
-                          : undefined
-                      }
-                      required={!integration.basicAuthPasswordConfigured}
-                      type="password"
-                      value={draft.basicAuthPassword}
-                    />
-                  </label>
-                </div>
+                <section
+                  aria-labelledby="whatsapp-credentials-title"
+                  className="flex flex-col gap-4"
+                >
+                  <h3
+                    className="text-sm font-semibold"
+                    id="whatsapp-credentials-title"
+                  >
+                    Credenciales
+                  </h3>
+                  <FieldGroup>
+                    <Field>
+                      <FieldLabel>
+                        URL base del conector GOWA
+                        <span aria-hidden="true" className="text-destructive">
+                          *
+                        </span>
+                      </FieldLabel>
+                      <Input
+                        aria-required="true"
+                        onChange={(event) =>
+                          updateDraft({ baseUrl: event.target.value })
+                        }
+                        placeholder="https://gowa.example.com"
+                        type="url"
+                        value={draft.baseUrl}
+                      />
+                    </Field>
+                    <Field>
+                      <FieldLabel>
+                        Usuario Basic Auth
+                        <span aria-hidden="true" className="text-destructive">
+                          *
+                        </span>
+                      </FieldLabel>
+                      <Input
+                        aria-required="true"
+                        autoComplete="username"
+                        onChange={(event) =>
+                          updateDraft({ basicAuthUsername: event.target.value })
+                        }
+                        value={draft.basicAuthUsername}
+                      />
+                    </Field>
+                    <Field>
+                      <FieldLabel>
+                        Contraseña Basic Auth
+                        <span aria-hidden="true" className="text-destructive">
+                          *
+                        </span>
+                      </FieldLabel>
+                      <Input
+                        aria-required="true"
+                        autoComplete="new-password"
+                        onChange={(event) =>
+                          updateDraft({ basicAuthPassword: event.target.value })
+                        }
+                        placeholder={
+                          integration.basicAuthPasswordConfigured
+                            ? "••••••••••••"
+                            : undefined
+                        }
+                        type="password"
+                        value={draft.basicAuthPassword}
+                      />
+                    </Field>
+                  </FieldGroup>
+                </section>
 
                 {draft.enabled ? (
                   <section
                     aria-labelledby="whatsapp-test-title"
-                    className="space-y-3 border-t border-border pt-5"
+                    className="flex flex-col gap-3 border-t border-border pt-5"
                   >
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div>
@@ -450,17 +478,17 @@ export function WhatsAppStatusIntegrationCard() {
                       </div>
                       <Button
                         disabled={
-                          testState === "testing" || testState === "passed"
+                          saving ||
+                          !complete ||
+                          testState === "testing" ||
+                          testState === "passed"
                         }
                         onClick={() => void testConfiguration()}
                         type="button"
                         variant={testState === "passed" ? "success" : "surface"}
                       >
                         {testState === "testing" ? (
-                          <LoaderCircle
-                            className="animate-spin"
-                            data-icon="inline-start"
-                          />
+                          <Spinner data-icon="inline-start" />
                         ) : testState === "passed" ? (
                           <CheckCircle2 data-icon="inline-start" />
                         ) : (
@@ -481,32 +509,37 @@ export function WhatsAppStatusIntegrationCard() {
                     ) : null}
                   </section>
                 ) : null}
-
-                <div className="flex flex-col-reverse gap-2 border-t border-border pt-5 sm:flex-row sm:justify-end">
-                  <Button
-                    onClick={closeConfiguration}
-                    type="button"
-                    variant="brand-secondary"
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    disabled={
-                      !dirty ||
-                      saving ||
-                      (draft.enabled && testState !== "passed")
-                    }
-                    type="submit"
-                  >
+              </div>
+              <SheetFooter className="flex-row justify-end border-t">
+                <Button
+                  disabled={saving}
+                  onClick={closeConfiguration}
+                  type="button"
+                  variant="brand-secondary"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  disabled={
+                    !dirty ||
+                    saving ||
+                    !complete ||
+                    (draft.enabled && testState !== "passed")
+                  }
+                  type="submit"
+                >
+                  {saving ? (
+                    <Spinner data-icon="inline-start" />
+                  ) : (
                     <Save data-icon="inline-start" />
-                    {saving ? "Guardando" : "Guardar configuración"}
-                  </Button>
-                </div>
-              </form>
-            </>
+                  )}
+                  {saving ? "Guardando" : "Guardar configuración"}
+                </Button>
+              </SheetFooter>
+            </form>
           ) : null}
-        </DialogContent>
-      </Dialog>
+        </SheetContent>
+      </Sheet>
     </>
   )
 }

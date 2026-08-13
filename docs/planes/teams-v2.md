@@ -140,7 +140,7 @@ workspace_membership_audit_events
 - Pestañas sin contadores: **Miembros**, **Invitaciones pendientes** y **Actividad**.
 - El buscador permanece en la misma posición al cambiar de pestaña, pero conserva una consulta independiente por pestaña. Nunca filtra datos de otra pestaña.
 - La acción contextual usa el patrón de Files: tres puntos verticales, acciones normales agrupadas y acción destructiva separada al final.
-- Tablas con la densidad y composición canónica de `diseño ideal/dashboard/users` y `TablePagination` solo cuando el volumen lo requiera.
+- La ruta canónica `/dashboard/teams` en `diseño ideal` define la composición de tabs, tablas responsive y footer. Miembros, invitaciones, directorio de solo lectura y actividad usan el único `TablePagination`, incluso cuando existe una sola página.
 
 ### Miembros — owner/admin
 
@@ -204,7 +204,7 @@ Listado cronológico de eventos de acceso con actor, acción, sujeto y fecha. La
 ### UI y fixtures
 
 - `/portal/teams` usa `teamsApi`; se eliminaron `features/teams/fixtures`, `mocks` y tipos locales duplicados.
-- Owner/admin tienen **Miembros**, **Invitaciones pendientes** y **Actividad**, sin números en los tabs y con búsqueda independiente persistente en la misma posición.
+- Owner/admin tienen **Miembros**, **Invitaciones pendientes** y **Actividad**, sin números en los tabs y con búsqueda independiente persistente en la misma posición. Miembros e invitaciones se paginan localmente en bloques de 10; actividad conserva paginación REST. Buscar o cambiar de pestaña vuelve a la primera página de esa colección y una mutación ajusta cualquier página que haya quedado fuera del nuevo rango.
 - El menú contextual replica el patrón de Files: acciones normales, separador y destructiva al final.
 - Member recibe **Mi acceso**, sus cuentas y un directorio de solo lectura; los correos de terceros y las invitaciones no llegan en la respuesta.
 - Existen skeleton estructural, error con reintento, vacíos iniciales/filtrados, pending sin doble envío, cupos agotados y variantes desktop/móvil en claro/oscuro.
@@ -353,6 +353,7 @@ La invitación siempre pertenece a un **workspace**. Teams es la superficie que 
 
 ## Evidencia de cierre local
 
+- Ajuste de tablas del 2026-08-12: la fuente navegable `/dashboard/teams` pasó Biome focal y `tsc --noEmit`; el consumidor Portal pasó Prettier, ESLint focal, typecheck Web y `git diff --check`. La aprobación visual sigue a cargo del usuario.
 - `0023` y `0024` aplicadas en `zapi_v2_local`: 25 migraciones registradas, índice parcial presente, cero duplicados pendientes y cero entregas heredadas en `pending`.
 - Pruebas de integración de Teams y política de acceso: **10 pass, 0 fail, 73 assertions**. Cubren privacidad, permisos por rol, cupos/duplicados, rotación de token, aceptación, revocación posterior inocua, ownership, workspace personal del destinatario, abandono, actividad y filtros de Publishing/AI/Channels.
 - Pruebas focales del cierre de invitaciones y sesión: **7 pass, 0 fail, 75 assertions**. Cubren preview para cuenta existente y nueva, correo distinto, token inválido/vencido/reutilizado, cupo agotado, aceptación idempotente y activación autorizada de workspace.

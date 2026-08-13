@@ -1,7 +1,7 @@
 "use client"
 
 import { ApiError, authApi } from "@workspace/api-client"
-import { usePathname, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useCallback, useEffect } from "react"
 import {
   getAreaDestination,
@@ -27,7 +27,6 @@ function isProtectedPath(pathname: string) {
 }
 
 export function SessionSynchronizer() {
-  const pathname = usePathname()
   const router = useRouter()
 
   const redirectToLogin = useCallback(() => {

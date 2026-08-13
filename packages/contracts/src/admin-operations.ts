@@ -100,10 +100,17 @@ export const adminOperationMutationResultSchema = z.object({
 })
 
 export const polarEnvironmentSchema = z.enum(["sandbox", "live"])
+export const polarIntegrationReadinessSchema = z.enum([
+  "ready",
+  "incomplete",
+  "untested",
+  "disabled",
+])
 
 export const polarIntegrationSchema = z.object({
   enabled: z.boolean(),
   configured: z.boolean(),
+  readiness: polarIntegrationReadinessSchema,
   environment: polarEnvironmentSchema,
   recurring: z.boolean(),
   monthlyProductId: z.string(),
@@ -116,11 +123,11 @@ export const polarIntegrationSchema = z.object({
   webhookUrl: z.string().url(),
   successUrl: z.string().url(),
   cancelUrl: z.string().url(),
+  lastTestedAt: z.string().datetime().nullable(),
 })
 
-export const updatePolarIntegrationSchema = z
+export const polarConfigurationDraftSchema = z
   .object({
-    enabled: z.boolean(),
     environment: polarEnvironmentSchema,
     recurring: z.boolean(),
     monthlyProductId: z.string().trim().max(160),
@@ -132,6 +139,17 @@ export const updatePolarIntegrationSchema = z
     webhookSecret: z.string().trim().max(500).optional(),
   })
   .strict()
+
+export const testPolarIntegrationSchema = z
+  .object({ configuration: polarConfigurationDraftSchema })
+  .strict()
+
+export const testPolarIntegrationResponseSchema = z.object({
+  testedAt: z.string().datetime(),
+})
+
+export const updatePolarIntegrationSchema = polarConfigurationDraftSchema
+  .extend({ enabled: z.boolean() })
   .superRefine((value, context) => {
     if (
       value.enabled &&
@@ -162,6 +180,15 @@ export type AdminOperationMutationResult = z.infer<
   typeof adminOperationMutationResultSchema
 >
 export type PolarIntegration = z.infer<typeof polarIntegrationSchema>
+export type PolarConfigurationDraft = z.infer<
+  typeof polarConfigurationDraftSchema
+>
+export type TestPolarIntegrationInput = z.infer<
+  typeof testPolarIntegrationSchema
+>
+export type TestPolarIntegrationResponse = z.infer<
+  typeof testPolarIntegrationResponseSchema
+>
 export type UpdatePolarIntegrationInput = z.infer<
   typeof updatePolarIntegrationSchema
 >

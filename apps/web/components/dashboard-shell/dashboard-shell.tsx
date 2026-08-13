@@ -23,7 +23,6 @@ import { ThemeSwitcher } from "./theme-switcher"
 import { WorkspaceSwitcher } from "./workspace-switcher"
 
 type DashboardShellProps = {
-  areaLabel: string
   children: React.ReactNode
   homeHref: string
   isItemActive: (item: DashboardNavigationLink, pathname: string) => boolean
@@ -38,7 +37,6 @@ type DashboardShellProps = {
 }
 
 export function DashboardShell({
-  areaLabel,
   children,
   homeHref,
   isItemActive,

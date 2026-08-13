@@ -1,6 +1,13 @@
 "use client"
 
-import { useCallback, useEffect, useState, type FormEvent } from "react"
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+  type MouseEvent,
+} from "react"
 import {
   Check,
   Ellipsis,
@@ -14,24 +21,37 @@ import {
 } from "lucide-react"
 
 import { Badge } from "@workspace/ui/components/badge"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@workspace/ui/components/alert-dialog"
 import { Button } from "@workspace/ui/components/button"
+import {
+  DataTableFilter,
+  DataTableHeader,
+  DataTableToolbar,
+} from "@workspace/ui/components/data-table-controls"
 import {
   Card,
   CardAction,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog"
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@workspace/ui/components/sheet"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,13 +61,18 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { EmptyState } from "@workspace/ui/components/empty-state"
-import { Input } from "@workspace/ui/components/input"
 import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@workspace/ui/components/input-group"
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from "@workspace/ui/components/field"
+import { Input } from "@workspace/ui/components/input"
+import { MetricCard } from "@workspace/ui/components/metric-card"
 import { PageLoading } from "@workspace/ui/components/page-loading"
+import { RetryButton } from "@workspace/ui/components/retry-button"
 import {
   Select,
   SelectContent,
@@ -57,6 +82,7 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select"
 import { Switch } from "@workspace/ui/components/switch"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { ScrollArea } from "@workspace/ui/components/scroll-area"
 import {
@@ -131,10 +157,20 @@ function formatPrice(plan: AdminPlan) {
   }).format(plan.price)
 }
 
+function RequiredMark() {
+  return (
+    <span aria-hidden="true" className="text-destructive">
+      *
+    </span>
+  )
+}
+
 function PermissionGroups({
+  disabled,
   selectedIds,
   setSelectedIds,
 }: {
+  disabled: boolean
   selectedIds: string[]
   setSelectedIds: React.Dispatch<React.SetStateAction<string[]>>
 }) {
@@ -155,11 +191,13 @@ function PermissionGroups({
   }
 
   return (
-    <fieldset className="space-y-3">
-      <legend className="text-sm font-medium">Permisos incluidos</legend>
-      <p className="text-sm text-muted-foreground">
-        Define las capacidades que aparecen para los miembros con este plan.
-      </p>
+    <FieldSet aria-required="true" disabled={disabled}>
+      <FieldLegend className="flex items-center gap-1" variant="label">
+        Permisos incluidos <RequiredMark />
+      </FieldLegend>
+      <FieldDescription>
+        Selecciona al menos una capacidad para los miembros con este plan.
+      </FieldDescription>
       <div className="grid gap-3">
         {planPermissionGroups.map((group) => {
           const permissionIds = group.permissions.map(
@@ -169,50 +207,54 @@ function PermissionGroups({
             selectedIds.includes(permissionId)
           )
           return (
-            <div className="rounded-lg border border-border" key={group.id}>
-              <label className="flex cursor-pointer items-center justify-between gap-3 border-b border-border px-4 py-3">
-                <span className="text-sm font-medium">{group.label}</span>
-                <Checkbox
-                  aria-label={`Seleccionar todos los permisos de ${group.label}`}
-                  checked={groupChecked}
-                  onCheckedChange={(checked) =>
-                    toggleGroup(permissionIds, checked === true)
-                  }
-                />
-              </label>
-              <div className="divide-y divide-border">
+            <Card key={group.id} variant="inset">
+              <CardHeader className="border-b">
+                <CardTitle>{group.label}</CardTitle>
+                <CardAction>
+                  <Checkbox
+                    aria-label={`Seleccionar todos los permisos de ${group.label}`}
+                    checked={groupChecked}
+                    onCheckedChange={(checked) =>
+                      toggleGroup(permissionIds, checked === true)
+                    }
+                  />
+                </CardAction>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-3">
                 {group.permissions.map((permission) => (
-                  <label
-                    className="flex cursor-pointer items-start gap-3 px-4 py-3"
+                  <Field
+                    data-disabled={disabled || undefined}
                     key={permission.id}
+                    orientation="horizontal"
                   >
                     <Checkbox
+                      aria-label={permission.label}
                       checked={selectedIds.includes(permission.id)}
-                      className="mt-0.5"
+                      id={`plan-permission-${permission.id}`}
                       onCheckedChange={(checked) =>
                         togglePermission(permission.id, checked === true)
                       }
                     />
-                    <span className="grid gap-0.5">
-                      <span className="text-sm font-medium">
+                    <div className="flex flex-col gap-0.5">
+                      <FieldLabel htmlFor={`plan-permission-${permission.id}`}>
                         {permission.label}
-                      </span>
-                      <span className="text-xs leading-relaxed text-muted-foreground">
+                      </FieldLabel>
+                      <FieldDescription>
                         {permission.description}
-                      </span>
-                    </span>
-                  </label>
+                      </FieldDescription>
+                    </div>
+                  </Field>
                 ))}
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           )
         })}
       </div>
-    </fieldset>
+    </FieldSet>
   )
 }
 
-function PlanEditorDialog({
+function PlanEditorSheet({
   existingSlugs,
   onOpenChange,
   onSave,
@@ -223,19 +265,32 @@ function PlanEditorDialog({
   onSave: (plan: AdminPlan) => Promise<void>
   plan: AdminPlan
 }) {
+  const savingLock = useRef(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [isFree, setIsFree] = useState(plan.isFree)
   const [featured, setFeatured] = useState(plan.featured)
   const [isDefaultSignup, setIsDefaultSignup] = useState(plan.isDefaultSignup)
   const [permissionIds, setPermissionIds] = useState([...plan.permissionIds])
   const [name, setName] = useState(plan.name)
   const [slug, setSlug] = useState(plan.slug)
+  const [price, setPrice] = useState(String(plan.price))
+  const [trialDays, setTrialDays] = useState(String(plan.trialDays))
+  const [position, setPosition] = useState(String(plan.position))
   const isEditing = Boolean(plan.id)
+  const SubmitIcon = isEditing ? Check : Plus
+  const submitLabel = isEditing ? "Guardar cambios" : "Crear plan"
   const formComplete = Boolean(
-    name.trim() && slug.trim() && permissionIds.length > 0
+    name.trim() &&
+    slug.trim() &&
+    (isFree || price.trim()) &&
+    trialDays.trim() &&
+    position.trim() &&
+    permissionIds.length > 0
   )
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (!formComplete || savingLock.current) return
     const formData = new FormData(event.currentTarget)
     const name = String(formData.get("name") ?? "").trim()
     const slug = String(formData.get("slug") ?? "")
@@ -283,6 +338,8 @@ function PlanEditorDialog({
       return
     }
 
+    savingLock.current = true
+    setIsSaving(true)
     try {
       await onSave({
         id: plan.id,
@@ -303,67 +360,79 @@ function PlanEditorDialog({
       })
     } catch {
       // El error ya se comunica desde el contenedor de la pantalla.
+    } finally {
+      savingLock.current = false
+      setIsSaving(false)
     }
   }
 
   return (
-    <Dialog onOpenChange={onOpenChange} open>
-      <DialogContent className="max-h-[calc(100dvh-2rem)] max-w-3xl overflow-hidden p-0">
-        <DialogHeader className="px-6 pt-6">
-          <DialogTitle>
+    <Sheet
+      onOpenChange={(open) => {
+        if (!isSaving) onOpenChange(open)
+      }}
+      open
+    >
+      <SheetContent className="w-full gap-0 p-0 sm:max-w-3xl">
+        <SheetHeader className="border-b pr-12">
+          <SheetTitle>
             {isEditing ? `Editar ${plan.name}` : "Crear plan"}
-          </DialogTitle>
-          <DialogDescription>
-            Los cambios se guardarán en la configuración de planes. Aún no
-            afectan suscripciones ni usuarios.
-          </DialogDescription>
-        </DialogHeader>
+          </SheetTitle>
+          <SheetDescription>
+            Configura el precio, disponibilidad y permisos que recibirá este
+            plan.
+          </SheetDescription>
+        </SheetHeader>
         <ScrollArea
-          className="max-h-[calc(100dvh-10rem)]"
+          className="min-h-0 flex-1"
           scrollbarClassName="translate-x-6"
           type="always"
         >
           <form
-            className="grid gap-6 px-6 pt-5 pr-12 pb-6"
+            className="flex flex-col gap-6 px-6 pt-5 pr-12 pb-6"
             noValidate
             onSubmit={submit}
           >
-            <div className="grid gap-4 sm:grid-cols-2">
-              <label className="grid gap-1.5 text-sm font-medium">
-                <span>
-                  Nombre{" "}
-                  <span aria-hidden="true" className="text-destructive">
-                    *
-                  </span>
-                </span>
+            <FieldGroup className="grid sm:grid-cols-2">
+              <Field data-disabled={isSaving || undefined}>
+                <FieldLabel htmlFor="plan-name">
+                  Nombre <RequiredMark />
+                </FieldLabel>
                 <Input
                   aria-required="true"
+                  disabled={isSaving}
+                  id="plan-name"
                   maxLength={80}
                   name="name"
                   onChange={(event) => setName(event.target.value)}
                   value={name}
                 />
-              </label>
-              <label className="grid gap-1.5 text-sm font-medium">
-                <span>
-                  Slug{" "}
-                  <span aria-hidden="true" className="text-destructive">
-                    *
-                  </span>
-                </span>
+              </Field>
+              <Field data-disabled={isSaving || undefined}>
+                <FieldLabel htmlFor="plan-slug">
+                  Slug <RequiredMark />
+                </FieldLabel>
                 <Input
                   aria-required="true"
+                  disabled={isSaving}
+                  id="plan-slug"
                   maxLength={80}
                   name="slug"
                   onChange={(event) => setSlug(event.target.value)}
                   placeholder="mi-plan"
                   value={slug}
                 />
-              </label>
-              <label className="grid gap-1.5 text-sm font-medium">
-                Estado
-                <Select defaultValue={plan.status} name="status">
-                  <SelectTrigger>
+              </Field>
+              <Field data-disabled={isSaving || undefined}>
+                <FieldLabel htmlFor="plan-status">
+                  Estado <RequiredMark />
+                </FieldLabel>
+                <Select
+                  defaultValue={plan.status}
+                  disabled={isSaving}
+                  name="status"
+                >
+                  <SelectTrigger aria-required="true" id="plan-status">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -373,11 +442,17 @@ function PlanEditorDialog({
                     </SelectGroup>
                   </SelectContent>
                 </Select>
-              </label>
-              <label className="grid gap-1.5 text-sm font-medium">
-                Moneda
-                <Select defaultValue={plan.currency} name="currency">
-                  <SelectTrigger>
+              </Field>
+              <Field data-disabled={isSaving || undefined}>
+                <FieldLabel htmlFor="plan-currency">
+                  Moneda <RequiredMark />
+                </FieldLabel>
+                <Select
+                  defaultValue={plan.currency}
+                  disabled={isSaving}
+                  name="currency"
+                >
+                  <SelectTrigger aria-required="true" id="plan-currency">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -387,22 +462,33 @@ function PlanEditorDialog({
                     </SelectGroup>
                   </SelectContent>
                 </Select>
-              </label>
-              <label className="grid gap-1.5 text-sm font-medium">
-                Precio
+              </Field>
+              <Field data-disabled={isFree || isSaving || undefined}>
+                <FieldLabel htmlFor="plan-price">
+                  Precio {!isFree ? <RequiredMark /> : null}
+                </FieldLabel>
                 <Input
-                  defaultValue={plan.price}
-                  disabled={isFree}
+                  aria-required={!isFree || undefined}
+                  disabled={isFree || isSaving}
+                  id="plan-price"
                   min="0"
                   name="price"
+                  onChange={(event) => setPrice(event.target.value)}
                   step="0.01"
                   type="number"
+                  value={price}
                 />
-              </label>
-              <label className="grid gap-1.5 text-sm font-medium">
-                Tipo de cobro
-                <Select defaultValue={plan.billingType} name="billingType">
-                  <SelectTrigger>
+              </Field>
+              <Field data-disabled={isSaving || undefined}>
+                <FieldLabel htmlFor="plan-billing">
+                  Tipo de cobro <RequiredMark />
+                </FieldLabel>
+                <Select
+                  defaultValue={plan.billingType}
+                  disabled={isSaving}
+                  name="billingType"
+                >
+                  <SelectTrigger aria-required="true" id="plan-billing">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -412,92 +498,127 @@ function PlanEditorDialog({
                     </SelectGroup>
                   </SelectContent>
                 </Select>
-              </label>
-              <label className="grid gap-1.5 text-sm font-medium">
-                Días de prueba
+              </Field>
+              <Field data-disabled={isSaving || undefined}>
+                <FieldLabel htmlFor="plan-trial-days">
+                  Días de prueba <RequiredMark />
+                </FieldLabel>
                 <Input
-                  defaultValue={plan.trialDays}
+                  aria-required="true"
+                  disabled={isSaving}
+                  id="plan-trial-days"
                   min="0"
                   name="trialDays"
+                  onChange={(event) => setTrialDays(event.target.value)}
                   type="number"
+                  value={trialDays}
                 />
-              </label>
-              <label className="grid gap-1.5 text-sm font-medium">
-                Posición
+              </Field>
+              <Field data-disabled={isSaving || undefined}>
+                <FieldLabel htmlFor="plan-position">
+                  Posición <RequiredMark />
+                </FieldLabel>
                 <Input
-                  defaultValue={plan.position}
+                  aria-required="true"
+                  disabled={isSaving}
+                  id="plan-position"
                   min="1"
                   name="position"
+                  onChange={(event) => setPosition(event.target.value)}
                   type="number"
+                  value={position}
                 />
-              </label>
-            </div>
-            <label className="grid gap-1.5 text-sm font-medium">
-              Descripción
+              </Field>
+            </FieldGroup>
+            <Field data-disabled={isSaving || undefined}>
+              <FieldLabel htmlFor="plan-description">Descripción</FieldLabel>
               <Textarea
                 defaultValue={plan.description}
+                disabled={isSaving}
+                id="plan-description"
                 maxLength={500}
                 name="description"
                 placeholder="Describe para quién es este plan."
               />
-            </label>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <label className="flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-border p-4">
-                <span className="grid gap-0.5">
-                  <span className="text-sm font-medium">Plan gratuito</span>
-                  <span className="text-xs leading-relaxed text-muted-foreground">
+            </Field>
+            <FieldGroup className="grid sm:grid-cols-3">
+              <Field
+                data-disabled={isSaving || undefined}
+                orientation="horizontal"
+              >
+                <div className="flex flex-1 flex-col gap-0.5">
+                  <FieldLabel htmlFor="plan-free">Plan gratuito</FieldLabel>
+                  <FieldDescription>
                     No cobra a los suscriptores.
-                  </span>
-                </span>
-                <Switch checked={isFree} onCheckedChange={setIsFree} />
-              </label>
-              <label className="flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-border p-4">
-                <span className="grid gap-0.5">
-                  <span className="text-sm font-medium">Destacado</span>
-                  <span className="text-xs leading-relaxed text-muted-foreground">
+                  </FieldDescription>
+                </div>
+                <Switch
+                  checked={isFree}
+                  disabled={isSaving}
+                  id="plan-free"
+                  onCheckedChange={setIsFree}
+                />
+              </Field>
+              <Field
+                data-disabled={isSaving || undefined}
+                orientation="horizontal"
+              >
+                <div className="flex flex-1 flex-col gap-0.5">
+                  <FieldLabel htmlFor="plan-featured">Destacado</FieldLabel>
+                  <FieldDescription>
                     Se resalta en el catálogo.
-                  </span>
-                </span>
-                <Switch checked={featured} onCheckedChange={setFeatured} />
-              </label>
-              <label className="flex cursor-pointer items-center justify-between gap-4 rounded-lg border border-border p-4">
-                <span className="grid gap-0.5">
-                  <span className="text-sm font-medium">Predeterminado</span>
-                  <span className="text-xs leading-relaxed text-muted-foreground">
-                    Se asigna al registrarse.
-                  </span>
-                </span>
+                  </FieldDescription>
+                </div>
+                <Switch
+                  checked={featured}
+                  disabled={isSaving}
+                  id="plan-featured"
+                  onCheckedChange={setFeatured}
+                />
+              </Field>
+              <Field
+                data-disabled={isSaving || undefined}
+                orientation="horizontal"
+              >
+                <div className="flex flex-1 flex-col gap-0.5">
+                  <FieldLabel htmlFor="plan-default">Predeterminado</FieldLabel>
+                  <FieldDescription>Se asigna al registrarse.</FieldDescription>
+                </div>
                 <Switch
                   checked={isDefaultSignup}
+                  disabled={isSaving}
+                  id="plan-default"
                   onCheckedChange={setIsDefaultSignup}
                 />
-              </label>
-            </div>
+              </Field>
+            </FieldGroup>
             <PermissionGroups
+              disabled={isSaving}
               selectedIds={permissionIds}
               setSelectedIds={setPermissionIds}
             />
             <div className="flex flex-col-reverse justify-end gap-2 sm:flex-row">
               <Button
+                disabled={isSaving}
                 onClick={() => onOpenChange(false)}
                 type="button"
                 variant="brand-secondary"
               >
                 Cancelar
               </Button>
-              <Button disabled={!formComplete} type="submit">
-                {isEditing ? (
-                  <Check data-icon="inline-start" />
+              <Button disabled={!formComplete || isSaving} type="submit">
+                {isSaving ? (
+                  <Spinner data-icon="inline-start" />
                 ) : (
-                  <Plus data-icon="inline-start" />
+                  <SubmitIcon data-icon="inline-start" />
                 )}
-                {isEditing ? "Guardar cambios" : "Crear plan"}
+                {isSaving ? "Guardando..." : submitLabel}
               </Button>
             </div>
           </form>
         </ScrollArea>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   )
 }
 
@@ -507,30 +628,70 @@ function DeletePlanDialog({
   plan,
 }: {
   onOpenChange: (open: boolean) => void
-  onRemove: () => void
+  onRemove: () => Promise<void>
   plan: AdminPlan
 }) {
+  const deletingLock = useRef(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const hasSubscribers = plan.subscriberCount > 0
+  const subscriberLabel =
+    plan.subscriberCount === 1
+      ? "1 suscriptor"
+      : `${plan.subscriberCount.toLocaleString("es")} suscriptores`
+
+  async function confirmDelete(event: MouseEvent<HTMLButtonElement>) {
+    event.preventDefault()
+    if (hasSubscribers || deletingLock.current) return
+
+    deletingLock.current = true
+    setIsDeleting(true)
+    try {
+      await onRemove()
+    } finally {
+      deletingLock.current = false
+      setIsDeleting(false)
+    }
+  }
+
   return (
-    <Dialog onOpenChange={onOpenChange} open>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Eliminar {plan.name}</DialogTitle>
-          <DialogDescription>
-            Esta acción elimina el plan de la configuración. Aún no existen
-            suscripciones ni usuarios vinculados.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex flex-col-reverse justify-end gap-2 sm:flex-row">
-          <Button onClick={() => onOpenChange(false)} variant="brand-secondary">
+    <AlertDialog
+      onOpenChange={(open) => {
+        if (!isDeleting) onOpenChange(open)
+      }}
+      open
+    >
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            {hasSubscribers
+              ? `No se puede eliminar ${plan.name}`
+              : `¿Eliminar ${plan.name}?`}
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            {hasSubscribers
+              ? `Este plan está asignado a ${subscriberLabel}. Mueve esas cuentas a otro plan antes de eliminarlo.`
+              : "El plan se eliminará de la configuración. Esta acción no se puede deshacer."}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isDeleting} variant="brand-secondary">
             Cancelar
-          </Button>
-          <Button onClick={onRemove} variant="destructive">
-            <Trash2 data-icon="inline-start" />
-            Eliminar plan
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+          </AlertDialogCancel>
+          <AlertDialogAction
+            disabled={hasSubscribers || isDeleting}
+            onClick={confirmDelete}
+            variant="destructive"
+          >
+            {isDeleting ? (
+              <Spinner data-icon="inline-start" />
+            ) : (
+              <Trash2 data-icon="inline-start" />
+            )}
+            {isDeleting ? "Eliminando..." : "Eliminar plan"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }
 
@@ -545,7 +706,7 @@ export function PlansPage() {
     "all" | "featured" | "standard"
   >("all")
   const [pageIndex, setPageIndex] = useState(0)
-  const [pageSize, setPageSize] = useState(10)
+  const pageSize = 10
   const [editor, setEditor] = useState<AdminPlan | "create" | null>(null)
   const [planToDelete, setPlanToDelete] = useState<AdminPlan | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -603,8 +764,8 @@ export function PlansPage() {
         await plansApi.create(planInput(plan))
         toast.success("Plan creado.")
       }
-      setEditor(null)
       await loadPlans()
+      setEditor(null)
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
         toast.error("El nombre, slug o plan predeterminado ya existe.")
@@ -623,11 +784,17 @@ export function PlansPage() {
     try {
       await plansApi.remove(planToDelete.id)
       toast.success("Plan eliminado.")
-      setPlanToDelete(null)
       await loadPlans()
+      setPlanToDelete(null)
     } catch (error) {
       console.error("Plan removal failed", error)
-      toast.error("No pudimos eliminar el plan. Inténtalo de nuevo.")
+      if (error instanceof ApiError && error.status === 409) {
+        toast.error(
+          "Este plan todavía tiene suscriptores. Muévelos a otro plan antes de eliminarlo."
+        )
+      } else {
+        toast.error("No pudimos eliminar el plan. Inténtalo de nuevo.")
+      }
     }
   }
 
@@ -655,7 +822,7 @@ export function PlansPage() {
 
   if (!hasPermission) {
     return (
-      <Card variant="surface">
+      <Card variant="subtle">
         <EmptyState
           description="Tu cuenta no tiene acceso para administrar planes."
           icon={Users}
@@ -667,12 +834,13 @@ export function PlansPage() {
 
   if (hasError) {
     return (
-      <Card variant="surface">
+      <Card variant="subtle">
         <EmptyState
           action={
-            <Button onClick={() => void loadPlans()} variant="brand-secondary">
-              Reintentar
-            </Button>
+            <RetryButton
+              onClick={() => void loadPlans()}
+              variant="brand-secondary"
+            />
           }
           description="No pudimos consultar la configuración de planes."
           icon={Search}
@@ -683,20 +851,14 @@ export function PlansPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Planes</h1>
-          <p className="text-sm text-muted-foreground">
-            Configura el catálogo, precios, permisos y disponibilidad de cada
-            plan.
-          </p>
-        </div>
-        <Button onClick={() => setEditor("create")}>
-          <Plus data-icon="inline-start" />
-          Crear plan
-        </Button>
-      </div>
+    <div className="flex flex-col gap-4">
+      <header className="flex flex-col gap-1">
+        <h1 className="text-2xl font-semibold tracking-tight">Planes</h1>
+        <p className="text-sm text-muted-foreground">
+          Configura el catálogo, precios, permisos y disponibilidad de cada
+          plan.
+        </p>
+      </header>
       {isLoading ? (
         <PageLoading className="min-h-80" />
       ) : (
@@ -727,120 +889,74 @@ export function PlansPage() {
                 description: "Ofertas principales",
                 icon: Sparkles,
               },
-            ].map((metric) => {
-              const MetricIcon = metric.icon
-              return (
-                <Card key={metric.label} size="sm">
-                  <CardHeader>
-                    <CardTitle className="text-sm text-muted-foreground">
-                      {metric.label}
-                    </CardTitle>
-                    <CardAction>
-                      <MetricIcon
-                        aria-hidden="true"
-                        className="size-4 text-muted-foreground"
-                      />
-                    </CardAction>
-                  </CardHeader>
-                  <CardContent className="space-y-1">
-                    <p className="text-2xl font-semibold tracking-tight">
-                      {metric.value}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {metric.description}
-                    </p>
-                  </CardContent>
-                </Card>
-              )
-            })}
+            ].map((metric) => (
+              <MetricCard key={metric.label} {...metric} />
+            ))}
           </div>
 
-          <Card>
-            <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 xl:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
-              <CardTitle>Planes</CardTitle>
-              <CardDescription>
-                {plans.length} resultados en esta vista.
-              </CardDescription>
-              <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap gap-2 justify-self-stretch xl:col-start-2 xl:row-span-2 xl:row-start-1 xl:w-auto xl:flex-nowrap xl:justify-self-end">
-                <InputGroup className="w-full md:w-64">
-                  <InputGroupAddon align="inline-start">
-                    <Search />
-                  </InputGroupAddon>
-                  <InputGroupInput
-                    onChange={(event) => {
-                      setQuery(event.target.value)
-                      setPageIndex(0)
-                    }}
-                    placeholder="Buscar por nombre o slug..."
-                    value={query}
-                  />
-                </InputGroup>
-                <Select
+          <Card variant="subtle">
+            <DataTableHeader
+              action={
+                <Button onClick={() => setEditor("create")} size="sm">
+                  <Plus data-icon="inline-start" />
+                  Crear plan
+                </Button>
+              }
+              search={{
+                ariaLabel: "Buscar planes",
+                onChange: (value) => {
+                  setQuery(value)
+                  setPageIndex(0)
+                },
+                placeholder: "Buscar por nombre o slug...",
+                value: query,
+              }}
+            />
+            <CardContent className="flex flex-col gap-4 px-0">
+              <DataTableToolbar>
+                <DataTableFilter
+                  ariaLabel="Filtrar por estado"
+                  label="Estado"
                   onValueChange={(value) => {
                     setStatusFilter(value as "all" | PlanStatus)
                     setPageIndex(0)
                   }}
+                  options={[
+                    { label: "Todos los estados", value: "all" },
+                    { label: "Activos", value: "active" },
+                    { label: "Inactivos", value: "inactive" },
+                  ]}
                   value={statusFilter}
-                >
-                  <SelectTrigger
-                    aria-label="Filtrar por estado"
-                    className="w-full sm:w-40"
-                  >
-                    <SelectValue placeholder="Estado" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="all">Todos los estados</SelectItem>
-                      <SelectItem value="active">Activos</SelectItem>
-                      <SelectItem value="inactive">Inactivos</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-                <Select
+                />
+                <DataTableFilter
+                  ariaLabel="Filtrar por cobro"
+                  label="Cobro"
                   onValueChange={(value) => {
                     setBillingFilter(value as "all" | PlanBillingType)
                     setPageIndex(0)
                   }}
+                  options={[
+                    { label: "Todo cobro", value: "all" },
+                    { label: "Mensual", value: "monthly" },
+                    { label: "Anual", value: "yearly" },
+                  ]}
                   value={billingFilter}
-                >
-                  <SelectTrigger
-                    aria-label="Filtrar por cobro"
-                    className="w-full sm:w-36"
-                  >
-                    <SelectValue placeholder="Cobro" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="all">Todo cobro</SelectItem>
-                      <SelectItem value="monthly">Mensual</SelectItem>
-                      <SelectItem value="yearly">Anual</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-                <Select
+                />
+                <DataTableFilter
+                  ariaLabel="Filtrar por destacado"
+                  label="Visibilidad"
                   onValueChange={(value) => {
                     setFeaturedFilter(value as "all" | "featured" | "standard")
                     setPageIndex(0)
                   }}
+                  options={[
+                    { label: "Todos los planes", value: "all" },
+                    { label: "Destacados", value: "featured" },
+                    { label: "No destacados", value: "standard" },
+                  ]}
                   value={featuredFilter}
-                >
-                  <SelectTrigger
-                    aria-label="Filtrar por destacado"
-                    className="w-full sm:w-40"
-                  >
-                    <SelectValue placeholder="Visibilidad" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="all">Todos los planes</SelectItem>
-                      <SelectItem value="featured">Destacados</SelectItem>
-                      <SelectItem value="standard">No destacados</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </CardAction>
-            </CardHeader>
-            <CardContent className="px-0">
+                />
+              </DataTableToolbar>
               {plans.length > 0 ? (
                 <Table>
                   <TableHeader>
@@ -969,40 +1085,28 @@ export function PlansPage() {
                   }
                 />
               )}
-            </CardContent>
-            <CardFooter className="border-t">
               <TablePagination
                 canGoNext={currentPageIndex < pageCount - 1}
                 canGoPrevious={currentPageIndex > 0}
                 itemLabel="planes"
-                mode="detailed"
-                onFirstPage={() => setPageIndex(0)}
-                onLastPage={() => setPageIndex(pageCount - 1)}
                 onNextPage={() =>
                   setPageIndex((current) =>
                     Math.min(current + 1, pageCount - 1)
                   )
                 }
-                onPageSizeChange={(value) => {
-                  setPageSize(value)
-                  setPageIndex(0)
-                }}
                 onPreviousPage={() =>
                   setPageIndex((current) => Math.max(current - 1, 0))
                 }
-                page={currentPageIndex + 1}
-                pageCount={pageCount}
-                pageSize={pageSize}
                 rangeEnd={rangeEnd}
                 rangeStart={rangeStart}
                 total={plans.length}
               />
-            </CardFooter>
+            </CardContent>
           </Card>
         </>
       )}
       {planForEditor ? (
-        <PlanEditorDialog
+        <PlanEditorSheet
           existingSlugs={plans.map((plan) => plan.slug)}
           key={planForEditor.id || "create"}
           onOpenChange={(open) => !open && setEditor(null)}

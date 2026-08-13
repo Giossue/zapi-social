@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { ApiError, filesApi } from "@workspace/api-client"
 import { toast } from "@workspace/ui/components/toast"
 import {
@@ -40,7 +40,6 @@ import {
   CardAction,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
@@ -52,21 +51,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "@workspace/ui/components/input-group"
-import { Input } from "@workspace/ui/components/input"
 import {
   Select,
   SelectContent,
@@ -83,6 +73,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
+import { PageLoading } from "@workspace/ui/components/page-loading"
 import {
   ToggleGroup,
   ToggleGroupItem,
@@ -93,11 +84,13 @@ import {
   FilesPermissionState,
 } from "@/features/files/components/files-states"
 import {
+  FileFolderDialog,
   FileInfoDialog,
   FileMoveDialog,
   FilePreviewDialog,
   FileRenameDialog,
   FileTrashDialog,
+  FileUploadDialog,
 } from "@/features/files/components/file-manager-dialogs"
 import type {
   FileAsset,
@@ -256,7 +249,7 @@ function AssetCard({
               <Button
                 aria-label={`Acciones de ${asset.name}`}
                 size="icon-sm"
-                variant="ghost"
+                variant="brand-secondary"
               >
                 <MoreVertical />
               </Button>
@@ -461,64 +454,79 @@ export function FilesLibraryPage() {
       })
     | null
   >(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const loadLibrary = useCallback(async (page = 1, append = false) => {
-    try {
-      const data = await filesApi.list({
-        page,
-        limit: 50,
-        folderId: folderId === "all" ? undefined : folderId,
-        q: query.trim() || undefined,
-        kind: assetFilter === "all" || assetFilter === "ai" ? undefined : assetFilter,
-      })
-      setLoadError(false)
-      const next: FileLibraryData = {
-        canView: true,
-        canUpload: data.canManage,
-        folders: data.folders.map((folder) => ({
-          ...folder,
-          size: formatSize(folder.sizeBytes),
-          updatedAt: new Intl.DateTimeFormat("es", {
-            dateStyle: "medium",
-          }).format(new Date(folder.updatedAt)),
-        })),
-        assets: data.files.map((asset) => ({
-          id: asset.id,
-          name: asset.name,
-          folderId: asset.folderId,
+  const loadLibrary = useCallback(
+    async (page = 1, append = false) => {
+      if (!append) setLoadError(false)
+      try {
+        const data = await filesApi.list({
+          page,
+          limit: 50,
+          folderId: folderId === "all" ? undefined : folderId,
+          q: query.trim() || undefined,
           kind:
-            asset.kind === "image" || asset.kind === "video"
-              ? asset.kind
-              : "document",
-          mimeType: asset.mimeType,
-          size: formatSize(asset.sizeBytes),
-          dimensions: null,
-          owner: asset.owner,
-          updatedAt: new Intl.DateTimeFormat("es", {
-            dateStyle: "medium",
-          }).format(new Date(asset.modifiedAt)),
-          shared: false,
-          generatedWithAi: false,
-          starred: asset.starred,
-          thumbnailStatus: asset.thumbnailStatus,
-        })),
-        page: data.page,
-        hasMore: data.files.length < data.filesTotal || data.folders.length < data.foldersTotal,
+            assetFilter === "all" || assetFilter === "ai"
+              ? undefined
+              : assetFilter,
+        })
+        setLoadError(false)
+        const next: FileLibraryData = {
+          canView: true,
+          canUpload: data.canManage,
+          folders: data.folders.map((folder) => ({
+            ...folder,
+            size: formatSize(folder.sizeBytes),
+            updatedAt: new Intl.DateTimeFormat("es", {
+              dateStyle: "medium",
+            }).format(new Date(folder.updatedAt)),
+          })),
+          assets: data.files.map((asset) => ({
+            id: asset.id,
+            name: asset.name,
+            folderId: asset.folderId,
+            kind:
+              asset.kind === "image" || asset.kind === "video"
+                ? asset.kind
+                : "document",
+            mimeType: asset.mimeType,
+            size: formatSize(asset.sizeBytes),
+            dimensions: null,
+            owner: asset.owner,
+            updatedAt: new Intl.DateTimeFormat("es", {
+              dateStyle: "medium",
+            }).format(new Date(asset.modifiedAt)),
+            shared: false,
+            generatedWithAi: false,
+            starred: asset.starred,
+            thumbnailStatus: asset.thumbnailStatus,
+          })),
+          page: data.page,
+          hasMore:
+            data.files.length < data.filesTotal ||
+            data.folders.length < data.foldersTotal,
+        }
+        setLibrary((current) =>
+          append && current
+            ? {
+                ...next,
+                folders: [...current.folders, ...next.folders],
+                assets: [...current.assets, ...next.assets],
+              }
+            : next
+        )
+      } catch (error) {
+        setLoadError(!(error instanceof ApiError && error.status === 403))
+        setLibrary({
+          canView: false,
+          canUpload: false,
+          folders: [],
+          assets: [],
+          page: 1,
+          hasMore: false,
+        })
       }
-      setLibrary((current) => append && current ? { ...next, folders: [...current.folders, ...next.folders], assets: [...current.assets, ...next.assets] } : next)
-    } catch (error) {
-      setLoadError(!(error instanceof ApiError && error.status === 403))
-      setLibrary({
-        canView: false,
-        canUpload: false,
-        folders: [],
-        assets: [],
-        page: 1,
-        hasMore: false,
-      })
-    }
-  }, [assetFilter, folderId, query])
+    },
+    [assetFilter, folderId, query]
+  )
 
   useEffect(() => {
     void loadLibrary()
@@ -711,9 +719,14 @@ export function FilesLibraryPage() {
     }
   }
 
-  if (library === null) return null
   if (loadError)
-    return <FilesErrorState onRetry={() => void loadLibrary()} section="biblioteca" />
+    return (
+      <FilesErrorState
+        onRetry={() => void loadLibrary()}
+        section="biblioteca"
+      />
+    )
+  if (library === null) return <PageLoading />
   if (!library.canView) return <FilesPermissionState mode="library" />
 
   return (
@@ -834,7 +847,7 @@ export function FilesLibraryPage() {
                           aria-label={`Acciones de ${folder.name}`}
                           onClick={(event) => event.stopPropagation()}
                           size="icon-sm"
-                          variant="ghost"
+                          variant="brand-secondary"
                         >
                           <MoreVertical />
                         </Button>
@@ -920,7 +933,10 @@ export function FilesLibraryPage() {
               onValueChange={(value) => setAssetFilter(value as AssetFilter)}
               value={assetFilter}
             >
-              <SelectTrigger aria-label="Filtrar archivos" className="w-40">
+              <SelectTrigger
+                aria-label="Filtrar archivos"
+                className="w-max max-w-full"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -1037,89 +1053,18 @@ export function FilesLibraryPage() {
         </div>
       ) : null}
 
-      <Dialog onOpenChange={setUploadDialogOpen} open={uploadDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Subir archivos</DialogTitle>
-            <DialogDescription>
-              Se guardará de forma privada y solo será visible para las personas
-              con acceso a este espacio de trabajo.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3 border-y border-border py-4">
-            <p className="text-sm font-medium">Formatos permitidos</p>
-            <dl className="grid gap-3 text-sm sm:grid-cols-2">
-              <div className="space-y-1">
-                <dt className="font-medium">Imágenes</dt>
-                <dd className="text-muted-foreground">JPG, PNG, WebP, GIF, AVIF</dd>
-              </div>
-              <div className="space-y-1">
-                <dt className="font-medium">Vídeo y audio</dt>
-                <dd className="text-muted-foreground">MP4, WebM, MOV · MP3, WAV, M4A, OGG</dd>
-              </div>
-              <div className="space-y-1">
-                <dt className="font-medium">Documentos</dt>
-                <dd className="text-muted-foreground">PDF, TXT, MD, JSON, CSV, RTF, DOC, DOCX, ODT</dd>
-              </div>
-              <div className="space-y-1">
-                <dt className="font-medium">Hojas y comprimidos</dt>
-                <dd className="text-muted-foreground">XLS, XLSX, ODS · ZIP, 7Z, RAR, TAR, GZ</dd>
-              </div>
-            </dl>
-          </div>
-          <DialogFooter>
-            <input
-              className="sr-only"
-              onChange={(event) => {
-                const file = event.target.files?.[0]
-                if (file) void uploadSelectedFile(file)
-                event.currentTarget.value = ""
-              }}
-              ref={fileInputRef}
-              type="file"
-            />
-            <Button onClick={() => fileInputRef.current?.click()}>
-              Seleccionar archivo
-            </Button>
-            <Button
-              onClick={() => setUploadDialogOpen(false)}
-              variant="brand-secondary"
-            >
-              Cerrar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      <Dialog onOpenChange={setFolderDialogOpen} open={folderDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Nueva carpeta</DialogTitle>
-            <DialogDescription>
-              Organiza los archivos de este espacio de trabajo.
-            </DialogDescription>
-          </DialogHeader>
-          <Input
-            aria-label="Nombre de carpeta"
-            onChange={(event) => setFolderName(event.target.value)}
-            placeholder="Nombre de carpeta"
-            value={folderName}
-          />
-          <DialogFooter>
-            <Button
-              onClick={() => void createFolder()}
-              disabled={!folderName.trim()}
-            >
-              Crear carpeta
-            </Button>
-            <Button
-              onClick={() => setFolderDialogOpen(false)}
-              variant="brand-secondary"
-            >
-              Cancelar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <FileUploadDialog
+        onOpenChange={setUploadDialogOpen}
+        onSelect={(file) => void uploadSelectedFile(file)}
+        open={uploadDialogOpen}
+      />
+      <FileFolderDialog
+        name={folderName}
+        onConfirm={() => void createFolder()}
+        onNameChange={setFolderName}
+        onOpenChange={setFolderDialogOpen}
+        open={folderDialogOpen}
+      />
       <FilePreviewDialog
         item={previewAsset}
         onOpenChange={(open) => !open && setPreviewAsset(null)}

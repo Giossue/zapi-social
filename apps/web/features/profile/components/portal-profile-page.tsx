@@ -269,7 +269,7 @@ export function PortalProfilePage() {
           noValidate
           onSubmit={savePreferences}
         >
-          <Card size="sm">
+          <Card size="sm" variant="subtle">
             <CardHeader>
               <CardTitle>Información personal</CardTitle>
               <CardDescription>
@@ -405,7 +405,7 @@ export function PortalProfilePage() {
 
       <TabsContent value="security">
         <form aria-busy={savingPassword} noValidate onSubmit={savePassword}>
-          <Card size="sm">
+          <Card size="sm" variant="subtle">
             <CardHeader>
               <CardTitle>Cambiar contraseña</CardTitle>
               <CardDescription>

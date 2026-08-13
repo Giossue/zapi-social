@@ -1,22 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import {
-  Bot,
-  Check,
-  CircleAlert,
-  Copy,
-  FileText,
-  LoaderCircle,
-  Send,
-  Sparkles,
-} from "lucide-react"
+import { Bot, Check, Copy, FileText, Send, Sparkles } from "lucide-react"
 
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@workspace/ui/components/alert"
 import { Badge } from "@workspace/ui/components/badge"
 import {
   Bubble,
@@ -37,7 +23,6 @@ import { EmptyState } from "@workspace/ui/components/empty-state"
 import {
   Field,
   FieldDescription,
-  FieldError,
   FieldGroup,
   FieldLabel,
   FieldSet,
@@ -51,7 +36,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
+import { PageLoading } from "@workspace/ui/components/page-loading"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { Textarea } from "@workspace/ui/components/textarea"
+import { toast } from "@workspace/ui/components/toast"
 
 import { createAIContentResultsMock } from "@/features/ai-studio/mocks/ai-content-repository"
 import type {
@@ -111,7 +99,6 @@ export function AIContentStudioPage({ data }: { data: AIContentStudioData }) {
   const [results, setResults] = useState<readonly AIContentResult[]>(
     data.initialResults
   )
-  const [promptError, setPromptError] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
 
   function selectTemplate(templateId: string) {
@@ -120,7 +107,6 @@ export function AIContentStudioPage({ data }: { data: AIContentStudioData }) {
 
     setActiveTemplateId(template.id)
     setPrompt(template.prompt)
-    setPromptError(null)
   }
 
   function togglePlatform(platform: string, checked: boolean) {
@@ -134,20 +120,17 @@ export function AIContentStudioPage({ data }: { data: AIContentStudioData }) {
     const normalizedPrompt = prompt.trim()
 
     if (!normalizedPrompt) {
-      setPromptError(
-        "Describe el contenido que quieres crear antes de generar."
-      )
+      toast.error("Describe el contenido que quieres crear antes de generar.")
       return
     }
 
     if (selectedPlatforms.length === 0) {
-      setPromptError(
+      toast.error(
         "Selecciona al menos una plataforma para crear las versiones."
       )
       return
     }
 
-    setPromptError(null)
     setIsGenerating(true)
 
     window.setTimeout(() => {
@@ -263,13 +246,7 @@ export function AIContentStudioPage({ data }: { data: AIContentStudioData }) {
             </BubbleGroup>
 
             {isGenerating ? (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <LoaderCircle
-                  aria-hidden="true"
-                  className="size-4 animate-spin"
-                />
-                Preparando versiones mock…
-              </div>
+              <PageLoading className="min-h-32" />
             ) : (
               <div className="grid gap-3">
                 {results.map((result) => (
@@ -279,30 +256,29 @@ export function AIContentStudioPage({ data }: { data: AIContentStudioData }) {
             )}
           </CardContent>
           <CardFooter className="flex-col items-stretch gap-3">
-            {promptError ? (
-              <Alert variant="destructive">
-                <CircleAlert aria-hidden="true" />
-                <AlertTitle>Revisa el briefing</AlertTitle>
-                <AlertDescription>{promptError}</AlertDescription>
-              </Alert>
-            ) : null}
-            <Field data-invalid={Boolean(promptError)}>
-              <FieldLabel htmlFor="ai-content-prompt">Briefing</FieldLabel>
+            <Field>
+              <FieldLabel htmlFor="ai-content-prompt">
+                Briefing
+                <span aria-hidden="true" className="text-destructive">
+                  *
+                </span>
+              </FieldLabel>
               <Textarea
-                aria-invalid={Boolean(promptError)}
+                aria-required="true"
                 id="ai-content-prompt"
                 onChange={(event) => setPrompt(event.target.value)}
                 placeholder="Describe la idea, el contexto y la acción esperada."
                 value={prompt}
               />
-              <FieldError>{promptError}</FieldError>
             </Field>
-            <Button disabled={isGenerating} onClick={generate}>
+            <Button
+              disabled={
+                isGenerating || !prompt.trim() || selectedPlatforms.length === 0
+              }
+              onClick={generate}
+            >
               {isGenerating ? (
-                <LoaderCircle
-                  className="animate-spin"
-                  data-icon="inline-start"
-                />
+                <Spinner data-icon="inline-start" size={16} />
               ) : (
                 <Send data-icon="inline-start" />
               )}
@@ -321,9 +297,18 @@ export function AIContentStudioPage({ data }: { data: AIContentStudioData }) {
           <CardContent>
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor="ai-content-tone">Tono</FieldLabel>
+                <FieldLabel htmlFor="ai-content-tone">
+                  Tono
+                  <span aria-hidden="true" className="text-destructive">
+                    *
+                  </span>
+                </FieldLabel>
                 <Select onValueChange={setTone} value={tone}>
-                  <SelectTrigger className="w-full" id="ai-content-tone">
+                  <SelectTrigger
+                    aria-required="true"
+                    className="w-full"
+                    id="ai-content-tone"
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -338,8 +323,13 @@ export function AIContentStudioPage({ data }: { data: AIContentStudioData }) {
                   Seleccionado: {tone.toLocaleLowerCase("es")}.
                 </FieldDescription>
               </Field>
-              <FieldSet>
-                <FieldTitle>Plataformas</FieldTitle>
+              <FieldSet aria-required="true">
+                <FieldTitle>
+                  Plataformas
+                  <span aria-hidden="true" className="text-destructive">
+                    *
+                  </span>
+                </FieldTitle>
                 <FieldDescription>
                   Crea versiones con el contexto de cada canal.
                 </FieldDescription>

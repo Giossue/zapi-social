@@ -224,6 +224,7 @@ export function PublishingNetworkPreview({
                   key={account.id}
                   onClick={() => onAccountChange(account.id)}
                   size="sm"
+                  type="button"
                   variant={
                     activeAccount.id === account.id
                       ? "default"

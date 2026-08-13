@@ -2,7 +2,7 @@
 
 ## Estado
 
-El backend operativo de catálogo, inventario, órdenes, devoluciones y afiliados está implementado. `/portal/commerce` todavía usa su repositorio mock; `/portal/affiliate` cae en el placeholder genérico. Deben conectarse a `commerceApi` y `affiliateApi` respectivamente.
+El backend operativo de catálogo, inventario, órdenes, devoluciones y afiliados está implementado. El mockup `/portal/commerce` se retiró el 2026-08-13: no tenía equivalencia Laravel ni alcance de producto validado. Su API y persistencia quedan deliberadamente sin superficie Portal hasta definir ese producto. `/portal/affiliate` conserva un mockup source-first con métricas, enlace, comisiones, retiros y sheet de solicitud, pendiente de conexión a `affiliateApi`.
 
 Este slice **no es billing ni checkout**. Polar.sh fue elegido como única pasarela, pero su implementación pertenece al plan [`billing-polar-v2.md`](./billing-polar-v2.md). Mientras ese backend no exista, Commerce no crea cobros, suscripciones, facturas, reembolsos ni webhooks de pago sintéticos.
 
@@ -68,7 +68,10 @@ La migración Drizzle del slice es `0020_mushy_peter_parker`; `0021_pale_thor` a
 - [x] Las métricas usan agregados completos, devoluciones se serializan por orden y una orden manual completada no genera comisiones: sólo un pago verificado podrá hacerlo en el futuro.
 - [x] Typecheck de Database, Contracts, API Client y API.
 - [x] Prueba local transaccional: reserva tres unidades, completa una sola vez y termina con `available=7`, `reserved=0` (`portal-backend-v2`, 3/3 en el conjunto).
-- [ ] Conectar Commerce a REST y sustituir el placeholder Affiliate por una página operativa.
+- [x] Sustituir el placeholder Affiliate por un mockup source-first navegable, copiado desde `diseño ideal/src/app/(main)/dashboard/portal-modules`.
+- [x] Retirar el mockup y la fuente canónica de `/portal/commerce`: no tenía equivalencia Laravel ni alcance de producto aprobado. No se alteraron API, contratos, schema ni migraciones.
+- [ ] Definir alcance de producto antes de exponer Commerce en Portal; crear una nueva fuente canónica y conectarla a REST sólo tras esa decisión.
+- [ ] Conectar Affiliate a REST sin cambiar su composición aprobada.
 - [x] Aprobar Polar.sh como gateway único y separar su alcance en `billing-polar-v2.md`.
 - [ ] Implementar impuestos, moneda, renovaciones y política idempotente de webhooks dentro de Billing.
 - [x] Crear flujo Admin para revisar comisiones y retiros; devoluciones de Commerce continúan como pendiente de su propia UI Admin.

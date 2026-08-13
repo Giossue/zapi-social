@@ -42,12 +42,14 @@ const providerFilters: Array<{
 
 type PublishingAccountPickerProps = {
   accounts: PublishingAccount[]
+  ariaRequired?: boolean
   onChange: (accountIds: string[]) => void
   selectedAccountIds: string[]
 }
 
 export function PublishingAccountPicker({
   accounts,
+  ariaRequired = false,
   onChange,
   selectedAccountIds,
 }: PublishingAccountPickerProps) {
@@ -85,7 +87,13 @@ export function PublishingAccountPicker({
     <div className="flex flex-col gap-3">
       <Popover onOpenChange={setOpen} open={open}>
         <PopoverTrigger asChild>
-          <Button className="w-full justify-between" variant="brand-secondary">
+          <Button
+            aria-required={ariaRequired}
+            className="w-full justify-between"
+            role="combobox"
+            type="button"
+            variant="brand-secondary"
+          >
             <span className="truncate">
               {selectedAccounts.length
                 ? `${selectedAccounts.length} cuenta${selectedAccounts.length === 1 ? "" : "s"} seleccionada${selectedAccounts.length === 1 ? "" : "s"}`
@@ -180,6 +188,7 @@ export function PublishingAccountPicker({
                 aria-label={`Quitar ${account.assignedName ?? account.name}`}
                 onClick={() => toggleAccount(account.id, false)}
                 size="icon-xs"
+                type="button"
                 variant="brand-secondary"
               >
                 <X />

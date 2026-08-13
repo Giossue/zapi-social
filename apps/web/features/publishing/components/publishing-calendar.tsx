@@ -14,7 +14,13 @@ import {
   startOfMonth,
 } from "date-fns"
 import { es } from "date-fns/locale"
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Plus, XIcon } from "lucide-react"
+import {
+  Calendar as CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  XIcon,
+} from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { ButtonGroup } from "@workspace/ui/components/button-group"
 import {
@@ -48,9 +54,19 @@ const calendars: Array<{ key: PublishingProvider | "all"; label: string }> = [
   { key: "whatsapp", label: "WhatsApp" },
 ]
 
-const plugins = [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin, multiMonthPlugin]
+const plugins = [
+  dayGridPlugin,
+  timeGridPlugin,
+  listPlugin,
+  interactionPlugin,
+  multiMonthPlugin,
+]
 
-const editableStatuses = new Set<PublishingStatus>(["draft", "failed", "scheduled"])
+const editableStatuses = new Set<PublishingStatus>([
+  "draft",
+  "failed",
+  "scheduled",
+])
 
 type PublishingCalendarProps = {
   initialDate: string
@@ -70,7 +86,9 @@ export function PublishingCalendar({
   posts,
 }: PublishingCalendarProps) {
   const controller = useCalendarController()
-  const [selectedCalendar, setSelectedCalendar] = React.useState<PublishingProvider | "all">("all")
+  const [selectedCalendar, setSelectedCalendar] = React.useState<
+    PublishingProvider | "all"
+  >("all")
   const [dateInfo, setDateInfo] = React.useState(() => {
     const date = new Date(`${initialDate}T12:00:00`)
 
@@ -101,14 +119,21 @@ export function PublishingCalendar({
     const startOfVisibleRange = controller.view?.currentStart
     const endOfVisibleRange = controller.view?.currentEnd
 
-    return startOfVisibleRange && endOfVisibleRange && start >= startOfVisibleRange && start < endOfVisibleRange
+    return (
+      startOfVisibleRange &&
+      endOfVisibleRange &&
+      start >= startOfVisibleRange &&
+      start < endOfVisibleRange
+    )
   }).length
 
   return (
     <div className="flex flex-col overflow-hidden rounded-md border">
       <div className="flex flex-col gap-4 border-b bg-sidebar p-4 text-sidebar-foreground lg:flex-row lg:items-center lg:justify-between">
         <div className="flex min-w-0 shrink-0 flex-col gap-1">
-          <div className="text-lg leading-none font-medium capitalize">{dateInfo.title}</div>
+          <div className="text-lg leading-none font-medium capitalize">
+            {dateInfo.title}
+          </div>
           <p className="text-sm text-muted-foreground">
             {dateInfo.days} días · {eventCount} publicaciones
           </p>
@@ -116,10 +141,12 @@ export function PublishingCalendar({
 
         <div className="flex flex-wrap items-center gap-2">
           <Select
-            onValueChange={(value) => setSelectedCalendar(value as PublishingProvider | "all")}
+            onValueChange={(value) =>
+              setSelectedCalendar(value as PublishingProvider | "all")
+            }
             value={selectedCalendar}
           >
-            <SelectTrigger className="w-full sm:w-44">
+            <SelectTrigger className="w-full sm:w-max">
               <CalendarIcon />
               <SelectValue />
             </SelectTrigger>
@@ -134,13 +161,23 @@ export function PublishingCalendar({
             </SelectContent>
           </Select>
           <ButtonGroup>
-            <Button aria-label="Periodo anterior" onClick={() => controller.prev()} size="icon" variant="outline">
+            <Button
+              aria-label="Periodo anterior"
+              onClick={() => controller.prev()}
+              size="icon"
+              variant="outline"
+            >
               <ChevronLeft />
             </Button>
             <Button onClick={() => controller.today()} variant="outline">
               Hoy
             </Button>
-            <Button aria-label="Periodo siguiente" onClick={() => controller.next()} size="icon" variant="outline">
+            <Button
+              aria-label="Periodo siguiente"
+              onClick={() => controller.next()}
+              size="icon"
+              variant="outline"
+            >
               <ChevronRight />
             </Button>
           </ButtonGroup>
@@ -176,7 +213,10 @@ export function PublishingCalendar({
         datesSet={(info) => {
           setDateInfo({
             title: info.view.title,
-            days: differenceInCalendarDays(info.view.currentEnd, info.view.currentStart),
+            days: differenceInCalendarDays(
+              info.view.currentEnd,
+              info.view.currentStart
+            ),
           })
         }}
         eventClick={(info) => {
@@ -191,7 +231,9 @@ export function PublishingCalendar({
         initialView={initialCalendarView}
         nowIndicator
         plugins={[...plugins]}
-        popoverCloseContent={() => <XIcon className="size-5 text-muted-foreground group-hover:text-foreground" />}
+        popoverCloseContent={() => (
+          <XIcon className="size-5 text-muted-foreground group-hover:text-foreground" />
+        )}
       />
     </div>
   )

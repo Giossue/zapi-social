@@ -1,10 +1,13 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
+import { Card } from "@workspace/ui/components/card"
+import { CollectionHeader } from "@workspace/ui/components/collection-header"
 
 import type { DashboardOverviewRow } from "./dashboard-overview-table/schema"
 import { DashboardOverviewTable } from "./dashboard-overview-table/table"
 import type { PortalDashboard } from "../types/dashboard"
 
-function getDashboardOverviewRows(dashboard: PortalDashboard): DashboardOverviewRow[] {
+function getDashboardOverviewRows(
+  dashboard: PortalDashboard
+): DashboardOverviewRow[] {
   return [
     ...dashboard.attention.map((item, index) => ({
       id: `attention-${index}`,
@@ -33,19 +36,23 @@ function getDashboardOverviewRows(dashboard: PortalDashboard): DashboardOverview
   ]
 }
 
-export function SubscriberOverview({ dashboard }: { dashboard: PortalDashboard }) {
+export function SubscriberOverview({
+  dashboard,
+}: {
+  dashboard: PortalDashboard
+}) {
   const rows = getDashboardOverviewRows(dashboard)
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="leading-none">Resumen operativo</CardTitle>
-        <CardDescription>Alertas y métricas actuales de publicación y biblioteca.</CardDescription>
-      </CardHeader>
-
-      <CardContent className="pt-0">
+    <div className="flex flex-col gap-4">
+      <CollectionHeader
+        description="Alertas y métricas actuales de publicación y biblioteca."
+        level="h2"
+        title="Resumen operativo"
+      />
+      <Card variant="subtle">
         <DashboardOverviewTable data={rows} />
-      </CardContent>
-    </Card>
+      </Card>
+    </div>
   )
 }

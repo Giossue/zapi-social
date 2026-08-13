@@ -1,14 +1,21 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import Link from "next/link"
-import { aiApi, ApiError, channelsApi, filesApi } from "@workspace/api-client"
+import {
+  aiApi,
+  ApiError,
+  authApi,
+  channelsApi,
+  filesApi,
+} from "@workspace/api-client"
 import type {
   AiRequestKind,
   PortalAiDashboard,
   PortalAiPublishingSchedule,
   PortalAiRequest,
+  PortalAiRequestsResponse,
   PortalAiSettings,
   PortalChannelAccount,
   PortalCreditsResponse,
@@ -24,18 +31,14 @@ import {
   Coins,
   Copy,
   Download,
-  Ellipsis,
   Eye,
   FileSearch,
-  Filter,
   ListFilter,
   MoreHorizontal,
-  Play,
   Plus,
   RefreshCw,
   Save,
   Search,
-  Settings2,
   ShieldCheck,
   Sparkles,
   Trash2,
@@ -57,6 +60,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import { MetricCard } from "@workspace/ui/components/metric-card"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -80,6 +84,7 @@ import {
 import { Progress } from "@workspace/ui/components/progress"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { PageLoading } from "@workspace/ui/components/page-loading"
+import { Spinner } from "@workspace/ui/components/spinner"
 import {
   Select,
   SelectContent,
@@ -105,15 +110,22 @@ import {
   TabsTrigger,
 } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
-import { TimePicker } from "@workspace/ui/components/time-picker"
 import { toast } from "@workspace/ui/components/toast"
 
 import {
   type AiStudioView,
-  automations,
-  creditRows,
   studioDestinations,
 } from "@/features/ai-studio/fixtures/ai-studio"
+import {
+  type AiAutomationRow,
+  AiAutomationSurface,
+  type AiCreditMovementRow,
+  AiCreditsSurface,
+  type AiHistoryRow,
+  AiHistorySurface,
+  type AiOperationalViewState,
+  DownloadTableButton,
+} from "@/features/ai-studio/components/ai-studio-operations"
 
 const pageCopy: Record<AiStudioView, { description: string; title: string }> = {
   automation: {
@@ -200,6 +212,14 @@ function aiErrorMessage(error: unknown) {
       return "Hay demasiadas solicitudes. Espera un momento e inténtalo otra vez."
   }
   return "No pudimos completar la operación."
+}
+
+function aiLoadState(
+  error: unknown
+): Exclude<AiOperationalViewState, "loading" | "ready"> {
+  return error instanceof ApiError && error.status === 403
+    ? "forbidden"
+    : "error"
 }
 
 function idempotencyKey(prefix: string) {
@@ -291,7 +311,10 @@ function JobActions({
   request: PortalAiRequest
   onChanged?: () => void
 }) {
+  const [pending, setPending] = useState(false)
+
   async function retry() {
+    setPending(true)
     try {
       await aiApi.retryRequest(request.id, {
         idempotencyKey: idempotencyKey("retry"),
@@ -300,16 +323,21 @@ function JobActions({
       onChanged?.()
     } catch (error) {
       toast.error(aiErrorMessage(error))
+    } finally {
+      setPending(false)
     }
   }
 
   async function archive() {
+    setPending(true)
     try {
       await aiApi.archiveRequest(request.id, { archived: true })
       toast.success("Generación archivada.")
       onChanged?.()
     } catch (error) {
       toast.error(aiErrorMessage(error))
+    } finally {
+      setPending(false)
     }
   }
 
@@ -318,10 +346,15 @@ function JobActions({
       <DropdownMenuTrigger asChild>
         <Button
           aria-label={`Acciones para ${request.title}`}
+          disabled={pending}
           size="icon-sm"
           variant="brand-secondary"
         >
-          <MoreHorizontal />
+          {pending ? (
+            <Spinner aria-label="Procesando acción" />
+          ) : (
+            <MoreHorizontal />
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
@@ -363,7 +396,7 @@ function JobsTable({
   onChanged?: () => void
 }) {
   return (
-    <Table className="**:data-[slot='table-cell']:px-4 **:data-[slot='table-head']:px-4">
+    <Table>
       <TableHeader>
         <TableRow>
           <TableHead>Generación</TableHead>
@@ -480,20 +513,15 @@ function Overview() {
         view="overview"
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {metrics.map((metric) => (
-          <Card variant="subtle" key={metric.label}>
-            <CardHeader>
-              <CardDescription>{metric.label}</CardDescription>
-              <CardAction>
-                <metric.icon className="size-4 text-muted-foreground" />
-              </CardAction>
-              <CardTitle className="text-2xl">{metric.value}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground">{metric.detail}</p>
-            </CardContent>
-          </Card>
+          <MetricCard
+            description={metric.detail}
+            icon={metric.icon}
+            key={metric.label}
+            label={metric.label}
+            value={metric.value}
+          />
         ))}
       </div>
 
@@ -1145,7 +1173,7 @@ function CreationWorkspace({ view }: { view: CreationView }) {
           <div className="flex justify-end">
             <Button disabled={!brief.trim() || pending} type="submit">
               {pending ? (
-                <RefreshCw className="animate-spin" data-icon="inline-start" />
+                <Spinner aria-label="Generando" data-icon="inline-start" />
               ) : (
                 <WandSparkles data-icon="inline-start" />
               )}
@@ -1332,7 +1360,7 @@ function Planner() {
             type="submit"
           >
             {pending ? (
-              <RefreshCw className="animate-spin" data-icon="inline-start" />
+              <Spinner aria-label="Generando" data-icon="inline-start" />
             ) : (
               <CalendarPlus data-icon="inline-start" />
             )}
@@ -1353,7 +1381,7 @@ function Planner() {
           </CardHeader>
           <CardContent className="px-0">
             {request?.status === "succeeded" ? (
-              <Table className="**:data-[slot='table-cell']:px-4 **:data-[slot='table-head']:px-4">
+              <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Fecha sugerida</TableHead>
@@ -1471,10 +1499,11 @@ function Timing() {
             onClick={() => void analyze()}
             variant="brand-secondary"
           >
-            <RefreshCw
-              className={pending ? "animate-spin" : undefined}
-              data-icon="inline-start"
-            />
+            {pending ? (
+              <Spinner aria-label="Analizando" data-icon="inline-start" />
+            ) : (
+              <RefreshCw data-icon="inline-start" />
+            )}
             Actualizar análisis
           </Button>
         }
@@ -1753,843 +1782,6 @@ function Research() {
   )
 }
 
-function History() {
-  const [query, setQuery] = useState("")
-  const [rows, setRows] = useState<PortalAiRequest[] | null>(null)
-  const load = useCallback(async () => {
-    try {
-      setRows(
-        (
-          await aiApi.listRequests({
-            search: query.trim() || undefined,
-            limit: 100,
-          })
-        ).requests
-      )
-    } catch (error) {
-      toast.error(aiErrorMessage(error))
-      setRows([])
-    }
-  }, [query])
-  useEffect(() => {
-    const timer = window.setTimeout(() => void load(), 250)
-    return () => window.clearTimeout(timer)
-  }, [load])
-
-  function exportHistory() {
-    if (!rows?.length) return toast.info("No hay filas para exportar.")
-    const csv = [
-      "id,titulo,tipo,estado,creditos,fecha",
-      ...rows.map((row) =>
-        [row.id, row.title, row.kind, row.status, row.costUnits, row.createdAt]
-          .map((value) => `"${String(value).replaceAll('"', '""')}"`)
-          .join(",")
-      ),
-    ].join("\n")
-    const url = URL.createObjectURL(
-      new Blob([csv], { type: "text/csv;charset=utf-8" })
-    )
-    const link = document.createElement("a")
-    link.href = url
-    link.download = "historial-ai.csv"
-    link.click()
-    URL.revokeObjectURL(url)
-  }
-
-  return (
-    <div className="flex flex-col gap-6">
-      <StudioHeader
-        actions={
-          <Button onClick={exportHistory} variant="brand-secondary">
-            <Download data-icon="inline-start" />
-            Exportar
-          </Button>
-        }
-        view="history"
-      />
-      <Card variant="subtle">
-        <CardHeader className="border-b">
-          <CardTitle>Generaciones</CardTitle>
-          <CardDescription>
-            Todos los resultados creados por el equipo.
-          </CardDescription>
-          <CardAction className="flex gap-2">
-            <InputGroup className="w-64">
-              <InputGroupAddon>
-                <Search />
-              </InputGroupAddon>
-              <InputGroupInput
-                aria-label="Buscar generaciones"
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Buscar..."
-                value={query}
-              />
-            </InputGroup>
-            <Button
-              aria-label="Filtrar historial"
-              size="icon"
-              variant="brand-secondary"
-            >
-              <Filter />
-            </Button>
-          </CardAction>
-        </CardHeader>
-        <CardContent className="px-0">
-          {rows === null ? (
-            <PageLoading aria-label="Cargando historial" />
-          ) : rows.length ? (
-            <JobsTable rows={rows} onChanged={() => void load()} />
-          ) : (
-            <EmptyState
-              icon={FileSearch}
-              title="Sin generaciones"
-              description="No encontramos resultados para esta búsqueda."
-            />
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  )
-}
-
-function Automation() {
-  const [rows, setRows] = useState(automations)
-
-  return (
-    <div className="flex flex-col gap-6">
-      <StudioHeader
-        actions={
-          <Button
-            onClick={() => toast.info("Asistente de automatización abierto")}
-          >
-            <Plus data-icon="inline-start" />
-            Nueva automatización
-          </Button>
-        }
-        view="automation"
-      />
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
-        <Card variant="subtle">
-          <CardHeader>
-            <CardTitle>Reglas activas</CardTitle>
-            <CardDescription>
-              La IA crea borradores; una persona conserva la aprobación final.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="px-0">
-            <Table className="**:data-[slot='table-cell']:px-4 **:data-[slot='table-head']:px-4">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Automatización</TableHead>
-                  <TableHead>Frecuencia</TableHead>
-                  <TableHead>Salida</TableHead>
-                  <TableHead>Próxima ejecución</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((row) => (
-                  <TableRow key={row.name}>
-                    <TableCell className="font-medium">{row.name}</TableCell>
-                    <TableCell>{row.cadence}</TableCell>
-                    <TableCell>{row.drafts}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {row.next}
-                    </TableCell>
-                    <TableCell>
-                      <Switch
-                        aria-label={`Activar ${row.name}`}
-                        checked={row.status}
-                        onCheckedChange={(checked) =>
-                          setRows((current) =>
-                            current.map((item) =>
-                              item.name === row.name
-                                ? { ...item, status: checked }
-                                : item
-                            )
-                          )
-                        }
-                      />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            aria-label={`Acciones para ${row.name}`}
-                            size="icon-sm"
-                            variant="brand-secondary"
-                          >
-                            <Ellipsis />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuGroup>
-                            <DropdownMenuItem
-                              onSelect={() =>
-                                toast.success("Ejecución simulada")
-                              }
-                            >
-                              <Play />
-                              Ejecutar ahora
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onSelect={() => toast.info("Editor abierto")}
-                            >
-                              <Settings2 />
-                              Editar regla
-                            </DropdownMenuItem>
-                          </DropdownMenuGroup>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem variant="destructive">
-                            <Trash2 />
-                            Eliminar
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-        <div className="flex flex-col gap-4">
-          <Card variant="subtle">
-            <CardHeader>
-              <CardTitle>Próximas ejecuciones</CardTitle>
-              <CardDescription>Cola del espacio de trabajo.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-3">
-              {rows
-                .filter((row) => row.status)
-                .map((row) => (
-                  <div className="flex items-start gap-3" key={row.name}>
-                    <div className="mt-0.5 flex size-8 items-center justify-center rounded-lg bg-muted">
-                      <Clock3 className="size-4" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">{row.next}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {row.name}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-            </CardContent>
-          </Card>
-          <Alert>
-            <ShieldCheck />
-            <AlertTitle>Aprobación humana activa</AlertTitle>
-            <AlertDescription>
-              Ninguna automatización publica directamente. Todos los resultados
-              llegan como borrador.
-            </AlertDescription>
-          </Alert>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function Settings() {
-  const [brandName, setBrandName] = useState("Zapi Burger")
-  const [description, setDescription] = useState(
-    "Restaurante casual con productos artesanales, frescos y una comunicación cercana."
-  )
-
-  return (
-    <div className="flex flex-col gap-6">
-      <StudioHeader view="settings" />
-      <Tabs defaultValue="brand">
-        <TabsList>
-          <TabsTrigger value="brand">Voz de marca</TabsTrigger>
-          <TabsTrigger value="defaults">Preferencias</TabsTrigger>
-          <TabsTrigger value="safety">Seguridad</TabsTrigger>
-        </TabsList>
-        <TabsContent className="mt-4" value="brand">
-          <form
-            className="flex flex-col gap-3"
-            noValidate
-            onSubmit={(event) => {
-              event.preventDefault()
-              toast.success("Voz de marca guardada")
-            }}
-          >
-            <Card variant="subtle">
-              <CardHeader>
-                <CardTitle>Identidad de la marca</CardTitle>
-                <CardDescription>
-                  La IA usará esta información en cada herramienta.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <FieldGroup>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <Field>
-                      <FieldLabel htmlFor="brand-name">
-                        Nombre de marca <RequiredMark />
-                      </FieldLabel>
-                      <Input
-                        id="brand-name"
-                        onChange={(event) => setBrandName(event.target.value)}
-                        value={brandName}
-                      />
-                    </Field>
-                    <Field>
-                      <FieldLabel>
-                        Personalidad <RequiredMark />
-                      </FieldLabel>
-                      <Select defaultValue="friendly">
-                        <SelectTrigger className="w-full">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectItem value="friendly">
-                              Cercana y enérgica
-                            </SelectItem>
-                            <SelectItem value="premium">
-                              Elegante y sobria
-                            </SelectItem>
-                            <SelectItem value="expert">
-                              Experta y educativa
-                            </SelectItem>
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </Field>
-                  </div>
-                  <Field>
-                    <FieldLabel htmlFor="brand-description">
-                      Descripción <RequiredMark />
-                    </FieldLabel>
-                    <Textarea
-                      id="brand-description"
-                      onChange={(event) => setDescription(event.target.value)}
-                      rows={5}
-                      value={description}
-                    />
-                  </Field>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <Field>
-                      <FieldLabel>Palabras que sí usamos</FieldLabel>
-                      <Input defaultValue="fresco, artesanal, compartir, sabor" />
-                    </Field>
-                    <Field>
-                      <FieldLabel>Palabras que evitamos</FieldLabel>
-                      <Input defaultValue="barato, imperdible, el mejor" />
-                    </Field>
-                  </div>
-                </FieldGroup>
-              </CardContent>
-            </Card>
-            <div className="flex justify-end">
-              <Button
-                disabled={!brandName.trim() || !description.trim()}
-                type="submit"
-              >
-                <Save data-icon="inline-start" />
-                Guardar voz de marca
-              </Button>
-            </div>
-          </form>
-        </TabsContent>
-        <TabsContent className="mt-4" value="defaults">
-          <Card variant="subtle">
-            <CardHeader>
-              <CardTitle>Valores predeterminados</CardTitle>
-              <CardDescription>
-                Se aplican al abrir una herramienta nueva.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <FieldGroup>
-                <div className="grid gap-4 md:grid-cols-3">
-                  <Field>
-                    <FieldLabel>Idioma</FieldLabel>
-                    <Select defaultValue="es">
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectItem value="es">Español</SelectItem>
-                          <SelectItem value="en">Inglés</SelectItem>
-                          <SelectItem value="pt">Portugués</SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                  <Field>
-                    <FieldLabel>Variante regional</FieldLabel>
-                    <Select defaultValue="ec">
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectItem value="ec">Ecuador</SelectItem>
-                          <SelectItem value="mx">México</SelectItem>
-                          <SelectItem value="es">España</SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                  <Field>
-                    <FieldLabel>Longitud</FieldLabel>
-                    <Select defaultValue="medium">
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectItem value="short">Breve</SelectItem>
-                          <SelectItem value="medium">Media</SelectItem>
-                          <SelectItem value="long">Detallada</SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                </div>
-              </FieldGroup>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent className="mt-4" value="safety">
-          <Card variant="subtle">
-            <CardHeader>
-              <CardTitle>Controles de seguridad</CardTitle>
-              <CardDescription>
-                Reglas del espacio de trabajo para reducir riesgo.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              {[
-                [
-                  "Solicitar revisión antes de publicar",
-                  "Siempre enviar la salida de IA a borradores.",
-                ],
-                [
-                  "Advertir sobre afirmaciones sensibles",
-                  "Marcar salud, finanzas, garantías y comparaciones.",
-                ],
-                [
-                  "Ocultar datos personales",
-                  "Detectar información personal dentro de instrucciones.",
-                ],
-              ].map(([title, detail], index) => (
-                <div
-                  className="flex items-center justify-between gap-4 rounded-lg border p-3"
-                  key={title}
-                >
-                  <div>
-                    <p className="text-sm font-medium">{title}</p>
-                    <p className="text-xs text-muted-foreground">{detail}</p>
-                  </div>
-                  <Switch defaultChecked={index !== 2} />
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
-  )
-}
-
-function Credits() {
-  return (
-    <div className="flex flex-col gap-6">
-      <StudioHeader
-        actions={
-          <Button
-            onClick={() => toast.info("Configuración de presupuesto simulada")}
-          >
-            <Settings2 data-icon="inline-start" />
-            Configurar presupuesto
-          </Button>
-        }
-        view="credits"
-      />
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {[
-          ["Saldo disponible", "84", "créditos"],
-          ["Consumidos este mes", "37", "de 100 incluidos"],
-          ["Presupuesto usado", "37%", "$18,50 estimados"],
-          ["Próxima renovación", "1 sep", "100 créditos"],
-        ].map(([label, value, detail]) => (
-          <Card variant="subtle" key={label}>
-            <CardHeader>
-              <CardDescription>{label}</CardDescription>
-              <CardTitle className="text-2xl">{value}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground">{detail}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
-        <Card variant="subtle">
-          <CardHeader>
-            <CardTitle>Movimientos</CardTitle>
-            <CardDescription>
-              Consumo y recargas del periodo actual.
-            </CardDescription>
-            <CardAction>
-              <Button size="sm" variant="brand-secondary">
-                <Download data-icon="inline-start" />
-                Descargar
-              </Button>
-            </CardAction>
-          </CardHeader>
-          <CardContent className="px-0">
-            <Table className="**:data-[slot='table-cell']:px-4 **:data-[slot='table-head']:px-4">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Fecha</TableHead>
-                  <TableHead>Movimiento</TableHead>
-                  <TableHead>Detalle</TableHead>
-                  <TableHead className="text-right">Créditos</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {creditRows.map((row) => (
-                  <TableRow key={`${row.date}-${row.detail}`}>
-                    <TableCell className="text-muted-foreground">
-                      {row.date}
-                    </TableCell>
-                    <TableCell className="font-medium">{row.type}</TableCell>
-                    <TableCell>{row.detail}</TableCell>
-                    <TableCell className="text-right font-medium">
-                      {row.amount}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-        <div className="flex flex-col gap-4">
-          <Card variant="subtle">
-            <CardHeader>
-              <CardTitle>Presupuesto mensual</CardTitle>
-              <CardDescription>
-                Alerta antes de agotar el límite.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              <div>
-                <div className="mb-2 flex justify-between text-sm">
-                  <span>$18,50 usados</span>
-                  <span className="text-muted-foreground">de $50</span>
-                </div>
-                <Progress value={37} />
-              </div>
-              <div className="flex items-center justify-between rounded-lg border p-3">
-                <div>
-                  <p className="text-sm font-medium">Alerta al 80%</p>
-                  <p className="text-xs text-muted-foreground">
-                    Notificar administradores
-                  </p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-            </CardContent>
-          </Card>
-          <Card variant="subtle">
-            <CardHeader>
-              <CardTitle>Costo por herramienta</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-3">
-              {[
-                ["Texto y revisión", "1–2"],
-                ["Imágenes", "4"],
-                ["Video", "12"],
-                ["Planificador", "3"],
-              ].map(([tool, value]) => (
-                <div
-                  className="flex items-center justify-between text-sm"
-                  key={tool}
-                >
-                  <span className="text-muted-foreground">{tool}</span>
-                  <span className="font-medium">{value} créditos</span>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function FunctionalAutomation() {
-  const [rows, setRows] = useState<PortalAiPublishingSchedule[] | null>(null)
-  const [accounts, setAccounts] = useState<PortalChannelAccount[]>([])
-  const [showForm, setShowForm] = useState(false)
-  const [name, setName] = useState("")
-  const [prompt, setPrompt] = useState("")
-  const [time, setTime] = useState("09:00")
-  const [accountId, setAccountId] = useState("")
-  const [pending, setPending] = useState(false)
-  const load = useCallback(async () => {
-    try {
-      const [schedules, channels] = await Promise.all([
-        aiApi.listPublishingSchedules(),
-        channelsApi.list({ limit: 50 }),
-      ])
-      setRows(schedules)
-      setAccounts(
-        channels.accounts.filter((account) => account.status === "connected")
-      )
-      setAccountId(
-        (current) =>
-          current ||
-          channels.accounts.find((account) => account.status === "connected")
-            ?.id ||
-          ""
-      )
-    } catch (error) {
-      toast.error(aiErrorMessage(error))
-      setRows([])
-    }
-  }, [])
-  useEffect(() => {
-    void load()
-  }, [load])
-
-  async function create(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (!name.trim() || !prompt.trim() || !accountId)
-      return toast.error("Completa nombre, instrucción y cuenta.")
-    setPending(true)
-    try {
-      await aiApi.createPublishingSchedule({
-        name: name.trim(),
-        prompt: prompt.trim(),
-        status: "active",
-        frequency: "daily",
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        preferredTime: time,
-        weekdays: [],
-        tone: "cercano",
-        targetSocialAccountIds: [accountId],
-      })
-      setName("")
-      setPrompt("")
-      setShowForm(false)
-      await load()
-      toast.success("Automatización creada.")
-    } catch (error) {
-      toast.error(aiErrorMessage(error))
-    } finally {
-      setPending(false)
-    }
-  }
-  async function toggle(row: PortalAiPublishingSchedule, checked: boolean) {
-    try {
-      await aiApi.updatePublishingSchedule(row.id, {
-        status: checked ? "active" : "paused",
-      })
-      await load()
-    } catch (error) {
-      toast.error(aiErrorMessage(error))
-    }
-  }
-  async function run(row: PortalAiPublishingSchedule) {
-    try {
-      await aiApi.runPublishingSchedule(row.id)
-      toast.success("Ejecución añadida a la cola.")
-    } catch (error) {
-      toast.error(aiErrorMessage(error))
-    }
-  }
-  async function remove(row: PortalAiPublishingSchedule) {
-    try {
-      await aiApi.removePublishingSchedule(row.id)
-      await load()
-      toast.success("Automatización eliminada.")
-    } catch (error) {
-      toast.error(aiErrorMessage(error))
-    }
-  }
-  return (
-    <div className="flex flex-col gap-6">
-      <StudioHeader
-        actions={
-          <Button onClick={() => setShowForm((value) => !value)}>
-            <Plus data-icon="inline-start" /> Nueva automatización
-          </Button>
-        }
-        view="automation"
-      />
-      {showForm ? (
-        <form className="flex flex-col gap-3" noValidate onSubmit={create}>
-          <Card variant="subtle">
-            <CardHeader>
-              <CardTitle>Nueva automatización</CardTitle>
-              <CardDescription>
-                Generará borradores; nunca publicará sin revisión humana.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <FieldGroup>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Field>
-                    <FieldLabel>
-                      Nombre <RequiredMark />
-                    </FieldLabel>
-                    <Input
-                      aria-required={true}
-                      value={name}
-                      onChange={(event) => setName(event.target.value)}
-                    />
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="automation-time">
-                      Hora <RequiredMark />
-                    </FieldLabel>
-                    <TimePicker
-                      aria-required={true}
-                      id="automation-time"
-                      onValueChange={setTime}
-                      value={time}
-                    />
-                  </Field>
-                </div>
-                <Field>
-                  <FieldLabel>
-                    Instrucción <RequiredMark />
-                  </FieldLabel>
-                  <Textarea
-                    aria-required="true"
-                    rows={4}
-                    value={prompt}
-                    onChange={(event) => setPrompt(event.target.value)}
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel>
-                    Cuenta de destino <RequiredMark />
-                  </FieldLabel>
-                  <Select value={accountId} onValueChange={setAccountId}>
-                    <SelectTrigger aria-required="true" className="w-full">
-                      <SelectValue placeholder="Selecciona una cuenta" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {accounts.map((account) => (
-                        <SelectItem key={account.id} value={account.id}>
-                          {account.displayName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-              </FieldGroup>
-            </CardContent>
-          </Card>
-          <div className="flex justify-end">
-            <Button
-              disabled={
-                pending || !name.trim() || !time || !prompt.trim() || !accountId
-              }
-              type="submit"
-            >
-              <Save data-icon="inline-start" /> Guardar automatización
-            </Button>
-          </div>
-        </form>
-      ) : null}
-      <Card variant="subtle">
-        <CardHeader>
-          <CardTitle>Reglas activas</CardTitle>
-          <CardDescription>
-            La IA crea borradores; una persona conserva la aprobación final.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="px-0">
-          {rows === null ? (
-            <PageLoading />
-          ) : rows.length ? (
-            <Table className="**:data-[slot='table-cell']:px-4 **:data-[slot='table-head']:px-4">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Automatización</TableHead>
-                  <TableHead>Frecuencia</TableHead>
-                  <TableHead>Próxima ejecución</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell className="font-medium">{row.name}</TableCell>
-                    <TableCell>
-                      {row.frequency === "daily"
-                        ? `Diario · ${row.preferredTime}`
-                        : `Semanal · ${row.preferredTime}`}
-                    </TableCell>
-                    <TableCell>{formatDate(row.nextRunAt)}</TableCell>
-                    <TableCell>
-                      <Switch
-                        checked={row.status === "active"}
-                        onCheckedChange={(checked) => void toggle(row, checked)}
-                        aria-label={`Activar ${row.name}`}
-                      />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button size="icon-sm" variant="brand-secondary">
-                            <Ellipsis />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onSelect={() => void run(row)}>
-                            <Play /> Ejecutar ahora
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            variant="destructive"
-                            onSelect={() => void remove(row)}
-                          >
-                            <Trash2 /> Eliminar
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <EmptyState
-              icon={Sparkles}
-              title="Aún no hay automatizaciones"
-              description={
-                accounts.length
-                  ? "Crea una regla para producir borradores automáticamente."
-                  : "Conecta primero una cuenta social para elegir un destino."
-              }
-            />
-          )}
-        </CardContent>
-      </Card>
-      <Alert>
-        <ShieldCheck />
-        <AlertTitle>Aprobación humana activa</AlertTitle>
-        <AlertDescription>
-          Ninguna automatización publica directamente. Todos los resultados
-          llegan como borrador.
-        </AlertDescription>
-      </Alert>
-    </div>
-  )
-}
-
 function FunctionalSettings() {
   const [settings, setSettings] = useState<PortalAiSettings | null>(null)
   const [pending, setPending] = useState(false)
@@ -2819,196 +2011,564 @@ function FunctionalSettings() {
   )
 }
 
-function FunctionalCredits() {
+const AI_TABLE_PAGE_SIZE = 10
+
+function OperationalHistory() {
+  const [query, setQuery] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [kindFilter, setKindFilter] = useState("all")
+  const [page, setPage] = useState(1)
+  const [result, setResult] = useState<PortalAiRequestsResponse | null>(null)
+  const [viewState, setViewState] = useState<AiOperationalViewState>("loading")
+  const loadSequence = useRef(0)
+
+  const load = useCallback(async () => {
+    const sequence = ++loadSequence.current
+    setViewState("loading")
+
+    try {
+      const response = await aiApi.listRequests({
+        kind: kindFilter === "all" ? undefined : (kindFilter as AiRequestKind),
+        limit: AI_TABLE_PAGE_SIZE,
+        page,
+        search: query.trim() || undefined,
+        status:
+          statusFilter === "all"
+            ? undefined
+            : (statusFilter as PortalAiRequest["status"]),
+      })
+
+      if (sequence !== loadSequence.current) return
+      if (page > 1 && response.total > 0 && response.requests.length === 0) {
+        setPage((current) => Math.max(1, current - 1))
+        return
+      }
+
+      setResult(response)
+      setViewState("ready")
+    } catch (error) {
+      if (sequence !== loadSequence.current) return
+      setResult(null)
+      setViewState(aiLoadState(error))
+    }
+  }, [kindFilter, page, query, statusFilter])
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => void load(), 250)
+    return () => window.clearTimeout(timer)
+  }, [load])
+
+  const requestsById = useMemo(
+    () =>
+      new Map((result?.requests ?? []).map((request) => [request.id, request])),
+    [result]
+  )
+  const rows = useMemo<AiHistoryRow[]>(
+    () =>
+      (result?.requests ?? []).map((request) => ({
+        cost: `${request.costUnits} ${request.costUnits === 1 ? "crédito" : "créditos"}`,
+        date: formatDate(request.createdAt),
+        id: request.id,
+        kind: requestKindLabels[request.kind],
+        status: request.status,
+        subtitle: request.prompt.trim()
+          ? request.prompt.trim().slice(0, 72)
+          : "Sin instrucción",
+        title: request.title,
+      })),
+    [result]
+  )
+  const hasFilters = Boolean(
+    query.trim() || statusFilter !== "all" || kindFilter !== "all"
+  )
+
+  function exportHistory() {
+    if (!result?.requests.length)
+      return toast.info("No hay filas para exportar.")
+
+    const csv = [
+      "titulo,tipo,estado,creditos,fecha",
+      ...result.requests.map((request) =>
+        [
+          request.title,
+          requestKindLabels[request.kind],
+          request.status,
+          request.costUnits,
+          request.createdAt,
+        ]
+          .map((value) => `"${String(value).replaceAll('"', '""')}"`)
+          .join(",")
+      ),
+    ].join("\n")
+    const url = URL.createObjectURL(
+      new Blob([csv], { type: "text/csv;charset=utf-8" })
+    )
+    const link = document.createElement("a")
+    link.href = url
+    link.download = "historial-ai.csv"
+    link.click()
+    URL.revokeObjectURL(url)
+  }
+
+  return (
+    <AiHistorySurface
+      action={
+        <DownloadTableButton
+          disabled={!result?.requests.length}
+          label="Exportar"
+          onClick={exportHistory}
+        />
+      }
+      hasFilters={hasFilters}
+      kindFilter={kindFilter}
+      onClearFilters={() => {
+        setQuery("")
+        setStatusFilter("all")
+        setKindFilter("all")
+        setPage(1)
+      }}
+      onKindFilterChange={(value) => {
+        setKindFilter(value)
+        setPage(1)
+      }}
+      onNextPage={() => setPage((current) => current + 1)}
+      onPreviousPage={() => setPage((current) => Math.max(1, current - 1))}
+      onQueryChange={(value) => {
+        setQuery(value)
+        setPage(1)
+      }}
+      onRetry={() => void load()}
+      onStatusFilterChange={(value) => {
+        setStatusFilter(value)
+        setPage(1)
+      }}
+      page={page}
+      pageSize={AI_TABLE_PAGE_SIZE}
+      query={query}
+      renderActions={(row) => {
+        const request = requestsById.get(row.id)
+        return request ? (
+          <JobActions request={request} onChanged={() => void load()} />
+        ) : null
+      }}
+      rows={rows}
+      state={viewState}
+      statusFilter={statusFilter}
+      total={result?.total ?? 0}
+    />
+  )
+}
+
+function OperationalAutomation() {
+  const [schedules, setSchedules] = useState<PortalAiPublishingSchedule[]>([])
+  const [accounts, setAccounts] = useState<PortalChannelAccount[]>([])
+  const [viewState, setViewState] = useState<AiOperationalViewState>("loading")
+  const [query, setQuery] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [page, setPage] = useState(1)
+  const [showForm, setShowForm] = useState(false)
+  const [name, setName] = useState("")
+  const [prompt, setPrompt] = useState("")
+  const [time, setTime] = useState("09:00")
+  const [accountId, setAccountId] = useState("")
+  const [pendingCreate, setPendingCreate] = useState(false)
+  const [busyRowId, setBusyRowId] = useState<string | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<AiAutomationRow | null>(
+    null
+  )
+  const [deleting, setDeleting] = useState(false)
+  const [canManage, setCanManage] = useState(false)
+
+  const load = useCallback(async (showLoading = true) => {
+    if (showLoading) setViewState("loading")
+    try {
+      const [nextSchedules, channels, session] = await Promise.all([
+        aiApi.listPublishingSchedules(),
+        channelsApi.list({ limit: 50 }),
+        authApi.session(),
+      ])
+      const connectedAccounts = channels.accounts.filter(
+        (account) => account.status === "connected"
+      )
+
+      setSchedules(nextSchedules)
+      setAccounts(connectedAccounts)
+      setCanManage(
+        session.area === "portal" && session.workspace.role !== "member"
+      )
+      setAccountId((current) =>
+        connectedAccounts.some((account) => account.id === current)
+          ? current
+          : (connectedAccounts[0]?.id ?? "")
+      )
+      setViewState("ready")
+    } catch (error) {
+      setSchedules([])
+      setAccounts([])
+      setCanManage(false)
+      setViewState(aiLoadState(error))
+    }
+  }, [])
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => void load(), 0)
+    return () => window.clearTimeout(timer)
+  }, [load])
+
+  const filteredSchedules = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase("es")
+    return schedules.filter(
+      (schedule) =>
+        (!normalizedQuery ||
+          `${schedule.name} ${schedule.prompt}`
+            .toLocaleLowerCase("es")
+            .includes(normalizedQuery)) &&
+        (statusFilter === "all" || schedule.status === statusFilter)
+    )
+  }, [query, schedules, statusFilter])
+  const visibleSchedules = filteredSchedules.slice(
+    (page - 1) * AI_TABLE_PAGE_SIZE,
+    page * AI_TABLE_PAGE_SIZE
+  )
+  const rows = useMemo<AiAutomationRow[]>(
+    () =>
+      visibleSchedules.map((schedule) => ({
+        cadence: `${schedule.frequency === "daily" ? "Diario" : "Semanal"} · ${schedule.preferredTime}`,
+        id: schedule.id,
+        name: schedule.name,
+        nextRun: formatDate(schedule.nextRunAt),
+        status: schedule.status,
+      })),
+    [visibleSchedules]
+  )
+
+  async function create(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!name.trim() || !prompt.trim() || !time || !accountId)
+      return toast.error("Completa todos los campos obligatorios.")
+
+    setPendingCreate(true)
+    try {
+      await aiApi.createPublishingSchedule({
+        frequency: "daily",
+        name: name.trim(),
+        preferredTime: time,
+        prompt: prompt.trim(),
+        status: "active",
+        targetSocialAccountIds: [accountId],
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "Etc/UTC",
+        tone: "cercano",
+        weekdays: [],
+      })
+      setName("")
+      setPrompt("")
+      setShowForm(false)
+      setPage(1)
+      await load(false)
+      toast.success("Automatización creada.")
+    } catch (error) {
+      toast.error(aiErrorMessage(error))
+    } finally {
+      setPendingCreate(false)
+    }
+  }
+
+  async function toggle(row: AiAutomationRow, checked: boolean) {
+    setBusyRowId(row.id)
+    try {
+      await aiApi.updatePublishingSchedule(row.id, {
+        status: checked ? "active" : "paused",
+      })
+      await load(false)
+    } catch (error) {
+      toast.error(aiErrorMessage(error))
+    } finally {
+      setBusyRowId(null)
+    }
+  }
+
+  async function run(row: AiAutomationRow) {
+    setBusyRowId(row.id)
+    try {
+      await aiApi.runPublishingSchedule(row.id)
+      toast.success("Ejecución añadida a la cola.")
+    } catch (error) {
+      toast.error(aiErrorMessage(error))
+    } finally {
+      setBusyRowId(null)
+    }
+  }
+
+  async function remove() {
+    if (!pendingDelete) return
+    setDeleting(true)
+    setBusyRowId(pendingDelete.id)
+    try {
+      await aiApi.removePublishingSchedule(pendingDelete.id)
+      await load(false)
+      setPage(1)
+      setPendingDelete(null)
+      toast.success("Automatización eliminada.")
+    } catch (error) {
+      toast.error(aiErrorMessage(error))
+    } finally {
+      setDeleting(false)
+      setBusyRowId(null)
+    }
+  }
+
+  return (
+    <AiAutomationSurface
+      accountId={accountId}
+      accounts={accounts.map((account) => ({
+        id: account.id,
+        label: account.displayName,
+      }))}
+      busyRowId={busyRowId}
+      canManage={canManage}
+      deleting={deleting}
+      formOpen={showForm}
+      hasFilters={Boolean(query.trim() || statusFilter !== "all")}
+      name={name}
+      onAccountIdChange={setAccountId}
+      onClearFilters={() => {
+        setQuery("")
+        setStatusFilter("all")
+        setPage(1)
+      }}
+      onConfirmDelete={() => void remove()}
+      onDeleteOpenChange={(open) => {
+        if (!open && !deleting) setPendingDelete(null)
+      }}
+      onNameChange={setName}
+      onNextPage={() => setPage((current) => current + 1)}
+      onPreviousPage={() => setPage((current) => Math.max(1, current - 1))}
+      onPromptChange={setPrompt}
+      onQueryChange={(value) => {
+        setQuery(value)
+        setPage(1)
+      }}
+      onRequestDelete={setPendingDelete}
+      onRetry={() => void load()}
+      onRun={(row) => void run(row)}
+      onStatusFilterChange={(value) => {
+        setStatusFilter(value)
+        setPage(1)
+      }}
+      onSubmit={create}
+      onTimeChange={setTime}
+      onToggle={(row, checked) => void toggle(row, checked)}
+      onToggleForm={() => setShowForm((current) => !current)}
+      page={page}
+      pageSize={AI_TABLE_PAGE_SIZE}
+      pendingCreate={pendingCreate}
+      pendingDelete={pendingDelete}
+      prompt={prompt}
+      query={query}
+      rows={rows}
+      state={viewState}
+      statusFilter={statusFilter}
+      time={time}
+      total={filteredSchedules.length}
+    />
+  )
+}
+
+function OperationalCredits() {
   const [credits, setCredits] = useState<PortalCreditsResponse | null>(null)
+  const [viewState, setViewState] = useState<AiOperationalViewState>("loading")
+  const [query, setQuery] = useState("")
+  const [movementType, setMovementType] = useState("all")
+  const [page, setPage] = useState(1)
   const [budget, setBudget] = useState("")
   const [alertPercent, setAlertPercent] = useState("80")
   const [alertsEnabled, setAlertsEnabled] = useState(true)
-  const load = useCallback(async () => {
-    try {
-      const next = await aiApi.getCredits()
-      setCredits(next)
-      setBudget(
-        next.budget.monthlyMicrousd === null
-          ? ""
-          : String(next.budget.monthlyMicrousd / 1_000_000)
-      )
-      setAlertPercent(String(next.budget.alertPercent))
-      setAlertsEnabled(next.budget.alertsEnabled)
-    } catch (error) {
-      toast.error(aiErrorMessage(error))
-    }
+  const [pendingBudget, setPendingBudget] = useState(false)
+  const [budgetEditable, setBudgetEditable] = useState(true)
+
+  const applyCredits = useCallback((next: PortalCreditsResponse) => {
+    setCredits(next)
+    setBudget(
+      next.budget.monthlyMicrousd === null
+        ? ""
+        : String(next.budget.monthlyMicrousd / 1_000_000)
+    )
+    setAlertPercent(String(next.budget.alertPercent))
+    setAlertsEnabled(next.budget.alertsEnabled)
   }, [])
-  useEffect(() => {
-    void load()
-  }, [load])
-  if (!credits) return <PageLoading aria-label="Cargando créditos" />
-  const currentCredits = credits
-  async function saveBudget() {
+
+  const load = useCallback(async () => {
+    setViewState("loading")
     try {
-      setCredits(
+      const [nextCredits, session] = await Promise.all([
+        aiApi.getCredits(),
+        authApi.session(),
+      ])
+      applyCredits(nextCredits)
+      setBudgetEditable(
+        session.area === "portal" && session.workspace.role !== "member"
+      )
+      setViewState("ready")
+    } catch (error) {
+      setCredits(null)
+      setViewState(aiLoadState(error))
+    }
+  }, [applyCredits])
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => void load(), 0)
+    return () => window.clearTimeout(timer)
+  }, [load])
+
+  const filteredEntries = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase("es")
+    return (credits?.entries ?? []).filter(
+      (entry) =>
+        (!normalizedQuery ||
+          `${entry.action} ${entry.type}`
+            .toLocaleLowerCase("es")
+            .includes(normalizedQuery)) &&
+        (movementType === "all" || entry.type === movementType)
+    )
+  }, [credits, movementType, query])
+  const visibleEntries = filteredEntries.slice(
+    (page - 1) * AI_TABLE_PAGE_SIZE,
+    page * AI_TABLE_PAGE_SIZE
+  )
+  const movements = useMemo<AiCreditMovementRow[]>(
+    () =>
+      visibleEntries.map((entry) => ({
+        credits: entry.units > 0 ? `+${entry.units}` : String(entry.units),
+        date: formatDate(entry.createdAt),
+        detail: entry.action,
+        id: entry.id,
+        type: entry.type,
+      })),
+    [visibleEntries]
+  )
+
+  async function saveBudget(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const parsedAlert = Number(alertPercent)
+    const parsedBudget = Number(budget)
+
+    if (
+      !alertPercent.trim() ||
+      !Number.isFinite(parsedAlert) ||
+      parsedAlert < 1 ||
+      parsedAlert > 100 ||
+      (budget !== "" && (!Number.isFinite(parsedBudget) || parsedBudget < 0))
+    ) {
+      toast.error("Revisa el presupuesto y el porcentaje de alerta.")
+      return
+    }
+
+    setPendingBudget(true)
+    try {
+      applyCredits(
         await aiApi.updateBudget({
-          monthlyMicrousd: budget.trim()
-            ? Math.round(Number(budget) * 1_000_000)
-            : null,
-          alertPercent: Number(alertPercent),
+          alertPercent: parsedAlert,
           alertsEnabled,
+          monthlyMicrousd: budget.trim()
+            ? Math.round(parsedBudget * 1_000_000)
+            : null,
         })
       )
       toast.success("Presupuesto guardado.")
     } catch (error) {
-      toast.error(aiErrorMessage(error))
+      if (error instanceof ApiError && error.status === 403) {
+        setBudgetEditable(false)
+        toast.error("Tu rol no permite cambiar el presupuesto de este espacio.")
+      } else {
+        toast.error(aiErrorMessage(error))
+      }
+    } finally {
+      setPendingBudget(false)
     }
   }
+
   function exportLedger() {
+    if (!filteredEntries.length)
+      return toast.info("No hay movimientos para exportar.")
+
     const csv = [
       "fecha,tipo,accion,creditos",
-      ...currentCredits.entries.map((entry) =>
-        [entry.createdAt, entry.type, entry.action, entry.units].join(",")
+      ...filteredEntries.map((entry) =>
+        [entry.createdAt, entry.type, entry.action, entry.units]
+          .map((value) => `"${String(value).replaceAll('"', '""')}"`)
+          .join(",")
       ),
     ].join("\n")
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }))
+    const url = URL.createObjectURL(
+      new Blob([csv], { type: "text/csv;charset=utf-8" })
+    )
     const link = document.createElement("a")
     link.href = url
     link.download = "creditos-ai.csv"
     link.click()
     URL.revokeObjectURL(url)
   }
-  const kindCost = Object.fromEntries(
-    credits.costs.map((item) => [item.kind, item.units])
-  )
+
+  let balanceLabel = "—"
+  if (credits) {
+    balanceLabel = credits.unlimited
+      ? "Sin límite"
+      : String(credits.balanceUnits)
+  }
+
   return (
-    <div className="flex flex-col gap-6">
-      <StudioHeader view="credits" />
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {[
-          [
-            "Saldo disponible",
-            credits.unlimited ? "Sin límite" : String(credits.balanceUnits),
-            "créditos",
-          ],
-          ["Consumidos", String(credits.usedUnits), "en el ciclo"],
-          [
-            "Próxima renovación",
-            credits.cycleEndsAt ? formatDate(credits.cycleEndsAt) : "Sin fecha",
-            "ciclo actual",
-          ],
-        ].map(([label, value, detail]) => (
-          <Card variant="subtle" key={label}>
-            <CardHeader>
-              <CardDescription>{label}</CardDescription>
-              <CardTitle className="text-2xl">{value}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground">{detail}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
-        <Card variant="subtle">
-          <CardHeader>
-            <CardTitle>Movimientos</CardTitle>
-            <CardAction>
-              <Button
-                size="sm"
-                variant="brand-secondary"
-                onClick={exportLedger}
-              >
-                <Download data-icon="inline-start" /> Descargar
-              </Button>
-            </CardAction>
-          </CardHeader>
-          <CardContent className="px-0">
-            <Table className="**:data-[slot='table-cell']:px-4 **:data-[slot='table-head']:px-4">
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Fecha</TableHead>
-                  <TableHead>Movimiento</TableHead>
-                  <TableHead>Detalle</TableHead>
-                  <TableHead className="text-right">Créditos</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {credits.entries.map((entry) => (
-                  <TableRow key={entry.id}>
-                    <TableCell>{formatDate(entry.createdAt)}</TableCell>
-                    <TableCell>{entry.type}</TableCell>
-                    <TableCell>{entry.action}</TableCell>
-                    <TableCell className="text-right">{entry.units}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-        <div className="flex flex-col gap-4">
-          <Card variant="subtle">
-            <CardHeader>
-              <CardTitle>Presupuesto mensual</CardTitle>
-              <CardDescription>
-                Vacío significa sin límite monetario.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Field>
-                <FieldLabel>Límite USD</FieldLabel>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={budget}
-                  onChange={(event) => setBudget(event.target.value)}
-                />
-              </Field>
-              <Field>
-                <FieldLabel>Alerta al %</FieldLabel>
-                <Input
-                  type="number"
-                  min="1"
-                  max="100"
-                  value={alertPercent}
-                  onChange={(event) => setAlertPercent(event.target.value)}
-                />
-              </Field>
-              <div className="flex items-center justify-between rounded-lg border p-3">
-                <span className="text-sm">Alertas activas</span>
-                <Switch
-                  checked={alertsEnabled}
-                  onCheckedChange={setAlertsEnabled}
-                />
-              </div>
-              <Button
-                className="w-full"
-                disabled={
-                  Number(alertPercent) < 1 ||
-                  Number(alertPercent) > 100 ||
-                  (budget !== "" && Number(budget) < 0)
-                }
-                onClick={() => void saveBudget()}
-              >
-                <Save data-icon="inline-start" /> Guardar presupuesto
-              </Button>
-            </CardContent>
-          </Card>
-          <Card variant="subtle">
-            <CardHeader>
-              <CardTitle>Costo por herramienta</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {Object.entries(kindCost).map(([kind, cost]) => (
-                <div className="flex justify-between text-sm" key={kind}>
-                  <span className="text-muted-foreground">
-                    {requestKindLabels[kind as AiRequestKind]}
-                  </span>
-                  <Badge variant="warning">{cost} créditos</Badge>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </div>
+    <AiCreditsSurface
+      alertPercent={alertPercent}
+      alertsEnabled={alertsEnabled}
+      balance={balanceLabel}
+      budget={budget}
+      budgetEditable={budgetEditable}
+      consumed={credits ? String(credits.usedUnits) : "—"}
+      hasFilters={Boolean(query.trim() || movementType !== "all")}
+      movementType={movementType}
+      movements={movements}
+      onAlertPercentChange={setAlertPercent}
+      onAlertsEnabledChange={setAlertsEnabled}
+      onBudgetChange={setBudget}
+      onClearFilters={() => {
+        setQuery("")
+        setMovementType("all")
+        setPage(1)
+      }}
+      onMovementTypeChange={(value) => {
+        setMovementType(value)
+        setPage(1)
+      }}
+      onNextPage={() => setPage((current) => current + 1)}
+      onPreviousPage={() => setPage((current) => Math.max(1, current - 1))}
+      onQueryChange={(value) => {
+        setQuery(value)
+        setPage(1)
+      }}
+      onRetry={() => void load()}
+      onSaveBudget={saveBudget}
+      page={page}
+      pageSize={AI_TABLE_PAGE_SIZE}
+      pendingBudget={pendingBudget}
+      query={query}
+      renewal={
+        credits?.cycleEndsAt ? formatDate(credits.cycleEndsAt) : "Sin fecha"
+      }
+      state={viewState}
+      tableAction={
+        <DownloadTableButton
+          disabled={!filteredEntries.length}
+          label="Descargar"
+          onClick={exportLedger}
+        />
+      }
+      toolCosts={(credits?.costs ?? []).map((item) => ({
+        cost: `${item.units} ${item.units === 1 ? "crédito" : "créditos"}`,
+        id: item.kind,
+        label: requestKindLabels[item.kind],
+      }))}
+      total={filteredEntries.length}
+    />
   )
 }
 
@@ -3025,9 +2585,9 @@ export function AiStudio({ view }: { view: AiStudioView }) {
   if (view === "planner") return <Planner />
   if (view === "timing") return <Timing />
   if (view === "search") return <Research />
-  if (view === "history") return <History />
-  if (view === "automation") return <FunctionalAutomation />
+  if (view === "history") return <OperationalHistory />
+  if (view === "automation") return <OperationalAutomation />
   if (view === "settings") return <FunctionalSettings />
-  if (view === "credits") return <FunctionalCredits />
+  if (view === "credits") return <OperationalCredits />
   return <Overview />
 }

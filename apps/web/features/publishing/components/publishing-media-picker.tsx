@@ -31,12 +31,14 @@ const filters: Array<{ label: string; value: MediaKind | "all" }> = [
 ]
 
 type PublishingMediaPickerProps = {
+  ariaRequired?: boolean
   assets: PublishingMediaAsset[]
   onChange: (assetId: string | null) => void
   selectedAssetId: string | null
 }
 
 export function PublishingMediaPicker({
+  ariaRequired = false,
   assets,
   onChange,
   selectedAssetId,
@@ -93,15 +95,23 @@ export function PublishingMediaPicker({
           </ToggleGroup>
         </div>
         {visibleAssets.length ? (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div
+            aria-label="Media de la publicación"
+            aria-required={ariaRequired}
+            className="grid grid-cols-2 gap-3 sm:grid-cols-3"
+            role="radiogroup"
+          >
             {visibleAssets.map((asset) => {
               const selected = asset.id === selectedAssetId
               const AssetIcon = asset.kind === "image" ? Image : Video
               return (
                 <Button
+                  aria-checked={selected}
                   className="h-auto min-h-28 flex-col items-start gap-3 p-3 text-left"
                   key={asset.id}
                   onClick={() => onChange(selected ? null : asset.id)}
+                  role="radio"
+                  type="button"
                   variant={selected ? "default" : "brand-secondary"}
                 >
                   <span className="flex size-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">

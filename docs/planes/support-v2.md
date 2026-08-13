@@ -4,9 +4,12 @@
 
 El backend está implementado en contrato, cliente REST y Nest. La migración
 aditiva `0018_gorgeous_doctor_faustus` está aplicada a `zapi_v2_local`.
-Por solicitud explícita, el fixture funcional de `/portal/support` se creó
-directamente en V2, reutilizando los patrones de tablas, filtros, diálogos y
-estados ya canónicos del Portal.
+El fixture funcional de `/portal/support` usa la fuente canónica navegable
+`diseño ideal/src/app/(main)/dashboard/support`: métricas, tabla, búsqueda,
+filtro adaptable, paginación compacta, creación y conversación. V2 conserva
+el fixture local hasta conectar `supportApi`.
+Las métricas de abiertos, resueltos y cerrados usan el `MetricCard` compartido
+en ambos repositorios, con icono y contexto propios para cada estado.
 
 ## Referencia Laravel
 
@@ -63,8 +66,8 @@ ownership, conversaciones en cascada y listado por solicitante/actividad.
 2. [x] Implementar API Nest, ownership por solicitante y auditoría.
 3. [x] Añadir cliente REST tipado y prueba focal preparada para PostgreSQL
        local.
-4. [x] Crear el fixture funcional directo en Portal V2: tabla, búsqueda,
-       filtros, creación y detalle con conversación local.
+4. [x] Crear primero la fuente canónica y copiar al Portal V2 la tabla,
+       búsqueda, filtros, paginación, creación y detalle con conversación.
 5. [ ] Sustituir el fixture por `supportApi` y conservar los mismos estados de
        carga, error, permisos y formulario.
 6. [ ] Implementar el backoffice de soporte, asignaciones y notificaciones

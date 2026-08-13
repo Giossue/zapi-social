@@ -17,7 +17,8 @@ export class ProfileMockRepository {
     return this.profile
   }
 
-  async changePassword(_input: ChangePortalPasswordInput): Promise<void> {
+  async changePassword(input: ChangePortalPasswordInput): Promise<void> {
+    void input
     // Fixture repository intentionally performs no password persistence.
   }
 }

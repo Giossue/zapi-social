@@ -2,14 +2,7 @@
 
 import { channelConnectionsApi } from "@workspace/api-client"
 import { Button } from "@workspace/ui/components/button"
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
+import { Card, CardContent } from "@workspace/ui/components/card"
 import {
   Dialog,
   DialogContent,
@@ -17,10 +10,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
+import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { ScrollArea } from "@workspace/ui/components/scroll-area"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
-import { CheckCircle2, LoaderCircle, ShieldCheck } from "lucide-react"
-import { useEffect, useState } from "react"
+import { CheckCircle2, ShieldCheck } from "lucide-react"
+import { type FormEvent, useEffect, useState } from "react"
 import type {
   ChannelCandidate,
   PortalChannelAccount,
@@ -269,6 +264,27 @@ export function ChannelConnectionDialog({
     onOpenChange(false)
   }
 
+  function submitCandidate(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!candidate || !capability) {
+      toast.error("Selecciona una cuenta para continuar.")
+      return
+    }
+
+    if (capability.provider === "meta") {
+      if (!metaPickerSession) {
+        toast.error(
+          "No pudimos recuperar esta autorización. Inicia la conexión de nuevo."
+        )
+        return
+      }
+      void selectMetaCandidate()
+      return
+    }
+
+    finishMockConnection(candidate)
+  }
+
   const title = capability
     ? `Conectar ${capability.label}`
     : "Conectar un canal"
@@ -300,10 +316,7 @@ export function ChannelConnectionDialog({
             {isAuthorizing ? (
               <Card variant="inset">
                 <CardContent className="flex items-center gap-3 py-5 text-sm text-muted-foreground">
-                  <LoaderCircle
-                    aria-hidden="true"
-                    className="size-5 animate-spin text-primary"
-                  />
+                  <Spinner aria-label="Preparando autorización con Meta" />
                   Preparando la autorización con Meta…
                 </CardContent>
               </Card>
@@ -331,6 +344,7 @@ export function ChannelConnectionDialog({
                 </Card>
                 <div className="flex justify-end">
                   <Button onClick={authorizeMock} type="button">
+                    <ShieldCheck data-icon="inline-start" />
                     Simular autorización aceptada
                   </Button>
                 </div>
@@ -338,39 +352,56 @@ export function ChannelConnectionDialog({
             ) : null}
 
             {step === "picker" && capability ? (
-              <div className="grid gap-4">
-                <p className="text-sm text-muted-foreground">
-                  Elige un único recurso devuelto para esta conexión.
-                </p>
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                  {pickerCandidates.map((item) => (
-                    <Button
-                      aria-pressed={candidate?.id === item.id}
-                      className="h-auto justify-start gap-3 px-4 py-3 text-left whitespace-normal"
-                      key={item.id}
-                      onClick={() => setCandidate(item)}
-                      type="button"
-                      variant={
-                        candidate?.id === item.id
-                          ? "brand-secondary"
-                          : "surface"
-                      }
-                    >
-                      <CandidateAvatar candidate={item} />
-                      <span className="grid min-w-0 gap-0.5">
-                        <span>{item.label}</span>
-                        <span className="text-sm font-normal text-muted-foreground">
-                          {item.description}
-                        </span>
-                        {item.metadata ? (
-                          <span className="text-xs font-normal text-muted-foreground">
-                            {item.metadata}
+              <form
+                aria-busy={isSelecting}
+                className="grid gap-4"
+                noValidate
+                onSubmit={submitCandidate}
+              >
+                <Field>
+                  <FieldLabel id="channel-candidate-label">
+                    Cuenta disponible
+                    <span aria-hidden="true" className="text-destructive">
+                      *
+                    </span>
+                  </FieldLabel>
+                  <div
+                    aria-labelledby="channel-candidate-label"
+                    aria-required="true"
+                    className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
+                    role="radiogroup"
+                  >
+                    {pickerCandidates.map((item) => (
+                      <Button
+                        aria-checked={candidate?.id === item.id}
+                        className="h-auto justify-start gap-3 px-4 py-3 text-left whitespace-normal"
+                        disabled={isSelecting}
+                        key={item.id}
+                        onClick={() => setCandidate(item)}
+                        role="radio"
+                        type="button"
+                        variant={
+                          candidate?.id === item.id
+                            ? "brand-secondary"
+                            : "surface"
+                        }
+                      >
+                        <CandidateAvatar candidate={item} />
+                        <span className="grid min-w-0 gap-0.5">
+                          <span>{item.label}</span>
+                          <span className="text-sm font-normal text-muted-foreground">
+                            {item.description}
                           </span>
-                        ) : null}
-                      </span>
-                    </Button>
-                  ))}
-                </div>
+                          {item.metadata ? (
+                            <span className="text-xs font-normal text-muted-foreground">
+                              {item.metadata}
+                            </span>
+                          ) : null}
+                        </span>
+                      </Button>
+                    ))}
+                  </div>
+                </Field>
                 <div className="flex justify-end gap-2">
                   <Button
                     disabled={isSelecting}
@@ -380,25 +411,19 @@ export function ChannelConnectionDialog({
                   >
                     Cancelar
                   </Button>
-                  <Button
-                    disabled={!candidate || isSelecting}
-                    onClick={() =>
-                      void (isMetaPicker
-                        ? selectMetaCandidate()
-                        : candidate && finishMockConnection(candidate))
-                    }
-                    type="button"
-                  >
+                  <Button disabled={!candidate || isSelecting} type="submit">
                     {isSelecting ? (
-                      <LoaderCircle
-                        className="animate-spin"
+                      <Spinner
+                        aria-label="Conectando cuenta seleccionada"
                         data-icon="inline-start"
                       />
-                    ) : null}
+                    ) : (
+                      <CheckCircle2 data-icon="inline-start" />
+                    )}
                     Conectar selección
                   </Button>
                 </div>
-              </div>
+              </form>
             ) : null}
 
             {step === "whatsapp" ? (

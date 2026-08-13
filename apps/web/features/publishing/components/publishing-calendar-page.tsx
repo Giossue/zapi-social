@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { useMemo, useRef, useState } from "react"
+import { type FormEvent, useMemo, useRef, useState } from "react"
 import {
   CalendarClock,
   CalendarDays,
@@ -32,6 +32,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { ApiError, publishingApi } from "@workspace/api-client"
 import { PublishingAccountPicker } from "@/features/publishing/components/publishing-account-picker"
 import { PublishingCalendar } from "@/features/publishing/components/publishing-calendar"
@@ -66,6 +67,32 @@ const sectionLinks: Array<{
   { href: "/portal/publishing/queue", label: "Cola", value: "queue" },
   { href: "/portal/publishing/drafts", label: "Borradores", value: "drafts" },
 ]
+
+function RequiredMark() {
+  return (
+    <span aria-hidden="true" className="text-destructive">
+      *
+    </span>
+  )
+}
+
+function ComposerActionIcon({ mode }: { mode: ComposerMode }) {
+  if (mode === "draft") return <FileText data-icon="inline-start" />
+  if (mode === "now") return <Send data-icon="inline-start" />
+  return <CalendarDays data-icon="inline-start" />
+}
+
+function composerActionLabel(mode: ComposerMode, pending: boolean) {
+  if (pending) {
+    if (mode === "now") return "Publicando..."
+    if (mode === "schedule") return "Programando..."
+    return "Guardando..."
+  }
+
+  if (mode === "draft") return "Guardar borrador"
+  if (mode === "now") return "Publicar ahora"
+  return "Programar"
+}
 
 function ComposerDialog({
   accounts,
@@ -109,19 +136,47 @@ function ComposerDialog({
   const [activePreviewAccountId, setActivePreviewAccountId] = useState<
     string | null
   >(null)
+  const [pending, setPending] = useState(false)
   const hasMedia = selectedMediaAssetId !== null
   const selected = accounts.filter((account) =>
     selectedAccounts.includes(account.id)
+  )
+  const requiresMedia = selected.some(
+    (account) => account.provider !== "facebook"
   )
   const canSubmit =
     selected.length > 0 &&
     selected.every((account) => account.connected) &&
     Boolean(content.trim()) &&
-    selected.every((account) => account.provider === "facebook" || hasMedia) &&
-    (mode !== "schedule" || Boolean(scheduledDate && scheduledTime))
+    (!requiresMedia || hasMedia) &&
+    (mode !== "schedule" || Boolean(scheduledDate && scheduledTime)) &&
+    !pending
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!canSubmit) return
+
+    setPending(true)
+    try {
+      await onSave({
+        content,
+        selectedAccounts,
+        mediaAssetIds: selectedMediaAssetId ? [selectedMediaAssetId] : [],
+        mode,
+        scheduledAt: new Date(
+          `${scheduledDate}T${scheduledTime}:00`
+        ).toISOString(),
+      })
+    } finally {
+      setPending(false)
+    }
+  }
 
   return (
-    <Dialog onOpenChange={(nextOpen) => !nextOpen && onClose()} open={open}>
+    <Dialog
+      onOpenChange={(nextOpen) => !nextOpen && !pending && onClose()}
+      open={open}
+    >
       <DialogContent className="max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-none overflow-y-auto sm:w-[min(90vw,80rem)] sm:max-w-none">
         <DialogHeader>
           <DialogTitle>
@@ -132,109 +187,110 @@ function ComposerDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(24rem,0.9fr)]">
-          <FieldGroup className="min-w-0">
-            <FieldSet>
-              <FieldLabel asChild>
-                <legend>Cuentas destino</legend>
-              </FieldLabel>
-              <PublishingAccountPicker
+        <form
+          aria-busy={pending}
+          className="contents"
+          noValidate
+          onSubmit={handleSubmit}
+        >
+          <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(24rem,0.9fr)]">
+            <FieldGroup className="min-w-0">
+              <FieldSet>
+                <FieldLabel asChild>
+                  <legend>
+                    Cuentas destino <RequiredMark />
+                  </legend>
+                </FieldLabel>
+                <PublishingAccountPicker
+                  accounts={accounts}
+                  ariaRequired
+                  onChange={setSelectedAccounts}
+                  selectedAccountIds={selectedAccounts}
+                />
+              </FieldSet>
+
+              <Field>
+                <FieldLabel htmlFor="publishing-content">
+                  Texto <RequiredMark />
+                </FieldLabel>
+                <Textarea
+                  aria-required="true"
+                  id="publishing-content"
+                  onChange={(event) => setContent(event.target.value)}
+                  placeholder="Escribe el contenido de tu publicación"
+                  value={content}
+                />
+              </Field>
+
+              <Field>
+                <FieldLabel>
+                  Media {requiresMedia ? <RequiredMark /> : null}
+                </FieldLabel>
+                <PublishingMediaPicker
+                  ariaRequired={requiresMedia}
+                  assets={media ?? []}
+                  onChange={setSelectedMediaAssetId}
+                  selectedAssetId={selectedMediaAssetId}
+                />
+              </Field>
+
+              <Field>
+                <FieldLabel>Cuándo publicar</FieldLabel>
+                <Tabs
+                  aria-label="Cuándo publicar"
+                  onValueChange={(value) => setMode(value as ComposerMode)}
+                  value={mode}
+                >
+                  <TabsList className="w-full justify-start sm:w-fit">
+                    <TabsTrigger value="draft">Borrador</TabsTrigger>
+                    <TabsTrigger value="now">Ahora</TabsTrigger>
+                    <TabsTrigger value="schedule">Programar</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </Field>
+
+              {mode === "schedule" ? (
+                <PublishingSchedulePicker
+                  date={scheduledDate}
+                  isRequired
+                  onDateChange={setScheduledDate}
+                  onTimeChange={setScheduledTime}
+                  time={scheduledTime}
+                />
+              ) : null}
+            </FieldGroup>
+
+            <div className="min-w-0">
+              <PublishingNetworkPreview
                 accounts={accounts}
-                onChange={setSelectedAccounts}
+                activeAccountId={activePreviewAccountId}
+                content={content}
+                hasMedia={hasMedia}
+                onAccountChange={setActivePreviewAccountId}
                 selectedAccountIds={selectedAccounts}
               />
-            </FieldSet>
-
-            <Field>
-              <FieldLabel htmlFor="publishing-content">Texto</FieldLabel>
-              <Textarea
-                id="publishing-content"
-                onChange={(event) => setContent(event.target.value)}
-                placeholder="Escribe el contenido de tu publicación"
-                value={content}
-              />
-            </Field>
-
-            <Field>
-              <FieldLabel>Media</FieldLabel>
-              <PublishingMediaPicker
-                assets={media ?? []}
-                onChange={setSelectedMediaAssetId}
-                selectedAssetId={selectedMediaAssetId}
-              />
-            </Field>
-
-            <Field>
-              <FieldLabel>Cuándo publicar</FieldLabel>
-              <Tabs
-                aria-label="Cuándo publicar"
-                onValueChange={(value) => setMode(value as ComposerMode)}
-                value={mode}
-              >
-                <TabsList className="w-full justify-start sm:w-fit">
-                  <TabsTrigger value="draft">Borrador</TabsTrigger>
-                  <TabsTrigger value="now">Ahora</TabsTrigger>
-                  <TabsTrigger value="schedule">Programar</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </Field>
-
-            {mode === "schedule" ? (
-              <PublishingSchedulePicker
-                date={scheduledDate}
-                onDateChange={setScheduledDate}
-                onTimeChange={setScheduledTime}
-                time={scheduledTime}
-              />
-            ) : null}
-          </FieldGroup>
-
-          <div className="min-w-0">
-            <PublishingNetworkPreview
-              accounts={accounts}
-              activeAccountId={activePreviewAccountId}
-              content={content}
-              hasMedia={hasMedia}
-              onAccountChange={setActivePreviewAccountId}
-              selectedAccountIds={selectedAccounts}
-            />
+            </div>
           </div>
-        </div>
 
-        <DialogFooter>
-          <Button onClick={onClose} variant="brand-secondary">
-            Cancelar
-          </Button>
-          <Button
-            disabled={!canSubmit}
-            onClick={() =>
-              onSave({
-                content,
-                selectedAccounts,
-                mediaAssetIds: selectedMediaAssetId
-                  ? [selectedMediaAssetId]
-                  : [],
-                mode,
-                scheduledAt: new Date(
-                  `${scheduledDate}T${scheduledTime}:00`
-                ).toISOString(),
-              })
-            }
-          >
-            {mode === "draft" ? (
-              <FileText data-icon="inline-start" />
-            ) : mode === "now" ? (
-              <Send data-icon="inline-start" />
-            ) : (
-              <CalendarDays data-icon="inline-start" />
-            )}
-            {mode === "draft"
-              ? "Guardar borrador"
-              : mode === "now"
-                ? "Publicar ahora"
-                : "Programar"}
-          </Button>
-        </DialogFooter>
+          <DialogFooter>
+            <Button
+              disabled={pending}
+              onClick={onClose}
+              type="button"
+              variant="brand-secondary"
+            >
+              Cancelar
+            </Button>
+            <Button disabled={!canSubmit} type="submit">
+              {pending ? (
+                <Spinner data-icon="inline-start" />
+              ) : (
+                <ComposerActionIcon mode={mode} />
+              )}
+              {composerActionLabel(mode, pending)}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )
@@ -361,8 +417,10 @@ export function PublishingCalendarPage({
       await publishingApi.remove(post.id)
       setPosts((current) => current.filter((item) => item.id !== post.id))
       toast.success("El borrador se eliminó.")
+      return true
     } catch {
       toast.error("No pudimos eliminar el borrador.")
+      return false
     }
   }
 
@@ -419,18 +477,21 @@ export function PublishingCalendarPage({
           <PublishingMetrics
             items={[
               {
+                description: "Pendientes de publicarse",
                 icon: CalendarClock,
                 label: "Programadas",
                 value: queuePosts.filter((post) => post.status === "scheduled")
                   .length,
               },
               {
+                description: "Enviando al proveedor",
                 icon: LoaderCircle,
                 label: "En proceso",
                 value: queuePosts.filter((post) => post.status === "processing")
                   .length,
               },
               {
+                description: "Requieren atención",
                 icon: XCircle,
                 label: "Fallidas",
                 value: queuePosts.filter((post) => post.status === "failed")
@@ -450,13 +511,20 @@ export function PublishingCalendarPage({
         <section aria-label="Borradores" className="flex flex-col gap-4">
           <PublishingMetrics
             items={[
-              { icon: FileText, label: "Total", value: drafts.length },
               {
+                description: "Borradores guardados",
+                icon: FileText,
+                label: "Total",
+                value: drafts.length,
+              },
+              {
+                description: "Con imagen o video",
                 icon: ImagePlus,
                 label: "Con archivo",
                 value: drafts.filter((post) => post.hasMedia).length,
               },
               {
+                description: "Tienen contenido listo",
                 icon: Send,
                 label: "Listos para programar",
                 value: drafts.filter((post) => post.content.trim().length > 0)

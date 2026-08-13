@@ -1,8 +1,8 @@
 "use client"
 
 import { ApiError, portalApi } from "@workspace/api-client"
-import { Button } from "@workspace/ui/components/button"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { RetryButton } from "@workspace/ui/components/retry-button"
 import { toast } from "@workspace/ui/components/toast"
 import { TriangleAlert } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -50,9 +50,7 @@ export function LivePortalDashboard() {
         icon={TriangleAlert}
         title="No pudimos cargar el dashboard"
         description="Comprueba tu conexión e inténtalo de nuevo."
-        action={
-          <Button onClick={() => void loadDashboard()}>Reintentar</Button>
-        }
+        action={<RetryButton onClick={() => void loadDashboard()} />}
       />
     )
   }

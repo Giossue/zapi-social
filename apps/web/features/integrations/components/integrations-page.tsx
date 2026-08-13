@@ -3,6 +3,7 @@
 import { ApiError, integrationsApi } from "@workspace/api-client"
 import { WhatsAppStatusIntegrationCard } from "./whatsapp-status-integration-card"
 import { EmailSmtpIntegrationCard } from "./email-smtp-integration-card"
+import { IntegrationAvailabilityCard } from "./integration-availability-card"
 import { IntegrationCardLoading } from "./integration-card-loading"
 import { IntegrationInsetCard } from "./integration-inset-card"
 import { PolarIntegrationPreview } from "./polar-integration-card"
@@ -16,23 +17,31 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu"
+  Field,
+  FieldContent,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+  FieldTitle,
+} from "@workspace/ui/components/field"
+import { Checkbox } from "@workspace/ui/components/checkbox"
 import { Input } from "@workspace/ui/components/input"
+import { RetryButton } from "@workspace/ui/components/retry-button"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@workspace/ui/components/sheet"
 import { Switch } from "@workspace/ui/components/switch"
 import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { toast } from "@workspace/ui/components/toast"
+import { Spinner } from "@workspace/ui/components/spinner"
 import {
   CheckCircle2,
   Circle,
@@ -40,7 +49,6 @@ import {
   Copy,
   KeyRound,
   Link,
-  LoaderCircle,
   LockKeyhole,
   PlugZap,
   Save,
@@ -201,18 +209,21 @@ export function IntegrationsPage() {
   const [testState, setTestState] = useState<TestState>("not-tested")
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
+  const [forbidden, setForbidden] = useState(false)
   const [saving, setSaving] = useState(false)
   const [activeProvider, setActiveProvider] = useState<ProviderTab>("meta")
 
   const load = useCallback(async () => {
     setLoading(true)
     setLoadError(false)
+    setForbidden(false)
     try {
       setIntegration(await integrationsApi.getMeta())
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         toast.error("Tu sesión expiró. Vuelve a iniciar sesión.")
       } else if (error instanceof ApiError && error.status === 403) {
+        setForbidden(true)
         toast.error("No tienes permiso para administrar integraciones.")
       } else {
         toast.error("No pudimos cargar la integración Meta.")
@@ -364,7 +375,7 @@ export function IntegrationsPage() {
           : {}),
       })
       setIntegration(saved)
-      setDraft(draftFrom(saved))
+      setDraft(null)
       setTestState("not-tested")
       toast.success("Configuración Meta guardada.")
     } catch (error) {
@@ -380,14 +391,17 @@ export function IntegrationsPage() {
     }
   }
 
-  if (loading) {
+  if (activeProvider === "meta" && loading) {
     return (
-      <div className="space-y-6">
+      <div className="flex flex-col gap-6">
         <Tabs
           onValueChange={(value) => setActiveProvider(value as ProviderTab)}
           value={activeProvider}
         >
-          <TabsList aria-label="Proveedor de integración">
+          <TabsList
+            aria-label="Proveedor de integración"
+            className="flex h-auto flex-wrap"
+          >
             <TabsTrigger value="meta">Meta</TabsTrigger>
             <TabsTrigger value="whatsapp">WhatsApp Status</TabsTrigger>
             <TabsTrigger value="email">Correo SMTP</TabsTrigger>
@@ -399,24 +413,62 @@ export function IntegrationsPage() {
     )
   }
 
-  if (loadError || !integration) {
+  if (activeProvider === "meta" && (loadError || !integration)) {
     return (
-      <EmptyState
-        action={<Button onClick={() => void load()}>Reintentar</Button>}
-        description="No fue posible obtener el estado de Meta."
-        icon={PlugZap}
-        title="Integración no disponible"
-      />
+      <div className="flex flex-col gap-6">
+        <Tabs
+          onValueChange={(value) => setActiveProvider(value as ProviderTab)}
+          value={activeProvider}
+        >
+          <TabsList
+            aria-label="Proveedor de integración"
+            className="flex h-auto flex-wrap"
+          >
+            <TabsTrigger value="meta">Meta</TabsTrigger>
+            <TabsTrigger value="whatsapp">WhatsApp Status</TabsTrigger>
+            <TabsTrigger value="email">Correo SMTP</TabsTrigger>
+            <TabsTrigger value="polar">Polar.sh</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        <Card variant="subtle">
+          <CardContent>
+            <EmptyState
+              action={
+                forbidden ? undefined : (
+                  <RetryButton
+                    onClick={() => void load()}
+                    variant="brand-secondary"
+                  />
+                )
+              }
+              description={
+                forbidden
+                  ? "Tu cuenta no tiene permiso para administrar Meta. Los otros proveedores siguen disponibles."
+                  : "No fue posible obtener el estado de Meta. Los otros proveedores siguen disponibles."
+              }
+              icon={forbidden ? LockKeyhole : PlugZap}
+              title={
+                forbidden
+                  ? "Meta no está disponible para tu cuenta"
+                  : "Integración Meta no disponible"
+              }
+            />
+          </CardContent>
+        </Card>
+      </div>
     )
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       <Tabs
         onValueChange={(value) => setActiveProvider(value as ProviderTab)}
         value={activeProvider}
       >
-        <TabsList aria-label="Proveedor de integración">
+        <TabsList
+          aria-label="Proveedor de integración"
+          className="flex h-auto flex-wrap"
+        >
           <TabsTrigger value="meta">Meta</TabsTrigger>
           <TabsTrigger value="whatsapp">WhatsApp Status</TabsTrigger>
           <TabsTrigger value="email">Correo SMTP</TabsTrigger>
@@ -424,16 +476,15 @@ export function IntegrationsPage() {
         </TabsList>
       </Tabs>
 
-      {activeProvider === "meta" ? (
+      {activeProvider === "meta" && integration ? (
         <>
           <Card variant="subtle">
             <CardHeader className="gap-4 border-b border-border pb-5">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="min-w-0 space-y-2">
+                <div className="flex min-w-0 flex-col gap-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <CardTitle>{integration.label}</CardTitle>
                     <ProviderStatus readiness={integration.readiness} />
-                    <Badge variant="neutral">OAuth 2.0</Badge>
                   </div>
                   <CardDescription>{integration.description}</CardDescription>
                 </div>
@@ -443,10 +494,10 @@ export function IntegrationsPage() {
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="space-y-7">
+            <CardContent className="flex flex-col gap-7">
               <section
                 aria-labelledby="capabilities-title"
-                className="space-y-3"
+                className="flex flex-col gap-3"
               >
                 <div className="flex items-center gap-2">
                   <KeyRound
@@ -480,7 +531,7 @@ export function IntegrationsPage() {
 
               <section
                 aria-labelledby="configuration-title"
-                className="space-y-3"
+                className="flex flex-col gap-3"
               >
                 <div className="flex items-center gap-2">
                   <LockKeyhole
@@ -516,7 +567,10 @@ export function IntegrationsPage() {
                 </div>
               </section>
 
-              <section aria-labelledby="callbacks-title" className="space-y-3">
+              <section
+                aria-labelledby="callbacks-title"
+                className="flex flex-col gap-3"
+              >
                 <div className="flex items-start gap-2">
                   <Link
                     aria-hidden="true"
@@ -572,206 +626,246 @@ export function IntegrationsPage() {
         <PolarIntegrationPreview />
       )}
 
-      <Dialog
-        onOpenChange={(open) => !open && closeConfiguration()}
-        open={draft !== null}
-      >
-        <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto">
-          {draft ? (
-            <>
-              <DialogHeader>
-                <DialogTitle>Configurar Meta</DialogTitle>
-              </DialogHeader>
+      {integration ? (
+        <Sheet
+          onOpenChange={(open) => !open && !saving && closeConfiguration()}
+          open={draft !== null}
+        >
+          <SheetContent
+            className="w-full gap-0 overflow-y-auto overscroll-contain p-0 sm:max-w-xl"
+            side="right"
+          >
+            {draft ? (
               <form
-                className="space-y-5"
+                className="flex min-h-full flex-col"
                 noValidate
                 onSubmit={saveConfiguration}
               >
-                <IntegrationInsetCard className="space-y-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-sm font-medium">
-                        Disponibilidad del proveedor
-                      </p>
-                      <p className="mt-1 text-xs text-muted-foreground">
-                        {draft.enabled
-                          ? "Puede ofrecer tipos de canal cuando la configuración esté probada."
-                          : "Sus tipos de canal no estarán disponibles en el portal."}
-                      </p>
-                    </div>
-                    <Switch
-                      aria-label="Habilitar Meta"
-                      checked={draft.enabled}
-                      onCheckedChange={(enabled) => updateDraft({ enabled })}
-                    />
-                  </div>
-                  <div className="border-t border-border pt-4">
-                    <p className="text-sm font-medium">Tipos de canal</p>
-                    <div className="mt-3 grid gap-3">
+                <SheetHeader className="border-b">
+                  <SheetTitle>Configurar Meta</SheetTitle>
+                  <SheetDescription>
+                    Define credenciales, canales y permisos disponibles en el
+                    Portal.
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="flex flex-col gap-6 p-4">
+                  <IntegrationAvailabilityCard
+                    ariaLabel="Habilitar Meta"
+                    checked={draft.enabled}
+                    description={
+                      draft.enabled
+                        ? "Puede ofrecer tipos de canal cuando la configuración esté probada."
+                        : "Sus tipos de canal no estarán disponibles en el portal."
+                    }
+                    onCheckedChange={(enabled) => updateDraft({ enabled })}
+                    title="Disponibilidad del proveedor"
+                  />
+
+                  <section
+                    aria-labelledby="meta-capabilities-title"
+                    className="flex flex-col gap-4"
+                  >
+                    <h3
+                      className="text-sm font-semibold"
+                      id="meta-capabilities-title"
+                    >
+                      Tipos de canal
+                    </h3>
+                    <div className="grid gap-3">
                       {integration.capabilities.map((capability) => {
                         const enabled = draft.enabledCapabilityKeys.includes(
                           capability.key
                         )
                         return (
                           <IntegrationInsetCard
-                            className="flex items-center justify-between gap-4 px-3 py-3"
+                            className="flex flex-col gap-4 px-3 py-3"
                             key={capability.key}
                           >
-                            <div className="min-w-0">
-                              <p className="text-sm font-medium">
-                                {capability.label}
-                              </p>
-                              <p className="mt-1 text-xs text-muted-foreground">
-                                {capability.description}
-                              </p>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    className="mt-3"
-                                    type="button"
-                                    variant="surface"
-                                  >
-                                    {
-                                      draft.capabilityScopes[capability.key]
-                                        .length
-                                    }{" "}
-                                    permisos seleccionados
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="start">
-                                  {capabilityScopeOptions[capability.key].map(
-                                    (option) => {
-                                      const checked =
-                                        option.required ||
-                                        draft.capabilityScopes[
-                                          capability.key
-                                        ].includes(option.scope)
-                                      return (
-                                        <DropdownMenuCheckboxItem
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium">
+                                  {capability.label}
+                                </p>
+                                <p className="mt-1 text-xs text-muted-foreground">
+                                  {capability.description}
+                                </p>
+                              </div>
+                              <Switch
+                                aria-label={`Habilitar ${capability.label}`}
+                                checked={enabled}
+                                onCheckedChange={(next) =>
+                                  toggleCapability(capability.key, next)
+                                }
+                              />
+                            </div>
+                            <FieldSet>
+                              <FieldLegend variant="label">
+                                Permisos de Meta
+                              </FieldLegend>
+                              <FieldGroup data-slot="checkbox-group">
+                                {capabilityScopeOptions[capability.key].map(
+                                  (option) => {
+                                    const checked =
+                                      option.required ||
+                                      draft.capabilityScopes[
+                                        capability.key
+                                      ].includes(option.scope)
+                                    const controlId = `${capability.key}-${option.scope}`
+
+                                    return (
+                                      <Field
+                                        data-disabled={option.required}
+                                        key={option.scope}
+                                        orientation="horizontal"
+                                      >
+                                        <Checkbox
                                           checked={checked}
                                           disabled={option.required}
-                                          key={option.scope}
+                                          id={controlId}
                                           onCheckedChange={(next) =>
                                             toggleScope(
                                               capability.key,
                                               option.scope,
-                                              next
+                                              next === true
                                             )
                                           }
+                                        />
+                                        <FieldLabel
+                                          className="min-w-0"
+                                          htmlFor={controlId}
                                         >
-                                          <span className="flex items-center gap-2">
-                                            {option.label}
-                                            {option.required ? (
-                                              <Badge variant="neutral">
-                                                Obligatorio
-                                              </Badge>
-                                            ) : null}
-                                          </span>
-                                        </DropdownMenuCheckboxItem>
-                                      )
-                                    }
-                                  )}
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                            <Switch
-                              aria-label={`Habilitar ${capability.label}`}
-                              checked={enabled}
-                              onCheckedChange={(next) =>
-                                toggleCapability(capability.key, next)
-                              }
-                            />
+                                          <FieldContent className="min-w-0">
+                                            <FieldTitle>
+                                              {option.label}
+                                              {option.required ? (
+                                                <span
+                                                  aria-hidden="true"
+                                                  className="text-destructive"
+                                                >
+                                                  *
+                                                </span>
+                                              ) : null}
+                                            </FieldTitle>
+                                          </FieldContent>
+                                        </FieldLabel>
+                                      </Field>
+                                    )
+                                  }
+                                )}
+                              </FieldGroup>
+                            </FieldSet>
                           </IntegrationInsetCard>
                         )
                       })}
                     </div>
-                  </div>
-                </IntegrationInsetCard>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="grid gap-1.5">
-                    <span className="text-sm font-medium">
-                      ID de la aplicación
-                    </span>
-                    <Input
-                      onChange={(event) =>
-                        updateDraft({ clientId: event.target.value })
-                      }
-                      required
-                      value={draft.clientId}
-                    />
-                  </label>
-                  <label className="grid gap-1.5">
-                    <span className="text-sm font-medium">
-                      Secreto de la aplicación
-                    </span>
-                    <Input
-                      onChange={(event) =>
-                        updateDraft({ clientSecret: event.target.value })
-                      }
-                      placeholder={
-                        integration.secretConfigured
-                          ? "••••••••••••"
-                          : undefined
-                      }
-                      required={!integration.secretConfigured}
-                      type="password"
-                      value={draft.clientSecret}
-                    />
-                  </label>
-                </div>
-
-                {draft.enabled ? (
-                  <section
-                    aria-labelledby="test-title"
-                    className="space-y-3 border-t border-border pt-5"
-                  >
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <h3 id="test-title" className="text-sm font-semibold">
-                          Probar borrador
-                        </h3>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          La prueba valida el borrador con Meta antes de
-                          cifrarlo y guardarlo.
-                        </p>
-                      </div>
-                      <Button
-                        disabled={
-                          testState === "testing" || testState === "passed"
-                        }
-                        onClick={() => void testConfiguration()}
-                        type="button"
-                        variant={testState === "passed" ? "success" : "surface"}
-                      >
-                        {testState === "testing" ? (
-                          <LoaderCircle
-                            className="animate-spin"
-                            data-icon="inline-start"
-                          />
-                        ) : testState === "passed" ? (
-                          <CheckCircle2 data-icon="inline-start" />
-                        ) : (
-                          <ShieldCheck data-icon="inline-start" />
-                        )}
-                        {testState === "testing"
-                          ? "Probando configuración"
-                          : testState === "passed"
-                            ? "Borrador validado"
-                            : "Probar configuración"}
-                      </Button>
-                    </div>
-                    {testState === "failed" ? (
-                      <p className="flex items-center gap-2 text-sm text-destructive">
-                        <XCircle aria-hidden="true" className="size-4" />
-                        No se pudo validar el borrador.
-                      </p>
-                    ) : null}
                   </section>
-                ) : null}
 
-                <div className="flex flex-col-reverse gap-2 border-t border-border pt-5 sm:flex-row sm:justify-end">
+                  <section
+                    aria-labelledby="meta-credentials-title"
+                    className="flex flex-col gap-4 border-t border-border pt-5"
+                  >
+                    <h3
+                      className="text-sm font-semibold"
+                      id="meta-credentials-title"
+                    >
+                      Credenciales
+                    </h3>
+                    <FieldGroup>
+                      <Field>
+                        <FieldLabel>
+                          ID de la aplicación
+                          <span aria-hidden="true" className="text-destructive">
+                            *
+                          </span>
+                        </FieldLabel>
+                        <Input
+                          aria-required="true"
+                          onChange={(event) =>
+                            updateDraft({ clientId: event.target.value })
+                          }
+                          value={draft.clientId}
+                        />
+                      </Field>
+                      <Field>
+                        <FieldLabel>
+                          Secreto de la aplicación
+                          <span aria-hidden="true" className="text-destructive">
+                            *
+                          </span>
+                        </FieldLabel>
+                        <Input
+                          aria-required="true"
+                          onChange={(event) =>
+                            updateDraft({ clientSecret: event.target.value })
+                          }
+                          placeholder={
+                            integration.secretConfigured
+                              ? "••••••••••••"
+                              : undefined
+                          }
+                          type="password"
+                          value={draft.clientSecret}
+                        />
+                      </Field>
+                    </FieldGroup>
+                  </section>
+
+                  {draft.enabled ? (
+                    <section
+                      aria-labelledby="test-title"
+                      className="flex flex-col gap-3 border-t border-border pt-5"
+                    >
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <h3 id="test-title" className="text-sm font-semibold">
+                            Probar borrador
+                          </h3>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            La prueba valida el borrador con Meta antes de
+                            cifrarlo y guardarlo.
+                          </p>
+                        </div>
+                        <Button
+                          disabled={
+                            saving ||
+                            !draft.clientId.trim() ||
+                            (!integration.secretConfigured &&
+                              !draft.clientSecret.trim()) ||
+                            testState === "testing" ||
+                            testState === "passed"
+                          }
+                          onClick={() => void testConfiguration()}
+                          type="button"
+                          variant={
+                            testState === "passed" ? "success" : "surface"
+                          }
+                        >
+                          {testState === "testing" ? (
+                            <Spinner data-icon="inline-start" />
+                          ) : testState === "passed" ? (
+                            <CheckCircle2 data-icon="inline-start" />
+                          ) : (
+                            <ShieldCheck data-icon="inline-start" />
+                          )}
+                          {testState === "testing"
+                            ? "Probando configuración"
+                            : testState === "passed"
+                              ? "Borrador validado"
+                              : "Probar configuración"}
+                        </Button>
+                      </div>
+                      {testState === "failed" ? (
+                        <p className="flex items-center gap-2 text-sm text-destructive">
+                          <XCircle aria-hidden="true" className="size-4" />
+                          No se pudo validar el borrador.
+                        </p>
+                      ) : null}
+                    </section>
+                  ) : null}
+                </div>
+                <SheetFooter className="flex-row justify-end border-t">
                   <Button
+                    disabled={saving}
                     onClick={closeConfiguration}
                     type="button"
                     variant="brand-secondary"
@@ -782,19 +876,26 @@ export function IntegrationsPage() {
                     disabled={
                       !dirty ||
                       saving ||
+                      !draft.clientId.trim() ||
+                      (!integration.secretConfigured &&
+                        !draft.clientSecret.trim()) ||
                       (draft.enabled && testState !== "passed")
                     }
                     type="submit"
                   >
-                    <Save data-icon="inline-start" />
+                    {saving ? (
+                      <Spinner data-icon="inline-start" />
+                    ) : (
+                      <Save data-icon="inline-start" />
+                    )}
                     {saving ? "Guardando" : "Guardar configuración"}
                   </Button>
-                </div>
+                </SheetFooter>
               </form>
-            </>
-          ) : null}
-        </DialogContent>
-      </Dialog>
+            ) : null}
+          </SheetContent>
+        </Sheet>
+      ) : null}
     </div>
   )
 }

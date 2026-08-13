@@ -230,9 +230,9 @@ La foundation y varias verticales Portal ya tienen contrato, API, persistencia y
 | Slice                                 | Backend                   | Web                                               |
 | ------------------------------------- | ------------------------- | ------------------------------------------------- |
 | Publishing, RSS, Support y Watermarks | REST/Worker operativo     | conectado a REST en sus superficies implementadas |
-| Groups, Bulk Posts y Automation       | REST/Worker operativo     | sólo placeholder genérico; falta página operativa |
+| Groups, Bulk Posts y Automation       | REST/Worker operativo     | mock source-first; conexión REST pendiente         |
 | AI Studio/AI Publishing               | REST/Worker operativo     | conserva fixtures en rutas AI                     |
-| Commerce y Affiliate                  | REST operativo            | Commerce usa mock; Affiliate sólo placeholder     |
+| Commerce y Affiliate                  | REST operativo            | Commerce no se expone en Portal; Affiliate conserva mock y conexión REST pendiente |
 | Online Media                          | búsqueda/importación REST | conserva fixtures                                 |
 
 La capa Commerce no incluye pagos: no hay gateway, checkout, suscripción ni cobro inventado. Los pendientes de frontend no invalidan la persistencia, pero impiden considerar esas rutas cerradas de extremo a extremo.

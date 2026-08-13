@@ -20,7 +20,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import { EmptyState } from "@workspace/ui/components/empty-state"
-import { FieldError } from "@workspace/ui/components/field"
+import { Field, FieldLabel } from "@workspace/ui/components/field"
 import {
   Message,
   MessageAvatar,
@@ -29,6 +29,7 @@ import {
   MessageGroup,
 } from "@workspace/ui/components/message"
 import { Textarea } from "@workspace/ui/components/textarea"
+import { toast } from "@workspace/ui/components/toast"
 
 import { supportTicketsFixture } from "@/features/support/fixtures/support"
 import type {
@@ -63,11 +64,10 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
     initialTicket
   )
   const [reply, setReply] = useState("")
-  const [replyError, setReplyError] = useState<string | null>(null)
 
   if (!ticket) {
     return (
-      <Card>
+      <Card variant="subtle">
         <CardContent>
           <EmptyState
             action={
@@ -100,7 +100,7 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
   function sendReply(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!reply.trim()) {
-      setReplyError("Escribe un mensaje antes de enviarlo.")
+      toast.error("Escribe un mensaje antes de enviarlo.")
       return
     }
     const comment: SupportComment = {
@@ -121,7 +121,7 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
         : current
     )
     setReply("")
-    setReplyError(null)
+    toast.success("Respuesta enviada.")
   }
 
   function resolveTicket() {
@@ -140,10 +140,10 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
           <ArrowLeft data-icon="inline-start" /> Todos los casos
         </Link>
       </Button>
-      <Card>
+      <Card variant="subtle">
         <CardHeader className="gap-3 border-b">
           <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="min-w-0 space-y-2">
+            <div className="flex min-w-0 flex-col gap-2">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant={statusVariant[ticket.status]}>
                   {statusLabel[ticket.status]}
@@ -212,7 +212,7 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
         </CardContent>
       </Card>
       {ticket.status === "open" ? (
-        <Card>
+        <Card variant="subtle">
           <CardHeader>
             <CardTitle className="text-base">Añadir información</CardTitle>
             <CardDescription>
@@ -221,21 +221,30 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form className="space-y-3" onSubmit={sendReply}>
-              <Textarea
-                aria-invalid={Boolean(replyError)}
-                maxLength={5000}
-                onChange={(event) => {
-                  setReply(event.target.value)
-                  setReplyError(null)
-                }}
-                placeholder="Escribe tu respuesta..."
-                rows={4}
-                value={reply}
-              />
-              <FieldError>{replyError}</FieldError>
+            <form
+              className="flex flex-col gap-3"
+              noValidate
+              onSubmit={sendReply}
+            >
+              <Field>
+                <FieldLabel htmlFor="support-reply">
+                  Respuesta
+                  <span aria-hidden="true" className="text-destructive">
+                    *
+                  </span>
+                </FieldLabel>
+                <Textarea
+                  aria-required="true"
+                  id="support-reply"
+                  maxLength={5000}
+                  onChange={(event) => setReply(event.target.value)}
+                  placeholder="Escribe tu respuesta..."
+                  rows={4}
+                  value={reply}
+                />
+              </Field>
               <div className="flex justify-end">
-                <Button type="submit">
+                <Button disabled={!reply.trim()} type="submit">
                   <Send data-icon="inline-start" /> Enviar respuesta
                 </Button>
               </div>

@@ -43,7 +43,7 @@ function ChannelCapabilityCard({
   const isAvailable = capability.availability === "ready"
 
   return (
-    <Card className="h-full">
+    <Card className="h-full" variant="surface">
       <CardHeader>
         <div className="flex min-w-0 items-center gap-2">
           <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
@@ -59,12 +59,8 @@ function ChannelCapabilityCard({
       </CardContent>
       <CardFooter className="mt-auto justify-between gap-3">
         <Badge
-          className={
-            isAvailable
-              ? "bg-success leading-none text-success-foreground"
-              : "leading-none"
-          }
-          variant="secondary"
+          className="leading-none"
+          variant={isAvailable ? "success" : "neutral"}
         >
           {availability.label}
         </Badge>

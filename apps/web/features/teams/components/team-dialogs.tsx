@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type FormEvent } from "react"
+import { useEffect, useState, type FormEvent } from "react"
 import type {
   PortalTeamInvitation,
   PortalTeamMember,
@@ -17,23 +17,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
-import { Alert, AlertDescription } from "@workspace/ui/components/alert"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog"
-import {
   Field,
   FieldContent,
   FieldDescription,
-  FieldError,
   FieldGroup,
   FieldLabel,
   FieldLegend,
@@ -61,7 +51,9 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/components/sheet"
-import { CircleAlert, LoaderCircle, MailPlus, Save } from "lucide-react"
+import { Spinner } from "@workspace/ui/components/spinner"
+import { toast } from "@workspace/ui/components/toast"
+import { MailPlus, Save } from "lucide-react"
 
 import { formatTeamDate, roleMeta } from "./team-utils"
 
@@ -84,14 +76,20 @@ export function InviteDialog({
 }) {
   const [email, setEmail] = useState("")
   const [role, setRole] = useState<InvitationRole>("member")
-  const [submitted, setSubmitted] = useState(false)
   const normalizedEmail = email.trim().toLowerCase()
   const validEmail = /^\S+@\S+\.\S+$/.test(normalizedEmail)
 
+  useEffect(() => {
+    if (open && error) toast.error(error)
+  }, [error, open])
+
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setSubmitted(true)
-    if (!validEmail || pending) return
+    if (!validEmail) {
+      toast.error("Introduce un correo válido.")
+      return
+    }
+    if (pending) return
     onSubmit({ email: normalizedEmail, role })
   }
 
@@ -105,23 +103,26 @@ export function InviteDialog({
             días.
           </SheetDescription>
         </SheetHeader>
-        <form className="flex min-h-0 flex-1 flex-col" onSubmit={submit}>
+        <form
+          className="flex min-h-0 flex-1 flex-col"
+          noValidate
+          onSubmit={submit}
+        >
           <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4">
-            {error ? (
-              <Alert variant="destructive">
-                <CircleAlert aria-hidden="true" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            ) : null}
             <FieldGroup>
-              <Field data-invalid={submitted && !validEmail}>
-                <FieldLabel htmlFor="team-invite-email">Correo</FieldLabel>
+              <Field>
+                <FieldLabel htmlFor="team-invite-email">
+                  Correo
+                  <span aria-hidden="true" className="text-destructive">
+                    *
+                  </span>
+                </FieldLabel>
                 <InputGroup>
                   <InputGroupAddon align="inline-start">
                     <MailPlus aria-hidden="true" />
                   </InputGroupAddon>
                   <InputGroupInput
-                    aria-invalid={submitted && !validEmail}
+                    aria-required="true"
                     autoComplete="email"
                     disabled={pending}
                     id="team-invite-email"
@@ -131,18 +132,20 @@ export function InviteDialog({
                     value={email}
                   />
                 </InputGroup>
-                {submitted && !validEmail ? (
-                  <FieldError>Introduce un correo válido.</FieldError>
-                ) : null}
               </Field>
               <Field>
-                <FieldLabel htmlFor="team-invite-role">Rol</FieldLabel>
+                <FieldLabel htmlFor="team-invite-role">
+                  Rol
+                  <span aria-hidden="true" className="text-destructive">
+                    *
+                  </span>
+                </FieldLabel>
                 <Select
                   disabled={pending}
                   onValueChange={(value) => setRole(value as InvitationRole)}
                   value={role}
                 >
-                  <SelectTrigger id="team-invite-role">
+                  <SelectTrigger aria-required="true" id="team-invite-role">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -171,9 +174,9 @@ export function InviteDialog({
             >
               Cancelar
             </Button>
-            <Button disabled={pending} type="submit">
+            <Button disabled={pending || !normalizedEmail} type="submit">
               {pending ? (
-                <LoaderCircle data-icon="inline-start" />
+                <Spinner data-icon="inline-start" size={16} />
               ) : (
                 <MailPlus data-icon="inline-start" />
               )}
@@ -209,6 +212,11 @@ export function MemberAccessDialog({
   const [role, setRole] = useState<InvitationRole>(() =>
     member?.role === "admin" ? "admin" : "member"
   )
+
+  useEffect(() => {
+    if (error) toast.error(error)
+  }, [error])
+
   if (!member) return null
 
   function toggleAccount(accountId: string, checked: boolean) {
@@ -231,28 +239,28 @@ export function MemberAccessDialog({
         </SheetHeader>
         <form
           className="flex min-h-0 flex-1 flex-col"
+          noValidate
           onSubmit={(event) => {
             event.preventDefault()
             onSubmit({ accountIds, role })
           }}
         >
           <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4">
-            {error ? (
-              <Alert variant="destructive">
-                <CircleAlert aria-hidden="true" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            ) : null}
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor="team-member-role">Rol</FieldLabel>
+                <FieldLabel htmlFor="team-member-role">
+                  Rol
+                  <span aria-hidden="true" className="text-destructive">
+                    *
+                  </span>
+                </FieldLabel>
                 {actorRole === "owner" ? (
                   <Select
                     disabled={pending}
                     onValueChange={(value) => setRole(value as InvitationRole)}
                     value={role}
                   >
-                    <SelectTrigger id="team-member-role">
+                    <SelectTrigger aria-required="true" id="team-member-role">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -320,7 +328,7 @@ export function MemberAccessDialog({
             </Button>
             <Button disabled={pending} type="submit">
               {pending ? (
-                <LoaderCircle data-icon="inline-start" />
+                <Spinner data-icon="inline-start" size={16} />
               ) : (
                 <Save aria-hidden="true" data-icon="inline-start" />
               )}
@@ -333,7 +341,7 @@ export function MemberAccessDialog({
   )
 }
 
-export function InvitationDetailDialog({
+export function InvitationDetailSheet({
   invitation,
   onOpenChange,
 }: {
@@ -348,15 +356,15 @@ export function InvitationDetailDialog({
   }[invitation.deliveryStatus]
 
   return (
-    <Dialog onOpenChange={onOpenChange} open>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Detalle de invitación</DialogTitle>
-          <DialogDescription>
+    <Sheet onOpenChange={onOpenChange} open>
+      <SheetContent className="w-full gap-0 p-0 sm:max-w-md" side="right">
+        <SheetHeader className="border-b">
+          <SheetTitle>Detalle de invitación</SheetTitle>
+          <SheetDescription>
             Solo {invitation.email} puede aceptarla antes de su vencimiento.
-          </DialogDescription>
-        </DialogHeader>
-        <dl className="grid gap-3 text-sm">
+          </SheetDescription>
+        </SheetHeader>
+        <dl className="grid min-h-0 flex-1 gap-3 overflow-y-auto p-4 text-sm">
           {[
             ["Correo", invitation.email],
             ["Rol", roleMeta[invitation.role].label],
@@ -372,13 +380,13 @@ export function InvitationDetailDialog({
             </div>
           ))}
         </dl>
-        <DialogFooter>
+        <SheetFooter className="flex-row justify-end border-t">
           <Button onClick={() => onOpenChange(false)} variant="brand-secondary">
             Cerrar
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   )
 }
 
@@ -403,6 +411,10 @@ export function TeamConfirmationDialog({
   pending: boolean
   title: string
 }) {
+  useEffect(() => {
+    if (open && error) toast.error(error)
+  }, [error, open])
+
   return (
     <AlertDialog
       onOpenChange={(nextOpen) => {
@@ -415,12 +427,6 @@ export function TeamConfirmationDialog({
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
-        {error ? (
-          <Alert variant="destructive">
-            <CircleAlert aria-hidden="true" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        ) : null}
         <AlertDialogFooter>
           <AlertDialogCancel disabled={pending} variant="brand-secondary">
             Cancelar
@@ -433,7 +439,7 @@ export function TeamConfirmationDialog({
             }}
             variant={destructive ? "destructive" : "default"}
           >
-            {pending ? <LoaderCircle data-icon="inline-start" /> : null}
+            {pending ? <Spinner data-icon="inline-start" size={16} /> : null}
             {pending ? "Procesando..." : confirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>

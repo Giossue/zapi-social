@@ -154,6 +154,8 @@ import type {
   AdminOperationView,
   AdminOperationMutationResult,
   PolarIntegration,
+  TestPolarIntegrationInput,
+  TestPolarIntegrationResponse,
   UpdatePolarIntegrationInput,
 } from "@workspace/contracts"
 
@@ -1239,6 +1241,11 @@ export const polarApi = {
   save: (input: UpdatePolarIntegrationInput) =>
     request<PolarIntegration>("/v1/admin/integrations/polar", {
       method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  test: (input: TestPolarIntegrationInput) =>
+    request<TestPolarIntegrationResponse>("/v1/admin/integrations/polar/test", {
+      method: "POST",
       body: JSON.stringify(input),
     }),
 }

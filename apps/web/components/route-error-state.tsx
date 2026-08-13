@@ -1,8 +1,8 @@
 "use client"
 
-import { Button } from "@workspace/ui/components/button"
 import { Card } from "@workspace/ui/components/card"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { RetryButton } from "@workspace/ui/components/retry-button"
 import { TriangleAlert } from "lucide-react"
 
 type RouteErrorStateProps = {
@@ -17,12 +17,12 @@ export function RouteErrorState({
   description,
 }: RouteErrorStateProps) {
   return (
-    <Card variant="surface" className="max-w-xl">
+    <Card variant="subtle" className="max-w-xl">
       <EmptyState
         icon={TriangleAlert}
         title={title}
         description={description}
-        action={<Button onClick={reset}>Reintentar</Button>}
+        action={<RetryButton onClick={reset} />}
       />
     </Card>
   )

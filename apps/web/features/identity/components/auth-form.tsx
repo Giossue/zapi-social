@@ -328,7 +328,7 @@ export function AuthForm({
                   }
                   onClick={() => setShowPassword((visible) => !visible)}
                   size="icon-xs"
-                  variant="ghost"
+                  variant="brand-secondary"
                 >
                   {showPassword ? (
                     <EyeOff aria-hidden="true" />
@@ -364,7 +364,7 @@ export function AuthForm({
                   }
                   onClick={() => setShowPassword((visible) => !visible)}
                   size="icon-xs"
-                  variant="ghost"
+                  variant="brand-secondary"
                 >
                   {showPassword ? (
                     <EyeOff aria-hidden="true" />
@@ -413,7 +413,7 @@ export function AuthForm({
                     setShowPasswordConfirmation((visible) => !visible)
                   }
                   size="icon-xs"
-                  variant="ghost"
+                  variant="brand-secondary"
                 >
                   {showPasswordConfirmation ? (
                     <EyeOff aria-hidden="true" />

@@ -52,6 +52,27 @@ publicar.
 - Pruebas añadidas cubren contratos/resultados del Worker, parsing de Responses,
   timezone, ajustes/budget contra PostgreSQL y rechazo de routing incompatible.
 
+## Refactor operativo — 12 de agosto de 2026
+
+- Historial, Automatizaciones y Créditos usan la fuente canónica de
+  `diseño ideal/dashboard/ai-studio` y la misma composición en Portal V2.
+- Las tres superficies distinguen carga, error, `403`, vacío inicial y búsqueda
+  sin resultados; un fallo de API ya no se representa como colección vacía ni
+  deja un loader permanente.
+- Las colecciones usan cabecera, toolbar, filtros funcionales y paginación
+  compacta compartida. Historial filtra desde REST; Automatizaciones y el ledger
+  de Créditos filtran y paginan la respuesta real en cliente.
+- Automatizaciones conserva permisos: owner/admin mutan; member mantiene lectura
+  sin acciones operativas. Eliminar exige `AlertDialog` y cada mutación pendiente
+  bloquea doble envío con `Spinner` dentro del control iniciador.
+- Formularios usan `noValidate`, asterisco rojo y `aria-required`; los botones no
+  se habilitan hasta completar y validar los campos requeridos.
+- Inicio, Créditos y el resumen de uso en `/admin/settings/ai` comparten
+  `MetricCard`: icono semántico por dato, valor y contexto breve. Se retiraron
+  las dos implementaciones legacy de Créditos que ya no participaban del routing.
+- Validación: TypeScript y build correctos tanto en `diseño ideal` como en
+  `apps/web`; lint focal sin errores y `git diff --check` correcto.
+
 Lo siguiente describe la auditoría y el roadmap completo. Los puntos avanzados
 que no forman parte del flujo visible actual —embeddings, planes normalizados por
 ítem, plantillas/categorías y métricas de engagement del provider— siguen siendo
@@ -190,9 +211,11 @@ se filtran con política central de Teams; AI no crea permisos paralelos.
 - Cada pantalla cubre normal, loading, vacío, sin resultados, error, permisos,
   pending, móvil y claro/oscuro.
 
-No existe fuente AI exacta en `diseño ideal`. Para esta vertical, producto decidió
-que el mockup viva directamente en Portal V2; no se mantiene una copia paralela
-en `diseño ideal`.
+Historial, Automatizaciones y Créditos tienen fuente visual exacta en
+`../diseño ideal/src/app/(main)/dashboard/ai-studio/_components/ai-studio-operations.tsx`.
+La ruta canónica `/dashboard/ai-studio` permite recorrer sus variantes normal,
+loading, vacío, error y sin permiso. Portal V2 conserva la misma composición y
+solo adapta datos, permisos y handlers al contrato real.
 
 ## Módulos de producto
 
@@ -526,9 +549,11 @@ Toda migración será aditiva, Drizzle, verificada local/remoto según
 
 ### Fase 1 — mockup Portal completo
 
-4. [x] Crear directamente en V2 las 13 superficies de Portal con fixtures
-       sintéticos y navegación funcional por decisión explícita de producto.
-       Evidencia: sección **Mockup Portal en V2**.
+4. [x] Crear las 13 superficies de Portal con fixtures sintéticos y navegación
+       funcional. Historial, Automatizaciones y Créditos se consolidaron después
+       en fuente canónica exacta antes de adaptar APIs y permisos en V2.
+       Evidencia: secciones **Mockup Portal en V2** y
+       **Refactor operativo — 12 de agosto de 2026**.
 5. [x] Obtener aprobación visual del conjunto.
 6. [ ] Completar y aprobar variantes loading/empty/error/sin permiso, responsive y
        claro/oscuro donde cada flujo lo requiera.

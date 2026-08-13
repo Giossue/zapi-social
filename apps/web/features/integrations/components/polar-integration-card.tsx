@@ -1,17 +1,7 @@
 "use client"
 
-import * as React from "react"
-import { polarApi } from "@workspace/api-client"
-import {
-  CheckCircle2,
-  Copy,
-  CreditCard,
-  Link,
-  Save,
-  ShieldCheck,
-} from "lucide-react"
-import { toast } from "@workspace/ui/components/toast"
-
+import { ApiError, polarApi } from "@workspace/api-client"
+import type { PolarIntegration } from "@workspace/contracts"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -21,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import { EmptyState } from "@workspace/ui/components/empty-state"
 import {
   Field,
   FieldDescription,
@@ -28,6 +19,7 @@ import {
   FieldLabel,
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
+import { RetryButton } from "@workspace/ui/components/retry-button"
 import {
   Select,
   SelectContent,
@@ -36,16 +28,54 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import { PageLoading } from "@workspace/ui/components/page-loading"
-import { Switch } from "@workspace/ui/components/switch"
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/tabs"
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@workspace/ui/components/sheet"
+import { Switch } from "@workspace/ui/components/switch"
+import { toast } from "@workspace/ui/components/toast"
+import { Spinner } from "@workspace/ui/components/spinner"
+import {
+  CheckCircle2,
+  Circle,
+  CirclePower,
+  CircleAlert,
+  Copy,
+  Globe2,
+  Link2,
+  ListChecks,
+  PlugZap,
+  RefreshCcw,
+  Save,
+  Settings2,
+  ShieldCheck,
+  XCircle,
+} from "lucide-react"
+import * as React from "react"
+import { IntegrationAvailabilityCard } from "./integration-availability-card"
+import { IntegrationCardLoading } from "./integration-card-loading"
+import { IntegrationInsetCard } from "./integration-inset-card"
 
-const events = [
+type PolarDraft = {
+  accessToken: string
+  billingAddress: boolean
+  discountCodes: boolean
+  enabled: boolean
+  environment: PolarIntegration["environment"]
+  monthlyProductId: string
+  oneTimeProductId: string
+  recurring: boolean
+  webhookSecret: string
+  yearlyProductId: string
+}
+
+type TestState = "not-tested" | "testing" | "passed" | "failed"
+
+const requiredEvents = [
   "checkout.updated",
   "checkout.expired",
   "order.paid",
@@ -57,6 +87,54 @@ const events = [
   "subscription.uncanceled",
   "subscription.revoked",
 ]
+
+const statusCopy = {
+  ready: { label: "Listo", variant: "success" as const },
+  incomplete: { label: "Incompleto", variant: "warning" as const },
+  untested: { label: "Sin probar", variant: "warning" as const },
+  disabled: { label: "Deshabilitado", variant: "neutral" as const },
+}
+
+function draftFrom(integration: PolarIntegration): PolarDraft {
+  return {
+    accessToken: "",
+    billingAddress: integration.billingAddress,
+    discountCodes: integration.discountCodes,
+    enabled: integration.enabled,
+    environment: integration.environment,
+    monthlyProductId: integration.monthlyProductId,
+    oneTimeProductId: integration.oneTimeProductId,
+    recurring: integration.recurring,
+    webhookSecret: "",
+    yearlyProductId: integration.yearlyProductId,
+  }
+}
+
+function isDirty(draft: PolarDraft, integration: PolarIntegration) {
+  return (
+    draft.enabled !== integration.enabled ||
+    draft.environment !== integration.environment ||
+    draft.recurring !== integration.recurring ||
+    draft.monthlyProductId !== integration.monthlyProductId ||
+    draft.yearlyProductId !== integration.yearlyProductId ||
+    draft.oneTimeProductId !== integration.oneTimeProductId ||
+    draft.discountCodes !== integration.discountCodes ||
+    draft.billingAddress !== integration.billingAddress ||
+    draft.accessToken.length > 0 ||
+    draft.webhookSecret.length > 0
+  )
+}
+
+function canComplete(draft: PolarDraft, integration: PolarIntegration) {
+  if (!draft.enabled) return true
+  return Boolean(
+    (integration.hasAccessToken || draft.accessToken.trim().length > 0) &&
+    (integration.hasWebhookSecret || draft.webhookSecret.trim().length > 0) &&
+    (!draft.recurring ||
+      (draft.monthlyProductId.trim().length > 0 &&
+        draft.yearlyProductId.trim().length > 0))
+  )
+}
 
 function RequiredLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -70,63 +148,41 @@ function RequiredLabel({ children }: { children: React.ReactNode }) {
 }
 
 export function PolarIntegrationPreview() {
-  const [enabled, setEnabled] = React.useState(false)
-  const [recurring, setRecurring] = React.useState(true)
-  const [environment, setEnvironment] = React.useState("sandbox")
-  const [accessToken, setAccessToken] = React.useState("")
-  const [webhookSecret, setWebhookSecret] = React.useState("")
-  const [monthlyProduct, setMonthlyProduct] = React.useState("")
-  const [yearlyProduct, setYearlyProduct] = React.useState("")
-  const [oneTimeProduct, setOneTimeProduct] = React.useState("")
-  const [discountCodes, setDiscountCodes] = React.useState(true)
-  const [billingAddress, setBillingAddress] = React.useState(false)
-  const [hasStoredAccessToken, setHasStoredAccessToken] = React.useState(false)
-  const [hasStoredWebhookSecret, setHasStoredWebhookSecret] =
-    React.useState(false)
-  const [configured, setConfigured] = React.useState(false)
+  const [integration, setIntegration] = React.useState<PolarIntegration | null>(
+    null
+  )
+  const [draft, setDraft] = React.useState<PolarDraft | null>(null)
   const [loading, setLoading] = React.useState(true)
+  const [loadError, setLoadError] = React.useState(false)
   const [saving, setSaving] = React.useState(false)
-  const [endpoints, setEndpoints] = React.useState<
-    ReadonlyArray<readonly [string, string]>
-  >([])
-  const canSave =
-    !enabled ||
-    ((hasStoredAccessToken || accessToken.trim().length > 0) &&
-      (hasStoredWebhookSecret || webhookSecret.trim().length > 0) &&
-      (!recurring ||
-        (monthlyProduct.trim().length > 0 && yearlyProduct.trim().length > 0)))
+  const [testState, setTestState] = React.useState<TestState>("not-tested")
 
-  React.useEffect(() => {
-    let current = true
-    void polarApi
-      .get()
-      .then((integration) => {
-        if (!current) return
-        setEnabled(integration.enabled)
-        setConfigured(integration.configured)
-        setEnvironment(integration.environment)
-        setRecurring(integration.recurring)
-        setMonthlyProduct(integration.monthlyProductId)
-        setYearlyProduct(integration.yearlyProductId)
-        setOneTimeProduct(integration.oneTimeProductId)
-        setDiscountCodes(integration.discountCodes)
-        setBillingAddress(integration.billingAddress)
-        setHasStoredAccessToken(integration.hasAccessToken)
-        setHasStoredWebhookSecret(integration.hasWebhookSecret)
-        setEndpoints([
-          ["Webhook", integration.webhookUrl],
-          ["Retorno exitoso", integration.successUrl],
-          ["Retorno cancelado", integration.cancelUrl],
-        ])
-      })
-      .catch(() => toast.error("No se pudo cargar la configuración Polar."))
-      .finally(() => current && setLoading(false))
-    return () => {
-      current = false
+  const load = React.useCallback(async () => {
+    setLoading(true)
+    setLoadError(false)
+    try {
+      setIntegration(await polarApi.get())
+    } catch {
+      setLoadError(true)
+      toast.error("No se pudo cargar la configuración Polar.")
+    } finally {
+      setLoading(false)
     }
   }, [])
 
-  if (loading) return <PageLoading className="min-h-80" />
+  React.useEffect(() => {
+    void load()
+  }, [load])
+
+  function updateDraft(update: Partial<PolarDraft>) {
+    setDraft((current) => (current ? { ...current, ...update } : current))
+    setTestState("not-tested")
+  }
+
+  function closeConfiguration() {
+    setDraft(null)
+    setTestState("not-tested")
+  }
 
   async function copy(value: string) {
     try {
@@ -137,283 +193,548 @@ export function PolarIntegrationPreview() {
     }
   }
 
+  async function testConfiguration() {
+    if (!draft || !integration) return
+    if (!canComplete(draft, integration)) {
+      toast.error("Completa las credenciales y productos obligatorios.")
+      return
+    }
+
+    setTestState("testing")
+    try {
+      const result = await polarApi.test({
+        configuration: {
+          environment: draft.environment,
+          recurring: draft.recurring,
+          monthlyProductId: draft.monthlyProductId,
+          yearlyProductId: draft.yearlyProductId,
+          oneTimeProductId: draft.oneTimeProductId,
+          discountCodes: draft.discountCodes,
+          billingAddress: draft.billingAddress,
+          accessToken: draft.accessToken || undefined,
+          webhookSecret: draft.webhookSecret || undefined,
+        },
+      })
+      setTestState("passed")
+      if (!isDirty(draft, integration)) {
+        setIntegration({
+          ...integration,
+          lastTestedAt: result.testedAt,
+          readiness: draft.enabled ? "ready" : "disabled",
+        })
+        toast.success("Configuración Polar comprobada.")
+      } else {
+        toast.success("Polar validó el borrador. Ya puedes guardarlo.")
+      }
+    } catch (error) {
+      setTestState("failed")
+      if (error instanceof ApiError && error.status === 400) {
+        toast.error("Completa las credenciales y productos obligatorios.")
+      } else {
+        toast.error(
+          "Polar no pudo validar las credenciales o productos configurados."
+        )
+      }
+    }
+  }
+
+  async function saveConfiguration(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!draft || !integration) return
+
+    if (!canComplete(draft, integration)) {
+      toast.error("Completa las credenciales y productos obligatorios.")
+      return
+    }
+    if (draft.enabled && testState !== "passed") {
+      toast.error("Prueba esta configuración antes de guardarla.")
+      return
+    }
+
+    setSaving(true)
+    try {
+      const saved = await polarApi.save({
+        enabled: draft.enabled,
+        environment: draft.environment,
+        recurring: draft.recurring,
+        monthlyProductId: draft.monthlyProductId,
+        yearlyProductId: draft.yearlyProductId,
+        oneTimeProductId: draft.oneTimeProductId,
+        discountCodes: draft.discountCodes,
+        billingAddress: draft.billingAddress,
+        accessToken: draft.accessToken || undefined,
+        webhookSecret: draft.webhookSecret || undefined,
+      })
+      setIntegration(saved)
+      closeConfiguration()
+      toast.success("Configuración Polar guardada.")
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 400) {
+        toast.error(
+          "El borrador cambió o no coincide con la última prueba. Pruébalo nuevamente."
+        )
+      } else {
+        toast.error("No se pudo guardar la configuración Polar.")
+      }
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (loading) return <IntegrationCardLoading />
+
+  if (loadError || !integration) {
+    return (
+      <EmptyState
+        action={<RetryButton onClick={() => void load()} />}
+        description="No fue posible obtener el estado de Polar.sh."
+        icon={PlugZap}
+        title="Integración no disponible"
+      />
+    )
+  }
+
+  const complete = Boolean(draft && canComplete(draft, integration))
+  const dirty = Boolean(draft && isDirty(draft, integration))
+  const status = statusCopy[integration.readiness]
+  const StatusIcon =
+    integration.readiness === "ready"
+      ? CheckCircle2
+      : integration.readiness === "disabled"
+        ? Circle
+        : CircleAlert
+  const endpoints = [
+    ["Webhook", integration.webhookUrl],
+    ["Retorno exitoso", integration.successUrl],
+    ["Retorno cancelado", integration.cancelUrl],
+  ] as const
+
   return (
-    <form
-      className="space-y-4"
-      noValidate
-      onSubmit={(event) => {
-        event.preventDefault()
-        if (!canSave) return
-        setSaving(true)
-        void polarApi
-          .save({
-            enabled,
-            environment: environment as "sandbox" | "live",
-            recurring,
-            monthlyProductId: monthlyProduct,
-            yearlyProductId: yearlyProduct,
-            oneTimeProductId: oneTimeProduct,
-            discountCodes,
-            billingAddress,
-            accessToken: accessToken || undefined,
-            webhookSecret: webhookSecret || undefined,
-          })
-          .then((integration) => {
-            setConfigured(integration.configured)
-            setHasStoredAccessToken(integration.hasAccessToken)
-            setHasStoredWebhookSecret(integration.hasWebhookSecret)
-            setAccessToken("")
-            setWebhookSecret("")
-            toast.success("Configuración Polar guardada.")
-          })
-          .catch(() =>
-            toast.error("No se pudo guardar la configuración Polar.")
-          )
-          .finally(() => setSaving(false))
-      }}
-    >
-      <Card>
-        <CardHeader className="border-b">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div className="space-y-2">
+    <>
+      <Card variant="subtle">
+        <CardHeader className="gap-4 border-b border-border pb-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex min-w-0 flex-col gap-2">
               <div className="flex flex-wrap items-center gap-2">
                 <CardTitle>Polar.sh</CardTitle>
-                <Badge variant={configured ? "success" : "warning"}>
-                  <CheckCircle2 />
-                  {configured ? "Configurado" : "Incompleto"}
+                <Badge variant={status.variant}>
+                  <StatusIcon aria-hidden="true" />
+                  {status.label}
                 </Badge>
-                <Badge variant="secondary">Única pasarela</Badge>
               </div>
               <CardDescription>
                 Checkout, suscripciones e impuestos administrados por Polar como
                 Merchant of Record.
               </CardDescription>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-muted-foreground">Disponible</span>
-              <Switch
-                aria-label="Habilitar Polar.sh"
-                checked={enabled}
-                onCheckedChange={setEnabled}
-              />
-            </div>
+            <Button
+              onClick={() => {
+                setDraft(draftFrom(integration))
+                setTestState("not-tested")
+              }}
+              variant="brand-secondary"
+            >
+              <Settings2 data-icon="inline-start" />
+              Ver y configurar
+            </Button>
           </div>
         </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="credentials">
-            <TabsList aria-label="Configuración Polar">
-              <TabsTrigger value="credentials">Credenciales</TabsTrigger>
-              <TabsTrigger value="products">Productos</TabsTrigger>
-              <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
-            </TabsList>
+        <CardContent className="flex flex-col gap-7">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <IntegrationInsetCard>
+              <div className="flex items-center gap-2">
+                <CirclePower
+                  aria-hidden="true"
+                  className="size-4 text-muted-foreground"
+                />
+                <p className="text-xs font-medium text-muted-foreground">
+                  Estado
+                </p>
+              </div>
+              <p className="mt-1 text-sm">
+                {integration.enabled ? "Disponible" : "Deshabilitada"}
+              </p>
+            </IntegrationInsetCard>
+            <IntegrationInsetCard>
+              <div className="flex items-center gap-2">
+                <Globe2
+                  aria-hidden="true"
+                  className="size-4 text-muted-foreground"
+                />
+                <p className="text-xs font-medium text-muted-foreground">
+                  Ambiente
+                </p>
+              </div>
+              <p className="mt-1 text-sm">
+                {integration.environment === "live" ? "Producción" : "Sandbox"}
+              </p>
+            </IntegrationInsetCard>
+            <IntegrationInsetCard>
+              <div className="flex items-center gap-2">
+                <RefreshCcw
+                  aria-hidden="true"
+                  className="size-4 text-muted-foreground"
+                />
+                <p className="text-xs font-medium text-muted-foreground">
+                  Productos recurrentes
+                </p>
+              </div>
+              <p className="mt-1 text-sm">
+                {integration.recurring ? "Mensual y anual" : "Desactivados"}
+              </p>
+            </IntegrationInsetCard>
+          </div>
 
-            <TabsContent className="pt-5" value="credentials">
-              <FieldGroup>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Field>
-                    <RequiredLabel>Ambiente</RequiredLabel>
-                    <Select onValueChange={setEnvironment} value={environment}>
-                      <SelectTrigger aria-required="true">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectItem value="sandbox">Sandbox</SelectItem>
-                          <SelectItem value="live">Producción</SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                    <FieldDescription>
-                      Sandbox y producción usan credenciales y productos
-                      distintos.
-                    </FieldDescription>
-                  </Field>
-                  <Field>
-                    <RequiredLabel>Organization Access Token</RequiredLabel>
+          <section
+            aria-labelledby="polar-webhooks-title"
+            className="flex flex-col gap-3"
+          >
+            <div className="flex items-start gap-2">
+              <Link2
+                aria-hidden="true"
+                className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+              />
+              <div>
+                <h2 className="text-sm font-semibold" id="polar-webhooks-title">
+                  Webhooks y retornos
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Registra estas URLs en Polar. La API las genera y aquí son de
+                  solo lectura.
+                </p>
+              </div>
+            </div>
+            <FieldGroup>
+              {endpoints.map(([label, value]) => (
+                <Field key={label}>
+                  <FieldLabel>{label}</FieldLabel>
+                  <div className="flex gap-2">
                     <Input
-                      aria-required="true"
-                      autoComplete="new-password"
-                      onChange={(event) => setAccessToken(event.target.value)}
-                      placeholder={
-                        hasStoredAccessToken
-                          ? "Token configurado · escribe para reemplazar"
-                          : "polar_oat_…"
-                      }
-                      type="password"
-                      value={accessToken}
+                      className="font-mono text-xs"
+                      readOnly
+                      value={value}
                     />
-                  </Field>
-                </div>
-                <Field>
-                  <RequiredLabel>Secreto de webhook</RequiredLabel>
-                  <Input
-                    aria-required="true"
-                    autoComplete="new-password"
-                    onChange={(event) => setWebhookSecret(event.target.value)}
-                    placeholder={
-                      hasStoredWebhookSecret
-                        ? "Secreto configurado · escribe para reemplazar"
-                        : "polar_whs_…"
-                    }
-                    type="password"
-                    value={webhookSecret}
-                  />
-                  <FieldDescription>
-                    Verifica la firma antes de procesar pagos, reembolsos o
-                    cambios de suscripción.
-                  </FieldDescription>
+                    <Button
+                      aria-label={`Copiar ${label}`}
+                      onClick={() => void copy(value)}
+                      size="icon"
+                      type="button"
+                      variant="brand-secondary"
+                    >
+                      <Copy />
+                    </Button>
+                  </div>
                 </Field>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="flex items-center justify-between rounded-lg border p-3">
-                    <div>
-                      <p className="text-sm font-medium">Suscripciones</p>
-                      <p className="text-xs text-muted-foreground">
-                        Renovaciones mensuales y anuales.
-                      </p>
-                    </div>
-                    <Switch
-                      aria-label="Habilitar suscripciones"
-                      checked={recurring}
-                      onCheckedChange={setRecurring}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between rounded-lg border p-3">
-                    <div>
-                      <p className="text-sm font-medium">
-                        Dirección de facturación
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Solicitarla durante checkout.
-                      </p>
-                    </div>
-                    <Switch
-                      aria-label="Solicitar dirección de facturación"
-                      checked={billingAddress}
-                      onCheckedChange={setBillingAddress}
-                    />
-                  </div>
-                </div>
-              </FieldGroup>
-            </TabsContent>
+              ))}
+            </FieldGroup>
+          </section>
 
-            <TabsContent className="pt-5" value="products">
-              <FieldGroup>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Field>
-                    <RequiredLabel>Producto mensual</RequiredLabel>
-                    <Input
-                      aria-required="true"
-                      onChange={(event) =>
-                        setMonthlyProduct(event.target.value)
-                      }
-                      value={monthlyProduct}
-                    />
-                  </Field>
-                  <Field>
-                    <RequiredLabel>Producto anual</RequiredLabel>
-                    <Input
-                      aria-required="true"
-                      onChange={(event) => setYearlyProduct(event.target.value)}
-                      value={yearlyProduct}
-                    />
-                  </Field>
-                </div>
-                <Field>
-                  <FieldLabel>Producto de pago único</FieldLabel>
-                  <Input
-                    onChange={(event) => setOneTimeProduct(event.target.value)}
-                    value={oneTimeProduct}
-                  />
-                  <FieldDescription>
-                    Se usa para paquetes de créditos u otras compras no
-                    recurrentes.
-                  </FieldDescription>
-                </Field>
-                <div className="flex items-center justify-between rounded-lg border p-3">
-                  <div>
-                    <p className="text-sm font-medium">
-                      Códigos de descuento de Polar
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Permite combinarlos con las reglas de cupones de Zapi.
-                    </p>
-                  </div>
-                  <Switch
-                    aria-label="Permitir códigos de descuento"
-                    checked={discountCodes}
-                    onCheckedChange={setDiscountCodes}
-                  />
-                </div>
-                <div className="flex items-start gap-3 rounded-lg border p-3">
-                  <CreditCard
-                    aria-hidden="true"
-                    className="mt-0.5 size-4 text-muted-foreground"
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    Zapi envía el importe local como precio dinámico. El total
-                    después del descuento debe ser de al menos USD 0.50.
-                  </p>
-                </div>
-              </FieldGroup>
-            </TabsContent>
-
-            <TabsContent className="space-y-5 pt-5" value="webhooks">
-              <section className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Link
-                    aria-hidden="true"
-                    className="size-4 text-muted-foreground"
-                  />
-                  <h3 className="text-sm font-medium">Endpoints</h3>
-                </div>
-                {endpoints.map(([label, value]) => (
-                  <div className="grid gap-1.5" key={label}>
-                    <FieldLabel>{label}</FieldLabel>
-                    <div className="flex gap-2">
-                      <Input
-                        className="font-mono text-xs"
-                        readOnly
-                        value={value}
-                      />
-                      <Button
-                        aria-label={`Copiar ${label}`}
-                        onClick={() => void copy(value)}
-                        size="icon"
-                        type="button"
-                        variant="brand-secondary"
-                      >
-                        <Copy />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </section>
-              <section className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck
-                    aria-hidden="true"
-                    className="size-4 text-muted-foreground"
-                  />
-                  <h3 className="text-sm font-medium">Eventos requeridos</h3>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {events.map((event) => (
-                    <Badge className="font-mono" key={event} variant="outline">
-                      {event}
-                    </Badge>
-                  ))}
-                </div>
-              </section>
-            </TabsContent>
-          </Tabs>
+          <section
+            aria-labelledby="polar-required-events"
+            className="flex flex-col gap-3"
+          >
+            <div className="flex items-center gap-2">
+              <ListChecks
+                aria-hidden="true"
+                className="size-4 text-muted-foreground"
+              />
+              <h2 className="text-sm font-semibold" id="polar-required-events">
+                Eventos requeridos
+              </h2>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {requiredEvents.map((event) => (
+                <Badge className="font-mono" key={event} variant="outline">
+                  {event}
+                </Badge>
+              ))}
+            </div>
+          </section>
         </CardContent>
       </Card>
-      <div className="flex justify-end">
-        <Button disabled={!canSave || saving} type="submit">
-          <Save aria-hidden="true" data-icon="inline-start" />
-          Guardar configuración
-        </Button>
-      </div>
-    </form>
+
+      <Sheet
+        onOpenChange={(open) => !open && !saving && closeConfiguration()}
+        open={draft !== null}
+      >
+        <SheetContent
+          className="w-full gap-0 overflow-y-auto overscroll-contain p-0 sm:max-w-xl"
+          side="right"
+        >
+          {draft ? (
+            <form
+              className="flex min-h-full flex-col"
+              noValidate
+              onSubmit={saveConfiguration}
+            >
+              <SheetHeader className="border-b">
+                <SheetTitle>Configurar Polar.sh</SheetTitle>
+                <SheetDescription>
+                  Administra la única pasarela de pagos de la plataforma.
+                </SheetDescription>
+              </SheetHeader>
+
+              <div className="flex flex-col gap-6 p-4">
+                <IntegrationAvailabilityCard
+                  ariaLabel="Habilitar Polar.sh"
+                  checked={draft.enabled}
+                  description="Al habilitarla, Polar procesa checkouts y suscripciones."
+                  onCheckedChange={(enabled) => updateDraft({ enabled })}
+                  title="Disponibilidad del proveedor"
+                />
+
+                <section
+                  aria-labelledby="polar-credentials"
+                  className="flex flex-col gap-4"
+                >
+                  <h3 className="text-sm font-semibold" id="polar-credentials">
+                    Credenciales
+                  </h3>
+                  <FieldGroup>
+                    <Field>
+                      <RequiredLabel>Ambiente</RequiredLabel>
+                      <Select
+                        onValueChange={(environment) =>
+                          updateDraft({
+                            environment:
+                              environment as PolarDraft["environment"],
+                          })
+                        }
+                        value={draft.environment}
+                      >
+                        <SelectTrigger aria-required="true">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectItem value="sandbox">Sandbox</SelectItem>
+                            <SelectItem value="live">Producción</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                      <FieldDescription>
+                        Cada ambiente usa credenciales y productos distintos.
+                      </FieldDescription>
+                    </Field>
+                    <Field>
+                      <RequiredLabel>Organization Access Token</RequiredLabel>
+                      <Input
+                        aria-required="true"
+                        autoComplete="new-password"
+                        onChange={(event) =>
+                          updateDraft({ accessToken: event.target.value })
+                        }
+                        placeholder={
+                          integration.hasAccessToken
+                            ? "Token configurado · escribe para reemplazar"
+                            : "polar_oat_…"
+                        }
+                        type="password"
+                        value={draft.accessToken}
+                      />
+                    </Field>
+                    <Field>
+                      <RequiredLabel>Secreto de webhook</RequiredLabel>
+                      <Input
+                        aria-required="true"
+                        autoComplete="new-password"
+                        onChange={(event) =>
+                          updateDraft({ webhookSecret: event.target.value })
+                        }
+                        placeholder={
+                          integration.hasWebhookSecret
+                            ? "Secreto configurado · escribe para reemplazar"
+                            : "polar_whs_…"
+                        }
+                        type="password"
+                        value={draft.webhookSecret}
+                      />
+                      <FieldDescription>
+                        Verifica pagos, reembolsos y cambios de suscripción.
+                      </FieldDescription>
+                    </Field>
+                  </FieldGroup>
+                </section>
+
+                <section
+                  aria-labelledby="polar-products"
+                  className="flex flex-col gap-4 border-t border-border pt-5"
+                >
+                  <h3 className="text-sm font-semibold" id="polar-products">
+                    Productos y checkout
+                  </h3>
+                  <FieldGroup>
+                    <IntegrationInsetCard className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-medium">Suscripciones</p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Renovaciones mensuales y anuales.
+                        </p>
+                      </div>
+                      <Switch
+                        aria-label="Habilitar suscripciones"
+                        checked={draft.recurring}
+                        onCheckedChange={(recurring) =>
+                          updateDraft({ recurring })
+                        }
+                      />
+                    </IntegrationInsetCard>
+                    <Field>
+                      <RequiredLabel>Producto mensual</RequiredLabel>
+                      <Input
+                        aria-required="true"
+                        disabled={!draft.recurring}
+                        onChange={(event) =>
+                          updateDraft({ monthlyProductId: event.target.value })
+                        }
+                        value={draft.monthlyProductId}
+                      />
+                    </Field>
+                    <Field>
+                      <RequiredLabel>Producto anual</RequiredLabel>
+                      <Input
+                        aria-required="true"
+                        disabled={!draft.recurring}
+                        onChange={(event) =>
+                          updateDraft({ yearlyProductId: event.target.value })
+                        }
+                        value={draft.yearlyProductId}
+                      />
+                    </Field>
+                    <Field>
+                      <FieldLabel>Producto de pago único</FieldLabel>
+                      <Input
+                        onChange={(event) =>
+                          updateDraft({ oneTimeProductId: event.target.value })
+                        }
+                        value={draft.oneTimeProductId}
+                      />
+                      <FieldDescription>
+                        Se usa para paquetes de créditos y compras no
+                        recurrentes.
+                      </FieldDescription>
+                    </Field>
+                    <IntegrationInsetCard className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-medium">
+                          Códigos de descuento
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Combina Polar con las reglas de cupones de Zapi.
+                        </p>
+                      </div>
+                      <Switch
+                        aria-label="Permitir códigos de descuento"
+                        checked={draft.discountCodes}
+                        onCheckedChange={(discountCodes) =>
+                          updateDraft({ discountCodes })
+                        }
+                      />
+                    </IntegrationInsetCard>
+                    <IntegrationInsetCard className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-sm font-medium">
+                          Dirección de facturación
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Solicitarla durante el checkout.
+                        </p>
+                      </div>
+                      <Switch
+                        aria-label="Solicitar dirección de facturación"
+                        checked={draft.billingAddress}
+                        onCheckedChange={(billingAddress) =>
+                          updateDraft({ billingAddress })
+                        }
+                      />
+                    </IntegrationInsetCard>
+                    <p className="text-sm text-muted-foreground">
+                      El total después del descuento debe ser de al menos USD
+                      0.50.
+                    </p>
+                  </FieldGroup>
+                </section>
+
+                {draft.enabled ? (
+                  <section
+                    aria-labelledby="polar-test"
+                    className="flex flex-col gap-3 border-t border-border pt-5"
+                  >
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <h3 className="text-sm font-semibold" id="polar-test">
+                          Probar borrador
+                        </h3>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Comprueba credenciales, ambiente y productos con Polar
+                          antes de guardar.
+                        </p>
+                      </div>
+                      <Button
+                        disabled={
+                          !complete ||
+                          testState === "testing" ||
+                          testState === "passed"
+                        }
+                        onClick={() => void testConfiguration()}
+                        type="button"
+                        variant={testState === "passed" ? "success" : "surface"}
+                      >
+                        {testState === "testing" ? (
+                          <Spinner data-icon="inline-start" />
+                        ) : testState === "passed" ? (
+                          <CheckCircle2 data-icon="inline-start" />
+                        ) : (
+                          <ShieldCheck data-icon="inline-start" />
+                        )}
+                        {testState === "testing"
+                          ? "Comprobando"
+                          : testState === "passed"
+                            ? "Borrador validado"
+                            : "Probar configuración"}
+                      </Button>
+                    </div>
+                    {testState === "failed" ? (
+                      <p className="flex items-center gap-2 text-sm text-destructive">
+                        <XCircle aria-hidden="true" className="size-4" />
+                        No se pudo validar el borrador.
+                      </p>
+                    ) : null}
+                  </section>
+                ) : null}
+              </div>
+
+              <SheetFooter className="flex-row justify-end border-t">
+                <Button
+                  disabled={saving}
+                  onClick={closeConfiguration}
+                  type="button"
+                  variant="brand-secondary"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  disabled={
+                    !dirty ||
+                    !complete ||
+                    saving ||
+                    testState === "testing" ||
+                    (draft.enabled && testState !== "passed")
+                  }
+                  type="submit"
+                >
+                  {saving ? (
+                    <Spinner data-icon="inline-start" />
+                  ) : (
+                    <Save aria-hidden="true" data-icon="inline-start" />
+                  )}
+                  {saving ? "Guardando" : "Guardar configuración"}
+                </Button>
+              </SheetFooter>
+            </form>
+          ) : null}
+        </SheetContent>
+      </Sheet>
+    </>
   )
 }

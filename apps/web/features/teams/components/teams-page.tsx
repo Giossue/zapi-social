@@ -28,8 +28,13 @@ import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
+  DataTableFilter,
+  DataTableHeader,
+  DataTableToolbar,
+} from "@workspace/ui/components/data-table-controls"
+import { CollectionHeader } from "@workspace/ui/components/collection-header"
+import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -44,21 +49,9 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { EmptyState } from "@workspace/ui/components/empty-state"
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@workspace/ui/components/input-group"
 import { Kbd } from "@workspace/ui/components/kbd"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
 import { PageLoading } from "@workspace/ui/components/page-loading"
+import { Spinner } from "@workspace/ui/components/spinner"
 import {
   Table,
   TableBody,
@@ -81,7 +74,6 @@ import {
   DoorOpen,
   Eye,
   KeyRound,
-  LoaderCircle,
   MailPlus,
   MoreVertical,
   RefreshCw,
@@ -92,7 +84,7 @@ import {
 } from "lucide-react"
 
 import {
-  InvitationDetailDialog,
+  InvitationDetailSheet,
   InviteDialog,
   MemberAccessDialog,
   TeamConfirmationDialog,
@@ -107,6 +99,8 @@ import {
 } from "./team-utils"
 
 type ManagerView = "members" | "invitations" | "activity"
+const collectionPageSize = 10
+
 type Confirmation =
   | { kind: "remove"; member: PortalTeamMember }
   | { kind: "revoke"; invitation: PortalTeamInvitation }
@@ -151,6 +145,28 @@ function MemberIdentity({
 function accountScope(member: PortalTeamMember) {
   if (member.role !== "member") return "Todas las cuentas"
   return `${member.accountIds.length} cuenta${member.accountIds.length === 1 ? "" : "s"}`
+}
+
+function filterMembers(members: PortalTeamMember[], query: string) {
+  const normalized = query.trim().toLocaleLowerCase("es")
+  return members.filter(
+    (member) =>
+      !normalized ||
+      `${member.name} ${member.email ?? ""} ${roleMeta[member.role].label}`
+        .toLocaleLowerCase("es")
+        .includes(normalized)
+  )
+}
+
+function filterInvitations(invitations: PortalTeamInvitation[], query: string) {
+  const normalized = query.trim().toLocaleLowerCase("es")
+  return invitations.filter(
+    (invitation) =>
+      !normalized ||
+      `${invitation.email} ${roleMeta[invitation.role].label} ${invitation.invitedByName}`
+        .toLocaleLowerCase("es")
+        .includes(normalized)
+  )
 }
 
 function MemberActions({
@@ -336,7 +352,7 @@ function confirmationCopy(confirmation: Confirmation | null) {
 
 function TeamsError({ onRetry }: { onRetry: () => void }) {
   return (
-    <Card>
+    <Card variant="subtle">
       <EmptyState
         action={
           <Button onClick={onRetry} variant="brand-secondary">
@@ -362,12 +378,14 @@ export function TeamsPage() {
   const [activeView, setActiveView] = useState<ManagerView>("members")
   const [memberQuery, setMemberQuery] = useState("")
   const [invitationQuery, setInvitationQuery] = useState("")
+  const [memberPage, setMemberPage] = useState(1)
+  const [invitationPage, setInvitationPage] = useState(1)
   const [activityQuery, setActivityQuery] = useState("")
   const deferredActivityQuery = useDeferredValue(activityQuery)
   const [activityCategory, setActivityCategory] =
     useState<PortalTeamActivityCategory>("all")
   const [activityPage, setActivityPage] = useState(1)
-  const [activityPageSize, setActivityPageSize] = useState(10)
+  const activityPageSize = 10
   const [activityData, setActivityData] =
     useState<PortalTeamActivityResponse | null>(null)
   const [activityLoading, setActivityLoading] = useState(false)
@@ -385,9 +403,12 @@ export function TeamsPage() {
     if (initial) setLoading(true)
     setLoadError(false)
     try {
-      setTeams(await teamsApi.list())
+      const response = await teamsApi.list()
+      setTeams(response)
+      return response
     } catch {
       setLoadError(true)
+      return null
     } finally {
       if (initial) setLoading(false)
     }
@@ -437,27 +458,29 @@ export function TeamsPage() {
   }, [])
 
   const visibleMembers = useMemo(() => {
-    if (!teams) return []
-    const normalized = memberQuery.trim().toLocaleLowerCase("es")
-    return teams.members.filter(
-      (member) =>
-        !normalized ||
-        `${member.name} ${member.email ?? ""} ${roleMeta[member.role].label}`
-          .toLocaleLowerCase("es")
-          .includes(normalized)
-    )
+    return filterMembers(teams?.members ?? [], memberQuery)
   }, [memberQuery, teams])
   const visibleInvitations = useMemo(() => {
-    if (!teams) return []
-    const normalized = invitationQuery.trim().toLocaleLowerCase("es")
-    return teams.invitations.filter(
-      (invitation) =>
-        !normalized ||
-        `${invitation.email} ${roleMeta[invitation.role].label} ${invitation.invitedByName}`
-          .toLocaleLowerCase("es")
-          .includes(normalized)
-    )
+    return filterInvitations(teams?.invitations ?? [], invitationQuery)
   }, [invitationQuery, teams])
+  const memberPageCount = Math.max(
+    Math.ceil(visibleMembers.length / collectionPageSize),
+    1
+  )
+  const invitationPageCount = Math.max(
+    Math.ceil(visibleInvitations.length / collectionPageSize),
+    1
+  )
+  const currentMemberPage = Math.min(memberPage, memberPageCount)
+  const currentInvitationPage = Math.min(invitationPage, invitationPageCount)
+  const paginatedMembers = visibleMembers.slice(
+    (currentMemberPage - 1) * collectionPageSize,
+    currentMemberPage * collectionPageSize
+  )
+  const paginatedInvitations = visibleInvitations.slice(
+    (currentInvitationPage - 1) * collectionPageSize,
+    currentInvitationPage * collectionPageSize
+  )
 
   if (loading) return <TeamsLoading />
   if (!teams || loadError) {
@@ -487,10 +510,12 @@ export function TeamsPage() {
 
   function updateCurrentSearch(value: string) {
     if (!teams?.canManage || activeView === "members") {
+      setMemberPage(1)
       setMemberQuery(value)
       return
     }
     if (activeView === "invitations") {
+      setInvitationPage(1)
       setInvitationQuery(value)
       return
     }
@@ -498,8 +523,34 @@ export function TeamsPage() {
     setActivityQuery(value)
   }
 
+  function changeView(value: string) {
+    const nextView = value as ManagerView
+    setActiveView(nextView)
+    if (nextView === "members") setMemberPage(1)
+    if (nextView === "invitations") setInvitationPage(1)
+    if (nextView === "activity") setActivityPage(1)
+  }
+
   async function refreshAfterAction() {
-    await loadTeams()
+    const refreshedTeams = await loadTeams()
+    if (refreshedTeams) {
+      const nextMemberPageCount = Math.max(
+        Math.ceil(
+          filterMembers(refreshedTeams.members, memberQuery).length /
+            collectionPageSize
+        ),
+        1
+      )
+      const nextInvitationPageCount = Math.max(
+        Math.ceil(
+          filterInvitations(refreshedTeams.invitations, invitationQuery)
+            .length / collectionPageSize
+        ),
+        1
+      )
+      setMemberPage((page) => Math.min(page, nextMemberPageCount))
+      setInvitationPage((page) => Math.min(page, nextInvitationPageCount))
+    }
     if (activeView === "activity") await loadActivity()
   }
 
@@ -609,34 +660,19 @@ export function TeamsPage() {
         </Alert>
       ) : null}
 
-      <Card>
-        <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
-          <CardTitle className="text-xl leading-none">
-            {teams.canManage ? "Equipo" : "Mi acceso"}
-          </CardTitle>
-          <CardDescription className="max-w-sm leading-snug">
-            {teams.canManage
-              ? "Administra personas, cuentas asignadas e invitaciones del workspace."
-              : "Consulta tu rol, las cuentas disponibles y quién forma parte del workspace."}
-          </CardDescription>
-          <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
-            <InputGroup className="h-7 w-full md:w-64">
-              <InputGroupAddon align="inline-start">
-                <Search aria-hidden="true" />
-              </InputGroupAddon>
-              <InputGroupInput
-                aria-label={searchPlaceholder.replace("...", "")}
-                className="h-7"
-                onChange={(event) => updateCurrentSearch(event.target.value)}
-                placeholder={searchPlaceholder}
-                ref={searchRef}
-                value={currentSearch}
-              />
-              <InputGroupAddon align="inline-end">
-                <Kbd className="h-4 text-[10px]">⌘K</Kbd>
-              </InputGroupAddon>
-            </InputGroup>
-            {teams.canManage ? (
+      <CollectionHeader
+        description={
+          teams.canManage
+            ? "Administra personas, cuentas asignadas e invitaciones del workspace."
+            : "Consulta tu rol, las cuentas disponibles y quién forma parte del workspace."
+        }
+        title={teams.canManage ? "Equipo" : "Mi acceso"}
+      />
+
+      <Card variant="subtle">
+        <DataTableHeader
+          action={
+            teams.canManage ? (
               <>
                 <SeatBadge seatUsage={teams.seatUsage} />
                 <Button
@@ -664,17 +700,38 @@ export function TeamsPage() {
                 <DoorOpen />
                 Abandonar workspace
               </Button>
-            )}
-          </CardAction>
-        </CardHeader>
+            )
+          }
+          search={{
+            ariaLabel: searchPlaceholder.replace("...", ""),
+            endAddon: <Kbd className="h-4 text-[10px]">⌘K</Kbd>,
+            inputRef: searchRef,
+            onChange: updateCurrentSearch,
+            placeholder: searchPlaceholder,
+            value: currentSearch,
+          }}
+        />
 
         {teams.canManage ? (
           <CardContent className="flex flex-col gap-4 px-0">
-            <Tabs
-              onValueChange={(value) => setActiveView(value as ManagerView)}
-              value={activeView}
-            >
-              <div className="flex flex-wrap items-center justify-between gap-3 px-4">
+            <Tabs onValueChange={changeView} value={activeView}>
+              <DataTableToolbar
+                actions={
+                  activeView === "activity" ? (
+                    <DataTableFilter
+                      ariaLabel="Filtrar actividad"
+                      onValueChange={(value) => {
+                        setActivityCategory(value as PortalTeamActivityCategory)
+                        setActivityPage(1)
+                      }}
+                      options={Object.entries(activityCategoryLabels).map(
+                        ([value, label]) => ({ label, value })
+                      )}
+                      value={activityCategory}
+                    />
+                  ) : undefined
+                }
+              >
                 <TabsList>
                   <TabsTrigger value="members">Miembros</TabsTrigger>
                   <TabsTrigger value="invitations">
@@ -682,38 +739,14 @@ export function TeamsPage() {
                   </TabsTrigger>
                   <TabsTrigger value="activity">Actividad</TabsTrigger>
                 </TabsList>
-                {activeView === "activity" ? (
-                  <Select
-                    onValueChange={(value) => {
-                      setActivityCategory(value as PortalTeamActivityCategory)
-                      setActivityPage(1)
-                    }}
-                    value={activityCategory}
-                  >
-                    <SelectTrigger aria-label="Filtrar actividad" size="sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent align="end">
-                      <SelectGroup>
-                        {Object.entries(activityCategoryLabels).map(
-                          ([value, label]) => (
-                            <SelectItem key={value} value={value}>
-                              {label}
-                            </SelectItem>
-                          )
-                        )}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                ) : null}
-              </div>
+              </DataTableToolbar>
 
               <TabsContent className="mt-0" value="members">
                 {visibleMembers.length ? (
                   <MembersTable
                     actorRole={teams.currentUserRole}
                     currentUserId={teams.currentUserId}
-                    members={visibleMembers}
+                    members={paginatedMembers}
                     onManage={(member) => {
                       setDialogError(null)
                       setSelectedMember(member)
@@ -725,13 +758,20 @@ export function TeamsPage() {
                       setConfirmation({ kind: "transfer", member })
                     }
                     pending={pendingAction !== null}
+                    onPageChange={setMemberPage}
+                    page={currentMemberPage}
+                    pageSize={collectionPageSize}
+                    total={visibleMembers.length}
                   />
                 ) : (
                   <EmptyState
                     action={
                       memberQuery ? (
                         <Button
-                          onClick={() => setMemberQuery("")}
+                          onClick={() => {
+                            setMemberPage(1)
+                            setMemberQuery("")
+                          }}
                           variant="brand-secondary"
                         >
                           Limpiar búsqueda
@@ -749,20 +789,27 @@ export function TeamsPage() {
               <TabsContent className="mt-0" value="invitations">
                 {visibleInvitations.length ? (
                   <InvitationsTable
-                    invitations={visibleInvitations}
+                    invitations={paginatedInvitations}
                     onResend={(invitation) => void resendInvitation(invitation)}
                     onRevoke={(invitation) =>
                       setConfirmation({ kind: "revoke", invitation })
                     }
                     onView={setSelectedInvitation}
+                    onPageChange={setInvitationPage}
+                    page={currentInvitationPage}
+                    pageSize={collectionPageSize}
                     pendingAction={pendingAction}
+                    total={visibleInvitations.length}
                   />
                 ) : (
                   <EmptyState
                     action={
                       invitationQuery ? (
                         <Button
-                          onClick={() => setInvitationQuery("")}
+                          onClick={() => {
+                            setInvitationPage(1)
+                            setInvitationQuery("")
+                          }}
                           variant="brand-secondary"
                         >
                           Limpiar búsqueda
@@ -799,10 +846,6 @@ export function TeamsPage() {
                     setActivityPage(1)
                   }}
                   onPageChange={setActivityPage}
-                  onPageSizeChange={(size) => {
-                    setActivityPageSize(size)
-                    setActivityPage(1)
-                  }}
                   onRetry={() => void loadActivity()}
                 />
               </TabsContent>
@@ -813,9 +856,16 @@ export function TeamsPage() {
             accounts={teams.accounts}
             currentMember={currentMember}
             currentUserId={teams.currentUserId}
-            members={visibleMembers}
-            onClearSearch={() => setMemberQuery("")}
+            members={paginatedMembers}
+            onClearSearch={() => {
+              setMemberPage(1)
+              setMemberQuery("")
+            }}
+            onPageChange={setMemberPage}
+            page={currentMemberPage}
+            pageSize={collectionPageSize}
             query={memberQuery}
+            total={visibleMembers.length}
           />
         )}
       </Card>
@@ -849,7 +899,7 @@ export function TeamsPage() {
         onSubmit={(input) => void saveMemberAccess(input)}
         pending={pendingAction?.startsWith("access:") ?? false}
       />
-      <InvitationDetailDialog
+      <InvitationDetailSheet
         invitation={selectedInvitation}
         onOpenChange={(open) => !open && setSelectedInvitation(null)}
       />
@@ -880,17 +930,25 @@ function MembersTable({
   currentUserId,
   members,
   onManage,
+  onPageChange,
   onRemove,
   onTransfer,
+  page,
+  pageSize,
   pending,
+  total,
 }: {
   actorRole: PortalTeamRole
   currentUserId: string
   members: PortalTeamMember[]
   onManage: (member: PortalTeamMember) => void
+  onPageChange: (page: number) => void
   onRemove: (member: PortalTeamMember) => void
   onTransfer: (member: PortalTeamMember) => void
+  page: number
+  pageSize: number
   pending: boolean
+  total: number
 }) {
   const actions = (member: PortalTeamMember) => (
     <MemberActions
@@ -903,44 +961,42 @@ function MembersTable({
       pending={pending}
     />
   )
+  const pageCount = Math.max(Math.ceil(total / pageSize), 1)
+
   return (
-    <>
+    <div className="flex flex-col gap-4">
       <div className="hidden md:block">
-        <Table className="**:data-[slot='table-cell']:px-4 **:data-[slot='table-head']:px-4">
-          <TableHeader className="[&_tr]:border-t">
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableHead className="py-4 font-normal">Miembro</TableHead>
-              <TableHead className="py-4 font-normal">Rol</TableHead>
-              <TableHead className="py-4 font-normal">Alcance</TableHead>
-              <TableHead className="py-4 font-normal">Se unió</TableHead>
-              <TableHead className="py-4 text-right font-normal">
-                Acciones
-              </TableHead>
+              <TableHead>Miembro</TableHead>
+              <TableHead>Rol</TableHead>
+              <TableHead>Alcance</TableHead>
+              <TableHead>Se unió</TableHead>
+              <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {members.map((member) => (
               <TableRow key={member.id}>
-                <TableCell className="py-4">
+                <TableCell>
                   <MemberIdentity
                     current={member.id === currentUserId}
                     member={member}
                   />
                 </TableCell>
-                <TableCell className="py-4">
+                <TableCell>
                   <Badge variant={roleMeta[member.role].variant}>
                     {roleMeta[member.role].label}
                   </Badge>
                 </TableCell>
-                <TableCell className="py-4 text-sm text-muted-foreground">
+                <TableCell className="text-sm text-muted-foreground">
                   {accountScope(member)}
                 </TableCell>
-                <TableCell className="py-4 text-sm text-muted-foreground">
+                <TableCell className="text-sm text-muted-foreground">
                   {formatTeamDate(member.joinedAt)}
                 </TableCell>
-                <TableCell className="py-4 text-right">
-                  {actions(member)}
-                </TableCell>
+                <TableCell className="text-right">{actions(member)}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -966,22 +1022,40 @@ function MembersTable({
           </div>
         ))}
       </div>
-    </>
+      <TablePagination
+        canGoNext={page < pageCount}
+        canGoPrevious={page > 1}
+        itemLabel="miembros"
+        onNextPage={() => onPageChange(page + 1)}
+        onPreviousPage={() => onPageChange(page - 1)}
+        rangeEnd={Math.min(page * pageSize, total)}
+        rangeStart={(page - 1) * pageSize + 1}
+        total={total}
+      />
+    </div>
   )
 }
 
 function InvitationsTable({
   invitations,
+  onPageChange,
   onResend,
   onRevoke,
   onView,
+  page,
+  pageSize,
   pendingAction,
+  total,
 }: {
   invitations: PortalTeamInvitation[]
+  onPageChange: (page: number) => void
   onResend: (invitation: PortalTeamInvitation) => void
   onRevoke: (invitation: PortalTeamInvitation) => void
   onView: (invitation: PortalTeamInvitation) => void
+  page: number
+  pageSize: number
   pendingAction: string | null
+  total: number
 }) {
   const actions = (invitation: PortalTeamInvitation) => (
     <InvitationActions
@@ -992,49 +1066,49 @@ function InvitationsTable({
       pending={pendingAction !== null}
     />
   )
+  const pageCount = Math.max(Math.ceil(total / pageSize), 1)
+
   return (
-    <>
+    <div className="flex flex-col gap-4">
       <div className="hidden md:block">
-        <Table className="**:data-[slot='table-cell']:px-4 **:data-[slot='table-head']:px-4">
-          <TableHeader className="[&_tr]:border-t">
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableHead className="py-4 font-normal">Correo</TableHead>
-              <TableHead className="py-4 font-normal">Rol</TableHead>
-              <TableHead className="py-4 font-normal">Invitado por</TableHead>
-              <TableHead className="py-4 font-normal">Último envío</TableHead>
-              <TableHead className="py-4 font-normal">Vence</TableHead>
-              <TableHead className="py-4 font-normal">Entrega</TableHead>
-              <TableHead className="py-4 text-right font-normal">
-                Acciones
-              </TableHead>
+              <TableHead>Correo</TableHead>
+              <TableHead>Rol</TableHead>
+              <TableHead>Invitado por</TableHead>
+              <TableHead>Último envío</TableHead>
+              <TableHead>Vence</TableHead>
+              <TableHead>Entrega</TableHead>
+              <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {invitations.map((invitation) => (
               <TableRow key={invitation.id}>
-                <TableCell className="py-4 font-medium">
+                <TableCell className="font-medium">
                   {invitation.email}
                 </TableCell>
-                <TableCell className="py-4">
+                <TableCell>
                   <Badge variant={roleMeta[invitation.role].variant}>
                     {roleMeta[invitation.role].label}
                   </Badge>
                 </TableCell>
-                <TableCell className="py-4 text-sm text-muted-foreground">
+                <TableCell className="text-sm text-muted-foreground">
                   {invitation.invitedByName}
                 </TableCell>
-                <TableCell className="py-4 text-sm text-muted-foreground">
+                <TableCell className="text-sm text-muted-foreground">
                   {formatTeamDate(invitation.lastSentAt)}
                 </TableCell>
-                <TableCell className="py-4 text-sm text-muted-foreground">
+                <TableCell className="text-sm text-muted-foreground">
                   {formatTeamDate(invitation.expiresAt)}
                 </TableCell>
-                <TableCell className="py-4">
+                <TableCell>
                   <DeliveryBadge status={invitation.deliveryStatus} />
                 </TableCell>
-                <TableCell className="py-4 text-right">
+                <TableCell className="text-right">
                   {pendingAction === `resend:${invitation.id}` ? (
-                    <LoaderCircle aria-label="Reenviando invitación" />
+                    <Spinner aria-label="Reenviando invitación" size={16} />
                   ) : (
                     actions(invitation)
                   )}
@@ -1068,7 +1142,17 @@ function InvitationsTable({
           </div>
         ))}
       </div>
-    </>
+      <TablePagination
+        canGoNext={page < pageCount}
+        canGoPrevious={page > 1}
+        itemLabel="invitaciones"
+        onNextPage={() => onPageChange(page + 1)}
+        onPreviousPage={() => onPageChange(page - 1)}
+        rangeEnd={Math.min(page * pageSize, total)}
+        rangeStart={(page - 1) * pageSize + 1}
+        total={total}
+      />
+    </div>
   )
 }
 
@@ -1079,7 +1163,6 @@ function ActivityTable({
   loading,
   onClearFilters,
   onPageChange,
-  onPageSizeChange,
   onRetry,
 }: {
   data: PortalTeamActivityResponse | null
@@ -1088,7 +1171,6 @@ function ActivityTable({
   loading: boolean
   onClearFilters: () => void
   onPageChange: (page: number) => void
-  onPageSizeChange: (size: number) => void
   onRetry: () => void
 }) {
   if (loading && !data) {
@@ -1132,13 +1214,13 @@ function ActivityTable({
   return (
     <div className="flex flex-col gap-4">
       <div className="hidden md:block">
-        <Table className="**:data-[slot='table-cell']:px-4 **:data-[slot='table-head']:px-4">
-          <TableHeader className="[&_tr]:border-t">
+        <Table>
+          <TableHeader>
             <TableRow>
-              <TableHead className="py-4 font-normal">Actividad</TableHead>
-              <TableHead className="py-4 font-normal">Realizada por</TableHead>
-              <TableHead className="py-4 font-normal">Persona</TableHead>
-              <TableHead className="py-4 font-normal">Fecha</TableHead>
+              <TableHead>Actividad</TableHead>
+              <TableHead>Realizada por</TableHead>
+              <TableHead>Persona</TableHead>
+              <TableHead>Fecha</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -1160,26 +1242,16 @@ function ActivityTable({
           </div>
         ))}
       </div>
-      <div className="px-4 pb-4">
-        <TablePagination
-          canGoNext={data.page < pageCount}
-          canGoPrevious={data.page > 1}
-          itemLabel="eventos"
-          locale="es"
-          mode="detailed"
-          onFirstPage={() => onPageChange(1)}
-          onLastPage={() => onPageChange(pageCount)}
-          onNextPage={() => onPageChange(data.page + 1)}
-          onPageSizeChange={onPageSizeChange}
-          onPreviousPage={() => onPageChange(data.page - 1)}
-          page={data.page}
-          pageCount={pageCount}
-          pageSize={data.limit}
-          rangeEnd={Math.min(data.page * data.limit, data.total)}
-          rangeStart={(data.page - 1) * data.limit + 1}
-          total={data.total}
-        />
-      </div>
+      <TablePagination
+        canGoNext={data.page < pageCount}
+        canGoPrevious={data.page > 1}
+        itemLabel="eventos"
+        onNextPage={() => onPageChange(data.page + 1)}
+        onPreviousPage={() => onPageChange(data.page - 1)}
+        rangeEnd={Math.min(data.page * data.limit, data.total)}
+        rangeStart={(data.page - 1) * data.limit + 1}
+        total={data.total}
+      />
     </div>
   )
 }
@@ -1187,16 +1259,16 @@ function ActivityTable({
 function ActivityRow({ event }: { event: PortalTeamActivityEvent }) {
   return (
     <TableRow>
-      <TableCell className="py-4 font-medium">
+      <TableCell className="font-medium">
         {activityLabels[event.type]}
       </TableCell>
-      <TableCell className="py-4 text-sm text-muted-foreground">
+      <TableCell className="text-sm text-muted-foreground">
         {event.actorName ?? "Sistema"}
       </TableCell>
-      <TableCell className="py-4 text-sm text-muted-foreground">
+      <TableCell className="text-sm text-muted-foreground">
         {event.subjectName ?? "—"}
       </TableCell>
-      <TableCell className="py-4 text-sm text-muted-foreground">
+      <TableCell className="text-sm text-muted-foreground">
         {formatTeamDate(event.createdAt)}
       </TableCell>
     </TableRow>
@@ -1209,15 +1281,25 @@ function MemberAccessView({
   currentUserId,
   members,
   onClearSearch,
+  onPageChange,
+  page,
+  pageSize,
   query,
+  total,
 }: {
   accounts: PortalTeamsResponse["accounts"]
   currentMember: PortalTeamMember | undefined
   currentUserId: string
   members: PortalTeamMember[]
   onClearSearch: () => void
+  onPageChange: (page: number) => void
+  page: number
+  pageSize: number
   query: string
+  total: number
 }) {
+  const pageCount = Math.max(Math.ceil(total / pageSize), 1)
+
   return (
     <CardContent className="flex flex-col gap-4 px-0">
       <div className="grid gap-4 px-4 md:grid-cols-2">
@@ -1268,32 +1350,32 @@ function MemberAccessView({
             privados.
           </p>
         </div>
-        {members.length ? (
-          <>
+        {total ? (
+          <div className="flex flex-col gap-4">
             <div className="hidden md:block">
-              <Table className="**:data-[slot='table-cell']:px-4 **:data-[slot='table-head']:px-4">
-                <TableHeader className="[&_tr]:border-t">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableHead className="py-4 font-normal">Miembro</TableHead>
-                    <TableHead className="py-4 font-normal">Rol</TableHead>
-                    <TableHead className="py-4 font-normal">Se unió</TableHead>
+                    <TableHead>Miembro</TableHead>
+                    <TableHead>Rol</TableHead>
+                    <TableHead>Se unió</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {members.map((member) => (
                     <TableRow key={member.id}>
-                      <TableCell className="py-4">
+                      <TableCell>
                         <MemberIdentity
                           current={member.id === currentUserId}
                           member={member}
                         />
                       </TableCell>
-                      <TableCell className="py-4">
+                      <TableCell>
                         <Badge variant={roleMeta[member.role].variant}>
                           {roleMeta[member.role].label}
                         </Badge>
                       </TableCell>
-                      <TableCell className="py-4 text-sm text-muted-foreground">
+                      <TableCell className="text-sm text-muted-foreground">
                         {formatTeamDate(member.joinedAt)}
                       </TableCell>
                     </TableRow>
@@ -1317,7 +1399,17 @@ function MemberAccessView({
                 </div>
               ))}
             </div>
-          </>
+            <TablePagination
+              canGoNext={page < pageCount}
+              canGoPrevious={page > 1}
+              itemLabel="miembros"
+              onNextPage={() => onPageChange(page + 1)}
+              onPreviousPage={() => onPageChange(page - 1)}
+              rangeEnd={Math.min(page * pageSize, total)}
+              rangeStart={(page - 1) * pageSize + 1}
+              total={total}
+            />
+          </div>
         ) : (
           <EmptyState
             action={

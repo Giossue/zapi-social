@@ -43,5 +43,5 @@ La severidad vive en cada tabla como `success`, `warning` o `error`; no se crean
 - [x] Migración segura: `audit_logs` pasó a `api_audit_logs`, se añadieron sus campos y se crearon Web/Worker/Releases. Aplicada y verificada en `zapi_v2_local`; no se aplicó en remoto.
 - [ ] Contratos, redacción y escritura completa de Web/API/Worker. Base disponible: API registra automáticamente mutaciones y respuestas `4xx`/`5xx`; Web tiene endpoint autenticado; Worker registra el resultado de thumbnails. Faltan los demás jobs y eventos de interfaz relevantes.
 - [x] Consulta y permisos Platform Admin: `GET /v1/admin/audit-events` unifica los tres orígenes y exige Platform Admin.
-- [x] UI Admin inicial: `/admin/audit` incluye carga, vacío, error/reintento y tabla de línea temporal. El detalle redactado y filtros quedan pendientes.
+- [x] UI Admin inicial: `/admin/audit` incluye carga, vacío, error/reintento, búsqueda local, filtro por origen y paginación compacta sobre la línea temporal. El detalle redactado y los filtros avanzados de severidad, fecha, cuenta, workspace, acción, servicio y commit quedan pendientes.
 - [x] Typechecks de Database, Contracts, API, Worker, API Client y Web pasan. La migración remota y el despliegue siguen pendientes de ejecución y verificación según `docs/reglas/workflow.md`.

@@ -17,7 +17,6 @@ import {
   Plus,
   ReceiptText,
   RotateCcw,
-  Search,
   ShieldX,
   Tags,
   Trash2,
@@ -41,23 +40,19 @@ import {
 } from "@workspace/ui/components/alert-dialog"
 import { Button } from "@workspace/ui/components/button"
 import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
+  DataTableFilter,
+  DataTableHeader,
+  DataTableToolbar,
+} from "@workspace/ui/components/data-table-controls"
+import { Card, CardContent } from "@workspace/ui/components/card"
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog"
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@workspace/ui/components/sheet"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -67,22 +62,12 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { MetricCard } from "@workspace/ui/components/metric-card"
 import { Field, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupInput,
-} from "@workspace/ui/components/input-group"
 import { PageLoading } from "@workspace/ui/components/page-loading"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
+import { RetryButton } from "@workspace/ui/components/retry-button"
+import { Spinner } from "@workspace/ui/components/spinner"
 import {
   Table,
   TableBody,
@@ -1025,10 +1010,7 @@ const modules: Record<AdminModuleKey, Module> = {
 function StatusBadge({ label, tone }: { label: string; tone: Tone }) {
   if (tone === "success")
     return (
-      <Badge
-        className="border-success/20 bg-success/10 text-success"
-        variant="success"
-      >
+      <Badge variant="success">
         <span className="size-1.5 rounded-full bg-success" />
         {label}
       </Badge>
@@ -1108,7 +1090,7 @@ export function AdminModulePreview({
   const [search, setSearch] = React.useState("")
   const [status, setStatus] = React.useState("all")
   const [pageIndex, setPageIndex] = React.useState(0)
-  const [pageSize, setPageSize] = React.useState(10)
+  const pageSize = 10
   const [dialogOpen, setDialogOpen] = React.useState(false)
   const [editingRowId, setEditingRowId] = React.useState<string | null>(null)
   const [detailRow, setDetailRow] = React.useState<Row | null>(null)
@@ -1138,9 +1120,11 @@ export function AdminModulePreview({
   const rangeEnd = remote?.pagination.rangeEnd ?? 0
   const total = remote?.pagination.total ?? 0
   const metrics = remote
-    ? remote.metrics.map((metric, index) => ({
+    ? remote.metrics.map((metric) => ({
         ...metric,
-        icon: active.metrics[index]?.icon ?? CircleAlert,
+        icon:
+          active.metrics.find((candidate) => candidate.label === metric.label)
+            ?.icon ?? CircleAlert,
       }))
     : active.metrics
   const primaryAction = active.primaryAction
@@ -1195,9 +1179,9 @@ export function AdminModulePreview({
     return (
       <EmptyState
         action={
-          <Button onClick={() => setRefreshKey((current) => current + 1)}>
-            Reintentar
-          </Button>
+          <RetryButton
+            onClick={() => setRefreshKey((current) => current + 1)}
+          />
         }
         description={`No fue posible cargar ${moduleConfig.title.toLowerCase()}.`}
         icon={CircleAlert}
@@ -1226,29 +1210,15 @@ export function AdminModulePreview({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {moduleConfig.title}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {moduleConfig.description}
-          </p>
-        </div>
-        {primaryAction && PrimaryIcon ? (
-          <Button
-            onClick={() => {
-              setFormValues(primaryAction.fields.map(() => ""))
-              setEditingRowId(null)
-              setDialogOpen(true)
-            }}
-          >
-            <PrimaryIcon aria-hidden="true" data-icon="inline-start" />
-            {primaryAction.label}
-          </Button>
-        ) : null}
-      </div>
+    <div className="flex flex-col gap-4">
+      <header className="flex flex-col gap-1">
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {moduleConfig.title}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          {moduleConfig.description}
+        </p>
+      </header>
 
       {moduleConfig.tabs.length > 1 ? (
         <Tabs onValueChange={changeTab} value={activeTab}>
@@ -1263,76 +1233,55 @@ export function AdminModulePreview({
       ) : null}
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {metrics.map((metric) => {
-          const MetricIcon = metric.icon
-          return (
-            <Card key={metric.label} size="sm">
-              <CardHeader>
-                <CardTitle className="text-sm text-muted-foreground">
-                  {metric.label}
-                </CardTitle>
-                <CardAction>
-                  <MetricIcon
-                    aria-hidden="true"
-                    className="size-4 text-muted-foreground"
-                  />
-                </CardAction>
-              </CardHeader>
-              <CardContent className="space-y-1">
-                <p className="text-2xl font-semibold tracking-tight">
-                  {metric.value}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {metric.description}
-                </p>
-              </CardContent>
-            </Card>
-          )
-        })}
+        {metrics.map((metric) => (
+          <MetricCard key={metric.label} {...metric} />
+        ))}
       </div>
 
-      <Card>
-        <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
-          <CardTitle>{active.label}</CardTitle>
-          <CardDescription>{total} resultados en esta vista.</CardDescription>
-          <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-self-end">
-            <InputGroup className="w-full md:w-72">
-              <InputGroupAddon align="inline-start">
-                <Search className="size-3.5" />
-              </InputGroupAddon>
-              <InputGroupInput
-                placeholder={active.searchPlaceholder}
-                value={search}
-                onChange={(event) => {
-                  setSearch(event.target.value)
-                  setPageIndex(0)
+      <Card variant="subtle">
+        <DataTableHeader
+          action={
+            primaryAction && PrimaryIcon ? (
+              <Button
+                disabled={saving}
+                onClick={() => {
+                  setFormValues(primaryAction.fields.map(() => ""))
+                  setEditingRowId(null)
+                  setDialogOpen(true)
                 }}
-              />
-            </InputGroup>
-            <Select
+                size="sm"
+              >
+                <PrimaryIcon aria-hidden="true" data-icon="inline-start" />
+                {primaryAction.label}
+              </Button>
+            ) : undefined
+          }
+          search={{
+            ariaLabel: `Buscar en ${active.label}`,
+            onChange: (value) => {
+              setSearch(value)
+              setPageIndex(0)
+            },
+            placeholder: active.searchPlaceholder,
+            value: search,
+          }}
+        />
+        <CardContent className="flex flex-col gap-4 px-0">
+          <DataTableToolbar>
+            <DataTableFilter
+              ariaLabel="Filtrar por estado"
+              label="Estado"
               onValueChange={(value) => {
                 setStatus(value)
                 setPageIndex(0)
               }}
+              options={[
+                { label: "Todos los estados", value: "all" },
+                ...statuses.map((item) => ({ label: item, value: item })),
+              ]}
               value={status}
-            >
-              <SelectTrigger className="w-full md:w-40">
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="all">Todos los estados</SelectItem>
-                  {statuses.map((item) => (
-                    <SelectItem key={item} value={item}>
-                      {item}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </CardAction>
-        </CardHeader>
-        <CardContent className="px-0">
+            />
+          </DataTableToolbar>
           <Table>
             <TableHeader>
               <TableRow>
@@ -1388,6 +1337,7 @@ export function AdminModulePreview({
                             ) : null}
                             <DropdownMenuGroup>
                               <DropdownMenuItem
+                                disabled={saving}
                                 variant={
                                   action.kind === "destructive"
                                     ? "destructive"
@@ -1472,39 +1422,33 @@ export function AdminModulePreview({
               ) : null}
             </TableBody>
           </Table>
-        </CardContent>
-        <CardFooter className="border-t">
           <TablePagination
             canGoNext={currentPageIndex < pageCount - 1}
             canGoPrevious={currentPageIndex > 0}
             itemLabel="resultados"
-            mode="detailed"
-            onFirstPage={() => setPageIndex(0)}
-            onLastPage={() => setPageIndex(pageCount - 1)}
             onNextPage={() =>
               setPageIndex((current) => Math.min(current + 1, pageCount - 1))
             }
-            onPageSizeChange={(value) => {
-              setPageSize(value)
-              setPageIndex(0)
-            }}
             onPreviousPage={() =>
               setPageIndex((current) => Math.max(current - 1, 0))
             }
-            page={currentPageIndex + 1}
-            pageCount={pageCount}
-            pageSize={pageSize}
             rangeEnd={rangeEnd}
             rangeStart={rangeStart}
             total={total}
           />
-        </CardFooter>
+        </CardContent>
       </Card>
 
       {primaryAction ? (
-        <Dialog onOpenChange={setDialogOpen} open={dialogOpen}>
-          <DialogContent>
+        <Sheet
+          onOpenChange={(open) => {
+            if (!saving) setDialogOpen(open)
+          }}
+          open={dialogOpen}
+        >
+          <SheetContent className="w-full gap-0 p-0 sm:max-w-xl">
             <form
+              className="flex min-h-0 flex-1 flex-col"
               noValidate
               onSubmit={(event) => {
                 event.preventDefault()
@@ -1535,62 +1479,69 @@ export function AdminModulePreview({
                   .finally(() => setSaving(false))
               }}
             >
-              <DialogHeader>
-                <DialogTitle>{primaryAction.dialogTitle}</DialogTitle>
-                <DialogDescription>
+              <SheetHeader className="border-b pr-12">
+                <SheetTitle>{primaryAction.dialogTitle}</SheetTitle>
+                <SheetDescription>
                   {primaryAction.dialogDescription}
-                </DialogDescription>
-              </DialogHeader>
-              <FieldGroup className="py-4">
-                {primaryAction.fields.map((field, index) => (
-                  <Field key={field}>
-                    <RequiredLabel>{field}</RequiredLabel>
-                    <Input
-                      aria-required="true"
-                      name={`field-${index}`}
-                      onChange={(event) =>
-                        setFormValues((current) =>
-                          current.map((value, valueIndex) =>
-                            valueIndex === index ? event.target.value : value
+                </SheetDescription>
+              </SheetHeader>
+              <div className="min-h-0 flex-1 overflow-y-auto p-4">
+                <FieldGroup>
+                  {primaryAction.fields.map((field, index) => (
+                    <Field key={field}>
+                      <RequiredLabel>{field}</RequiredLabel>
+                      <Input
+                        aria-required="true"
+                        name={`field-${index}`}
+                        onChange={(event) =>
+                          setFormValues((current) =>
+                            current.map((value, valueIndex) =>
+                              valueIndex === index ? event.target.value : value
+                            )
                           )
-                        )
-                      }
-                      placeholder={field}
-                      value={formValues[index] ?? ""}
-                    />
-                  </Field>
-                ))}
-              </FieldGroup>
-              <DialogFooter>
-                <DialogClose asChild>
-                  <Button type="button" variant="brand-secondary">
-                    Cancelar
-                  </Button>
-                </DialogClose>
-                <Button disabled={!formComplete || saving} type="submit">
-                  <Plus aria-hidden="true" data-icon="inline-start" />
-                  Guardar
+                        }
+                        placeholder={field}
+                        value={formValues[index] ?? ""}
+                      />
+                    </Field>
+                  ))}
+                </FieldGroup>
+              </div>
+              <SheetFooter className="flex-row justify-end border-t">
+                <Button
+                  disabled={saving}
+                  onClick={() => setDialogOpen(false)}
+                  type="button"
+                  variant="brand-secondary"
+                >
+                  Cancelar
                 </Button>
-              </DialogFooter>
+                <Button disabled={!formComplete || saving} type="submit">
+                  {saving ? (
+                    <Spinner data-icon="inline-start" />
+                  ) : (
+                    <Plus aria-hidden="true" data-icon="inline-start" />
+                  )}
+                  {saving ? "Guardando..." : "Guardar"}
+                </Button>
+              </SheetFooter>
             </form>
-          </DialogContent>
-        </Dialog>
+          </SheetContent>
+        </Sheet>
       ) : null}
 
-      <Dialog
+      <Sheet
         onOpenChange={(open) => !open && setDetailRow(null)}
         open={detailRow !== null}
       >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {detailRow?.cells[0]?.primary ?? "Detalle"}
-            </DialogTitle>
-            <DialogDescription>
+        <SheetContent className="w-full gap-0 p-0 sm:max-w-xl">
+          <SheetHeader className="border-b pr-12">
+            <SheetTitle>{detailRow?.cells[0]?.primary ?? "Detalle"}</SheetTitle>
+            <SheetDescription>
               Información registrada en esta sección administrativa.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-3 py-2">
+            </SheetDescription>
+          </SheetHeader>
+          <div className="grid min-h-0 flex-1 gap-3 overflow-y-auto p-4">
             {detailRow?.cells.map((cell, index) => (
               <div className="grid gap-0.5" key={`${cell.primary}-${index}`}>
                 <span className="text-xs text-muted-foreground">
@@ -1607,16 +1558,21 @@ export function AdminModulePreview({
               </div>
             ))}
           </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="brand-secondary">Cerrar</Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          <SheetFooter className="flex-row justify-end border-t">
+            <Button
+              onClick={() => setDetailRow(null)}
+              variant="brand-secondary"
+            >
+              Cerrar
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       <AlertDialog
-        onOpenChange={(open) => !open && setPendingDestructive(null)}
+        onOpenChange={(open) => {
+          if (!open && !saving) setPendingDestructive(null)
+        }}
         open={pendingDestructive !== null}
       >
         <AlertDialogContent>
@@ -1629,30 +1585,34 @@ export function AdminModulePreview({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel variant="brand-secondary">
+            <AlertDialogCancel disabled={saving} variant="brand-secondary">
               Cancelar
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => {
+              disabled={saving}
+              onClick={(event) => {
+                event.preventDefault()
                 const pending = pendingDestructive
-                if (!pending) return
+                if (!pending || saving) return
                 setSaving(true)
                 void adminOperationsApi
                   .action(moduleKey, activeTab, pending.id, pending.actionKey)
                   .then((result) => {
                     toast.success(result.message)
                     setRefreshKey((current) => current + 1)
-                  })
-                  .catch(() => toast.error("No se pudo aplicar la acción."))
-                  .finally(() => {
-                    setSaving(false)
                     setPendingDestructive(null)
                   })
+                  .catch(() => toast.error("No se pudo aplicar la acción."))
+                  .finally(() => setSaving(false))
               }}
               variant="destructive"
             >
-              <Trash2 data-icon="inline-start" />
-              Confirmar
+              {saving ? (
+                <Spinner data-icon="inline-start" />
+              ) : (
+                <Trash2 data-icon="inline-start" />
+              )}
+              {saving ? "Aplicando..." : "Confirmar"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
