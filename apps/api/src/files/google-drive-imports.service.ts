@@ -8,6 +8,7 @@ import {
   type PortalAuthSession,
 } from '@workspace/contracts';
 import {
+  apiAuditLogs,
   fileFolders,
   fileImportBatches,
   fileImportItems,
@@ -33,8 +34,34 @@ export class GoogleDriveImportsService {
   ) {}
 
   async getProvider(session: Promise<PortalAuthSession>) {
-    await session;
-    return this.integrations.readGoogleDrivePortalConfiguration();
+    const auth = await session;
+    const provider =
+      await this.integrations.readGoogleDrivePortalConfiguration();
+    const configurationFingerprint =
+      provider.oauthClientId && provider.browserApiKey && provider.appId
+        ? createHash('sha256')
+            .update(
+              `${provider.oauthClientId}\u0000${provider.browserApiKey}\u0000${provider.appId}`,
+            )
+            .digest('hex')
+        : null;
+
+    await this.database.db.insert(apiAuditLogs).values({
+      workspaceId: auth.workspace.id,
+      actorUserId: auth.user.id,
+      event: 'google_drive.provider_configuration_delivered',
+      severity: provider.enabled ? 'success' : 'warning',
+      outcome: provider.enabled ? 'succeeded' : 'unavailable',
+      summary: provider.enabled
+        ? 'Google Drive configuration delivered to Portal.'
+        : 'Google Drive is unavailable in Portal.',
+      metadata: {
+        enabled: provider.enabled,
+        configurationFingerprint,
+      },
+    });
+
+    return provider;
   }
 
   async createBatch(

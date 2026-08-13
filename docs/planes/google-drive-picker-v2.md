@@ -176,6 +176,9 @@ Crear la composición nueva primero en
 - Antes de abrir Picker, Portal vuelve a consultar la configuración efectiva del
   proveedor; Files y Publishing no reutilizan credenciales mantenidas en memoria
   desde una carga anterior de la página.
+- Esa lectura usa `no-store` en cliente y servidor. La API audita únicamente una
+  huella SHA-256 de la configuración entregada para poder compararla con la
+  versión probada sin registrar Client ID, API key ni App ID.
 - Web responde con `Cross-Origin-Opener-Policy: same-origin-allow-popups` para
   conservar la comunicación entre la ventana principal y el popup OAuth de
   Google Identity Services.

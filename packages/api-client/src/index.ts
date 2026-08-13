@@ -515,7 +515,7 @@ export const filesApi = {
   googleDriveProvider: () =>
     request<PortalGoogleDriveConfiguration>(
       "/v1/portal/files/providers/google-drive",
-      { method: "GET" }
+      { method: "GET", cache: "no-store" }
     ),
   createGoogleDriveImport: (input: CreateGoogleDriveImportBatchInput) =>
     request<GoogleDriveImportBatch>("/v1/portal/files/imports/google-drive", {

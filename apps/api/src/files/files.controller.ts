@@ -164,7 +164,11 @@ export class GoogleDriveFilesController {
   ) {}
 
   @Get('providers/google-drive')
-  provider(@Req() request: FastifyRequest) {
+  async provider(
+    @Req() request: FastifyRequest,
+    @Res({ passthrough: true }) reply: FastifyReply,
+  ) {
+    reply.header('cache-control', 'no-store, private');
     return this.imports.getProvider(this.access.requirePortalSession(request));
   }
 
