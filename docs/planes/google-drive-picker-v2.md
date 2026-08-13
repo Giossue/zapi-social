@@ -176,6 +176,9 @@ Crear la composición nueva primero en
 - Antes de abrir Picker, Portal vuelve a consultar la configuración efectiva del
   proveedor; Files y Publishing no reutilizan credenciales mantenidas en memoria
   desde una carga anterior de la página.
+- Web responde con `Cross-Origin-Opener-Policy: same-origin-allow-popups` para
+  conservar la comunicación entre la ventana principal y el popup OAuth de
+  Google Identity Services.
 - Picker filtra únicamente imágenes y vídeos admitidos por Files y permite
   multiselección.
 - Al confirmar, se crea un lote cuyo `folderId` es la carpeta abierta.
