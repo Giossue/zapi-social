@@ -25,6 +25,8 @@ acciones solicitadas; evita proveedor alternativo y no expone la clave secreta.
 
 - El token se entrega una vez a Siteverify desde API, con `remoteip`, timeout
   de 5 segundos y sin loguearlo.
+- El widget se renderiza explícitamente desde el callback de carga del script;
+  no usa `turnstile.ready()` con el cargador asíncrono de Next.
 - Tokens inválidos, vencidos o usados producen `AUTH_CAPTCHA_INVALID`; caída
   de proveedor o configuración inconsistente produce `AUTH_CAPTCHA_UNAVAILABLE`.
 - Activar sin clave pública y secreta se rechaza. Deshabilitar conserva las

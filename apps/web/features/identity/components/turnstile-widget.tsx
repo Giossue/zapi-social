@@ -15,7 +15,6 @@ type TurnstileOptions = {
 }
 
 type TurnstileApi = {
-  ready: (callback: () => void) => void
   render: (container: HTMLElement, options: TurnstileOptions) => string
   reset: (widgetId: string) => void
   remove: (widgetId: string) => void
@@ -59,19 +58,16 @@ export function TurnstileWidget({
     const turnstile = window.turnstile
     if (container === null || !turnstile || currentWidgetId(widgetRef)) return
 
-    turnstile.ready(() => {
-      if (currentWidgetId(widgetRef)) return
-      widgetRef.current.id = turnstile.render(container, {
-        sitekey: siteKey,
-        theme: "auto",
-        size: "flexible",
-        callback: onTokenChange,
-        "error-callback": () => {
-          onTokenChange("")
-          onError()
-        },
-        "expired-callback": () => onTokenChange(""),
-      })
+    widgetRef.current.id = turnstile.render(container, {
+      sitekey: siteKey,
+      theme: "auto",
+      size: "flexible",
+      callback: onTokenChange,
+      "error-callback": () => {
+        onTokenChange("")
+        onError()
+      },
+      "expired-callback": () => onTokenChange(""),
     })
   }, [onError, onTokenChange, siteKey])
 
