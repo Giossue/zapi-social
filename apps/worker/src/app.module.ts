@@ -48,6 +48,9 @@ import { PUBLISHING_DELIVERY_QUEUE } from './publishing/publishing.constants';
 import { PublishingDeliveryProcessor } from './publishing/publishing-delivery.processor';
 import { PublishingDeliveryScheduler } from './publishing/publishing-delivery.scheduler';
 import { PublishingMediaPreparationService } from './publishing/publishing-media-preparation.service';
+import { FILE_IMPORTS_QUEUE } from './files/file-imports.constants';
+import { GoogleDriveImportProcessor } from './files/google-drive-import.processor';
+import { FileImportsScheduler } from './files/file-imports.scheduler';
 
 @Module({
   imports: [
@@ -76,6 +79,7 @@ import { PublishingMediaPreparationService } from './publishing/publishing-media
       { name: AI_SCHEDULE_DISPATCH_QUEUE },
       { name: AUTOMATION_WEBHOOK_QUEUE },
       { name: PUBLISHING_DELIVERY_QUEUE },
+      { name: FILE_IMPORTS_QUEUE },
     ),
   ],
   providers: [
@@ -104,6 +108,8 @@ import { PublishingMediaPreparationService } from './publishing/publishing-media
     PublishingDeliveryProcessor,
     PublishingDeliveryScheduler,
     PublishingMediaPreparationService,
+    GoogleDriveImportProcessor,
+    FileImportsScheduler,
   ],
 })
 export class AppModule {}

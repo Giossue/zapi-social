@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Check, Image, Search, Video } from "lucide-react"
+import { Check, HardDriveDownload, Image, Search, Video } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -21,6 +21,7 @@ import {
   ToggleGroupItem,
 } from "@workspace/ui/components/toggle-group"
 import type { PublishingMediaAsset } from "@/features/publishing/types/publishing-calendar"
+import { Spinner } from "@workspace/ui/components/spinner"
 
 type MediaKind = "image" | "video"
 
@@ -35,6 +36,10 @@ type PublishingMediaPickerProps = {
   assets: PublishingMediaAsset[]
   onChange: (assetId: string | null) => void
   selectedAssetId: string | null
+  driveEnabled?: boolean
+  driveOpening?: boolean
+  driveImportStatus?: "pending" | "processing" | "failed"
+  onImportFromDrive?: () => void
 }
 
 export function PublishingMediaPicker({
@@ -42,6 +47,10 @@ export function PublishingMediaPicker({
   assets,
   onChange,
   selectedAssetId,
+  driveEnabled = false,
+  driveOpening = false,
+  driveImportStatus,
+  onImportFromDrive,
 }: PublishingMediaPickerProps) {
   const [kind, setKind] = useState<MediaKind | "all">("all")
   const [query, setQuery] = useState("")
@@ -94,6 +103,44 @@ export function PublishingMediaPicker({
             ))}
           </ToggleGroup>
         </div>
+        {driveEnabled ? (
+          <Button
+            disabled={
+              driveOpening ||
+              driveImportStatus === "processing" ||
+              driveImportStatus === "pending"
+            }
+            onClick={onImportFromDrive}
+            type="button"
+            variant="brand-secondary"
+          >
+            {driveOpening ? (
+              <Spinner data-icon="inline-start" />
+            ) : (
+              <HardDriveDownload data-icon="inline-start" />
+            )}
+            {driveOpening ? "Abriendo Google" : "Importar desde Google Drive"}
+          </Button>
+        ) : null}
+        {driveImportStatus ? (
+          <Card size="sm" variant="surface">
+            <CardContent className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium">
+                  {driveImportStatus === "failed"
+                    ? "No se pudo importar desde Google Drive"
+                    : "Importando desde Google Drive"}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {driveImportStatus === "failed"
+                    ? "Elige otro archivo para intentarlo de nuevo."
+                    : "El archivo se guardará en Files y se seleccionará al terminar."}
+                </p>
+              </div>
+              {driveImportStatus === "failed" ? null : <Spinner />}
+            </CardContent>
+          </Card>
+        ) : null}
         {visibleAssets.length ? (
           <div
             aria-label="Media de la publicación"

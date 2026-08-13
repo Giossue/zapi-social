@@ -7,6 +7,7 @@ import { IntegrationAvailabilityCard } from "./integration-availability-card"
 import { IntegrationCardLoading } from "./integration-card-loading"
 import { IntegrationInsetCard } from "./integration-inset-card"
 import { PolarIntegrationPreview } from "./polar-integration-card"
+import { GoogleDriveIntegrationCard } from "./google-drive-integration-card"
 import type { MetaIntegration } from "@workspace/contracts"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -131,7 +132,7 @@ type Draft = {
 }
 
 type TestState = "not-tested" | "testing" | "passed" | "failed"
-type ProviderTab = "meta" | "whatsapp" | "email" | "polar"
+type ProviderTab = "meta" | "whatsapp" | "email" | "polar" | "google-drive"
 
 const statusCopy = {
   ready: { label: "Listo", variant: "success" as const },
@@ -406,6 +407,7 @@ export function IntegrationsPage() {
             <TabsTrigger value="whatsapp">WhatsApp Status</TabsTrigger>
             <TabsTrigger value="email">Correo SMTP</TabsTrigger>
             <TabsTrigger value="polar">Polar.sh</TabsTrigger>
+            <TabsTrigger value="google-drive">Google Drive</TabsTrigger>
           </TabsList>
         </Tabs>
         <IntegrationCardLoading />
@@ -428,6 +430,7 @@ export function IntegrationsPage() {
             <TabsTrigger value="whatsapp">WhatsApp Status</TabsTrigger>
             <TabsTrigger value="email">Correo SMTP</TabsTrigger>
             <TabsTrigger value="polar">Polar.sh</TabsTrigger>
+            <TabsTrigger value="google-drive">Google Drive</TabsTrigger>
           </TabsList>
         </Tabs>
         <Card variant="subtle">
@@ -473,6 +476,7 @@ export function IntegrationsPage() {
           <TabsTrigger value="whatsapp">WhatsApp Status</TabsTrigger>
           <TabsTrigger value="email">Correo SMTP</TabsTrigger>
           <TabsTrigger value="polar">Polar.sh</TabsTrigger>
+          <TabsTrigger value="google-drive">Google Drive</TabsTrigger>
         </TabsList>
       </Tabs>
 
@@ -622,6 +626,8 @@ export function IntegrationsPage() {
         <WhatsAppStatusIntegrationCard />
       ) : activeProvider === "email" ? (
         <EmailSmtpIntegrationCard />
+      ) : activeProvider === "google-drive" ? (
+        <GoogleDriveIntegrationCard />
       ) : (
         <PolarIntegrationPreview />
       )}

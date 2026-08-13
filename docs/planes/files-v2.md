@@ -8,6 +8,11 @@ La base local registra hasta `0015_lyrical_cargill`: `publishing_posts` y `publi
 
 No se implementa ninguna de las fases siguientes hasta aprobar explícitamente este plan.
 
+Google Drive ya dispone de Picker oficial, importación durable mediante Worker,
+destino en la carpeta abierta y reutilización desde Publishing. La configuración,
+contratos, seguridad, evidencia y pendientes de smoke real se mantienen en
+[`google-drive-picker-v2.md`](./google-drive-picker-v2.md).
+
 ## Fuentes de verdad
 
 - `../ZapiV2`: destino de contrato, API, Worker, persistencia y Portal.
@@ -25,22 +30,22 @@ No se implementa ninguna de las fases siguientes hasta aprobar explícitamente e
 
 ## Estado actual comprobado
 
-| Capacidad                    | Estado actual                                                                                                                                                                                                                              |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Jerarquía                    | `file_folders.parent_folder_id`; root, subcarpetas y breadcrumb implementados.                                                                                                                                                             |
-| Carga                        | Crea asset `pending`, recibe binario por stream, escribe al volumen local y confirma `ready`; borra temporal y pendiente si falla. Máximo actual: 100 MB.                                                                                  |
-| Validación                   | La extensión y MIME declarado sólo autorizan el inicio; tras el stream se verifica una firma/magic byte compatible antes de pasar a `ready`. Incluye imágenes, media, PDF, OLE/Office, ZIP/ODF, RTF, TAR/GZip/7z/RAR y texto estructurado. |
-| Papelera                     | `DELETE` lógico, `POST restore` y `DELETE purge` para archivos y carpetas. Las carpetas operan sobre todo el descendiente; restore conserva el padre cuando sigue activo o vuelve a raíz.                                                  |
-| Seguridad de árbol           | Un movimiento de carpeta comprueba workspace, padre activo, ciclo hacia sí misma/descendientes y nombre único entre hermanos sin distinguir mayúsculas.                                                                                    |
-| Derivados                    | `GET /v1/portal/files/:id/thumbnail` sirve WebP autenticado; Web usa esa URL sólo cuando el estado es `ready`, con icono como fallback.                                                                                                    |
+| Capacidad                    | Estado actual                                                                                                                                                                                                                                                                                                      |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Jerarquía                    | `file_folders.parent_folder_id`; root, subcarpetas y breadcrumb implementados.                                                                                                                                                                                                                                     |
+| Carga                        | Crea asset `pending`, recibe binario por stream, escribe al volumen local y confirma `ready`; borra temporal y pendiente si falla. Máximo actual: 100 MB.                                                                                                                                                          |
+| Validación                   | La extensión y MIME declarado sólo autorizan el inicio; tras el stream se verifica una firma/magic byte compatible antes de pasar a `ready`. Incluye imágenes, media, PDF, OLE/Office, ZIP/ODF, RTF, TAR/GZip/7z/RAR y texto estructurado.                                                                         |
+| Papelera                     | `DELETE` lógico, `POST restore` y `DELETE purge` para archivos y carpetas. Las carpetas operan sobre todo el descendiente; restore conserva el padre cuando sigue activo o vuelve a raíz.                                                                                                                          |
+| Seguridad de árbol           | Un movimiento de carpeta comprueba workspace, padre activo, ciclo hacia sí misma/descendientes y nombre único entre hermanos sin distinguir mayúsculas.                                                                                                                                                            |
+| Derivados                    | `GET /v1/portal/files/:id/thumbnail` sirve WebP autenticado; Web usa esa URL sólo cuando el estado es `ready`, con icono como fallback.                                                                                                                                                                            |
 | Despliegue                   | `infra/podman/compose.apps.yaml` declara `files-data` en el mismo `FILES_STORAGE_PATH` para API y Worker; `Dockerfile.worker` instala `ffmpeg`. Falta verificar esta configuración en Dokploy: el 2026-08-04 producción conserva 13 assets `pending`, que no se deben forzar a `ready` sin comprobar sus binarios. |
-| Favorito                     | `file_assets.starred`, expuesto y conectado a Portal.                                                                                                                                                                                      |
-| Movimiento                   | `PATCH /v1/portal/files/:id` ya permite cambiar `folderId`; falta UI y validación de destino más completa.                                                                                                                                 |
-| Papelera                     | `DELETE /v1/portal/files/:id` marca archivo como `trashed`; falta UI, restauración, purga y carpetas.                                                                                                                                      |
-| Renombre                     | API de carpetas existe; no hay renombre de archivo ni UI.                                                                                                                                                                                  |
-| Descarga                     | Endpoint autenticado implementado.                                                                                                                                                                                                         |
-| Preview, player y miniaturas | No implementados. El grid usa iconos de tipo.                                                                                                                                                                                              |
-| Tipos permitidos             | No hay allowlist server-side; no se debe confiar en MIME declarado por navegador.                                                                                                                                                          |
+| Favorito                     | `file_assets.starred`, expuesto y conectado a Portal.                                                                                                                                                                                                                                                              |
+| Movimiento                   | `PATCH /v1/portal/files/:id` ya permite cambiar `folderId`; falta UI y validación de destino más completa.                                                                                                                                                                                                         |
+| Papelera                     | `DELETE /v1/portal/files/:id` marca archivo como `trashed`; falta UI, restauración, purga y carpetas.                                                                                                                                                                                                              |
+| Renombre                     | API de carpetas existe; no hay renombre de archivo ni UI.                                                                                                                                                                                                                                                          |
+| Descarga                     | Endpoint autenticado implementado.                                                                                                                                                                                                                                                                                 |
+| Preview, player y miniaturas | No implementados. El grid usa iconos de tipo.                                                                                                                                                                                                                                                                      |
+| Tipos permitidos             | No hay allowlist server-side; no se debe confiar en MIME declarado por navegador.                                                                                                                                                                                                                                  |
 
 ## Alcance de cierre
 
@@ -124,6 +129,8 @@ La implementación visual se hace primero en `diseño ideal` y se copia literalm
 ### 6. Integración con Publishing
 
 - El selector de media no muestra `trashed`, `pending` ni archivos fuera del workspace.
+- Google Drive importa primero a `file_assets`: Files usa la carpeta abierta y
+  Publishing usa raíz. Ningún post conserva URLs ni tokens de Google.
 - Publicar o programar conserva una referencia durable al asset, no una URL local.
 - Antes de enviar a papelera, API consulta referencias activas de Publishing y devuelve un error de dominio explicable al usuario.
 - La restauración deja el archivo disponible otra vez sin cambiar IDs ni romper publicaciones existentes.
@@ -142,7 +149,10 @@ La implementación visual se hace primero en `diseño ideal` y se copia literalm
 
 ## Fuera de alcance de este cierre
 
-- Enlaces públicos, compartición externa, búsquedas online, Drive/Dropbox/OneDrive, S3/MinIO, antivirus, OCR, edición de imágenes, edición de vídeo, transcodificación y conversión de Office.
+- Enlaces públicos, compartición externa, búsquedas online, Dropbox/OneDrive,
+  S3/MinIO, antivirus, OCR, edición de imágenes, edición de vídeo,
+  transcodificación y conversión de Office. Google Drive tiene un plan separado
+  y no forma parte del cierre base de Files.
 - Migración de archivos históricos desde Laravel.
 - Cuotas por plan, salvo que producto lo solicite en un plan separado.
 

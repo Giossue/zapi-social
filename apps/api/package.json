@@ -46,6 +46,7 @@
     "@react-email/render": "^2.1.0",
     "@workspace/contracts": "workspace:*",
     "@workspace/database": "workspace:*",
+    "@workspace/file-ingestion": "workspace:*",
     "argon2": "^0.45.1",
     "bullmq": "^5",
     "drizzle-orm": "^0.45.1",

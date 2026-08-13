@@ -115,6 +115,13 @@ import type {
   AdminAiRoute,
   AdminAiUsage,
   ArchivePortalAiRequestInput,
+  GoogleDriveIntegration,
+  TestGoogleDriveIntegrationInput,
+  TestGoogleDriveIntegrationResponse,
+  UpdateGoogleDriveIntegrationInput,
+  PortalGoogleDriveConfiguration,
+  CreateGoogleDriveImportBatchInput,
+  GoogleDriveImportBatch,
   CreateAdminAiModelInput,
   PortalAiDashboard,
   PortalAiDraftResult,
@@ -505,6 +512,20 @@ export const filesApi = {
       )
     }
   },
+  googleDriveProvider: () =>
+    request<PortalGoogleDriveConfiguration>(
+      "/v1/portal/files/providers/google-drive",
+      { method: "GET" }
+    ),
+  createGoogleDriveImport: (input: CreateGoogleDriveImportBatchInput) =>
+    request<GoogleDriveImportBatch>("/v1/portal/files/imports/google-drive", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  googleDriveImport: (id: string) =>
+    request<GoogleDriveImportBatch>(`/v1/portal/files/imports/${id}`, {
+      method: "GET",
+    }),
 }
 
 function portalPublishingQueryString(
@@ -1140,6 +1161,20 @@ export const channelConnectionsApi = {
 }
 
 export const integrationsApi = {
+  getGoogleDrive: () =>
+    request<GoogleDriveIntegration>("/v1/admin/integrations/google-drive", {
+      method: "GET",
+    }),
+  testGoogleDrive: (input: TestGoogleDriveIntegrationInput) =>
+    request<TestGoogleDriveIntegrationResponse>(
+      "/v1/admin/integrations/google-drive/test",
+      { method: "POST", body: JSON.stringify(input) }
+    ),
+  saveGoogleDrive: (input: UpdateGoogleDriveIntegrationInput) =>
+    request<GoogleDriveIntegration>("/v1/admin/integrations/google-drive", {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
   getMeta: () =>
     request<MetaIntegration>("/v1/admin/integrations/meta", { method: "GET" }),
   testMeta: (input: TestMetaIntegrationInput) =>

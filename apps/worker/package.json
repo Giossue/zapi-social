@@ -28,6 +28,7 @@
     "@nestjs/platform-express": "^11.0.1",
     "@workspace/contracts": "workspace:*",
     "@workspace/database": "workspace:*",
+    "@workspace/file-ingestion": "workspace:*",
     "bullmq": "^5",
     "ioredis": "^5.11.1",
     "nestjs-pino": "^4.6.1",

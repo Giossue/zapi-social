@@ -89,6 +89,11 @@ La migración `0020_mushy_peter_parker` añade intentos, procedencia/resultados 
   icono semántico y contexto breve por estado, igual que AI Publishing.
 - Las mutaciones confirman con toast y preservan estados loading/empty/error.
 - El compositor usa `noValidate`, marca campos obligatorios, bloquea el submit incompleto y muestra `Spinner` durante la mutación; eliminar un borrador exige confirmación con `AlertDialog`.
+- Google Drive está integrado como origen de importación dentro del selector de
+  media. El compositor recibe únicamente assets `ready` de Files, importa a raíz
+  y selecciona automáticamente el asset final. El flujo durable y sus pendientes
+  de configuración/smoke se especifican en
+  [`google-drive-picker-v2.md`](./google-drive-picker-v2.md).
 - `/portal/ai-publishing` ya tiene un mockup source-first con métricas, búsqueda, filtros, listado y sheet de automatización. Conserva fixtures hasta conectarse a los endpoints `aiApi.*PublishingSchedule`.
 - Las métricas de AI Publishing siguen el patrón de `/admin/users`: cards `subtle` individuales con etiqueta e icono en el header, valor y contexto breve en el contenido. La tabla de automatizaciones sigue siendo la superficie principal; no cambia sus acciones mock ni el pendiente REST.
 
@@ -104,5 +109,7 @@ La migración `0020_mushy_peter_parker` añade intentos, procedencia/resultados 
 - [x] `0020_mushy_peter_parker` y `0021_pale_thor` aplicadas localmente; existen `publishing_post_attempts`, FKs compuestas y pasan typechecks de Database, Contracts, API Client, API y Worker.
 - [x] Pruebas locales RSS 2/2 y Support/Watermarks 2/2; lint focalizado del código nuevo API/Worker sin errores.
 - [ ] Smoke real por provider y verificación de scopes/tokens en entorno de prueba.
+- [x] Google Picker conectado a Files y al compositor, con importación durable,
+      polling, destino raíz y auto-selección; typecheck/build V2 aprobados.
 - [ ] Aprobaciones, campañas, labels, cuotas y autorización por `managed_account_ids`.
 - [ ] LinkedIn, X y TikTok sólo después de aprobar contratos y credenciales correspondientes.

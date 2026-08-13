@@ -1,7 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { type FormEvent, useMemo, useRef, useState } from "react"
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react"
 import {
   CalendarClock,
   CalendarDays,
@@ -33,10 +33,15 @@ import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { ApiError, publishingApi } from "@workspace/api-client"
+import { ApiError, filesApi, publishingApi } from "@workspace/api-client"
+import type {
+  GoogleDriveImportBatch,
+  PortalGoogleDriveConfiguration,
+} from "@workspace/contracts"
 import { PublishingAccountPicker } from "@/features/publishing/components/publishing-account-picker"
 import { PublishingCalendar } from "@/features/publishing/components/publishing-calendar"
 import { PublishingMediaPicker } from "@/features/publishing/components/publishing-media-picker"
+import { openGoogleDrivePicker } from "@/features/files/components/google-drive-picker"
 import { PublishingNetworkPreview } from "@/features/publishing/components/publishing-network-preview"
 import {
   PublishingMetrics,
@@ -46,6 +51,7 @@ import { PublishingSchedulePicker } from "@/features/publishing/components/publi
 import type {
   PublishingAccount,
   PublishingCalendarData,
+  PublishingMediaAsset,
   PublishingPost,
 } from "@/features/publishing/types/publishing-calendar"
 
@@ -100,6 +106,7 @@ function ComposerDialog({
   initialScheduledDate,
   onClose,
   onSave,
+  onMediaImported,
   media,
   open,
 }: {
@@ -114,7 +121,8 @@ function ComposerDialog({
     mode: ComposerMode
     scheduledAt: string
   }) => Promise<void>
-  media: PublishingCalendarData["media"]
+  onMediaImported: (asset: PublishingMediaAsset) => void
+  media: PublishingMediaAsset[]
   open: boolean
 }) {
   const [content, setContent] = useState(() => editingPost?.content ?? "")
@@ -137,6 +145,14 @@ function ComposerDialog({
     string | null
   >(null)
   const [pending, setPending] = useState(false)
+  const [availableMedia, setAvailableMedia] = useState(media)
+  const [driveProvider, setDriveProvider] =
+    useState<PortalGoogleDriveConfiguration | null>(null)
+  const [driveBatch, setDriveBatch] = useState<GoogleDriveImportBatch | null>(
+    null
+  )
+  const [openingDrive, setOpeningDrive] = useState(false)
+  const handledDriveBatch = useRef<string | null>(null)
   const hasMedia = selectedMediaAssetId !== null
   const selected = accounts.filter((account) =>
     selectedAccounts.includes(account.id)
@@ -151,6 +167,97 @@ function ComposerDialog({
     (!requiresMedia || hasMedia) &&
     (mode !== "schedule" || Boolean(scheduledDate && scheduledTime)) &&
     !pending
+
+  useEffect(() => {
+    void filesApi
+      .googleDriveProvider()
+      .then(setDriveProvider)
+      .catch(() =>
+        setDriveProvider({
+          enabled: false,
+          oauthClientId: null,
+          browserApiKey: null,
+          appId: null,
+        })
+      )
+  }, [])
+
+  useEffect(() => {
+    if (!driveBatch) return
+    const terminal = ["completed", "partial", "failed", "expired"].includes(
+      driveBatch.status
+    )
+    if (!terminal) {
+      const timer = window.setTimeout(() => {
+        void filesApi
+          .googleDriveImport(driveBatch.id)
+          .then(setDriveBatch)
+          .catch(() => undefined)
+      }, 1500)
+      return () => window.clearTimeout(timer)
+    }
+    if (handledDriveBatch.current === driveBatch.id) return
+    handledDriveBatch.current = driveBatch.id
+    const fileAssetId = driveBatch.items.find(
+      (item) => item.status === "completed"
+    )?.fileAssetId
+    if (!fileAssetId) {
+      toast.error("No pudimos importar el archivo desde Google Drive.")
+      return
+    }
+    void publishingApi
+      .list({ mediaLimit: 200 })
+      .then((data) => {
+        const asset = data.media.find((item) => item.id === fileAssetId)
+        if (!asset) throw new Error("Imported asset not found")
+        setAvailableMedia((current) => [
+          asset,
+          ...current.filter((item) => item.id !== asset.id),
+        ])
+        setSelectedMediaAssetId(asset.id)
+        onMediaImported(asset)
+        setDriveBatch(null)
+        toast.success("Archivo de Google Drive importado y seleccionado.")
+      })
+      .catch(() =>
+        toast.error("El archivo se importó, pero no pudimos seleccionarlo.")
+      )
+  }, [driveBatch, onMediaImported])
+
+  async function importFromGoogleDrive() {
+    if (
+      !driveProvider?.enabled ||
+      !driveProvider.oauthClientId ||
+      !driveProvider.browserApiKey ||
+      !driveProvider.appId
+    )
+      return
+    setOpeningDrive(true)
+    try {
+      const picked = await openGoogleDrivePicker({
+        configuration: {
+          oauthClientId: driveProvider.oauthClientId,
+          browserApiKey: driveProvider.browserApiKey,
+          appId: driveProvider.appId,
+        },
+        multiselect: false,
+      })
+      if (!picked) return
+      handledDriveBatch.current = null
+      setDriveBatch(
+        await filesApi.createGoogleDriveImport({
+          ...picked,
+          destinationFolderId: null,
+          idempotencyKey: crypto.randomUUID(),
+          sourceContext: "publishing",
+        })
+      )
+    } catch {
+      toast.error("No pudimos iniciar la importación desde Google Drive.")
+    } finally {
+      setOpeningDrive(false)
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -228,8 +335,20 @@ function ComposerDialog({
                 </FieldLabel>
                 <PublishingMediaPicker
                   ariaRequired={requiresMedia}
-                  assets={media ?? []}
+                  assets={availableMedia ?? []}
+                  driveEnabled={driveProvider?.enabled ?? false}
+                  driveImportStatus={
+                    driveBatch
+                      ? driveBatch.status === "failed" ||
+                        driveBatch.status === "expired" ||
+                        driveBatch.status === "partial"
+                        ? "failed"
+                        : "processing"
+                      : undefined
+                  }
+                  driveOpening={openingDrive}
                   onChange={setSelectedMediaAssetId}
+                  onImportFromDrive={() => void importFromGoogleDrive()}
                   selectedAssetId={selectedMediaAssetId}
                 />
               </Field>
@@ -305,6 +424,7 @@ export function PublishingCalendarPage({
 }) {
   const router = useRouter()
   const [posts, setPosts] = useState(calendar.posts)
+  const [media, setMedia] = useState(calendar.media ?? [])
   const [section, setSection] = useState<PublishingSection>(initialSection)
   const [composerOpen, setComposerOpen] = useState(false)
   const [composerScheduledDate, setComposerScheduledDate] =
@@ -552,7 +672,13 @@ export function PublishingCalendarPage({
             setEditingPost(null)
           }}
           onSave={savePost}
-          media={calendar.media}
+          media={media}
+          onMediaImported={(asset) =>
+            setMedia((current) => [
+              asset,
+              ...current.filter((item) => item.id !== asset.id),
+            ])
+          }
           open={composerOpen}
         />
       ) : null}

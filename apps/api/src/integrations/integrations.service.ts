@@ -24,6 +24,14 @@ import {
   type UpdateWhatsAppStatusIntegrationInput,
   type WhatsAppStatusIntegration,
   type WhatsAppStatusIntegrationConfiguration,
+  googleDriveIntegrationConfigurationSchema,
+  googleDriveIntegrationProviderKey,
+  testGoogleDriveIntegrationSchema,
+  updateGoogleDriveIntegrationSchema,
+  type GoogleDriveIntegration,
+  type GoogleDriveIntegrationConfiguration,
+  type PortalGoogleDriveConfiguration,
+  type TestGoogleDriveIntegrationResponse,
 } from '@workspace/contracts';
 import { providerIntegrations } from '@workspace/database';
 import { eq } from '@workspace/database/query';
@@ -68,6 +76,14 @@ type MetaRow = Pick<
   | 'lastTestedAt'
 > & { readiness?: string };
 
+type GoogleDriveRow = Pick<
+  typeof providerIntegrations.$inferSelect,
+  | 'enabled'
+  | 'configurationCiphertext'
+  | 'testedConfigFingerprint'
+  | 'lastTestedAt'
+> & { readiness?: string };
+
 @Injectable()
 export class IntegrationsService {
   constructor(
@@ -78,6 +94,148 @@ export class IntegrationsService {
   async getMeta(): Promise<MetaIntegration> {
     const row = await this.metaRow();
     return this.toMetaResponse(row);
+  }
+
+  async getGoogleDrive(): Promise<GoogleDriveIntegration> {
+    return this.toGoogleDriveResponse(await this.googleDriveRow());
+  }
+
+  async testGoogleDrive(
+    input: unknown,
+    session: AuthSession,
+  ): Promise<TestGoogleDriveIntegrationResponse> {
+    const parsed = testGoogleDriveIntegrationSchema.safeParse(input);
+    if (!parsed.success) {
+      throw new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
+    }
+
+    await this.verifyGoogleDriveSelection(
+      parsed.data.accessToken,
+      parsed.data.selection.providerFileId,
+      parsed.data.selection.resourceKey,
+    );
+
+    const testedAt = new Date();
+    const fingerprint = this.googleDriveConfigurationFingerprint(
+      parsed.data.configuration,
+    );
+    const row = await this.googleDriveRow();
+    await this.database.db
+      .insert(providerIntegrations)
+      .values({
+        providerKey: googleDriveIntegrationProviderKey,
+        enabled: row?.enabled ?? false,
+        readiness: row?.enabled ? 'untested' : 'disabled',
+        capabilities: ['file_import'],
+        enabledCapabilityKeys: row?.enabled ? ['file_import'] : [],
+        configurationCiphertext: row?.configurationCiphertext ?? null,
+        testedConfigFingerprint: fingerprint,
+        lastTestedAt: testedAt,
+        lastTestedByPlatformAdminId: session.user.id,
+        updatedByUserId: session.user.id,
+      })
+      .onConflictDoUpdate({
+        target: providerIntegrations.providerKey,
+        set: {
+          testedConfigFingerprint: fingerprint,
+          lastTestedAt: testedAt,
+          lastTestedByPlatformAdminId: session.user.id,
+          updatedByUserId: session.user.id,
+          updatedAt: testedAt,
+        },
+      });
+
+    return { testedAt: testedAt.toISOString() };
+  }
+
+  async saveGoogleDrive(
+    input: unknown,
+    session: AuthSession,
+  ): Promise<GoogleDriveIntegration> {
+    const parsed = updateGoogleDriveIntegrationSchema.safeParse(input);
+    if (!parsed.success) {
+      throw new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
+    }
+
+    const row = await this.googleDriveRow();
+    const configuration = parsed.data.configuration;
+    const fingerprint = this.googleDriveConfigurationFingerprint(configuration);
+    const tested = row?.testedConfigFingerprint === fingerprint;
+    if (parsed.data.enabled && !tested) {
+      throw new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
+    }
+
+    const configurationCiphertext = this.encryption().encrypt(
+      JSON.stringify(configuration),
+      googleDriveIntegrationProviderKey,
+    );
+    const readiness = parsed.data.enabled
+      ? tested
+        ? 'ready'
+        : 'untested'
+      : 'disabled';
+    const readinessIssues =
+      parsed.data.enabled && !tested ? ['configuration_requires_test'] : [];
+    const now = new Date();
+
+    await this.database.db
+      .insert(providerIntegrations)
+      .values({
+        providerKey: googleDriveIntegrationProviderKey,
+        enabled: parsed.data.enabled,
+        readiness,
+        capabilities: ['file_import'],
+        enabledCapabilityKeys: parsed.data.enabled ? ['file_import'] : [],
+        configurationCiphertext,
+        readinessIssues,
+        testedConfigFingerprint: row?.testedConfigFingerprint ?? null,
+        lastTestedAt: row?.lastTestedAt ?? null,
+        updatedByUserId: session.user.id,
+      })
+      .onConflictDoUpdate({
+        target: providerIntegrations.providerKey,
+        set: {
+          enabled: parsed.data.enabled,
+          readiness,
+          capabilities: ['file_import'],
+          enabledCapabilityKeys: parsed.data.enabled ? ['file_import'] : [],
+          configurationCiphertext,
+          readinessIssues,
+          updatedByUserId: session.user.id,
+          updatedAt: now,
+        },
+      });
+
+    return this.toGoogleDriveResponse({
+      enabled: parsed.data.enabled,
+      readiness,
+      configurationCiphertext,
+      testedConfigFingerprint: row?.testedConfigFingerprint ?? null,
+      lastTestedAt: row?.lastTestedAt ?? null,
+    });
+  }
+
+  async readGoogleDrivePortalConfiguration(): Promise<PortalGoogleDriveConfiguration> {
+    const row = await this.googleDriveRow();
+    const configuration = this.decryptGoogleDriveConfiguration(
+      row?.configurationCiphertext,
+    );
+    const fingerprint = configuration
+      ? this.googleDriveConfigurationFingerprint(configuration)
+      : null;
+    const ready = Boolean(
+      row?.enabled &&
+      row.readiness === 'ready' &&
+      configuration &&
+      fingerprint === row.testedConfigFingerprint,
+    );
+
+    return {
+      enabled: ready,
+      oauthClientId: ready ? (configuration?.oauthClientId ?? null) : null,
+      browserApiKey: ready ? (configuration?.browserApiKey ?? null) : null,
+      appId: ready ? (configuration?.appId ?? null) : null,
+    };
   }
 
   /**
@@ -459,6 +617,128 @@ export class IntegrationsService {
       )
       .limit(1);
     return row;
+  }
+
+  private async googleDriveRow(): Promise<GoogleDriveRow | undefined> {
+    const [row] = await this.database.db
+      .select({
+        enabled: providerIntegrations.enabled,
+        readiness: providerIntegrations.readiness,
+        configurationCiphertext: providerIntegrations.configurationCiphertext,
+        testedConfigFingerprint: providerIntegrations.testedConfigFingerprint,
+        lastTestedAt: providerIntegrations.lastTestedAt,
+      })
+      .from(providerIntegrations)
+      .where(
+        eq(providerIntegrations.providerKey, googleDriveIntegrationProviderKey),
+      )
+      .limit(1);
+    return row;
+  }
+
+  private toGoogleDriveResponse(
+    row: GoogleDriveRow | undefined,
+  ): GoogleDriveIntegration {
+    const configuration = this.decryptGoogleDriveConfiguration(
+      row?.configurationCiphertext,
+    );
+    const fingerprint = configuration
+      ? this.googleDriveConfigurationFingerprint(configuration)
+      : null;
+    const tested = Boolean(
+      fingerprint && fingerprint === row?.testedConfigFingerprint,
+    );
+    const enabled = row?.enabled ?? false;
+    const readiness = enabled
+      ? configuration
+        ? tested
+          ? 'ready'
+          : 'untested'
+        : 'incomplete'
+      : 'disabled';
+
+    return {
+      providerKey: googleDriveIntegrationProviderKey,
+      label: 'Google Drive',
+      description:
+        'Importación de imágenes y videos mediante el selector oficial de Google.',
+      enabled,
+      readiness,
+      oauthClientId: configuration?.oauthClientId ?? null,
+      browserApiKey: configuration?.browserApiKey ?? null,
+      appId: configuration?.appId ?? null,
+      lastTestedAt: row?.lastTestedAt?.toISOString() ?? null,
+    };
+  }
+
+  private decryptGoogleDriveConfiguration(
+    ciphertext: string | null | undefined,
+  ): GoogleDriveIntegrationConfiguration | null {
+    if (!ciphertext) return null;
+    try {
+      const parsed = googleDriveIntegrationConfigurationSchema.safeParse(
+        JSON.parse(
+          this.encryption().decrypt(
+            ciphertext,
+            googleDriveIntegrationProviderKey,
+          ),
+        ),
+      );
+      return parsed.success ? parsed.data : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private googleDriveConfigurationFingerprint(
+    configuration: GoogleDriveIntegrationConfiguration,
+  ) {
+    return createHash('sha256')
+      .update(
+        `${configuration.oauthClientId}\u0000${configuration.browserApiKey}\u0000${configuration.appId}`,
+      )
+      .digest('hex');
+  }
+
+  private async verifyGoogleDriveSelection(
+    accessToken: string,
+    providerFileId: string,
+    resourceKey?: string,
+  ) {
+    const url = new URL(
+      `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(providerFileId)}`,
+    );
+    url.searchParams.set('fields', 'id,mimeType');
+    url.searchParams.set('supportsAllDrives', 'true');
+    try {
+      const response = await fetch(url, {
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+          ...(resourceKey
+            ? {
+                'x-goog-drive-resource-keys': `${providerFileId}/${resourceKey}`,
+              }
+            : {}),
+        },
+        redirect: 'error',
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (!response.ok) throw new Error('Drive selection probe failed.');
+      const body = (await response.json()) as {
+        id?: unknown;
+        mimeType?: unknown;
+      };
+      if (
+        body.id !== providerFileId ||
+        typeof body.mimeType !== 'string' ||
+        (!body.mimeType.startsWith('image/') &&
+          !body.mimeType.startsWith('video/'))
+      ) {
+        throw new Error('Drive selection is not supported media.');
+      }
+    } catch {
+      throw new ServiceUnavailableException();
+    }
   }
 
   private toWhatsAppStatusResponse(

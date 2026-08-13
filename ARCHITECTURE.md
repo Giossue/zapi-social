@@ -15,16 +15,17 @@ Laravel es la referencia funcional, visual y de datos; no es la arquitectura obj
 
 ## Límites del monorepo
 
-| Área | Responsabilidad | No debe hacer |
-| --- | --- | --- |
-| `apps/web` | Rutas Next, layouts y composición UI; consumo REST mediante `@workspace/api-client`. | Acceder a PostgreSQL, Redis o credenciales de providers. |
-| `apps/api` | REST `/v1`, auth, autorización, ownership, DTOs, OpenAPI y casos de uso. | Exponer entidades Drizzle o ejecutar trabajo lento en el request. |
-| `apps/worker` | Procesar BullMQ, reintentos, sincronizaciones e idempotencia. | Exponer HTTP público o duplicar reglas de autorización de API. |
-| `packages/ui` | Tokens, primitives y patterns reutilizables. | Contener lógica de dominio o datos de features. |
-| `packages/contracts` | Schemas Zod, DTOs, enums y errores públicos. | Importar Nest, Drizzle o infraestructura. |
-| `packages/api-client` | Cliente REST tipado derivado del contrato/OpenAPI. | Contener reglas de negocio o acceso directo a datos. |
-| `packages/database` | Schema Drizzle, migraciones y cliente PostgreSQL. | Ser importado desde Web. |
-| `infra/podman` | Infraestructura local declarativa. | Guardar secretos. |
+| Área                      | Responsabilidad                                                                                     | No debe hacer                                                                 |
+| ------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `apps/web`                | Rutas Next, layouts y composición UI; consumo REST mediante `@workspace/api-client`.                | Acceder a PostgreSQL, Redis o credenciales de providers.                      |
+| `apps/api`                | REST `/v1`, auth, autorización, ownership, DTOs, OpenAPI y casos de uso.                            | Exponer entidades Drizzle o ejecutar trabajo lento en el request.             |
+| `apps/worker`             | Procesar BullMQ, reintentos, sincronizaciones e idempotencia.                                       | Exponer HTTP público o duplicar reglas de autorización de API.                |
+| `packages/ui`             | Tokens, primitives y patterns reutilizables.                                                        | Contener lógica de dominio o datos de features.                               |
+| `packages/contracts`      | Schemas Zod, DTOs, enums y errores públicos.                                                        | Importar Nest, Drizzle o infraestructura.                                     |
+| `packages/api-client`     | Cliente REST tipado derivado del contrato/OpenAPI.                                                  | Contener reglas de negocio o acceso directo a datos.                          |
+| `packages/database`       | Schema Drizzle, migraciones y cliente PostgreSQL.                                                   | Ser importado desde Web.                                                      |
+| `packages/file-ingestion` | Política pura y compartida de MIME, extensión, firma binaria, tipo y límite para entradas de Files. | Acceder a base de datos, filesystem, HTTP, secretos o lógica de autorización. |
+| `infra/podman`            | Infraestructura local declarativa.                                                                  | Guardar secretos.                                                             |
 
 ## Dependencias permitidas
 
@@ -33,6 +34,7 @@ apps/web    → packages/ui, packages/contracts, packages/api-client
 apps/api    → packages/contracts, packages/database
 apps/worker → packages/contracts, packages/database
 apps/api y apps/worker → providers externos mediante adapters server-side
+apps/api y apps/worker → packages/file-ingestion para validar binarios con una sola política
 ```
 
 ## Datos y ejecución

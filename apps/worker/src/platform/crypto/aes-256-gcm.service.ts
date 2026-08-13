@@ -1,4 +1,4 @@
-import { createDecipheriv } from 'node:crypto';
+import { createCipheriv, createDecipheriv, randomBytes } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
@@ -24,6 +24,26 @@ export class Aes256GcmService {
     this.key = decodeKey(
       config.getOrThrow<string>('PROVIDER_INTEGRATIONS_ENCRYPTION_KEY'),
     );
+  }
+
+  encrypt(plaintext: string, authenticatedContext?: string): string {
+    const initializationVector = randomBytes(INITIALIZATION_VECTOR_LENGTH);
+    const cipher = createCipheriv(ALGORITHM, this.key, initializationVector, {
+      authTagLength: AUTH_TAG_LENGTH,
+    });
+    if (authenticatedContext !== undefined) {
+      cipher.setAAD(Buffer.from(authenticatedContext, 'utf8'));
+    }
+    const ciphertext = Buffer.concat([
+      cipher.update(plaintext, 'utf8'),
+      cipher.final(),
+    ]);
+    return [
+      PAYLOAD_VERSION,
+      initializationVector.toString('base64'),
+      cipher.getAuthTag().toString('base64'),
+      ciphertext.toString('base64'),
+    ].join('.');
   }
 
   decrypt(payload: string, authenticatedContext?: string): string {

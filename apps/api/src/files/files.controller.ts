@@ -16,6 +16,7 @@ import { ApiTags } from '@nestjs/swagger';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { SessionAccessService } from '../identity/session-access.service';
 import { FilesService } from './files.service';
+import { GoogleDriveImportsService } from './google-drive-imports.service';
 
 @ApiTags('portal-files')
 @Controller('v1/portal/files')
@@ -151,5 +152,32 @@ export class FilesController {
         `inline; filename="${file.name.replaceAll('"', '')}"`,
       )
       .send(file.stream);
+  }
+}
+
+@ApiTags('portal-files')
+@Controller('v1/portal/files')
+export class GoogleDriveFilesController {
+  constructor(
+    private readonly imports: GoogleDriveImportsService,
+    private readonly access: SessionAccessService,
+  ) {}
+
+  @Get('providers/google-drive')
+  provider(@Req() request: FastifyRequest) {
+    return this.imports.getProvider(this.access.requirePortalSession(request));
+  }
+
+  @Post('imports/google-drive')
+  createImport(@Req() request: FastifyRequest, @Body() body: unknown) {
+    return this.imports.createBatch(
+      this.access.requirePortalSession(request),
+      body,
+    );
+  }
+
+  @Get('imports/:id')
+  importStatus(@Req() request: FastifyRequest, @Param('id') id: string) {
+    return this.imports.getBatch(this.access.requirePortalSession(request), id);
   }
 }

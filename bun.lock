@@ -38,6 +38,7 @@
         "@react-email/render": "^2.1.0",
         "@workspace/contracts": "workspace:*",
         "@workspace/database": "workspace:*",
+        "@workspace/file-ingestion": "workspace:*",
         "argon2": "^0.45.1",
         "bullmq": "^5",
         "drizzle-orm": "^0.45.1",
@@ -139,6 +140,7 @@
         "@nestjs/platform-express": "^11.0.1",
         "@workspace/contracts": "workspace:*",
         "@workspace/database": "workspace:*",
+        "@workspace/file-ingestion": "workspace:*",
         "bullmq": "^5",
         "ioredis": "^5.11.1",
         "nestjs-pino": "^4.6.1",
@@ -241,6 +243,18 @@
         "globals": "^17.6.0",
         "typescript": "^5",
         "typescript-eslint": "^8.60.0",
+      },
+    },
+    "packages/file-ingestion": {
+      "name": "@workspace/file-ingestion",
+      "version": "0.0.0",
+      "devDependencies": {
+        "@types/node": "^24",
+        "@workspace/eslint-config": "workspace:*",
+        "@workspace/typescript-config": "workspace:*",
+        "eslint": "^9",
+        "prettier": "^3.8.3",
+        "typescript": "^5",
       },
     },
     "packages/typescript-config": {
@@ -1387,6 +1401,8 @@
     "@workspace/database": ["@workspace/database@workspace:packages/database"],
 
     "@workspace/eslint-config": ["@workspace/eslint-config@workspace:packages/eslint-config"],
+
+    "@workspace/file-ingestion": ["@workspace/file-ingestion@workspace:packages/file-ingestion"],
 
     "@workspace/typescript-config": ["@workspace/typescript-config@workspace:packages/typescript-config"],
 

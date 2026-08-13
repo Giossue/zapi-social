@@ -85,3 +85,30 @@ export class EmailSmtpIntegrationsController {
     return this.email.saveSmtpIntegration(input, session);
   }
 }
+
+@ApiTags('admin-integrations')
+@Controller('v1/admin/integrations/google-drive')
+export class GoogleDriveIntegrationsController {
+  constructor(
+    private readonly access: SessionAccessService,
+    private readonly integrations: IntegrationsService,
+  ) {}
+
+  @Get()
+  async get(@Req() request: FastifyRequest) {
+    await this.access.requirePlatformAdmin(request);
+    return this.integrations.getGoogleDrive();
+  }
+
+  @Post('test')
+  async test(@Body() input: unknown, @Req() request: FastifyRequest) {
+    const session = await this.access.requirePlatformAdmin(request);
+    return this.integrations.testGoogleDrive(input, session);
+  }
+
+  @Patch()
+  async save(@Body() input: unknown, @Req() request: FastifyRequest) {
+    const session = await this.access.requirePlatformAdmin(request);
+    return this.integrations.saveGoogleDrive(input, session);
+  }
+}

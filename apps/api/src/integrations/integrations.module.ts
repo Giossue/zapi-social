@@ -3,6 +3,7 @@ import { EmailModule } from '../email/email.module';
 import { IdentityModule } from '../identity/identity.module';
 import {
   EmailSmtpIntegrationsController,
+  GoogleDriveIntegrationsController,
   IntegrationsController,
   WhatsAppStatusIntegrationsController,
 } from './integrations.controller';
@@ -14,6 +15,7 @@ import { IntegrationsService } from './integrations.service';
     IntegrationsController,
     WhatsAppStatusIntegrationsController,
     EmailSmtpIntegrationsController,
+    GoogleDriveIntegrationsController,
   ],
   providers: [IntegrationsService],
   exports: [IntegrationsService],

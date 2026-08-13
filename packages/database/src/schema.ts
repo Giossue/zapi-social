@@ -960,6 +960,117 @@ export const fileAssets = pgTable(
   ]
 )
 
+export const fileImportBatches = pgTable(
+  "file_import_batches",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    requestedByUserId: uuid("requested_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    providerKey: varchar("provider_key", { length: 64 }).notNull(),
+    sourceContext: varchar("source_context", { length: 24 })
+      .$type<"files" | "publishing">()
+      .notNull(),
+    destinationFolderId: uuid("destination_folder_id").references(
+      () => fileFolders.id,
+      { onDelete: "set null" }
+    ),
+    status: varchar("status", { length: 24 })
+      .$type<
+        | "pending"
+        | "processing"
+        | "completed"
+        | "partial"
+        | "failed"
+        | "expired"
+      >()
+      .notNull()
+      .default("pending"),
+    encryptedAccessToken: text("encrypted_access_token"),
+    credentialExpiresAt: timestamp("credential_expires_at", {
+      withTimezone: true,
+    }).notNull(),
+    idempotencyKey: varchar("idempotency_key", { length: 160 }).notNull(),
+    totalItems: integer("total_items").notNull(),
+    completedItems: integer("completed_items").notNull().default(0),
+    failedItems: integer("failed_items").notNull().default(0),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("file_import_batches_request_idempotency_unique").on(
+      table.workspaceId,
+      table.requestedByUserId,
+      table.idempotencyKey
+    ),
+    index("file_import_batches_workspace_status_updated_index").on(
+      table.workspaceId,
+      table.status,
+      table.updatedAt
+    ),
+    index("file_import_batches_status_expiry_index").on(
+      table.status,
+      table.credentialExpiresAt
+    ),
+    check(
+      "file_import_batches_counts_check",
+      sql`${table.totalItems} > 0 and ${table.completedItems} >= 0 and ${table.failedItems} >= 0 and ${table.completedItems} + ${table.failedItems} <= ${table.totalItems}`
+    ),
+  ]
+)
+
+export const fileImportItems = pgTable(
+  "file_import_items",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    batchId: uuid("batch_id")
+      .notNull()
+      .references(() => fileImportBatches.id, { onDelete: "cascade" }),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    providerFileIdCiphertext: text("provider_file_id_ciphertext"),
+    providerFileIdHash: varchar("provider_file_id_hash", {
+      length: 64,
+    }).notNull(),
+    resourceKeyCiphertext: text("resource_key_ciphertext"),
+    status: varchar("status", { length: 24 })
+      .$type<"pending" | "processing" | "completed" | "failed">()
+      .notNull()
+      .default("pending"),
+    fileAssetId: uuid("file_asset_id"),
+    fileAssetWorkspaceId: uuid("file_asset_workspace_id"),
+    attemptCount: integer("attempt_count").notNull().default(0),
+    errorCode: varchar("error_code", { length: 96 }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("file_import_items_batch_provider_file_unique").on(
+      table.batchId,
+      table.providerFileIdHash
+    ),
+    index("file_import_items_batch_status_index").on(
+      table.batchId,
+      table.status
+    ),
+    foreignKey({
+      columns: [table.fileAssetId, table.fileAssetWorkspaceId],
+      foreignColumns: [fileAssets.id, fileAssets.workspaceId],
+      name: "file_import_items_asset_workspace_fk",
+    }).onDelete("set null"),
+    check(
+      "file_import_items_asset_workspace_check",
+      sql`(${table.fileAssetId} is null and ${table.fileAssetWorkspaceId} is null) or (${table.fileAssetId} is not null and ${table.fileAssetWorkspaceId} = ${table.workspaceId})`
+    ),
+    check(
+      "file_import_items_attempt_count_check",
+      sql`${table.attemptCount} >= 0`
+    ),
+  ]
+)
+
 export const publishingPosts = pgTable(
   "publishing_posts",
   {

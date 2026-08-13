@@ -211,6 +211,13 @@
       "when": 1786336127321,
       "tag": "0029_curly_shadowcat",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1786634864084,
+      "tag": "0030_boring_xavin",
+      "breakpoints": true
     }
   ]
 }

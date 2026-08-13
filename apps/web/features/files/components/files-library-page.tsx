@@ -1,7 +1,11 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ApiError, filesApi } from "@workspace/api-client"
+import type {
+  GoogleDriveImportBatch,
+  PortalGoogleDriveConfiguration,
+} from "@workspace/contracts"
 import { toast } from "@workspace/ui/components/toast"
 import {
   Clock,
@@ -13,6 +17,7 @@ import {
   FolderPlus,
   FolderInput,
   Grid2X2,
+  HardDriveDownload,
   Image,
   Info,
   List,
@@ -74,6 +79,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { PageLoading } from "@workspace/ui/components/page-loading"
+import { Spinner } from "@workspace/ui/components/spinner"
 import {
   ToggleGroup,
   ToggleGroupItem,
@@ -97,6 +103,7 @@ import type {
   FileAssetKind,
   FileLibraryData,
 } from "@/features/files/types/files"
+import { openGoogleDrivePicker } from "@/features/files/components/google-drive-picker"
 
 type FilesView = "grid" | "list"
 type AssetFilter = FileAssetKind | "all" | "ai"
@@ -437,6 +444,13 @@ export function FilesLibraryPage() {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [folderDialogOpen, setFolderDialogOpen] = useState(false)
   const [folderName, setFolderName] = useState("")
+  const [driveProvider, setDriveProvider] =
+    useState<PortalGoogleDriveConfiguration | null>(null)
+  const [driveBatch, setDriveBatch] = useState<GoogleDriveImportBatch | null>(
+    null
+  )
+  const [openingDrive, setOpeningDrive] = useState(false)
+  const notifiedDriveBatch = useRef<string | null>(null)
   const [previewAsset, setPreviewAsset] = useState<FileAsset | null>(null)
   const [infoAsset, setInfoAsset] = useState<FileAsset | null>(null)
   const [renameItem, setRenameItem] = useState<
@@ -531,6 +545,80 @@ export function FilesLibraryPage() {
   useEffect(() => {
     void loadLibrary()
   }, [loadLibrary])
+
+  useEffect(() => {
+    void filesApi
+      .googleDriveProvider()
+      .then(setDriveProvider)
+      .catch(() =>
+        setDriveProvider({
+          enabled: false,
+          oauthClientId: null,
+          browserApiKey: null,
+          appId: null,
+        })
+      )
+  }, [])
+
+  useEffect(() => {
+    if (
+      !driveBatch ||
+      ["completed", "partial", "failed", "expired"].includes(driveBatch.status)
+    ) {
+      if (!driveBatch || notifiedDriveBatch.current === driveBatch.id) return
+      notifiedDriveBatch.current = driveBatch.id
+      void loadLibrary()
+      if (driveBatch.status === "completed")
+        toast.success("Importación desde Google Drive completada.")
+      else if (driveBatch.status === "partial")
+        toast.error("Algunos archivos de Google Drive no se pudieron importar.")
+      else
+        toast.error("No pudimos completar la importación desde Google Drive.")
+      return
+    }
+    const timer = window.setTimeout(() => {
+      void filesApi
+        .googleDriveImport(driveBatch.id)
+        .then(setDriveBatch)
+        .catch(() => undefined)
+    }, 1500)
+    return () => window.clearTimeout(timer)
+  }, [driveBatch, loadLibrary])
+
+  async function importFromGoogleDrive() {
+    if (
+      !driveProvider?.enabled ||
+      !driveProvider.oauthClientId ||
+      !driveProvider.browserApiKey ||
+      !driveProvider.appId
+    )
+      return
+    setOpeningDrive(true)
+    try {
+      const picked = await openGoogleDrivePicker({
+        configuration: {
+          oauthClientId: driveProvider.oauthClientId,
+          browserApiKey: driveProvider.browserApiKey,
+          appId: driveProvider.appId,
+        },
+        multiselect: true,
+      })
+      if (!picked) return
+      notifiedDriveBatch.current = null
+      setDriveBatch(
+        await filesApi.createGoogleDriveImport({
+          ...picked,
+          destinationFolderId: folderId === "all" ? null : folderId,
+          idempotencyKey: crypto.randomUUID(),
+          sourceContext: "files",
+        })
+      )
+    } catch {
+      toast.error("No pudimos abrir o iniciar la importación de Google Drive.")
+    } finally {
+      setOpeningDrive(false)
+    }
+  }
 
   async function uploadSelectedFile(file: File) {
     try {
@@ -752,6 +840,20 @@ export function FilesLibraryPage() {
             <FolderPlus data-icon="inline-start" />
             Nueva carpeta
           </Button>
+          {driveProvider?.enabled ? (
+            <Button
+              disabled={!library.canUpload || openingDrive}
+              onClick={() => void importFromGoogleDrive()}
+              variant="brand-secondary"
+            >
+              {openingDrive ? (
+                <Spinner data-icon="inline-start" />
+              ) : (
+                <HardDriveDownload data-icon="inline-start" />
+              )}
+              {openingDrive ? "Abriendo Google" : "Google Drive"}
+            </Button>
+          ) : null}
           <Button
             disabled={!library.canUpload}
             onClick={() => setUploadDialogOpen(true)}
@@ -761,6 +863,51 @@ export function FilesLibraryPage() {
           </Button>
         </div>
       </div>
+
+      {driveBatch ? (
+        <Card variant="subtle">
+          <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-medium">
+                {driveBatch.status === "completed"
+                  ? "Importación desde Google Drive completada"
+                  : driveBatch.status === "failed" ||
+                      driveBatch.status === "expired"
+                    ? "Importación desde Google Drive fallida"
+                    : "Importando desde Google Drive"}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {driveBatch.completedItems} de {driveBatch.totalItems} archivos
+                importados
+                {driveBatch.destinationFolderId
+                  ? " en la carpeta de destino."
+                  : " en Archivos."}
+              </p>
+            </div>
+            <Badge
+              variant={
+                driveBatch.status === "completed"
+                  ? "success"
+                  : driveBatch.status === "failed" ||
+                      driveBatch.status === "expired"
+                    ? "destructive"
+                    : driveBatch.status === "partial"
+                      ? "warning"
+                      : "info"
+              }
+            >
+              {driveBatch.status === "completed"
+                ? "Completada"
+                : driveBatch.status === "partial"
+                  ? "Parcial"
+                  : driveBatch.status === "failed" ||
+                      driveBatch.status === "expired"
+                    ? "Fallida"
+                    : "Procesando"}
+            </Badge>
+          </CardContent>
+        </Card>
+      ) : null}
 
       {currentFolderPath.length > 0 ? (
         <Breadcrumb>
