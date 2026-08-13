@@ -149,6 +149,9 @@ La card `Google Drive` sigue el patrón aprobado del resto de proveedores:
 - botón primario con icono izquierdo;
 - al cambiar configuración, primero se ejecuta `Probar selector`; guardar solo
   se habilita cuando el fingerprint del borrador probado coincide;
+- una prueba correcta habilita `Guardar y habilitar` aunque los campos ya
+  estuvieran persistidos; probar otro borrador no desactiva la configuración
+  actualmente vigente si el administrador cancela;
 - la prueba abre Picker en el navegador del administrador y no importa el
   archivo elegido;
 - Cancelar y cerrar quedan bloqueados durante una operación pendiente.
@@ -438,8 +441,10 @@ Cancelar OAuth o Picker es una salida normal, no un toast de error.
 - Migración local/remota: ambas bases registran 31 migraciones, timestamp
   `1786634864084`, tablas `file_import_batches`/`file_import_items` y cuatro
   constraints críticos comprobados.
-- API focal: `google-drive-imports.integration.spec.ts`, 2 pruebas y 10
-  aserciones; cubre cifrado, idempotencia, workspace, rol y fingerprint Admin.
+- API focal: `google-drive-imports.integration.spec.ts`, 2 pruebas y 13
+  aserciones; cubre cifrado, idempotencia,
+  workspace, rol, fingerprint Admin y preservación de la configuración activa
+  mientras se prueba otra.
 - Worker focal: `google-drive-import.processor.spec.ts` y
   `google-drive-import.integration.spec.ts`, 3 pruebas y 13 aserciones; cubre
   retries, límites, streaming, firma, asset final, limpieza y miniatura.

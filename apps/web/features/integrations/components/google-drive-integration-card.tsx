@@ -128,7 +128,9 @@ export function GoogleDriveIntegrationCard() {
         selection: picked.files[0]!,
       })
       setTestState("passed")
-      toast.success("Google Drive validó el selector.")
+      toast.success(
+        "Selector validado. Guarda la configuración para aplicarla."
+      )
     } catch {
       setTestState("failed")
       toast.error("No pudimos validar el selector de Google Drive.")
@@ -186,6 +188,10 @@ export function GoogleDriveIntegrationCard() {
   const dirty = draft
     ? JSON.stringify(draft) !== JSON.stringify(draftFrom(integration))
     : false
+  let saveLabel = "Guardar configuración"
+  if (saving) saveLabel = "Guardando"
+  else if (draft?.enabled && !integration.enabled)
+    saveLabel = "Guardar y habilitar"
 
   return (
     <>
@@ -264,7 +270,11 @@ export function GoogleDriveIntegrationCard() {
                   ariaLabel="Habilitar Google Drive"
                   checked={draft.enabled}
                   description="Permite importar imágenes y videos en Files y Publishing."
-                  onCheckedChange={(enabled) => updateDraft({ enabled })}
+                  onCheckedChange={(enabled) =>
+                    setDraft((current) =>
+                      current ? { ...current, enabled } : current
+                    )
+                  }
                   title="Disponibilidad del proveedor"
                 />
                 <section className="flex flex-col gap-4 border-t border-border pt-5">
@@ -361,7 +371,7 @@ export function GoogleDriveIntegrationCard() {
                 </Button>
                 <Button
                   disabled={
-                    !dirty ||
+                    (!dirty && testState !== "passed") ||
                     saving ||
                     !complete(draft) ||
                     (draft.enabled && testState !== "passed")
@@ -373,7 +383,7 @@ export function GoogleDriveIntegrationCard() {
                   ) : (
                     <Save data-icon="inline-start" />
                   )}
-                  {saving ? "Guardando" : "Guardar configuración"}
+                  {saveLabel}
                 </Button>
               </SheetFooter>
             </form>

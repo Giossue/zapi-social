@@ -220,14 +220,8 @@ export class IntegrationsService {
     const configuration = this.decryptGoogleDriveConfiguration(
       row?.configurationCiphertext,
     );
-    const fingerprint = configuration
-      ? this.googleDriveConfigurationFingerprint(configuration)
-      : null;
     const ready = Boolean(
-      row?.enabled &&
-      row.readiness === 'ready' &&
-      configuration &&
-      fingerprint === row.testedConfigFingerprint,
+      row?.enabled && row.readiness === 'ready' && configuration,
     );
 
     return {
@@ -642,16 +636,10 @@ export class IntegrationsService {
     const configuration = this.decryptGoogleDriveConfiguration(
       row?.configurationCiphertext,
     );
-    const fingerprint = configuration
-      ? this.googleDriveConfigurationFingerprint(configuration)
-      : null;
-    const tested = Boolean(
-      fingerprint && fingerprint === row?.testedConfigFingerprint,
-    );
     const enabled = row?.enabled ?? false;
     const readiness = enabled
       ? configuration
-        ? tested
+        ? row?.readiness === 'ready'
           ? 'ready'
           : 'untested'
         : 'incomplete'

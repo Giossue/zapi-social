@@ -241,6 +241,39 @@ describeDatabase('Google Drive import contracts', () => {
           oauthClientId: driveConfiguration.oauthClientId,
           appId: driveConfiguration.appId,
         });
+
+        const nextConfiguration = {
+          ...driveConfiguration,
+          browserApiKey: 'next-browser-api-key',
+        };
+        await service.testGoogleDrive(
+          {
+            configuration: nextConfiguration,
+            accessToken: 'temporary-token',
+            selection: { providerFileId: 'selected-drive-file' },
+          },
+          adminSession,
+        );
+        await expect(
+          service.readGoogleDrivePortalConfiguration(),
+        ).resolves.toMatchObject({
+          enabled: true,
+          browserApiKey: driveConfiguration.browserApiKey,
+        });
+        await expect(service.getGoogleDrive()).resolves.toMatchObject({
+          enabled: true,
+          readiness: 'ready',
+        });
+        await service.saveGoogleDrive(
+          { enabled: true, configuration: nextConfiguration },
+          adminSession,
+        );
+        await expect(
+          service.readGoogleDrivePortalConfiguration(),
+        ).resolves.toMatchObject({
+          enabled: true,
+          browserApiKey: nextConfiguration.browserApiKey,
+        });
         throw rollback;
       });
     } catch (error) {
