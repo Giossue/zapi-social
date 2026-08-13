@@ -51,8 +51,11 @@ Zapi ya creado o programado.
 - Desde `/portal/files`, el destino es la carpeta abierta.
 - Desde `/portal/publishing/calendar`, el destino es la raíz de Files porque el
   compositor no tiene una carpeta de navegación activa.
-- Files permite multiselección; Publishing conserva su contrato visual actual de
-  un asset seleccionado y abre Picker en selección simple.
+- Files y Publishing abren Picker en selección simple. La multiselección queda
+  suspendida porque Google rechazó en producción esa variante con
+  `The API developer key is invalid`, aun entregando exactamente la misma
+  configuración probada por Admin; se conserva como mejora posterior tras
+  aislarla con una credencial/proyecto de prueba independiente.
 - Solo assets `ready`, validados y del mismo workspace pueden seleccionarse en
   Publishing. Un import pendiente nunca se relaciona con un post.
 - Cerrar el compositor no cancela una importación ya aceptada. El archivo queda
@@ -183,7 +186,7 @@ Crear la composición nueva primero en
   conservar la comunicación entre la ventana principal y el popup OAuth de
   Google Identity Services.
 - Picker filtra únicamente imágenes y vídeos admitidos por Files y permite
-  multiselección.
+  seleccionar un archivo por importación.
 - Al confirmar, se crea un lote cuyo `folderId` es la carpeta abierta.
 - Mostrar estado persistente compacto del lote mientras procesa: cantidad,
   completados, fallidos y acción de reintentar autenticación cuando corresponda.

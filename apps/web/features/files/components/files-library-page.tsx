@@ -605,7 +605,7 @@ export function FilesLibraryPage() {
           browserApiKey: currentProvider.browserApiKey,
           appId: currentProvider.appId,
         },
-        multiselect: true,
+        multiselect: false,
       })
       if (!picked) return
       notifiedDriveBatch.current = null
