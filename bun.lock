@@ -93,6 +93,7 @@
       "version": "0.0.1",
       "dependencies": {
         "@fullcalendar/react": "^7.0.2",
+        "@googleworkspace/drive-picker-element": "0.7.3",
         "@hookform/resolvers": "^5.5.7",
         "@tanstack/react-query": "^5.101.4",
         "@tanstack/react-table": "^8.21.3",
@@ -591,6 +592,8 @@
     "@fullcalendar/react": ["@fullcalendar/react@7.0.2", "", { "dependencies": { "@full-ui/headless-calendar": "7.0.2", "@fullcalendar/core": "7.0.2" }, "peerDependencies": { "react": "^17 || ^18 || ^19", "react-dom": "^17 || ^18 || ^19", "temporal-polyfill": "^1.0.1" } }, "sha512-+etsJS6UsS1asxpEJt2h/vH/OCC/lqb8OCO/Xv7Mwb7GeJnR25iwBDEZmMKKmxNjJ2o8eU3uNGl/e7551eAt3A=="],
 
     "@gerrit0/mini-shiki": ["@gerrit0/mini-shiki@3.23.0", "", { "dependencies": { "@shikijs/engine-oniguruma": "^3.23.0", "@shikijs/langs": "^3.23.0", "@shikijs/themes": "^3.23.0", "@shikijs/types": "^3.23.0", "@shikijs/vscode-textmate": "^10.0.2" } }, "sha512-bEMORlG0cqdjVyCEuU0cDQbORWX+kYCeo0kV1lbxF5bt4r7SID2l9bqsxJEM0zndaxpOUT7riCyIVEuqq/Ynxg=="],
+
+    "@googleworkspace/drive-picker-element": ["@googleworkspace/drive-picker-element@0.7.3", "", {}, "sha512-z1hZh1HsPAQ19lencw2x3FcUVoymWYexcWgq66iXum4mUfWWaQ37oGtQ6hGvM8dyrC81G79P26gq7HhRtbGb2Q=="],
 
     "@hono/node-server": ["@hono/node-server@2.0.12", "", { "peerDependencies": { "hono": "^4" } }, "sha512-eWpQYr67tqJLeaSUl0Q+TquuYfUdTibpOJlUMV2FfUP7+KqCC5TufnwnlXL6mobZBJbGAYRd7ZvEBDCbLInjhg=="],
 

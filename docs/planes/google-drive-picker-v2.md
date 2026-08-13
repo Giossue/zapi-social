@@ -52,10 +52,7 @@ Zapi ya creado o programado.
 - Desde `/portal/publishing/calendar`, el destino es la raíz de Files porque el
   compositor no tiene una carpeta de navegación activa.
 - Files y Publishing abren Picker en selección simple. La multiselección queda
-  suspendida porque Google rechazó en producción esa variante con
-  `The API developer key is invalid`, aun entregando exactamente la misma
-  configuración probada por Admin; se conserva como mejora posterior tras
-  aislarla con una credencial/proyecto de prueba independiente.
+  como mejora posterior a la estabilización del flujo productivo.
 - Solo assets `ready`, validados y del mismo workspace pueden seleccionarse en
   Publishing. Un import pendiente nunca se relaciona con un post.
 - Cerrar el compositor no cancela una importación ya aceptada. El archivo queda
@@ -65,6 +62,13 @@ Zapi ya creado o programado.
 - La Browser API Key, OAuth Client ID y App ID son identificadores usados en el
   navegador. No son un OAuth Client Secret. La API key debe estar restringida
   por HTTP referrer y por API en Google Cloud.
+- Estas tres credenciales identifican a la aplicación Zapi y se configuran una
+  sola vez por el administrador. Los usuarios de Portal no crean llaves: eligen
+  su cuenta, conceden `drive.file` y reciben un access token temporal.
+- Web usa el componente oficial `@googleworkspace/drive-picker-element` para
+  cargar Google Picker y Google Identity Services. Con `drive.file`, la vista
+  usa `DocsViewMode.LIST`, tal como recomienda Google al no existir permiso
+  general para miniaturas.
 - Tokens OAuth, resource keys y credenciales transitorias nunca se escriben en
   logs, auditoría, respuestas de error ni payloads BullMQ.
 
@@ -131,6 +135,8 @@ Fuentes oficiales:
 
 - <https://developers.google.com/workspace/drive/api/guides/picker>
 - <https://developers.google.com/workspace/drive/picker/guides/web-picker-sample>
+- <https://developers.google.com/workspace/drive/picker/guides/web-component>
+- <https://developers.google.com/workspace/drive/picker/reference/picker.docsviewmode>
 - <https://developers.google.com/workspace/drive/api/guides/api-specific-auth>
 
 ## Superficies y UX

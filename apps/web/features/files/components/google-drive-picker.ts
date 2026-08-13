@@ -19,50 +19,6 @@ type PickerResponse = {
   docs?: PickerDocument[]
 }
 
-type TokenClient = {
-  callback: (response: GoogleTokenResponse) => void
-  requestAccessToken: (options?: { prompt?: string }) => void
-}
-
-type PickerBuilder = {
-  addView: (view: unknown) => PickerBuilder
-  enableFeature: (feature: unknown) => PickerBuilder
-  setAppId: (appId: string) => PickerBuilder
-  setCallback: (callback: (data: PickerResponse) => void) => PickerBuilder
-  setDeveloperKey: (key: string) => PickerBuilder
-  setOAuthToken: (token: string) => PickerBuilder
-  setOrigin: (origin: string) => PickerBuilder
-  build: () => { setVisible: (visible: boolean) => void }
-}
-
-type DocsView = {
-  setIncludeFolders: (value: boolean) => DocsView
-  setMimeTypes: (value: string) => DocsView
-  setSelectFolderEnabled: (value: boolean) => DocsView
-}
-
-type GoogleRuntime = Window & {
-  google?: {
-    accounts?: {
-      oauth2?: {
-        initTokenClient: (options: {
-          client_id: string
-          scope: string
-          callback: (response: GoogleTokenResponse) => void
-          error_callback?: () => void
-        }) => TokenClient
-      }
-    }
-    picker?: {
-      Action: { CANCEL: string; PICKED: string }
-      DocsView: new () => DocsView
-      Feature: { MULTISELECT_ENABLED: unknown; SUPPORT_DRIVES: unknown }
-      PickerBuilder: new () => PickerBuilder
-    }
-  }
-  gapi?: { load: (name: string, callback: () => void) => void }
-}
-
 const GOOGLE_SCOPE = "https://www.googleapis.com/auth/drive.file"
 const MEDIA_MIME_TYPES = [
   "image/jpeg",
@@ -75,50 +31,16 @@ const MEDIA_MIME_TYPES = [
   "video/quicktime",
 ].join(",")
 
-let scriptsPromise: Promise<void> | null = null
+type GoogleDrivePickerElement = HTMLElement & { visible: boolean }
 
-function loadScript(id: string, src: string) {
-  const existing = document.getElementById(id) as HTMLScriptElement | null
-  if (existing?.dataset.loaded === "true") return Promise.resolve()
-  return new Promise<void>((resolve, reject) => {
-    const script = existing ?? document.createElement("script")
-    const onLoad = () => {
-      script.dataset.loaded = "true"
-      resolve()
-    }
-    script.addEventListener("load", onLoad, { once: true })
-    script.addEventListener("error", () => reject(new Error("SCRIPT_FAILED")), {
-      once: true,
-    })
-    if (!existing) {
-      script.id = id
-      script.src = src
-      document.head.append(script)
-    }
-  })
-}
+let componentPromise: Promise<void> | null = null
 
-async function loadGooglePickerRuntime() {
-  scriptsPromise ??= Promise.all([
-    loadScript("google-api-script", "https://apis.google.com/js/api.js"),
-    loadScript(
-      "google-identity-script",
-      "https://accounts.google.com/gsi/client"
-    ),
-  ]).then(() => undefined)
-  await scriptsPromise
-  const runtime = window as GoogleRuntime
-  await new Promise<void>((resolve, reject) => {
-    if (!runtime.gapi) {
-      reject(new Error("GOOGLE_RUNTIME_UNAVAILABLE"))
-      return
-    }
-    runtime.gapi.load("picker", resolve)
-  })
-  if (!runtime.google?.accounts?.oauth2 || !runtime.google.picker) {
-    throw new Error("GOOGLE_RUNTIME_UNAVAILABLE")
-  }
-  return runtime
+async function loadGooglePickerComponent() {
+  componentPromise ??= import("@googleworkspace/drive-picker-element").then(
+    () => undefined
+  )
+  await componentPromise
+  await customElements.whenDefined("drive-picker")
 }
 
 export type GoogleDrivePickerResult = {
@@ -134,75 +56,114 @@ export async function openGoogleDrivePicker({
   configuration: GoogleDriveIntegrationConfiguration
   multiselect: boolean
 }): Promise<GoogleDrivePickerResult | null> {
-  const runtime = await loadGooglePickerRuntime()
-  const oauth2 = runtime.google!.accounts!.oauth2!
-  const picker = runtime.google!.picker!
+  await loadGooglePickerComponent()
 
-  const token = await new Promise<GoogleTokenResponse | null>(
-    (resolve, reject) => {
-      const client = oauth2.initTokenClient({
-        client_id: configuration.oauthClientId,
-        scope: GOOGLE_SCOPE,
-        callback: resolve,
-        error_callback: () => resolve(null),
+  return new Promise<GoogleDrivePickerResult | null>((resolve, reject) => {
+    const picker = document.createElement(
+      "drive-picker"
+    ) as GoogleDrivePickerElement
+    const view = document.createElement("drive-picker-docs-view")
+    let token: GoogleTokenResponse | null = null
+    let settled = false
+
+    picker.setAttribute("client-id", configuration.oauthClientId)
+    picker.setAttribute("developer-key", configuration.browserApiKey)
+    picker.setAttribute("app-id", configuration.appId)
+    picker.setAttribute("scope", GOOGLE_SCOPE)
+    picker.setAttribute("prompt", "select_account")
+    picker.setAttribute("origin", window.location.origin)
+    if (multiselect) picker.setAttribute("multiselect", "true")
+
+    view.setAttribute("view-id", "DOCS")
+    view.setAttribute("mime-types", MEDIA_MIME_TYPES)
+    view.setAttribute("include-folders", "false")
+    view.setAttribute("select-folder-enabled", "false")
+    view.setAttribute("mode", "LIST")
+    picker.append(view)
+
+    const cleanup = () => {
+      picker.removeEventListener(
+        "picker-oauth-response",
+        handleOAuthResponse as EventListener
+      )
+      picker.removeEventListener(
+        "picker-oauth-error",
+        handleError as EventListener
+      )
+      picker.removeEventListener("picker-error", handleError as EventListener)
+      picker.removeEventListener(
+        "picker-canceled",
+        handleCanceled as EventListener
+      )
+      picker.removeEventListener("picker-picked", handlePicked as EventListener)
+      picker.remove()
+    }
+
+    const finish = (result: GoogleDrivePickerResult | null) => {
+      if (settled) return
+      settled = true
+      cleanup()
+      resolve(result)
+    }
+
+    const fail = () => {
+      if (settled) return
+      settled = true
+      cleanup()
+      reject(new Error("GOOGLE_PICKER_FAILED"))
+    }
+
+    function handleOAuthResponse(event: CustomEvent<GoogleTokenResponse>) {
+      token = event.detail
+    }
+
+    function handleError() {
+      fail()
+    }
+
+    function handleCanceled() {
+      finish(null)
+    }
+
+    function handlePicked(event: CustomEvent<PickerResponse>) {
+      if (!token?.access_token || !token.expires_in || token.error) {
+        fail()
+        return
+      }
+      const files = (event.detail.docs ?? []).flatMap((document) =>
+        document.id
+          ? [
+              {
+                providerFileId: document.id,
+                ...(document.resourceKey
+                  ? { resourceKey: document.resourceKey }
+                  : {}),
+              },
+            ]
+          : []
+      )
+      if (!files.length) {
+        finish(null)
+        return
+      }
+      finish({
+        accessToken: token.access_token,
+        credentialExpiresAt: new Date(
+          Date.now() + Math.max(30, token.expires_in - 30) * 1000
+        ).toISOString(),
+        files,
       })
-      try {
-        client.requestAccessToken({ prompt: "select_account" })
-      } catch (error) {
-        reject(error)
-      }
     }
-  )
-  if (!token || token.error) return null
-  if (!token.access_token || !token.expires_in) {
-    throw new Error("GOOGLE_AUTH_FAILED")
-  }
 
-  const files = await new Promise<GoogleDrivePickerSelection[] | null>(
-    (resolve) => {
-      const view = new picker.DocsView()
-        .setIncludeFolders(false)
-        .setSelectFolderEnabled(false)
-        .setMimeTypes(MEDIA_MIME_TYPES)
-      let builder = new picker.PickerBuilder()
-        .setAppId(configuration.appId)
-        .setDeveloperKey(configuration.browserApiKey)
-        .setOAuthToken(token.access_token!)
-        .setOrigin(window.location.origin)
-        .addView(view)
-        .enableFeature(picker.Feature.SUPPORT_DRIVES)
-        .setCallback((data) => {
-          if (data.action === picker.Action.CANCEL) {
-            resolve(null)
-            return
-          }
-          if (data.action !== picker.Action.PICKED) return
-          const selections = (data.docs ?? []).flatMap((document) =>
-            document.id
-              ? [
-                  {
-                    providerFileId: document.id,
-                    ...(document.resourceKey
-                      ? { resourceKey: document.resourceKey }
-                      : {}),
-                  },
-                ]
-              : []
-          )
-          resolve(selections.length ? selections : null)
-        })
-      if (multiselect) {
-        builder = builder.enableFeature(picker.Feature.MULTISELECT_ENABLED)
-      }
-      builder.build().setVisible(true)
-    }
-  )
-  if (!files) return null
-  return {
-    accessToken: token.access_token,
-    credentialExpiresAt: new Date(
-      Date.now() + Math.max(30, token.expires_in - 30) * 1000
-    ).toISOString(),
-    files,
-  }
+    picker.addEventListener(
+      "picker-oauth-response",
+      handleOAuthResponse as EventListener
+    )
+    picker.addEventListener("picker-oauth-error", handleError as EventListener)
+    picker.addEventListener("picker-error", handleError as EventListener)
+    picker.addEventListener("picker-canceled", handleCanceled as EventListener)
+    picker.addEventListener("picker-picked", handlePicked as EventListener)
+    document.body.append(picker)
+    picker.visible = true
+  })
 }
