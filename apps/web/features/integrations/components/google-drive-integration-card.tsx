@@ -31,6 +31,7 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
 import {
   CheckCircle2,
+  CirclePower,
   HardDriveDownload,
   LockKeyhole,
   Save,
@@ -237,17 +238,41 @@ export function GoogleDriveIntegrationCard() {
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-3">
           <IntegrationInsetCard>
-            <p className="text-xs text-muted-foreground">Estado</p>
+            <div className="flex items-center gap-2">
+              <CirclePower
+                aria-hidden="true"
+                className="size-4 text-muted-foreground"
+              />
+              <p className="text-xs font-medium text-muted-foreground">
+                Estado
+              </p>
+            </div>
             <p className="mt-1 text-sm">
               {integration.enabled ? "Disponible en Portal" : "Deshabilitada"}
             </p>
           </IntegrationInsetCard>
           <IntegrationInsetCard>
-            <p className="text-xs text-muted-foreground">Permiso OAuth</p>
+            <div className="flex items-center gap-2">
+              <ShieldCheck
+                aria-hidden="true"
+                className="size-4 text-muted-foreground"
+              />
+              <p className="text-xs font-medium text-muted-foreground">
+                Permiso OAuth
+              </p>
+            </div>
             <p className="mt-1 text-sm">drive.file</p>
           </IntegrationInsetCard>
           <IntegrationInsetCard>
-            <p className="text-xs text-muted-foreground">Selector</p>
+            <div className="flex items-center gap-2">
+              <CheckCircle2
+                aria-hidden="true"
+                className="size-4 text-muted-foreground"
+              />
+              <p className="text-xs font-medium text-muted-foreground">
+                Selector
+              </p>
+            </div>
             <p className="mt-1 text-sm">
               {integration.lastTestedAt ? "Probado" : "Sin probar"}
             </p>
