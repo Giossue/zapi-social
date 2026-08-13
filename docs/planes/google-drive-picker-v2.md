@@ -152,8 +152,9 @@ La card `Google Drive` sigue el patrón aprobado del resto de proveedores:
 - una prueba correcta habilita `Guardar y habilitar` aunque los campos ya
   estuvieran persistidos; probar otro borrador no desactiva la configuración
   actualmente vigente si el administrador cancela;
-- el Sheet permanece abierto mientras Google Picker toma el foco; seleccionar
-  o cancelar media no descarta el borrador ni reinicia su estado de prueba;
+- el Sheet se oculta mientras Google Picker toma el foco y vuelve a abrirse al
+  seleccionar o cancelar; así Google conserva interacción completa sin que el
+  borrador ni su estado de prueba se pierdan;
 - la prueba abre Picker en el navegador del administrador y no importa el
   archivo elegido;
 - Cancelar y cerrar quedan bloqueados durante una operación pendiente.

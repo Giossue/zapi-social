@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
+import { useCallback, useEffect, useState, type FormEvent } from "react"
 import { ApiError, integrationsApi } from "@workspace/api-client"
 import type {
   GoogleDriveIntegration,
@@ -83,12 +83,12 @@ export function GoogleDriveIntegrationCard() {
     null
   )
   const [draft, setDraft] = useState<Draft | null>(null)
+  const [sheetOpen, setSheetOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [forbidden, setForbidden] = useState(false)
   const [testState, setTestState] = useState<TestState>("not-tested")
   const [saving, setSaving] = useState(false)
-  const pickerActive = useRef(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -113,8 +113,9 @@ export function GoogleDriveIntegrationCard() {
 
   async function testConfiguration() {
     if (!draft || !complete(draft)) return
-    pickerActive.current = true
     setTestState("testing")
+    setSheetOpen(false)
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 220))
     try {
       const picked = await openGoogleDrivePicker({
         configuration: configuration(draft),
@@ -137,7 +138,7 @@ export function GoogleDriveIntegrationCard() {
       setTestState("failed")
       toast.error("No pudimos validar el selector de Google Drive.")
     } finally {
-      pickerActive.current = false
+      setSheetOpen(true)
     }
   }
 
@@ -152,6 +153,7 @@ export function GoogleDriveIntegrationCard() {
         configuration: configuration(draft),
       })
       setIntegration(saved)
+      setSheetOpen(false)
       setDraft(null)
       setTestState("not-tested")
       toast.success("Configuración Google Drive guardada.")
@@ -224,6 +226,7 @@ export function GoogleDriveIntegrationCard() {
               onClick={() => {
                 setDraft(draftFrom(integration))
                 setTestState("not-tested")
+                setSheetOpen(true)
               }}
               variant="brand-secondary"
             >
@@ -254,19 +257,14 @@ export function GoogleDriveIntegrationCard() {
 
       <Sheet
         onOpenChange={(open) => {
-          if (!open && !saving && !pickerActive.current) setDraft(null)
+          if (!open && !saving && testState !== "testing") {
+            setSheetOpen(false)
+            setDraft(null)
+          }
         }}
-        open={draft !== null}
+        open={sheetOpen && draft !== null}
       >
-        <SheetContent
-          className="w-full gap-0 overflow-y-auto overscroll-contain p-0 sm:max-w-xl"
-          onEscapeKeyDown={(event) => {
-            if (pickerActive.current) event.preventDefault()
-          }}
-          onInteractOutside={(event) => {
-            if (pickerActive.current) event.preventDefault()
-          }}
-        >
+        <SheetContent className="w-full gap-0 overflow-y-auto overscroll-contain p-0 sm:max-w-xl">
           {draft ? (
             <form
               className="flex min-h-full flex-col"
@@ -377,7 +375,10 @@ export function GoogleDriveIntegrationCard() {
               <SheetFooter className="flex-row justify-end border-t">
                 <Button
                   disabled={saving || testState === "testing"}
-                  onClick={() => setDraft(null)}
+                  onClick={() => {
+                    setSheetOpen(false)
+                    setDraft(null)
+                  }}
                   type="button"
                   variant="brand-secondary"
                 >
