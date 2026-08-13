@@ -14,6 +14,11 @@ type AppShellProps = {
   session: PortalAuthSession
 }
 
+const portalDocumentTitleOverrides = {
+  "/portal/profile": "Perfil",
+  "/portal/ai-studio/prompt-history": "Historial de prompts",
+} as const
+
 export function AppShell({ children, session }: AppShellProps) {
   const workspaces = session.workspaces?.length
     ? session.workspaces
@@ -21,6 +26,8 @@ export function AppShell({ children, session }: AppShellProps) {
 
   return (
     <DashboardShell
+      areaName="Portal"
+      documentTitleOverrides={portalDocumentTitleOverrides}
       homeHref="/portal/dashboard"
       isItemActive={(item, pathname) =>
         isPortalNavigationItemActive(item as PortalNavigationLink, pathname)

@@ -1,4 +1,10 @@
+import type { Metadata } from "next"
+
 import { InvitationPage } from "@/features/teams/components/invitation-page"
+
+export const metadata: Metadata = {
+  title: "Invitación | Zapi Social",
+}
 
 export default function InviteRoute() {
   return (

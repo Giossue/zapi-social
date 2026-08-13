@@ -179,6 +179,20 @@ username
 /portal/settings/*
 ```
 
+## Título de la pestaña
+
+El shell resuelve el título desde la entrada de navegación más específica y lo
+actualiza también en transiciones internas:
+
+```text
+{Módulo} | Admin | Zapi Social
+{Módulo} | Portal | Zapi Social
+```
+
+Las rutas fuera del menú declaran una excepción explícita en su shell. Las
+pantallas públicas de autenticación mantienen títulos propios y el layout raíz
+usa `Zapi Social` como fallback; el dominio nunca es el título previsto.
+
 ## Seed inicial
 
 La seed de despliegue debe crear entidades distintas:
@@ -247,6 +261,7 @@ No forma parte de la primera migración de separación.
 - [x] Ajustar `AppShell` para no cargar navegación Portal bajo sesión Admin.
 - [x] Mantener layout Admin independiente y tokens compartidos.
 - [x] Crear estados loading/error/sin permiso para ambas áreas.
+- [x] Sincronizar el título de pestaña con la ruta activa en Admin y Portal.
 
 ### E. Seed y operación
 
@@ -266,6 +281,9 @@ No forma parte de la primera migración de separación.
 - [x] Typecheck, build, migración en staging y revisión visual.
 
 Evidencia de registro con zona horaria: el test focal de Identity rechaza el payload sin `timezone`, crea únicamente un PortalUser y verifica `users.timezone`; contratos, API y Web completan build.
+
+Evidencia de títulos: build Web, typecheck Web, lint focal y
+`audit:portal-admin-ui` correctos.
 
 ## Estado actual
 

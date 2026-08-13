@@ -1,4 +1,10 @@
+import type { Metadata } from "next"
+
 import { AuthPage } from "@/features/identity/components/auth-page"
+
+export const metadata: Metadata = {
+  title: "Crear cuenta | Zapi Social",
+}
 
 export default async function RegisterPage({
   searchParams,

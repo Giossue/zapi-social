@@ -1,5 +1,7 @@
 "use client"
 
+import { useEffect } from "react"
+import { usePathname } from "next/navigation"
 import { Separator } from "@workspace/ui/components/separator"
 import {
   SidebarInset,
@@ -23,7 +25,9 @@ import { ThemeSwitcher } from "./theme-switcher"
 import { WorkspaceSwitcher } from "./workspace-switcher"
 
 type DashboardShellProps = {
+  areaName: "Admin" | "Portal"
   children: React.ReactNode
+  documentTitleOverrides?: Readonly<Record<string, string>>
   homeHref: string
   isItemActive: (item: DashboardNavigationLink, pathname: string) => boolean
   items: readonly DashboardNavigationGroup[]
@@ -36,8 +40,27 @@ type DashboardShellProps = {
   }
 }
 
+function getRouteLabel(
+  items: readonly DashboardNavigationGroup[],
+  pathname: string
+) {
+  return items
+    .flatMap((group) =>
+      group.items.flatMap((item) =>
+        "children" in item ? item.children : [item]
+      )
+    )
+    .filter(
+      (item) =>
+        pathname === item.href || pathname.startsWith(`${item.href}/`)
+    )
+    .sort((first, second) => second.href.length - first.href.length)[0]?.label
+}
+
 export function DashboardShell({
+  areaName,
   children,
+  documentTitleOverrides,
   homeHref,
   isItemActive,
   items,
@@ -46,7 +69,16 @@ export function DashboardShell({
   sidebarStorageKey,
   workspaceContext,
 }: DashboardShellProps) {
+  const pathname = usePathname()
   const [collapsed, setCollapsed] = usePersistedSidebarState(sidebarStorageKey)
+
+  useEffect(() => {
+    const routeLabel =
+      documentTitleOverrides?.[pathname] ?? getRouteLabel(items, pathname)
+    document.title = routeLabel
+      ? `${routeLabel} | ${areaName} | Zapi Social`
+      : `${areaName} | Zapi Social`
+  }, [areaName, documentTitleOverrides, items, pathname])
 
   return (
     <SidebarProvider
