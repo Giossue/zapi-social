@@ -225,20 +225,24 @@ function ComposerDialog({
   }, [driveBatch, onMediaImported])
 
   async function importFromGoogleDrive() {
-    if (
-      !driveProvider?.enabled ||
-      !driveProvider.oauthClientId ||
-      !driveProvider.browserApiKey ||
-      !driveProvider.appId
-    )
-      return
     setOpeningDrive(true)
     try {
+      const currentProvider = await filesApi.googleDriveProvider()
+      setDriveProvider(currentProvider)
+      if (
+        !currentProvider.enabled ||
+        !currentProvider.oauthClientId ||
+        !currentProvider.browserApiKey ||
+        !currentProvider.appId
+      ) {
+        toast.error("Google Drive no está disponible en este momento.")
+        return
+      }
       const picked = await openGoogleDrivePicker({
         configuration: {
-          oauthClientId: driveProvider.oauthClientId,
-          browserApiKey: driveProvider.browserApiKey,
-          appId: driveProvider.appId,
+          oauthClientId: currentProvider.oauthClientId,
+          browserApiKey: currentProvider.browserApiKey,
+          appId: currentProvider.appId,
         },
         multiselect: false,
       })

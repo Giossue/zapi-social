@@ -173,6 +173,9 @@ Crear la composición nueva primero en
 - Ocultar la acción cuando Admin deshabilita la integración o el rol no puede
   gestionar Files.
 - El clic carga Google API/GIS bajo demanda y abre Picker oficial.
+- Antes de abrir Picker, Portal vuelve a consultar la configuración efectiva del
+  proveedor; Files y Publishing no reutilizan credenciales mantenidas en memoria
+  desde una carga anterior de la página.
 - Picker filtra únicamente imágenes y vídeos admitidos por Files y permite
   multiselección.
 - Al confirmar, se crea un lote cuyo `folderId` es la carpeta abierta.
