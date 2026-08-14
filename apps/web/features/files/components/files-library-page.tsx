@@ -7,6 +7,7 @@ import type {
   PortalGoogleDriveConfiguration,
 } from "@workspace/contracts"
 import { toast } from "@workspace/ui/components/toast"
+import { CardGrid } from "@workspace/ui/components/card-grid"
 import {
   Clock,
   Download,
@@ -965,7 +966,7 @@ export function FilesLibraryPage() {
               {visibleFolders.length} carpetas
             </span>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <CardGrid>
             {visibleFolders.map((folder) => (
               <Card
                 className="cursor-pointer transition-colors hover:bg-accent/50"
@@ -1053,7 +1054,7 @@ export function FilesLibraryPage() {
                 </CardContent>
               </Card>
             ))}
-          </div>
+          </CardGrid>
         </section>
       ) : null}
 

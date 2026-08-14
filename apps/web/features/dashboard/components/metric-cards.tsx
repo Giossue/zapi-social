@@ -9,6 +9,7 @@ import {
 } from "lucide-react"
 
 import { MetricCard } from "@workspace/ui/components/metric-card"
+import { CardGrid } from "@workspace/ui/components/card-grid"
 
 import type {
   DashboardMetric,
@@ -26,7 +27,7 @@ const metricIcons: Record<DashboardMetricIcon, LucideIcon> = {
 
 export function MetricCards({ metrics }: { metrics: DashboardMetric[] }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <CardGrid>
       {metrics.slice(0, 4).map((metric) => {
         const Icon = metricIcons[metric.icon]
 
@@ -40,6 +41,6 @@ export function MetricCards({ metrics }: { metrics: DashboardMetric[] }) {
           />
         )
       })}
-    </div>
+    </CardGrid>
   )
 }

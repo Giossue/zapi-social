@@ -51,6 +51,7 @@ import {
   AlertTitle,
 } from "@workspace/ui/components/alert"
 import { Badge } from "@workspace/ui/components/badge"
+import { CardGrid } from "@workspace/ui/components/card-grid"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
@@ -513,7 +514,7 @@ function Overview() {
         view="overview"
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <CardGrid>
         {metrics.map((metric) => (
           <MetricCard
             description={metric.detail}
@@ -523,7 +524,7 @@ function Overview() {
             value={metric.value}
           />
         ))}
-      </div>
+      </CardGrid>
 
       <section className="flex flex-col gap-3">
         <div>
@@ -532,7 +533,7 @@ function Overview() {
             Elige una herramienta y parte de una estructura preparada.
           </p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <CardGrid>
           {studioDestinations.slice(1, 9).map((item) => (
             <Link className="group" href={item.href} key={item.view}>
               <Card
@@ -553,7 +554,7 @@ function Overview() {
               </Card>
             </Link>
           ))}
-        </div>
+        </CardGrid>
       </section>
 
       <Card variant="subtle">

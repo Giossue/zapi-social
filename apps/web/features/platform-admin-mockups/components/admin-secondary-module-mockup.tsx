@@ -15,6 +15,7 @@ import {
   Trash2,
 } from "lucide-react"
 import { toast } from "@workspace/ui/components/toast"
+import { CardGrid } from "@workspace/ui/components/card-grid"
 
 import {
   DataTableFilter,
@@ -238,11 +239,11 @@ function MetricGrid({
   if (!metrics?.length) return null
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <CardGrid>
       {metrics.map((metric) => (
         <MetricCard key={metric.label} {...metric} />
       ))}
-    </div>
+    </CardGrid>
   )
 }
 

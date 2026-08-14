@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 
 import { Badge } from "@workspace/ui/components/badge"
+import { CardGrid } from "@workspace/ui/components/card-grid"
 import { Button } from "@workspace/ui/components/button"
 import {
   DataTableFilter,
@@ -128,11 +129,11 @@ function SupportMetrics({ tickets }: { tickets: readonly SupportTicket[] }) {
   ]
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    <CardGrid layout="xl-3">
       {items.map((item) => (
         <MetricCard key={item.label} {...item} />
       ))}
-    </div>
+    </CardGrid>
   )
 }
 

@@ -25,6 +25,7 @@ import {
   DataTableToolbar,
 } from "@workspace/ui/components/data-table-controls"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
+import { CardGrid } from "@workspace/ui/components/card-grid"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { MetricCard } from "@workspace/ui/components/metric-card"
 import { PageLoading } from "@workspace/ui/components/page-loading"
@@ -942,7 +943,7 @@ function AiCreditsSurface({
 
       {state === "ready" ? (
         <>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <CardGrid layout="xl-3">
             {[
               {
                 description: "créditos",
@@ -965,7 +966,7 @@ function AiCreditsSurface({
             ].map((metric) => (
               <MetricCard key={metric.label} {...metric} />
             ))}
-          </div>
+          </CardGrid>
 
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
             <div className="flex flex-col gap-4">

@@ -10,6 +10,7 @@ import {
 
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { CardGrid } from "@workspace/ui/components/card-grid"
 import {
   Card,
   CardAction,
@@ -33,7 +34,7 @@ export function AdminDashboard() {
   return (
     <div className="flex flex-col gap-4 md:gap-6">
       <section aria-label="Estado de la plataforma">
-        <div className="grid gap-3 md:grid-cols-3">
+        <CardGrid layout="md-3">
           {adminDashboardFixture.metrics.map((metric) => (
             <MetricCard
               key={metric.label}
@@ -41,7 +42,7 @@ export function AdminDashboard() {
               icon={metricIcons[metric.label] ?? Activity}
             />
           ))}
-        </div>
+        </CardGrid>
       </section>
 
       <section

@@ -26,6 +26,7 @@ import {
   X,
 } from "lucide-react"
 import { toast } from "@workspace/ui/components/toast"
+import { CardGrid } from "@workspace/ui/components/card-grid"
 
 import { Badge } from "@workspace/ui/components/badge"
 import {
@@ -1239,11 +1240,11 @@ export function AdminModulePreview({
         </Tabs>
       ) : null}
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <CardGrid>
         {metrics.map((metric) => (
           <MetricCard key={metric.label} {...metric} />
         ))}
-      </div>
+      </CardGrid>
 
       <Card variant="subtle">
         <DataTableHeader

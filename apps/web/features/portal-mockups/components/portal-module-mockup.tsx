@@ -30,6 +30,7 @@ import {
   UserRoundPlus,
 } from "lucide-react"
 import { toast } from "@workspace/ui/components/toast"
+import { CardGrid } from "@workspace/ui/components/card-grid"
 
 import {
   DataTableFilter,
@@ -1283,7 +1284,7 @@ function ModuleMetrics({ metrics }: { metrics: ModuleDefinition["metrics"] }) {
   if (!metrics?.length) return null
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <CardGrid>
       {metrics.map((metric) => {
         return (
           <MetricCard
@@ -1295,7 +1296,7 @@ function ModuleMetrics({ metrics }: { metrics: ModuleDefinition["metrics"] }) {
           />
         )
       })}
-    </div>
+    </CardGrid>
   )
 }
 

@@ -21,6 +21,7 @@ import {
 } from "lucide-react"
 
 import { Badge } from "@workspace/ui/components/badge"
+import { CardGrid } from "@workspace/ui/components/card-grid"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -864,7 +865,7 @@ export function PlansPage() {
         <PageLoading className="min-h-80" />
       ) : (
         <>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <CardGrid>
             {[
               {
                 label: "Planes",
@@ -893,7 +894,7 @@ export function PlansPage() {
             ].map((metric) => (
               <MetricCard key={metric.label} {...metric} />
             ))}
-          </div>
+          </CardGrid>
 
           <Card variant="subtle">
             <DataTableHeader
