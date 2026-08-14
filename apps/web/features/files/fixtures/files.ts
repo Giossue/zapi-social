@@ -10,7 +10,7 @@ export const fileLibraryFixture: FileLibraryData = {
   folders: [],
   assets: [],
   page: 1,
-  hasMore: false,
+  filesTotal: 0,
 }
 
 export const onlineMediaSearchFixture: OnlineMediaSearchData = {

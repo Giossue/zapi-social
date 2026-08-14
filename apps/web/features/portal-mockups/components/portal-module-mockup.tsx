@@ -989,7 +989,7 @@ const definitions: Record<PortalModuleKey, ModuleDefinition> = {
   },
 }
 
-const pageSize = 6
+const pageSize = 10
 
 function emptyValues(fields: readonly FormField[]): FormValues {
   return Object.fromEntries(fields.map((field) => [field.name, ""]))

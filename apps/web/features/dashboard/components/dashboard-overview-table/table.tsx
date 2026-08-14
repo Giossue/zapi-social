@@ -211,7 +211,7 @@ export function DashboardOverviewTable({
         <TablePagination
           canGoNext={table.getCanNextPage()}
           canGoPrevious={table.getCanPreviousPage()}
-          itemLabel="elementos"
+          itemLabel="indicadores"
           onNextPage={() => table.nextPage()}
           onPreviousPage={() => table.previousPage()}
           rangeEnd={rangeEnd}

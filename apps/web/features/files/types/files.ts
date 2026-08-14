@@ -31,7 +31,7 @@ export type FileLibraryData = {
   folders: readonly FileFolder[]
   assets: readonly FileAsset[]
   page: number
-  hasMore: boolean
+  filesTotal: number
 }
 
 export type OnlineMediaItem = {

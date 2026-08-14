@@ -104,6 +104,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
+import { TablePagination } from "@workspace/ui/components/table-pagination"
 import {
   Tabs,
   TabsContent,
@@ -396,44 +397,66 @@ function JobsTable({
   rows: PortalAiRequest[]
   onChanged?: () => void
 }) {
+  const [page, setPage] = useState(1)
+  const pageCount = Math.max(1, Math.ceil(rows.length / AI_TABLE_PAGE_SIZE))
+  const currentPage = Math.min(page, pageCount)
+  const visibleRows = rows.slice(
+    (currentPage - 1) * AI_TABLE_PAGE_SIZE,
+    currentPage * AI_TABLE_PAGE_SIZE
+  )
+
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Generación</TableHead>
-          <TableHead>Tipo</TableHead>
-          <TableHead>Estado</TableHead>
-          <TableHead>Consumo</TableHead>
-          <TableHead>Fecha</TableHead>
-          <TableHead className="text-right">Acciones</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {rows.map((row) => (
-          <TableRow key={row.id}>
-            <TableCell>
-              <div>
-                <p className="font-medium">{row.title}</p>
-                <p className="text-xs text-muted-foreground">
-                  {row.id.slice(0, 8)}
-                </p>
-              </div>
-            </TableCell>
-            <TableCell>{requestKindLabels[row.kind]}</TableCell>
-            <TableCell>
-              <StatusBadge status={row.status} />
-            </TableCell>
-            <TableCell>{row.costUnits} créditos</TableCell>
-            <TableCell className="text-muted-foreground">
-              {formatDate(row.createdAt)}
-            </TableCell>
-            <TableCell className="text-right">
-              <JobActions request={row} onChanged={onChanged} />
-            </TableCell>
+    <>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Generación</TableHead>
+            <TableHead>Tipo</TableHead>
+            <TableHead>Estado</TableHead>
+            <TableHead>Consumo</TableHead>
+            <TableHead>Fecha</TableHead>
+            <TableHead className="text-right">Acciones</TableHead>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {visibleRows.map((row) => (
+            <TableRow key={row.id}>
+              <TableCell>
+                <div>
+                  <p className="font-medium">{row.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {row.id.slice(0, 8)}
+                  </p>
+                </div>
+              </TableCell>
+              <TableCell>{requestKindLabels[row.kind]}</TableCell>
+              <TableCell>
+                <StatusBadge status={row.status} />
+              </TableCell>
+              <TableCell>{row.costUnits} créditos</TableCell>
+              <TableCell className="text-muted-foreground">
+                {formatDate(row.createdAt)}
+              </TableCell>
+              <TableCell className="text-right">
+                <JobActions request={row} onChanged={onChanged} />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <TablePagination
+        canGoNext={currentPage < pageCount}
+        canGoPrevious={currentPage > 1}
+        itemLabel="generaciones"
+        onNextPage={() => setPage(currentPage + 1)}
+        onPreviousPage={() => setPage(currentPage - 1)}
+        rangeEnd={Math.min(currentPage * AI_TABLE_PAGE_SIZE, rows.length)}
+        rangeStart={
+          rows.length ? (currentPage - 1) * AI_TABLE_PAGE_SIZE + 1 : 0
+        }
+        total={rows.length}
+      />
+    </>
   )
 }
 
@@ -1254,6 +1277,14 @@ function Planner() {
         }>
       }
     | undefined
+  const ideas = result?.items ?? []
+  const [page, setPage] = useState(1)
+  const pageCount = Math.max(1, Math.ceil(ideas.length / AI_TABLE_PAGE_SIZE))
+  const currentPage = Math.min(page, pageCount)
+  const visibleIdeas = ideas.slice(
+    (currentPage - 1) * AI_TABLE_PAGE_SIZE,
+    currentPage * AI_TABLE_PAGE_SIZE
+  )
 
   async function generate(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -1375,54 +1406,71 @@ function Planner() {
               Propuesta equilibrada por canal, formato y objetivo.
             </CardDescription>
             <CardAction>
-              <Badge variant="secondary">
-                {result?.items?.length ?? 0} ideas
-              </Badge>
+              <Badge variant="secondary">{ideas.length} ideas</Badge>
             </CardAction>
           </CardHeader>
           <CardContent className="flex flex-col gap-4 px-0">
             {request?.status === "succeeded" ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Fecha sugerida</TableHead>
-                    <TableHead>Idea</TableHead>
-                    <TableHead>Canal</TableHead>
-                    <TableHead>Formato</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead className="text-right">Acción</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(result?.items ?? []).map((row) => (
-                    <TableRow key={row.idea}>
-                      <TableCell className="text-muted-foreground">
-                        {row.date}
-                      </TableCell>
-                      <TableCell className="max-w-64 font-medium whitespace-normal">
-                        {row.idea}
-                      </TableCell>
-                      <TableCell>{row.platform}</TableCell>
-                      <TableCell>{row.format}</TableCell>
-                      <TableCell>
-                        <Badge variant="success">Idea lista</Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          aria-label={`Crear contenido para ${row.idea}`}
-                          asChild
-                          size="icon-sm"
-                          variant="brand-secondary"
-                        >
-                          <Link href="/portal/ai-studio/ai-content">
-                            <ChevronRight />
-                          </Link>
-                        </Button>
-                      </TableCell>
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Fecha sugerida</TableHead>
+                      <TableHead>Idea</TableHead>
+                      <TableHead>Canal</TableHead>
+                      <TableHead>Formato</TableHead>
+                      <TableHead>Estado</TableHead>
+                      <TableHead className="text-right">Acción</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {visibleIdeas.map((row) => (
+                      <TableRow key={row.idea}>
+                        <TableCell className="text-muted-foreground">
+                          {row.date}
+                        </TableCell>
+                        <TableCell className="max-w-64 font-medium whitespace-normal">
+                          {row.idea}
+                        </TableCell>
+                        <TableCell>{row.platform}</TableCell>
+                        <TableCell>{row.format}</TableCell>
+                        <TableCell>
+                          <Badge variant="success">Idea lista</Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            aria-label={`Crear contenido para ${row.idea}`}
+                            asChild
+                            size="icon-sm"
+                            variant="brand-secondary"
+                          >
+                            <Link href="/portal/ai-studio/ai-content">
+                              <ChevronRight />
+                            </Link>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                <TablePagination
+                  canGoNext={currentPage < pageCount}
+                  canGoPrevious={currentPage > 1}
+                  itemLabel="ideas"
+                  onNextPage={() => setPage(currentPage + 1)}
+                  onPreviousPage={() => setPage(currentPage - 1)}
+                  rangeEnd={Math.min(
+                    currentPage * AI_TABLE_PAGE_SIZE,
+                    ideas.length
+                  )}
+                  rangeStart={
+                    ideas.length
+                      ? (currentPage - 1) * AI_TABLE_PAGE_SIZE + 1
+                      : 0
+                  }
+                  total={ideas.length}
+                />
+              </>
             ) : request ? (
               <div className="p-6">
                 <Progress value={request.progress} />

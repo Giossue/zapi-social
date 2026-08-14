@@ -54,7 +54,7 @@ import {
 import { ChannelsLoading } from "./channels-loading"
 
 const META_OAUTH_SESSION_KEY = "zapi:channels:meta-oauth"
-const CHANNELS_PAGE_SIZE = 12
+const CHANNELS_PAGE_SIZE = 10
 
 type ChannelsResponse = Awaited<ReturnType<typeof channelsApi.list>>
 type ChannelsSummary = ChannelsResponse["summary"]

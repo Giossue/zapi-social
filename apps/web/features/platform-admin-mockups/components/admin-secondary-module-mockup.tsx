@@ -107,7 +107,7 @@ import {
   adminSecondaryDefinitions,
 } from "../fixtures/admin-secondary-fixtures"
 
-const PAGE_SIZE = 6
+const PAGE_SIZE = 10
 
 type FieldValues = Record<string, string | boolean>
 export type AdminSecondaryViewState =
@@ -597,7 +597,7 @@ function CollectionMockup({
           <TablePagination
             canGoNext={currentPage < pageCount - 1}
             canGoPrevious={currentPage > 0}
-            itemLabel="resultados"
+            itemLabel={definition.title.toLowerCase()}
             onNextPage={() =>
               setPageIndex((current) => Math.min(current + 1, pageCount - 1))
             }

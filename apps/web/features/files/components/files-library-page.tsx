@@ -81,6 +81,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { PageLoading } from "@workspace/ui/components/page-loading"
+import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
   ToggleGroup,
@@ -432,14 +433,16 @@ function formatSize(sizeBytes: number) {
     : `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
+const FILES_PAGE_SIZE = 10
+
 export function FilesLibraryPage() {
   const [library, setLibrary] = useState<FileLibraryData | null>(null)
+  const [page, setPage] = useState(1)
   const [loadError, setLoadError] = useState(false)
   const [query, setQuery] = useState("")
   const [assetFilter, setAssetFilter] = useState<AssetFilter>("all")
   const [folderId, setFolderId] = useState<string | "all">("all")
   const [view, setView] = useState<FilesView>("grid")
-  const [loadingMore, setLoadingMore] = useState(false)
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([])
   const [bulkMoveOpen, setBulkMoveOpen] = useState(false)
   const [bulkTrashOpen, setBulkTrashOpen] = useState(false)
@@ -470,79 +473,71 @@ export function FilesLibraryPage() {
       })
     | null
   >(null)
-  const loadLibrary = useCallback(
-    async (page = 1, append = false) => {
-      if (!append) setLoadError(false)
-      try {
-        const data = await filesApi.list({
-          page,
-          limit: 50,
-          folderId: folderId === "all" ? undefined : folderId,
-          q: query.trim() || undefined,
+  function openFolder(nextFolderId: string | "all") {
+    setPage(1)
+    setFolderId(nextFolderId)
+  }
+
+  const loadLibrary = useCallback(async () => {
+    setLoadError(false)
+    try {
+      const data = await filesApi.list({
+        page,
+        limit: FILES_PAGE_SIZE,
+        folderId: folderId === "all" ? undefined : folderId,
+        q: query.trim() || undefined,
+        kind:
+          assetFilter === "all" || assetFilter === "ai"
+            ? undefined
+            : assetFilter,
+      })
+      setLoadError(false)
+      const next: FileLibraryData = {
+        canView: true,
+        canUpload: data.canManage,
+        folders: data.folders.map((folder) => ({
+          ...folder,
+          size: formatSize(folder.sizeBytes),
+          updatedAt: new Intl.DateTimeFormat("es", {
+            dateStyle: "medium",
+          }).format(new Date(folder.updatedAt)),
+        })),
+        assets: data.files.map((asset) => ({
+          id: asset.id,
+          name: asset.name,
+          folderId: asset.folderId,
           kind:
-            assetFilter === "all" || assetFilter === "ai"
-              ? undefined
-              : assetFilter,
-        })
-        setLoadError(false)
-        const next: FileLibraryData = {
-          canView: true,
-          canUpload: data.canManage,
-          folders: data.folders.map((folder) => ({
-            ...folder,
-            size: formatSize(folder.sizeBytes),
-            updatedAt: new Intl.DateTimeFormat("es", {
-              dateStyle: "medium",
-            }).format(new Date(folder.updatedAt)),
-          })),
-          assets: data.files.map((asset) => ({
-            id: asset.id,
-            name: asset.name,
-            folderId: asset.folderId,
-            kind:
-              asset.kind === "image" || asset.kind === "video"
-                ? asset.kind
-                : "document",
-            mimeType: asset.mimeType,
-            size: formatSize(asset.sizeBytes),
-            dimensions: null,
-            owner: asset.owner,
-            updatedAt: new Intl.DateTimeFormat("es", {
-              dateStyle: "medium",
-            }).format(new Date(asset.modifiedAt)),
-            shared: false,
-            generatedWithAi: false,
-            starred: asset.starred,
-            thumbnailStatus: asset.thumbnailStatus,
-          })),
-          page: data.page,
-          hasMore:
-            data.files.length < data.filesTotal ||
-            data.folders.length < data.foldersTotal,
-        }
-        setLibrary((current) =>
-          append && current
-            ? {
-                ...next,
-                folders: [...current.folders, ...next.folders],
-                assets: [...current.assets, ...next.assets],
-              }
-            : next
-        )
-      } catch (error) {
-        setLoadError(!(error instanceof ApiError && error.status === 403))
-        setLibrary({
-          canView: false,
-          canUpload: false,
-          folders: [],
-          assets: [],
-          page: 1,
-          hasMore: false,
-        })
+            asset.kind === "image" || asset.kind === "video"
+              ? asset.kind
+              : "document",
+          mimeType: asset.mimeType,
+          size: formatSize(asset.sizeBytes),
+          dimensions: null,
+          owner: asset.owner,
+          updatedAt: new Intl.DateTimeFormat("es", {
+            dateStyle: "medium",
+          }).format(new Date(asset.modifiedAt)),
+          shared: false,
+          generatedWithAi: false,
+          starred: asset.starred,
+          thumbnailStatus: asset.thumbnailStatus,
+        })),
+        page: data.page,
+        filesTotal: data.filesTotal,
       }
-    },
-    [assetFilter, folderId, query]
-  )
+      setLibrary(next)
+    } catch (error) {
+      setLoadError(!(error instanceof ApiError && error.status === 403))
+      setLibrary({
+        canView: false,
+        canUpload: false,
+        folders: [],
+        assets: [],
+        page: 1,
+        filesTotal: 0,
+      })
+    }
+  }, [assetFilter, folderId, page, query])
 
   useEffect(() => {
     void loadLibrary()
@@ -752,7 +747,7 @@ export function FilesLibraryPage() {
     try {
       if (trashItem.isFolder) await filesApi.removeFolder(trashItem.id)
       else await filesApi.remove(trashItem.id)
-      if (folderId !== "all" && trashItem.id === folderId) setFolderId("all")
+      if (folderId !== "all" && trashItem.id === folderId) openFolder("all")
       setTrashItem(null)
       await loadLibrary()
       toast.success("Elemento eliminado permanentemente")
@@ -829,6 +824,25 @@ export function FilesLibraryPage() {
   if (library === null) return <PageLoading />
   if (!library.canView) return <FilesPermissionState mode="library" />
 
+  // The API applies the same page window to folders and files, so the range
+  // is reported over the files, which is what both views actually list.
+  const filesRangeStart = library.filesTotal
+    ? (page - 1) * FILES_PAGE_SIZE + 1
+    : 0
+  const filesRangeEnd = Math.min(page * FILES_PAGE_SIZE, library.filesTotal)
+  const filesPagination = (
+    <TablePagination
+      canGoNext={page * FILES_PAGE_SIZE < library.filesTotal}
+      canGoPrevious={page > 1}
+      itemLabel="archivos"
+      onNextPage={() => setPage((current) => current + 1)}
+      onPreviousPage={() => setPage((current) => Math.max(1, current - 1))}
+      rangeEnd={filesRangeEnd}
+      rangeStart={filesRangeStart}
+      total={library.filesTotal}
+    />
+  )
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
@@ -838,7 +852,10 @@ export function FilesLibraryPage() {
           </InputGroupAddon>
           <InputGroupInput
             aria-label="Buscar archivos y carpetas"
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              setPage(1)
+              setQuery(event.target.value)
+            }}
             placeholder="Buscar archivos y carpetas"
             value={query}
           />
@@ -927,7 +944,7 @@ export function FilesLibraryPage() {
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <button onClick={() => setFolderId("all")} type="button">
+                <button onClick={() => openFolder("all")} type="button">
                   Archivos
                 </button>
               </BreadcrumbLink>
@@ -939,10 +956,7 @@ export function FilesLibraryPage() {
                   <BreadcrumbPage>{folder.name}</BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink asChild>
-                    <button
-                      onClick={() => setFolderId(folder.id)}
-                      type="button"
-                    >
+                    <button onClick={() => openFolder(folder.id)} type="button">
                       {folder.name}
                     </button>
                   </BreadcrumbLink>
@@ -973,13 +987,13 @@ export function FilesLibraryPage() {
                 key={folder.id}
                 onClick={(event) => {
                   if (event.currentTarget.contains(event.target as Node))
-                    setFolderId(folder.id)
+                    openFolder(folder.id)
                 }}
                 onKeyDown={(event) => {
                   if (event.target !== event.currentTarget) return
                   if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault()
-                    setFolderId(folder.id)
+                    openFolder(folder.id)
                   }
                 }}
                 role="link"
@@ -1090,7 +1104,10 @@ export function FilesLibraryPage() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Select
-              onValueChange={(value) => setAssetFilter(value as AssetFilter)}
+              onValueChange={(value) => {
+                setPage(1)
+                setAssetFilter(value as AssetFilter)
+              }}
               value={assetFilter}
             >
               <SelectTrigger
@@ -1137,8 +1154,8 @@ export function FilesLibraryPage() {
                 <Button
                   onClick={() => {
                     setAssetFilter("all")
-                    setFolderId("all")
                     setQuery("")
+                    openFolder("all")
                   }}
                   variant="brand-secondary"
                 >
@@ -1163,22 +1180,25 @@ export function FilesLibraryPage() {
             }
           />
         ) : view === "grid" ? (
-          <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-5">
-            {assets.map((asset) => (
-              <AssetCard
-                asset={asset}
-                key={asset.id}
-                onSelect={toggleAsset}
-                onToggleStar={toggleStar}
-                onPreview={setPreviewAsset}
-                onInfo={setInfoAsset}
-                onRename={setRenameItem}
-                onMove={setMoveItem}
-                onTrash={setTrashItem}
-                selected={selectedAssetIds.includes(asset.id)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-5">
+              {assets.map((asset) => (
+                <AssetCard
+                  asset={asset}
+                  key={asset.id}
+                  onSelect={toggleAsset}
+                  onToggleStar={toggleStar}
+                  onPreview={setPreviewAsset}
+                  onInfo={setInfoAsset}
+                  onRename={setRenameItem}
+                  onMove={setMoveItem}
+                  onTrash={setTrashItem}
+                  selected={selectedAssetIds.includes(asset.id)}
+                />
+              ))}
+            </div>
+            {filesPagination}
+          </>
         ) : (
           <Card variant="subtle">
             <CardContent className="flex flex-col gap-4 px-0">
@@ -1192,26 +1212,11 @@ export function FilesLibraryPage() {
                 onTrash={setTrashItem}
                 selectedAssetIds={selectedAssetIds}
               />
+              {filesPagination}
             </CardContent>
           </Card>
         )}
       </div>
-
-      {library.hasMore ? (
-        <div className="flex justify-center">
-          <Button
-            disabled={loadingMore}
-            onClick={async () => {
-              setLoadingMore(true)
-              await loadLibrary(library.page + 1, true)
-              setLoadingMore(false)
-            }}
-            variant="brand-secondary"
-          >
-            {loadingMore ? "Cargando…" : "Cargar más"}
-          </Button>
-        </div>
-      ) : null}
 
       <FloatingActionButton
         disabled={!library.canUpload}

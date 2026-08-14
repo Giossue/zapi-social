@@ -1430,7 +1430,7 @@ export function AdminModulePreview({
           <TablePagination
             canGoNext={currentPageIndex < pageCount - 1}
             canGoPrevious={currentPageIndex > 0}
-            itemLabel="resultados"
+            itemLabel={active.label.toLowerCase()}
             onNextPage={() =>
               setPageIndex((current) => Math.min(current + 1, pageCount - 1))
             }
