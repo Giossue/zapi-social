@@ -32,6 +32,7 @@ import {
   SheetTitle,
 } from "@workspace/ui/components/sheet"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import { MetricCard } from "@workspace/ui/components/metric-card"
 import {
   Field,
@@ -374,6 +375,7 @@ export function SupportTicketsPage() {
           <DataTableHeader
             action={
               <Button
+                className="hidden sm:inline-flex"
                 onClick={() => setIsCreateOpen(true)}
                 size="sm"
                 type="button"
@@ -526,6 +528,11 @@ export function SupportTicketsPage() {
             />
           </CardContent>
         </Card>
+
+        <FloatingActionButton
+          label="Nuevo caso"
+          onClick={() => setIsCreateOpen(true)}
+        />
       </div>
       <NewSupportTicketSheet
         onCreate={createTicket}

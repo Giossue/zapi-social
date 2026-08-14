@@ -57,6 +57,7 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import {
   InputGroup,
   InputGroupAddon,
@@ -865,6 +866,7 @@ export function FilesLibraryPage() {
             </Button>
           ) : null}
           <Button
+            className="hidden sm:inline-flex"
             disabled={!library.canUpload}
             onClick={() => setUploadDialogOpen(true)}
           >
@@ -1209,6 +1211,13 @@ export function FilesLibraryPage() {
           </Button>
         </div>
       ) : null}
+
+      <FloatingActionButton
+        disabled={!library.canUpload}
+        icon={<Upload aria-hidden="true" className="size-6" />}
+        label="Subir archivos"
+        onClick={() => setUploadDialogOpen(true)}
+      />
 
       <FileUploadDialog
         onOpenChange={setUploadDialogOpen}

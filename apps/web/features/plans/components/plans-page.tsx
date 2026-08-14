@@ -61,6 +61,7 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import {
   Field,
   FieldDescription,
@@ -897,7 +898,11 @@ export function PlansPage() {
           <Card variant="subtle">
             <DataTableHeader
               action={
-                <Button onClick={() => setEditor("create")} size="sm">
+                <Button
+                  className="hidden sm:inline-flex"
+                  onClick={() => setEditor("create")}
+                  size="sm"
+                >
                   <Plus data-icon="inline-start" />
                   Crear plan
                 </Button>
@@ -1103,6 +1108,11 @@ export function PlansPage() {
               />
             </CardContent>
           </Card>
+
+          <FloatingActionButton
+            label="Crear plan"
+            onClick={() => setEditor("create")}
+          />
         </>
       )}
       {planForEditor ? (

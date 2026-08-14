@@ -23,6 +23,7 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import {
   Field,
   FieldGroup,
@@ -581,7 +582,10 @@ export function PublishingCalendarPage({
               </TabsList>
             </Tabs>
           </nav>
-          <Button onClick={() => openComposer()}>
+          <Button
+            className="hidden sm:inline-flex"
+            onClick={() => openComposer()}
+          >
             <CalendarDays data-icon="inline-start" />
             Nueva publicación
           </Button>
@@ -669,6 +673,14 @@ export function PublishingCalendarPage({
             posts={drafts}
           />
         </section>
+      ) : null}
+
+      {section !== "calendar" ? (
+        <FloatingActionButton
+          icon={<CalendarDays aria-hidden="true" className="size-6" />}
+          label="Nueva publicación"
+          onClick={() => openComposer()}
+        />
       ) : null}
 
       {composerOpen ? (

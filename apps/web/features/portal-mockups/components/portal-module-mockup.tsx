@@ -37,6 +37,7 @@ import {
   DataTableToolbar,
 } from "@workspace/ui/components/data-table-controls"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import { MetricCard } from "@workspace/ui/components/metric-card"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { PageLoading } from "@workspace/ui/components/page-loading"
@@ -1724,7 +1725,12 @@ export function PortalModuleMockup({
         <DataTableHeader
           action={
             activeView.action ? (
-              <Button onClick={() => openSheet()} size="sm" type="button">
+              <Button
+                className="hidden sm:inline-flex"
+                onClick={() => openSheet()}
+                size="sm"
+                type="button"
+              >
                 <Plus aria-hidden="true" data-icon="inline-start" />
                 {activeView.action.label}
               </Button>
@@ -1770,6 +1776,14 @@ export function PortalModuleMockup({
           table
         )}
       </Card>
+
+      {activeView.action ? (
+        <FloatingActionButton
+          label={activeView.action.label}
+          onClick={() => openSheet()}
+        />
+      ) : null}
+
       <ActionSheet
         action={activeView.action}
         editingRow={editingRow}

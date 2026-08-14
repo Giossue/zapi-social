@@ -62,6 +62,7 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import { MetricCard } from "@workspace/ui/components/metric-card"
 import { Field, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
@@ -1200,6 +1201,12 @@ export function AdminModulePreview({
     )
   }
 
+  function openCreateSheet() {
+    setFormValues(primaryAction?.fields.map(() => "") ?? [])
+    setEditingRowId(null)
+    setDialogOpen(true)
+  }
+
   function changeTab(value: string) {
     setActiveTab(value)
     setSearch("")
@@ -1243,12 +1250,9 @@ export function AdminModulePreview({
           action={
             primaryAction && PrimaryIcon ? (
               <Button
+                className="hidden sm:inline-flex"
                 disabled={saving}
-                onClick={() => {
-                  setFormValues(primaryAction.fields.map(() => ""))
-                  setEditingRowId(null)
-                  setDialogOpen(true)
-                }}
+                onClick={openCreateSheet}
                 size="sm"
               >
                 <PrimaryIcon aria-hidden="true" data-icon="inline-start" />
@@ -1438,6 +1442,15 @@ export function AdminModulePreview({
           />
         </CardContent>
       </Card>
+
+      {primaryAction && PrimaryIcon ? (
+        <FloatingActionButton
+          disabled={saving}
+          icon={<PrimaryIcon aria-hidden="true" className="size-6" />}
+          label={primaryAction.label}
+          onClick={openCreateSheet}
+        />
+      ) : null}
 
       {primaryAction ? (
         <Sheet

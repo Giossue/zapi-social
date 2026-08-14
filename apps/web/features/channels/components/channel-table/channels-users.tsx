@@ -13,6 +13,7 @@ import {
   DataTableHeader,
   DataTableToolbar,
 } from "@workspace/ui/components/data-table-controls"
+import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 
 import type { PortalChannelAccount } from "../../types/channels"
 import {
@@ -83,72 +84,85 @@ export function ChannelsUsers({
   })
 
   return (
-    <Card variant="subtle">
-      <DataTableHeader
-        action={
-          canManage ? (
-            <Button size="sm" onClick={onConnect}>
-              <Plus /> Conectar canal
-            </Button>
-          ) : undefined
-        }
-        description="Gestiona las cuentas conectadas y su acceso para publicar."
-        search={{
-          ariaLabel: "Buscar canales",
-          onChange: onQueryChange,
-          placeholder: "Buscar canales...",
-          value: query,
-        }}
-        title="Cuentas de canal"
-      />
-      <CardContent className="flex flex-col gap-4 px-0">
-        <DataTableToolbar>
-          <DataTableFilter
-            ariaLabel="Filtrar por proveedor"
-            label="Proveedor"
-            onValueChange={onProviderFilterChange}
-            options={[
-              { label: "Todos", value: "all" },
-              ...providerOptions.map(([value, label]) => ({ label, value })),
-            ]}
-            value={providerFilter}
-          />
-          <DataTableFilter
-            ariaLabel="Filtrar por tipo"
-            label="Tipo"
-            onValueChange={onCapabilityFilterChange}
-            options={[
-              { label: "Todos", value: "all" },
-              ...capabilityOptions.map(([value, label]) => ({ label, value })),
-            ]}
-            value={capabilityFilter}
-          />
-          <DataTableFilter
-            ariaLabel="Filtrar por estado"
-            label="Estado"
-            onValueChange={onStatusFilterChange}
-            options={[
-              { label: "Todos", value: "all" },
-              { label: "Conectados", value: "connected" },
-              { label: "Desconectados", value: "disconnected" },
-            ]}
-            value={statusFilter}
-          />
-        </DataTableToolbar>
-
-        <ChannelsTable
-          canGoNext={canGoNext}
-          canGoPrevious={canGoPrevious}
-          emptyState={emptyState}
-          isFiltering={isFiltering}
-          onNextPage={onNextPage}
-          onPreviousPage={onPreviousPage}
-          rangeEnd={rangeEnd}
-          rangeStart={rangeStart}
-          table={table}
-          total={total}
+    <>
+      <Card variant="subtle">
+        <DataTableHeader
+          action={
+            canManage ? (
+              <Button
+                className="hidden sm:inline-flex"
+                size="sm"
+                onClick={onConnect}
+              >
+                <Plus /> Conectar canal
+              </Button>
+            ) : undefined
+          }
+          description="Gestiona las cuentas conectadas y su acceso para publicar."
+          search={{
+            ariaLabel: "Buscar canales",
+            onChange: onQueryChange,
+            placeholder: "Buscar canales...",
+            value: query,
+          }}
+          title="Cuentas de canal"
         />
-      </CardContent>
-    </Card>
+        <CardContent className="flex flex-col gap-4 px-0">
+          <DataTableToolbar>
+            <DataTableFilter
+              ariaLabel="Filtrar por proveedor"
+              label="Proveedor"
+              onValueChange={onProviderFilterChange}
+              options={[
+                { label: "Todos", value: "all" },
+                ...providerOptions.map(([value, label]) => ({ label, value })),
+              ]}
+              value={providerFilter}
+            />
+            <DataTableFilter
+              ariaLabel="Filtrar por tipo"
+              label="Tipo"
+              onValueChange={onCapabilityFilterChange}
+              options={[
+                { label: "Todos", value: "all" },
+                ...capabilityOptions.map(([value, label]) => ({
+                  label,
+                  value,
+                })),
+              ]}
+              value={capabilityFilter}
+            />
+            <DataTableFilter
+              ariaLabel="Filtrar por estado"
+              label="Estado"
+              onValueChange={onStatusFilterChange}
+              options={[
+                { label: "Todos", value: "all" },
+                { label: "Conectados", value: "connected" },
+                { label: "Desconectados", value: "disconnected" },
+              ]}
+              value={statusFilter}
+            />
+          </DataTableToolbar>
+
+          <ChannelsTable
+            canGoNext={canGoNext}
+            canGoPrevious={canGoPrevious}
+            emptyState={emptyState}
+            isFiltering={isFiltering}
+            onNextPage={onNextPage}
+            onPreviousPage={onPreviousPage}
+            rangeEnd={rangeEnd}
+            rangeStart={rangeStart}
+            table={table}
+            total={total}
+          />
+        </CardContent>
+      </Card>
+
+      {canManage ? (
+        <FloatingActionButton label="Conectar canal" onClick={onConnect} />
+      ) : null}
+    </>
   )
 }

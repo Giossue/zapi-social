@@ -49,6 +49,7 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import { Kbd } from "@workspace/ui/components/kbd"
 import { PageLoading } from "@workspace/ui/components/page-loading"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -676,6 +677,7 @@ export function TeamsPage() {
               <>
                 <SeatBadge seatUsage={teams.seatUsage} />
                 <Button
+                  className="hidden sm:inline-flex"
                   disabled={seatsExhausted || pendingAction !== null}
                   onClick={() => {
                     setDialogError(null)
@@ -869,6 +871,19 @@ export function TeamsPage() {
           />
         )}
       </Card>
+
+      {teams.canManage ? (
+        <FloatingActionButton
+          disabled={seatsExhausted || pendingAction !== null}
+          icon={<MailPlus aria-hidden="true" className="size-6" />}
+          label="Invitar miembro"
+          onClick={() => {
+            setDialogError(null)
+            setInviteOpen(true)
+          }}
+          title={seatsExhausted ? "No quedan cupos disponibles" : undefined}
+        />
+      ) : null}
 
       <InviteDialog
         canInviteAdmin={teams.canInviteAdmin}

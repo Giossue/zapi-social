@@ -22,6 +22,7 @@ import {
   DataTableToolbar,
 } from "@workspace/ui/components/data-table-controls"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import { MetricCard } from "@workspace/ui/components/metric-card"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { PageLoading } from "@workspace/ui/components/page-loading"
@@ -453,7 +454,11 @@ function CollectionMockup({
         <DataTableHeader
           action={
             definition.action ? (
-              <Button onClick={() => openSheet()} size="sm">
+              <Button
+                className="hidden sm:inline-flex"
+                onClick={() => openSheet()}
+                size="sm"
+              >
                 <definition.action.icon
                   aria-hidden="true"
                   data-icon="inline-start"
@@ -607,6 +612,16 @@ function CollectionMockup({
           />
         </CardContent>
       </Card>
+
+      {definition.action ? (
+        <FloatingActionButton
+          icon={
+            <definition.action.icon aria-hidden="true" className="size-6" />
+          }
+          label={definition.action.label}
+          onClick={() => openSheet()}
+        />
+      ) : null}
 
       {definition.action ? (
         <Sheet onOpenChange={setSheetOpen} open={sheetOpen}>

@@ -23,6 +23,7 @@ import {
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { ButtonGroup } from "@workspace/ui/components/button-group"
+import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import {
   Select,
   SelectContent,
@@ -200,7 +201,10 @@ export function PublishingCalendar({
               </SelectGroup>
             </SelectContent>
           </Select>
-          <Button onClick={() => onCreateAtDate(initialDate)}>
+          <Button
+            className="hidden sm:inline-flex"
+            onClick={() => onCreateAtDate(initialDate)}
+          >
             <Plus />
             Nueva publicación
           </Button>
@@ -234,6 +238,11 @@ export function PublishingCalendar({
         popoverCloseContent={() => (
           <XIcon className="size-5 text-muted-foreground group-hover:text-foreground" />
         )}
+      />
+
+      <FloatingActionButton
+        label="Nueva publicación"
+        onClick={() => onCreateAtDate(initialDate)}
       />
     </div>
   )

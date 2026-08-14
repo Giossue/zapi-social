@@ -41,6 +41,7 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import { PageLoading } from "@workspace/ui/components/page-loading"
 import {
   Table,
@@ -390,7 +391,11 @@ function RssSchedules({
           <DataTableHeader
             action={
               canManage ? (
-                <Button onClick={() => setWizardOpen(true)} size="sm">
+                <Button
+                  className="hidden sm:inline-flex"
+                  onClick={() => setWizardOpen(true)}
+                  size="sm"
+                >
                   <Plus />
                   Crear programación
                 </Button>
@@ -590,6 +595,13 @@ function RssSchedules({
             </div>
           </CardContent>
         </Card>
+
+        {canManage ? (
+          <FloatingActionButton
+            label="Crear programación"
+            onClick={() => setWizardOpen(true)}
+          />
+        ) : null}
       </div>
 
       {canManage ? (
