@@ -9,12 +9,15 @@ import { cn } from "@workspace/ui/lib/utils"
  * the guard has to end exactly where the two-column layout does.
  */
 const gridLayouts = {
+  "2": "[&>*:last-child:nth-child(odd)]:col-span-2",
   "md-3": "md:grid-cols-3 max-md:[&>*:last-child:nth-child(odd)]:col-span-2",
   "xl-3": "xl:grid-cols-3 max-xl:[&>*:last-child:nth-child(odd)]:col-span-2",
   "xl-4": "xl:grid-cols-4 max-xl:[&>*:last-child:nth-child(odd)]:col-span-2",
 } as const
 
 type CardGridProps = ComponentProps<"div"> & {
+  /** For grids that need to stay a landmark or a list. */
+  as?: "div" | "section"
   layout?: keyof typeof gridLayouts
 }
 
@@ -24,12 +27,13 @@ type CardGridProps = ComponentProps<"div"> & {
  * beside it.
  */
 export function CardGrid({
+  as: Component = "div",
   className,
   layout = "xl-4",
   ...props
 }: CardGridProps) {
   return (
-    <div
+    <Component
       data-slot="card-grid"
       className={cn("grid grid-cols-2 gap-3", gridLayouts[layout], className)}
       {...props}

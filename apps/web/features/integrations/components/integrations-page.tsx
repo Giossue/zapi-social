@@ -11,6 +11,7 @@ import { GoogleDriveIntegrationCard } from "./google-drive-integration-card"
 import type { MetaIntegration } from "@workspace/contracts"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { CardGrid } from "@workspace/ui/components/card-grid"
 import {
   Card,
   CardContent,
@@ -549,7 +550,7 @@ export function IntegrationsPage() {
                     Resumen de configuración
                   </h2>
                 </div>
-                <div className="grid gap-3 sm:grid-cols-2">
+                <CardGrid layout="2">
                   <IntegrationInsetCard>
                     <p className="text-xs font-medium text-muted-foreground">
                       ID de la aplicación
@@ -568,7 +569,7 @@ export function IntegrationsPage() {
                         : "Sin configurar"}
                     </p>
                   </IntegrationInsetCard>
-                </div>
+                </CardGrid>
               </section>
 
               <section

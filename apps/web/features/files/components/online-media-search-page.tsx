@@ -2,18 +2,16 @@
 
 import { useMemo, useState } from "react"
 import Link from "next/link"
-import {
-  ArrowLeft,
-  Check,
-  Image,
-  Play,
-  Search,
-  Shapes,
-} from "lucide-react"
+import { ArrowLeft, Check, Image, Play, Search, Shapes } from "lucide-react"
 
-import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert"
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@workspace/ui/components/alert"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { CardGrid } from "@workspace/ui/components/card-grid"
 import {
   Card,
   CardContent,
@@ -117,7 +115,10 @@ export function OnlineMediaSearchPage({
       {results.length === 0 ? (
         <EmptyState
           action={
-            <Button onClick={() => setQuery(search.query)} variant="brand-secondary">
+            <Button
+              onClick={() => setQuery(search.query)}
+              variant="brand-secondary"
+            >
               Restaurar búsqueda
             </Button>
           }
@@ -126,7 +127,7 @@ export function OnlineMediaSearchPage({
           title="No encontramos medios"
         />
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <CardGrid layout="xl-3">
           {results.map((item) => {
             const { icon: MediaIcon, label } = mediaKindMeta[item.kind]
             const saved = savedItemIds.includes(item.id)
@@ -135,7 +136,10 @@ export function OnlineMediaSearchPage({
               <Card key={item.id} variant="subtle">
                 <CardHeader>
                   <div className="flex h-32 items-center justify-center rounded-lg bg-muted">
-                    <MediaIcon aria-hidden="true" className="size-8 text-muted-foreground" />
+                    <MediaIcon
+                      aria-hidden="true"
+                      className="size-8 text-muted-foreground"
+                    />
                   </div>
                   <div className="flex items-start justify-between gap-3">
                     <CardTitle className="truncate">{item.title}</CardTitle>
@@ -158,14 +162,18 @@ export function OnlineMediaSearchPage({
                     size="sm"
                     variant={saved ? "success" : "brand-secondary"}
                   >
-                    {saved ? <Check data-icon="inline-start" /> : <Image data-icon="inline-start" />}
+                    {saved ? (
+                      <Check data-icon="inline-start" />
+                    ) : (
+                      <Image data-icon="inline-start" />
+                    )}
                     {saved ? "Añadido" : "Añadir"}
                   </Button>
                 </CardFooter>
               </Card>
             )
           })}
-        </div>
+        </CardGrid>
       )}
     </div>
   )

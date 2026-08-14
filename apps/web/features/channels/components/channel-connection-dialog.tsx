@@ -2,6 +2,7 @@
 
 import { channelConnectionsApi } from "@workspace/api-client"
 import { Button } from "@workspace/ui/components/button"
+import { CardGrid } from "@workspace/ui/components/card-grid"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import {
   Dialog,
@@ -365,10 +366,10 @@ export function ChannelConnectionDialog({
                       *
                     </span>
                   </FieldLabel>
-                  <div
+                  <CardGrid
                     aria-labelledby="channel-candidate-label"
                     aria-required="true"
-                    className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
+                    layout="xl-3"
                     role="radiogroup"
                   >
                     {pickerCandidates.map((item) => (
@@ -400,7 +401,7 @@ export function ChannelConnectionDialog({
                         </span>
                       </Button>
                     ))}
-                  </div>
+                  </CardGrid>
                 </Field>
                 <div className="flex justify-end gap-2">
                   <Button

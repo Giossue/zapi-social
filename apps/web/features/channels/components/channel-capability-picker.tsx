@@ -4,6 +4,7 @@ import { Plus } from "lucide-react"
 
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { CardGrid } from "@workspace/ui/components/card-grid"
 import {
   Card,
   CardContent,
@@ -83,9 +84,11 @@ export function ChannelCapabilityGrid({
   onSelect: (capability: PortalChannelCapability) => void
 }) {
   return (
-    <section
+    <CardGrid
       aria-label="Tipos de canal"
-      className="grid gap-3 p-px pr-8 sm:grid-cols-2"
+      as="section"
+      className="p-px pr-8"
+      layout="2"
     >
       {capabilities.map((capability) => (
         <ChannelCapabilityCard
@@ -94,6 +97,6 @@ export function ChannelCapabilityGrid({
           onSelect={() => onSelect(capability)}
         />
       ))}
-    </section>
+    </CardGrid>
   )
 }
