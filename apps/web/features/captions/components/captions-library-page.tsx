@@ -38,6 +38,7 @@ import {
 } from "@workspace/ui/components/dropdown-menu"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { Field, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
+import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import { Input } from "@workspace/ui/components/input"
 import {
   Select,
@@ -655,7 +656,12 @@ export function CaptionsLibraryPage() {
       <Card variant="subtle">
         <DataTableHeader
           action={
-            <Button onClick={openCreateEditor} size="sm" type="button">
+            <Button
+              className="hidden sm:inline-flex"
+              onClick={openCreateEditor}
+              size="sm"
+              type="button"
+            >
               <Plus />
               Nuevo caption
             </Button>
@@ -719,6 +725,8 @@ export function CaptionsLibraryPage() {
           />
         </CardContent>
       </Card>
+
+      <FloatingActionButton label="Nuevo caption" onClick={openCreateEditor} />
 
       <CaptionEditor
         caption={editingCaption}
