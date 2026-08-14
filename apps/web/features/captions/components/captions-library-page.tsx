@@ -649,82 +649,84 @@ export function CaptionsLibraryPage() {
 
   return (
     <>
-      <CollectionHeader
-        description="Gestiona textos reutilizables para mantener una voz consistente en tus publicaciones."
-        title="Biblioteca de captions"
-      />
-      <Card variant="subtle">
-        <DataTableHeader
-          action={
-            <Button
-              className="hidden sm:inline-flex"
-              onClick={openCreateEditor}
-              size="sm"
-              type="button"
-            >
-              <Plus />
-              Nuevo caption
-            </Button>
-          }
-          search={{
-            ariaLabel: "Buscar captions",
-            onChange: setSearchQuery,
-            placeholder: "Buscar captions...",
-            value: searchQuery,
-          }}
+      <div className="flex flex-col gap-4">
+        <CollectionHeader
+          description="Gestiona textos reutilizables para mantener una voz consistente en tus publicaciones."
+          title="Biblioteca de captions"
         />
-        <CardContent className="flex flex-col gap-4 px-0">
-          <DataTableToolbar
-            actions={
-              hasActiveFilters ? (
-                <Button
-                  onClick={clearFilters}
-                  size="sm"
-                  type="button"
-                  variant="outline"
-                >
-                  <X />
-                  Limpiar
-                </Button>
-              ) : undefined
+        <Card variant="subtle">
+          <DataTableHeader
+            action={
+              <Button
+                className="hidden sm:inline-flex"
+                onClick={openCreateEditor}
+                size="sm"
+                type="button"
+              >
+                <Plus />
+                Nuevo caption
+              </Button>
             }
-          >
-            <DataTableFilter
-              ariaLabel="Filtrar por origen"
-              label="Origen"
-              onValueChange={(value) =>
-                setSourceFilter(value as CaptionSourceType | "all")
-              }
-              options={[
-                { label: "Todos", value: "all" },
-                { label: "Manual", value: "manual" },
-                { label: "Generado por IA", value: "ai" },
-              ]}
-              value={sourceFilter}
-            />
-            <DataTableFilter
-              ariaLabel="Filtrar por estado"
-              label="Estado"
-              onValueChange={(value) =>
-                setStatusFilter(value as CaptionStatus | "all")
-              }
-              options={[
-                { label: "Todos", value: "all" },
-                { label: "Activo", value: "active" },
-                { label: "Borrador", value: "draft" },
-                { label: "Archivado", value: "archived" },
-              ]}
-              value={statusFilter}
-            />
-          </DataTableToolbar>
-          <CaptionsTable
-            captions={filteredCaptions}
-            emptyState={emptyState}
-            onEdit={openEditEditor}
-            onRemove={setCaptionToDelete}
+            search={{
+              ariaLabel: "Buscar captions",
+              onChange: setSearchQuery,
+              placeholder: "Buscar captions...",
+              value: searchQuery,
+            }}
           />
-        </CardContent>
-      </Card>
+          <CardContent className="flex flex-col gap-4 px-0">
+            <DataTableToolbar
+              actions={
+                hasActiveFilters ? (
+                  <Button
+                    onClick={clearFilters}
+                    size="sm"
+                    type="button"
+                    variant="outline"
+                  >
+                    <X />
+                    Limpiar
+                  </Button>
+                ) : undefined
+              }
+            >
+              <DataTableFilter
+                ariaLabel="Filtrar por origen"
+                label="Origen"
+                onValueChange={(value) =>
+                  setSourceFilter(value as CaptionSourceType | "all")
+                }
+                options={[
+                  { label: "Todos", value: "all" },
+                  { label: "Manual", value: "manual" },
+                  { label: "Generado por IA", value: "ai" },
+                ]}
+                value={sourceFilter}
+              />
+              <DataTableFilter
+                ariaLabel="Filtrar por estado"
+                label="Estado"
+                onValueChange={(value) =>
+                  setStatusFilter(value as CaptionStatus | "all")
+                }
+                options={[
+                  { label: "Todos", value: "all" },
+                  { label: "Activo", value: "active" },
+                  { label: "Borrador", value: "draft" },
+                  { label: "Archivado", value: "archived" },
+                ]}
+                value={statusFilter}
+              />
+            </DataTableToolbar>
+            <CaptionsTable
+              captions={filteredCaptions}
+              emptyState={emptyState}
+              onEdit={openEditEditor}
+              onRemove={setCaptionToDelete}
+            />
+          </CardContent>
+        </Card>
+      </div>
 
       <FloatingActionButton label="Nuevo caption" onClick={openCreateEditor} />
 

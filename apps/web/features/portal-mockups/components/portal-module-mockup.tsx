@@ -1373,7 +1373,7 @@ function CollectionTable({
   const rows = filteredRows.slice(rangeStart ? rangeStart - 1 : 0, rangeEnd)
 
   return (
-    <>
+    <CardContent className="flex flex-col gap-4 px-0">
       <DataTableToolbar>
         <DataTableFilter
           ariaLabel={`Filtrar ${view.label.toLowerCase()} por estado`}
@@ -1386,143 +1386,140 @@ function CollectionTable({
           value={filter}
         />
       </DataTableToolbar>
-      <CardContent className="px-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {view.columns.map((column) => (
-                <TableHead key={column.key}>{column.label}</TableHead>
-              ))}
-              <TableHead className="text-right">Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.length ? (
-              rows.map((row) => (
-                <TableRow key={row.id}>
-                  {view.columns.map((column) => {
-                    const cell = row.cells[column.key]
-                    return (
-                      <TableCell key={column.key}>
-                        {cell?.badge ? (
-                          <StatusBadge cell={cell} />
-                        ) : (
-                          <div className="min-w-0">
-                            <div className="font-medium">{cell?.primary}</div>
-                            {cell?.secondary ? (
-                              <div className="text-sm text-muted-foreground">
-                                {cell.secondary}
-                              </div>
-                            ) : null}
-                          </div>
-                        )}
-                      </TableCell>
-                    )
-                  })}
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          aria-label="Abrir acciones"
-                          size="icon-sm"
-                          type="button"
-                          variant="brand-secondary"
-                        >
-                          <MoreVertical />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuGroup>
-                          {view.rowActions
-                            .filter(
-                              (action) =>
-                                !destructiveActionKinds.has(action.kind)
-                            )
-                            .map((action) => (
-                              <DropdownMenuItem
-                                key={action.label}
-                                onSelect={() => onRowAction(action, row)}
-                              >
-                                <RowActionIcon kind={action.kind} />
-                                {action.label}
-                              </DropdownMenuItem>
-                            ))}
-                        </DropdownMenuGroup>
-                        {view.rowActions.some((action) =>
-                          destructiveActionKinds.has(action.kind)
-                        ) ? (
-                          <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuGroup>
-                              {view.rowActions
-                                .filter((action) =>
-                                  destructiveActionKinds.has(action.kind)
-                                )
-                                .map((action) => (
-                                  <DropdownMenuItem
-                                    key={action.label}
-                                    onSelect={() => onRowAction(action, row)}
-                                    variant="destructive"
-                                  >
-                                    <RowActionIcon kind={action.kind} />
-                                    {action.label}
-                                  </DropdownMenuItem>
-                                ))}
-                            </DropdownMenuGroup>
-                          </>
-                        ) : null}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={view.columns.length + 1}>
-                  <Empty>
-                    <EmptyHeader>
-                      <EmptyMedia variant="icon">
-                        <EmptyIcon />
-                      </EmptyMedia>
-                      <EmptyTitle>{view.emptyTitle}</EmptyTitle>
-                      <EmptyDescription>
-                        {query || filter !== "all"
-                          ? "Prueba con otra búsqueda o cambia el filtro."
-                          : view.emptyDescription}
-                      </EmptyDescription>
-                    </EmptyHeader>
-                    {query || filter !== "all" ? (
-                      <EmptyContent>
-                        <Button
-                          onClick={() => {
-                            onFilterChange("all")
-                            onPageChange(1)
-                          }}
-                          type="button"
-                          variant="brand-secondary"
-                        >
-                          Limpiar filtro
-                        </Button>
-                      </EmptyContent>
-                    ) : null}
-                  </Empty>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            {view.columns.map((column) => (
+              <TableHead key={column.key}>{column.label}</TableHead>
+            ))}
+            <TableHead className="text-right">Acciones</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.length ? (
+            rows.map((row) => (
+              <TableRow key={row.id}>
+                {view.columns.map((column) => {
+                  const cell = row.cells[column.key]
+                  return (
+                    <TableCell key={column.key}>
+                      {cell?.badge ? (
+                        <StatusBadge cell={cell} />
+                      ) : (
+                        <div className="min-w-0">
+                          <div className="font-medium">{cell?.primary}</div>
+                          {cell?.secondary ? (
+                            <div className="text-sm text-muted-foreground">
+                              {cell.secondary}
+                            </div>
+                          ) : null}
+                        </div>
+                      )}
+                    </TableCell>
+                  )
+                })}
+                <TableCell className="text-right">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        aria-label="Abrir acciones"
+                        size="icon-sm"
+                        type="button"
+                        variant="brand-secondary"
+                      >
+                        <MoreVertical />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuGroup>
+                        {view.rowActions
+                          .filter(
+                            (action) => !destructiveActionKinds.has(action.kind)
+                          )
+                          .map((action) => (
+                            <DropdownMenuItem
+                              key={action.label}
+                              onSelect={() => onRowAction(action, row)}
+                            >
+                              <RowActionIcon kind={action.kind} />
+                              {action.label}
+                            </DropdownMenuItem>
+                          ))}
+                      </DropdownMenuGroup>
+                      {view.rowActions.some((action) =>
+                        destructiveActionKinds.has(action.kind)
+                      ) ? (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuGroup>
+                            {view.rowActions
+                              .filter((action) =>
+                                destructiveActionKinds.has(action.kind)
+                              )
+                              .map((action) => (
+                                <DropdownMenuItem
+                                  key={action.label}
+                                  onSelect={() => onRowAction(action, row)}
+                                  variant="destructive"
+                                >
+                                  <RowActionIcon kind={action.kind} />
+                                  {action.label}
+                                </DropdownMenuItem>
+                              ))}
+                          </DropdownMenuGroup>
+                        </>
+                      ) : null}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
-        <TablePagination
-          canGoNext={currentPage < pageCount}
-          canGoPrevious={currentPage > 1}
-          itemLabel={view.label.toLowerCase()}
-          onNextPage={() => onPageChange(currentPage + 1)}
-          onPreviousPage={() => onPageChange(currentPage - 1)}
-          rangeEnd={rangeEnd}
-          rangeStart={rangeStart}
-          total={filteredRows.length}
-        />
-      </CardContent>
-    </>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={view.columns.length + 1}>
+                <Empty>
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <EmptyIcon />
+                    </EmptyMedia>
+                    <EmptyTitle>{view.emptyTitle}</EmptyTitle>
+                    <EmptyDescription>
+                      {query || filter !== "all"
+                        ? "Prueba con otra búsqueda o cambia el filtro."
+                        : view.emptyDescription}
+                    </EmptyDescription>
+                  </EmptyHeader>
+                  {query || filter !== "all" ? (
+                    <EmptyContent>
+                      <Button
+                        onClick={() => {
+                          onFilterChange("all")
+                          onPageChange(1)
+                        }}
+                        type="button"
+                        variant="brand-secondary"
+                      >
+                        Limpiar filtro
+                      </Button>
+                    </EmptyContent>
+                  ) : null}
+                </Empty>
+              </TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+      <TablePagination
+        canGoNext={currentPage < pageCount}
+        canGoPrevious={currentPage > 1}
+        itemLabel={view.label.toLowerCase()}
+        onNextPage={() => onPageChange(currentPage + 1)}
+        onPreviousPage={() => onPageChange(currentPage - 1)}
+        rangeEnd={rangeEnd}
+        rangeStart={rangeStart}
+        total={filteredRows.length}
+      />
+    </CardContent>
   )
 }
 
