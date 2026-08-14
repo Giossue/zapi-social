@@ -304,18 +304,6 @@ function DeliveryBadge({
   return <Badge variant="warning">Enviando</Badge>
 }
 
-function SeatBadge({ seatUsage }: Pick<PortalTeamsResponse, "seatUsage">) {
-  if (seatUsage.limit === null) {
-    return <Badge variant="neutral">Miembros ilimitados</Badge>
-  }
-  const exhausted = seatUsage.used >= seatUsage.limit
-  return (
-    <Badge variant={exhausted ? "warning" : "neutral"}>
-      {seatUsage.used}/{seatUsage.limit} cupos usados
-    </Badge>
-  )
-}
-
 function confirmationCopy(confirmation: Confirmation | null) {
   if (!confirmation) return null
   if (confirmation.kind === "remove") {
@@ -641,6 +629,48 @@ export function TeamsPage() {
 
   const copy = confirmationCopy(confirmation)
 
+  // Shared by both branches below: the tabbed view nests the card inside
+  // <Tabs>, the read-only view renders it on its own.
+  const tableHeader = (
+    <DataTableHeader
+      action={
+        teams.canManage ? (
+          <Button
+            className="hidden sm:inline-flex"
+            disabled={seatsExhausted || pendingAction !== null}
+            onClick={() => {
+              setDialogError(null)
+              setInviteOpen(true)
+            }}
+            size="sm"
+            title={seatsExhausted ? "No quedan cupos disponibles" : undefined}
+          >
+            <MailPlus />
+            Invitar miembro
+          </Button>
+        ) : (
+          <Button
+            disabled={pendingAction !== null}
+            onClick={() => setConfirmation({ kind: "leave" })}
+            size="sm"
+            variant="brand-secondary"
+          >
+            <DoorOpen />
+            Abandonar workspace
+          </Button>
+        )
+      }
+      search={{
+        ariaLabel: searchPlaceholder.replace("...", ""),
+        endAddon: <Kbd className="h-4 text-[10px]">⌘K</Kbd>,
+        inputRef: searchRef,
+        onChange: updateCurrentSearch,
+        placeholder: searchPlaceholder,
+        value: currentSearch,
+      }}
+    />
+  )
+
   return (
     <div className="flex flex-col gap-4">
       {actionError ? (
@@ -670,78 +700,34 @@ export function TeamsPage() {
         title={teams.canManage ? "Equipo" : "Mi acceso"}
       />
 
-      <Card variant="subtle">
-        <DataTableHeader
-          action={
-            teams.canManage ? (
-              <>
-                <SeatBadge seatUsage={teams.seatUsage} />
-                <Button
-                  className="hidden sm:inline-flex"
-                  disabled={seatsExhausted || pendingAction !== null}
-                  onClick={() => {
-                    setDialogError(null)
-                    setInviteOpen(true)
-                  }}
-                  size="sm"
-                  title={
-                    seatsExhausted ? "No quedan cupos disponibles" : undefined
-                  }
-                >
-                  <MailPlus />
-                  Invitar miembro
-                </Button>
-              </>
-            ) : (
-              <Button
-                disabled={pendingAction !== null}
-                onClick={() => setConfirmation({ kind: "leave" })}
-                size="sm"
-                variant="brand-secondary"
-              >
-                <DoorOpen />
-                Abandonar workspace
-              </Button>
-            )
-          }
-          search={{
-            ariaLabel: searchPlaceholder.replace("...", ""),
-            endAddon: <Kbd className="h-4 text-[10px]">⌘K</Kbd>,
-            inputRef: searchRef,
-            onChange: updateCurrentSearch,
-            placeholder: searchPlaceholder,
-            value: currentSearch,
-          }}
-        />
+      {teams.canManage ? (
+        <Tabs className="gap-4" onValueChange={changeView} value={activeView}>
+          <TabsList aria-label="Vistas del equipo">
+            <TabsTrigger value="members">Miembros</TabsTrigger>
+            <TabsTrigger value="invitations">
+              Invitaciones pendientes
+            </TabsTrigger>
+            <TabsTrigger value="activity">Actividad</TabsTrigger>
+          </TabsList>
 
-        {teams.canManage ? (
-          <CardContent className="flex flex-col gap-4 px-0">
-            <Tabs onValueChange={changeView} value={activeView}>
-              <DataTableToolbar
-                actions={
-                  activeView === "activity" ? (
-                    <DataTableFilter
-                      ariaLabel="Filtrar actividad"
-                      onValueChange={(value) => {
-                        setActivityCategory(value as PortalTeamActivityCategory)
-                        setActivityPage(1)
-                      }}
-                      options={Object.entries(activityCategoryLabels).map(
-                        ([value, label]) => ({ label, value })
-                      )}
-                      value={activityCategory}
-                    />
-                  ) : undefined
-                }
-              >
-                <TabsList>
-                  <TabsTrigger value="members">Miembros</TabsTrigger>
-                  <TabsTrigger value="invitations">
-                    Invitaciones pendientes
-                  </TabsTrigger>
-                  <TabsTrigger value="activity">Actividad</TabsTrigger>
-                </TabsList>
-              </DataTableToolbar>
+          <Card variant="subtle">
+            {tableHeader}
+            <CardContent className="flex flex-col gap-4 px-0">
+              {activeView === "activity" ? (
+                <DataTableToolbar>
+                  <DataTableFilter
+                    ariaLabel="Filtrar actividad"
+                    onValueChange={(value) => {
+                      setActivityCategory(value as PortalTeamActivityCategory)
+                      setActivityPage(1)
+                    }}
+                    options={Object.entries(activityCategoryLabels).map(
+                      ([value, label]) => ({ label, value })
+                    )}
+                    value={activityCategory}
+                  />
+                </DataTableToolbar>
+              ) : null}
 
               <TabsContent className="mt-0" value="members">
                 {visibleMembers.length ? (
@@ -851,9 +837,12 @@ export function TeamsPage() {
                   onRetry={() => void loadActivity()}
                 />
               </TabsContent>
-            </Tabs>
-          </CardContent>
-        ) : (
+            </CardContent>
+          </Card>
+        </Tabs>
+      ) : (
+        <Card variant="subtle">
+          {tableHeader}
           <MemberAccessView
             accounts={teams.accounts}
             currentMember={currentMember}
@@ -869,8 +858,8 @@ export function TeamsPage() {
             query={memberQuery}
             total={visibleMembers.length}
           />
-        )}
-      </Card>
+        </Card>
+      )}
 
       {teams.canManage ? (
         <FloatingActionButton
