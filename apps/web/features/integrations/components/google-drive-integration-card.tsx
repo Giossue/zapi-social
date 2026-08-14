@@ -207,7 +207,6 @@ export function GoogleDriveIntegrationCard() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex min-w-0 flex-col gap-2">
               <div className="flex flex-wrap items-center gap-2">
-                <HardDriveDownload className="size-4 text-muted-foreground" />
                 <CardTitle>{integration.label}</CardTitle>
                 <Badge
                   variant={
