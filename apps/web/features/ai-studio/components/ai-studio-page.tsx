@@ -571,7 +571,7 @@ function Overview() {
             </Button>
           </CardAction>
         </CardHeader>
-        <CardContent className="px-0">
+        <CardContent className="flex flex-col gap-4 px-0">
           {dashboard.recentRequests.length ? (
             <JobsTable
               rows={dashboard.recentRequests}
@@ -1380,7 +1380,7 @@ function Planner() {
               </Badge>
             </CardAction>
           </CardHeader>
-          <CardContent className="px-0">
+          <CardContent className="flex flex-col gap-4 px-0">
             {request?.status === "succeeded" ? (
               <Table>
                 <TableHeader>

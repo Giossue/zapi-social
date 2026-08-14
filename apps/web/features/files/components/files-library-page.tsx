@@ -1181,7 +1181,7 @@ export function FilesLibraryPage() {
           </div>
         ) : (
           <Card variant="subtle">
-            <CardContent className="px-4">
+            <CardContent className="flex flex-col gap-4 px-0">
               <AssetsTable
                 assets={assets}
                 onSelect={toggleAsset}
