@@ -37,6 +37,7 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { TABLE_EMPTY_ICON } from "@workspace/ui/components/table-empty-row"
 import { Field, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import { Input } from "@workspace/ui/components/input"
@@ -71,13 +72,11 @@ import { Textarea } from "@workspace/ui/components/textarea"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
 import {
-  FileText,
   LockKeyhole,
   MoreHorizontal,
   Pencil,
   Plus,
   Save,
-  Search,
   Trash2,
   TriangleAlert,
   X,
@@ -636,13 +635,13 @@ export function CaptionsLibraryPage() {
         </Button>
       }
       description="Prueba con otro término de búsqueda."
-      icon={Search}
+      icon={TABLE_EMPTY_ICON}
       title="No encontramos captions"
     />
   ) : (
     <EmptyState
       description="Crea un caption para empezar a construir tu biblioteca."
-      icon={FileText}
+      icon={TABLE_EMPTY_ICON}
       title="Aún no hay captions"
     />
   )

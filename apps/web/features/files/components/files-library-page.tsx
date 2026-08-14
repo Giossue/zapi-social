@@ -81,7 +81,10 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { PageLoading } from "@workspace/ui/components/page-loading"
-import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
+import {
+  TABLE_EMPTY_ICON,
+  TableEmptyRow,
+} from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
@@ -848,7 +851,7 @@ export function FilesLibraryPage() {
       : folderId === "all"
         ? "Sube un archivo o crea una carpeta para comenzar a organizar tu biblioteca."
         : "Crea una subcarpeta o sube un archivo para organizar este espacio.",
-    icon: Search,
+    icon: TABLE_EMPTY_ICON,
     title: hasFilters
       ? "No encontramos archivos"
       : folderId === "all"

@@ -27,12 +27,13 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { TABLE_EMPTY_ICON } from "@workspace/ui/components/table-empty-row"
 import { Field, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
-import { Link2, LockKeyhole, Save, Trash2, TriangleAlert } from "lucide-react"
+import { LockKeyhole, Save, Trash2, TriangleAlert } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react"
 
@@ -637,7 +638,7 @@ export function LiveChannelsPage() {
                 ? "Prueba con otro término de búsqueda."
                 : "Conecta un tipo de canal para empezar."
             }
-            icon={Link2}
+            icon={TABLE_EMPTY_ICON}
             title={query ? "No encontramos canales" : "Aún no hay canales"}
           />
         }

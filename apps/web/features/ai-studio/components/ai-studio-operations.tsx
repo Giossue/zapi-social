@@ -8,7 +8,6 @@ import {
   Coins,
   Download,
   EllipsisVertical,
-  FileSearch,
   Play,
   Plus,
   RefreshCw,
@@ -449,7 +448,6 @@ function AiHistorySurface({
                         ? "Ajusta la búsqueda, el estado o la herramienta seleccionada."
                         : "Las nuevas generaciones aparecerán aquí cuando uses AI Studio."
                     }
-                    icon={FileSearch}
                     title={
                       hasFilters ? "Sin resultados" : "Aún no hay generaciones"
                     }
@@ -792,7 +790,6 @@ function AiAutomationSurface({
                       ) : undefined
                     }
                     description={emptyDescription}
-                    icon={Sparkles}
                     title={
                       hasFilters
                         ? "Sin resultados"
@@ -1034,7 +1031,6 @@ function AiCreditsSurface({
                               ? "Ajusta la búsqueda o el tipo de movimiento."
                               : "Los movimientos aparecerán cuando se asignen o consuman créditos."
                           }
-                          icon={FileSearch}
                           title={
                             hasFilters
                               ? "Sin resultados"

@@ -1087,7 +1087,6 @@ export function PlansPage() {
                           ? "No hay planes que coincidan con los filtros actuales."
                           : "Aún no hay planes configurados. Crea el primero para comenzar."
                       }
-                      icon={Search}
                       title={
                         hasActiveFilters
                           ? "No encontramos planes"

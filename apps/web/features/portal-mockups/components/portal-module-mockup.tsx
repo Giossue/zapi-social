@@ -69,14 +69,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@workspace/ui/components/empty"
+import {} from "@workspace/ui/components/empty"
 import { Field, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import {
@@ -104,6 +97,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
+import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import {
   Tabs,
   TabsContent,
@@ -1338,7 +1332,6 @@ function AffiliateHighlight({
 
 function CollectionTable({
   filter,
-  icon: EmptyIcon,
   onFilterChange,
   onPageChange,
   onRowAction,
@@ -1348,7 +1341,6 @@ function CollectionTable({
   view,
 }: {
   filter: string
-  icon: LucideIcon
   onFilterChange: (value: string) => void
   onPageChange: (value: number) => void
   onRowAction: (action: RowAction, row: MockRow) => void
@@ -1475,37 +1467,29 @@ function CollectionTable({
               </TableRow>
             ))
           ) : (
-            <TableRow>
-              <TableCell colSpan={view.columns.length + 1}>
-                <Empty>
-                  <EmptyHeader>
-                    <EmptyMedia variant="icon">
-                      <EmptyIcon />
-                    </EmptyMedia>
-                    <EmptyTitle>{view.emptyTitle}</EmptyTitle>
-                    <EmptyDescription>
-                      {query || filter !== "all"
-                        ? "Prueba con otra búsqueda o cambia el filtro."
-                        : view.emptyDescription}
-                    </EmptyDescription>
-                  </EmptyHeader>
-                  {query || filter !== "all" ? (
-                    <EmptyContent>
-                      <Button
-                        onClick={() => {
-                          onFilterChange("all")
-                          onPageChange(1)
-                        }}
-                        type="button"
-                        variant="brand-secondary"
-                      >
-                        Limpiar filtro
-                      </Button>
-                    </EmptyContent>
-                  ) : null}
-                </Empty>
-              </TableCell>
-            </TableRow>
+            <TableEmptyRow
+              action={
+                query || filter !== "all" ? (
+                  <Button
+                    onClick={() => {
+                      onFilterChange("all")
+                      onPageChange(1)
+                    }}
+                    type="button"
+                    variant="brand-secondary"
+                  >
+                    Limpiar filtro
+                  </Button>
+                ) : undefined
+              }
+              colSpan={view.columns.length + 1}
+              description={
+                query || filter !== "all"
+                  ? "Prueba con otra búsqueda o cambia el filtro."
+                  : view.emptyDescription
+              }
+              title={view.emptyTitle}
+            />
           )}
         </TableBody>
       </Table>
@@ -1696,7 +1680,6 @@ export function PortalModuleMockup({
   const table = (
     <CollectionTable
       filter={filter}
-      icon={definition.icon}
       onFilterChange={setFilter}
       onPageChange={setPage}
       onRowAction={handleRowAction}

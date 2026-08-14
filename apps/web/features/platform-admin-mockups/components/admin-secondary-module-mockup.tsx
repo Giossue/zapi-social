@@ -54,13 +54,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@workspace/ui/components/empty"
+import {} from "@workspace/ui/components/empty"
 import {
   Field,
   FieldDescription,
@@ -94,6 +88,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
+import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
 
@@ -569,27 +564,15 @@ function CollectionMockup({
                 </TableRow>
               ))}
               {rows.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={definition.columns.length + 2}>
-                    <Empty className="min-h-48">
-                      <EmptyHeader>
-                        <EmptyMedia variant="icon">
-                          <FileSearch aria-hidden="true" />
-                        </EmptyMedia>
-                        <EmptyTitle>
-                          {hasFilters
-                            ? "Sin resultados"
-                            : "Aún no hay registros"}
-                        </EmptyTitle>
-                        <EmptyDescription>
-                          {hasFilters
-                            ? "Ajusta la búsqueda o el filtro de estado."
-                            : "Los nuevos registros aparecerán en esta tabla."}
-                        </EmptyDescription>
-                      </EmptyHeader>
-                    </Empty>
-                  </TableCell>
-                </TableRow>
+                <TableEmptyRow
+                  colSpan={definition.columns.length + 2}
+                  description={
+                    hasFilters
+                      ? "Ajusta la búsqueda o el filtro de estado."
+                      : "Los nuevos registros aparecerán en esta tabla."
+                  }
+                  title={hasFilters ? "Sin resultados" : "Aún no hay registros"}
+                />
               ) : null}
             </TableBody>
           </Table>

@@ -17,7 +17,6 @@ import {
   Plus,
   ReceiptText,
   RotateCcw,
-  Search,
   ShieldX,
   Tags,
   Trash2,
@@ -1425,7 +1424,6 @@ export function AdminModulePreview({
                       ? "Prueba con otro término o restablece los filtros."
                       : `Todavía no hay ${active.label.toLowerCase()} en esta sección.`
                   }
-                  icon={search || status !== "all" ? Search : CircleAlert}
                   title={
                     search || status !== "all"
                       ? `No encontramos ${active.label.toLowerCase()}`

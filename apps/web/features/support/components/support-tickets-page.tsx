@@ -58,6 +58,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
+import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
@@ -481,34 +482,31 @@ export function SupportTicketsPage() {
                       </TableRow>
                     ))
                   ) : (
-                    <TableRow>
-                      <TableCell colSpan={5}>
-                        <EmptyState
-                          action={
-                            hasFilters ? (
-                              <Button onClick={clearFilters} variant="outline">
-                                Restablecer filtros
-                              </Button>
-                            ) : (
-                              <Button onClick={() => setIsCreateOpen(true)}>
-                                <Plus data-icon="inline-start" /> Crear caso
-                              </Button>
-                            )
-                          }
-                          description={
-                            hasFilters
-                              ? "Prueba con otro término o estado."
-                              : "Cuando necesites ayuda, abre un caso y tendrás toda la conversación aquí."
-                          }
-                          icon={hasFilters ? Search : LifeBuoy}
-                          title={
-                            hasFilters
-                              ? "No hay coincidencias"
-                              : "Aún no tienes casos de soporte"
-                          }
-                        />
-                      </TableCell>
-                    </TableRow>
+                    <TableEmptyRow
+                      colSpan={5}
+                      action={
+                        hasFilters ? (
+                          <Button onClick={clearFilters} variant="outline">
+                            Restablecer filtros
+                          </Button>
+                        ) : (
+                          <Button onClick={() => setIsCreateOpen(true)}>
+                            <Plus data-icon="inline-start" /> Crear caso
+                          </Button>
+                        )
+                      }
+                      description={
+                        hasFilters
+                          ? "Prueba con otro término o estado."
+                          : "Cuando necesites ayuda, abre un caso y tendrás toda la conversación aquí."
+                      }
+                      icon={hasFilters ? Search : LifeBuoy}
+                      title={
+                        hasFilters
+                          ? "No hay coincidencias"
+                          : "Aún no tienes casos de soporte"
+                      }
+                    />
                   )}
                 </TableBody>
               </Table>

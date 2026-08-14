@@ -63,8 +63,6 @@ import {
   Route,
   Save,
   ShieldCheck,
-  Search,
-  Sparkles,
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
@@ -624,7 +622,6 @@ export function AiConfigurationPage() {
                           ? "Prueba con otro término de búsqueda."
                           : "Configura un modelo para habilitar las rutas de generación."
                       }
-                      icon={modelQuery ? Search : Sparkles}
                       title={
                         modelQuery
                           ? "No encontramos modelos"
@@ -1068,7 +1065,6 @@ function UsagePanel({
                 <TableEmptyRow
                   colSpan={5}
                   description="El consumo aparecerá aquí en cuanto se registren generaciones."
-                  icon={Sparkles}
                   title="Aún no hay consumo AI"
                 />
               )}

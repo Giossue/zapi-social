@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { Activity, RefreshCw, Search } from "lucide-react"
+import { Activity, RefreshCw } from "lucide-react"
 import { auditApi, ApiError } from "@workspace/api-client"
 import type { AdminAuditEvent } from "@workspace/contracts"
 import {
@@ -206,7 +206,6 @@ export function AuditEventsPage() {
                         ? "Las acciones administrativas aparecerán aquí en cuanto ocurran."
                         : "Prueba con otro término o restablece los filtros."
                     }
-                    icon={events.length === 0 ? Activity : Search}
                     title={
                       events.length === 0
                         ? "Aún no hay eventos registrados"

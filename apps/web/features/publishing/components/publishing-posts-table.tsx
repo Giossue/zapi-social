@@ -48,7 +48,10 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
+import {
+  TABLE_EMPTY_ICON,
+  TableEmptyRow,
+} from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { Spinner } from "@workspace/ui/components/spinner"
 import type {
@@ -304,7 +307,7 @@ export function PublishingPostsTable({
       : mode === "drafts"
         ? "Guarda una publicación como borrador para continuarla después."
         : "Cuando programes o publiques una pieza, su progreso aparecerá aquí por cada destino.",
-    icon: mode === "drafts" ? FilePenLine : CalendarClock,
+    icon: TABLE_EMPTY_ICON,
     title: hasFilters
       ? "No encontramos publicaciones"
       : mode === "drafts"

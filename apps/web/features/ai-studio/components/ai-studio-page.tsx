@@ -447,7 +447,6 @@ function JobsTable({
             <TableEmptyRow
               colSpan={6}
               description="Elige una herramienta para crear el primer resultado."
-              icon={Sparkles}
               title="Aún no hay generaciones"
             />
           ) : null}
@@ -1456,7 +1455,6 @@ function Planner() {
                       <TableEmptyRow
                         colSpan={6}
                         description="El plan se generó sin ideas. Ajusta el objetivo y vuelve a intentarlo."
-                        icon={CalendarPlus}
                         title="Sin ideas en el plan"
                       />
                     ) : null}

@@ -40,7 +40,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
-import { EmptyState } from "@workspace/ui/components/empty-state"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import { PageLoading } from "@workspace/ui/components/page-loading"
 import {
@@ -51,6 +50,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
+import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { toast } from "@workspace/ui/components/toast"
 
@@ -551,33 +551,26 @@ function RssSchedules({
                         )
                       })
                     ) : (
-                      <TableRow>
-                        <TableCell className="h-24 text-center" colSpan={6}>
-                          <EmptyState
-                            action={
-                              query || status !== "all" ? (
-                                <Button
-                                  onClick={resetFilters}
-                                  variant="outline"
-                                >
-                                  Restablecer filtros
-                                </Button>
-                              ) : null
-                            }
-                            description={
-                              query || status !== "all"
-                                ? "Prueba con otro término o restablece los filtros."
-                                : "Añade un feed y elige cuándo publicarlo en tus canales."
-                            }
-                            icon={Rss}
-                            title={
-                              query || status !== "all"
-                                ? "No hay coincidencias"
-                                : "Aún no tienes programaciones RSS"
-                            }
-                          />
-                        </TableCell>
-                      </TableRow>
+                      <TableEmptyRow
+                        colSpan={6}
+                        action={
+                          query || status !== "all" ? (
+                            <Button onClick={resetFilters} variant="outline">
+                              Restablecer filtros
+                            </Button>
+                          ) : null
+                        }
+                        description={
+                          query || status !== "all"
+                            ? "Prueba con otro término o restablece los filtros."
+                            : "Añade un feed y elige cuándo publicarlo en tus canales."
+                        }
+                        title={
+                          query || status !== "all"
+                            ? "No hay coincidencias"
+                            : "Aún no tienes programaciones RSS"
+                        }
+                      />
                     )}
                   </TableBody>
                 </Table>

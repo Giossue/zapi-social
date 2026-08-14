@@ -30,7 +30,6 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
-import { Search } from "lucide-react"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
 
 import { dashboardOverviewColumns } from "./columns"
@@ -202,7 +201,6 @@ export function DashboardOverviewTable({
               <TableEmptyRow
                 colSpan={table.getVisibleLeafColumns().length}
                 description="Ajusta la búsqueda para ver los indicadores del espacio."
-                icon={Search}
                 title="No encontramos indicadores"
               />
             )}

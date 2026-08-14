@@ -61,7 +61,10 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
+import {
+  TABLE_EMPTY_ICON,
+  TableEmptyRow,
+} from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
 import {
   Tabs,
@@ -71,7 +74,6 @@ import {
 } from "@workspace/ui/components/tabs"
 import { toast } from "@workspace/ui/components/toast"
 import {
-  Activity,
   CircleAlert,
   DoorOpen,
   Eye,
@@ -79,7 +81,6 @@ import {
   MailPlus,
   MoreVertical,
   RefreshCw,
-  Search,
   Send,
   Trash2,
   UserCog,
@@ -642,7 +643,7 @@ export function TeamsPage() {
     ) : undefined,
     description:
       "Prueba otra búsqueda para encontrar a una persona del workspace.",
-    icon: Search,
+    icon: TABLE_EMPTY_ICON,
     title: "No encontramos miembros",
   }
   const visibleInvitationsEmptyProps = {
@@ -660,7 +661,7 @@ export function TeamsPage() {
     description: invitationQuery
       ? "Prueba otra búsqueda para encontrar una invitación."
       : "Las nuevas invitaciones aparecerán aquí hasta que se acepten, venzan o revoquen.",
-    icon: MailPlus,
+    icon: TABLE_EMPTY_ICON,
     title: invitationQuery
       ? "No encontramos invitaciones"
       : "Sin invitaciones pendientes",
@@ -1228,7 +1229,6 @@ function ActivityTable({
                     ? "Prueba otra búsqueda o elimina el filtro de categoría."
                     : "Los cambios de invitaciones, roles, cuentas y propiedad aparecerán aquí."
                 }
-                icon={Activity}
                 title={
                   hasFilters
                     ? "Sin actividad para este filtro"
@@ -1402,7 +1402,6 @@ function MemberAccessView({
                       ) : undefined
                     }
                     description="Prueba otra búsqueda para encontrar una persona."
-                    icon={Search}
                     title="No encontramos miembros"
                   />
                 ) : null}
