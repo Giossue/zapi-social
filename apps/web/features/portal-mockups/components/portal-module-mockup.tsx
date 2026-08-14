@@ -1710,6 +1710,35 @@ export function PortalModuleMockup({
     />
   )
 
+  // Shared by both branches below: with several views the card nests inside
+  // <Tabs>, with a single one it stands on its own.
+  const tableHeader = (
+    <DataTableHeader
+      action={
+        activeView.action ? (
+          <Button
+            className="hidden sm:inline-flex"
+            onClick={() => openSheet()}
+            size="sm"
+            type="button"
+          >
+            <Plus aria-hidden="true" data-icon="inline-start" />
+            {activeView.action.label}
+          </Button>
+        ) : undefined
+      }
+      search={{
+        ariaLabel: `Buscar en ${activeView.label.toLowerCase()}`,
+        onChange: (value) => {
+          setPage(1)
+          setQuery(value)
+        },
+        placeholder: `Buscar ${activeView.label.toLowerCase()}...`,
+        value: query,
+      }}
+    />
+  )
+
   return (
     <div className="flex flex-col gap-4">
       <header className="flex flex-col gap-1">
@@ -1722,61 +1751,40 @@ export function PortalModuleMockup({
       </header>
       <ModuleMetrics metrics={definition.metrics} />
       <AffiliateHighlight highlight={definition.highlight} />
-      <Card variant="subtle">
-        <DataTableHeader
-          action={
-            activeView.action ? (
-              <Button
-                className="hidden sm:inline-flex"
-                onClick={() => openSheet()}
-                size="sm"
-                type="button"
-              >
-                <Plus aria-hidden="true" data-icon="inline-start" />
-                {activeView.action.label}
-              </Button>
-            ) : undefined
-          }
-          search={{
-            ariaLabel: `Buscar en ${activeView.label.toLowerCase()}`,
-            onChange: (value) => {
-              setPage(1)
-              setQuery(value)
-            },
-            placeholder: `Buscar ${activeView.label.toLowerCase()}...`,
-            value: query,
+      {definition.views.length > 1 ? (
+        <Tabs
+          className="gap-4"
+          onValueChange={(value) => {
+            setActiveViewKey(value)
+            setFilter("all")
+            setPage(1)
+            setQuery("")
+            setEditingRow(null)
           }}
-        />
-        {definition.views.length > 1 ? (
-          <Tabs
-            onValueChange={(value) => {
-              setActiveViewKey(value)
-              setFilter("all")
-              setPage(1)
-              setQuery("")
-              setEditingRow(null)
-            }}
-            value={activeView.key}
-          >
-            <DataTableToolbar>
-              <TabsList>
-                {definition.views.map((view) => (
-                  <TabsTrigger key={view.key} value={view.key}>
-                    {view.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </DataTableToolbar>
+          value={activeView.key}
+        >
+          <TabsList aria-label={`Vistas de ${definition.title}`}>
+            {definition.views.map((view) => (
+              <TabsTrigger key={view.key} value={view.key}>
+                {view.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          <Card variant="subtle">
+            {tableHeader}
             {definition.views.map((view) => (
               <TabsContent key={view.key} value={view.key}>
                 {view.key === activeView.key ? table : null}
               </TabsContent>
             ))}
-          </Tabs>
-        ) : (
-          table
-        )}
-      </Card>
+          </Card>
+        </Tabs>
+      ) : (
+        <Card variant="subtle">
+          {tableHeader}
+          {table}
+        </Card>
+      )}
 
       {activeView.action ? (
         <FloatingActionButton
