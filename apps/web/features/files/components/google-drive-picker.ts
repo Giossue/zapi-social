@@ -67,7 +67,6 @@ export async function openGoogleDrivePicker({
     let settled = false
 
     picker.setAttribute("client-id", configuration.oauthClientId)
-    picker.setAttribute("developer-key", configuration.browserApiKey)
     picker.setAttribute("app-id", configuration.appId)
     picker.setAttribute("scope", GOOGLE_SCOPE)
     picker.setAttribute("prompt", "select_account")

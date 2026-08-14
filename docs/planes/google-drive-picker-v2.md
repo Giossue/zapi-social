@@ -69,6 +69,12 @@ Zapi ya creado o programado.
   cargar Google Picker y Google Identity Services. Con `drive.file`, la vista
   usa `DocsViewMode.LIST`, tal como recomienda Google al no existir permiso
   general para miniaturas.
+- El selector privado se abre con OAuth Client ID, App ID y el token temporal,
+  como en los ejemplos Web y React del componente oficial. La Browser API Key
+  se conserva en la configuración por compatibilidad, pero no se entrega al
+  `drive-picker`: Google la rechazaba en Portal como `API developer key is
+invalid` aun cuando su huella coincidía con la configuración probada y
+  guardada por Admin.
 - Tokens OAuth, resource keys y credenciales transitorias nunca se escriben en
   logs, auditoría, respuestas de error ni payloads BullMQ.
 
