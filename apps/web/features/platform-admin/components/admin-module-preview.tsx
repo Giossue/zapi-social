@@ -17,6 +17,7 @@ import {
   Plus,
   ReceiptText,
   RotateCcw,
+  Search,
   ShieldX,
   Tags,
   Trash2,
@@ -63,6 +64,7 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import { MetricCard } from "@workspace/ui/components/metric-card"
 import { Field, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
@@ -1416,14 +1418,20 @@ export function AdminModulePreview({
                 </TableRow>
               ))}
               {rows.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    className="h-40 text-center text-muted-foreground"
-                    colSpan={active.columns.length + 2}
-                  >
-                    No hay resultados para esta búsqueda.
-                  </TableCell>
-                </TableRow>
+                <TableEmptyRow
+                  colSpan={active.columns.length + 2}
+                  description={
+                    search || status !== "all"
+                      ? "Prueba con otro término o restablece los filtros."
+                      : `Todavía no hay ${active.label.toLowerCase()} en esta sección.`
+                  }
+                  icon={search || status !== "all" ? Search : CircleAlert}
+                  title={
+                    search || status !== "all"
+                      ? `No encontramos ${active.label.toLowerCase()}`
+                      : `Aún no hay ${active.label.toLowerCase()}`
+                  }
+                />
               ) : null}
             </TableBody>
           </Table>

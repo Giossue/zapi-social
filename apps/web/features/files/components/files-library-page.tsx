@@ -81,6 +81,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { PageLoading } from "@workspace/ui/components/page-loading"
+import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
@@ -314,10 +315,12 @@ function AssetsTable({
   onPreview,
   onInfo,
   onRename,
+  emptyProps,
   onMove,
   onTrash,
 }: {
   assets: readonly FileAsset[]
+  emptyProps: React.ComponentProps<typeof EmptyState>
   selectedAssetIds: readonly string[]
   onSelect: (id: string) => void
   onPreview: (asset: FileAsset) => void
@@ -422,6 +425,9 @@ function AssetsTable({
             </TableRow>
           )
         })}
+        {assets.length === 0 ? (
+          <TableEmptyRow colSpan={5} {...emptyProps} />
+        ) : null}
       </TableBody>
     </Table>
   )
@@ -824,6 +830,32 @@ export function FilesLibraryPage() {
   if (library === null) return <PageLoading />
   if (!library.canView) return <FilesPermissionState mode="library" />
 
+  const assetsEmptyProps = {
+    action: hasFilters ? (
+      <Button
+        onClick={() => {
+          setAssetFilter("all")
+          setQuery("")
+          openFolder("all")
+        }}
+        variant="brand-secondary"
+      >
+        Limpiar filtros
+      </Button>
+    ) : undefined,
+    description: hasFilters
+      ? "Prueba con otro término o restablece los filtros para consultar todos los archivos disponibles."
+      : folderId === "all"
+        ? "Sube un archivo o crea una carpeta para comenzar a organizar tu biblioteca."
+        : "Crea una subcarpeta o sube un archivo para organizar este espacio.",
+    icon: Search,
+    title: hasFilters
+      ? "No encontramos archivos"
+      : folderId === "all"
+        ? "Aún no tienes archivos"
+        : "Esta carpeta está vacía",
+  }
+
   // The API applies the same page window to folders and files, so the range
   // is reported over the files, which is what both views actually list.
   const filesRangeStart = library.filesTotal
@@ -1147,40 +1179,9 @@ export function FilesLibraryPage() {
           </div>
         </div>
 
-        {assets.length === 0 ? (
-          <EmptyState
-            action={
-              hasFilters ? (
-                <Button
-                  onClick={() => {
-                    setAssetFilter("all")
-                    setQuery("")
-                    openFolder("all")
-                  }}
-                  variant="brand-secondary"
-                >
-                  Limpiar filtros
-                </Button>
-              ) : undefined
-            }
-            description={
-              hasFilters
-                ? "Prueba con otro término o restablece los filtros para consultar todos los archivos disponibles."
-                : folderId === "all"
-                  ? "Sube un archivo o crea una carpeta para comenzar a organizar tu biblioteca."
-                  : "Crea una subcarpeta o sube un archivo para organizar este espacio."
-            }
-            icon={Search}
-            title={
-              hasFilters
-                ? "No encontramos archivos"
-                : folderId === "all"
-                  ? "Aún no tienes archivos"
-                  : "Esta carpeta está vacía"
-            }
-          />
-        ) : view === "grid" ? (
+        {view === "grid" ? (
           <>
+            {assets.length === 0 ? <EmptyState {...assetsEmptyProps} /> : null}
             <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-5">
               {assets.map((asset) => (
                 <AssetCard
@@ -1204,6 +1205,7 @@ export function FilesLibraryPage() {
             <CardContent className="flex flex-col gap-4 px-0">
               <AssetsTable
                 assets={assets}
+                emptyProps={assetsEmptyProps}
                 onSelect={toggleAsset}
                 onPreview={setPreviewAsset}
                 onInfo={setInfoAsset}

@@ -29,6 +29,8 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
+import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
+import { Search } from "lucide-react"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
 
 import { dashboardOverviewColumns } from "./columns"
@@ -197,14 +199,12 @@ export function DashboardOverviewTable({
                 </TableRow>
               ))
             ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={table.getVisibleLeafColumns().length}
-                  className="h-24 text-center"
-                >
-                  No hay elementos que coincidan.
-                </TableCell>
-              </TableRow>
+              <TableEmptyRow
+                colSpan={table.getVisibleLeafColumns().length}
+                description="Ajusta la búsqueda para ver los indicadores del espacio."
+                icon={Search}
+                title="No encontramos indicadores"
+              />
             )}
           </TableBody>
         </Table>

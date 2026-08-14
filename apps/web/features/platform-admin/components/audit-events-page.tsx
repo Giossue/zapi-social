@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { Activity, RefreshCw } from "lucide-react"
+import { Activity, RefreshCw, Search } from "lucide-react"
 import { auditApi, ApiError } from "@workspace/api-client"
 import type { AdminAuditEvent } from "@workspace/contracts"
 import {
@@ -24,6 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
+import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
 
 const sourceLabels = { web: "Web", api: "API", worker: "Worker" } as const
@@ -198,16 +199,20 @@ export function AuditEventsPage() {
                   </TableRow>
                 ))}
                 {rows.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      className="h-28 text-center text-muted-foreground"
-                      colSpan={6}
-                    >
-                      {events.length === 0
-                        ? "Aún no hay eventos registrados."
-                        : "No hay eventos que coincidan con estos filtros."}
-                    </TableCell>
-                  </TableRow>
+                  <TableEmptyRow
+                    colSpan={6}
+                    description={
+                      events.length === 0
+                        ? "Las acciones administrativas aparecerán aquí en cuanto ocurran."
+                        : "Prueba con otro término o restablece los filtros."
+                    }
+                    icon={events.length === 0 ? Activity : Search}
+                    title={
+                      events.length === 0
+                        ? "Aún no hay eventos registrados"
+                        : "No encontramos eventos"
+                    }
+                  />
                 ) : null}
               </TableBody>
             </Table>

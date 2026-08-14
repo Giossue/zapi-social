@@ -105,6 +105,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
+import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import {
   Tabs,
   TabsContent,
@@ -442,6 +443,14 @@ function JobsTable({
               </TableCell>
             </TableRow>
           ))}
+          {rows.length === 0 ? (
+            <TableEmptyRow
+              colSpan={6}
+              description="Elige una herramienta para crear el primer resultado."
+              icon={Sparkles}
+              title="Aún no hay generaciones"
+            />
+          ) : null}
         </TableBody>
       </Table>
       <TablePagination
@@ -595,18 +604,10 @@ function Overview() {
           </CardAction>
         </CardHeader>
         <CardContent className="flex flex-col gap-4 px-0">
-          {dashboard.recentRequests.length ? (
-            <JobsTable
-              rows={dashboard.recentRequests}
-              onChanged={() => void load()}
-            />
-          ) : (
-            <EmptyState
-              icon={Sparkles}
-              title="Aún no hay generaciones"
-              description="Elige una herramienta para crear el primer resultado."
-            />
-          )}
+          <JobsTable
+            rows={dashboard.recentRequests}
+            onChanged={() => void load()}
+          />
         </CardContent>
       </Card>
     </div>
@@ -1451,6 +1452,14 @@ function Planner() {
                         </TableCell>
                       </TableRow>
                     ))}
+                    {ideas.length === 0 ? (
+                      <TableEmptyRow
+                        colSpan={6}
+                        description="El plan se generó sin ideas. Ajusta el objetivo y vuelve a intentarlo."
+                        icon={CalendarPlus}
+                        title="Sin ideas en el plan"
+                      />
+                    ) : null}
                   </TableBody>
                 </Table>
                 <TablePagination

@@ -62,6 +62,7 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import {
   Field,
@@ -963,134 +964,139 @@ export function PlansPage() {
                   value={featuredFilter}
                 />
               </DataTableToolbar>
-              {plans.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Plan</TableHead>
-                      <TableHead>Precio</TableHead>
-                      <TableHead>Cobro</TableHead>
-                      <TableHead>Prueba</TableHead>
-                      <TableHead>Suscriptores</TableHead>
-                      <TableHead>Permisos</TableHead>
-                      <TableHead>Estado</TableHead>
-                      <TableHead className="text-right">Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedPlans.map((plan) => (
-                      <TableRow key={plan.id}>
-                        <TableCell>
-                          <div className="grid gap-1">
-                            <div className="flex flex-wrap items-center gap-1.5">
-                              <span className="font-medium">{plan.name}</span>
-                              {plan.featured ? (
-                                <Badge variant="warning">
-                                  <Sparkles aria-hidden="true" />
-                                  Destacado
-                                </Badge>
-                              ) : null}
-                              {plan.isDefaultSignup ? (
-                                <Badge variant="neutral">Predeterminado</Badge>
-                              ) : null}
-                            </div>
-                            <span className="text-xs text-muted-foreground">
-                              /{plan.slug}
-                            </span>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Plan</TableHead>
+                    <TableHead>Precio</TableHead>
+                    <TableHead>Cobro</TableHead>
+                    <TableHead>Prueba</TableHead>
+                    <TableHead>Suscriptores</TableHead>
+                    <TableHead>Permisos</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead className="text-right">Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedPlans.map((plan) => (
+                    <TableRow key={plan.id}>
+                      <TableCell>
+                        <div className="grid gap-1">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="font-medium">{plan.name}</span>
+                            {plan.featured ? (
+                              <Badge variant="warning">
+                                <Sparkles aria-hidden="true" />
+                                Destacado
+                              </Badge>
+                            ) : null}
+                            {plan.isDefaultSignup ? (
+                              <Badge variant="neutral">Predeterminado</Badge>
+                            ) : null}
                           </div>
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          {formatPrice(plan)}
-                        </TableCell>
-                        <TableCell>
-                          <div className="grid gap-0.5">
-                            <span>
-                              {plan.isFree
-                                ? "—"
-                                : billingLabels[plan.billingType]}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              Orden #{plan.position}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          {plan.trialDays > 0
-                            ? `${plan.trialDays} días`
-                            : "Sin prueba"}
-                        </TableCell>
-                        <TableCell>
-                          {plan.subscriberCount.toLocaleString("es")}
-                        </TableCell>
-                        <TableCell>{plan.permissionIds.length}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={
-                              plan.status === "active" ? "success" : "neutral"
-                            }
-                          >
-                            {statusLabels[plan.status]}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                aria-label={`Acciones para ${plan.name}`}
-                                size="icon-sm"
-                                variant="brand-secondary"
+                          <span className="text-xs text-muted-foreground">
+                            /{plan.slug}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {formatPrice(plan)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="grid gap-0.5">
+                          <span>
+                            {plan.isFree
+                              ? "—"
+                              : billingLabels[plan.billingType]}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            Orden #{plan.position}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {plan.trialDays > 0
+                          ? `${plan.trialDays} días`
+                          : "Sin prueba"}
+                      </TableCell>
+                      <TableCell>
+                        {plan.subscriberCount.toLocaleString("es")}
+                      </TableCell>
+                      <TableCell>{plan.permissionIds.length}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            plan.status === "active" ? "success" : "neutral"
+                          }
+                        >
+                          {statusLabels[plan.status]}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              aria-label={`Acciones para ${plan.name}`}
+                              size="icon-sm"
+                              variant="brand-secondary"
+                            >
+                              <Ellipsis />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" size="compact">
+                            <DropdownMenuGroup>
+                              <DropdownMenuItem
+                                onSelect={() => setEditor(plan)}
+                                size="compact"
                               >
-                                <Ellipsis />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" size="compact">
-                              <DropdownMenuGroup>
-                                <DropdownMenuItem
-                                  onSelect={() => setEditor(plan)}
-                                  size="compact"
-                                >
-                                  <Pencil />
-                                  Editar plan
-                                </DropdownMenuItem>
-                              </DropdownMenuGroup>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuGroup>
-                                <DropdownMenuItem
-                                  onSelect={() => setPlanToDelete(plan)}
-                                  size="compact"
-                                  variant="destructive"
-                                >
-                                  <Trash2 />
-                                  Eliminar plan
-                                </DropdownMenuItem>
-                              </DropdownMenuGroup>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              ) : (
-                <EmptyState
-                  action={
-                    hasActiveFilters ? (
-                      <Button onClick={resetFilters} variant="brand-secondary">
-                        Restablecer filtros
-                      </Button>
-                    ) : undefined
-                  }
-                  description={
-                    hasActiveFilters
-                      ? "No hay planes que coincidan con los filtros actuales."
-                      : "Aún no hay planes configurados. Crea el primero para comenzar."
-                  }
-                  icon={Search}
-                  title={
-                    hasActiveFilters ? "No encontramos planes" : "No hay planes"
-                  }
-                />
-              )}
+                                <Pencil />
+                                Editar plan
+                              </DropdownMenuItem>
+                            </DropdownMenuGroup>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuGroup>
+                              <DropdownMenuItem
+                                onSelect={() => setPlanToDelete(plan)}
+                                size="compact"
+                                variant="destructive"
+                              >
+                                <Trash2 />
+                                Eliminar plan
+                              </DropdownMenuItem>
+                            </DropdownMenuGroup>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {plans.length === 0 ? (
+                    <TableEmptyRow
+                      action={
+                        hasActiveFilters ? (
+                          <Button
+                            onClick={resetFilters}
+                            variant="brand-secondary"
+                          >
+                            Restablecer filtros
+                          </Button>
+                        ) : undefined
+                      }
+                      colSpan={8}
+                      description={
+                        hasActiveFilters
+                          ? "No hay planes que coincidan con los filtros actuales."
+                          : "Aún no hay planes configurados. Crea el primero para comenzar."
+                      }
+                      icon={Search}
+                      title={
+                        hasActiveFilters
+                          ? "No encontramos planes"
+                          : "No hay planes"
+                      }
+                    />
+                  ) : null}
+                </TableBody>
+              </Table>
               <TablePagination
                 canGoNext={currentPageIndex < pageCount - 1}
                 canGoPrevious={currentPageIndex > 0}

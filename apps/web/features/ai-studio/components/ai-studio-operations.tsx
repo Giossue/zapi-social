@@ -87,6 +87,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
+import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { TimePicker } from "@workspace/ui/components/time-picker"
 
@@ -394,77 +395,75 @@ function AiHistorySurface({
             onRetry={onRetry}
             state={state}
           >
-            {rows.length ? (
-              <>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Generación</TableHead>
-                      <TableHead>Herramienta</TableHead>
-                      <TableHead>Estado</TableHead>
-                      <TableHead>Consumo</TableHead>
-                      <TableHead>Fecha</TableHead>
-                      <TableHead className="text-right">Acciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {rows.map((row) => (
-                      <TableRow key={row.id}>
-                        <TableCell>
-                          <div className="flex flex-col gap-0.5">
-                            <span className="font-medium">{row.title}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {row.subtitle}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{row.kind}</TableCell>
-                        <TableCell>
-                          <HistoryStatusBadge status={row.status} />
-                        </TableCell>
-                        <TableCell>{row.cost}</TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {row.date}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {renderActions(row)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                <CollectionPagination
-                  onNextPage={onNextPage}
-                  onPreviousPage={onPreviousPage}
-                  page={page}
-                  pageSize={pageSize}
-                  total={total}
-                />
-              </>
-            ) : (
-              <EmptyState
-                action={
-                  hasFilters ? (
-                    <Button
-                      onClick={onClearFilters}
-                      type="button"
-                      variant="brand-secondary"
-                    >
-                      Limpiar filtros
-                    </Button>
-                  ) : undefined
-                }
-                description={
-                  hasFilters
-                    ? "Ajusta la búsqueda, el estado o la herramienta seleccionada."
-                    : "Las nuevas generaciones aparecerán aquí cuando uses AI Studio."
-                }
-                icon={FileSearch}
-                title={
-                  hasFilters ? "Sin resultados" : "Aún no hay generaciones"
-                }
-              />
-            )}
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Generación</TableHead>
+                  <TableHead>Herramienta</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead>Consumo</TableHead>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rows.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell>
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-medium">{row.title}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {row.subtitle}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{row.kind}</TableCell>
+                    <TableCell>
+                      <HistoryStatusBadge status={row.status} />
+                    </TableCell>
+                    <TableCell>{row.cost}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {row.date}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {renderActions(row)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {rows.length === 0 ? (
+                  <TableEmptyRow
+                    colSpan={6}
+                    action={
+                      hasFilters ? (
+                        <Button
+                          onClick={onClearFilters}
+                          type="button"
+                          variant="brand-secondary"
+                        >
+                          Limpiar filtros
+                        </Button>
+                      ) : undefined
+                    }
+                    description={
+                      hasFilters
+                        ? "Ajusta la búsqueda, el estado o la herramienta seleccionada."
+                        : "Las nuevas generaciones aparecerán aquí cuando uses AI Studio."
+                    }
+                    icon={FileSearch}
+                    title={
+                      hasFilters ? "Sin resultados" : "Aún no hay generaciones"
+                    }
+                  />
+                ) : null}
+              </TableBody>
+            </Table>
+            <CollectionPagination
+              onNextPage={onNextPage}
+              onPreviousPage={onPreviousPage}
+              page={page}
+              pageSize={pageSize}
+              total={total}
+            />
           </CollectionState>
         </CardContent>
       </Card>
@@ -699,121 +698,117 @@ function AiAutomationSurface({
             onRetry={onRetry}
             state={state}
           >
-            {rows.length ? (
-              <>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Automatización</TableHead>
-                      <TableHead>Frecuencia</TableHead>
-                      <TableHead>Próxima ejecución</TableHead>
-                      <TableHead>Estado</TableHead>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Automatización</TableHead>
+                  <TableHead>Frecuencia</TableHead>
+                  <TableHead>Próxima ejecución</TableHead>
+                  <TableHead>Estado</TableHead>
+                  {canManage ? (
+                    <TableHead className="text-right">Acciones</TableHead>
+                  ) : null}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {rows.map((row) => {
+                  const busy = busyRowId === row.id
+
+                  return (
+                    <TableRow key={row.id}>
+                      <TableCell className="font-medium">{row.name}</TableCell>
+                      <TableCell>{row.cadence}</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {row.nextRun}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <AutomationStatusBadge status={row.status} />
+                          {canManage ? (
+                            <Switch
+                              aria-label={`Activar ${row.name}`}
+                              checked={row.status === "active"}
+                              disabled={busy}
+                              onCheckedChange={(checked) =>
+                                onToggle(row, checked)
+                              }
+                            />
+                          ) : null}
+                        </div>
+                      </TableCell>
                       {canManage ? (
-                        <TableHead className="text-right">Acciones</TableHead>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                aria-label={`Acciones para ${row.name}`}
+                                disabled={busy}
+                                size="icon-sm"
+                                variant="brand-secondary"
+                              >
+                                {busy ? (
+                                  <Spinner aria-label="Procesando acción" />
+                                ) : (
+                                  <EllipsisVertical aria-hidden="true" />
+                                )}
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuGroup>
+                                <DropdownMenuItem onSelect={() => onRun(row)}>
+                                  <Play aria-hidden="true" />
+                                  Ejecutar ahora
+                                </DropdownMenuItem>
+                              </DropdownMenuGroup>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuGroup>
+                                <DropdownMenuItem
+                                  onSelect={() => onRequestDelete(row)}
+                                  variant="destructive"
+                                >
+                                  <Trash2 aria-hidden="true" />
+                                  Eliminar
+                                </DropdownMenuItem>
+                              </DropdownMenuGroup>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
                       ) : null}
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {rows.map((row) => {
-                      const busy = busyRowId === row.id
-
-                      return (
-                        <TableRow key={row.id}>
-                          <TableCell className="font-medium">
-                            {row.name}
-                          </TableCell>
-                          <TableCell>{row.cadence}</TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {row.nextRun}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <AutomationStatusBadge status={row.status} />
-                              {canManage ? (
-                                <Switch
-                                  aria-label={`Activar ${row.name}`}
-                                  checked={row.status === "active"}
-                                  disabled={busy}
-                                  onCheckedChange={(checked) =>
-                                    onToggle(row, checked)
-                                  }
-                                />
-                              ) : null}
-                            </div>
-                          </TableCell>
-                          {canManage ? (
-                            <TableCell className="text-right">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    aria-label={`Acciones para ${row.name}`}
-                                    disabled={busy}
-                                    size="icon-sm"
-                                    variant="brand-secondary"
-                                  >
-                                    {busy ? (
-                                      <Spinner aria-label="Procesando acción" />
-                                    ) : (
-                                      <EllipsisVertical aria-hidden="true" />
-                                    )}
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuGroup>
-                                    <DropdownMenuItem
-                                      onSelect={() => onRun(row)}
-                                    >
-                                      <Play aria-hidden="true" />
-                                      Ejecutar ahora
-                                    </DropdownMenuItem>
-                                  </DropdownMenuGroup>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuGroup>
-                                    <DropdownMenuItem
-                                      onSelect={() => onRequestDelete(row)}
-                                      variant="destructive"
-                                    >
-                                      <Trash2 aria-hidden="true" />
-                                      Eliminar
-                                    </DropdownMenuItem>
-                                  </DropdownMenuGroup>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </TableCell>
-                          ) : null}
-                        </TableRow>
-                      )
-                    })}
-                  </TableBody>
-                </Table>
-                <CollectionPagination
-                  onNextPage={onNextPage}
-                  onPreviousPage={onPreviousPage}
-                  page={page}
-                  pageSize={pageSize}
-                  total={total}
-                />
-              </>
-            ) : (
-              <EmptyState
-                action={
-                  hasFilters ? (
-                    <Button
-                      onClick={onClearFilters}
-                      type="button"
-                      variant="brand-secondary"
-                    >
-                      Limpiar filtros
-                    </Button>
-                  ) : undefined
-                }
-                description={emptyDescription}
-                icon={Sparkles}
-                title={
-                  hasFilters ? "Sin resultados" : "Aún no hay automatizaciones"
-                }
-              />
-            )}
+                  )
+                })}
+                {rows.length === 0 ? (
+                  <TableEmptyRow
+                    colSpan={5}
+                    action={
+                      hasFilters ? (
+                        <Button
+                          onClick={onClearFilters}
+                          type="button"
+                          variant="brand-secondary"
+                        >
+                          Limpiar filtros
+                        </Button>
+                      ) : undefined
+                    }
+                    description={emptyDescription}
+                    icon={Sparkles}
+                    title={
+                      hasFilters
+                        ? "Sin resultados"
+                        : "Aún no hay automatizaciones"
+                    }
+                  />
+                ) : null}
+              </TableBody>
+            </Table>
+            <CollectionPagination
+              onNextPage={onNextPage}
+              onPreviousPage={onPreviousPage}
+              page={page}
+              pageSize={pageSize}
+              total={total}
+            />
           </CollectionState>
         </CardContent>
       </Card>
@@ -996,68 +991,66 @@ function AiCreditsSurface({
                     />
                   </DataTableToolbar>
 
-                  {movements.length ? (
-                    <>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Fecha</TableHead>
-                            <TableHead>Movimiento</TableHead>
-                            <TableHead>Detalle</TableHead>
-                            <TableHead className="text-right">
-                              Créditos
-                            </TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {movements.map((movement) => (
-                            <TableRow key={movement.id}>
-                              <TableCell className="text-muted-foreground">
-                                {movement.date}
-                              </TableCell>
-                              <TableCell>
-                                <CreditTypeBadge type={movement.type} />
-                              </TableCell>
-                              <TableCell>{movement.detail}</TableCell>
-                              <TableCell className="text-right font-medium">
-                                {movement.credits}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                      <CollectionPagination
-                        onNextPage={onNextPage}
-                        onPreviousPage={onPreviousPage}
-                        page={page}
-                        pageSize={pageSize}
-                        total={total}
-                      />
-                    </>
-                  ) : (
-                    <EmptyState
-                      action={
-                        hasFilters ? (
-                          <Button
-                            onClick={onClearFilters}
-                            type="button"
-                            variant="brand-secondary"
-                          >
-                            Limpiar filtros
-                          </Button>
-                        ) : undefined
-                      }
-                      description={
-                        hasFilters
-                          ? "Ajusta la búsqueda o el tipo de movimiento."
-                          : "Los movimientos aparecerán cuando se asignen o consuman créditos."
-                      }
-                      icon={FileSearch}
-                      title={
-                        hasFilters ? "Sin resultados" : "Aún no hay movimientos"
-                      }
-                    />
-                  )}
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Fecha</TableHead>
+                        <TableHead>Movimiento</TableHead>
+                        <TableHead>Detalle</TableHead>
+                        <TableHead className="text-right">Créditos</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {movements.map((movement) => (
+                        <TableRow key={movement.id}>
+                          <TableCell className="text-muted-foreground">
+                            {movement.date}
+                          </TableCell>
+                          <TableCell>
+                            <CreditTypeBadge type={movement.type} />
+                          </TableCell>
+                          <TableCell>{movement.detail}</TableCell>
+                          <TableCell className="text-right font-medium">
+                            {movement.credits}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {movements.length === 0 ? (
+                        <TableEmptyRow
+                          colSpan={4}
+                          action={
+                            hasFilters ? (
+                              <Button
+                                onClick={onClearFilters}
+                                type="button"
+                                variant="brand-secondary"
+                              >
+                                Limpiar filtros
+                              </Button>
+                            ) : undefined
+                          }
+                          description={
+                            hasFilters
+                              ? "Ajusta la búsqueda o el tipo de movimiento."
+                              : "Los movimientos aparecerán cuando se asignen o consuman créditos."
+                          }
+                          icon={FileSearch}
+                          title={
+                            hasFilters
+                              ? "Sin resultados"
+                              : "Aún no hay movimientos"
+                          }
+                        />
+                      ) : null}
+                    </TableBody>
+                  </Table>
+                  <CollectionPagination
+                    onNextPage={onNextPage}
+                    onPreviousPage={onPreviousPage}
+                    page={page}
+                    pageSize={pageSize}
+                    total={total}
+                  />
                 </CardContent>
               </Card>
             </div>

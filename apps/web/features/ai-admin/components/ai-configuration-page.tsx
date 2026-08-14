@@ -44,6 +44,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
+import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
 import {
   Tabs,
@@ -62,6 +63,7 @@ import {
   Route,
   Save,
   ShieldCheck,
+  Search,
   Sparkles,
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
@@ -614,6 +616,22 @@ export function AiConfigurationPage() {
                       </TableCell>
                     </TableRow>
                   ))}
+                  {visibleModels.length === 0 ? (
+                    <TableEmptyRow
+                      colSpan={5}
+                      description={
+                        modelQuery
+                          ? "Prueba con otro término de búsqueda."
+                          : "Configura un modelo para habilitar las rutas de generación."
+                      }
+                      icon={modelQuery ? Search : Sparkles}
+                      title={
+                        modelQuery
+                          ? "No encontramos modelos"
+                          : "Aún no hay modelos"
+                      }
+                    />
+                  ) : null}
                 </TableBody>
               </Table>
               <TablePagination
@@ -1047,15 +1065,12 @@ function UsagePanel({
                   </TableRow>
                 ))
               ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="h-28 text-center text-muted-foreground"
-                  >
-                    <Sparkles className="mx-auto mb-2 size-5" /> Aún no hay
-                    consumo AI.
-                  </TableCell>
-                </TableRow>
+                <TableEmptyRow
+                  colSpan={5}
+                  description="El consumo aparecerá aquí en cuanto se registren generaciones."
+                  icon={Sparkles}
+                  title="Aún no hay consumo AI"
+                />
               )}
             </TableBody>
           </Table>

@@ -61,6 +61,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
+import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
 import {
   Tabs,
@@ -627,6 +628,44 @@ export function TeamsPage() {
     }
   }
 
+  const visibleMembersEmptyProps = {
+    action: memberQuery ? (
+      <Button
+        onClick={() => {
+          setMemberPage(1)
+          setMemberQuery("")
+        }}
+        variant="brand-secondary"
+      >
+        Limpiar búsqueda
+      </Button>
+    ) : undefined,
+    description:
+      "Prueba otra búsqueda para encontrar a una persona del workspace.",
+    icon: Search,
+    title: "No encontramos miembros",
+  }
+  const visibleInvitationsEmptyProps = {
+    action: invitationQuery ? (
+      <Button
+        onClick={() => {
+          setInvitationPage(1)
+          setInvitationQuery("")
+        }}
+        variant="brand-secondary"
+      >
+        Limpiar búsqueda
+      </Button>
+    ) : undefined,
+    description: invitationQuery
+      ? "Prueba otra búsqueda para encontrar una invitación."
+      : "Las nuevas invitaciones aparecerán aquí hasta que se acepten, venzan o revoquen.",
+    icon: MailPlus,
+    title: invitationQuery
+      ? "No encontramos invitaciones"
+      : "Sin invitaciones pendientes",
+  }
+
   const copy = confirmationCopy(confirmation)
 
   // Shared by both branches below: the tabbed view nests the card inside
@@ -730,94 +769,44 @@ export function TeamsPage() {
               ) : null}
 
               <TabsContent className="mt-0" value="members">
-                {visibleMembers.length ? (
-                  <MembersTable
-                    actorRole={teams.currentUserRole}
-                    currentUserId={teams.currentUserId}
-                    members={paginatedMembers}
-                    onManage={(member) => {
-                      setDialogError(null)
-                      setSelectedMember(member)
-                    }}
-                    onRemove={(member) =>
-                      setConfirmation({ kind: "remove", member })
-                    }
-                    onTransfer={(member) =>
-                      setConfirmation({ kind: "transfer", member })
-                    }
-                    pending={pendingAction !== null}
-                    onPageChange={setMemberPage}
-                    page={currentMemberPage}
-                    pageSize={collectionPageSize}
-                    total={visibleMembers.length}
-                  />
-                ) : (
-                  <EmptyState
-                    action={
-                      memberQuery ? (
-                        <Button
-                          onClick={() => {
-                            setMemberPage(1)
-                            setMemberQuery("")
-                          }}
-                          variant="brand-secondary"
-                        >
-                          Limpiar búsqueda
-                        </Button>
-                      ) : undefined
-                    }
-                    className="px-4 py-10"
-                    description="Prueba otra búsqueda para encontrar a una persona del workspace."
-                    icon={Search}
-                    title="No encontramos miembros"
-                  />
-                )}
+                <MembersTable
+                  emptyProps={visibleMembersEmptyProps}
+                  actorRole={teams.currentUserRole}
+                  currentUserId={teams.currentUserId}
+                  members={paginatedMembers}
+                  onManage={(member) => {
+                    setDialogError(null)
+                    setSelectedMember(member)
+                  }}
+                  onRemove={(member) =>
+                    setConfirmation({ kind: "remove", member })
+                  }
+                  onTransfer={(member) =>
+                    setConfirmation({ kind: "transfer", member })
+                  }
+                  pending={pendingAction !== null}
+                  onPageChange={setMemberPage}
+                  page={currentMemberPage}
+                  pageSize={collectionPageSize}
+                  total={visibleMembers.length}
+                />
               </TabsContent>
 
               <TabsContent className="mt-0" value="invitations">
-                {visibleInvitations.length ? (
-                  <InvitationsTable
-                    invitations={paginatedInvitations}
-                    onResend={(invitation) => void resendInvitation(invitation)}
-                    onRevoke={(invitation) =>
-                      setConfirmation({ kind: "revoke", invitation })
-                    }
-                    onView={setSelectedInvitation}
-                    onPageChange={setInvitationPage}
-                    page={currentInvitationPage}
-                    pageSize={collectionPageSize}
-                    pendingAction={pendingAction}
-                    total={visibleInvitations.length}
-                  />
-                ) : (
-                  <EmptyState
-                    action={
-                      invitationQuery ? (
-                        <Button
-                          onClick={() => {
-                            setInvitationPage(1)
-                            setInvitationQuery("")
-                          }}
-                          variant="brand-secondary"
-                        >
-                          Limpiar búsqueda
-                        </Button>
-                      ) : undefined
-                    }
-                    className="px-4 py-10"
-                    description={
-                      invitationQuery
-                        ? "Prueba otra búsqueda para encontrar una invitación."
-                        : "Las nuevas invitaciones aparecerán aquí hasta que se acepten, venzan o revoquen."
-                    }
-                    icon={MailPlus}
-                    title={
-                      invitationQuery
-                        ? "No encontramos invitaciones"
-                        : "Sin invitaciones pendientes"
-                    }
-                  />
-                )}
+                <InvitationsTable
+                  emptyProps={visibleInvitationsEmptyProps}
+                  invitations={paginatedInvitations}
+                  onResend={(invitation) => void resendInvitation(invitation)}
+                  onRevoke={(invitation) =>
+                    setConfirmation({ kind: "revoke", invitation })
+                  }
+                  onView={setSelectedInvitation}
+                  onPageChange={setInvitationPage}
+                  page={currentInvitationPage}
+                  pageSize={collectionPageSize}
+                  pendingAction={pendingAction}
+                  total={visibleInvitations.length}
+                />
               </TabsContent>
 
               <TabsContent className="mt-0" value="activity">
@@ -941,7 +930,9 @@ function MembersTable({
   pageSize,
   pending,
   total,
+  emptyProps,
 }: {
+  emptyProps: React.ComponentProps<typeof EmptyState>
   actorRole: PortalTeamRole
   currentUserId: string
   members: PortalTeamMember[]
@@ -1003,10 +994,14 @@ function MembersTable({
                 <TableCell className="text-right">{actions(member)}</TableCell>
               </TableRow>
             ))}
+            {members.length === 0 ? (
+              <TableEmptyRow colSpan={5} {...emptyProps} />
+            ) : null}
           </TableBody>
         </Table>
       </div>
       <div className="divide-y md:hidden">
+        {members.length === 0 ? <EmptyState {...emptyProps} /> : null}
         {members.map((member) => (
           <div className="grid gap-3 px-4 py-4" key={member.id}>
             <div className="flex items-start justify-between gap-3">
@@ -1050,7 +1045,9 @@ function InvitationsTable({
   pageSize,
   pendingAction,
   total,
+  emptyProps,
 }: {
+  emptyProps: React.ComponentProps<typeof EmptyState>
   invitations: PortalTeamInvitation[]
   onPageChange: (page: number) => void
   onResend: (invitation: PortalTeamInvitation) => void
@@ -1119,10 +1116,14 @@ function InvitationsTable({
                 </TableCell>
               </TableRow>
             ))}
+            {invitations.length === 0 ? (
+              <TableEmptyRow colSpan={7} {...emptyProps} />
+            ) : null}
           </TableBody>
         </Table>
       </div>
       <div className="divide-y md:hidden">
+        {invitations.length === 0 ? <EmptyState {...emptyProps} /> : null}
         {invitations.map((invitation) => (
           <div className="grid gap-3 px-4 py-4" key={invitation.id}>
             <div className="flex items-start justify-between gap-3">
@@ -1194,26 +1195,7 @@ function ActivityTable({
       />
     )
   }
-  if (!data?.events.length) {
-    return (
-      <EmptyState
-        action={
-          hasFilters ? (
-            <Button onClick={onClearFilters} variant="brand-secondary">
-              Limpiar filtros
-            </Button>
-          ) : undefined
-        }
-        description={
-          hasFilters
-            ? "Prueba otra búsqueda o elimina el filtro de categoría."
-            : "Los cambios de invitaciones, roles, cuentas y propiedad aparecerán aquí."
-        }
-        icon={Activity}
-        title={hasFilters ? "Sin actividad para este filtro" : "Sin actividad"}
-      />
-    )
-  }
+  if (!data) return null
   const pageCount = Math.max(Math.ceil(data.total / data.limit), 1)
   return (
     <div className="flex flex-col gap-4">
@@ -1231,6 +1213,29 @@ function ActivityTable({
             {data.events.map((event) => (
               <ActivityRow event={event} key={event.id} />
             ))}
+            {data.events.length === 0 ? (
+              <TableEmptyRow
+                colSpan={4}
+                action={
+                  hasFilters ? (
+                    <Button onClick={onClearFilters} variant="brand-secondary">
+                      Limpiar filtros
+                    </Button>
+                  ) : undefined
+                }
+                description={
+                  hasFilters
+                    ? "Prueba otra búsqueda o elimina el filtro de categoría."
+                    : "Los cambios de invitaciones, roles, cuentas y propiedad aparecerán aquí."
+                }
+                icon={Activity}
+                title={
+                  hasFilters
+                    ? "Sin actividad para este filtro"
+                    : "Sin actividad"
+                }
+              />
+            ) : null}
           </TableBody>
         </Table>
       </div>
@@ -1354,80 +1359,83 @@ function MemberAccessView({
             privados.
           </p>
         </div>
-        {total ? (
-          <div className="flex flex-col gap-4">
-            <div className="hidden md:block">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Miembro</TableHead>
-                    <TableHead>Rol</TableHead>
-                    <TableHead>Se unió</TableHead>
+        <div className="flex flex-col gap-4">
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Miembro</TableHead>
+                  <TableHead>Rol</TableHead>
+                  <TableHead>Se unió</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {members.map((member) => (
+                  <TableRow key={member.id}>
+                    <TableCell>
+                      <MemberIdentity
+                        current={member.id === currentUserId}
+                        member={member}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={roleMeta[member.role].variant}>
+                        {roleMeta[member.role].label}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground">
+                      {formatTeamDate(member.joinedAt)}
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {members.map((member) => (
-                    <TableRow key={member.id}>
-                      <TableCell>
-                        <MemberIdentity
-                          current={member.id === currentUserId}
-                          member={member}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={roleMeta[member.role].variant}>
-                          {roleMeta[member.role].label}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {formatTeamDate(member.joinedAt)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-            <div className="divide-y md:hidden">
-              {members.map((member) => (
-                <div
-                  className="flex items-start justify-between gap-3 px-4 py-4"
-                  key={member.id}
-                >
-                  <MemberIdentity
-                    current={member.id === currentUserId}
-                    member={member}
+                ))}
+                {total === 0 ? (
+                  <TableEmptyRow
+                    colSpan={3}
+                    action={
+                      query ? (
+                        <Button
+                          onClick={onClearSearch}
+                          variant="brand-secondary"
+                        >
+                          Limpiar búsqueda
+                        </Button>
+                      ) : undefined
+                    }
+                    description="Prueba otra búsqueda para encontrar una persona."
+                    icon={Search}
+                    title="No encontramos miembros"
                   />
-                  <Badge variant={roleMeta[member.role].variant}>
-                    {roleMeta[member.role].label}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-            <TablePagination
-              canGoNext={page < pageCount}
-              canGoPrevious={page > 1}
-              itemLabel="miembros"
-              onNextPage={() => onPageChange(page + 1)}
-              onPreviousPage={() => onPageChange(page - 1)}
-              rangeEnd={Math.min(page * pageSize, total)}
-              rangeStart={(page - 1) * pageSize + 1}
-              total={total}
-            />
+                ) : null}
+              </TableBody>
+            </Table>
           </div>
-        ) : (
-          <EmptyState
-            action={
-              query ? (
-                <Button onClick={onClearSearch} variant="brand-secondary">
-                  Limpiar búsqueda
-                </Button>
-              ) : undefined
-            }
-            description="Prueba otra búsqueda para encontrar una persona."
-            icon={Search}
-            title="No encontramos miembros"
+          <div className="divide-y md:hidden">
+            {members.map((member) => (
+              <div
+                className="flex items-start justify-between gap-3 px-4 py-4"
+                key={member.id}
+              >
+                <MemberIdentity
+                  current={member.id === currentUserId}
+                  member={member}
+                />
+                <Badge variant={roleMeta[member.role].variant}>
+                  {roleMeta[member.role].label}
+                </Badge>
+              </div>
+            ))}
+          </div>
+          <TablePagination
+            canGoNext={page < pageCount}
+            canGoPrevious={page > 1}
+            itemLabel="miembros"
+            onNextPage={() => onPageChange(page + 1)}
+            onPreviousPage={() => onPageChange(page - 1)}
+            rangeEnd={Math.min(page * pageSize, total)}
+            rangeStart={(page - 1) * pageSize + 1}
+            total={total}
           />
-        )}
+        </div>
       </div>
     </CardContent>
   )
