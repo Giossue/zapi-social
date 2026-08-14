@@ -256,6 +256,60 @@ html {
   overscroll-behavior: none;
 }
 
+/*
+ * Overlay/panel enter animations.
+ *
+ * tw-animate-css's `enter`/`exit` keyframes also declare `filter: blur(...)`.
+ * Even when the blur resolves to 0 that pushes the element through the filter
+ * pipeline for the whole animation, which is expensive on a full-viewport
+ * overlay or a full-height sheet panel. These keyframes touch only `opacity`
+ * and `translate`, both of which the compositor can animate on its own.
+ */
+@keyframes overlay-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes overlay-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes sheet-slide-in {
+  from {
+    opacity: 0;
+    translate: var(--sheet-slide-x, 0) var(--sheet-slide-y, 0);
+  }
+}
+
+@keyframes sheet-slide-out {
+  to {
+    opacity: 0;
+    translate: var(--sheet-slide-x, 0) var(--sheet-slide-y, 0);
+  }
+}
+
+/*
+ * Reserve the scrollbar gutter permanently. Radix's modal scroll lock
+ * (react-remove-scroll) hides the document scrollbar and compensates with a
+ * `margin-right` on <body>, which relayouts the whole document as a sheet or
+ * dialog opens. With a stable gutter the width never changes, so the
+ * compensation is not only unnecessary but would itself shift the page.
+ */
+@supports (scrollbar-gutter: stable) {
+  html {
+    scrollbar-gutter: stable;
+  }
+
+  html body[data-scroll-locked] {
+    margin-right: 0 !important;
+    padding-right: 0 !important;
+    --removed-body-scroll-bar-size: 0px;
+  }
+}
+
 @keyframes spinner-fade {
   0%,
   39%,
