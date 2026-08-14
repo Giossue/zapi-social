@@ -178,6 +178,7 @@ function ComposerDialog({
           oauthClientId: null,
           browserApiKey: null,
           appId: null,
+          configurationFingerprint: null,
         })
       )
   }, [])
@@ -243,6 +244,11 @@ function ComposerDialog({
           oauthClientId: currentProvider.oauthClientId,
           browserApiKey: currentProvider.browserApiKey,
           appId: currentProvider.appId,
+        },
+        diagnostics: {
+          pagePath: window.location.pathname,
+          serverFingerprint: currentProvider.configurationFingerprint,
+          sourceContext: "publishing",
         },
         multiselect: false,
       })

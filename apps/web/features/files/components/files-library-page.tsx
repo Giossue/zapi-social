@@ -556,6 +556,7 @@ export function FilesLibraryPage() {
           oauthClientId: null,
           browserApiKey: null,
           appId: null,
+          configurationFingerprint: null,
         })
       )
   }, [])
@@ -604,6 +605,11 @@ export function FilesLibraryPage() {
           oauthClientId: currentProvider.oauthClientId,
           browserApiKey: currentProvider.browserApiKey,
           appId: currentProvider.appId,
+        },
+        diagnostics: {
+          pagePath: window.location.pathname,
+          serverFingerprint: currentProvider.configurationFingerprint,
+          sourceContext: "files",
         },
         multiselect: false,
       })

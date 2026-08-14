@@ -2,6 +2,7 @@ import type {
   GoogleDriveIntegrationConfiguration,
   GoogleDrivePickerSelection,
 } from "@workspace/contracts"
+import { auditApi } from "@workspace/api-client"
 
 type GoogleTokenResponse = {
   access_token?: string
@@ -30,6 +31,7 @@ const MEDIA_MIME_TYPES = [
   "video/webm",
   "video/quicktime",
 ].join(",")
+const PICKER_IMPLEMENTATION = "drive-picker-element-v5"
 
 type GoogleDrivePickerElement = HTMLElement & { visible: boolean }
 
@@ -49,11 +51,70 @@ export type GoogleDrivePickerResult = {
   files: GoogleDrivePickerSelection[]
 }
 
+type GoogleDrivePickerDiagnostics = {
+  pagePath: string
+  serverFingerprint?: string | null
+  sourceContext: "files" | "publishing"
+}
+
+async function configurationFingerprint(
+  configuration: GoogleDriveIntegrationConfiguration
+) {
+  const bytes = new TextEncoder().encode(
+    `${configuration.oauthClientId}\u0000${configuration.browserApiKey}\u0000${configuration.appId}`
+  )
+  const digest = await crypto.subtle.digest("SHA-256", bytes)
+  return Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, "0")
+  ).join("")
+}
+
+function logPickerDiagnostics({
+  configuration,
+  diagnostics,
+  picker,
+}: {
+  configuration: GoogleDriveIntegrationConfiguration
+  diagnostics: GoogleDrivePickerDiagnostics
+  picker: HTMLElement
+}) {
+  void configurationFingerprint(configuration)
+    .then((clientFingerprint) =>
+      auditApi.logWebEvent({
+        event: "google_drive.picker_opened",
+        severity: "success",
+        outcome: "attempted",
+        pagePath: diagnostics.pagePath,
+        summary: "Portal attempted to open Google Drive Picker.",
+        metadata: {
+          sourceContext: diagnostics.sourceContext,
+          implementation: PICKER_IMPLEMENTATION,
+          origin: window.location.origin,
+          clientFingerprint,
+          serverFingerprint: diagnostics.serverFingerprint ?? null,
+          fingerprintMatches:
+            !diagnostics.serverFingerprint ||
+            diagnostics.serverFingerprint === clientFingerprint,
+          developerKeyAttached:
+            picker.getAttribute("developer-key") ===
+            configuration.browserApiKey,
+          browserApiKeyLength: configuration.browserApiKey.length,
+          browserApiKeyLooksValid: /^AIza[\w-]{35}$/.test(
+            configuration.browserApiKey
+          ),
+        },
+      })
+    )
+    .catch(() => undefined)
+}
+
 export async function openGoogleDrivePicker({
   configuration,
+  diagnostics,
   multiselect,
 }: {
   configuration: GoogleDriveIntegrationConfiguration
+  diagnostics?: GoogleDrivePickerDiagnostics
   multiselect: boolean
 }): Promise<GoogleDrivePickerResult | null> {
   await loadGooglePickerComponent()
@@ -80,6 +141,10 @@ export async function openGoogleDrivePicker({
     view.setAttribute("select-folder-enabled", "false")
     view.setAttribute("mode", "LIST")
     picker.append(view)
+
+    if (diagnostics) {
+      logPickerDiagnostics({ configuration, diagnostics, picker })
+    }
 
     const cleanup = () => {
       picker.removeEventListener(

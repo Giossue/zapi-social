@@ -37,14 +37,7 @@ export class GoogleDriveImportsService {
     const auth = await session;
     const provider =
       await this.integrations.readGoogleDrivePortalConfiguration();
-    const configurationFingerprint =
-      provider.oauthClientId && provider.browserApiKey && provider.appId
-        ? createHash('sha256')
-            .update(
-              `${provider.oauthClientId}\u0000${provider.browserApiKey}\u0000${provider.appId}`,
-            )
-            .digest('hex')
-        : null;
+    const { configurationFingerprint } = provider;
 
     await this.database.db.insert(apiAuditLogs).values({
       workspaceId: auth.workspace.id,
@@ -61,7 +54,7 @@ export class GoogleDriveImportsService {
       },
     });
 
-    return provider;
+    return { ...provider, configurationFingerprint };
   }
 
   async createBatch(

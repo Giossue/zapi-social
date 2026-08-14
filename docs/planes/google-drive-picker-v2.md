@@ -368,6 +368,12 @@ Metadata segura del asset final:
 
 No guardar token, resource key, URL compartida ni payload Picker.
 
+Para diagnosticar diferencias entre Admin y Portal, cada apertura de Picker en
+Portal registra únicamente la versión de implementación, origen, contexto,
+presencia del atributo `developer-key`, longitud/formato esperado de la API key
+y fingerprints SHA-256 de la configuración entregada y recibida. Nunca registra
+OAuth Client ID, Browser API Key, App ID ni tokens en claro.
+
 ## Worker y almacenamiento
 
 Crear cola `file-imports`; el job contiene solo `batchId`.

@@ -63,6 +63,7 @@ export const portalGoogleDriveConfigurationSchema = z.object({
   oauthClientId: z.string().nullable(),
   browserApiKey: z.string().nullable(),
   appId: z.string().nullable(),
+  configurationFingerprint: z.string().length(64).nullable(),
 })
 
 export const googleDriveImportSourceContextSchema = z.enum([

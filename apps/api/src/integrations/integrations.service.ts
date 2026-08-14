@@ -229,6 +229,10 @@ export class IntegrationsService {
       oauthClientId: ready ? (configuration?.oauthClientId ?? null) : null,
       browserApiKey: ready ? (configuration?.browserApiKey ?? null) : null,
       appId: ready ? (configuration?.appId ?? null) : null,
+      configurationFingerprint:
+        ready && configuration
+          ? this.googleDriveConfigurationFingerprint(configuration)
+          : null,
     };
   }
 

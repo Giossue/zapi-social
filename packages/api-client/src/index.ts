@@ -34,6 +34,7 @@ import type {
   TestMetaIntegrationInput,
   TestMetaIntegrationResponse,
   UpdateAdminPlanInput,
+  WebAuditEvent,
   UpdateAdminTurnstileConfigurationInput,
   UpdateMetaIntegrationInput,
   UpdatePortalChannelInput,
@@ -1305,6 +1306,11 @@ export const polarApi = {
 }
 
 export const auditApi = {
+  logWebEvent: (input: WebAuditEvent) =>
+    request<void>("/v1/portal/audit/web-events", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
   list: () =>
     request<AdminAuditEventsResponse>("/v1/admin/audit-events", {
       method: "GET",
