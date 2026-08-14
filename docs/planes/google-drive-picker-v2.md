@@ -403,6 +403,12 @@ Reintentos:
 - 404, formato inválido y tamaño excesivo son permanentes;
 - si Redis falla tras crear el lote, un scheduler recupera lotes `pending`;
 - jobs estables por `google-drive-import-<batchId>`;
+- el scheduler elimina jobs `failed`/`completed` retenidos antes de volver a
+  encolar un lote durable todavía `pending` o `processing`, sin duplicar jobs
+  `waiting`, `delayed` o `active`;
+- una excepción de infraestructura se audita por etapa y, tras agotar tres
+  intentos, lleva items y lote a un estado terminal en vez de dejarlos en
+  `processing` indefinido;
 - nunca reintentar después de crear el asset sin detectar primero el vínculo
   durable del item.
 
@@ -462,7 +468,7 @@ Cancelar OAuth o Picker es una salida normal, no un toast de error.
 - [x] Política binaria compartida en `packages/file-ingestion` y Worker
       `file-imports` con streaming, reintentos, recuperación y limpieza.
 - [x] Endpoints Portal con ownership, cifrado, idempotencia y polling.
-- [x] Files conectado con multiselección y destino en carpeta abierta.
+- [x] Files conectado con selección simple y destino en carpeta abierta.
 - [x] Publishing conectado con selección simple, raíz y auto-selección.
 - [ ] Google Cloud Testing con cuentas autorizadas y Shared Drives.
 - [ ] OAuth publicado/verificado y smoke en producción.
@@ -505,6 +511,8 @@ Cancelar OAuth o Picker es una salida normal, no un toast de error.
 - MIME/extensión/firma inválida no crea asset ready;
 - retries 429/5xx, no retry 401/403/404/formato;
 - recuperación tras caída antes y después de finalizar asset;
+- recuperación de jobs fallidos retenidos sin duplicar ejecuciones activas;
+- fallo de infraestructura auditado y terminal después de agotar reintentos;
 - éxito parcial conserva assets correctos;
 - token e identificadores cifrados se limpian en estado terminal;
 - miniatura se encola y un fallo de derivados no elimina el original.

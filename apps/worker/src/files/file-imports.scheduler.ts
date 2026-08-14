@@ -47,20 +47,27 @@ export class FileImportsScheduler
       .from(fileImportBatches)
       .where(inArray(fileImportBatches.status, ['pending', 'processing']))
       .limit(100);
-    await Promise.allSettled(
-      batches.map(({ id }) =>
-        this.queue.add(
-          GOOGLE_DRIVE_IMPORT_JOB,
-          { batchId: id },
-          {
-            jobId: `google-drive-import-${id}`,
-            attempts: 3,
-            backoff: { type: 'exponential', delay: 5_000 },
-            removeOnComplete: true,
-            removeOnFail: 100,
-          },
-        ),
-      ),
+    await Promise.allSettled(batches.map(({ id }) => this.recoverBatch(id)));
+  }
+
+  private async recoverBatch(id: string) {
+    const jobId = `google-drive-import-${id}`;
+    const existing = await this.queue.getJob(jobId);
+    if (existing) {
+      const state = await existing.getState();
+      if (state !== 'failed' && state !== 'completed') return;
+      await existing.remove();
+    }
+    await this.queue.add(
+      GOOGLE_DRIVE_IMPORT_JOB,
+      { batchId: id },
+      {
+        jobId,
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 5_000 },
+        removeOnComplete: true,
+        removeOnFail: 100,
+      },
     );
   }
 }

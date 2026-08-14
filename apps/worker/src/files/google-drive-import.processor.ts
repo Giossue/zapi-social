@@ -88,56 +88,129 @@ export class GoogleDriveImportProcessor extends WorkerHost {
 
   async process(job: Job<FileImportJobData>) {
     if (job.name !== GOOGLE_DRIVE_IMPORT_JOB) return;
+    let stage = 'load_batch';
+    try {
+      const [batch] = await this.database.db
+        .select()
+        .from(fileImportBatches)
+        .where(eq(fileImportBatches.id, job.data.batchId))
+        .limit(1);
+      if (!batch || this.isTerminal(batch.status)) return;
+      if (
+        batch.credentialExpiresAt.valueOf() <= Date.now() ||
+        !batch.encryptedAccessToken
+      ) {
+        await this.expireBatch(batch.id);
+        return;
+      }
+
+      stage = 'decrypt_access_token';
+      const accessToken = this.encryption.decrypt(
+        batch.encryptedAccessToken,
+        `google-drive-import:${batch.id}`,
+      );
+      stage = 'mark_processing';
+      await this.database.db
+        .update(fileImportBatches)
+        .set({ status: 'processing', updatedAt: new Date() })
+        .where(eq(fileImportBatches.id, batch.id));
+
+      stage = 'load_items';
+      const items = await this.database.db
+        .select()
+        .from(fileImportItems)
+        .where(
+          and(
+            eq(fileImportItems.batchId, batch.id),
+            inArray(fileImportItems.status, ['pending', 'processing']),
+          ),
+        );
+      let retryableFailure = false;
+      stage = 'import_items';
+      for (const item of items) {
+        try {
+          await this.importItem(batch, item, accessToken);
+        } catch (error) {
+          const failure =
+            error instanceof DriveImportError
+              ? error
+              : new DriveImportError('GOOGLE_DRIVE_IMPORT_FAILED', true);
+          const canRetry = failure.retryable && job.attemptsMade < 2;
+          retryableFailure ||= canRetry;
+          await this.failItem(item, failure.code, canRetry);
+        }
+        await this.refreshBatch(batch.id);
+      }
+
+      await this.refreshBatch(batch.id);
+      if (retryableFailure) {
+        stage = 'retry_items';
+        throw new Error('Retryable Google Drive import.');
+      }
+    } catch (error) {
+      const finalAttempt = job.attemptsMade + 1 >= (job.opts.attempts ?? 1);
+      await this.recordProcessFailure(job, stage, finalAttempt).catch(
+        () => undefined,
+      );
+      if (finalAttempt) {
+        await this.failRemainingItems(job.data.batchId).catch(() => undefined);
+        return;
+      }
+      throw error;
+    }
+  }
+
+  private async recordProcessFailure(
+    job: Job<FileImportJobData>,
+    stage: string,
+    finalAttempt: boolean,
+  ) {
     const [batch] = await this.database.db
-      .select()
+      .select({
+        workspaceId: fileImportBatches.workspaceId,
+        requestedByUserId: fileImportBatches.requestedByUserId,
+      })
       .from(fileImportBatches)
       .where(eq(fileImportBatches.id, job.data.batchId))
       .limit(1);
-    if (!batch || this.isTerminal(batch.status)) return;
-    if (
-      batch.credentialExpiresAt.valueOf() <= Date.now() ||
-      !batch.encryptedAccessToken
-    ) {
-      await this.expireBatch(batch.id);
-      return;
-    }
+    await this.audit.write({
+      workspaceId: batch?.workspaceId,
+      actorUserId: batch?.requestedByUserId,
+      event: 'files.google_drive_import_failed',
+      severity: finalAttempt ? 'error' : 'warning',
+      outcome: finalAttempt ? 'failed' : 'retrying',
+      queueName: FILE_IMPORTS_QUEUE,
+      jobId: job.id ? String(job.id) : null,
+      attempt: job.attemptsMade + 1,
+      errorCode: 'GOOGLE_DRIVE_IMPORT_FAILED',
+      summary: finalAttempt
+        ? 'Google Drive import stopped after all retries.'
+        : 'Google Drive import will retry.',
+      metadata: {
+        importBatchId: job.data.batchId,
+        stage,
+        finalAttempt,
+      },
+    });
+  }
 
-    const accessToken = this.encryption.decrypt(
-      batch.encryptedAccessToken,
-      `google-drive-import:${batch.id}`,
-    );
+  private async failRemainingItems(batchId: string) {
     await this.database.db
-      .update(fileImportBatches)
-      .set({ status: 'processing', updatedAt: new Date() })
-      .where(eq(fileImportBatches.id, batch.id));
-
-    const items = await this.database.db
-      .select()
-      .from(fileImportItems)
+      .update(fileImportItems)
+      .set({
+        status: 'failed',
+        errorCode: sql`coalesce(${fileImportItems.errorCode}, 'GOOGLE_DRIVE_IMPORT_FAILED')`,
+        providerFileIdCiphertext: null,
+        resourceKeyCiphertext: null,
+        updatedAt: new Date(),
+      })
       .where(
         and(
-          eq(fileImportItems.batchId, batch.id),
-          inArray(fileImportItems.status, ['pending', 'processing']),
+          eq(fileImportItems.batchId, batchId),
+          sql`${fileImportItems.status} <> 'completed'`,
         ),
       );
-    let retryableFailure = false;
-    for (const item of items) {
-      try {
-        await this.importItem(batch, item, accessToken);
-      } catch (error) {
-        const failure =
-          error instanceof DriveImportError
-            ? error
-            : new DriveImportError('GOOGLE_DRIVE_IMPORT_FAILED', true);
-        const canRetry = failure.retryable && job.attemptsMade < 2;
-        retryableFailure ||= canRetry;
-        await this.failItem(item, failure.code, canRetry);
-      }
-      await this.refreshBatch(batch.id);
-    }
-
-    await this.refreshBatch(batch.id);
-    if (retryableFailure) throw new Error('Retryable Google Drive import.');
+    await this.refreshBatch(batchId);
   }
 
   private async importItem(
