@@ -2,34 +2,23 @@
 
 import * as React from "react"
 
-import { ScrollArea } from "@workspace/ui/components/scroll-area"
 import { cn } from "@workspace/ui/lib/utils"
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
-    // Radix renders the scrollbar as a real element instead of relying on the
-    // platform one, which most systems fade out seconds after you stop
-    // dragging. It still only shows up when the table is wider than its box.
-    <ScrollArea
+    <div
       data-slot="table-container"
-      className="w-full"
-      orientation="horizontal"
-      type="auto"
+      className="relative w-full overflow-x-auto"
     >
-      {/* A horizontal scroll area needs the content to state its own width:
-          `w-full` would measure against the viewport that is measuring the
-          table, and the thumb ends up sized off that circular answer. `w-max`
-          sizes to the columns, `min-w-full` still fills the card when they
-          fit. */}
       <table
         data-slot="table"
         className={cn(
-          "w-max min-w-full caption-bottom text-sm **:data-[slot=table-cell]:px-4 **:data-[slot=table-cell]:py-4 **:data-[slot=table-head]:h-auto **:data-[slot=table-head]:px-4 **:data-[slot=table-head]:py-4 **:data-[slot=table-head]:font-normal",
+          "w-full caption-bottom text-sm **:data-[slot=table-cell]:px-4 **:data-[slot=table-cell]:py-4 **:data-[slot=table-head]:h-auto **:data-[slot=table-head]:px-4 **:data-[slot=table-head]:py-4 **:data-[slot=table-head]:font-normal",
           className
         )}
         {...props}
       />
-    </ScrollArea>
+    </div>
   )
 }
 
