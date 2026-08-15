@@ -5,30 +5,34 @@ import * as React from "react"
 import { cn } from "@workspace/ui/lib/utils"
 
 /**
- * Tells whether the element still has content to scroll to on each side. Only
- * two booleans, so unlike a rendered scrollbar there is no position to keep in
- * sync with the real one.
+ * Measures the native scroll so a bar can mirror it. The element keeps doing
+ * the scrolling, which is why this stays smooth: the bar is a readout, not the
+ * control, so there is no drag maths that can disagree with the real position.
  */
-function useScrollEdges(ref: React.RefObject<HTMLElement | null>) {
-  const [edges, setEdges] = React.useState({ end: false, start: false })
+function useScrollbar(ref: React.RefObject<HTMLElement | null>) {
+  const [bar, setBar] = React.useState({ offset: 0, size: 0, visible: false })
 
   React.useEffect(() => {
     const element = ref.current
     if (!element) return
 
-    const update = () =>
-      setEdges({
-        end:
-          Math.ceil(element.scrollLeft + element.clientWidth) <
-          element.scrollWidth,
-        start: element.scrollLeft > 0,
+    const update = () => {
+      const { clientWidth, scrollLeft, scrollWidth } = element
+      setBar({
+        offset: scrollWidth ? (scrollLeft / scrollWidth) * 100 : 0,
+        size: scrollWidth ? (clientWidth / scrollWidth) * 100 : 0,
+        visible: scrollWidth > clientWidth,
       })
+    }
 
     update()
     element.addEventListener("scroll", update, { passive: true })
-    // Catches columns appearing, the sidebar collapsing and window resizes.
     const observer = new ResizeObserver(update)
+    // The container is always full width, so watching it only catches window
+    // and sidebar resizes. What decides whether there is anything to scroll to
+    // is the table inside, which grows as rows and columns land.
     observer.observe(element)
+    for (const child of element.children) observer.observe(child)
 
     return () => {
       element.removeEventListener("scroll", update)
@@ -36,20 +40,22 @@ function useScrollEdges(ref: React.RefObject<HTMLElement | null>) {
     }
   }, [ref])
 
-  return edges
+  return bar
 }
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   const scroller = React.useRef<HTMLDivElement>(null)
-  const edges = useScrollEdges(scroller)
+  const bar = useScrollbar(scroller)
 
   return (
-    // The overlays are siblings of the scroller, not children, so they stay
-    // pinned to the visible edges instead of scrolling away with the columns.
+    // The bar is a sibling of the scroller, not a child, so it stays pinned to
+    // the visible edge instead of scrolling away with the columns.
     <div className="relative w-full">
       <div
         data-slot="table-container"
-        className="w-full overflow-x-auto"
+        // The platform bar is hidden because it fades out and would sit next
+        // to ours; `pb-2` keeps the row it used to occupy.
+        className="no-scrollbar w-full overflow-x-auto pb-2"
         ref={scroller}
       >
         <table
@@ -61,17 +67,16 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
           {...props}
         />
       </div>
-      {edges.start ? (
+      {bar.visible ? (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-card to-transparent"
-        />
-      ) : null}
-      {edges.end ? (
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-card to-transparent"
-        />
+          className="pointer-events-none absolute inset-x-4 bottom-0 h-1.5"
+        >
+          <div
+            className="h-full rounded-full bg-border"
+            style={{ marginLeft: `${bar.offset}%`, width: `${bar.size}%` }}
+          />
+        </div>
       ) : null}
     </div>
   )
