@@ -403,7 +403,7 @@ function FolderCard({
       size="sm"
       {...itemProps}
     >
-      <CardHeader className="items-center">
+      <CardHeader className="flex flex-row items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
           <Folder
             aria-hidden="true"
@@ -411,7 +411,7 @@ function FolderCard({
           />
           <CardTitle className="truncate leading-none">{folder.name}</CardTitle>
         </div>
-        <CardAction className="self-center">
+        <CardAction className="col-auto row-auto shrink-0 self-auto">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
