@@ -129,7 +129,7 @@ export function PublishingCalendar({
   }, [posts, query, selectedChannels])
 
   return (
-    <div className="flex h-[calc(100svh-5rem)] min-h-[30rem] flex-col overflow-hidden rounded-md border bg-card text-card-foreground md:h-[calc(100svh-7rem)]">
+    <div className="flex h-full flex-col overflow-hidden rounded-md border bg-card text-card-foreground">
       <div className="flex flex-wrap items-center gap-2 border-b p-4">
         <DataTableSearch
           ariaLabel="Buscar publicaciones"

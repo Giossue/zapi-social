@@ -4,8 +4,8 @@ import { type MouseEvent, useMemo, useState } from "react"
 import {
   CalendarClock,
   FilePenLine,
-  Image,
   ListFilter,
+  Plus,
   RotateCcw,
   Trash2,
 } from "lucide-react"
@@ -28,18 +28,8 @@ import {
   DataTableHeader,
   DataTableToolbar,
 } from "@workspace/ui/components/data-table-controls"
-import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import { Card, CardContent } from "@workspace/ui/components/card"
-import { EmptyState } from "@workspace/ui/components/empty-state"
 import { MetricCard } from "@workspace/ui/components/metric-card"
-import {
-  Item,
-  ItemActions,
-  ItemContent,
-  ItemDescription,
-  ItemMedia,
-  ItemTitle,
-} from "@workspace/ui/components/item"
 import {
   Table,
   TableBody,
@@ -196,53 +186,6 @@ function PostActions({
   )
 }
 
-function PostCard({
-  mode,
-  onContinue,
-  onDelete,
-  onRetry,
-  post,
-}: {
-  mode: "drafts" | "queue"
-  onContinue?: (post: PublishingPost) => void
-  onDelete?: (post: PublishingPost) => boolean | void | Promise<boolean | void>
-  onRetry?: (post: PublishingPost) => void
-  post: PublishingPost
-}) {
-  return (
-    <Card size="sm" variant="surface">
-      <CardContent>
-        <Item size="sm" variant="outline">
-          <ItemMedia variant="icon">
-            <Image aria-hidden="true" />
-          </ItemMedia>
-          <ItemContent>
-            <ItemTitle>{post.title}</ItemTitle>
-            <ItemDescription>
-              {post.channel} · {formatDate(post)} · {post.time}
-            </ItemDescription>
-          </ItemContent>
-          <Badge variant={statusVariants[post.status]}>
-            {statusLabels[post.status]}
-          </Badge>
-          <ItemActions className="basis-full justify-between sm:basis-auto sm:justify-end">
-            <span className="text-xs text-muted-foreground">
-              {post.hasMedia ? "Con archivo" : "Solo texto"}
-            </span>
-            <PostActions
-              mode={mode}
-              onContinue={onContinue}
-              onDelete={onDelete}
-              onRetry={onRetry}
-              post={post}
-            />
-          </ItemActions>
-        </Item>
-      </CardContent>
-    </Card>
-  )
-}
-
 export function PublishingMetrics({
   items,
 }: {
@@ -265,12 +208,14 @@ export function PublishingMetrics({
 export function PublishingPostsTable({
   mode,
   onContinue,
+  onCreate,
   onDelete,
   onRetry,
   posts,
 }: {
   mode: "drafts" | "queue"
   onContinue?: (post: PublishingPost) => void
+  onCreate: () => void
   onDelete?: (post: PublishingPost) => boolean | void | Promise<boolean | void>
   onRetry?: (post: PublishingPost) => void
   posts: PublishingPost[]
@@ -318,12 +263,6 @@ export function PublishingPostsTable({
     ? (currentPage - 1) * PAGE_SIZE + 1
     : 0
   const pageRangeEnd = Math.min(currentPage * PAGE_SIZE, filteredPosts.length)
-  const tableTitle = mode === "drafts" ? "Borradores" : "Cola de publicación"
-  const tableDescription =
-    mode === "drafts"
-      ? "Continúa, filtra o elimina las publicaciones guardadas para después."
-      : "Supervisa las publicaciones programadas, en proceso y fallidas por destino."
-
   function clearFilters() {
     setQuery("")
     setProvider("all")
@@ -332,159 +271,146 @@ export function PublishingPostsTable({
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <CollectionHeader
-        description={tableDescription}
-        level="h2"
-        title={tableTitle}
-      />
-      <Card variant="subtle">
-        <DataTableHeader
-          search={{
-            ariaLabel: "Buscar publicaciones",
-            onChange: (value) => {
-              setQuery(value)
-              setPage(1)
-            },
-            placeholder: "Buscar publicaciones",
-            value: query,
-          }}
-        />
-        <CardContent className="flex flex-col gap-4 px-0">
-          <DataTableToolbar
-            actions={
-              hasFilters ? (
-                <Button
-                  onClick={clearFilters}
-                  size="sm"
-                  variant="brand-secondary"
-                >
-                  <ListFilter data-icon="inline-start" />
-                  Limpiar
-                </Button>
-              ) : undefined
-            }
+    <Card variant="subtle">
+      <DataTableHeader
+        action={
+          <Button
+            className="hidden sm:inline-flex"
+            onClick={onCreate}
+            size="sm"
           >
-            <DataTableFilter
-              ariaLabel="Filtrar por red"
-              label="Red"
-              onValueChange={(value) => {
-                setProvider(value as PublishingProvider | "all")
-                setPage(1)
-              }}
-              options={[
-                { label: "Todas las redes", value: "all" },
-                { label: "Facebook", value: "facebook" },
-                { label: "Instagram", value: "instagram" },
-                { label: "WhatsApp", value: "whatsapp" },
-              ]}
-              value={provider}
-            />
-            <DataTableFilter
-              ariaLabel="Filtrar por estado"
-              label="Estado"
-              onValueChange={(value) => {
-                setStatus(value as PublishingStatus | "all")
-                setPage(1)
-              }}
-              options={
-                mode === "drafts"
-                  ? [
-                      { label: "Todos los estados", value: "all" },
-                      { label: "Borrador", value: "draft" },
-                    ]
-                  : [
-                      { label: "Todos los estados", value: "all" },
-                      { label: "Programada", value: "scheduled" },
-                      { label: "En proceso", value: "processing" },
-                      { label: "Fallida", value: "failed" },
-                      { label: "Publicada", value: "published" },
-                    ]
-              }
-              value={status}
-            />
-          </DataTableToolbar>
+            <Plus data-icon="inline-start" />
+            Nueva publicación
+          </Button>
+        }
+        search={{
+          ariaLabel: "Buscar publicaciones",
+          onChange: (value) => {
+            setQuery(value)
+            setPage(1)
+          },
+          placeholder: "Buscar publicaciones",
+          value: query,
+        }}
+      />
+      <CardContent className="flex flex-col gap-4 px-0">
+        <DataTableToolbar
+          actions={
+            hasFilters ? (
+              <Button
+                onClick={clearFilters}
+                size="sm"
+                variant="brand-secondary"
+              >
+                <ListFilter data-icon="inline-start" />
+                Limpiar
+              </Button>
+            ) : undefined
+          }
+        >
+          <DataTableFilter
+            ariaLabel="Filtrar por red"
+            label="Red"
+            onValueChange={(value) => {
+              setProvider(value as PublishingProvider | "all")
+              setPage(1)
+            }}
+            options={[
+              { label: "Todas las redes", value: "all" },
+              { label: "Facebook", value: "facebook" },
+              { label: "Instagram", value: "instagram" },
+              { label: "WhatsApp", value: "whatsapp" },
+            ]}
+            value={provider}
+          />
+          <DataTableFilter
+            ariaLabel="Filtrar por estado"
+            label="Estado"
+            onValueChange={(value) => {
+              setStatus(value as PublishingStatus | "all")
+              setPage(1)
+            }}
+            options={
+              mode === "drafts"
+                ? [
+                    { label: "Todos los estados", value: "all" },
+                    { label: "Borrador", value: "draft" },
+                  ]
+                : [
+                    { label: "Todos los estados", value: "all" },
+                    { label: "Programada", value: "scheduled" },
+                    { label: "En proceso", value: "processing" },
+                    { label: "Fallida", value: "failed" },
+                    { label: "Publicada", value: "published" },
+                  ]
+            }
+            value={status}
+          />
+        </DataTableToolbar>
 
-          <>
-            <div className="hidden overflow-hidden md:block">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="pl-4">Publicación</TableHead>
-                    <TableHead>Cuenta</TableHead>
-                    <TableHead>Fecha</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead className="pr-4 text-right">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pagePosts.map((post) => (
-                    <TableRow key={post.id}>
-                      <TableCell className="max-w-72 pl-4">
-                        <p className="truncate font-medium">{post.title}</p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {post.hasMedia ? "Con archivo" : "Solo texto"}
-                        </p>
-                      </TableCell>
-                      <TableCell>
-                        <p className="max-w-48 truncate">{post.channel}</p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {providerLabels[post.provider]}
-                        </p>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {formatDate(post)} · {post.time}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={statusVariants[post.status]}>
-                          {statusLabels[post.status]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="pr-4 text-right">
-                        <div className="inline-flex">
-                          <PostActions
-                            mode={mode}
-                            onContinue={onContinue}
-                            onDelete={onDelete}
-                            onRetry={onRetry}
-                            post={post}
-                          />
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {pagePosts.length === 0 ? (
-                    <TableEmptyRow colSpan={5} {...emptyProps} />
-                  ) : null}
-                </TableBody>
-              </Table>
-            </div>
-            <div className="flex flex-col gap-3 px-4 md:hidden">
-              {pagePosts.length === 0 ? <EmptyState {...emptyProps} /> : null}
-              {pagePosts.map((post) => (
-                <PostCard
-                  key={post.id}
-                  mode={mode}
-                  onContinue={onContinue}
-                  onDelete={onDelete}
-                  onRetry={onRetry}
-                  post={post}
-                />
-              ))}
-            </div>
-            <TablePagination
-              canGoNext={currentPage < pageCount}
-              canGoPrevious={currentPage > 1}
-              itemLabel="publicaciones"
-              onNextPage={() => setPage((value) => value + 1)}
-              onPreviousPage={() => setPage((value) => value - 1)}
-              rangeEnd={pageRangeEnd}
-              rangeStart={pageRangeStart}
-              total={filteredPosts.length}
-            />
-          </>
-        </CardContent>
-      </Card>
-    </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="pl-4">Publicación</TableHead>
+              <TableHead>Cuenta</TableHead>
+              <TableHead>Fecha</TableHead>
+              <TableHead>Estado</TableHead>
+              <TableHead className="pr-4 text-right">Acciones</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {pagePosts.map((post) => (
+              <TableRow key={post.id}>
+                <TableCell className="max-w-72 pl-4">
+                  <p className="truncate font-medium">{post.title}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {post.hasMedia ? "Con archivo" : "Solo texto"}
+                  </p>
+                </TableCell>
+                <TableCell>
+                  <p className="max-w-48 truncate">{post.channel}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {providerLabels[post.provider]}
+                  </p>
+                </TableCell>
+                <TableCell className="whitespace-nowrap text-muted-foreground">
+                  {formatDate(post)} · {post.time}
+                </TableCell>
+                <TableCell>
+                  <Badge variant={statusVariants[post.status]}>
+                    {statusLabels[post.status]}
+                  </Badge>
+                </TableCell>
+                <TableCell className="pr-4 text-right">
+                  <div className="inline-flex">
+                    <PostActions
+                      mode={mode}
+                      onContinue={onContinue}
+                      onDelete={onDelete}
+                      onRetry={onRetry}
+                      post={post}
+                    />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+            {pagePosts.length === 0 ? (
+              <TableEmptyRow colSpan={5} {...emptyProps} />
+            ) : null}
+          </TableBody>
+        </Table>
+
+        <TablePagination
+          canGoNext={currentPage < pageCount}
+          canGoPrevious={currentPage > 1}
+          itemLabel="publicaciones"
+          onNextPage={() => setPage((value) => value + 1)}
+          onPreviousPage={() => setPage((value) => value - 1)}
+          rangeEnd={pageRangeEnd}
+          rangeStart={pageRangeStart}
+          total={filteredPosts.length}
+        />
+      </CardContent>
+    </Card>
   )
 }

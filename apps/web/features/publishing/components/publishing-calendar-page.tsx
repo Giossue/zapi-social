@@ -14,6 +14,7 @@ import {
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
+import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import {
   Dialog,
   DialogContent,
@@ -34,6 +35,7 @@ import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { cn } from "@workspace/ui/lib/utils"
 import { ApiError, filesApi, publishingApi } from "@workspace/api-client"
 import type {
   GoogleDriveImportBatch,
@@ -556,44 +558,47 @@ export function PublishingCalendarPage({
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      {section !== "calendar" ? (
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <nav aria-label="Secciones de Publishing">
-            <Tabs
-              onValueChange={(value) => {
-                const nextSection = value as PublishingSection
-                const nextLink = sectionLinks.find(
-                  (item) => item.value === nextSection
-                )
-                if (!nextLink) return
+    <div
+      className={cn(
+        "flex flex-col gap-4",
+        section === "calendar" &&
+          "h-[calc(100svh-5rem)] min-h-[40rem] md:h-[calc(100svh-7rem)]"
+      )}
+    >
+      <CollectionHeader
+        description="Planifica el calendario, sigue la cola de envíos y retoma los borradores de tus canales."
+        title="Publicación"
+      />
 
-                setSection(nextSection)
-                router.push(nextLink.href)
-              }}
-              value={section}
-            >
-              <TabsList>
-                {sectionLinks.map((item) => (
-                  <TabsTrigger key={item.value} value={item.value}>
-                    {item.label}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
-          </nav>
-          <Button
-            className="hidden sm:inline-flex"
-            onClick={() => openComposer()}
-          >
-            <CalendarDays data-icon="inline-start" />
-            Nueva publicación
-          </Button>
-        </div>
-      ) : null}
+      <nav aria-label="Secciones de Publishing">
+        <Tabs
+          onValueChange={(value) => {
+            const nextSection = value as PublishingSection
+            const nextLink = sectionLinks.find(
+              (item) => item.value === nextSection
+            )
+            if (!nextLink) return
+
+            setSection(nextSection)
+            router.push(nextLink.href)
+          }}
+          value={section}
+        >
+          <TabsList>
+            {sectionLinks.map((item) => (
+              <TabsTrigger key={item.value} value={item.value}>
+                {item.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      </nav>
 
       {section === "calendar" ? (
-        <section aria-label="Calendario de publicaciones">
+        <section
+          aria-label="Calendario de publicaciones"
+          className="min-h-0 flex-1"
+        >
           <PublishingCalendar
             initialDate={calendar.focusDate}
             onCreateAtDate={(date) => openComposer(null, date)}
@@ -635,6 +640,7 @@ export function PublishingCalendarPage({
           />
           <PublishingPostsTable
             mode="queue"
+            onCreate={() => openComposer()}
             onRetry={retryPost}
             posts={queuePosts}
           />
@@ -669,6 +675,7 @@ export function PublishingCalendarPage({
           <PublishingPostsTable
             mode="drafts"
             onContinue={openComposer}
+            onCreate={() => openComposer()}
             onDelete={deletePost}
             posts={drafts}
           />
