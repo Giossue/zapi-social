@@ -7,9 +7,7 @@ import type {
   PortalGoogleDriveConfiguration,
 } from "@workspace/contracts"
 import { toast } from "@workspace/ui/components/toast"
-import { CardGrid } from "@workspace/ui/components/card-grid"
 import {
-  Clock,
   Download,
   Eye,
   FilePenLine,
@@ -59,19 +57,12 @@ import {
 } from "@workspace/ui/components/dropdown-menu"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
+import { DataTableFilter } from "@workspace/ui/components/data-table-controls"
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "@workspace/ui/components/input-group"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
 import {
   Table,
   TableBody,
@@ -108,6 +99,7 @@ import {
 import type {
   FileAsset,
   FileAssetKind,
+  FileFolder,
   FileLibraryData,
 } from "@/features/files/types/files"
 import { openGoogleDrivePicker } from "@/features/files/components/google-drive-picker"
@@ -311,26 +303,116 @@ function AssetCard({
   )
 }
 
+function FolderCard({
+  folder,
+  onOpen,
+  onMove,
+  onRename,
+  onTrash,
+}: {
+  folder: FileFolder
+  onOpen: (id: string) => void
+  onMove: (folder: FileFolder) => void
+  onRename: (folder: FileFolder) => void
+  onTrash: (folder: FileFolder) => void
+}) {
+  return (
+    <Card
+      className="cursor-pointer transition-colors hover:bg-accent/50"
+      onClick={(event) => {
+        if (event.currentTarget.contains(event.target as Node))
+          onOpen(folder.id)
+      }}
+      onKeyDown={(event) => {
+        if (event.target !== event.currentTarget) return
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault()
+          onOpen(folder.id)
+        }
+      }}
+      role="link"
+      size="sm"
+      tabIndex={0}
+    >
+      <CardHeader>
+        <div className="flex min-w-0 items-center gap-2">
+          <Folder
+            aria-hidden="true"
+            className="size-4.5 shrink-0 text-muted-foreground"
+          />
+          <CardTitle className="truncate leading-none">{folder.name}</CardTitle>
+        </div>
+        <CardAction>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                aria-label={`Acciones de ${folder.name}`}
+                onClick={(event) => event.stopPropagation()}
+                size="icon-sm"
+                variant="brand-secondary"
+              >
+                <MoreVertical />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuGroup>
+                <DropdownMenuItem onSelect={() => onRename(folder)}>
+                  <FilePenLine />
+                  Renombrar
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => onMove(folder)}>
+                  <FolderInput />
+                  Mover
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuItem
+                  onSelect={() => onTrash(folder)}
+                  variant="destructive"
+                >
+                  <Trash2 />
+                  Enviar a papelera
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </CardAction>
+      </CardHeader>
+    </Card>
+  )
+}
+
 function AssetsTable({
   assets,
+  folders,
   selectedAssetIds,
   onSelect,
+  onOpenFolder,
   onPreview,
   onInfo,
   onRename,
+  onRenameFolder,
   emptyProps,
   onMove,
+  onMoveFolder,
   onTrash,
+  onTrashFolder,
 }: {
   assets: readonly FileAsset[]
   emptyProps: React.ComponentProps<typeof EmptyState>
+  folders: readonly FileFolder[]
   selectedAssetIds: readonly string[]
   onSelect: (id: string) => void
+  onOpenFolder: (id: string) => void
   onPreview: (asset: FileAsset) => void
   onInfo: (asset: FileAsset) => void
   onRename: (asset: FileAsset) => void
+  onRenameFolder: (folder: FileFolder) => void
   onMove: (asset: FileAsset) => void
+  onMoveFolder: (folder: FileFolder) => void
   onTrash: (asset: FileAsset) => void
+  onTrashFolder: (folder: FileFolder) => void
 }) {
   return (
     <Table>
@@ -339,13 +421,76 @@ function AssetsTable({
           <TableHead className="w-10">
             <span className="sr-only">Seleccionar</span>
           </TableHead>
-          <TableHead>Archivo</TableHead>
+          <TableHead>Nombre</TableHead>
           <TableHead className="hidden md:table-cell">Tipo</TableHead>
           <TableHead className="hidden lg:table-cell">Actualizado</TableHead>
           <TableHead className="text-right">Acción</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
+        {folders.map((folder) => (
+          <TableRow key={folder.id}>
+            <TableCell />
+            <TableCell>
+              <div className="flex min-w-0 items-center gap-3">
+                <Folder
+                  aria-hidden="true"
+                  className="size-5 shrink-0 text-muted-foreground"
+                />
+                <div className="min-w-0">
+                  <Button
+                    className="h-auto max-w-72 justify-start px-0 font-medium"
+                    onClick={() => onOpenFolder(folder.id)}
+                    size="sm"
+                    variant="link"
+                  >
+                    <span className="truncate">{folder.name}</span>
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    {folder.fileCount} archivos · {folder.size}
+                  </p>
+                </div>
+              </div>
+            </TableCell>
+            <TableCell className="hidden text-muted-foreground md:table-cell">
+              Carpeta
+            </TableCell>
+            <TableCell className="hidden text-muted-foreground lg:table-cell">
+              {folder.updatedAt}
+            </TableCell>
+            <TableCell className="text-right">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    aria-label={`Acciones de ${folder.name}`}
+                    size="icon-sm"
+                    variant="brand-secondary"
+                  >
+                    <MoreVertical />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onSelect={() => onRenameFolder(folder)}>
+                    <FilePenLine />
+                    Renombrar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => onMoveFolder(folder)}>
+                    <FolderInput />
+                    Mover
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onSelect={() => onTrashFolder(folder)}
+                    variant="destructive"
+                  >
+                    <Trash2 />
+                    Enviar a papelera
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </TableCell>
+          </TableRow>
+        ))}
         {assets.map((asset) => {
           const { label } = assetKindMeta[asset.kind]
           const selected = selectedAssetIds.includes(asset.id)
@@ -428,7 +573,7 @@ function AssetsTable({
             </TableRow>
           )
         })}
-        {assets.length === 0 ? (
+        {assets.length === 0 && folders.length === 0 ? (
           <TableEmptyRow colSpan={5} {...emptyProps} />
         ) : null}
       </TableBody>
@@ -1015,115 +1160,25 @@ export function FilesLibraryPage() {
         </Breadcrumb>
       ) : null}
 
-      {visibleFolders.length > 0 ? (
-        <section
-          className="flex flex-col gap-2"
-          aria-labelledby="folders-heading"
-        >
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-medium" id="folders-heading">
-              Carpetas
-            </h2>
-            <span className="text-sm text-muted-foreground">
-              {visibleFolders.length} carpetas
-            </span>
-          </div>
-          <CardGrid>
-            {visibleFolders.map((folder) => (
-              <Card
-                className="cursor-pointer transition-colors hover:bg-accent/50"
-                key={folder.id}
-                onClick={(event) => {
-                  if (event.currentTarget.contains(event.target as Node))
-                    openFolder(folder.id)
-                }}
-                onKeyDown={(event) => {
-                  if (event.target !== event.currentTarget) return
-                  if (event.key === "Enter" || event.key === " ") {
-                    event.preventDefault()
-                    openFolder(folder.id)
-                  }
-                }}
-                role="link"
-                tabIndex={0}
-                size="sm"
-              >
-                <CardHeader>
-                  <div className="flex min-w-0 items-center gap-2">
-                    <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                      <Folder aria-hidden="true" className="size-4.5" />
-                    </div>
-                    <div className="flex min-w-0 flex-col gap-1">
-                      <CardTitle className="truncate leading-none">
-                        {folder.name}
-                      </CardTitle>
-                      <CardDescription className="text-xs">
-                        {folder.fileCount} archivos
-                      </CardDescription>
-                    </div>
-                  </div>
-                  <CardAction>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          aria-label={`Acciones de ${folder.name}`}
-                          onClick={(event) => event.stopPropagation()}
-                          size="icon-sm"
-                          variant="brand-secondary"
-                        >
-                          <MoreVertical />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuGroup>
-                          <DropdownMenuItem
-                            onSelect={() => setRenameItem(folder)}
-                          >
-                            <FilePenLine />
-                            Renombrar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onSelect={() =>
-                              setMoveItem({ ...folder, isFolder: true })
-                            }
-                          >
-                            <FolderInput />
-                            Mover
-                          </DropdownMenuItem>
-                        </DropdownMenuGroup>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuGroup>
-                          <DropdownMenuItem
-                            onSelect={() =>
-                              setTrashItem({ ...folder, isFolder: true })
-                            }
-                            variant="destructive"
-                          >
-                            <Trash2 />
-                            Enviar a papelera
-                          </DropdownMenuItem>
-                        </DropdownMenuGroup>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </CardAction>
-                </CardHeader>
-                <CardContent className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
-                  <div className="flex items-center gap-1.5">
-                    <Clock aria-hidden="true" className="size-3.5" />
-                    <span>Actualizada {folder.updatedAt}</span>
-                  </div>
-                  <span>{folder.size}</span>
-                </CardContent>
-              </Card>
-            ))}
-          </CardGrid>
-        </section>
-      ) : null}
-
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="font-medium">Todos los archivos</p>
+            <DataTableFilter
+              ariaLabel="Filtrar archivos por tipo"
+              label="Tipo"
+              onValueChange={(value) => {
+                setPage(1)
+                setAssetFilter(value as AssetFilter)
+              }}
+              options={[
+                { label: "Todos", value: "all" },
+                { label: "Imágenes", value: "image" },
+                { label: "Videos", value: "video" },
+                { label: "Documentos", value: "document" },
+                { label: "Creados con AI", value: "ai" },
+              ]}
+              value={assetFilter}
+            />
             {selectedAssetIds.length > 0 ? (
               <>
                 <Badge variant="info">
@@ -1151,29 +1206,6 @@ export function FilesLibraryPage() {
             ) : null}
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Select
-              onValueChange={(value) => {
-                setPage(1)
-                setAssetFilter(value as AssetFilter)
-              }}
-              value={assetFilter}
-            >
-              <SelectTrigger
-                aria-label="Filtrar archivos"
-                className="w-max max-w-full"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="all">Todos los tipos</SelectItem>
-                  <SelectItem value="image">Imágenes</SelectItem>
-                  <SelectItem value="video">Videos</SelectItem>
-                  <SelectItem value="document">Documentos</SelectItem>
-                  <SelectItem value="ai">Creados con AI</SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
             <ToggleGroup
               aria-label="Vista de archivos"
               onValueChange={(value) => {
@@ -1197,7 +1229,23 @@ export function FilesLibraryPage() {
 
         {view === "grid" ? (
           <>
-            {assets.length === 0 ? <EmptyState {...assetsEmptyProps} /> : null}
+            {assets.length === 0 && visibleFolders.length === 0 ? (
+              <EmptyState {...assetsEmptyProps} />
+            ) : null}
+            {visibleFolders.length > 0 ? (
+              <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-5">
+                {visibleFolders.map((folder) => (
+                  <FolderCard
+                    folder={folder}
+                    key={folder.id}
+                    onMove={(item) => setMoveItem({ ...item, isFolder: true })}
+                    onOpen={openFolder}
+                    onRename={setRenameItem}
+                    onTrash={(item) => setTrashItem({ ...item, isFolder: true })}
+                  />
+                ))}
+              </div>
+            ) : null}
             <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-5">
               {assets.map((asset) => (
                 <AssetCard
@@ -1222,12 +1270,21 @@ export function FilesLibraryPage() {
               <AssetsTable
                 assets={assets}
                 emptyProps={assetsEmptyProps}
-                onSelect={toggleAsset}
-                onPreview={setPreviewAsset}
+                folders={visibleFolders}
                 onInfo={setInfoAsset}
-                onRename={setRenameItem}
                 onMove={setMoveItem}
+                onMoveFolder={(folder) =>
+                  setMoveItem({ ...folder, isFolder: true })
+                }
+                onOpenFolder={openFolder}
+                onPreview={setPreviewAsset}
+                onRename={setRenameItem}
+                onRenameFolder={setRenameItem}
+                onSelect={toggleAsset}
                 onTrash={setTrashItem}
+                onTrashFolder={(folder) =>
+                  setTrashItem({ ...folder, isFolder: true })
+                }
                 selectedAssetIds={selectedAssetIds}
               />
               {filesPagination}

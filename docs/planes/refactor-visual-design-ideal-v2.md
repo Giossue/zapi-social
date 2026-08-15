@@ -223,6 +223,15 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - Las tres rutas se prefetchean al montar la vista, de modo que la navegación entre pestañas no espera al RSC ni muestra su `loading.tsx`.
 - No cambian contratos, permisos ni mutaciones: `publishingApi` se sigue consultando en cada montaje.
 
+## Files — carpetas y archivos en una sola superficie — 15 de agosto de 2026
+
+- Producto pidió el modelo de Google Drive: una sola vista donde las carpetas encabezan el mismo listado que los archivos, en vez de una sección `Carpetas` con cards grandes y otra `Todos los archivos`. El cambio se hizo primero en `diseño ideal/src/app/(main)/dashboard/file-manager/` y luego se copió a V2.
+- La fuente retira `folders-section.tsx` y su página deja de mostrar los encabezados `Folders` y `All files`: `FileListView` y `FileGridView` reciben ahora `folders` además de `files`.
+- En lista, cada carpeta es una fila más de la tabla —icono, nombre que abre la carpeta, número de archivos y tamaño, tipo `Carpeta`, fecha y su menú de acciones— sin casilla de selección, porque la selección masiva sigue operando solo sobre archivos.
+- En cuadrícula, las carpetas ocupan cards compactas de una sola línea sobre las cards de archivo. Pierden fecha y tamaño: esa información vive en la vista de lista, como en la referencia.
+- El estado vacío pasa a mirar ambos conjuntos: solo aparece cuando la ubicación no tiene ni carpetas ni archivos. La paginación sigue contando archivos, que son lo único paginado por el contrato actual.
+- El filtro por tipo pasa a `DataTableFilter` y se alinea a la izquierda con las acciones de selección; el conmutador de vista queda solo a la derecha.
+
 ## Files — doble envío al crear carpeta — 15 de agosto de 2026
 
 - Crear carpeta no bloqueaba su formulario mientras la petición viajaba, así que un segundo envío salía antes de que el primero cerrara el diálogo. El servidor aceptaba el primero y rechazaba el segundo con `VALIDATION_FAILED` por nombre repetido; como el éxito espera a recargar la biblioteca y el error no, el aviso rojo aparecía antes que el verde.
