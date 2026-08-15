@@ -8,18 +8,40 @@ import listPlugin from "@fullcalendar/react/list"
 import esLocale from "@fullcalendar/react/locales/es"
 import multiMonthPlugin from "@fullcalendar/react/multimonth"
 import timeGridPlugin from "@fullcalendar/react/timegrid"
-import {
-  differenceInCalendarDays,
-  endOfMonth,
-  format,
-  startOfMonth,
-} from "date-fns"
+import { format } from "date-fns"
 import { es } from "date-fns/locale"
-import { ChevronLeft, ChevronRight, Plus, XIcon } from "lucide-react"
+import {
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  EllipsisVertical,
+  Funnel,
+  Plus,
+  XIcon,
+} from "lucide-react"
+import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { ButtonGroup } from "@workspace/ui/components/button-group"
-import { DataTableFilter } from "@workspace/ui/components/data-table-controls"
+import {
+  ButtonGroup,
+  ButtonGroupText,
+} from "@workspace/ui/components/button-group"
+import { Checkbox } from "@workspace/ui/components/checkbox"
+import { DataTableSearch } from "@workspace/ui/components/data-table-controls"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
+import { Label } from "@workspace/ui/components/label"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@workspace/ui/components/popover"
 import type {
   PublishingPost,
   PublishingProvider,
@@ -28,19 +50,18 @@ import type {
 
 import { EventCalendarViews } from "./event-calendar-views"
 
-const viewOptions = [
-  { label: "Mes", value: "dayGridMonth" },
-  { label: "Semana", value: "timeGridWeek" },
-  { label: "Día", value: "timeGridDay" },
-]
-
 const initialCalendarView = "dayGridMonth"
 
-const channelOptions = [
-  { label: "Todos", value: "all" },
-  { label: "Facebook", value: "facebook" },
-  { label: "Instagram", value: "instagram" },
-  { label: "WhatsApp", value: "whatsapp" },
+const views = [
+  { key: initialCalendarView, label: "Mes", currentLabel: "Este mes" },
+  { key: "timeGridWeek", label: "Semana", currentLabel: "Esta semana" },
+  { key: "timeGridDay", label: "Día", currentLabel: "Hoy" },
+]
+
+const channels: Array<{ key: PublishingProvider; label: string }> = [
+  { key: "facebook", label: "Facebook" },
+  { key: "instagram", label: "Instagram" },
+  { key: "whatsapp", label: "WhatsApp" },
 ]
 
 const plugins = [
@@ -75,110 +96,160 @@ export function PublishingCalendar({
   posts,
 }: PublishingCalendarProps) {
   const controller = useCalendarController()
-  const [selectedCalendar, setSelectedCalendar] = React.useState<
-    PublishingProvider | "all"
-  >("all")
-  const [dateInfo, setDateInfo] = React.useState(() => {
-    const date = new Date(`${initialDate}T12:00:00`)
-
-    return {
-      title: format(date, "MMMM 'de' yyyy", { locale: es }),
-      days: differenceInCalendarDays(endOfMonth(date), startOfMonth(date)) + 1,
-    }
-  })
-
-  const filteredPosts = React.useMemo(
-    () =>
-      selectedCalendar === "all"
-        ? posts
-        : posts.filter((post) => post.provider === selectedCalendar),
-    [posts, selectedCalendar]
+  const [query, setQuery] = React.useState("")
+  const [selectedChannels, setSelectedChannels] = React.useState<
+    PublishingProvider[]
+  >([])
+  const [title, setTitle] = React.useState(() =>
+    format(new Date(`${initialDate}T12:00:00`), "MMMM 'de' yyyy", { locale: es })
   )
-  const events = React.useMemo(
-    () =>
-      filteredPosts.map((post) => ({
+
+  const viewKey = controller.view?.type ?? initialCalendarView
+  const currentLabel =
+    views.find((view) => view.key === viewKey)?.currentLabel ?? "Hoy"
+
+  const events = React.useMemo(() => {
+    const term = query.trim().toLowerCase()
+
+    return posts
+      .filter((post) => {
+        const matchesQuery =
+          !term || post.title.toLowerCase().includes(term)
+        const matchesChannel =
+          selectedChannels.length === 0 ||
+          selectedChannels.includes(post.provider)
+
+        return matchesQuery && matchesChannel
+      })
+      .map((post) => ({
         id: post.id,
         start: toEventStart(post),
         title: post.title,
-      })),
-    [filteredPosts]
-  )
-  const eventCount = filteredPosts.filter((post) => {
-    const start = new Date(toEventStart(post))
-    const startOfVisibleRange = controller.view?.currentStart
-    const endOfVisibleRange = controller.view?.currentEnd
-
-    return (
-      startOfVisibleRange &&
-      endOfVisibleRange &&
-      start >= startOfVisibleRange &&
-      start < endOfVisibleRange
-    )
-  }).length
+      }))
+  }, [posts, query, selectedChannels])
 
   return (
     <div className="flex h-[calc(100svh-5rem)] min-h-[30rem] flex-col overflow-hidden rounded-md border bg-card text-card-foreground md:h-[calc(100svh-7rem)]">
-      <div className="flex flex-col gap-4 border-b p-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex min-w-0 shrink-0 flex-col gap-1">
-          <div className="text-lg leading-none font-medium first-letter:uppercase">
-            {dateInfo.title}
-          </div>
-          <p className="text-sm text-muted-foreground">
-            {dateInfo.days} días · {eventCount} publicaciones
-          </p>
-        </div>
+      <div className="flex flex-wrap items-center gap-2 border-b p-4">
+        <DataTableSearch
+          ariaLabel="Buscar publicaciones"
+          onChange={setQuery}
+          placeholder="Buscar publicaciones..."
+          value={query}
+        />
 
-        <div className="flex flex-wrap items-center gap-2">
-          <DataTableFilter
-            ariaLabel="Filtrar por canal"
-            label="Canal"
-            onValueChange={(value) =>
-              setSelectedCalendar(value as PublishingProvider | "all")
-            }
-            options={channelOptions}
-            value={selectedCalendar}
-          />
-          <DataTableFilter
-            ariaLabel="Cambiar vista del calendario"
-            label="Vista"
-            onValueChange={(value) => controller.changeView(value)}
-            options={viewOptions}
-            value={controller.view?.type ?? initialCalendarView}
-          />
-          <ButtonGroup>
-            <Button
-              aria-label="Periodo anterior"
-              onClick={() => controller.prev()}
-              size="icon-sm"
-              variant="outline"
-            >
-              <ChevronLeft />
-            </Button>
-            <Button
-              onClick={() => controller.today()}
-              size="sm"
-              variant="outline"
-            >
-              Hoy
-            </Button>
-            <Button
-              aria-label="Periodo siguiente"
-              onClick={() => controller.next()}
-              size="icon-sm"
-              variant="outline"
-            >
-              <ChevronRight />
-            </Button>
-          </ButtonGroup>
+        <Button onClick={() => controller.today()} size="sm" variant="outline">
+          {currentLabel}
+        </Button>
+
+        <ButtonGroup>
           <Button
-            className="hidden sm:inline-flex"
-            onClick={() => onCreateAtDate(initialDate)}
-            size="sm"
+            aria-label="Periodo anterior"
+            onClick={() => controller.prev()}
+            size="icon-sm"
+            variant="outline"
           >
-            <Plus />
-            Nueva publicación
+            <ChevronLeft />
           </Button>
-        </div>
+          <ButtonGroupText className="h-7 whitespace-nowrap first-letter:uppercase">
+            <CalendarDays aria-hidden="true" />
+            {title}
+          </ButtonGroupText>
+          <Button
+            aria-label="Periodo siguiente"
+            onClick={() => controller.next()}
+            size="icon-sm"
+            variant="outline"
+          >
+            <ChevronRight />
+          </Button>
+        </ButtonGroup>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              aria-label="Filtrar por canal"
+              className="relative"
+              size="icon-sm"
+              variant="outline"
+            >
+              <Funnel />
+              {selectedChannels.length > 0 ? (
+                <Badge className="absolute -end-1.5 -top-1.5 size-4 justify-center rounded-full p-0 text-[0.625rem]">
+                  {selectedChannels.length}
+                </Badge>
+              ) : null}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-56 p-3">
+            <div className="flex flex-col gap-3">
+              <div className="text-sm font-medium">Canales</div>
+              {channels.map((channel) => (
+                <div className="flex items-center gap-2" key={channel.key}>
+                  <Checkbox
+                    checked={selectedChannels.includes(channel.key)}
+                    id={`channel-${channel.key}`}
+                    onCheckedChange={(checked) =>
+                      setSelectedChannels((current) =>
+                        checked === true
+                          ? [...current, channel.key]
+                          : current.filter((item) => item !== channel.key)
+                      )
+                    }
+                  />
+                  <Label
+                    className="font-normal"
+                    htmlFor={`channel-${channel.key}`}
+                  >
+                    {channel.label}
+                  </Label>
+                </div>
+              ))}
+              <Button
+                disabled={selectedChannels.length === 0}
+                onClick={() => setSelectedChannels([])}
+                size="sm"
+                variant="outline"
+              >
+                Limpiar filtros
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              aria-label="Opciones del calendario"
+              size="icon-sm"
+              variant="outline"
+            >
+              <EllipsisVertical />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-48">
+            <DropdownMenuLabel>Vista del calendario</DropdownMenuLabel>
+            <DropdownMenuRadioGroup
+              onValueChange={(value) => controller.changeView(value)}
+              value={viewKey}
+            >
+              {views.map((view) => (
+                <DropdownMenuRadioItem key={view.key} value={view.key}>
+                  {view.label}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <Button
+          className="ms-auto hidden sm:inline-flex"
+          onClick={() => onCreateAtDate(initialDate)}
+          size="sm"
+        >
+          <Plus />
+          Nueva publicación
+        </Button>
       </div>
 
       <div className="min-h-0 flex-1">
@@ -186,13 +257,7 @@ export function PublishingCalendar({
           controller={controller}
           dateClick={(info) => onCreateAtDate(info.dateStr)}
           datesSet={(info) => {
-            setDateInfo({
-              title: info.view.title,
-              days: differenceInCalendarDays(
-                info.view.currentEnd,
-                info.view.currentStart
-              ),
-            })
+            setTitle(info.view.title)
           }}
           dayMaxEvents
           eventClick={(info) => {
