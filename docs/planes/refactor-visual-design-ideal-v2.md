@@ -223,6 +223,13 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - Las tres rutas se prefetchean al montar la vista, de modo que la navegación entre pestañas no espera al RSC ni muestra su `loading.tsx`.
 - No cambian contratos, permisos ni mutaciones: `publishingApi` se sigue consultando en cada montaje.
 
+## Files — doble envío al crear carpeta — 15 de agosto de 2026
+
+- Crear carpeta no bloqueaba su formulario mientras la petición viajaba, así que un segundo envío salía antes de que el primero cerrara el diálogo. El servidor aceptaba el primero y rechazaba el segundo con `VALIDATION_FAILED` por nombre repetido; como el éxito espera a recargar la biblioteca y el error no, el aviso rojo aparecía antes que el verde.
+- `createFolder` ignora reentradas mientras hay una petición en curso y `FileFolderDialog` recibe `pending`: la acción muestra `Spinner` y queda deshabilitada, cancelar se bloquea y el diálogo no se cierra a mitad de guardado.
+- El error deja de ser único: un `VALIDATION_FAILED` explica que ya existe una carpeta con ese nombre en la ubicación actual; el resto conserva el mensaje genérico. No cambian el contrato ni la validación de la API.
+- Renombrar, mover y eliminar comparten el patrón sin estado pendiente; quedan fuera de este cambio por no haberse reportado.
+
 ## Files en móvil — acción única — 15 de agosto de 2026
 
 - `Nueva carpeta` e importación de `Google Drive` quedan ocultas bajo `sm`: en móvil la barra superior conserva solo la búsqueda y las tres formas de añadir viven en el botón flotante.

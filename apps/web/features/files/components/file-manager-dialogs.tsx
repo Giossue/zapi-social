@@ -34,6 +34,7 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
+import { Spinner } from "@workspace/ui/components/spinner"
 import {
   InputGroup,
   InputGroupAddon,
@@ -127,15 +128,22 @@ export function FileFolderDialog({
   onNameChange,
   onOpenChange,
   open,
+  pending = false,
 }: {
   name: string
   onConfirm: () => void
   onNameChange: (name: string) => void
   onOpenChange: (open: boolean) => void
   open: boolean
+  pending?: boolean
 }) {
   return (
-    <Dialog onOpenChange={onOpenChange} open={open}>
+    <Dialog
+      onOpenChange={(next) => {
+        if (!pending) onOpenChange(next)
+      }}
+      open={open}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Nueva carpeta</DialogTitle>
@@ -148,7 +156,7 @@ export function FileFolderDialog({
           noValidate
           onSubmit={(event) => {
             event.preventDefault()
-            if (name.trim()) onConfirm()
+            if (name.trim() && !pending) onConfirm()
           }}
         >
           <Field>
@@ -170,14 +178,20 @@ export function FileFolderDialog({
           </Field>
           <DialogFooter>
             <Button
+              disabled={pending}
               onClick={() => onOpenChange(false)}
               type="button"
               variant="brand-secondary"
             >
               Cancelar
             </Button>
-            <Button disabled={!name.trim()} type="submit">
-              <FolderPlus data-icon="inline-start" /> Crear carpeta
+            <Button disabled={!name.trim() || pending} type="submit">
+              {pending ? (
+                <Spinner data-icon="inline-start" />
+              ) : (
+                <FolderPlus data-icon="inline-start" />
+              )}
+              {pending ? "Creando..." : "Crear carpeta"}
             </Button>
           </DialogFooter>
         </form>

@@ -458,6 +458,7 @@ export function FilesLibraryPage() {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
   const [folderDialogOpen, setFolderDialogOpen] = useState(false)
   const [folderName, setFolderName] = useState("")
+  const [creatingFolder, setCreatingFolder] = useState(false)
   const [driveProvider, setDriveProvider] =
     useState<PortalGoogleDriveConfiguration | null>(null)
   const [driveBatch, setDriveBatch] = useState<GoogleDriveImportBatch | null>(
@@ -655,7 +656,11 @@ export function FilesLibraryPage() {
 
   async function createFolder() {
     const name = folderName.trim()
-    if (!name) return
+    // Sin este cerrojo, un segundo envío mientras el primero sigue en vuelo
+    // termina en conflicto de nombre y contradice al toast de éxito.
+    if (!name || creatingFolder) return
+
+    setCreatingFolder(true)
     try {
       await filesApi.createFolder({
         name,
@@ -665,8 +670,14 @@ export function FilesLibraryPage() {
       setFolderDialogOpen(false)
       await loadLibrary()
       toast.success("Carpeta creada")
-    } catch {
-      toast.error("No se pudo crear la carpeta")
+    } catch (error) {
+      toast.error(
+        error instanceof ApiError && error.code === "VALIDATION_FAILED"
+          ? "Ya existe una carpeta con ese nombre en esta ubicación."
+          : "No se pudo crear la carpeta"
+      )
+    } finally {
+      setCreatingFolder(false)
     }
   }
 
@@ -1262,6 +1273,7 @@ export function FilesLibraryPage() {
         onNameChange={setFolderName}
         onOpenChange={setFolderDialogOpen}
         open={folderDialogOpen}
+        pending={creatingFolder}
       />
       <FilePreviewDialog
         item={previewAsset}
