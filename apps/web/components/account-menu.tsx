@@ -16,6 +16,7 @@ import { CircleUser, LogOut } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
+import { ThemeMenuItem } from "@/components/dashboard-shell/theme-switcher"
 import { announceSessionLogout } from "@/features/identity/components/session-synchronizer"
 
 export type AccountProfile = {
@@ -66,7 +67,9 @@ export function AccountMenu({ profile }: AccountMenuProps) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Avatar className="size-8 rounded-lg">
-          <AvatarFallback>{initials(profile.displayName) || "Z"}</AvatarFallback>
+          <AvatarFallback>
+            {initials(profile.displayName) || "Z"}
+          </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -78,10 +81,14 @@ export function AccountMenu({ profile }: AccountMenuProps) {
         <DropdownMenuLabel className="p-0 font-normal">
           <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
             <Avatar className="size-9 rounded-lg">
-              <AvatarFallback>{initials(profile.displayName) || "Z"}</AvatarFallback>
+              <AvatarFallback>
+                {initials(profile.displayName) || "Z"}
+              </AvatarFallback>
             </Avatar>
             <div className="grid min-w-0 flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-semibold">{profile.displayName}</span>
+              <span className="truncate font-semibold">
+                {profile.displayName}
+              </span>
               <span className="truncate text-xs">{profile.email}</span>
             </div>
           </div>
@@ -94,6 +101,7 @@ export function AccountMenu({ profile }: AccountMenuProps) {
               Mi perfil
             </Link>
           </DropdownMenuItem>
+          <ThemeMenuItem />
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onSelect={() => void logout()}>

@@ -21,7 +21,6 @@ import type {
   DashboardNavigationLink,
 } from "./navigation-types"
 import { DashboardSearchDialog } from "./search-dialog"
-import { ThemeSwitcher } from "./theme-switcher"
 import { WorkspaceSwitcher } from "./workspace-switcher"
 
 type DashboardShellProps = {
@@ -51,8 +50,7 @@ function getRouteLabel(
       )
     )
     .filter(
-      (item) =>
-        pathname === item.href || pathname.startsWith(`${item.href}/`)
+      (item) => pathname === item.href || pathname.startsWith(`${item.href}/`)
     )
     .sort((first, second) => second.href.length - first.href.length)[0]?.label
 }
@@ -125,7 +123,6 @@ export function DashboardShell({
               {workspaceContext ? (
                 <WorkspaceSwitcher {...workspaceContext} />
               ) : null}
-              <ThemeSwitcher />
               <AccountMenu profile={profile} />
             </div>
           </div>

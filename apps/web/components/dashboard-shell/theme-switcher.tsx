@@ -1,42 +1,52 @@
 "use client"
 
-import * as React from "react"
 import { Monitor, Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 
-import { Button } from "@workspace/ui/components/button"
+import {
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+} from "@workspace/ui/components/dropdown-menu"
 
-const THEME_CYCLE = ["light", "dark", "system"] as const
+const THEMES = [
+  { icon: Sun, label: "Claro", value: "light" },
+  { icon: Moon, label: "Oscuro", value: "dark" },
+  { icon: Monitor, label: "Sistema", value: "system" },
+] as const
 
-type ThemeMode = (typeof THEME_CYCLE)[number]
+type ThemeMode = (typeof THEMES)[number]["value"]
 
-const themeIcons = {
-  dark: Sun,
-  light: Moon,
-  system: Monitor,
-} satisfies Record<ThemeMode, typeof Monitor>
-
-export function ThemeSwitcher() {
+/**
+ * Lives inside the account menu rather than the header. The menu content only
+ * mounts once opened, which is always after hydration, so `useTheme` has a
+ * real value by the time this renders and needs no mounted guard.
+ */
+export function ThemeMenuItem() {
   const { setTheme, theme } = useTheme()
-  const [mounted, setMounted] = React.useState(false)
-
-  React.useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  const currentTheme: ThemeMode = mounted && THEME_CYCLE.includes(theme as ThemeMode) ? (theme as ThemeMode) : "system"
-  const Icon = themeIcons[currentTheme]
-
-  function cycleTheme() {
-    const currentIndex = THEME_CYCLE.indexOf(currentTheme)
-    const nextTheme = THEME_CYCLE[(currentIndex + 1) % THEME_CYCLE.length] ?? "light"
-
-    setTheme(nextTheme)
-  }
+  const current = (THEMES.find((item) => item.value === theme)?.value ??
+    "system") satisfies ThemeMode
+  const CurrentIcon =
+    THEMES.find((item) => item.value === current)?.icon ?? Monitor
 
   return (
-    <Button size="icon" onClick={cycleTheme} aria-label={`Tema actual: ${currentTheme}. Haz clic para cambiarlo`}>
-      <Icon />
-    </Button>
+    <DropdownMenuSub>
+      <DropdownMenuSubTrigger>
+        <CurrentIcon aria-hidden="true" />
+        Tema
+      </DropdownMenuSubTrigger>
+      <DropdownMenuSubContent>
+        <DropdownMenuRadioGroup onValueChange={setTheme} value={current}>
+          {THEMES.map(({ icon: Icon, label, value }) => (
+            <DropdownMenuRadioItem key={value} value={value}>
+              <Icon aria-hidden="true" />
+              {label}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuSubContent>
+    </DropdownMenuSub>
   )
 }
