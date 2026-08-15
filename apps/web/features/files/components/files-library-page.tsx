@@ -712,6 +712,7 @@ export function FilesLibraryPage() {
       const next: FileLibraryData = {
         canView: true,
         canUpload: data.canManage,
+        folderPath: data.folderPath,
         folders: data.folders.map(toFolder),
         assets: data.files.map(toAsset),
         page: data.page,
@@ -723,6 +724,7 @@ export function FilesLibraryPage() {
       setLibrary({
         canView: false,
         canUpload: false,
+        folderPath: [],
         folders: [],
         assets: [],
         page: 1,
@@ -927,23 +929,9 @@ export function FilesLibraryPage() {
           ),
     [assetFilter, folderId, library?.assets, query]
   )
-  const folderById = useMemo(
-    () =>
-      new Map((library?.folders ?? []).map((folder) => [folder.id, folder])),
-    [library?.folders]
-  )
-  const currentFolderPath = useMemo(() => {
-    if (folderId === "all") return []
-    const path = [] as NonNullable<typeof library>["folders"][number][]
-    let current = folderById.get(folderId)
-    while (current) {
-      path.unshift(current)
-      current = current.parentFolderId
-        ? folderById.get(current.parentFolderId)
-        : undefined
-    }
-    return path
-  }, [folderById, folderId])
+  // La ruta llega resuelta desde la API: el listado solo trae las subcarpetas
+  // del nivel actual, así que no puede deducirse en cliente.
+  const currentFolderPath = library?.folderPath ?? []
   const visibleFolders = useMemo(
     () =>
       assetFilter !== "all" && assetFilter !== "folder"

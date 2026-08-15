@@ -239,7 +239,8 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 ## Files — recorrido de carpetas colapsable — 15 de agosto de 2026
 
 - El breadcrumb sigue el comportamiento de Drive con rutas profundas: deja a la vista la carpeta actual y la que la contiene, y recoge el resto —raíz `Archivos` incluida— en un menú tras la elipsis. Hasta tres tramos se muestran enteros.
-- Cada entrada del menú navega a su carpeta y distingue la raíz con su propio icono. La ruta sigue construyéndose desde `parentFolderId`, sin llamadas nuevas.
+- El recorrido no era deducible en cliente y por eso nunca llegó a verse: al entrar en una carpeta, `GET /v1/portal/files` solo devuelve sus subcarpetas, así que ni la carpeta actual ni sus ancestros estaban en la respuesta. `portalFilesResponseSchema` gana `folderPath`, que el servicio resuelve subiendo por `parentFolderId`, y la biblioteca lo consume tal cual.
+- Cada entrada del menú navega a su carpeta y distingue la raíz con su propio icono.
 - Es composición propia de V2: `diseño ideal` no navega entre carpetas en su file-manager, así que no hay superficie equivalente que copiar.
 
 ## Files — filtro de tipo y fin de lista — 15 de agosto de 2026

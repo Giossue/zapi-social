@@ -28,6 +28,7 @@ export type FileFolder = {
 export type FileLibraryData = {
   canView: boolean
   canUpload: boolean
+  folderPath: readonly { id: string; name: string }[]
   folders: readonly FileFolder[]
   assets: readonly FileAsset[]
   page: number

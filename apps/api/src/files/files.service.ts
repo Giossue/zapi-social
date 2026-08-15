@@ -458,6 +458,7 @@ export class FilesService {
     const visibleAssets = assets;
     return {
       canManage: this.canManage(auth),
+      folderPath: await this.folderPath(auth.workspace.id, query?.folderId),
       page,
       limit,
       foldersTotal: foldersCount?.count ?? 0,
@@ -575,6 +576,39 @@ export class FilesService {
           pending.push(id);
         }
     return descendants;
+  }
+
+  /**
+   * Ruta de la carpeta consultada, de la raíz hacia dentro. El listado solo
+   * devuelve las subcarpetas del nivel actual, así que sin esto la interfaz no
+   * puede dibujar por dónde está navegando.
+   */
+  private async folderPath(workspaceId: string, folderId?: string) {
+    const path: Array<{ id: string; name: string }> = [];
+    let currentId = folderId;
+
+    while (currentId) {
+      const [folder] = await this.database.db
+        .select({
+          id: fileFolders.id,
+          name: fileFolders.name,
+          parentFolderId: fileFolders.parentFolderId,
+        })
+        .from(fileFolders)
+        .where(
+          and(
+            eq(fileFolders.id, currentId),
+            eq(fileFolders.workspaceId, workspaceId),
+          ),
+        )
+        .limit(1);
+      if (!folder) break;
+
+      path.unshift({ id: folder.id, name: folder.name });
+      currentId = folder.parentFolderId ?? undefined;
+    }
+
+    return path;
   }
 
   private async assertFolderNameAvailable(

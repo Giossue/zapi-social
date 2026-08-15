@@ -7,6 +7,7 @@ import type {
 export const fileLibraryFixture: FileLibraryData = {
   canView: true,
   canUpload: true,
+  folderPath: [],
   folders: [],
   assets: [],
   page: 1,

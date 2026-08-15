@@ -257,6 +257,8 @@ export const portalFileFolderSchema = z.object({
 })
 export const portalFilesResponseSchema = z.object({
   canManage: z.boolean(),
+  /** Ruta de la carpeta consultada, de la raíz hacia dentro. */
+  folderPath: z.array(z.object({ id: z.uuid(), name: z.string() })),
   folders: z.array(portalFileFolderSchema),
   files: z.array(portalFileAssetSchema),
   page: z.number().int().positive(),
