@@ -8,9 +8,13 @@ import { cn } from "@workspace/ui/lib/utils"
 function ScrollArea({
   className,
   children,
+  orientation = "vertical",
   scrollbarClassName,
   ...props
-}: React.ComponentProps<typeof ScrollAreaPrimitive.Root> & { scrollbarClassName?: string }) {
+}: React.ComponentProps<typeof ScrollAreaPrimitive.Root> & {
+  orientation?: React.ComponentProps<typeof ScrollBar>["orientation"]
+  scrollbarClassName?: string
+}) {
   return (
     <ScrollAreaPrimitive.Root
       data-slot="scroll-area"
@@ -23,7 +27,7 @@ function ScrollArea({
       >
         {children}
       </ScrollAreaPrimitive.Viewport>
-      <ScrollBar className={scrollbarClassName} />
+      <ScrollBar className={scrollbarClassName} orientation={orientation} />
       <ScrollAreaPrimitive.Corner />
     </ScrollAreaPrimitive.Root>
   )

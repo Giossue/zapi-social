@@ -310,29 +310,6 @@ html {
   }
 }
 
-/*
- * A table wide enough to scroll gives no hint that it scrolls, because most
- * platforms hide the bar until you already started dragging. The utilities on
- * the container cover the standard `scrollbar-width` property; these rules
- * cover WebKit's older pseudo-elements, where `-webkit-appearance: none` is
- * what turns the overlay bar into a persistent one. Browsers that support both
- * ignore this block. The bar still only appears when the table overflows,
- * because the container is `overflow-x: auto`.
- */
-[data-slot="table-container"]::-webkit-scrollbar {
-  -webkit-appearance: none;
-  height: 6px;
-}
-
-[data-slot="table-container"]::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-[data-slot="table-container"]::-webkit-scrollbar-thumb {
-  background-color: var(--border);
-  border-radius: 9999px;
-}
-
 @keyframes spinner-fade {
   0%,
   39%,

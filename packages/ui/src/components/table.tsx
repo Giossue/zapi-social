@@ -2,13 +2,19 @@
 
 import * as React from "react"
 
+import { ScrollArea } from "@workspace/ui/components/scroll-area"
 import { cn } from "@workspace/ui/lib/utils"
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
-    <div
+    // Radix renders the scrollbar as a real element instead of relying on the
+    // platform one, which most systems fade out seconds after you stop
+    // dragging. It still only shows up when the table is wider than its box.
+    <ScrollArea
       data-slot="table-container"
-      className="relative w-full overflow-x-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent"
+      className="w-full"
+      orientation="horizontal"
+      type="auto"
     >
       <table
         data-slot="table"
@@ -18,7 +24,7 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
         )}
         {...props}
       />
-    </div>
+    </ScrollArea>
   )
 }
 
