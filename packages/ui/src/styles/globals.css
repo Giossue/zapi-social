@@ -310,19 +310,6 @@ html {
   }
 }
 
-/*
- * `scroll-fade-x` falls back to fading both edges permanently when the browser
- * has no scroll timeline to drive it. On a table that already fits, a soft
- * edge reads as clipped columns, so those browsers get no mask at all and the
- * table looks exactly as it did before.
- */
-@supports not (animation-timeline: scroll()) {
-  [data-slot="table-container"] {
-    -webkit-mask-image: none;
-    mask-image: none;
-  }
-}
-
 @keyframes spinner-fade {
   0%,
   39%,

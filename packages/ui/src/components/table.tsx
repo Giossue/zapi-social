@@ -4,24 +4,75 @@ import * as React from "react"
 
 import { cn } from "@workspace/ui/lib/utils"
 
+/**
+ * Tells whether the element still has content to scroll to on each side. Only
+ * two booleans, so unlike a rendered scrollbar there is no position to keep in
+ * sync with the real one.
+ */
+function useScrollEdges(ref: React.RefObject<HTMLElement | null>) {
+  const [edges, setEdges] = React.useState({ end: false, start: false })
+
+  React.useEffect(() => {
+    const element = ref.current
+    if (!element) return
+
+    const update = () =>
+      setEdges({
+        end:
+          Math.ceil(element.scrollLeft + element.clientWidth) <
+          element.scrollWidth,
+        start: element.scrollLeft > 0,
+      })
+
+    update()
+    element.addEventListener("scroll", update, { passive: true })
+    // Catches columns appearing, the sidebar collapsing and window resizes.
+    const observer = new ResizeObserver(update)
+    observer.observe(element)
+
+    return () => {
+      element.removeEventListener("scroll", update)
+      observer.disconnect()
+    }
+  }, [ref])
+
+  return edges
+}
+
 function Table({ className, ...props }: React.ComponentProps<"table">) {
+  const scroller = React.useRef<HTMLDivElement>(null)
+  const edges = useScrollEdges(scroller)
+
   return (
-    // `scroll-fade-x` softens whichever edge still has columns behind it, so a
-    // wide table shows it can be scrolled without depending on the platform
-    // scrollbar, which most systems fade out. It is driven by the browser's
-    // scroll timeline, so there is nothing to keep in sync.
-    <div
-      data-slot="table-container"
-      className="relative w-full scroll-fade-x overflow-x-auto"
-    >
-      <table
-        data-slot="table"
-        className={cn(
-          "w-full caption-bottom text-sm **:data-[slot=table-cell]:px-4 **:data-[slot=table-cell]:py-4 **:data-[slot=table-head]:h-auto **:data-[slot=table-head]:px-4 **:data-[slot=table-head]:py-4 **:data-[slot=table-head]:font-normal",
-          className
-        )}
-        {...props}
-      />
+    // The overlays are siblings of the scroller, not children, so they stay
+    // pinned to the visible edges instead of scrolling away with the columns.
+    <div className="relative w-full">
+      <div
+        data-slot="table-container"
+        className="w-full overflow-x-auto"
+        ref={scroller}
+      >
+        <table
+          data-slot="table"
+          className={cn(
+            "w-full caption-bottom text-sm **:data-[slot=table-cell]:px-4 **:data-[slot=table-cell]:py-4 **:data-[slot=table-head]:h-auto **:data-[slot=table-head]:px-4 **:data-[slot=table-head]:py-4 **:data-[slot=table-head]:font-normal",
+            className
+          )}
+          {...props}
+        />
+      </div>
+      {edges.start ? (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-card to-transparent"
+        />
+      ) : null}
+      {edges.end ? (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-card to-transparent"
+        />
+      ) : null}
     </div>
   )
 }
