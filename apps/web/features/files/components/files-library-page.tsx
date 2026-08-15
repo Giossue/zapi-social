@@ -897,6 +897,7 @@ export function FilesLibraryPage() {
         </InputGroup>
         <div className="flex flex-wrap items-center gap-2">
           <Button
+            className="hidden sm:inline-flex"
             disabled={!library.canUpload}
             onClick={() => setFolderDialogOpen(true)}
             variant="brand-secondary"
@@ -906,6 +907,7 @@ export function FilesLibraryPage() {
           </Button>
           {driveProvider?.enabled ? (
             <Button
+              className="hidden sm:inline-flex"
               disabled={!library.canUpload || openingDrive}
               onClick={() => void importFromGoogleDrive()}
               variant="brand-secondary"
@@ -1225,9 +1227,28 @@ export function FilesLibraryPage() {
 
       <FloatingActionButton
         disabled={!library.canUpload}
-        icon={<Upload aria-hidden="true" className="size-6" />}
-        label="Subir archivos"
-        onClick={() => setUploadDialogOpen(true)}
+        label="Añadir a la biblioteca"
+        menu={
+          <DropdownMenuContent align="end" className="w-56" side="top">
+            <DropdownMenuItem onSelect={() => setFolderDialogOpen(true)}>
+              <FolderPlus aria-hidden="true" />
+              Nueva carpeta
+            </DropdownMenuItem>
+            {driveProvider?.enabled ? (
+              <DropdownMenuItem
+                disabled={openingDrive}
+                onSelect={() => void importFromGoogleDrive()}
+              >
+                <HardDriveDownload aria-hidden="true" />
+                Google Drive
+              </DropdownMenuItem>
+            ) : null}
+            <DropdownMenuItem onSelect={() => setUploadDialogOpen(true)}>
+              <Upload aria-hidden="true" />
+              Subir desde archivos
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        }
       />
 
       <FileUploadDialog

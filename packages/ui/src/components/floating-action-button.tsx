@@ -4,6 +4,10 @@ import * as React from "react"
 import { Plus } from "lucide-react"
 
 import { Button } from "@workspace/ui/components/button"
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
 import { cn } from "@workspace/ui/lib/utils"
 
 /** Distance scrolled before the button is allowed to hide. */
@@ -66,6 +70,11 @@ type FloatingActionButtonProps = Omit<
    * own, where the spacer only leaves an empty gap.
    */
   withSpacer?: boolean
+  /**
+   * `DropdownMenuContent` opened by the button. Use it when the surface offers
+   * several ways to create, instead of giving the mobile action a single one.
+   */
+  menu?: React.ReactNode
 }
 
 /**
@@ -77,28 +86,40 @@ function FloatingActionButton({
   className,
   icon,
   label,
+  menu,
   withSpacer = true,
   ...props
 }: FloatingActionButtonProps) {
   const hidden = useHideOnScrollDown()
 
+  const button = (
+    <Button
+      aria-label={label}
+      className={cn(
+        "fixed right-4 bottom-[calc(1rem_+_env(safe-area-inset-bottom))] z-40 size-14 rounded-full shadow-lg transition-[translate,opacity] duration-200 ease-out motion-reduce:transition-none sm:hidden",
+        hidden &&
+          "pointer-events-none translate-y-[calc(100%_+_1.5rem)] opacity-0",
+        className
+      )}
+      size="icon"
+      type="button"
+      {...props}
+    >
+      {icon ?? <Plus aria-hidden="true" className="size-6" />}
+    </Button>
+  )
+
   return (
     <>
       {withSpacer ? <div aria-hidden="true" className="h-24 sm:hidden" /> : null}
-      <Button
-        aria-label={label}
-        className={cn(
-          "fixed right-4 bottom-[calc(1rem_+_env(safe-area-inset-bottom))] z-40 size-14 rounded-full shadow-lg transition-[translate,opacity] duration-200 ease-out motion-reduce:transition-none sm:hidden",
-          hidden &&
-            "pointer-events-none translate-y-[calc(100%_+_1.5rem)] opacity-0",
-          className
-        )}
-        size="icon"
-        type="button"
-        {...props}
-      >
-        {icon ?? <Plus aria-hidden="true" className="size-6" />}
-      </Button>
+      {menu ? (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>{button}</DropdownMenuTrigger>
+          {menu}
+        </DropdownMenu>
+      ) : (
+        button
+      )}
     </>
   )
 }

@@ -216,6 +216,12 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - Cabecera de Channels: `Canales` y su descripción salen de la card a `CollectionHeader`, igual que `/portal/ai-publishing`; su `DataTableHeader` conserva solo búsqueda y acción. La excepción quedó retirada también del auditor y de [`docs/reglas/design.md`](../reglas/design.md).
 - Validación del 15 de agosto de 2026: la fuente pasa Biome focal, `tsc --noEmit` y build Next; ZapiV2 pasa typecheck de Web y `packages/ui`, lint de ambos sin errores, build Web, `git diff --check` y `audit:portal-admin-ui` sin hallazgos. La aprobación visual corresponde al usuario.
 
+## Files en móvil — acción única — 15 de agosto de 2026
+
+- `Nueva carpeta` e importación de `Google Drive` quedan ocultas bajo `sm`: en móvil la barra superior conserva solo la búsqueda y las tres formas de añadir viven en el botón flotante.
+- `FloatingActionButton` acepta `menu`: cuando se le pasa un `DropdownMenuContent`, el botón lo abre en vez de ejecutar una acción única. Files lo usa con `Nueva carpeta`, `Google Drive` —solo si el proveedor está habilitado— y `Subir desde archivos`, conservando permisos, estado `openingDrive` y diálogos existentes.
+- El icono vuelve al signo `+` por defecto del primitive, coherente con que ahora ofrece varias acciones. Su fila de [`packages/ui/COMPONENTS.md`](../../packages/ui/COMPONENTS.md) recoge el contrato nuevo.
+
 ## Estados de carga compartidos
 
 - Se retiraron los skeletons y placeholders visuales de las rutas Portal/Admin y de los estados internos de Dashboard, Channels, Captions, Profile, Integrations, Files, AI Studio, Plans y Publishing.
