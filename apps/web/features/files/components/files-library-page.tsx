@@ -4,12 +4,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ApiError, filesApi } from "@workspace/api-client"
 import type {
   GoogleDriveImportBatch,
+  PortalFileSort,
+  PortalFileSortOrder,
   PortalFilesResponse,
   PortalGoogleDriveConfiguration,
 } from "@workspace/contracts"
 import { toast } from "@workspace/ui/components/toast"
 import {
-  ChevronDown,
+  ArrowDown,
+  ArrowUp,
   Download,
   Eye,
   FilePenLine,
@@ -35,6 +38,7 @@ import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
+  BreadcrumbPage,
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@workspace/ui/components/breadcrumb"
@@ -52,6 +56,9 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
@@ -105,6 +112,11 @@ import { openGoogleDrivePicker } from "@/features/files/components/google-drive-
 import { useLibrarySelection } from "@/features/files/hooks/use-library-selection"
 
 type FilesView = "grid" | "list"
+
+const sortLabels: Record<PortalFileSort, string> = {
+  modifiedAt: "Fecha de modificación",
+  name: "Nombre",
+}
 type AssetFilter = FileAssetKind | "all" | "ai"
 
 const assetKindMeta: Record<
@@ -317,70 +329,6 @@ function AssetCard({
         </CardAction>
       </CardHeader>
     </Card>
-  )
-}
-
-function CurrentLocationMenu({
-  canManage,
-  folder,
-  onMove,
-  onNewFolder,
-  onRename,
-  onTrash,
-}: {
-  canManage: boolean
-  folder: FileFolder | null
-  onMove?: () => void
-  onNewFolder: () => void
-  onRename?: () => void
-  onTrash?: () => void
-}) {
-  const name = folder?.name ?? "Archivos"
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          aria-label={`Acciones de ${name}`}
-          className="h-auto gap-1 px-0 text-foreground"
-          size="sm"
-          variant="link"
-        >
-          {name}
-          <ChevronDown aria-hidden="true" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start">
-        <DropdownMenuItem disabled={!canManage} onSelect={onNewFolder}>
-          <FolderPlus />
-          Nueva carpeta
-        </DropdownMenuItem>
-        {folder ? (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem disabled={!canManage} onSelect={onRename}>
-                <FilePenLine />
-                Renombrar
-              </DropdownMenuItem>
-              <DropdownMenuItem disabled={!canManage} onSelect={onMove}>
-                <FolderInput />
-                Mover
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              disabled={!canManage}
-              onSelect={onTrash}
-              variant="destructive"
-            >
-              <Trash2 />
-              Enviar a papelera
-            </DropdownMenuItem>
-          </>
-        ) : null}
-      </DropdownMenuContent>
-    </DropdownMenu>
   )
 }
 
@@ -687,6 +635,8 @@ export function FilesLibraryPage() {
   const [loadError, setLoadError] = useState(false)
   const [query, setQuery] = useState("")
   const [assetFilter, setAssetFilter] = useState<AssetFilter>("all")
+  const [sort, setSort] = useState<PortalFileSort>("modifiedAt")
+  const [order, setOrder] = useState<PortalFileSortOrder>("desc")
   const [folderId, setFolderId] = useState<string | "all">("all")
   const [view, setView] = useState<FilesView>("grid")
   const [bulkMoveOpen, setBulkMoveOpen] = useState(false)
@@ -734,13 +684,15 @@ export function FilesLibraryPage() {
         page: pageToLoad,
         limit,
         folderId: folderId === "all" ? undefined : folderId,
+        order,
         q: query.trim() || undefined,
+        sort,
         kind:
           assetFilter === "all" || assetFilter === "ai"
             ? undefined
             : assetFilter,
       }),
-    [assetFilter, folderId, query]
+    [assetFilter, folderId, order, query, sort]
   )
 
   const loadLibrary = useCallback(async () => {
@@ -1023,10 +975,14 @@ export function FilesLibraryPage() {
     return getItemProps(entry as LibraryEntry)
   }
 
-  // Mover y eliminar en lote siguen operando solo sobre archivos.
+  // Las acciones en lote distinguen el tipo: cada uno tiene su endpoint.
   const selectedAssetIds = useMemo(
     () => selection.filter((id) => assets.some((asset) => asset.id === id)),
     [assets, selection]
+  )
+  const selectedFolderIds = useMemo(
+    () => selection.filter((id) => visibleFolders.some((f) => f.id === id)),
+    [selection, visibleFolders]
   )
 
   async function toggleStar(asset: FileAsset) {
@@ -1086,57 +1042,65 @@ export function FilesLibraryPage() {
     }
   }
 
-  async function moveSelectedAssets(parentFolderId: string | null) {
-    const ids = [...selectedAssetIds]
-    if (!ids.length) return
+  async function moveSelection(parentFolderId: string | null) {
+    const total = selectedAssetIds.length + selectedFolderIds.length
+    if (!total) return
+
     try {
-      const results = await Promise.allSettled(
-        ids.map((id) => filesApi.update(id, { folderId: parentFolderId }))
-      )
+      const results = await Promise.allSettled([
+        ...selectedAssetIds.map((id) =>
+          filesApi.update(id, { folderId: parentFolderId })
+        ),
+        ...selectedFolderIds.map((id) =>
+          filesApi.updateFolder(id, { parentFolderId })
+        ),
+      ])
       const failed = results.filter((result) => result.status === "rejected")
       setBulkMoveOpen(false)
       await loadLibrary()
       clearSelection()
       if (failed.length) {
         toast.error(
-          failed.length === ids.length
-            ? "No se pudo mover ningún archivo"
-            : "Algunos archivos no se pudieron mover"
+          failed.length === total
+            ? "No se pudo mover ningún elemento"
+            : "Algunos elementos no se pudieron mover"
         )
         return
       }
-      toast.success(ids.length === 1 ? "Archivo movido" : "Archivos movidos")
+      toast.success(total === 1 ? "Elemento movido" : "Elementos movidos")
     } catch {
-      toast.error("No se pudieron mover los archivos")
+      toast.error("No se pudieron mover los elementos")
     }
   }
 
-  async function trashSelectedAssets() {
-    const ids = [...selectedAssetIds]
-    if (!ids.length) return
+  async function trashSelection() {
+    const total = selectedAssetIds.length + selectedFolderIds.length
+    if (!total) return
+
     try {
-      const results = await Promise.allSettled(
-        ids.map((id) => filesApi.remove(id))
-      )
+      const results = await Promise.allSettled([
+        ...selectedAssetIds.map((id) => filesApi.remove(id)),
+        ...selectedFolderIds.map((id) => filesApi.removeFolder(id)),
+      ])
       const failed = results.filter((result) => result.status === "rejected")
       setBulkTrashOpen(false)
       await loadLibrary()
       clearSelection()
       if (failed.length) {
         toast.error(
-          failed.length === ids.length
-            ? "No se pudo eliminar ningún archivo"
-            : "Algunos archivos no se pudieron eliminar"
+          failed.length === total
+            ? "No se pudo eliminar ningún elemento"
+            : "Algunos elementos no se pudieron eliminar"
         )
         return
       }
       toast.success(
-        ids.length === 1
-          ? "Archivo eliminado permanentemente"
-          : "Archivos eliminados permanentemente"
+        total === 1
+          ? "Elemento eliminado permanentemente"
+          : "Elementos eliminados permanentemente"
       )
     } catch {
-      toast.error("No se pudieron eliminar los archivos")
+      toast.error("No se pudieron eliminar los elementos")
     }
   }
 
@@ -1281,11 +1245,7 @@ export function FilesLibraryPage() {
         <BreadcrumbList>
           <BreadcrumbItem>
             {currentFolderPath.length === 0 ? (
-              <CurrentLocationMenu
-                canManage={library.canUpload}
-                folder={null}
-                onNewFolder={() => setFolderDialogOpen(true)}
-              />
+              <BreadcrumbPage>Archivos</BreadcrumbPage>
             ) : (
               <BreadcrumbLink asChild>
                 <button onClick={() => openFolder("all")} type="button">
@@ -1298,14 +1258,7 @@ export function FilesLibraryPage() {
             <BreadcrumbItem key={folder.id}>
               <BreadcrumbSeparator />
               {index === currentFolderPath.length - 1 ? (
-                <CurrentLocationMenu
-                  canManage={library.canUpload}
-                  folder={folder}
-                  onMove={() => setMoveItem({ ...folder, isFolder: true })}
-                  onNewFolder={() => setFolderDialogOpen(true)}
-                  onRename={() => setRenameItem(folder)}
-                  onTrash={() => setTrashItem({ ...folder, isFolder: true })}
-                />
+                <BreadcrumbPage>{folder.name}</BreadcrumbPage>
               ) : (
                 <BreadcrumbLink asChild>
                   <button onClick={() => openFolder(folder.id)} type="button">
@@ -1334,10 +1287,11 @@ export function FilesLibraryPage() {
               ]}
               value={assetFilter}
             />
-            {selectedAssetIds.length > 0 ? (
+            {selection.length > 0 ? (
               <>
                 <Badge variant="info">
-                  {selectedAssetIds.length} seleccionados
+                  {selection.length}{" "}
+                  {selection.length === 1 ? "seleccionado" : "seleccionados"}
                 </Badge>
                 <Button
                   className="leading-none"
@@ -1361,6 +1315,43 @@ export function FilesLibraryPage() {
             ) : null}
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline">
+                  {sortLabels[sort]}
+                  {order === "desc" ? <ArrowDown /> : <ArrowUp />}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Ordenar por</DropdownMenuLabel>
+                <DropdownMenuRadioGroup
+                  onValueChange={(value) => setSort(value as PortalFileSort)}
+                  value={sort}
+                >
+                  <DropdownMenuRadioItem value="name">
+                    Nombre
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="modifiedAt">
+                    Fecha de modificación
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel>Orden</DropdownMenuLabel>
+                <DropdownMenuRadioGroup
+                  onValueChange={(value) =>
+                    setOrder(value as PortalFileSortOrder)
+                  }
+                  value={order}
+                >
+                  <DropdownMenuRadioItem value="desc">
+                    {sort === "name" ? "De Z a A" : "De nueva a antigua"}
+                  </DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="asc">
+                    {sort === "name" ? "De A a Z" : "De antigua a nueva"}
+                  </DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <ToggleGroup
               aria-label="Vista de archivos"
               onValueChange={(value) => {
@@ -1513,7 +1504,7 @@ export function FilesLibraryPage() {
       <FileMoveDialog
         folders={[...(library?.folders ?? [])]}
         item={moveItem}
-        onConfirm={moveItem ? moveManagedItem : moveSelectedAssets}
+        onConfirm={moveItem ? moveManagedItem : moveSelection}
         onOpenChange={(open) => {
           if (!open) {
             setMoveItem(null)
@@ -1521,11 +1512,11 @@ export function FilesLibraryPage() {
           }
         }}
         open={Boolean(moveItem) || bulkMoveOpen}
-        selectedCount={bulkMoveOpen ? selectedAssetIds.length : undefined}
+        selectedCount={bulkMoveOpen ? selection.length : undefined}
       />
       <FileTrashDialog
         item={trashItem}
-        onConfirm={trashItem ? trashManagedItem : trashSelectedAssets}
+        onConfirm={trashItem ? trashManagedItem : trashSelection}
         onOpenChange={(open) => {
           if (!open) {
             setTrashItem(null)
@@ -1533,7 +1524,7 @@ export function FilesLibraryPage() {
           }
         }}
         open={Boolean(trashItem) || bulkTrashOpen}
-        selectedCount={bulkTrashOpen ? selectedAssetIds.length : undefined}
+        selectedCount={bulkTrashOpen ? selection.length : undefined}
       />
     </div>
   )

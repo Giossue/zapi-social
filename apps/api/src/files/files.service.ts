@@ -18,6 +18,7 @@ import {
 } from '@workspace/database';
 import {
   and,
+  asc,
   desc,
   eq,
   ilike,
@@ -292,9 +293,18 @@ export class FilesService {
     const name = parsed.data.name
       ? this.withOriginalExtension(parsed.data.name, current.extension)
       : undefined;
+    // Marcar un favorito no modifica el archivo: si tocara `updatedAt`, la
+    // fecha mostrada mentiría y el listado, ordenado por ella, lo movería al
+    // principio tanto al marcarlo como al desmarcarlo.
+    const modifiesAsset =
+      parsed.data.name !== undefined || parsed.data.folderId !== undefined;
     const [asset] = await this.database.db
       .update(fileAssets)
-      .set({ ...parsed.data, name, updatedAt: new Date() })
+      .set({
+        ...parsed.data,
+        name,
+        ...(modifiesAsset ? { updatedAt: new Date() } : {}),
+      })
       .where(
         and(
           eq(fileAssets.id, id),
@@ -377,6 +387,8 @@ export class FilesService {
       folderId?: string;
       starred?: boolean;
       kind?: string;
+      sort?: 'name' | 'modifiedAt';
+      order?: 'asc' | 'desc';
       page?: number;
       limit?: number;
     },
@@ -406,20 +418,29 @@ export class FilesService {
     const page = query?.page ?? 1;
     const limit = query?.limit ?? 50;
     const offset = (page - 1) * limit;
+    const direction = query?.order === 'asc' ? asc : desc;
+    const assetOrder =
+      query?.sort === 'name'
+        ? direction(fileAssets.name)
+        : direction(fileAssets.updatedAt);
+    const folderOrder =
+      query?.sort === 'name'
+        ? direction(fileFolders.name)
+        : direction(fileFolders.updatedAt);
     const [assets, folders, [filesCount], [foldersCount]] = await Promise.all([
       this.database.db
         .select({ asset: fileAssets, owner: users.displayName })
         .from(fileAssets)
         .innerJoin(users, eq(fileAssets.createdByUserId, users.id))
         .where(and(...filters))
-        .orderBy(desc(fileAssets.updatedAt))
+        .orderBy(assetOrder)
         .limit(limit)
         .offset(offset),
       this.database.db
         .select()
         .from(fileFolders)
         .where(and(...folderFilters))
-        .orderBy(desc(fileFolders.updatedAt))
+        .orderBy(folderOrder)
         .limit(limit)
         .offset(offset),
       this.database.db

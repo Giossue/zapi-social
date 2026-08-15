@@ -264,12 +264,16 @@ export const portalFilesResponseSchema = z.object({
   foldersTotal: z.number().int().nonnegative(),
   filesTotal: z.number().int().nonnegative(),
 })
+export const portalFileSortSchema = z.enum(['name', 'modifiedAt'])
+export const portalFileSortOrderSchema = z.enum(['asc', 'desc'])
 export const portalFilesQuerySchema = z
   .object({
     q: z.string().trim().min(1).max(255).optional(),
     folderId: z.uuid().optional(),
     kind: portalFileKindSchema.optional(),
     starred: z.coerce.boolean().optional(),
+    sort: portalFileSortSchema.default('modifiedAt'),
+    order: portalFileSortOrderSchema.default('desc'),
     page: z.coerce.number().int().positive().default(1),
     limit: z.coerce.number().int().min(1).max(100).default(50),
   })
@@ -1148,6 +1152,8 @@ export type PortalFileAsset = z.infer<typeof portalFileAssetSchema>
 export type PortalFileFolder = z.infer<typeof portalFileFolderSchema>
 export type PortalFilesResponse = z.infer<typeof portalFilesResponseSchema>
 export type PortalFilesQuery = z.infer<typeof portalFilesQuerySchema>
+export type PortalFileSort = z.infer<typeof portalFileSortSchema>
+export type PortalFileSortOrder = z.infer<typeof portalFileSortOrderSchema>
 export type CreatePortalFileFolderInput = z.infer<
   typeof createPortalFileFolderSchema
 >

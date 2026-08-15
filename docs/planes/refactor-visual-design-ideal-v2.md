@@ -236,6 +236,14 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - El contrato pagina carpetas y archivos con la misma ventana, así que al añadir una tanda solo se concatenan archivos y se conservan las carpetas de la ubicación. Cambiar de carpeta, buscar o filtrar reinicia el acumulado.
 - La cuadrícula arranca en dos columnas: `grid-cols-2` bajo `sm` para carpetas y archivos, manteniendo `sm:grid-cols-3` y `xl:grid-cols-5`. En móvil deja de mostrarse una card por fila.
 
+## Files — orden, acciones en lote y favoritos — 15 de agosto de 2026
+
+- Marcar un favorito escribía `updatedAt`, así que el archivo saltaba al principio del listado —ordenado por esa fecha— tanto al marcarlo como al desmarcarlo, y además falseaba la fecha mostrada. `updateAsset` solo toca `updatedAt` cuando cambian el nombre o la carpeta.
+- La barra de acciones en lote solo contaba archivos, de modo que seleccionar carpetas no mostraba nada. Ahora aparece con cualquier selección y mover y eliminar operan sobre ambos tipos: cada elemento usa su endpoint —`update`/`remove` para archivos, `updateFolder`/`removeFolder` para carpetas— y el resultado se informa por elementos, no por archivos.
+- El orden es una consulta real, no un reordenamiento de lo ya cargado: `portalFilesQuerySchema` acepta `sort` (`name` o `modifiedAt`) y `order` (`asc` o `desc`), el servicio los aplica a archivos y carpetas, y el cliente los propaga. El menú de la biblioteca replica el de Drive con sus dos bloques.
+- Divergencia frente a Drive: no se ofrecen «Fecha en la que lo modificaste» ni «Fecha en la que lo abriste», que exigen datos por usuario que el schema no guarda, ni el bloque «Carpetas», porque el contrato pagina carpetas y archivos por separado y mezclarlos rompería el recuento de tandas.
+- El desplegable del breadcrumb se retiró por decisión de producto: la ubicación actual vuelve a ser texto.
+
 ## Files — selección y navegación al modo Drive — 15 de agosto de 2026
 
 - La biblioteca deja de seleccionarse con casillas. `useLibrarySelection` —copiado entre `diseño ideal` y V2— gobierna carpetas y archivos como una sola colección ordenada: un clic selecciona, doble clic abre, `Ctrl`/`Cmd` alterna, `Mayús` extiende el rango, `Ctrl`/`Cmd` + `A` selecciona todo, `Esc` limpia y un clic en el hueco deselecciona.
