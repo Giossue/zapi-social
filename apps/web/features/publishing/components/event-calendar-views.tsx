@@ -8,7 +8,7 @@ const blockPointerResizerClass = 'absolute hidden group-hover:block'
 const rowPointerResizerClass = `${blockPointerResizerClass} inset-y-0 w-2`
 const columnPointerResizerClass = `${blockPointerResizerClass} inset-x-0 h-2`
 
-const blockTouchResizerClass = 'absolute size-2 border border-(--fc-event-color) bg-background rounded-full'
+const blockTouchResizerClass = 'absolute size-2 border border-(--fc-event-color) bg-card rounded-full'
 const rowTouchResizerClass = `${blockTouchResizerClass} top-1/2 -mt-1`
 const columnTouchResizerClass = `${blockTouchResizerClass} left-1/2 -ml-1`
 
@@ -161,7 +161,7 @@ export function EventCalendarViews({
         ----------------------------------------------------------------------------------------- */
 
         columnEventClass={(info) => cn(
-          'border-x ring ring-background',
+          'border-x ring ring-card',
           info.isStart && ['border-t rounded-t-lg', info.isNarrow ? 'mt-px' : 'mt-0.5'],
           info.isEnd && ['border-b rounded-b-lg', info.isNarrow ? 'mb-px' : 'mb-0.5'],
         )}
@@ -197,7 +197,7 @@ export function EventCalendarViews({
 
         moreLinkClass="focus-visible:outline-3 outline-ring/50"
         moreLinkInnerClass='whitespace-nowrap overflow-hidden'
-        columnMoreLinkClass="my-0.5 border border-transparent print:border-black rounded-md bg-[color-mix(in_oklab,var(--foreground)_10%,var(--background))] hover:bg-[color-mix(in_oklab,var(--foreground)_13%,var(--background))] print:bg-white ring ring-background"
+        columnMoreLinkClass="my-0.5 border border-transparent print:border-black rounded-md bg-[color-mix(in_oklab,var(--foreground)_10%,var(--card))] hover:bg-[color-mix(in_oklab,var(--foreground)_13%,var(--card))] print:bg-white ring ring-card"
         columnMoreLinkInnerClass={(info) => cn(
           info.isNarrow
             ? `p-0.5 ${xxsTextClass}`
@@ -340,7 +340,7 @@ export function EventCalendarViews({
           'flex flex-col',
           !info.isLast && 'border-b',
         )}
-        listDayHeaderClass="-mb-px border-b bg-[color-mix(in_oklab,var(--foreground)_3%,var(--background))] flex flex-row items-center justify-between"
+        listDayHeaderClass="-mb-px border-b bg-[color-mix(in_oklab,var(--foreground)_3%,var(--card))] flex flex-row items-center justify-between"
         listDayHeaderInnerClass={(info) => cn(
           'm-1.5 px-1.5 py-0.5 rounded-sm text-sm',
           !info.level && 'font-semibold',
@@ -361,7 +361,7 @@ export function EventCalendarViews({
           (info.multiMonthColumns === 1 && !info.isLast) && 'border-b',
         )}
         singleMonthHeaderClass={(info) => cn(
-          info.multiMonthColumns > 1 ? 'pb-2' : 'py-1 border-b bg-background',
+          info.multiMonthColumns > 1 ? 'pb-2' : 'py-1 border-b bg-card',
           'items-center',
         )}
         singleMonthHeaderInnerClass={(info) => cn(
@@ -372,7 +372,7 @@ export function EventCalendarViews({
         /* Misc Table
         ----------------------------------------------------------------------------------------- */
 
-        tableBodyClass='bg-background'
+        tableBodyClass='bg-card'
         fillerClass='border opacity-50'
         dayNarrowWidth={100}
         dayHeaderRowClass='border'
@@ -394,7 +394,7 @@ export function EventCalendarViews({
         highlightClass='bg-chart-1/20'
         nonBusinessHoursClass='bg-foreground/3'
         nowIndicatorLineClass='-m-px border-1 border-destructive'
-        nowIndicatorDotClass="-m-[6px] border-6 border-destructive size-0 rounded-full ring-2 ring-background"
+        nowIndicatorDotClass="-m-[6px] border-6 border-destructive size-0 rounded-full ring-2 ring-card"
 
         /* View-Specific Options
         ----------------------------------------------------------------------------------------- */
@@ -403,7 +403,7 @@ export function EventCalendarViews({
           ...userViews,
           dayGrid: {
             ...dayRowCommonClasses,
-            tableHeaderClass: 'bg-background',
+            tableHeaderClass: 'bg-card',
             dayHeaderAlign: (info) => info.inPopover ? 'start' : info.isNarrow ? 'center' : 'end',
             dayHeaderDividerClass: 'border-b',
             dayCellBottomClass: getShortDayCellBottomClass,
@@ -412,7 +412,7 @@ export function EventCalendarViews({
           multiMonth: {
             ...dayRowCommonClasses,
             className: 'bg-foreground/3',
-            tableHeaderClass: (info) => cn(info.multiMonthColumns === 1 && 'bg-background'),
+            tableHeaderClass: (info) => cn(info.multiMonthColumns === 1 && 'bg-card'),
             dayHeaderAlign: (info) => info.inPopover ? 'start' : info.isNarrow ? 'center' : 'end',
             dayHeaderDividerClass: (info) => cn(info.multiMonthColumns === 1 && 'border-b'),
             dayCellBottomClass: getShortDayCellBottomClass,
@@ -421,7 +421,7 @@ export function EventCalendarViews({
           },
           timeGrid: {
             ...dayRowCommonClasses,
-            tableHeaderClass: 'bg-background',
+            tableHeaderClass: 'bg-card',
             dayHeaderAlign: (info) => info.inPopover ? 'start' : 'center',
             dayHeaderDividerClass: (info) => cn(
               'border-b',

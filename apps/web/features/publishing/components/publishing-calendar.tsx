@@ -130,8 +130,8 @@ export function PublishingCalendar({
   }).length
 
   return (
-    <div className="flex h-[calc(100svh-5rem)] min-h-[30rem] flex-col overflow-hidden rounded-md border md:h-[calc(100svh-7rem)]">
-      <div className="flex flex-col gap-4 border-b bg-sidebar p-4 text-sidebar-foreground lg:flex-row lg:items-center lg:justify-between">
+    <div className="flex h-[calc(100svh-5rem)] min-h-[30rem] flex-col overflow-hidden rounded-md border bg-card text-card-foreground md:h-[calc(100svh-7rem)]">
+      <div className="flex flex-col gap-4 border-b p-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex min-w-0 shrink-0 flex-col gap-1">
           <div className="text-lg leading-none font-medium first-letter:uppercase">
             {dateInfo.title}
