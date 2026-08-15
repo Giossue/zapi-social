@@ -236,6 +236,12 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - El contrato pagina carpetas y archivos con la misma ventana, así que al añadir una tanda solo se concatenan archivos y se conservan las carpetas de la ubicación. Cambiar de carpeta, buscar o filtrar reinicia el acumulado.
 - La cuadrícula arranca en dos columnas: `grid-cols-2` bajo `sm` para carpetas y archivos, manteniendo `sm:grid-cols-3` y `xl:grid-cols-5`. En móvil deja de mostrarse una card por fila.
 
+## Files — recorrido de carpetas colapsable — 15 de agosto de 2026
+
+- El breadcrumb sigue el comportamiento de Drive con rutas profundas: deja a la vista la carpeta actual y la que la contiene, y recoge el resto —raíz `Archivos` incluida— en un menú tras la elipsis. Hasta tres tramos se muestran enteros.
+- Cada entrada del menú navega a su carpeta y distingue la raíz con su propio icono. La ruta sigue construyéndose desde `parentFolderId`, sin llamadas nuevas.
+- Es composición propia de V2: `diseño ideal` no navega entre carpetas en su file-manager, así que no hay superficie equivalente que copiar.
+
 ## Files — filtro de tipo y fin de lista — 15 de agosto de 2026
 
 - El filtro por tipo se aplicaba en memoria sobre la tanda recibida, pero `filesTotal` seguía contando sin filtrar. Al elegir un tipo sin resultados, la biblioteca creía que faltaban archivos y pedía tandas sin fin: el usuario solo veía el cargador girando. `kindFilter` traduce el tipo a condiciones sobre `mimeType` dentro de la consulta, así que el total y las páginas ya concuerdan.

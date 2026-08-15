@@ -21,6 +21,7 @@ import {
   FolderPlus,
   FolderInput,
   Grid2X2,
+  HardDrive,
   HardDriveDownload,
   Image,
   Info,
@@ -36,6 +37,7 @@ import {
 import { Badge } from "@workspace/ui/components/badge"
 import {
   Breadcrumb,
+  BreadcrumbEllipsis,
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbPage,
@@ -764,9 +766,9 @@ export function FilesLibraryPage() {
 
   const hasMoreFiles = Boolean(
     library &&
-      !reachedEnd &&
-      assetFilter !== "folder" &&
-      library.assets.length < library.filesTotal
+    !reachedEnd &&
+    assetFilter !== "folder" &&
+    library.assets.length < library.filesTotal
   )
 
   // Google Drive no pagina: la siguiente tanda entra sola cuando el final de la
@@ -1152,6 +1154,19 @@ export function FilesLibraryPage() {
         : "Esta carpeta está vacía",
   }
 
+  // Como Drive: la ruta profunda deja a la vista la carpeta actual y su madre;
+  // el resto, raíz incluida, se recoge en el menú de la elipsis.
+  const trail = [
+    { id: "all", name: "Archivos" },
+    ...currentFolderPath.map((folder) => ({
+      id: folder.id,
+      name: folder.name,
+    })),
+  ]
+  const collapsedTrail = trail.length > 3 ? trail.slice(0, -2) : []
+  const visibleTrail =
+    collapsedTrail.length > 0 ? trail.slice(-2) : trail.slice(1)
+
   const filesLoader = hasMoreFiles ? (
     <div className="flex justify-center py-4" ref={sentinel}>
       <Spinner aria-label="Cargando más archivos" />
@@ -1256,22 +1271,55 @@ export function FilesLibraryPage() {
       {currentFolderPath.length > 0 ? (
         <Breadcrumb>
           <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <button onClick={() => openFolder("all")} type="button">
-                  Archivos
-                </button>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            {currentFolderPath.map((folder, index) => (
-              <BreadcrumbItem key={folder.id}>
+            {collapsedTrail.length > 0 ? (
+              <>
+                <BreadcrumbItem>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      aria-label="Carpetas anteriores"
+                      className="flex size-5 items-center justify-center rounded-sm hover:text-foreground focus-visible:outline-3 focus-visible:outline-ring/50"
+                    >
+                      <BreadcrumbEllipsis />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start">
+                      {collapsedTrail.map((step) => (
+                        <DropdownMenuItem
+                          key={step.id}
+                          onSelect={() => openFolder(step.id)}
+                        >
+                          {step.id === "all" ? (
+                            <HardDrive aria-hidden="true" />
+                          ) : (
+                            <Folder
+                              aria-hidden="true"
+                              className="fill-current"
+                            />
+                          )}
+                          {step.name}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </BreadcrumbItem>
+              </>
+            ) : (
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <button onClick={() => openFolder("all")} type="button">
+                    Archivos
+                  </button>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+            )}
+            {visibleTrail.map((step, index) => (
+              <BreadcrumbItem key={step.id}>
                 <BreadcrumbSeparator />
-                {index === currentFolderPath.length - 1 ? (
-                  <BreadcrumbPage>{folder.name}</BreadcrumbPage>
+                {index === visibleTrail.length - 1 ? (
+                  <BreadcrumbPage>{step.name}</BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink asChild>
-                    <button onClick={() => openFolder(folder.id)} type="button">
-                      {folder.name}
+                    <button onClick={() => openFolder(step.id)} type="button">
+                      {step.name}
                     </button>
                   </BreadcrumbLink>
                 )}
