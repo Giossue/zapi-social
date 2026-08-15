@@ -92,7 +92,9 @@ Antes de crear markup o un componente, ejecutar `codebase-memory` para comprobar
   anchos fijos: deben envolver a otra línea sin cortar su texto. Toda tabla
   paginada usa el único `TablePagination`, con rango a la izquierda y
   anterior/siguiente a la derecha; no se duplican footers ni selectores de filas
-  por página dentro de features.
+  por página dentro de features. La biblioteca de Files es la excepción
+  aprobada: carga la siguiente tanda al acercarse el final de la lista y no
+  muestra footer de paginación.
 - El primitive `Table` fija la densidad visual de Channels para Portal y Admin:
   encabezado `muted` con peso normal y borde superior/inferior, celdas con el
   mismo padding y filas con borde/hover semánticos. Una feature solo puede

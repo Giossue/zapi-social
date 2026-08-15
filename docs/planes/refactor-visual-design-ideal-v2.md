@@ -231,6 +231,9 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - En cuadrícula, las carpetas ocupan cards compactas de una sola línea sobre las cards de archivo. Pierden fecha y tamaño: esa información vive en la vista de lista, como en la referencia.
 - El estado vacío pasa a mirar ambos conjuntos: solo aparece cuando la ubicación no tiene ni carpetas ni archivos. La paginación sigue contando archivos, que son lo único paginado por el contrato actual.
 - El filtro por tipo pasa a `DataTableFilter` y se alinea a la izquierda con las acciones de selección; el conmutador de vista queda solo a la derecha.
+- Files sustituye la paginación por carga incremental, como pidió producto: un `IntersectionObserver` con margen de 300 px pide la siguiente tanda al acercarse el final y `Spinner` marca la espera. `TablePagination` desaparece de esta superficie y `docs/reglas/design.md` recoge la excepción.
+- La tanda pasa de 10 a 24 archivos. Una mutación no devuelve al principio: `loadLibrary` recarga de una vez todas las tandas visibles, hasta el tope de 100 que admite `limit` en el contrato; por encima de esa cifra el resto se recupera al seguir bajando.
+- El contrato pagina carpetas y archivos con la misma ventana, así que al añadir una tanda solo se concatenan archivos y se conservan las carpetas de la ubicación. Cambiar de carpeta, buscar o filtrar reinicia el acumulado.
 - La cuadrícula arranca en dos columnas: `grid-cols-2` bajo `sm` para carpetas y archivos, manteniendo `sm:grid-cols-3` y `xl:grid-cols-5`. En móvil deja de mostrarse una card por fila.
 
 ## Files — doble envío al crear carpeta — 15 de agosto de 2026

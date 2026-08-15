@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ApiError, filesApi } from "@workspace/api-client"
 import type {
   GoogleDriveImportBatch,
+  PortalFilesResponse,
   PortalGoogleDriveConfiguration,
 } from "@workspace/contracts"
 import { toast } from "@workspace/ui/components/toast"
@@ -76,7 +77,6 @@ import {
   TABLE_EMPTY_ICON,
   TableEmptyRow,
 } from "@workspace/ui/components/table-empty-row"
-import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
   ToggleGroup,
@@ -587,11 +587,48 @@ function formatSize(sizeBytes: number) {
     : `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-const FILES_PAGE_SIZE = 10
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("es", { dateStyle: "medium" }).format(
+    new Date(value)
+  )
+}
+
+function toFolder(
+  folder: PortalFilesResponse["folders"][number]
+): FileFolder {
+  return {
+    ...folder,
+    size: formatSize(folder.sizeBytes),
+    updatedAt: formatDate(folder.updatedAt),
+  }
+}
+
+function toAsset(asset: PortalFilesResponse["files"][number]): FileAsset {
+  return {
+    id: asset.id,
+    name: asset.name,
+    folderId: asset.folderId,
+    kind:
+      asset.kind === "image" || asset.kind === "video" ? asset.kind : "document",
+    mimeType: asset.mimeType,
+    size: formatSize(asset.sizeBytes),
+    dimensions: null,
+    owner: asset.owner,
+    updatedAt: formatDate(asset.modifiedAt),
+    shared: false,
+    generatedWithAi: false,
+    starred: asset.starred,
+    thumbnailStatus: asset.thumbnailStatus,
+  }
+}
+
+const FILES_PAGE_SIZE = 24
+/** Tope del contrato: `limit` no admite más de 100 por petición. */
+const FILES_MAX_LIMIT = 100
 
 export function FilesLibraryPage() {
   const [library, setLibrary] = useState<FileLibraryData | null>(null)
-  const [page, setPage] = useState(1)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [loadError, setLoadError] = useState(false)
   const [query, setQuery] = useState("")
   const [assetFilter, setAssetFilter] = useState<AssetFilter>("all")
@@ -628,55 +665,44 @@ export function FilesLibraryPage() {
       })
     | null
   >(null)
+  // Cuántas tandas hay en pantalla. Es una referencia y no estado porque solo
+  // la leen las peticiones: renderizar no depende de su valor.
+  const loadedPages = useRef(1)
+  const sentinel = useRef<HTMLDivElement>(null)
+
   function openFolder(nextFolderId: string | "all") {
-    setPage(1)
     setFolderId(nextFolderId)
   }
 
-  const loadLibrary = useCallback(async () => {
-    setLoadError(false)
-    try {
-      const data = await filesApi.list({
-        page,
-        limit: FILES_PAGE_SIZE,
+  const fetchFiles = useCallback(
+    (pageToLoad: number, limit: number) =>
+      filesApi.list({
+        page: pageToLoad,
+        limit,
         folderId: folderId === "all" ? undefined : folderId,
         q: query.trim() || undefined,
         kind:
           assetFilter === "all" || assetFilter === "ai"
             ? undefined
             : assetFilter,
-      })
+      }),
+    [assetFilter, folderId, query]
+  )
+
+  const loadLibrary = useCallback(async () => {
+    setLoadError(false)
+    // Recarga de una vez todas las tandas visibles para que una mutación no
+    // devuelva al usuario al principio de la biblioteca.
+    const limit = Math.min(FILES_MAX_LIMIT, FILES_PAGE_SIZE * loadedPages.current)
+    try {
+      const data = await fetchFiles(1, limit)
       setLoadError(false)
+      loadedPages.current = Math.ceil(limit / FILES_PAGE_SIZE)
       const next: FileLibraryData = {
         canView: true,
         canUpload: data.canManage,
-        folders: data.folders.map((folder) => ({
-          ...folder,
-          size: formatSize(folder.sizeBytes),
-          updatedAt: new Intl.DateTimeFormat("es", {
-            dateStyle: "medium",
-          }).format(new Date(folder.updatedAt)),
-        })),
-        assets: data.files.map((asset) => ({
-          id: asset.id,
-          name: asset.name,
-          folderId: asset.folderId,
-          kind:
-            asset.kind === "image" || asset.kind === "video"
-              ? asset.kind
-              : "document",
-          mimeType: asset.mimeType,
-          size: formatSize(asset.sizeBytes),
-          dimensions: null,
-          owner: asset.owner,
-          updatedAt: new Intl.DateTimeFormat("es", {
-            dateStyle: "medium",
-          }).format(new Date(asset.modifiedAt)),
-          shared: false,
-          generatedWithAi: false,
-          starred: asset.starred,
-          thumbnailStatus: asset.thumbnailStatus,
-        })),
+        folders: data.folders.map(toFolder),
+        assets: data.files.map(toAsset),
         page: data.page,
         filesTotal: data.filesTotal,
       }
@@ -692,11 +718,58 @@ export function FilesLibraryPage() {
         filesTotal: 0,
       })
     }
-  }, [assetFilter, folderId, page, query])
+  }, [fetchFiles])
+
+  const loadMoreFiles = useCallback(async () => {
+    setLoadingMore(true)
+    try {
+      const nextPage = loadedPages.current + 1
+      const data = await fetchFiles(nextPage, FILES_PAGE_SIZE)
+      loadedPages.current = nextPage
+      setLibrary((current) =>
+        current
+          ? {
+              ...current,
+              // Las carpetas también se paginan en el contrato, así que las de
+              // una tanda posterior no describen esta ubicación: se conservan.
+              assets: [...current.assets, ...data.files.map(toAsset)],
+              page: data.page,
+              filesTotal: data.filesTotal,
+            }
+          : current
+      )
+    } catch {
+      toast.error("No pudimos cargar más archivos.")
+    } finally {
+      setLoadingMore(false)
+    }
+  }, [fetchFiles])
 
   useEffect(() => {
+    loadedPages.current = 1
     void loadLibrary()
   }, [loadLibrary])
+
+  const hasMoreFiles = Boolean(
+    library && library.assets.length < library.filesTotal
+  )
+
+  // Google Drive no pagina: la siguiente tanda entra sola cuando el final de la
+  // biblioteca se acerca al viewport.
+  useEffect(() => {
+    const node = sentinel.current
+    if (!node || !hasMoreFiles || loadingMore) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) void loadMoreFiles()
+      },
+      { rootMargin: "300px" }
+    )
+    observer.observe(node)
+
+    return () => observer.disconnect()
+  }, [hasMoreFiles, loadMoreFiles, loadingMore])
 
   useEffect(() => {
     void filesApi
@@ -1015,24 +1088,11 @@ export function FilesLibraryPage() {
         : "Esta carpeta está vacía",
   }
 
-  // The API applies the same page window to folders and files, so the range
-  // is reported over the files, which is what both views actually list.
-  const filesRangeStart = library.filesTotal
-    ? (page - 1) * FILES_PAGE_SIZE + 1
-    : 0
-  const filesRangeEnd = Math.min(page * FILES_PAGE_SIZE, library.filesTotal)
-  const filesPagination = (
-    <TablePagination
-      canGoNext={page * FILES_PAGE_SIZE < library.filesTotal}
-      canGoPrevious={page > 1}
-      itemLabel="archivos"
-      onNextPage={() => setPage((current) => current + 1)}
-      onPreviousPage={() => setPage((current) => Math.max(1, current - 1))}
-      rangeEnd={filesRangeEnd}
-      rangeStart={filesRangeStart}
-      total={library.filesTotal}
-    />
-  )
+  const filesLoader = hasMoreFiles ? (
+    <div className="flex justify-center py-4" ref={sentinel}>
+      <Spinner aria-label="Cargando más archivos" />
+    </div>
+  ) : null
 
   return (
     <div className="flex flex-col gap-6">
@@ -1043,10 +1103,7 @@ export function FilesLibraryPage() {
           </InputGroupAddon>
           <InputGroupInput
             aria-label="Buscar archivos y carpetas"
-            onChange={(event) => {
-              setPage(1)
-              setQuery(event.target.value)
-            }}
+            onChange={(event) => setQuery(event.target.value)}
             placeholder="Buscar archivos y carpetas"
             value={query}
           />
@@ -1166,10 +1223,7 @@ export function FilesLibraryPage() {
             <DataTableFilter
               ariaLabel="Filtrar archivos por tipo"
               label="Tipo"
-              onValueChange={(value) => {
-                setPage(1)
-                setAssetFilter(value as AssetFilter)
-              }}
+              onValueChange={(value) => setAssetFilter(value as AssetFilter)}
               options={[
                 { label: "Todos", value: "all" },
                 { label: "Imágenes", value: "image" },
@@ -1262,7 +1316,7 @@ export function FilesLibraryPage() {
                 />
               ))}
             </div>
-            {filesPagination}
+            {filesLoader}
           </>
         ) : (
           <Card variant="subtle">
@@ -1287,7 +1341,7 @@ export function FilesLibraryPage() {
                 }
                 selectedAssetIds={selectedAssetIds}
               />
-              {filesPagination}
+              {filesLoader}
             </CardContent>
           </Card>
         )}
