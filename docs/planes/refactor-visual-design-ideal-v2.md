@@ -201,6 +201,14 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - `@fullcalendar/react` y `date-fns` se declaran en `apps/web` por importación directa. El CSS de skeleton se importa junto al renderer copiado, sin tokens, colores o CSS global V2 nuevos.
 - Validación: `bun --cwd apps/web typecheck`, lint focal de los tres componentes y `git diff --check` correctos el 2026-08-03. Falta smoke manual en navegador para `/portal/publishing/calendar` en escritorio, móvil y modo claro/oscuro.
 
+## Publishing Portal — encuadre e idioma del calendario — 15 de agosto de 2026
+
+- El calendario ya consumía la fuente canónica; `event-calendar-views.tsx` sigue siendo copia literal de `diseño ideal/src/components/calendar/event-calendar-views.tsx`. El `Calendar` de shadcn no aplica: es un selector de fechas, no un calendario de eventos con vistas mes/semana/día.
+- La fuente `dashboard/calendar/_components/calendar.tsx` no fijaba altura, así que FullCalendar crecía por `aspectRatio` y obligaba a desplazar la página en escritorio. La fuente pasa a encuadrar el calendario en el viewport —`h-[calc(100svh-5rem)] md:h-[calc(100svh-7rem)]` con `min-h-[30rem]`— y su renderer recibe `height="100%"`, `expandRows`, `dayMaxEvents` y `scrollTime="08:00:00"`. ZapiV2 copia ese encuadre; el desplazamiento pasa a ser interno del calendario.
+- El hueco bajo el calendario en móvil venía del espaciador de `FloatingActionButton`, pensado para páginas que se desplazan. El primitive acepta `withSpacer` y el calendario lo desactiva; su fila queda documentada en [`packages/ui/COMPONENTS.md`](../../packages/ui/COMPONENTS.md).
+- Divergencia de idioma frente a la fuente: V2 pasa `locale` español de `@fullcalendar/react/locales/es`, con lo que encabezados de día, «todo el día», horas y el título del rango dejan de aparecer en inglés. El título usa `first-letter:uppercase` en vez de `capitalize` para no romper «agosto de 2026».
+- Validación del 15 de agosto de 2026: la fuente pasa Biome focal y build Next; ZapiV2 pasa typecheck de Web y `packages/ui`, lint de ambos sin errores, build Web y `git diff --check`. La aprobación visual corresponde al usuario.
+
 ## Estados de carga compartidos
 
 - Se retiraron los skeletons y placeholders visuales de las rutas Portal/Admin y de los estados internos de Dashboard, Channels, Captions, Profile, Integrations, Files, AI Studio, Plans y Publishing.

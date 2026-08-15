@@ -60,6 +60,12 @@ type FloatingActionButtonProps = Omit<
   label: string
   /** Defaults to a plus sign. */
   icon?: React.ReactNode
+  /**
+   * Reserves room under the content so the last row stays reachable. Set it to
+   * `false` inside surfaces that already fit the viewport and scroll on their
+   * own, where the spacer only leaves an empty gap.
+   */
+  withSpacer?: boolean
 }
 
 /**
@@ -71,13 +77,14 @@ function FloatingActionButton({
   className,
   icon,
   label,
+  withSpacer = true,
   ...props
 }: FloatingActionButtonProps) {
   const hidden = useHideOnScrollDown()
 
   return (
     <>
-      <div aria-hidden="true" className="h-24 sm:hidden" />
+      {withSpacer ? <div aria-hidden="true" className="h-24 sm:hidden" /> : null}
       <Button
         aria-label={label}
         className={cn(

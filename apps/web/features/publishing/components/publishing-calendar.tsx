@@ -5,6 +5,7 @@ import { useCalendarController } from "@fullcalendar/react"
 import dayGridPlugin from "@fullcalendar/react/daygrid"
 import interactionPlugin from "@fullcalendar/react/interaction"
 import listPlugin from "@fullcalendar/react/list"
+import esLocale from "@fullcalendar/react/locales/es"
 import multiMonthPlugin from "@fullcalendar/react/multimonth"
 import timeGridPlugin from "@fullcalendar/react/timegrid"
 import {
@@ -94,7 +95,7 @@ export function PublishingCalendar({
     const date = new Date(`${initialDate}T12:00:00`)
 
     return {
-      title: format(date, "MMMM yyyy", { locale: es }),
+      title: format(date, "MMMM 'de' yyyy", { locale: es }),
       days: differenceInCalendarDays(endOfMonth(date), startOfMonth(date)) + 1,
     }
   })
@@ -129,10 +130,10 @@ export function PublishingCalendar({
   }).length
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-md border">
+    <div className="flex h-[calc(100svh-5rem)] min-h-[30rem] flex-col overflow-hidden rounded-md border md:h-[calc(100svh-7rem)]">
       <div className="flex flex-col gap-4 border-b bg-sidebar p-4 text-sidebar-foreground lg:flex-row lg:items-center lg:justify-between">
         <div className="flex min-w-0 shrink-0 flex-col gap-1">
-          <div className="text-lg leading-none font-medium capitalize">
+          <div className="text-lg leading-none font-medium first-letter:uppercase">
             {dateInfo.title}
           </div>
           <p className="text-sm text-muted-foreground">
@@ -211,38 +212,46 @@ export function PublishingCalendar({
         </div>
       </div>
 
-      <EventCalendarViews
-        controller={controller}
-        dateClick={(info) => onCreateAtDate(info.dateStr)}
-        datesSet={(info) => {
-          setDateInfo({
-            title: info.view.title,
-            days: differenceInCalendarDays(
-              info.view.currentEnd,
-              info.view.currentStart
-            ),
-          })
-        }}
-        eventClick={(info) => {
-          const post = posts.find((item) => item.id === info.event.id)
+      <div className="min-h-0 flex-1">
+        <EventCalendarViews
+          controller={controller}
+          dateClick={(info) => onCreateAtDate(info.dateStr)}
+          datesSet={(info) => {
+            setDateInfo({
+              title: info.view.title,
+              days: differenceInCalendarDays(
+                info.view.currentEnd,
+                info.view.currentStart
+              ),
+            })
+          }}
+          dayMaxEvents
+          eventClick={(info) => {
+            const post = posts.find((item) => item.id === info.event.id)
 
-          if (post && editableStatuses.has(post.status)) {
-            onEditPost(post)
-          }
-        }}
-        events={events}
-        initialDate={initialDate}
-        initialView={initialCalendarView}
-        nowIndicator
-        plugins={[...plugins]}
-        popoverCloseContent={() => (
-          <XIcon className="size-5 text-muted-foreground group-hover:text-foreground" />
-        )}
-      />
+            if (post && editableStatuses.has(post.status)) {
+              onEditPost(post)
+            }
+          }}
+          events={events}
+          expandRows
+          height="100%"
+          initialDate={initialDate}
+          initialView={initialCalendarView}
+          locale={esLocale}
+          nowIndicator
+          plugins={[...plugins]}
+          popoverCloseContent={() => (
+            <XIcon className="size-5 text-muted-foreground group-hover:text-foreground" />
+          )}
+          scrollTime="08:00:00"
+        />
+      </div>
 
       <FloatingActionButton
         label="Nueva publicación"
         onClick={() => onCreateAtDate(initialDate)}
+        withSpacer={false}
       />
     </div>
   )
