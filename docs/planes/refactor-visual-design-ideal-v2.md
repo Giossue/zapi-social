@@ -231,6 +231,7 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - En cuadrícula, las carpetas ocupan cards compactas de una sola línea sobre las cards de archivo. Pierden fecha y tamaño: esa información vive en la vista de lista, como en la referencia.
 - El estado vacío pasa a mirar ambos conjuntos: solo aparece cuando la ubicación no tiene ni carpetas ni archivos. La paginación sigue contando archivos, que son lo único paginado por el contrato actual.
 - El filtro por tipo pasa a `DataTableFilter` y se alinea a la izquierda con las acciones de selección; el conmutador de vista queda solo a la derecha.
+- La cuadrícula arranca en dos columnas: `grid-cols-2` bajo `sm` para carpetas y archivos, manteniendo `sm:grid-cols-3` y `xl:grid-cols-5`. En móvil deja de mostrarse una card por fila.
 
 ## Files — doble envío al crear carpeta — 15 de agosto de 2026
 
