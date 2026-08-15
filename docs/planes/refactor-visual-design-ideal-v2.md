@@ -236,6 +236,16 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - El contrato pagina carpetas y archivos con la misma ventana, así que al añadir una tanda solo se concatenan archivos y se conservan las carpetas de la ubicación. Cambiar de carpeta, buscar o filtrar reinicia el acumulado.
 - La cuadrícula arranca en dos columnas: `grid-cols-2` bajo `sm` para carpetas y archivos, manteniendo `sm:grid-cols-3` y `xl:grid-cols-5`. En móvil deja de mostrarse una card por fila.
 
+## Files — selección y navegación al modo Drive — 15 de agosto de 2026
+
+- La biblioteca deja de seleccionarse con casillas. `useLibrarySelection` —copiado entre `diseño ideal` y V2— gobierna carpetas y archivos como una sola colección ordenada: un clic selecciona, doble clic abre, `Ctrl`/`Cmd` alterna, `Mayús` extiende el rango, `Ctrl`/`Cmd` + `A` selecciona todo, `Esc` limpia y un clic en el hueco deselecciona.
+- Con el teclado, las flechas recorren la colección y `Mayús` extiende la selección al moverse; `Intro` abre el elemento activo. Los saltos verticales se resuelven contra la geometría real del DOM, así que funcionan igual en la tabla de una columna que en la rejilla, que cambia de ancho al redimensionar.
+- Abrir significa entrar en la carpeta o previsualizar el archivo. El `Checkbox` desaparece de la card y de la tabla; el estado seleccionado lo pinta `data-selected` en el primitive `Card` —añadido en ambos repositorios— y `data-state="selected"` en `TableRow`, que ya lo soportaba.
+- La rejilla declara `role="listbox"` con `aria-multiselectable` y sus elementos `role="option"`; la tabla conserva su semántica nativa y solo marca `aria-selected` por fila. El recorrido usa `tabindex` móvil para entrar con una sola pulsación de `Tab`.
+- Mover y eliminar en lote siguen operando solo sobre archivos: la selección puede incluir carpetas, pero esas acciones filtran los identificadores de archivo antes de llamar a la API.
+- El breadcrumb pasa a mostrarse siempre, con `Archivos` como raíz. Su último tramo es un menú desplegable con las acciones de la ubicación actual —crear carpeta y, dentro de una carpeta, renombrar, mover o enviar a papelera—, como el selector de `Mi unidad` en Drive.
+- Las cards de carpeta centran verticalmente icono, nombre y menú.
+
 ## Files — doble envío al crear carpeta — 15 de agosto de 2026
 
 - Crear carpeta no bloqueaba su formulario mientras la petición viajaba, así que un segundo envío salía antes de que el primero cerrara el diálogo. El servidor aceptaba el primero y rechazaba el segundo con `VALIDATION_FAILED` por nombre repetido; como el éxito espera a recargar la biblioteca y el error no, el aviso rojo aparecía antes que el verde.

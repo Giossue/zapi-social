@@ -9,6 +9,7 @@ import type {
 } from "@workspace/contracts"
 import { toast } from "@workspace/ui/components/toast"
 import {
+  ChevronDown,
   Download,
   Eye,
   FilePenLine,
@@ -35,11 +36,9 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
-  BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@workspace/ui/components/breadcrumb"
 import { Button } from "@workspace/ui/components/button"
-import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
   Card,
   CardAction,
@@ -103,6 +102,7 @@ import type {
   FileLibraryData,
 } from "@/features/files/types/files"
 import { openGoogleDrivePicker } from "@/features/files/components/google-drive-picker"
+import { useLibrarySelection } from "@/features/files/hooks/use-library-selection"
 
 type FilesView = "grid" | "list"
 type AssetFilter = FileAssetKind | "all" | "ai"
@@ -190,10 +190,30 @@ function AssetThumbnail({
   )
 }
 
+type LibraryItemProps = ReturnType<
+  ReturnType<typeof useLibrarySelection<LibraryEntry>>["getItemProps"]
+>
+
+type LibraryEntry =
+  | { asset: FileAsset; id: string; type: "file" }
+  | { folder: FileFolder; id: string; type: "folder" }
+
+/** `TableRow` ya pinta la selección con `data-state`; el resto viaja igual. */
+function rowSelection({
+  "data-selected": selected,
+  role: _role,
+  ...props
+}: LibraryItemProps) {
+  return {
+    ...props,
+    "data-selected": selected,
+    "data-state": selected ? ("selected" as const) : undefined,
+  }
+}
+
 function AssetCard({
   asset,
-  selected,
-  onSelect,
+  itemProps,
   onToggleStar,
   onPreview,
   onInfo,
@@ -202,8 +222,7 @@ function AssetCard({
   onTrash,
 }: {
   asset: FileAsset
-  selected: boolean
-  onSelect: (id: string) => void
+  itemProps: LibraryItemProps
   onToggleStar: (asset: FileAsset) => void
   onPreview: (asset: FileAsset) => void
   onInfo: (asset: FileAsset) => void
@@ -214,19 +233,17 @@ function AssetCard({
   const { label } = assetKindMeta[asset.kind]
 
   return (
-    <Card className="group/file" size="sm">
+    <Card
+      className="group/file cursor-default select-none"
+      size="sm"
+      {...itemProps}
+    >
       <CardContent>
         <div className="relative flex h-36 items-center justify-center rounded-lg bg-muted/50">
           <AssetThumbnail
             asset={asset}
             fallbackClassName="size-12 text-muted-foreground"
             imageClassName="h-full w-full rounded-lg object-contain p-2"
-          />
-          <Checkbox
-            aria-label={`Seleccionar ${asset.name}`}
-            checked={selected}
-            className="absolute top-2 left-2 border-2 border-foreground bg-background data-[state=checked]:border-primary"
-            onCheckedChange={() => onSelect(asset.id)}
           />
           <Button
             aria-label={`${asset.starred ? "Quitar de favoritos" : "Añadir a favoritos"} ${asset.name}`}
@@ -303,38 +320,90 @@ function AssetCard({
   )
 }
 
+function CurrentLocationMenu({
+  canManage,
+  folder,
+  onMove,
+  onNewFolder,
+  onRename,
+  onTrash,
+}: {
+  canManage: boolean
+  folder: FileFolder | null
+  onMove?: () => void
+  onNewFolder: () => void
+  onRename?: () => void
+  onTrash?: () => void
+}) {
+  const name = folder?.name ?? "Archivos"
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          aria-label={`Acciones de ${name}`}
+          className="h-auto gap-1 px-0 text-foreground"
+          size="sm"
+          variant="link"
+        >
+          {name}
+          <ChevronDown aria-hidden="true" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        <DropdownMenuItem disabled={!canManage} onSelect={onNewFolder}>
+          <FolderPlus />
+          Nueva carpeta
+        </DropdownMenuItem>
+        {folder ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem disabled={!canManage} onSelect={onRename}>
+                <FilePenLine />
+                Renombrar
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled={!canManage} onSelect={onMove}>
+                <FolderInput />
+                Mover
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              disabled={!canManage}
+              onSelect={onTrash}
+              variant="destructive"
+            >
+              <Trash2 />
+              Enviar a papelera
+            </DropdownMenuItem>
+          </>
+        ) : null}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
 function FolderCard({
   folder,
-  onOpen,
+  itemProps,
   onMove,
   onRename,
   onTrash,
 }: {
   folder: FileFolder
-  onOpen: (id: string) => void
+  itemProps: LibraryItemProps
   onMove: (folder: FileFolder) => void
   onRename: (folder: FileFolder) => void
   onTrash: (folder: FileFolder) => void
 }) {
   return (
     <Card
-      className="cursor-pointer transition-colors hover:bg-accent/50"
-      onClick={(event) => {
-        if (event.currentTarget.contains(event.target as Node))
-          onOpen(folder.id)
-      }}
-      onKeyDown={(event) => {
-        if (event.target !== event.currentTarget) return
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault()
-          onOpen(folder.id)
-        }
-      }}
-      role="link"
+      className="cursor-default transition-colors select-none hover:bg-accent/50"
       size="sm"
-      tabIndex={0}
+      {...itemProps}
     >
-      <CardHeader>
+      <CardHeader className="items-center">
         <div className="flex min-w-0 items-center gap-2">
           <Folder
             aria-hidden="true"
@@ -342,7 +411,7 @@ function FolderCard({
           />
           <CardTitle className="truncate leading-none">{folder.name}</CardTitle>
         </div>
-        <CardAction>
+        <CardAction className="self-center">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -386,8 +455,7 @@ function FolderCard({
 function AssetsTable({
   assets,
   folders,
-  selectedAssetIds,
-  onSelect,
+  itemPropsOf,
   onOpenFolder,
   onPreview,
   onInfo,
@@ -402,8 +470,7 @@ function AssetsTable({
   assets: readonly FileAsset[]
   emptyProps: React.ComponentProps<typeof EmptyState>
   folders: readonly FileFolder[]
-  selectedAssetIds: readonly string[]
-  onSelect: (id: string) => void
+  itemPropsOf: (id: string) => LibraryItemProps
   onOpenFolder: (id: string) => void
   onPreview: (asset: FileAsset) => void
   onInfo: (asset: FileAsset) => void
@@ -418,9 +485,6 @@ function AssetsTable({
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="w-10">
-            <span className="sr-only">Seleccionar</span>
-          </TableHead>
           <TableHead>Nombre</TableHead>
           <TableHead className="hidden md:table-cell">Tipo</TableHead>
           <TableHead className="hidden lg:table-cell">Actualizado</TableHead>
@@ -429,8 +493,7 @@ function AssetsTable({
       </TableHeader>
       <TableBody>
         {folders.map((folder) => (
-          <TableRow key={folder.id}>
-            <TableCell />
+          <TableRow key={folder.id} {...rowSelection(itemPropsOf(folder.id))}>
             <TableCell>
               <div className="flex min-w-0 items-center gap-3">
                 <Folder
@@ -493,17 +556,9 @@ function AssetsTable({
         ))}
         {assets.map((asset) => {
           const { label } = assetKindMeta[asset.kind]
-          const selected = selectedAssetIds.includes(asset.id)
 
           return (
-            <TableRow key={asset.id}>
-              <TableCell>
-                <Checkbox
-                  aria-label={`Seleccionar ${asset.name}`}
-                  checked={selected}
-                  onCheckedChange={() => onSelect(asset.id)}
-                />
-              </TableCell>
+            <TableRow key={asset.id} {...rowSelection(itemPropsOf(asset.id))}>
               <TableCell>
                 <div className="flex min-w-0 items-center gap-3">
                   <AssetThumbnail
@@ -574,7 +629,7 @@ function AssetsTable({
           )
         })}
         {assets.length === 0 && folders.length === 0 ? (
-          <TableEmptyRow colSpan={5} {...emptyProps} />
+          <TableEmptyRow colSpan={4} {...emptyProps} />
         ) : null}
       </TableBody>
     </Table>
@@ -593,9 +648,7 @@ function formatDate(value: string) {
   )
 }
 
-function toFolder(
-  folder: PortalFilesResponse["folders"][number]
-): FileFolder {
+function toFolder(folder: PortalFilesResponse["folders"][number]): FileFolder {
   return {
     ...folder,
     size: formatSize(folder.sizeBytes),
@@ -609,7 +662,9 @@ function toAsset(asset: PortalFilesResponse["files"][number]): FileAsset {
     name: asset.name,
     folderId: asset.folderId,
     kind:
-      asset.kind === "image" || asset.kind === "video" ? asset.kind : "document",
+      asset.kind === "image" || asset.kind === "video"
+        ? asset.kind
+        : "document",
     mimeType: asset.mimeType,
     size: formatSize(asset.sizeBytes),
     dimensions: null,
@@ -634,7 +689,6 @@ export function FilesLibraryPage() {
   const [assetFilter, setAssetFilter] = useState<AssetFilter>("all")
   const [folderId, setFolderId] = useState<string | "all">("all")
   const [view, setView] = useState<FilesView>("grid")
-  const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([])
   const [bulkMoveOpen, setBulkMoveOpen] = useState(false)
   const [bulkTrashOpen, setBulkTrashOpen] = useState(false)
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
@@ -693,7 +747,10 @@ export function FilesLibraryPage() {
     setLoadError(false)
     // Recarga de una vez todas las tandas visibles para que una mutación no
     // devuelva al usuario al principio de la biblioteca.
-    const limit = Math.min(FILES_MAX_LIMIT, FILES_PAGE_SIZE * loadedPages.current)
+    const limit = Math.min(
+      FILES_MAX_LIMIT,
+      FILES_PAGE_SIZE * loadedPages.current
+    )
     try {
       const data = await fetchFiles(1, limit)
       setLoadError(false)
@@ -933,13 +990,44 @@ export function FilesLibraryPage() {
   )
   const hasFilters = Boolean(query.trim()) || assetFilter !== "all"
 
-  function toggleAsset(id: string) {
-    setSelectedAssetIds((current) =>
-      current.includes(id)
-        ? current.filter((assetId) => assetId !== id)
-        : [...current, id]
-    )
+  // Carpetas y archivos comparten selección y recorrido, en el mismo orden en
+  // que se pintan.
+  const entries = useMemo<LibraryEntry[]>(
+    () => [
+      ...visibleFolders.map((folder) => ({
+        folder,
+        id: folder.id,
+        type: "folder" as const,
+      })),
+      ...assets.map((asset) => ({
+        asset,
+        id: asset.id,
+        type: "file" as const,
+      })),
+    ],
+    [assets, visibleFolders]
+  )
+
+  const { containerProps, getItemProps, selection, clearSelection } =
+    useLibrarySelection<LibraryEntry>({
+      items: entries,
+      onOpen: (entry) => {
+        if (entry.type === "folder") openFolder(entry.folder.id)
+        else setPreviewAsset(entry.asset)
+      },
+    })
+
+  const itemPropsOf = (id: string) => {
+    const entry = entries.find((item) => item.id === id)
+
+    return getItemProps(entry as LibraryEntry)
   }
+
+  // Mover y eliminar en lote siguen operando solo sobre archivos.
+  const selectedAssetIds = useMemo(
+    () => selection.filter((id) => assets.some((asset) => asset.id === id)),
+    [assets, selection]
+  )
 
   async function toggleStar(asset: FileAsset) {
     try {
@@ -1008,7 +1096,7 @@ export function FilesLibraryPage() {
       const failed = results.filter((result) => result.status === "rejected")
       setBulkMoveOpen(false)
       await loadLibrary()
-      setSelectedAssetIds([])
+      clearSelection()
       if (failed.length) {
         toast.error(
           failed.length === ids.length
@@ -1033,7 +1121,7 @@ export function FilesLibraryPage() {
       const failed = results.filter((result) => result.status === "rejected")
       setBulkTrashOpen(false)
       await loadLibrary()
-      setSelectedAssetIds([])
+      clearSelection()
       if (failed.length) {
         toast.error(
           failed.length === ids.length
@@ -1189,33 +1277,46 @@ export function FilesLibraryPage() {
         </Card>
       ) : null}
 
-      {currentFolderPath.length > 0 ? (
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            {currentFolderPath.length === 0 ? (
+              <CurrentLocationMenu
+                canManage={library.canUpload}
+                folder={null}
+                onNewFolder={() => setFolderDialogOpen(true)}
+              />
+            ) : (
               <BreadcrumbLink asChild>
                 <button onClick={() => openFolder("all")} type="button">
                   Archivos
                 </button>
               </BreadcrumbLink>
+            )}
+          </BreadcrumbItem>
+          {currentFolderPath.map((folder, index) => (
+            <BreadcrumbItem key={folder.id}>
+              <BreadcrumbSeparator />
+              {index === currentFolderPath.length - 1 ? (
+                <CurrentLocationMenu
+                  canManage={library.canUpload}
+                  folder={folder}
+                  onMove={() => setMoveItem({ ...folder, isFolder: true })}
+                  onNewFolder={() => setFolderDialogOpen(true)}
+                  onRename={() => setRenameItem(folder)}
+                  onTrash={() => setTrashItem({ ...folder, isFolder: true })}
+                />
+              ) : (
+                <BreadcrumbLink asChild>
+                  <button onClick={() => openFolder(folder.id)} type="button">
+                    {folder.name}
+                  </button>
+                </BreadcrumbLink>
+              )}
             </BreadcrumbItem>
-            {currentFolderPath.map((folder, index) => (
-              <BreadcrumbItem key={folder.id}>
-                <BreadcrumbSeparator />
-                {index === currentFolderPath.length - 1 ? (
-                  <BreadcrumbPage>{folder.name}</BreadcrumbPage>
-                ) : (
-                  <BreadcrumbLink asChild>
-                    <button onClick={() => openFolder(folder.id)} type="button">
-                      {folder.name}
-                    </button>
-                  </BreadcrumbLink>
-                )}
-              </BreadcrumbItem>
-            ))}
-          </BreadcrumbList>
-        </Breadcrumb>
-      ) : null}
+          ))}
+        </BreadcrumbList>
+      </Breadcrumb>
 
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1282,7 +1383,12 @@ export function FilesLibraryPage() {
         </div>
 
         {view === "grid" ? (
-          <>
+          <div
+            aria-multiselectable="true"
+            className="flex flex-col gap-3"
+            role="listbox"
+            {...containerProps}
+          >
             {assets.length === 0 && visibleFolders.length === 0 ? (
               <EmptyState {...assetsEmptyProps} />
             ) : null}
@@ -1291,11 +1397,13 @@ export function FilesLibraryPage() {
                 {visibleFolders.map((folder) => (
                   <FolderCard
                     folder={folder}
+                    itemProps={itemPropsOf(folder.id)}
                     key={folder.id}
                     onMove={(item) => setMoveItem({ ...item, isFolder: true })}
-                    onOpen={openFolder}
                     onRename={setRenameItem}
-                    onTrash={(item) => setTrashItem({ ...item, isFolder: true })}
+                    onTrash={(item) =>
+                      setTrashItem({ ...item, isFolder: true })
+                    }
                   />
                 ))}
               </div>
@@ -1304,43 +1412,43 @@ export function FilesLibraryPage() {
               {assets.map((asset) => (
                 <AssetCard
                   asset={asset}
+                  itemProps={itemPropsOf(asset.id)}
                   key={asset.id}
-                  onSelect={toggleAsset}
                   onToggleStar={toggleStar}
                   onPreview={setPreviewAsset}
                   onInfo={setInfoAsset}
                   onRename={setRenameItem}
                   onMove={setMoveItem}
                   onTrash={setTrashItem}
-                  selected={selectedAssetIds.includes(asset.id)}
                 />
               ))}
             </div>
             {filesLoader}
-          </>
+          </div>
         ) : (
           <Card variant="subtle">
             <CardContent className="flex flex-col gap-4 px-0">
-              <AssetsTable
-                assets={assets}
-                emptyProps={assetsEmptyProps}
-                folders={visibleFolders}
-                onInfo={setInfoAsset}
-                onMove={setMoveItem}
-                onMoveFolder={(folder) =>
-                  setMoveItem({ ...folder, isFolder: true })
-                }
-                onOpenFolder={openFolder}
-                onPreview={setPreviewAsset}
-                onRename={setRenameItem}
-                onRenameFolder={setRenameItem}
-                onSelect={toggleAsset}
-                onTrash={setTrashItem}
-                onTrashFolder={(folder) =>
-                  setTrashItem({ ...folder, isFolder: true })
-                }
-                selectedAssetIds={selectedAssetIds}
-              />
+              <div {...containerProps}>
+                <AssetsTable
+                  assets={assets}
+                  emptyProps={assetsEmptyProps}
+                  folders={visibleFolders}
+                  itemPropsOf={itemPropsOf}
+                  onInfo={setInfoAsset}
+                  onMove={setMoveItem}
+                  onMoveFolder={(folder) =>
+                    setMoveItem({ ...folder, isFolder: true })
+                  }
+                  onOpenFolder={openFolder}
+                  onPreview={setPreviewAsset}
+                  onRename={setRenameItem}
+                  onRenameFolder={setRenameItem}
+                  onTrash={setTrashItem}
+                  onTrashFolder={(folder) =>
+                    setTrashItem({ ...folder, isFolder: true })
+                  }
+                />
+              </div>
               {filesLoader}
             </CardContent>
           </Card>
