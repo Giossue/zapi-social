@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { AuthPage } from "@/features/identity/components/auth-page"
 
 export const metadata: Metadata = {
-  title: "Iniciar sesión | Zapi Social",
+  title: "Iniciar sesión - Zapi Social",
 }
 
 export default async function LoginPage({

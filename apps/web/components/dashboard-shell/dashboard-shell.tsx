@@ -75,9 +75,7 @@ export function DashboardShell({
   useEffect(() => {
     const routeLabel =
       documentTitleOverrides?.[pathname] ?? getRouteLabel(items, pathname)
-    document.title = routeLabel
-      ? `${routeLabel} | ${areaName} | Zapi Social`
-      : `${areaName} | Zapi Social`
+    document.title = `${routeLabel || areaName} - Zapi Social`
   }, [areaName, documentTitleOverrides, items, pathname])
 
   return (

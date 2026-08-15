@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { PortalAreaLayout } from "@/components/portal-area-layout"
 
 export const metadata: Metadata = {
-  title: "Portal | Zapi Social",
+  title: "Portal - Zapi Social",
 }
 
 export default function PortalLayout({

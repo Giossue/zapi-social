@@ -6,7 +6,7 @@ import { AuthShell } from "@/features/identity/components/auth-page"
 import { ResetPasswordForm } from "@/features/identity/components/password-reset-forms"
 
 export const metadata: Metadata = {
-  title: "Restablecer contraseña | Zapi Social",
+  title: "Restablecer contraseña - Zapi Social",
 }
 
 function ResetPasswordLoading() {

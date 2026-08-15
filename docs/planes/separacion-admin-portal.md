@@ -185,8 +185,7 @@ El shell resuelve el título desde la entrada de navegación más específica y 
 actualiza también en transiciones internas:
 
 ```text
-{Módulo} | Admin | Zapi Social
-{Módulo} | Portal | Zapi Social
+{Módulo} - Zapi Social
 ```
 
 Las rutas fuera del menú declaran una excepción explícita en su shell. Las
