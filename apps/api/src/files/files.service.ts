@@ -24,7 +24,9 @@ import {
   ilike,
   inArray,
   isNull,
+  not,
   sql,
+  type SQL,
 } from '@workspace/database/query';
 import {
   createPortalFileFolderSchema,
@@ -415,6 +417,7 @@ export class FilesService {
       filters.push(ilike(fileAssets.name, `%${q}%`));
       folderFilters.push(ilike(fileFolders.name, `%${q}%`));
     }
+    if (query?.kind) filters.push(this.kindFilter(query.kind));
     const page = query?.page ?? 1;
     const limit = query?.limit ?? 50;
     const offset = (page - 1) * limit;
@@ -452,9 +455,7 @@ export class FilesService {
         .from(fileFolders)
         .where(and(...folderFilters)),
     ]);
-    const visibleAssets = query?.kind
-      ? assets.filter(({ asset }) => fileKind(asset.mimeType) === query.kind)
-      : assets;
+    const visibleAssets = assets;
     return {
       canManage: this.canManage(auth),
       page,
@@ -723,6 +724,26 @@ export class FilesService {
         HttpStatus.FORBIDDEN,
       );
   }
+  /**
+   * Traduce el tipo visible a condiciones sobre el mimeType. Filtrar en memoria
+   * dejaba `filesTotal` contando archivos que la consulta ya había descartado,
+   * y la biblioteca pedía tandas sin fin creyendo que aún quedaban resultados.
+   */
+  private kindFilter(kind: string): SQL {
+    if (kind === 'image') return ilike(fileAssets.mimeType, 'image/%');
+    if (kind === 'video') return ilike(fileAssets.mimeType, 'video/%');
+    if (kind === 'pdf') return eq(fileAssets.mimeType, 'application/pdf');
+    if (kind === 'spreadsheet')
+      return sql`(${ilike(fileAssets.mimeType, '%spreadsheet%')} or ${ilike(fileAssets.mimeType, '%excel%')})`;
+    if (kind === 'archive')
+      return sql`(${ilike(fileAssets.mimeType, '%zip%')} or ${ilike(fileAssets.mimeType, '%archive%')} or ${ilike(fileAssets.mimeType, '%gzip%')} or ${ilike(fileAssets.mimeType, '%rar%')} or ${ilike(fileAssets.mimeType, '%tar%')})`;
+    // `document` es lo que la biblioteca muestra como documento: cuanto no es
+    // imagen ni vídeo, incluidos PDF, hojas de cálculo y comprimidos.
+    if (kind === 'document')
+      return sql`(${not(ilike(fileAssets.mimeType, 'image/%'))} and ${not(ilike(fileAssets.mimeType, 'video/%'))})`;
+    return sql`false`;
+  }
+
   private invalid() {
     return new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
   }

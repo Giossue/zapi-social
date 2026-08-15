@@ -236,6 +236,14 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - El contrato pagina carpetas y archivos con la misma ventana, así que al añadir una tanda solo se concatenan archivos y se conservan las carpetas de la ubicación. Cambiar de carpeta, buscar o filtrar reinicia el acumulado.
 - La cuadrícula arranca en dos columnas: `grid-cols-2` bajo `sm` para carpetas y archivos, manteniendo `sm:grid-cols-3` y `xl:grid-cols-5`. En móvil deja de mostrarse una card por fila.
 
+## Files — filtro de tipo y fin de lista — 15 de agosto de 2026
+
+- El filtro por tipo se aplicaba en memoria sobre la tanda recibida, pero `filesTotal` seguía contando sin filtrar. Al elegir un tipo sin resultados, la biblioteca creía que faltaban archivos y pedía tandas sin fin: el usuario solo veía el cargador girando. `kindFilter` traduce el tipo a condiciones sobre `mimeType` dentro de la consulta, así que el total y las páginas ya concuerdan.
+- `document` pasa a significar lo mismo que muestra la interfaz —cuanto no es imagen ni vídeo, incluidos PDF, hojas de cálculo y comprimidos—, porque la biblioteca ya los pinta a todos como documento. Las categorías finas del contrato siguen aceptándose.
+- Como red de seguridad independiente del conteo, una tanda con menos elementos que el límite cierra la lista: ningún desajuste futuro puede volver a dejar el cargador girando.
+- Se retiró el filtro «Creados con AI»: `generatedWithAi` no tiene origen real y siempre vaciaba la vista.
+- El breadcrumb vuelve a aparecer solo dentro de una carpeta; en la raíz no se muestra la palabra «Archivos».
+
 ## Files — orden, acciones en lote y favoritos — 15 de agosto de 2026
 
 - Marcar un favorito escribía `updatedAt`, así que el archivo saltaba al principio del listado —ordenado por esa fecha— tanto al marcarlo como al desmarcarlo, y además falseaba la fecha mostrada. `updateAsset` solo toca `updatedAt` cuando cambian el nombre o la carpeta.

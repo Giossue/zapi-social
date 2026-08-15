@@ -117,7 +117,7 @@ const sortLabels: Record<PortalFileSort, string> = {
   modifiedAt: "Fecha de modificación",
   name: "Nombre",
 }
-type AssetFilter = FileAssetKind | "all" | "ai"
+type AssetFilter = FileAssetKind | "all"
 
 const assetKindMeta: Record<
   FileAssetKind,
@@ -138,9 +138,7 @@ function assetMatches(
   const matchesQuery =
     normalizedQuery.length === 0 ||
     asset.name.toLocaleLowerCase("es").includes(normalizedQuery)
-  const matchesFilter =
-    filter === "all" ||
-    (filter === "ai" ? asset.generatedWithAi : asset.kind === filter)
+  const matchesFilter = filter === "all" || asset.kind === filter
   const matchesFolder = folderId === "all" || asset.folderId === folderId
 
   return matchesQuery && matchesFilter && matchesFolder
@@ -632,6 +630,7 @@ const FILES_MAX_LIMIT = 100
 export function FilesLibraryPage() {
   const [library, setLibrary] = useState<FileLibraryData | null>(null)
   const [loadingMore, setLoadingMore] = useState(false)
+  const [reachedEnd, setReachedEnd] = useState(false)
   const [loadError, setLoadError] = useState(false)
   const [query, setQuery] = useState("")
   const [assetFilter, setAssetFilter] = useState<AssetFilter>("all")
@@ -687,10 +686,7 @@ export function FilesLibraryPage() {
         order,
         q: query.trim() || undefined,
         sort,
-        kind:
-          assetFilter === "all" || assetFilter === "ai"
-            ? undefined
-            : assetFilter,
+        kind: assetFilter === "all" ? undefined : assetFilter,
       }),
     [assetFilter, folderId, order, query, sort]
   )
@@ -707,6 +703,7 @@ export function FilesLibraryPage() {
       const data = await fetchFiles(1, limit)
       setLoadError(false)
       loadedPages.current = Math.ceil(limit / FILES_PAGE_SIZE)
+      setReachedEnd(data.files.length < limit)
       const next: FileLibraryData = {
         canView: true,
         canUpload: data.canManage,
@@ -735,6 +732,9 @@ export function FilesLibraryPage() {
       const nextPage = loadedPages.current + 1
       const data = await fetchFiles(nextPage, FILES_PAGE_SIZE)
       loadedPages.current = nextPage
+      // Una tanda incompleta cierra la lista aunque el total diga otra cosa:
+      // así ningún desajuste de conteo deja el cargador girando sin fin.
+      setReachedEnd(data.files.length < FILES_PAGE_SIZE)
       setLibrary((current) =>
         current
           ? {
@@ -760,7 +760,7 @@ export function FilesLibraryPage() {
   }, [loadLibrary])
 
   const hasMoreFiles = Boolean(
-    library && library.assets.length < library.filesTotal
+    library && !reachedEnd && library.assets.length < library.filesTotal
   )
 
   // Google Drive no pagina: la siguiente tanda entra sola cuando el final de la
@@ -1241,35 +1241,33 @@ export function FilesLibraryPage() {
         </Card>
       ) : null}
 
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            {currentFolderPath.length === 0 ? (
-              <BreadcrumbPage>Archivos</BreadcrumbPage>
-            ) : (
+      {currentFolderPath.length > 0 ? (
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
               <BreadcrumbLink asChild>
                 <button onClick={() => openFolder("all")} type="button">
                   Archivos
                 </button>
               </BreadcrumbLink>
-            )}
-          </BreadcrumbItem>
-          {currentFolderPath.map((folder, index) => (
-            <BreadcrumbItem key={folder.id}>
-              <BreadcrumbSeparator />
-              {index === currentFolderPath.length - 1 ? (
-                <BreadcrumbPage>{folder.name}</BreadcrumbPage>
-              ) : (
-                <BreadcrumbLink asChild>
-                  <button onClick={() => openFolder(folder.id)} type="button">
-                    {folder.name}
-                  </button>
-                </BreadcrumbLink>
-              )}
             </BreadcrumbItem>
-          ))}
-        </BreadcrumbList>
-      </Breadcrumb>
+            {currentFolderPath.map((folder, index) => (
+              <BreadcrumbItem key={folder.id}>
+                <BreadcrumbSeparator />
+                {index === currentFolderPath.length - 1 ? (
+                  <BreadcrumbPage>{folder.name}</BreadcrumbPage>
+                ) : (
+                  <BreadcrumbLink asChild>
+                    <button onClick={() => openFolder(folder.id)} type="button">
+                      {folder.name}
+                    </button>
+                  </BreadcrumbLink>
+                )}
+              </BreadcrumbItem>
+            ))}
+          </BreadcrumbList>
+        </Breadcrumb>
+      ) : null}
 
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1283,7 +1281,6 @@ export function FilesLibraryPage() {
                 { label: "Imágenes", value: "image" },
                 { label: "Videos", value: "video" },
                 { label: "Documentos", value: "document" },
-                { label: "Creados con AI", value: "ai" },
               ]}
               value={assetFilter}
             />

@@ -10,6 +10,8 @@ export {
   ilike,
   inArray,
   isNull,
+  not,
   or,
   sql,
 } from "drizzle-orm"
+export type { SQL } from "drizzle-orm"
