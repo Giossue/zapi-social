@@ -81,11 +81,9 @@ Antes de crear markup o un componente, ejecutar `codebase-memory` para comprobar
 - Crear, editar o ver un registro desde una tabla operativa abre `Sheet` lateral, incluidos formularios y detalle de fila. `AlertDialog` permanece para confirmaciones destructivas. Channels conserva su flujo actual como excepción explícita; no introducir otra excepción sin decisión documentada.
 - Las tablas operativas usan `CollectionHeader`, `DataTableHeader`,
   `DataTableToolbar` y `DataTableFilter` para fijar jerarquía, búsqueda, acción
-  y filtros. Cada ruta muestra una sola vez su título y descripción: si tabs,
-  métricas u otras secciones necesitan una cabecera superior,
-  `DataTableHeader` se usa sin contexto y conserva únicamente búsqueda y acción;
-  si la tabla es la superficie principal —como Channels—, la card aloja también
-  ese contexto. La acción que crea o administra filas siempre queda junto a la
+  y filtros. Cada ruta muestra una sola vez su título y descripción, siempre en
+  `CollectionHeader` fuera de la card; `DataTableHeader` conserva únicamente
+  búsqueda y acción. La acción que crea o administra filas siempre queda junto a la
   búsqueda dentro de `DataTableHeader`, no en la cabecera superior. Sin contexto,
   la búsqueda se alinea a la izquierda y la acción al extremo derecho; con
   contexto, los controles permanecen a la derecha de su título. Una

@@ -15,24 +15,11 @@ import {
   startOfMonth,
 } from "date-fns"
 import { es } from "date-fns/locale"
-import {
-  Calendar as CalendarIcon,
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  XIcon,
-} from "lucide-react"
+import { ChevronLeft, ChevronRight, Plus, XIcon } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { ButtonGroup } from "@workspace/ui/components/button-group"
+import { DataTableFilter } from "@workspace/ui/components/data-table-controls"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
 import type {
   PublishingPost,
   PublishingProvider,
@@ -41,19 +28,19 @@ import type {
 
 import { EventCalendarViews } from "./event-calendar-views"
 
-const views = [
-  { key: "dayGridMonth", label: "Mes" },
-  { key: "timeGridWeek", label: "Semana" },
-  { key: "timeGridDay", label: "Día" },
+const viewOptions = [
+  { label: "Mes", value: "dayGridMonth" },
+  { label: "Semana", value: "timeGridWeek" },
+  { label: "Día", value: "timeGridDay" },
 ]
 
 const initialCalendarView = "dayGridMonth"
 
-const calendars: Array<{ key: PublishingProvider | "all"; label: string }> = [
-  { key: "all", label: "Todos los canales" },
-  { key: "facebook", label: "Facebook" },
-  { key: "instagram", label: "Instagram" },
-  { key: "whatsapp", label: "WhatsApp" },
+const channelOptions = [
+  { label: "Todos", value: "all" },
+  { label: "Facebook", value: "facebook" },
+  { label: "Instagram", value: "instagram" },
+  { label: "WhatsApp", value: "whatsapp" },
 ]
 
 const plugins = [
@@ -142,69 +129,51 @@ export function PublishingCalendar({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Select
+          <DataTableFilter
+            ariaLabel="Filtrar por canal"
+            label="Canal"
             onValueChange={(value) =>
               setSelectedCalendar(value as PublishingProvider | "all")
             }
+            options={channelOptions}
             value={selectedCalendar}
-          >
-            <SelectTrigger className="w-full sm:w-max">
-              <CalendarIcon />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent position="popper">
-              <SelectGroup>
-                {calendars.map((calendar) => (
-                  <SelectItem key={calendar.key} value={calendar.key}>
-                    {calendar.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+          />
+          <DataTableFilter
+            ariaLabel="Cambiar vista del calendario"
+            label="Vista"
+            onValueChange={(value) => controller.changeView(value)}
+            options={viewOptions}
+            value={controller.view?.type ?? initialCalendarView}
+          />
           <ButtonGroup>
             <Button
               aria-label="Periodo anterior"
               onClick={() => controller.prev()}
-              size="icon"
+              size="icon-sm"
               variant="outline"
             >
               <ChevronLeft />
             </Button>
-            <Button onClick={() => controller.today()} variant="outline">
+            <Button
+              onClick={() => controller.today()}
+              size="sm"
+              variant="outline"
+            >
               Hoy
             </Button>
             <Button
               aria-label="Periodo siguiente"
               onClick={() => controller.next()}
-              size="icon"
+              size="icon-sm"
               variant="outline"
             >
               <ChevronRight />
             </Button>
           </ButtonGroup>
-          <Select
-            onValueChange={(value) => {
-              controller.changeView(value)
-            }}
-            value={controller.view?.type ?? initialCalendarView}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent align="end">
-              <SelectGroup>
-                {views.map((view) => (
-                  <SelectItem key={view.key} value={view.key}>
-                    {view.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
           <Button
             className="hidden sm:inline-flex"
             onClick={() => onCreateAtDate(initialDate)}
+            size="sm"
           >
             <Plus />
             Nueva publicación

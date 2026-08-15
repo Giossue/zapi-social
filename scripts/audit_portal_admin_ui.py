@@ -35,11 +35,7 @@ TABLE_ACTION_SHEET_FILES = frozenset(
         "apps/web/features/teams/components/team-dialogs.tsx",
     }
 )
-PORTAL_TABLE_HEADER_CONTEXT_ALLOWLIST = frozenset(
-    {
-        "apps/web/features/channels/components/channel-table/channels-users.tsx",
-    }
-)
+PORTAL_TABLE_HEADER_CONTEXT_ALLOWLIST: frozenset[str] = frozenset()
 PORTAL_TABLE_HEADER_CONTEXT_ROOTS = (
     "apps/web/features/ai-studio/",
     "apps/web/features/captions/",
@@ -252,7 +248,7 @@ def inspect_portal_table_context(path: Path, source: str) -> list[Finding]:
                 path,
                 source,
                 start,
-                "Portal con cabecera, tabs o métricas usa CollectionHeader fuera de Card; DataTableHeader conserva solo búsqueda y acción. Channels es la única excepción.",
+                "Portal usa CollectionHeader fuera de Card para su título y descripción; DataTableHeader conserva solo búsqueda y acción.",
             )
         )
     return findings

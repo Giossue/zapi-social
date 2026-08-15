@@ -8,6 +8,7 @@ import { Plus } from "lucide-react"
 
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
+import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import {
   DataTableFilter,
   DataTableHeader,
@@ -84,7 +85,11 @@ export function ChannelsUsers({
   })
 
   return (
-    <>
+    <div className="flex flex-col gap-4">
+      <CollectionHeader
+        description="Gestiona las cuentas conectadas y su acceso para publicar."
+        title="Canales"
+      />
       <Card variant="subtle">
         <DataTableHeader
           action={
@@ -98,14 +103,12 @@ export function ChannelsUsers({
               </Button>
             ) : undefined
           }
-          description="Gestiona las cuentas conectadas y su acceso para publicar."
           search={{
             ariaLabel: "Buscar canales",
             onChange: onQueryChange,
             placeholder: "Buscar canales...",
             value: query,
           }}
-          title="Cuentas de canal"
         />
         <CardContent className="flex flex-col gap-4 px-0">
           <DataTableToolbar>
@@ -163,6 +166,6 @@ export function ChannelsUsers({
       {canManage ? (
         <FloatingActionButton label="Conectar canal" onClick={onConnect} />
       ) : null}
-    </>
+    </div>
   )
 }
