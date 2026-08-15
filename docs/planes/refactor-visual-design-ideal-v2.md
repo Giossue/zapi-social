@@ -216,6 +216,13 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - Cabecera de Channels: `Canales` y su descripción salen de la card a `CollectionHeader`, igual que `/portal/ai-publishing`; su `DataTableHeader` conserva solo búsqueda y acción. La excepción quedó retirada también del auditor y de [`docs/reglas/design.md`](../reglas/design.md).
 - Validación del 15 de agosto de 2026: la fuente pasa Biome focal, `tsc --noEmit` y build Next; ZapiV2 pasa typecheck de Web y `packages/ui`, lint de ambos sin errores, build Web, `git diff --check` y `audit:portal-admin-ui` sin hallazgos. La aprobación visual corresponde al usuario.
 
+## Publicación — parpadeo al cambiar de pestaña — 15 de agosto de 2026
+
+- Calendario, Cola y Borradores son rutas hermanas: cada pestaña desmontaba `PublishingPageLoader` y montaba otro con estado vacío, así que la vista ya pintada volvía al spinner mientras `publishingApi.list()` respondía de nuevo. El `loading.tsx` de la ruta destino sumaba un segundo parpadeo mientras llegaba su RSC.
+- El loader conserva la última respuesta en módulo y arranca con ella: al cambiar de pestaña el contenido aparece de inmediato y la petición revalida en segundo plano. Un fallo de revalidación con datos en pantalla ya no los sustituye por el estado de error; sin datos previos, el error y su reintento se comportan igual que antes.
+- Las tres rutas se prefetchean al montar la vista, de modo que la navegación entre pestañas no espera al RSC ni muestra su `loading.tsx`.
+- No cambian contratos, permisos ni mutaciones: `publishingApi` se sigue consultando en cada montaje.
+
 ## Files en móvil — acción única — 15 de agosto de 2026
 
 - `Nueva carpeta` e importación de `Google Drive` quedan ocultas bajo `sm`: en móvil la barra superior conserva solo la búsqueda y las tres formas de añadir viven en el botón flotante.

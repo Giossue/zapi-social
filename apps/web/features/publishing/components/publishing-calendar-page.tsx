@@ -453,6 +453,12 @@ export function PublishingCalendarPage({
     [posts]
   )
 
+  // Las tres secciones son rutas distintas: sin prefetch, cambiar de pestaña
+  // espera al RSC de la ruta destino y muestra su `loading.tsx` por el camino.
+  useEffect(() => {
+    for (const link of sectionLinks) router.prefetch(link.href)
+  }, [router])
+
   if (!calendar.canView) {
     return (
       <Card variant="subtle">
