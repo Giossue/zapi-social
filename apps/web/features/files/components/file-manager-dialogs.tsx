@@ -522,13 +522,13 @@ export function FileTrashDialog({
           </AlertDialogMedia>
           <AlertDialogTitle>
             {isBulkAction
-              ? "Eliminar archivos seleccionados permanentemente"
+              ? "Eliminar los elementos seleccionados"
               : "Eliminar permanentemente"}
           </AlertDialogTitle>
           <AlertDialogDescription>
             {isBulkAction
-              ? `${selectedCount} ${selectedCount === 1 ? "archivo y su miniatura se eliminarán" : "archivos y sus miniaturas se eliminarán"} permanentemente.`
-              : `${item?.name} y su miniatura se eliminarán permanentemente.`}
+              ? `${selectedCount} ${selectedCount === 1 ? "elemento se eliminará" : "elementos se eliminarán"} permanentemente. Esta acción no se puede deshacer.`
+              : `${item?.name} se eliminará permanentemente. Esta acción no se puede deshacer.`}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

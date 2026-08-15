@@ -126,8 +126,10 @@ export function useLibrarySelection<T extends LibrarySelectionItem>({
     } else if (event.shiftKey) {
       setSelectedIds(rangeTo(anchorId.current, item.id))
     } else {
-      setSelectedIds([item.id])
-      anchorId.current = item.id
+      // Volver a pulsar lo único seleccionado lo deselecciona.
+      const isOnlySelected = selection.length === 1 && selection[0] === item.id
+      setSelectedIds(isOnlySelected ? [] : [item.id])
+      anchorId.current = isOnlySelected ? null : item.id
     }
     setActiveId(item.id)
   }

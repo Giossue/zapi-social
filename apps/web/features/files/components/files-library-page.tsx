@@ -117,7 +117,7 @@ const sortLabels: Record<PortalFileSort, string> = {
   modifiedAt: "Fecha de modificación",
   name: "Nombre",
 }
-type AssetFilter = FileAssetKind | "all"
+type AssetFilter = FileAssetKind | "all" | "folder"
 
 const assetKindMeta: Record<
   FileAssetKind,
@@ -387,7 +387,7 @@ function FolderCard({
                   variant="destructive"
                 >
                   <Trash2 />
-                  Enviar a papelera
+                  Eliminar
                 </DropdownMenuItem>
               </DropdownMenuGroup>
             </DropdownMenuContent>
@@ -493,7 +493,7 @@ function AssetsTable({
                     variant="destructive"
                   >
                     <Trash2 />
-                    Enviar a papelera
+                    Eliminar
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -686,7 +686,10 @@ export function FilesLibraryPage() {
         order,
         q: query.trim() || undefined,
         sort,
-        kind: assetFilter === "all" ? undefined : assetFilter,
+        kind:
+          assetFilter === "all" || assetFilter === "folder"
+            ? undefined
+            : assetFilter,
       }),
     [assetFilter, folderId, order, query, sort]
   )
@@ -760,7 +763,10 @@ export function FilesLibraryPage() {
   }, [loadLibrary])
 
   const hasMoreFiles = Boolean(
-    library && !reachedEnd && library.assets.length < library.filesTotal
+    library &&
+      !reachedEnd &&
+      assetFilter !== "folder" &&
+      library.assets.length < library.filesTotal
   )
 
   // Google Drive no pagina: la siguiente tanda entra sola cuando el final de la
@@ -908,11 +914,15 @@ export function FilesLibraryPage() {
     }
   }
 
+  // Filtrar por «Carpetas» esconde los archivos, y filtrar por un tipo de
+  // archivo esconde las carpetas: cada opción deja en pantalla lo que nombra.
   const assets = useMemo(
     () =>
-      (library?.assets ?? []).filter((asset) =>
-        assetMatches(asset, query, assetFilter, folderId)
-      ),
+      assetFilter === "folder"
+        ? []
+        : (library?.assets ?? []).filter((asset) =>
+            assetMatches(asset, query, assetFilter, folderId)
+          ),
     [assetFilter, folderId, library?.assets, query]
   )
   const folderById = useMemo(
@@ -934,11 +944,13 @@ export function FilesLibraryPage() {
   }, [folderById, folderId])
   const visibleFolders = useMemo(
     () =>
-      (library?.folders ?? []).filter(
-        (folder) =>
-          folder.parentFolderId === (folderId === "all" ? null : folderId)
-      ),
-    [folderId, library?.folders]
+      assetFilter !== "all" && assetFilter !== "folder"
+        ? []
+        : (library?.folders ?? []).filter(
+            (folder) =>
+              folder.parentFolderId === (folderId === "all" ? null : folderId)
+          ),
+    [assetFilter, folderId, library?.folders]
   )
   const hasFilters = Boolean(query.trim()) || assetFilter !== "all"
 
@@ -1281,6 +1293,7 @@ export function FilesLibraryPage() {
                 { label: "Imágenes", value: "image" },
                 { label: "Videos", value: "video" },
                 { label: "Documentos", value: "document" },
+                { label: "Carpetas", value: "folder" },
               ]}
               value={assetFilter}
             />

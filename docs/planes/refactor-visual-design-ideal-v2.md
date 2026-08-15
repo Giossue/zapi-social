@@ -242,7 +242,9 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - `document` pasa a significar lo mismo que muestra la interfaz —cuanto no es imagen ni vídeo, incluidos PDF, hojas de cálculo y comprimidos—, porque la biblioteca ya los pinta a todos como documento. Las categorías finas del contrato siguen aceptándose.
 - Como red de seguridad independiente del conteo, una tanda con menos elementos que el límite cierra la lista: ningún desajuste futuro puede volver a dejar el cargador girando.
 - Se retiró el filtro «Creados con AI»: `generatedWithAi` no tiene origen real y siempre vaciaba la vista.
+- El filtro gana la opción «Carpetas» y cada opción deja en pantalla lo que nombra: elegir un tipo de archivo esconde las carpetas y elegir «Carpetas» esconde los archivos, que es además donde antes se veían cinco carpetas bajo el rótulo «Documentos». Con «Carpetas» no se piden más tandas, porque solo los archivos se paginan.
 - El breadcrumb vuelve a aparecer solo dentro de una carpeta; en la raíz no se muestra la palabra «Archivos».
+- «Enviar a papelera» pasa a llamarse «Eliminar»: V2 no tiene papelera y `remove`/`removeFolder` ya borran los ficheros y sus filas sin estado intermedio. El diálogo de confirmación habla de elementos —no solo de archivos— y advierte de que la acción no se puede deshacer.
 
 ## Files — orden, acciones en lote y favoritos — 15 de agosto de 2026
 
