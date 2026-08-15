@@ -6,9 +6,13 @@ import { cn } from "@workspace/ui/lib/utils"
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
+    // `scroll-fade-x` softens whichever edge still has columns behind it, so a
+    // wide table shows it can be scrolled without depending on the platform
+    // scrollbar, which most systems fade out. It is driven by the browser's
+    // scroll timeline, so there is nothing to keep in sync.
     <div
       data-slot="table-container"
-      className="relative w-full overflow-x-auto"
+      className="relative w-full scroll-fade-x overflow-x-auto"
     >
       <table
         data-slot="table"
