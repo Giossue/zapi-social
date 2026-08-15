@@ -407,7 +407,7 @@ function FolderCard({
         <div className="flex min-w-0 items-center gap-2">
           <Folder
             aria-hidden="true"
-            className="size-4.5 shrink-0 text-muted-foreground"
+            className="size-4.5 shrink-0 fill-current text-muted-foreground"
           />
           <CardTitle className="truncate leading-none">{folder.name}</CardTitle>
         </div>
@@ -498,7 +498,7 @@ function AssetsTable({
               <div className="flex min-w-0 items-center gap-3">
                 <Folder
                   aria-hidden="true"
-                  className="size-5 shrink-0 text-muted-foreground"
+                  className="size-5 shrink-0 fill-current text-muted-foreground"
                 />
                 <div className="min-w-0">
                   <Button
