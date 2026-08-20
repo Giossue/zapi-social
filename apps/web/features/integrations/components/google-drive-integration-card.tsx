@@ -31,6 +31,8 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
 import {
   CheckCircle2,
+  Circle,
+  CircleAlert,
   CirclePower,
   HardDriveDownload,
   LockKeyhole,
@@ -52,6 +54,13 @@ function RequiredMark() {
       *
     </span>
   )
+}
+
+const statusCopy = {
+  ready: { label: "Listo", variant: "success" as const },
+  incomplete: { label: "Incompleto", variant: "warning" as const },
+  untested: { label: "Sin probar", variant: "warning" as const },
+  disabled: { label: "Deshabilitado", variant: "neutral" as const },
 }
 
 function draftFrom(integration: GoogleDriveIntegration): Draft {
@@ -199,6 +208,13 @@ export function GoogleDriveIntegrationCard() {
   if (saving) saveLabel = "Guardando"
   else if (draft?.enabled && !integration.enabled)
     saveLabel = "Guardar y habilitar"
+  const status = statusCopy[integration.readiness]
+  const StatusIcon =
+    integration.readiness === "ready"
+      ? CheckCircle2
+      : integration.readiness === "disabled"
+        ? Circle
+        : CircleAlert
 
   return (
     <>
@@ -208,16 +224,9 @@ export function GoogleDriveIntegrationCard() {
             <div className="flex min-w-0 flex-col gap-2">
               <div className="flex flex-wrap items-center gap-2">
                 <CardTitle>{integration.label}</CardTitle>
-                <Badge
-                  variant={
-                    integration.readiness === "ready" ? "success" : "neutral"
-                  }
-                >
-                  {integration.readiness === "ready"
-                    ? "Habilitada"
-                    : integration.readiness === "untested"
-                      ? "Sin probar"
-                      : "Deshabilitada"}
+                <Badge variant={status.variant}>
+                  <StatusIcon aria-hidden="true" />
+                  {status.label}
                 </Badge>
               </div>
               <CardDescription>{integration.description}</CardDescription>
