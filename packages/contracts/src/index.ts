@@ -1533,6 +1533,8 @@ export * from "./admin-content.js"
 
 export * from "./admin-settings.js"
 
+export * from "./link-bio.js"
+
 export * from "./admin-operations.js"
 
 export * from "./portal-core-v2.js"

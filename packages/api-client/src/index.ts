@@ -68,6 +68,11 @@ import type {
   AdminStaticPagesSettings,
   AdminSystemInformation,
   AdminTaxonomiesResponse,
+  PortalLinkBioPage,
+  PortalLinkBioPagesResponse,
+  PublicLinkBioPage,
+  TrackPublicLinkBioEventInput,
+  UpsertPortalLinkBioPageInput,
   UpsertAdminAiTemplateInput,
   UpsertAdminBlogPostInput,
   UpsertAdminBlogTagInput,
@@ -1414,6 +1419,34 @@ export const adminContentApi = {
     AdminAiTemplatesResponse,
     UpsertAdminAiTemplateInput
   >("ai-templates"),
+}
+
+export const linkBioApi = {
+  list: () =>
+    request<PortalLinkBioPagesResponse>("/v1/portal/link-bio", {
+      method: "GET",
+    }),
+  create: (input: UpsertPortalLinkBioPageInput) =>
+    request<PortalLinkBioPage>("/v1/portal/link-bio", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  update: (id: string, input: UpsertPortalLinkBioPageInput) =>
+    request<PortalLinkBioPage>(`/v1/portal/link-bio/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) =>
+    request<void>(`/v1/portal/link-bio/${id}`, { method: "DELETE" }),
+  publicPage: (slug: string) =>
+    request<PublicLinkBioPage>(`/v1/public/link-bio/${slug}`, {
+      method: "GET",
+    }),
+  track: (slug: string, input: TrackPublicLinkBioEventInput) =>
+    request<{ url: string | null }>(`/v1/public/link-bio/${slug}/events`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
 }
 
 export const adminSettingsApi = {

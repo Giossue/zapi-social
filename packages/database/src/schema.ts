@@ -3351,3 +3351,89 @@ export const platformSettings = pgTable("platform_settings", {
     .defaultNow()
     .notNull(),
 })
+
+/**
+ * Páginas públicas de enlaces por workspace, portadas del addon Laravel
+ * `AppLinkBio`. Los bloques y la apariencia viven en JSON porque su forma
+ * depende del tipo de bloque y cambia sin migración.
+ */
+export const linkBioPages = pgTable(
+  "link_bio_pages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    createdByUserId: uuid("created_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    slug: varchar("slug", { length: 160 }).notNull(),
+    title: varchar("title", { length: 160 }).notNull(),
+    headline: varchar("headline", { length: 190 }).notNull().default(""),
+    description: text("description").notNull().default(""),
+    templateKey: varchar("template_key", { length: 60 })
+      .notNull()
+      .default("aurora"),
+    avatarFileAssetId: uuid("avatar_file_asset_id").references(
+      () => fileAssets.id,
+      { onDelete: "set null" }
+    ),
+    coverFileAssetId: uuid("cover_file_asset_id").references(
+      () => fileAssets.id,
+      { onDelete: "set null" }
+    ),
+    status: varchar("status", { length: 16 })
+      .$type<"draft" | "published">()
+      .notNull()
+      .default("draft"),
+    blocks: jsonb("blocks")
+      .$type<Record<string, unknown>[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    appearance: jsonb("appearance")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("link_bio_pages_slug_unique").on(table.slug),
+    index("link_bio_pages_workspace_idx").on(table.workspaceId),
+    check(
+      "link_bio_pages_status_check",
+      sql`${table.status} in ('draft', 'published')`
+    ),
+  ]
+)
+
+/** Vistas y clics de una página pública. La IP se guarda solo como hash. */
+export const linkBioEvents = pgTable(
+  "link_bio_events",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    pageId: uuid("page_id")
+      .notNull()
+      .references(() => linkBioPages.id, { onDelete: "cascade" }),
+    type: varchar("type", { length: 16 })
+      .$type<"view" | "click">()
+      .notNull(),
+    blockIndex: integer("block_index"),
+    itemIndex: integer("item_index"),
+    url: text("url"),
+    ipHash: varchar("ip_hash", { length: 64 }),
+    userAgent: varchar("user_agent", { length: 255 }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("link_bio_events_page_type_idx").on(table.pageId, table.type),
+    index("link_bio_events_page_target_idx").on(
+      table.pageId,
+      table.blockIndex,
+      table.itemIndex
+    ),
+    check("link_bio_events_type_check", sql`${table.type} in ('view', 'click')`),
+  ]
+)
