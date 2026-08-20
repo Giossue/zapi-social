@@ -2,7 +2,11 @@
 
 import { CircleAlert } from "lucide-react"
 
-import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert"
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@workspace/ui/components/alert"
 import { Button } from "@workspace/ui/components/button"
 
 type AIContentErrorRouteProps = {
@@ -17,8 +21,8 @@ export default function AIContentErrorRoute({
       <CircleAlert aria-hidden="true" />
       <AlertTitle>No se pudo cargar AI Content</AlertTitle>
       <AlertDescription>
-        Ningún prompt fue enviado ni se consumieron créditos. Vuelve a intentarlo
-        para recuperar el mock.
+        Ningún prompt fue enviado ni se consumieron créditos. Vuelve a
+        intentarlo para recuperar el mock.
       </AlertDescription>
       <div className="mt-3 flex">
         <Button onClick={reset} variant="brand-secondary">

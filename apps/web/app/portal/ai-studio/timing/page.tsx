@@ -1,5 +1,5 @@
-import { AiStudio } from "@/features/ai-studio/components/ai-studio-page"
+import { redirect } from "next/navigation"
 
-export default function AITimingRoutePage() {
-  return <AiStudio view="timing" />
+export default function AiTimingRedirect() {
+  redirect("/portal/ai-studio?tool=timing")
 }

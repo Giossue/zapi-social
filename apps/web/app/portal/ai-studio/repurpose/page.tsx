@@ -1,5 +1,5 @@
-import { AiStudio } from "@/features/ai-studio/components/ai-studio-page"
+import { redirect } from "next/navigation"
 
-export default function AIRepurposeRoutePage() {
-  return <AiStudio view="repurpose" />
+export default function AiRepurposeRedirect() {
+  redirect("/portal/ai-studio?tool=repurpose")
 }

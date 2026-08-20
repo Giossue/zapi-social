@@ -1,5 +1,5 @@
-import { AiStudio } from "@/features/ai-studio/components/ai-studio-page"
+import { redirect } from "next/navigation"
 
-export default function AIVideoRoutePage() {
-  return <AiStudio view="video" />
+export default function AiVideoRedirect() {
+  redirect("/portal/ai-studio?tool=video")
 }

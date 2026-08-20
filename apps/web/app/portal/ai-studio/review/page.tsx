@@ -1,5 +1,5 @@
-import { AiStudio } from "@/features/ai-studio/components/ai-studio-page"
+import { redirect } from "next/navigation"
 
-export default function AIReviewRoutePage() {
-  return <AiStudio view="review" />
+export default function AiReviewRedirect() {
+  redirect("/portal/ai-studio?tool=review")
 }

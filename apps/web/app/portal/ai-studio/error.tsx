@@ -2,7 +2,11 @@
 
 import { CircleAlert, RefreshCw } from "lucide-react"
 
-import { Alert, AlertDescription, AlertTitle } from "@workspace/ui/components/alert"
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@workspace/ui/components/alert"
 import { Button } from "@workspace/ui/components/button"
 
 export default function AIStudioErrorRoute({ reset }: { reset: () => void }) {

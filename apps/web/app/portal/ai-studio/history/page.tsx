@@ -1,5 +1,5 @@
-import { AiStudio } from "@/features/ai-studio/components/ai-studio-page"
+import { redirect } from "next/navigation"
 
-export default function AIHistoryRoutePage() {
-  return <AiStudio view="history" />
+export default function AiHistoryRedirect() {
+  redirect("/portal/ai-studio")
 }

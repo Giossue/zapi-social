@@ -1,5 +1,5 @@
-import { AiStudio } from "@/features/ai-studio/components/ai-studio-page"
+import { redirect } from "next/navigation"
 
-export default function AIImageRoutePage() {
-  return <AiStudio view="image" />
+export default function AiImageRedirect() {
+  redirect("/portal/ai-studio?tool=image")
 }

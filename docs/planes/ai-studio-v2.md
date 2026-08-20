@@ -685,3 +685,87 @@ persistencia, Worker/provider, pruebas y documentación describen el mismo flujo
 **Siguiente validación operativa:** configurar y probar las claves OpenAI y
 AtlasCloud desde Admin, desplegar API/Web/Worker y ejecutar un smoke autenticado
 por capacidad. No se guarda ni registra ninguna clave en la evidencia.
+
+## Consolidación en interfaz de chat — 20 de agosto de 2026
+
+### Problema
+
+AI Studio expone trece rutas. Nueve de ellas son la misma operación —describir algo y
+recibir un resultado— con formularios distintos, así que las opciones quedan repartidas y
+cada herramienta se aprende por separado. La decisión es concentrar la generación en una
+sola conversación y conservar **todas** las capacidades actuales como opciones dentro de
+ella; ninguna entrada, salida ni acción del inventario de módulos se elimina.
+
+### Fuente visual
+
+`../diseño ideal` contiene una superficie de chat completa en
+`src/app/(main)/chat/_components`: lista de conversaciones, hilo y panel lateral de detalle
+en una rejilla de tres columnas con colapso responsive. Es la fuente a copiar; V2 solo
+adapta datos, acciones y permisos. No se diseña un chat nuevo.
+
+### Superficie objetivo
+
+```text
+/portal/ai-studio
+├── Columna 1  Conversaciones   historial de solicitudes AI, con búsqueda y filtros
+├── Columna 2  Hilo             mensajes, resultados tipados y acciones por resultado
+└── Columna 3  Opciones         herramienta activa y sus ajustes; colapsable
+```
+
+- **Herramienta activa**: selector en el compositor con las ocho capacidades de generación
+  (contenido, imagen, video, reutilizar, revisión, planner, mejor horario e investigación).
+  Cambiar de herramienta cambia el panel de opciones, no de pantalla.
+- **Opciones por herramienta**: las mismas del inventario de módulos —tono, plataformas,
+  idioma, variantes, ratio, resolución, duración, fuente de reutilización, rango de fechas—
+  viven en la tercera columna como campos y toggles, no repartidas por rutas.
+- **Conversaciones**: cada solicitud AI existente es una conversación. Sustituye a las
+  vistas Historial y Búsqueda semántica, que aportaban lista y filtros sobre los mismos
+  datos.
+- **Acciones por resultado**: copiar, regenerar, guardar en Captions, crear borrador,
+  abrir en Files, usar en Publishing, reintentar y archivar se mantienen dentro del hilo.
+
+### Rutas que se conservan
+
+`automation`, `settings` y `credits` siguen como rutas propias: son tablas y formularios de
+configuración, no conversación. Se alcanzan desde el encabezado del chat.
+
+Las nueve rutas de generación redirigen a `/portal/ai-studio?tool=<herramienta>` para no
+romper enlaces existentes ni la memoria de los usuarios.
+
+### Orden de trabajo
+
+```text
+inventario de módulos ya auditado
+→ copia de la composición de `diseño ideal`
+→ chat sobre `aiApi` existente, sin contrato nuevo
+→ redirecciones de las rutas antiguas
+→ retirada de las vistas sustituidas
+```
+
+No requiere contrato ni endpoints nuevos: `aiApi.createRequest`, `listRequests`,
+`retryRequest` y `archiveRequest` ya cubren crear, listar, reintentar y archivar.
+
+### Pendiente de decisión
+
+Ninguno bloqueante. Si una capacidad no cabe con claridad en el panel de opciones, se
+registra aquí antes de recortarla; no se elimina una acción por simplificar la interfaz.
+
+### Estado de la consolidación
+
+Implementado. `/portal/ai-studio` es el chat de tres columnas y la navegación pasa de trece
+entradas a cuatro: Chat, Automatizaciones, Ajustes AI y Créditos.
+
+Las ocho herramientas de generación viven en el selector del compositor y conservan sus
+opciones completas en el panel lateral: objetivo, tono, idioma, plataformas, variantes,
+hashtags y llamada a la acción para contenido; proporción y calidad para imagen; proporción
+y duración para video; plataformas destino para reutilizar; idioma y plataformas para
+revisión; días, frecuencia, plataformas y fecha inicial para el planificador; zona horaria e
+histórico para mejor horario; ámbito y número de resultados para investigación.
+
+`ai-content`, `image`, `video`, `repurpose`, `review`, `planner`, `timing` y `search`
+redirigen a `/portal/ai-studio?tool=<herramienta>`; `history` redirige a la raíz porque su
+listado es ahora la columna de conversaciones.
+
+`ai-studio-page.tsx` permanece porque Automatizaciones, Ajustes y Créditos siguen siendo sus
+vistas. Sus vistas de generación quedan sin ruta que las alcance y se retirarán cuando esas
+tres superficies se muevan a componentes propios.

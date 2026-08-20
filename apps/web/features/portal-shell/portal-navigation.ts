@@ -79,19 +79,7 @@ export const portalNavigationGroups: readonly PortalNavigationGroup[] = [
         label: "AI Studio",
         icon: WandSparkles,
         children: [
-          { label: "Inicio", href: "/portal/ai-studio" },
-          { label: "Contenido AI", href: "/portal/ai-studio/ai-content" },
-          { label: "Imágenes", href: "/portal/ai-studio/image" },
-          { label: "Video", href: "/portal/ai-studio/video" },
-          { label: "Reutilizar", href: "/portal/ai-studio/repurpose" },
-          {
-            label: "Planificador de calendario",
-            href: "/portal/ai-studio/planner",
-          },
-          { label: "Revisión AI", href: "/portal/ai-studio/review" },
-          { label: "Mejor horario", href: "/portal/ai-studio/timing" },
-          { label: "Investigación", href: "/portal/ai-studio/search" },
-          { label: "Historial", href: "/portal/ai-studio/history" },
+          { label: "Chat", href: "/portal/ai-studio" },
           {
             label: "Automatizaciones",
             href: "/portal/ai-studio/automation",

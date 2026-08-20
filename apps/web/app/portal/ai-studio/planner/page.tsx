@@ -1,5 +1,5 @@
-import { AiStudio } from "@/features/ai-studio/components/ai-studio-page"
+import { redirect } from "next/navigation"
 
-export default function AIPlannerRoutePage() {
-  return <AiStudio view="planner" />
+export default function AiPlannerRedirect() {
+  redirect("/portal/ai-studio?tool=planner")
 }
