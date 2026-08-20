@@ -16,13 +16,13 @@ import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog"
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@workspace/ui/components/sheet"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import {
@@ -293,118 +293,123 @@ function ComposerDialog({
   }
 
   return (
-    <Dialog
+    <Sheet
       onOpenChange={(nextOpen) => !nextOpen && !pending && onClose()}
       open={open}
     >
-      <DialogContent className="max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-none overflow-y-auto sm:w-[min(90vw,80rem)] sm:max-w-none">
-        <DialogHeader>
-          <DialogTitle>
+      <SheetContent
+        className="w-full gap-0 p-0 sm:max-w-none data-[side=right]:sm:w-full data-[side=right]:sm:border-l-0"
+        side="right"
+      >
+        <SheetHeader className="border-b">
+          <SheetTitle>
             {editingPost ? "Editar publicación" : "Nueva publicación"}
-          </DialogTitle>
-          <DialogDescription>
+          </SheetTitle>
+          <SheetDescription>
             Valida cada destino antes de guardar, programar o publicar.
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
 
         <form
           aria-busy={pending}
-          className="contents"
+          className="flex min-h-0 flex-1 flex-col"
           noValidate
           onSubmit={handleSubmit}
         >
-          <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(24rem,0.9fr)]">
-            <FieldGroup className="min-w-0">
-              <FieldSet>
-                <FieldLabel asChild>
-                  <legend>
-                    Cuentas destino <RequiredMark />
-                  </legend>
-                </FieldLabel>
-                <PublishingAccountPicker
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4">
+            <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(24rem,0.9fr)]">
+              <FieldGroup className="min-w-0">
+                <FieldSet>
+                  <FieldLabel asChild>
+                    <legend>
+                      Cuentas destino <RequiredMark />
+                    </legend>
+                  </FieldLabel>
+                  <PublishingAccountPicker
+                    accounts={accounts}
+                    ariaRequired
+                    onChange={setSelectedAccounts}
+                    selectedAccountIds={selectedAccounts}
+                  />
+                </FieldSet>
+
+                <Field>
+                  <FieldLabel htmlFor="publishing-content">
+                    Texto <RequiredMark />
+                  </FieldLabel>
+                  <Textarea
+                    aria-required="true"
+                    id="publishing-content"
+                    onChange={(event) => setContent(event.target.value)}
+                    placeholder="Escribe el contenido de tu publicación"
+                    value={content}
+                  />
+                </Field>
+
+                <Field>
+                  <FieldLabel>
+                    Media {requiresMedia ? <RequiredMark /> : null}
+                  </FieldLabel>
+                  <PublishingMediaPicker
+                    ariaRequired={requiresMedia}
+                    assets={availableMedia ?? []}
+                    driveEnabled={driveProvider?.enabled ?? false}
+                    driveImportStatus={
+                      driveBatch
+                        ? driveBatch.status === "failed" ||
+                          driveBatch.status === "expired" ||
+                          driveBatch.status === "partial"
+                          ? "failed"
+                          : "processing"
+                        : undefined
+                    }
+                    driveOpening={openingDrive}
+                    onChange={setSelectedMediaAssetId}
+                    onImportFromDrive={() => void importFromGoogleDrive()}
+                    selectedAssetId={selectedMediaAssetId}
+                  />
+                </Field>
+
+                <Field>
+                  <FieldLabel>Cuándo publicar</FieldLabel>
+                  <Tabs
+                    aria-label="Cuándo publicar"
+                    onValueChange={(value) => setMode(value as ComposerMode)}
+                    value={mode}
+                  >
+                    <TabsList className="w-full justify-start sm:w-fit">
+                      <TabsTrigger value="draft">Borrador</TabsTrigger>
+                      <TabsTrigger value="now">Ahora</TabsTrigger>
+                      <TabsTrigger value="schedule">Programar</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                </Field>
+
+                {mode === "schedule" ? (
+                  <PublishingSchedulePicker
+                    date={scheduledDate}
+                    isRequired
+                    onDateChange={setScheduledDate}
+                    onTimeChange={setScheduledTime}
+                    time={scheduledTime}
+                  />
+                ) : null}
+              </FieldGroup>
+
+              <div className="min-w-0">
+                <PublishingNetworkPreview
                   accounts={accounts}
-                  ariaRequired
-                  onChange={setSelectedAccounts}
+                  activeAccountId={activePreviewAccountId}
+                  content={content}
+                  hasMedia={hasMedia}
+                  onAccountChange={setActivePreviewAccountId}
                   selectedAccountIds={selectedAccounts}
                 />
-              </FieldSet>
-
-              <Field>
-                <FieldLabel htmlFor="publishing-content">
-                  Texto <RequiredMark />
-                </FieldLabel>
-                <Textarea
-                  aria-required="true"
-                  id="publishing-content"
-                  onChange={(event) => setContent(event.target.value)}
-                  placeholder="Escribe el contenido de tu publicación"
-                  value={content}
-                />
-              </Field>
-
-              <Field>
-                <FieldLabel>
-                  Media {requiresMedia ? <RequiredMark /> : null}
-                </FieldLabel>
-                <PublishingMediaPicker
-                  ariaRequired={requiresMedia}
-                  assets={availableMedia ?? []}
-                  driveEnabled={driveProvider?.enabled ?? false}
-                  driveImportStatus={
-                    driveBatch
-                      ? driveBatch.status === "failed" ||
-                        driveBatch.status === "expired" ||
-                        driveBatch.status === "partial"
-                        ? "failed"
-                        : "processing"
-                      : undefined
-                  }
-                  driveOpening={openingDrive}
-                  onChange={setSelectedMediaAssetId}
-                  onImportFromDrive={() => void importFromGoogleDrive()}
-                  selectedAssetId={selectedMediaAssetId}
-                />
-              </Field>
-
-              <Field>
-                <FieldLabel>Cuándo publicar</FieldLabel>
-                <Tabs
-                  aria-label="Cuándo publicar"
-                  onValueChange={(value) => setMode(value as ComposerMode)}
-                  value={mode}
-                >
-                  <TabsList className="w-full justify-start sm:w-fit">
-                    <TabsTrigger value="draft">Borrador</TabsTrigger>
-                    <TabsTrigger value="now">Ahora</TabsTrigger>
-                    <TabsTrigger value="schedule">Programar</TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              </Field>
-
-              {mode === "schedule" ? (
-                <PublishingSchedulePicker
-                  date={scheduledDate}
-                  isRequired
-                  onDateChange={setScheduledDate}
-                  onTimeChange={setScheduledTime}
-                  time={scheduledTime}
-                />
-              ) : null}
-            </FieldGroup>
-
-            <div className="min-w-0">
-              <PublishingNetworkPreview
-                accounts={accounts}
-                activeAccountId={activePreviewAccountId}
-                content={content}
-                hasMedia={hasMedia}
-                onAccountChange={setActivePreviewAccountId}
-                selectedAccountIds={selectedAccounts}
-              />
+              </div>
             </div>
           </div>
 
-          <DialogFooter>
+          <SheetFooter className="flex-row justify-end border-t">
             <Button
               disabled={pending}
               onClick={onClose}
@@ -421,10 +426,10 @@ function ComposerDialog({
               )}
               {composerActionLabel(mode, pending)}
             </Button>
-          </DialogFooter>
+          </SheetFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   )
 }
 
