@@ -33,6 +33,7 @@ No se recuperan Stripe, PayPal, pagos manuales ni ningún otro gateway eliminado
 - Los secretos permanecen solo en API; Web recibirá exclusivamente indicadores como `configured` y valores redactados.
 - Un pago confirmado será la única fuente que pueda activar un plan pagado o volver disponible una comisión.
 - Los cupones deben respetar el mínimo aceptado por Polar antes de abrir checkout.
+- El sistema opera en una sola moneda: USD. El catálogo ISO completo de Laravel (`modules/AdminPlans/Support/CurrencyCatalog.php`) no se porta y `/admin/plans` no ofrece selector de moneda; `plans.currency` queda fijado por constraint y no existe conversión en ninguna capa.
 
 ## Superficies Admin
 
@@ -118,6 +119,8 @@ billing_refunds
 billing_webhook_events
 affiliate_commissions.external_reference
 ```
+
+La migración `0031_plans_currency_usd_only` reduce `plans_currency_check` a `currency = 'USD'`.
 
 Importes se guardan en unidad menor e ISO-4217. Pagos y reembolsos no se borran; se actualizan mediante estados y auditoría HTTP.
 

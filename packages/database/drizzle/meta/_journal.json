@@ -218,6 +218,13 @@
       "when": 1786634864084,
       "tag": "0030_boring_xavin",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1786634865084,
+      "tag": "0031_plans_currency_usd_only",
+      "breakpoints": true
     }
   ]
 }

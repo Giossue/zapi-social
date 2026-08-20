@@ -19,7 +19,7 @@ export type AdminPlan = {
   slug: string
   status: PlanStatus
   featured: boolean
-  currency: "USD" | "EUR"
+  currency: "USD"
   price: number
   billingType: PlanBillingType
   isFree: boolean

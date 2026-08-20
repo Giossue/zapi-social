@@ -350,7 +350,7 @@ function PlanEditorSheet({
         slug,
         status: String(formData.get("status")) as PlanStatus,
         featured,
-        currency: String(formData.get("currency")) as AdminPlan["currency"],
+        currency: "USD",
         price: isFree ? 0 : price,
         billingType: String(formData.get("billingType")) as PlanBillingType,
         isFree,
@@ -442,26 +442,6 @@ function PlanEditorSheet({
                     <SelectGroup>
                       <SelectItem value="active">Activo</SelectItem>
                       <SelectItem value="inactive">Inactivo</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field data-disabled={isSaving || undefined}>
-                <FieldLabel htmlFor="plan-currency">
-                  Moneda <RequiredMark />
-                </FieldLabel>
-                <Select
-                  defaultValue={plan.currency}
-                  disabled={isSaving}
-                  name="currency"
-                >
-                  <SelectTrigger aria-required="true" id="plan-currency">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="USD">USD</SelectItem>
-                      <SelectItem value="EUR">EUR</SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
