@@ -241,7 +241,7 @@ export function RssScheduleWizard({
             </SheetDescription>
           </SheetHeader>
 
-          <div className="grid min-h-0 flex-1 gap-4 overflow-y-auto p-4">
+          <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
             <ol
               aria-label="Pasos de la programación RSS"
               className="mx-auto flex w-full max-w-lg items-start"
