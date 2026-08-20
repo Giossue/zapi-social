@@ -1023,7 +1023,7 @@ function UsagePanel({
   ]
   return (
     <>
-      <CardGrid>
+      <CardGrid layout="xl-5">
         {metrics.map((metric) => (
           <MetricCard key={metric.label} {...metric} />
         ))}

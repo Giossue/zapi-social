@@ -25,6 +25,8 @@ const gridLayouts = {
     "xl:grid-cols-3 max-xl:[&>*:last-child:nth-child(odd)]:col-span-2 xl:has-[>*:nth-child(1):last-child]:grid-cols-1 xl:has-[>*:nth-child(2):last-child]:grid-cols-2",
   "xl-4":
     "xl:grid-cols-4 max-xl:[&>*:last-child:nth-child(odd)]:col-span-2 xl:has-[>*:nth-child(1):last-child]:grid-cols-1 xl:has-[>*:nth-child(2):last-child]:grid-cols-2 xl:has-[>*:nth-child(3):last-child]:grid-cols-3",
+  "xl-5":
+    "xl:grid-cols-5 max-xl:[&>*:last-child:nth-child(odd)]:col-span-2 xl:has-[>*:nth-child(1):last-child]:grid-cols-1 xl:has-[>*:nth-child(2):last-child]:grid-cols-2 xl:has-[>*:nth-child(3):last-child]:grid-cols-3 xl:has-[>*:nth-child(4):last-child]:grid-cols-4",
 } as const
 
 type CardGridProps = ComponentProps<"div"> & {
