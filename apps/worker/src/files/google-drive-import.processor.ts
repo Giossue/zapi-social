@@ -115,6 +115,23 @@ export class GoogleDriveImportProcessor extends WorkerHost {
         .set({ status: 'processing', updatedAt: new Date() })
         .where(eq(fileImportBatches.id, batch.id));
 
+      // Deja constancia de cada intento: sin esto, un Worker que muere a mitad
+      // del trabajo no distingue de uno que nunca recogió el job.
+      await this.audit
+        .write({
+          workspaceId: batch.workspaceId,
+          actorUserId: batch.requestedByUserId,
+          event: 'files.google_drive_import_started',
+          severity: 'success',
+          outcome: 'started',
+          queueName: FILE_IMPORTS_QUEUE,
+          jobId: job.id ? String(job.id) : null,
+          attempt: job.attemptsMade + 1,
+          summary: 'Google Drive import started.',
+          metadata: { importBatchId: batch.id },
+        })
+        .catch(() => undefined);
+
       stage = 'load_items';
       const items = await this.database.db
         .select()

@@ -576,3 +576,20 @@ Si producto necesita cuentas permanentes:
 - revisión adicional de política y privacidad.
 
 Esa fase no es necesaria para seleccionar e importar media bajo demanda.
+
+## Diagnóstico de importación atascada — 15 de agosto de 2026
+
+Un lote quedó en `processing` sin importar nada. Evidencia recogida en la base remota:
+
+- `file_import_batches`: el lote se creó a las 22:08:42 y su `updated_at` se movió a las 22:09:30 y 22:11:49. Solo el Worker escribe esa marca, así que recoge el trabajo y lo vuelve a recoger.
+- `file_import_items`: el archivo siguió en `pending`, con `attempt_count` a 0, `error_code` vacío y `updated_at` igual al de creación. El procesador nunca lo tocó: ni lo marcó en curso ni lo dio por fallido.
+- `worker_audit_logs`: vacío por completo, de modo que tampoco hay constancia de ningún fallo.
+- `api_audit_logs`: la API responde con normalidad, entrega la configuración del proveedor y crea el lote.
+
+Entre marcar el lote como `processing` y tocar el primer archivo solo hay una consulta y la llamada de metadatos a Google, que aborta a los 30 segundos y registraría el fallo. Como no hay ni registro ni cambio, lo consistente es que el proceso del Worker se detiene ahí; los intervalos irregulares con que reaparece el lote encajan con reinicios del servicio. Confirmarlo exige los registros del contenedor del Worker, que no son accesibles desde el entorno local.
+
+Cambios aplicados a raíz del diagnóstico:
+
+- `GoogleDriveImportProcessor` registra el inicio de cada intento en `worker_audit_logs`, para distinguir un Worker que muere a mitad del trabajo de otro que nunca recoge el job.
+- `FileImportsScheduler` reencola un lote cuyo job lleve más de cinco minutos sin progreso aunque siga marcado como activo. Antes bastaba con que el Worker muriese mientras procesaba para que el lote quedase bloqueado sin remedio, porque el planificador solo recuperaba jobs fallidos o completados.
+- El progreso de la importación se comunica por `toast` en lugar de una tarjeta permanente en la biblioteca, con aviso explícito cuando la importación se prolonga y se deja en segundo plano.

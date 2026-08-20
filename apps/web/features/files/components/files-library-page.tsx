@@ -115,6 +115,9 @@ import { useLibrarySelection } from "@/features/files/hooks/use-library-selectio
 
 type FilesView = "grid" | "list"
 
+/** Cuánto se sigue un lote de Google Drive antes de dejarlo en segundo plano. */
+const DRIVE_IMPORT_WAIT_MS = 120_000
+
 const sortLabels: Record<PortalFileSort, string> = {
   modifiedAt: "Fecha de modificación",
   name: "Nombre",
@@ -653,6 +656,7 @@ export function FilesLibraryPage() {
   )
   const [openingDrive, setOpeningDrive] = useState(false)
   const notifiedDriveBatch = useRef<string | null>(null)
+  const driveBatchStartedAt = useRef(0)
   const [previewAsset, setPreviewAsset] = useState<FileAsset | null>(null)
   const [infoAsset, setInfoAsset] = useState<FileAsset | null>(null)
   const [renameItem, setRenameItem] = useState<
@@ -806,21 +810,56 @@ export function FilesLibraryPage() {
   }, [])
 
   useEffect(() => {
+    if (!driveBatch) return
+
+    const toastId = `google-drive-import-${driveBatch.id}`
+
     if (
-      !driveBatch ||
       ["completed", "partial", "failed", "expired"].includes(driveBatch.status)
     ) {
-      if (!driveBatch || notifiedDriveBatch.current === driveBatch.id) return
+      if (notifiedDriveBatch.current === driveBatch.id) return
       notifiedDriveBatch.current = driveBatch.id
       void loadLibrary()
       if (driveBatch.status === "completed")
-        toast.success("Importación desde Google Drive completada.")
+        toast.success("Importación desde Google Drive completada.", {
+          id: toastId,
+        })
       else if (driveBatch.status === "partial")
-        toast.error("Algunos archivos de Google Drive no se pudieron importar.")
+        toast.error(
+          "Algunos archivos de Google Drive no se pudieron importar.",
+          {
+            id: toastId,
+          }
+        )
       else
-        toast.error("No pudimos completar la importación desde Google Drive.")
+        toast.error("No pudimos completar la importación desde Google Drive.", {
+          id: toastId,
+        })
       return
     }
+
+    toast.loading(
+      `Importando ${driveBatch.totalItems} ${driveBatch.totalItems === 1 ? "archivo" : "archivos"} desde Google Drive`,
+      {
+        description: `${driveBatch.completedItems} de ${driveBatch.totalItems} completados.`,
+        duration: Number.POSITIVE_INFINITY,
+        id: toastId,
+      }
+    )
+
+    // Una importación que deja de progresar no puede dejar el aviso girando
+    // para siempre: se cierra explicando que continúa en segundo plano.
+    if (Date.now() - driveBatchStartedAt.current > DRIVE_IMPORT_WAIT_MS) {
+      notifiedDriveBatch.current = driveBatch.id
+      toast.info(
+        "La importación sigue en curso. Actualiza para ver el avance.",
+        {
+          id: toastId,
+        }
+      )
+      return
+    }
+
     const timer = window.setTimeout(() => {
       void filesApi
         .googleDriveImport(driveBatch.id)
@@ -859,6 +898,7 @@ export function FilesLibraryPage() {
       })
       if (!picked) return
       notifiedDriveBatch.current = null
+      driveBatchStartedAt.current = Date.now()
       setDriveBatch(
         await filesApi.createGoogleDriveImport({
           ...picked,
@@ -1210,51 +1250,6 @@ export function FilesLibraryPage() {
           </Button>
         </div>
       </div>
-
-      {driveBatch ? (
-        <Card variant="subtle">
-          <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm font-medium">
-                {driveBatch.status === "completed"
-                  ? "Importación desde Google Drive completada"
-                  : driveBatch.status === "failed" ||
-                      driveBatch.status === "expired"
-                    ? "Importación desde Google Drive fallida"
-                    : "Importando desde Google Drive"}
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {driveBatch.completedItems} de {driveBatch.totalItems} archivos
-                importados
-                {driveBatch.destinationFolderId
-                  ? " en la carpeta de destino."
-                  : " en Archivos."}
-              </p>
-            </div>
-            <Badge
-              variant={
-                driveBatch.status === "completed"
-                  ? "success"
-                  : driveBatch.status === "failed" ||
-                      driveBatch.status === "expired"
-                    ? "destructive"
-                    : driveBatch.status === "partial"
-                      ? "warning"
-                      : "info"
-              }
-            >
-              {driveBatch.status === "completed"
-                ? "Completada"
-                : driveBatch.status === "partial"
-                  ? "Parcial"
-                  : driveBatch.status === "failed" ||
-                      driveBatch.status === "expired"
-                    ? "Fallida"
-                    : "Procesando"}
-            </Badge>
-          </CardContent>
-        </Card>
-      ) : null}
 
       {currentFolderPath.length > 0 ? (
         <Breadcrumb>

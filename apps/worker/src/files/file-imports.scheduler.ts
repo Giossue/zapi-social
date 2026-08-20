@@ -15,6 +15,12 @@ import {
 } from './file-imports.constants';
 
 const FILE_IMPORT_RECOVERY_INTERVAL_MS = 30_000;
+/**
+ * Un lote en marcha refresca su marca de tiempo con cada archivo. Si lleva más
+ * de esto sin moverse, su job quedó huérfano —el Worker cayó mientras estaba
+ * activo— y hay que reencolarlo: si no, nadie vuelve a tocarlo nunca.
+ */
+const FILE_IMPORT_STALE_MS = 300_000;
 
 @Injectable()
 export class FileImportsScheduler
@@ -43,19 +49,27 @@ export class FileImportsScheduler
 
   private async recover() {
     const batches = await this.database.db
-      .select({ id: fileImportBatches.id })
+      .select({
+        id: fileImportBatches.id,
+        updatedAt: fileImportBatches.updatedAt,
+      })
       .from(fileImportBatches)
       .where(inArray(fileImportBatches.status, ['pending', 'processing']))
       .limit(100);
-    await Promise.allSettled(batches.map(({ id }) => this.recoverBatch(id)));
+    await Promise.allSettled(
+      batches.map((batch) => this.recoverBatch(batch.id, batch.updatedAt)),
+    );
   }
 
-  private async recoverBatch(id: string) {
+  private async recoverBatch(id: string, updatedAt?: Date) {
     const jobId = `google-drive-import-${id}`;
     const existing = await this.queue.getJob(jobId);
     if (existing) {
       const state = await existing.getState();
-      if (state !== 'failed' && state !== 'completed') return;
+      const stale =
+        updatedAt !== undefined &&
+        Date.now() - updatedAt.valueOf() > FILE_IMPORT_STALE_MS;
+      if (state !== 'failed' && state !== 'completed' && !stale) return;
       await existing.remove();
     }
     await this.queue.add(
