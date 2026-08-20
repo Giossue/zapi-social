@@ -55,6 +55,8 @@ import {
 import { toast } from "@workspace/ui/components/toast"
 import {
   Activity,
+  Circle,
+  CircleAlert,
   CircleDollarSign,
   CircleX,
   CheckCircle2,
@@ -95,11 +97,23 @@ const tierLabels = {
 } as const
 
 const readinessCopy = {
-  ready: { label: "Listo", variant: "success" as const },
-  disabled: { label: "Deshabilitado", variant: "neutral" as const },
-  incomplete: { label: "Incompleto", variant: "warning" as const },
-  untested: { label: "Sin probar", variant: "warning" as const },
-  error: { label: "Error", variant: "destructive" as const },
+  ready: { icon: CheckCircle2, label: "Listo", variant: "success" as const },
+  disabled: {
+    icon: Circle,
+    label: "Deshabilitado",
+    variant: "neutral" as const,
+  },
+  incomplete: {
+    icon: CircleAlert,
+    label: "Incompleto",
+    variant: "warning" as const,
+  },
+  untested: {
+    icon: CircleAlert,
+    label: "Sin probar",
+    variant: "warning" as const,
+  },
+  error: { icon: CircleX, label: "Error", variant: "destructive" as const },
 }
 
 type ProviderDraft = {
@@ -408,7 +422,7 @@ export function AiConfigurationPage() {
           </p>
         </div>
         <Badge variant={status.variant}>
-          <CheckCircle2 data-icon="inline-start" /> {readyProviders}/
+          <status.icon aria-hidden="true" /> {readyProviders}/
           {configuration.providers.length} listos
         </Badge>
       </div>
@@ -441,6 +455,7 @@ export function AiConfigurationPage() {
                   <CardTitle className="flex items-center gap-2">
                     <KeyRound /> {provider.label}
                     <Badge variant={providerStatus.variant}>
+                      <providerStatus.icon aria-hidden="true" />
                       {providerStatus.label}
                     </Badge>
                   </CardTitle>
