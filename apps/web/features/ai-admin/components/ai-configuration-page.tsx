@@ -63,6 +63,7 @@ import {
   Route,
   Save,
   ShieldCheck,
+  Timer,
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
@@ -550,7 +551,6 @@ export function AiConfigurationPage() {
         <TabsContent value="models" className="pt-3">
           <Card variant="subtle">
             <DataTableHeader
-              description="Activa los modelos disponibles para las rutas de generación."
               search={{
                 ariaLabel: "Buscar modelos AI",
                 onChange: (value) => {
@@ -560,7 +560,6 @@ export function AiConfigurationPage() {
                 placeholder: "Buscar modelos...",
                 value: modelQuery,
               }}
-              title="Modelos"
             />
             <CardContent className="flex flex-col gap-4 px-0">
               <Table>
@@ -1015,6 +1014,12 @@ function UsagePanel({
       label: "Costo estimado",
       value: money(usage.estimatedCostMicrousd),
     },
+    {
+      description: "Promedio por solicitud",
+      icon: Timer,
+      label: "Latencia media",
+      value: `${number(usage.averageLatencyMs)} ms`,
+    },
   ]
   return (
     <>
@@ -1025,7 +1030,6 @@ function UsagePanel({
       </CardGrid>
       <Card variant="subtle">
         <DataTableHeader
-          description={`Consumo por modelo durante los últimos ${usage.periodDays} días.`}
           search={{
             ariaLabel: "Buscar consumo por modelo",
             onChange: (value) => {
@@ -1035,7 +1039,6 @@ function UsagePanel({
             placeholder: "Buscar modelo...",
             value: query,
           }}
-          title="Uso por modelo"
         />
         <CardContent className="flex flex-col gap-4 px-0">
           <Table>
@@ -1086,10 +1089,6 @@ function UsagePanel({
           />
         </CardContent>
       </Card>
-      <p className="text-xs text-muted-foreground">
-        Últimos {usage.periodDays} días · Latencia media{" "}
-        {number(usage.averageLatencyMs)} ms.
-      </p>
     </>
   )
 }
