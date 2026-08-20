@@ -70,8 +70,9 @@ These serve as the fallback; there is no separate default.css file. */
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  /* Azul de marca #1D4ED8. En oscuro se aclara un paso (ver .dark) para que el
-     texto blanco sobre `primary` mantenga contraste AA sobre fondo oscuro. */
+  /* Azul de marca #1D4ED8, idéntico en claro y oscuro: el texto blanco encima
+     mantiene 6.5:1. El anillo de foco sí se aclara en .dark para verse sobre el
+     lienzo oscuro. */
   --primary: oklch(0.4882 0.2172 264.376);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0);
@@ -118,7 +119,7 @@ These serve as the fallback; there is no separate default.css file. */
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.55 0.21 264.376);
+  --primary: oklch(0.4882 0.2172 264.376);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
@@ -135,7 +136,7 @@ These serve as the fallback; there is no separate default.css file. */
   --info-foreground: oklch(0.145 0 0);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.55 0.21 264.376);
+  --ring: oklch(0.62 0.19 264.376);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -143,12 +144,12 @@ These serve as the fallback; there is no separate default.css file. */
   --chart-5: oklch(0.269 0 0);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.55 0.21 264.376);
+  --sidebar-primary: oklch(0.4882 0.2172 264.376);
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.55 0.21 264.376);
+  --sidebar-ring: oklch(0.62 0.19 264.376);
 }
 
 @layer base {
