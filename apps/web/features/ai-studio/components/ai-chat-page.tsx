@@ -483,7 +483,14 @@ export function AiChatPage() {
   }
 
   if (isLoading && !requests.length && !loadError) {
-    return <PageLoading aria-label="Cargando AI Studio" />
+    return (
+      <div
+        className="flex h-[calc(100svh-var(--dashboard-header-height))] items-center justify-center"
+        data-content-padding="false"
+      >
+        <PageLoading aria-label="Cargando AI Studio" />
+      </div>
+    )
   }
 
   if (loadError) {
@@ -508,13 +515,16 @@ export function AiChatPage() {
 
   return (
     <div
-      className="grid min-h-0 flex-1 grid-cols-1 overflow-hidden rounded-xl border border-border bg-card transition-[grid-template-columns] duration-300 ease-out *:min-h-0 *:min-w-0 md:grid-cols-[20rem_minmax(0,1fr)] md:*:first:border-r lg:grid-cols-[20rem_minmax(0,1fr)_var(--options-width)]"
+      /* El shell no fija altura, así que la pantalla se ancla al viewport menos
+         el encabezado y va a sangre para no quedar dentro de una card. */
+      className="grid h-[calc(100svh-var(--dashboard-header-height))] grid-cols-1 overflow-hidden bg-background transition-[grid-template-columns] duration-300 ease-out *:min-h-0 *:min-w-0 md:grid-cols-[20rem_minmax(0,1fr)] md:*:first:border-r md:*:first:border-border lg:grid-cols-[20rem_minmax(0,1fr)_var(--options-width)]"
+      data-content-padding="false"
       style={
         { "--options-width": showOptions ? "22rem" : "0rem" } as CSSProperties
       }
     >
       <div className="flex h-full flex-col gap-3 p-3">
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <InputGroup>
             <InputGroupAddon>
               <Search />
@@ -572,7 +582,7 @@ export function AiChatPage() {
       </div>
 
       <div className="flex h-full flex-col">
-        <div className="flex items-center justify-between gap-2 border-b border-border p-3">
+        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border p-3">
           <div className="flex min-w-0 flex-col">
             <span className="truncate font-medium">
               {selected ? selected.title : "Nueva conversación"}
