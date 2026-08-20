@@ -8,13 +8,13 @@ import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog"
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@workspace/ui/components/sheet"
 import {
   Field,
   FieldContent,
@@ -220,300 +220,308 @@ export function RssScheduleWizard({
   }
 
   return (
-    <Dialog
+    <Sheet
       onOpenChange={(nextOpen) => (nextOpen ? onOpenChange(true) : close())}
       open={open}
     >
-      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-2xl">
+      <SheetContent className="w-full gap-0 p-0 sm:max-w-2xl" side="right">
         <form
-          className="contents"
+          className="flex min-h-0 flex-1 flex-col"
           noValidate
           onSubmit={(event) => {
             event.preventDefault()
             void continueWizard()
           }}
         >
-          <DialogHeader>
-            <DialogTitle>Nueva programación RSS</DialogTitle>
-            <DialogDescription>
+          <SheetHeader className="border-b">
+            <SheetTitle>Nueva programación RSS</SheetTitle>
+            <SheetDescription>
               Configura cómo convertir artículos nuevos de un feed en
               publicaciones para tus canales.
-            </DialogDescription>
-          </DialogHeader>
+            </SheetDescription>
+          </SheetHeader>
 
-          <ol
-            aria-label="Pasos de la programación RSS"
-            className="mx-auto flex w-full max-w-lg items-start"
-          >
-            {steps.map((label, index) => {
-              const isCurrent = index === step
-              const isComplete = index < step
+          <div className="grid min-h-0 flex-1 gap-4 overflow-y-auto p-4">
+            <ol
+              aria-label="Pasos de la programación RSS"
+              className="mx-auto flex w-full max-w-lg items-start"
+            >
+              {steps.map((label, index) => {
+                const isCurrent = index === step
+                const isComplete = index < step
 
-              return (
-                <li
-                  className="flex min-w-0 flex-1 items-start last:flex-none"
-                  key={label}
+                return (
+                  <li
+                    className="flex min-w-0 flex-1 items-start last:flex-none"
+                    key={label}
+                  >
+                    <div className="flex shrink-0 flex-col items-center gap-2">
+                      <span
+                        className={`flex size-6 items-center justify-center rounded-full border text-xs font-medium ${
+                          isCurrent || isComplete
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border text-muted-foreground"
+                        }`}
+                      >
+                        {isComplete ? (
+                          <Check className="size-3.5" />
+                        ) : (
+                          index + 1
+                        )}
+                      </span>
+                      <span
+                        className={`text-center text-xs ${isCurrent ? "font-medium" : "text-muted-foreground"}`}
+                      >
+                        {label}
+                      </span>
+                    </div>
+                    {index < steps.length - 1 ? (
+                      <span
+                        aria-hidden="true"
+                        className={`mt-3 h-px flex-1 ${index < step ? "bg-primary" : "bg-border"}`}
+                      />
+                    ) : null}
+                  </li>
+                )
+              })}
+            </ol>
+
+            {step === 0 ? (
+              <FieldGroup>
+                <Card size="sm" variant="inset">
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                      Acepta feeds RSS y Atom públicos. En la siguiente etapa
+                      validaremos su disponibilidad antes de activarlo.
+                    </p>
+                  </CardContent>
+                </Card>
+                <Field>
+                  <FieldLabel htmlFor="rss-feed-url">
+                    <span>
+                      URL del feed{" "}
+                      <span aria-hidden="true" className="text-destructive">
+                        *
+                      </span>
+                      <span className="sr-only"> obligatorio</span>
+                    </span>
+                  </FieldLabel>
+                  <Input
+                    aria-required="true"
+                    id="rss-feed-url"
+                    onChange={(event) => setFeedUrl(event.target.value)}
+                    placeholder="https://sitio.com/feed.xml"
+                    type="url"
+                    value={feedUrl}
+                  />
+                  <FieldDescription>
+                    Usa la URL directa del RSS, no la página principal del
+                    sitio.
+                  </FieldDescription>
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="rss-schedule-name">
+                    <span>
+                      Nombre de la programación{" "}
+                      <span aria-hidden="true" className="text-destructive">
+                        *
+                      </span>
+                      <span className="sr-only"> obligatorio</span>
+                    </span>
+                  </FieldLabel>
+                  <Input
+                    aria-required="true"
+                    id="rss-schedule-name"
+                    onChange={(event) => setName(event.target.value)}
+                    placeholder="Ej. Noticias del blog"
+                    value={name}
+                  />
+                  <FieldDescription>
+                    Solo lo verá tu equipo al administrar esta automatización.
+                  </FieldDescription>
+                </Field>
+              </FieldGroup>
+            ) : null}
+
+            {step === 1 ? (
+              <FieldGroup>
+                <Field
+                  aria-labelledby="rss-targets-label"
+                  aria-required="true"
+                  role="group"
                 >
-                  <div className="flex shrink-0 flex-col items-center gap-2">
-                    <span
-                      className={`flex size-6 items-center justify-center rounded-full border text-xs font-medium ${
-                        isCurrent || isComplete
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border text-muted-foreground"
-                      }`}
-                    >
-                      {isComplete ? <Check className="size-3.5" /> : index + 1}
+                  <FieldLabel id="rss-targets-label">
+                    <span>
+                      Publicar en{" "}
+                      <span aria-hidden="true" className="text-destructive">
+                        *
+                      </span>
+                      <span className="sr-only"> obligatorio</span>
                     </span>
-                    <span
-                      className={`text-center text-xs ${isCurrent ? "font-medium" : "text-muted-foreground"}`}
-                    >
-                      {label}
-                    </span>
+                  </FieldLabel>
+                  <FieldDescription>
+                    Elige las cuentas que recibirán cada artículo nuevo.
+                  </FieldDescription>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {accounts.map((account) => (
+                      <Field key={account.id} orientation="horizontal">
+                        <Checkbox
+                          checked={targets.includes(account.id)}
+                          id={`rss-target-${account.id}`}
+                          onCheckedChange={(checked) =>
+                            toggleTarget(account.id, checked)
+                          }
+                        />
+                        <FieldContent>
+                          <FieldTitle>{account.label}</FieldTitle>
+                          <FieldDescription>
+                            {account.description}
+                          </FieldDescription>
+                        </FieldContent>
+                      </Field>
+                    ))}
                   </div>
-                  {index < steps.length - 1 ? (
-                    <span
-                      aria-hidden="true"
-                      className={`mt-3 h-px flex-1 ${index < step ? "bg-primary" : "bg-border"}`}
-                    />
+                  {accounts.length === 0 ? (
+                    <FieldDescription>
+                      Conecta al menos un canal antes de crear una programación.
+                    </FieldDescription>
                   ) : null}
-                </li>
-              )
-            })}
-          </ol>
+                </Field>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field>
+                    <FieldLabel htmlFor="rss-frequency">
+                      <span>
+                        Frecuencia{" "}
+                        <span aria-hidden="true" className="text-destructive">
+                          *
+                        </span>
+                        <span className="sr-only"> obligatorio</span>
+                      </span>
+                    </FieldLabel>
+                    <Select
+                      onValueChange={(value) =>
+                        setFrequency(
+                          value as (typeof frequencyOptions)[number][0]
+                        )
+                      }
+                      value={frequency}
+                    >
+                      <SelectTrigger aria-required="true" id="rss-frequency">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {frequencyOptions.map(([value, label]) => (
+                            <SelectItem key={value} value={value}>
+                              {label}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="rss-time">
+                      <span>
+                        Hora preferida{" "}
+                        <span aria-hidden="true" className="text-destructive">
+                          *
+                        </span>
+                        <span className="sr-only"> obligatorio</span>
+                      </span>
+                    </FieldLabel>
+                    <TimePicker
+                      aria-required={true}
+                      id="rss-time"
+                      onValueChange={setPreferredTime}
+                      value={preferredTime}
+                    />
+                  </Field>
+                </div>
+              </FieldGroup>
+            ) : null}
 
-          {step === 0 ? (
-            <FieldGroup>
+            {step === 2 ? (
+              <FieldGroup>
+                <Field>
+                  <FieldContent>
+                    <FieldTitle>Evitar artículos repetidos</FieldTitle>
+                    <FieldDescription>
+                      La programación nunca volverá a enviar el mismo artículo a
+                      la misma cuenta.
+                    </FieldDescription>
+                  </FieldContent>
+                </Field>
+                <Field orientation="horizontal">
+                  <Switch
+                    checked={includeSummary}
+                    id="rss-include-summary"
+                    onCheckedChange={setIncludeSummary}
+                  />
+                  <FieldContent>
+                    <FieldTitle>Incluir resumen del artículo</FieldTitle>
+                    <FieldDescription>
+                      Se usará como base del texto de la publicación.
+                    </FieldDescription>
+                  </FieldContent>
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="rss-template">
+                    Texto que acompaña cada publicación
+                  </FieldLabel>
+                  <Textarea
+                    id="rss-template"
+                    onChange={(event) => setTemplate(event.target.value)}
+                    rows={5}
+                    value={template}
+                  />
+                  <FieldDescription>
+                    Variables disponibles: título, resumen y enlace del
+                    artículo.
+                  </FieldDescription>
+                </Field>
+              </FieldGroup>
+            ) : null}
+
+            {step === 3 ? (
               <Card size="sm" variant="inset">
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Acepta feeds RSS y Atom públicos. En la siguiente etapa
-                    validaremos su disponibilidad antes de activarlo.
-                  </p>
+                <CardContent className="px-0">
+                  <dl className="divide-y text-sm">
+                    <div className="grid grid-cols-[9rem_1fr] gap-4 p-3">
+                      <dt className="text-muted-foreground">Programación</dt>
+                      <dd className="font-medium">{name}</dd>
+                    </div>
+                    <div className="grid grid-cols-[9rem_1fr] gap-4 p-3">
+                      <dt className="text-muted-foreground">Feed</dt>
+                      <dd className="truncate font-medium">{feedUrl}</dd>
+                    </div>
+                    <div className="grid grid-cols-[9rem_1fr] gap-4 p-3">
+                      <dt className="text-muted-foreground">Destinos</dt>
+                      <dd className="font-medium">
+                        {accounts
+                          .filter((account) => targets.includes(account.id))
+                          .map((account) => account.label)
+                          .join(", ")}
+                      </dd>
+                    </div>
+                    <div className="grid grid-cols-[9rem_1fr] gap-4 p-3">
+                      <dt className="text-muted-foreground">Publicación</dt>
+                      <dd className="font-medium">
+                        {
+                          frequencyOptions.find(
+                            ([value]) => value === frequency
+                          )?.[1]
+                        }{" "}
+                        a las {preferredTime}
+                      </dd>
+                    </div>
+                  </dl>
                 </CardContent>
               </Card>
-              <Field>
-                <FieldLabel htmlFor="rss-feed-url">
-                  <span>
-                    URL del feed{" "}
-                    <span aria-hidden="true" className="text-destructive">
-                      *
-                    </span>
-                    <span className="sr-only"> obligatorio</span>
-                  </span>
-                </FieldLabel>
-                <Input
-                  aria-required="true"
-                  id="rss-feed-url"
-                  onChange={(event) => setFeedUrl(event.target.value)}
-                  placeholder="https://sitio.com/feed.xml"
-                  type="url"
-                  value={feedUrl}
-                />
-                <FieldDescription>
-                  Usa la URL directa del RSS, no la página principal del sitio.
-                </FieldDescription>
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="rss-schedule-name">
-                  <span>
-                    Nombre de la programación{" "}
-                    <span aria-hidden="true" className="text-destructive">
-                      *
-                    </span>
-                    <span className="sr-only"> obligatorio</span>
-                  </span>
-                </FieldLabel>
-                <Input
-                  aria-required="true"
-                  id="rss-schedule-name"
-                  onChange={(event) => setName(event.target.value)}
-                  placeholder="Ej. Noticias del blog"
-                  value={name}
-                />
-                <FieldDescription>
-                  Solo lo verá tu equipo al administrar esta automatización.
-                </FieldDescription>
-              </Field>
-            </FieldGroup>
-          ) : null}
+            ) : null}
+          </div>
 
-          {step === 1 ? (
-            <FieldGroup>
-              <Field
-                aria-labelledby="rss-targets-label"
-                aria-required="true"
-                role="group"
-              >
-                <FieldLabel id="rss-targets-label">
-                  <span>
-                    Publicar en{" "}
-                    <span aria-hidden="true" className="text-destructive">
-                      *
-                    </span>
-                    <span className="sr-only"> obligatorio</span>
-                  </span>
-                </FieldLabel>
-                <FieldDescription>
-                  Elige las cuentas que recibirán cada artículo nuevo.
-                </FieldDescription>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {accounts.map((account) => (
-                    <Field key={account.id} orientation="horizontal">
-                      <Checkbox
-                        checked={targets.includes(account.id)}
-                        id={`rss-target-${account.id}`}
-                        onCheckedChange={(checked) =>
-                          toggleTarget(account.id, checked)
-                        }
-                      />
-                      <FieldContent>
-                        <FieldTitle>{account.label}</FieldTitle>
-                        <FieldDescription>
-                          {account.description}
-                        </FieldDescription>
-                      </FieldContent>
-                    </Field>
-                  ))}
-                </div>
-                {accounts.length === 0 ? (
-                  <FieldDescription>
-                    Conecta al menos un canal antes de crear una programación.
-                  </FieldDescription>
-                ) : null}
-              </Field>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field>
-                  <FieldLabel htmlFor="rss-frequency">
-                    <span>
-                      Frecuencia{" "}
-                      <span aria-hidden="true" className="text-destructive">
-                        *
-                      </span>
-                      <span className="sr-only"> obligatorio</span>
-                    </span>
-                  </FieldLabel>
-                  <Select
-                    onValueChange={(value) =>
-                      setFrequency(
-                        value as (typeof frequencyOptions)[number][0]
-                      )
-                    }
-                    value={frequency}
-                  >
-                    <SelectTrigger aria-required="true" id="rss-frequency">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {frequencyOptions.map(([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="rss-time">
-                    <span>
-                      Hora preferida{" "}
-                      <span aria-hidden="true" className="text-destructive">
-                        *
-                      </span>
-                      <span className="sr-only"> obligatorio</span>
-                    </span>
-                  </FieldLabel>
-                  <TimePicker
-                    aria-required={true}
-                    id="rss-time"
-                    onValueChange={setPreferredTime}
-                    value={preferredTime}
-                  />
-                </Field>
-              </div>
-            </FieldGroup>
-          ) : null}
-
-          {step === 2 ? (
-            <FieldGroup>
-              <Field>
-                <FieldContent>
-                  <FieldTitle>Evitar artículos repetidos</FieldTitle>
-                  <FieldDescription>
-                    La programación nunca volverá a enviar el mismo artículo a
-                    la misma cuenta.
-                  </FieldDescription>
-                </FieldContent>
-              </Field>
-              <Field orientation="horizontal">
-                <Switch
-                  checked={includeSummary}
-                  id="rss-include-summary"
-                  onCheckedChange={setIncludeSummary}
-                />
-                <FieldContent>
-                  <FieldTitle>Incluir resumen del artículo</FieldTitle>
-                  <FieldDescription>
-                    Se usará como base del texto de la publicación.
-                  </FieldDescription>
-                </FieldContent>
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="rss-template">
-                  Texto que acompaña cada publicación
-                </FieldLabel>
-                <Textarea
-                  id="rss-template"
-                  onChange={(event) => setTemplate(event.target.value)}
-                  rows={5}
-                  value={template}
-                />
-                <FieldDescription>
-                  Variables disponibles: título, resumen y enlace del artículo.
-                </FieldDescription>
-              </Field>
-            </FieldGroup>
-          ) : null}
-
-          {step === 3 ? (
-            <Card size="sm" variant="inset">
-              <CardContent className="px-0">
-                <dl className="divide-y text-sm">
-                  <div className="grid grid-cols-[9rem_1fr] gap-4 p-3">
-                    <dt className="text-muted-foreground">Programación</dt>
-                    <dd className="font-medium">{name}</dd>
-                  </div>
-                  <div className="grid grid-cols-[9rem_1fr] gap-4 p-3">
-                    <dt className="text-muted-foreground">Feed</dt>
-                    <dd className="truncate font-medium">{feedUrl}</dd>
-                  </div>
-                  <div className="grid grid-cols-[9rem_1fr] gap-4 p-3">
-                    <dt className="text-muted-foreground">Destinos</dt>
-                    <dd className="font-medium">
-                      {accounts
-                        .filter((account) => targets.includes(account.id))
-                        .map((account) => account.label)
-                        .join(", ")}
-                    </dd>
-                  </div>
-                  <div className="grid grid-cols-[9rem_1fr] gap-4 p-3">
-                    <dt className="text-muted-foreground">Publicación</dt>
-                    <dd className="font-medium">
-                      {
-                        frequencyOptions.find(
-                          ([value]) => value === frequency
-                        )?.[1]
-                      }{" "}
-                      a las {preferredTime}
-                    </dd>
-                  </div>
-                </dl>
-              </CardContent>
-            </Card>
-          ) : null}
-
-          <DialogFooter>
+          <SheetFooter className="flex-row justify-end border-t">
             <Button
               disabled={isPending}
               onClick={close}
@@ -538,9 +546,9 @@ export function RssScheduleWizard({
               {primaryIcon}
               {primaryLabel}
             </Button>
-          </DialogFooter>
+          </SheetFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   )
 }
