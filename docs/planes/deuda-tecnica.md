@@ -11,3 +11,10 @@ No bloquean, pero conviene saber que no son datos de servidor:
 - `channels-page.tsx` usa `channelsFixture.capabilities` para etiquetas de referencia.
 - `plans-page.tsx` usa `planPermissionGroups` como catálogo estático de permisos.
 - `ai-studio-page.tsx` usa `studioDestinations` como configuración de navegación.
+
+## Pruebas que no corren en este entorno
+
+`apps/api` mantiene diez suites de integración marcadas como `describe.skip` mientras no
+exista `SUPPORT_WATERMARKS_TEST_DATABASE_URL` apuntando a `zapi_v2_local`. Con esa variable
+definida corren; sin ella el comando pasa en verde sin ejercitar la base. El Worker conserva
+una suite en la misma situación.

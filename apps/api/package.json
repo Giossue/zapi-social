@@ -13,11 +13,11 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "test": "jest",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "test:rss-schedules": "bun test src/rss-schedules/rss-schedules.integration.spec.ts",
     "test:support-watermarks": "bun test src/support-watermarks.integration.spec.ts",
-    "test:watch": "jest --watch",
-    "test:cov": "jest --coverage",
+    "test:watch": "NODE_OPTIONS=--experimental-vm-modules jest --watch",
+    "test:cov": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "typecheck": "tsc --noEmit",
@@ -101,15 +101,44 @@
       "json",
       "ts"
     ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
+    "rootDir": ".",
+    "roots": [
+      "<rootDir>/src",
+      "<rootDir>/../../packages"
+    ],
+    "testRegex": "src/.*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
+      "^.+\\.(t|j)s$": [
+        "ts-jest",
+        {
+          "tsconfig": {
+            "module": "commonjs",
+            "moduleResolution": "node",
+            "esModuleInterop": true,
+            "allowSyntheticDefaultImports": true,
+            "experimentalDecorators": true,
+            "emitDecoratorMetadata": true,
+            "target": "ES2023",
+            "isolatedModules": false,
+            "skipLibCheck": true,
+            "strictNullChecks": true
+          },
+          "diagnostics": false
+        }
+      ]
+    },
+    "moduleNameMapper": {
+      "^@workspace/database$": "<rootDir>/../../packages/database/src/index.ts",
+      "^@workspace/database/(.*)$": "<rootDir>/../../packages/database/src/$1.ts",
+      "^@workspace/contracts$": "<rootDir>/../../packages/contracts/src/index.ts",
+      "^@workspace/contracts/(.*)$": "<rootDir>/../../packages/contracts/src/$1.ts",
+      "^@workspace/file-ingestion$": "<rootDir>/../../packages/file-ingestion/src/index.ts",
+      "^(\\.{1,2}/.*)\\.js$": "$1"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "src/**/*.(t|j)s"
     ],
-    "coverageDirectory": "../coverage",
+    "coverageDirectory": "./coverage",
     "testEnvironment": "node"
   }
 }

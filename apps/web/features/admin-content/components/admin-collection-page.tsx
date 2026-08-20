@@ -3,6 +3,7 @@
 import {
   useCallback,
   useEffect,
+  useRef,
   useState,
   type FormEvent,
   type ReactNode,
@@ -188,9 +189,17 @@ function CollectionSheet({
 }) {
   const [values, setValues] = useState<CollectionValues>(initialValues)
 
+  /**
+   * `initialValues` se recalcula en cada render del contenedor. Sincronizar por
+   * su identidad borraría lo que el usuario está escribiendo, así que solo se
+   * copia al abrir la hoja.
+   */
+  const initialValuesRef = useRef(initialValues)
+  initialValuesRef.current = initialValues
+
   useEffect(() => {
-    if (open) setValues(initialValues)
-  }, [initialValues, open])
+    if (open) setValues(initialValuesRef.current)
+  }, [open])
 
   function update(name: string, value: unknown) {
     setValues((current) => ({ ...current, [name]: value }))
@@ -423,6 +432,13 @@ export function AdminCollectionPage<TRow, TResponse>({
   const [editing, setEditing] = useState<TRow | null>(null)
   const [toDelete, setToDelete] = useState<TRow | null>(null)
 
+  /**
+   * `config` se construye en cada render del consumidor, así que no puede entrar
+   * como dependencia: haría que el efecto de carga se repitiera sin fin.
+   */
+  const configRef = useRef(config)
+  configRef.current = config
+
   const handleError = useCallback(
     (error: unknown) => {
       if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
@@ -442,23 +458,24 @@ export function AdminCollectionPage<TRow, TResponse>({
     setIsLoading(true)
     setLoadError(false)
     try {
+      const current = configRef.current
       setResponse(
-        await config.load({
+        await current.load({
           limit: pageSize,
           page,
           ...(query.trim() ? { q: query.trim() } : {}),
-          ...(config.filter && status !== "all" ? { status } : {}),
+          ...(current.filter && status !== "all" ? { status } : {}),
         })
       )
       setForbidden(false)
     } catch (error) {
       if (handleError(error)) return
-      console.error(`${config.title} request failed`, error)
+      console.error(`${configRef.current.title} request failed`, error)
       setLoadError(true)
     } finally {
       setIsLoading(false)
     }
-  }, [config, handleError, page, query, status])
+  }, [handleError, page, query, status])
 
   useEffect(() => {
     const timer = setTimeout(() => void load(), query ? 300 : 0)
@@ -731,6 +748,7 @@ export function AdminCollectionPage<TRow, TResponse>({
 
       <CollectionSheet
         fields={config.fields(response)}
+        key={editing ? config.rowId(editing) : "new"}
         formDescription={config.formDescription}
         onOpenChange={setIsSheetOpen}
         onSubmit={save}

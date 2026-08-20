@@ -40,6 +40,9 @@ import {
 import { AppException } from '../platform/errors/app-exception';
 import { DatabaseService } from '../database/database.service';
 
+/** Tope para los catálogos auxiliares que alimentan los selectores del formulario. */
+const auxiliaryLimit = 200;
+
 type TaxonomyTable = typeof blogCategories | typeof aiTemplateCategories;
 
 type ContentTable =
@@ -129,7 +132,16 @@ export class ContentService {
         if (!row) throw this.notFound();
         return row;
       }
-      const [row] = await tx.insert(languages).values(values).returning();
+      // La plataforma nunca debe quedarse sin idioma predeterminado: el primero
+      // que se crea lo es aunque no se marque.
+      const [existing] = await tx
+        .select({ total: sql<number>`count(*)::int` })
+        .from(languages);
+      const isFirst = (existing?.total ?? 0) === 0;
+      const [row] = await tx
+        .insert(languages)
+        .values({ ...values, isDefault: values.isDefault || isFirst })
+        .returning();
       return row;
     });
   }
@@ -265,8 +277,13 @@ export class ContentService {
       this.database.db
         .select()
         .from(blogCategories)
-        .orderBy(asc(blogCategories.sortOrder), asc(blogCategories.name)),
-      this.database.db.select().from(blogTags).orderBy(asc(blogTags.name)),
+        .orderBy(asc(blogCategories.sortOrder), asc(blogCategories.name))
+        .limit(auxiliaryLimit),
+      this.database.db
+        .select()
+        .from(blogTags)
+        .orderBy(asc(blogTags.name))
+        .limit(auxiliaryLimit),
     ]);
 
     const postIds = rows.map((row) => row.id);
@@ -312,10 +329,22 @@ export class ContentService {
     const { tagIds, ...values } = parsed.data;
     const slug = values.slug ?? slugify(values.title);
     if (!slug) throw this.invalid();
-    const publishedAt = values.status === 'published' ? new Date() : null;
 
     try {
       return await this.database.db.transaction(async (tx) => {
+        const [existing] = id
+          ? await tx
+              .select({ publishedAt: blogPosts.publishedAt })
+              .from(blogPosts)
+              .where(eq(blogPosts.id, id))
+              .limit(1)
+          : [];
+        // La fecha de publicación es historia: solo se fija al publicar por
+        // primera vez y se borra al volver a borrador.
+        const publishedAt =
+          values.status === 'published'
+            ? (existing?.publishedAt ?? new Date())
+            : null;
         const postId = id
           ? (
               await tx
@@ -446,7 +475,8 @@ export class ContentService {
         .orderBy(
           asc(aiTemplateCategories.sortOrder),
           asc(aiTemplateCategories.name),
-        ),
+        )
+        .limit(auxiliaryLimit),
     ]);
     return {
       templates: rows.map((row) => ({

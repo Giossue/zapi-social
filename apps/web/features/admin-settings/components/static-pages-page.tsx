@@ -161,13 +161,16 @@ export function StaticPagesSettingsPage() {
       return
     }
     const entry = { ...draft, slug }
-    const next = editingSlug
-      ? pages.map((page) => (page.slug === editingSlug ? entry : page))
-      : [...pages, entry]
-    if (!editingSlug && pages.some((page) => page.slug === slug)) {
+    const collides = pages.some(
+      (page) => page.slug === slug && page.slug !== editingSlug
+    )
+    if (collides) {
       toast.error("Ya existe una página con esa dirección.")
       return
     }
+    const next = editingSlug
+      ? pages.map((page) => (page.slug === editingSlug ? entry : page))
+      : [...pages, entry]
     if (await persist(next)) {
       setIsSheetOpen(false)
       toast.success(editingSlug ? "Página actualizada." : "Página creada.")

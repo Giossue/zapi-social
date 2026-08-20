@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { CircleAlert, Clock, Database, ShieldCheck, Trash2 } from "lucide-react"
 
@@ -41,12 +41,15 @@ function useAdminResource<T>(load: () => Promise<T>, label: string) {
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [forbidden, setForbidden] = useState(false)
+  /** El consumidor pasa una función nueva por render; no puede ser dependencia. */
+  const loadRef = useRef(load)
+  loadRef.current = load
 
   const refresh = useCallback(async () => {
     setIsLoading(true)
     setLoadError(false)
     try {
-      setData(await load())
+      setData(await loadRef.current())
       setForbidden(false)
     } catch (error) {
       if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
@@ -62,7 +65,7 @@ function useAdminResource<T>(load: () => Promise<T>, label: string) {
     } finally {
       setIsLoading(false)
     }
-  }, [label, load, router])
+  }, [label, router])
 
   useEffect(() => {
     void refresh()

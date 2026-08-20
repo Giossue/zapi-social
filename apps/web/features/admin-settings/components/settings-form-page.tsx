@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState, type FormEvent } from "react"
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import { CircleAlert, Save, ShieldCheck } from "lucide-react"
 
@@ -53,6 +53,12 @@ export function SettingsFormPage<TValues extends Record<string, unknown>>({
   const [forbidden, setForbidden] = useState(false)
   const [pending, setPending] = useState(false)
 
+  /** `load` y `save` llegan como funciones nuevas en cada render del consumidor. */
+  const loadRef = useRef(load)
+  loadRef.current = load
+  const saveRef = useRef(save)
+  saveRef.current = save
+
   const handleError = useCallback(
     (error: unknown) => {
       if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
@@ -72,7 +78,7 @@ export function SettingsFormPage<TValues extends Record<string, unknown>>({
     setIsLoading(true)
     setLoadError(false)
     try {
-      setValues(await load())
+      setValues(await loadRef.current())
       setForbidden(false)
     } catch (error) {
       if (handleError(error)) return
@@ -81,7 +87,7 @@ export function SettingsFormPage<TValues extends Record<string, unknown>>({
     } finally {
       setIsLoading(false)
     }
-  }, [handleError, load, title])
+  }, [handleError, title])
 
   useEffect(() => {
     void refresh()
@@ -92,7 +98,7 @@ export function SettingsFormPage<TValues extends Record<string, unknown>>({
     if (!values) return
     setPending(true)
     try {
-      await save(values)
+      await saveRef.current(values)
       toast.success("Ajustes guardados.")
     } catch (error) {
       if (handleError(error)) return

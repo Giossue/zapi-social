@@ -39,7 +39,14 @@ export const adminStaticPageSchema = z.object({
   isPublished: z.boolean().default(false),
 })
 export const adminStaticPagesSettingsSchema = z.object({
-  pages: z.array(adminStaticPageSchema).max(40).default([]),
+  pages: z
+    .array(adminStaticPageSchema)
+    .max(40)
+    .default([])
+    .refine(
+      (pages) => new Set(pages.map((page) => page.slug)).size === pages.length,
+      { message: "Cada página necesita una dirección distinta." }
+    ),
 })
 
 export const adminSettingsGroupSchema = z.enum([
