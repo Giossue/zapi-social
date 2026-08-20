@@ -336,6 +336,39 @@ html {
   }
 }
 
+/* Etiqueta de trabajo en curso: barrido de luz sobre el texto, sin cambiar su caja. */
+@keyframes shimmer-text {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* Entrada escalonada de filas en trazas y resultados de IA. */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Resplandor que se desplaza dentro del lienzo mientras se genera media. */
+@keyframes generation-glow {
+  0%,
+  100% {
+    transform: translate3d(-12%, -8%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(12%, 8%, 0) scale(1.15);
+  }
+}
+
 @keyframes spinner-fade {
   0%,
   39%,

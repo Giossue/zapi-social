@@ -28,11 +28,6 @@ import {
 import { ApiError, aiApi } from "@workspace/api-client"
 import type { PortalAiRequest } from "@workspace/contracts"
 import { Badge } from "@workspace/ui/components/badge"
-import {
-  Bubble,
-  BubbleContent,
-  BubbleGroup,
-} from "@workspace/ui/components/bubble"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { Checkbox } from "@workspace/ui/components/checkbox"
@@ -47,15 +42,9 @@ import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
-  InputGroupTextarea,
 } from "@workspace/ui/components/input-group"
 import { Input } from "@workspace/ui/components/input"
-import {
-  Message,
-  MessageContent,
-  MessageFooter,
-  MessageGroup,
-} from "@workspace/ui/components/message"
+import { Textarea } from "@workspace/ui/components/textarea"
 import { PageLoading } from "@workspace/ui/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import {
@@ -69,10 +58,11 @@ import {
 import { Separator } from "@workspace/ui/components/separator"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Switch } from "@workspace/ui/components/switch"
-import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { toast } from "@workspace/ui/components/toast"
 import { cn } from "@workspace/ui/lib/utils"
 
+import { AiGenerationCanvas } from "./ai-generation-canvas"
+import { AiThinkingTrace, type TraceStep } from "./ai-thinking-trace"
 import {
   chatToolKeys,
   chatTools,
@@ -110,22 +100,62 @@ function formatTime(value: string) {
   }).format(new Date(value))
 }
 
+/** Pasos que se muestran mientras la generación no ha terminado. */
+function traceSteps(request: PortalAiRequest): TraceStep[] {
+  const queued = request.status === "queued"
+  return [
+    { label: "Solicitud recibida", state: "done" },
+    {
+      label: "Reservando créditos",
+      state: queued ? "active" : "done",
+    },
+    {
+      detail: request.model ?? undefined,
+      label: "Generando con el modelo",
+      state: queued ? "pending" : "active",
+    },
+  ]
+}
+
 /** Renderiza el resultado tipado que devuelve cada herramienta. */
 function ResultBody({ request }: { request: PortalAiRequest }) {
   if (request.status === "failed") {
     return (
-      <span className="text-destructive">
+      <p className="text-sm text-destructive">
         No pudimos completar la generación
         {request.errorCode ? ` (${request.errorCode})` : ""}.
-      </span>
+      </p>
     )
   }
-  if (request.status !== "succeeded") {
+
+  if (request.status === "queued" || request.status === "processing") {
+    const media = request.kind === "image" || request.kind === "video"
     return (
-      <span className="flex items-center gap-2 text-muted-foreground">
-        <Spinner size={16} /> {statusLabels[request.status]}
-        {request.progress ? ` · ${request.progress}%` : ""}
-      </span>
+      <div className="flex flex-col gap-3">
+        <AiThinkingTrace
+          activeLabel={media ? "Generando media" : "Pensando"}
+          doneLabel="Trabajo terminado"
+          steps={traceSteps(request)}
+          working
+        />
+        {media ? (
+          <AiGenerationCanvas
+            aspectRatio={String(
+              (request.input as Record<string, unknown>).aspectRatio ?? "1:1"
+            ).replace(":", " / ")}
+            label={
+              request.kind === "image" ? "Generando imagen" : "Generando video"
+            }
+            prompt={request.prompt}
+          />
+        ) : null}
+      </div>
+    )
+  }
+
+  if (request.status === "cancelled") {
+    return (
+      <p className="text-sm text-muted-foreground">La generación se canceló.</p>
     )
   }
 
@@ -135,9 +165,9 @@ function ResultBody({ request }: { request: PortalAiRequest }) {
   const variants = Array.isArray(result.variants) ? result.variants : []
 
   return (
-    <div className="flex flex-col gap-3">
-      {summary ? <p>{summary}</p> : null}
-      {strategy ? <p>{strategy}</p> : null}
+    <div className="flex flex-col gap-4">
+      {summary ? <p className="text-sm leading-relaxed">{summary}</p> : null}
+      {strategy ? <p className="text-sm leading-relaxed">{strategy}</p> : null}
       {variants.map((variant, index) => {
         const item = variant as Record<string, unknown>
         const platform =
@@ -152,14 +182,21 @@ function ResultBody({ request }: { request: PortalAiRequest }) {
               : ""
         const hashtags = Array.isArray(item.hashtags) ? item.hashtags : []
         return (
-          <div className="flex flex-col gap-1" key={`${platform}-${index}`}>
-            <span className="text-xs font-medium text-muted-foreground uppercase">
+          <div
+            className="flex flex-col gap-1.5 border-l border-border pl-3"
+            key={`${platform}-${index}`}
+          >
+            <span className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
               {platform}
             </span>
             {typeof item.hook === "string" && item.hook ? (
-              <span className="font-medium">{item.hook}</span>
+              <span className="text-sm font-medium">{item.hook}</span>
             ) : null}
-            {body ? <p className="whitespace-pre-wrap">{body}</p> : null}
+            {body ? (
+              <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                {body}
+              </p>
+            ) : null}
             {hashtags.length ? (
               <span className="text-sm text-muted-foreground">
                 {hashtags.map((tag) => `#${String(tag)}`).join(" ")}
@@ -169,7 +206,7 @@ function ResultBody({ request }: { request: PortalAiRequest }) {
         )
       })}
       {!summary && !strategy && !variants.length ? (
-        <pre className="overflow-x-auto text-xs">
+        <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs">
           {JSON.stringify(request.result, null, 2)}
         </pre>
       ) : null}
@@ -569,113 +606,110 @@ export function AiChatPage() {
 
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4">
           {selected ? (
-            <MessageGroup className="gap-6">
-              <Message align="end">
-                <MessageContent>
-                  <BubbleGroup>
-                    <Bubble align="end">
-                      <BubbleContent>{selected.prompt}</BubbleContent>
-                    </Bubble>
-                  </BubbleGroup>
-                  <MessageFooter>
+            <div className="mx-auto flex w-full max-w-3xl flex-col gap-5">
+              <div className="flex justify-end pl-14">
+                <div className="rounded-xl bg-muted px-3 py-2 text-sm leading-relaxed">
+                  {selected.prompt}
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span className="font-medium text-foreground">
                     {chatTools[selected.kind as ChatTool]?.label ??
-                      selected.kind}{" "}
-                    · {formatTime(selected.createdAt)}
-                  </MessageFooter>
-                </MessageContent>
-              </Message>
-              <Message align="start">
-                <MessageContent>
-                  <BubbleGroup>
-                    <Bubble align="start" variant="muted">
-                      <BubbleContent>
-                        <ResultBody request={selected} />
-                      </BubbleContent>
-                    </Bubble>
-                  </BubbleGroup>
-                  <MessageFooter>
-                    <span className="flex flex-wrap items-center gap-2">
-                      {selected.model ? <span>{selected.model}</span> : null}
-                      <Button
-                        onClick={() => void copyResult(selected)}
-                        size="sm"
-                        variant="brand-secondary"
-                      >
-                        <Copy data-icon="inline-start" /> Copiar
-                      </Button>
-                      {selected.status === "failed" ? (
-                        <Button
-                          onClick={() => void retry(selected)}
-                          size="sm"
-                          variant="brand-secondary"
-                        >
-                          <RefreshCw data-icon="inline-start" /> Reintentar
-                        </Button>
-                      ) : null}
-                      <Button
-                        onClick={() => void archive(selected)}
-                        size="sm"
-                        variant="brand-secondary"
-                      >
-                        <Trash2 data-icon="inline-start" /> Archivar
-                      </Button>
-                    </span>
-                  </MessageFooter>
-                </MessageContent>
-              </Message>
-            </MessageGroup>
+                      selected.kind}
+                  </span>
+                  <span>·</span>
+                  <span>{formatTime(selected.createdAt)}</span>
+                  {selected.model ? (
+                    <>
+                      <span>·</span>
+                      <span className="font-mono">{selected.model}</span>
+                    </>
+                  ) : null}
+                </div>
+                <ResultBody request={selected} />
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  <Button
+                    onClick={() => void copyResult(selected)}
+                    size="sm"
+                    variant="brand-secondary"
+                  >
+                    <Copy data-icon="inline-start" /> Copiar
+                  </Button>
+                  {selected.status === "failed" ? (
+                    <Button
+                      onClick={() => void retry(selected)}
+                      size="sm"
+                      variant="brand-secondary"
+                    >
+                      <RefreshCw data-icon="inline-start" /> Reintentar
+                    </Button>
+                  ) : null}
+                  <Button
+                    onClick={() => void archive(selected)}
+                    size="sm"
+                    variant="brand-secondary"
+                  >
+                    <Trash2 data-icon="inline-start" /> Archivar
+                  </Button>
+                </div>
+              </div>
+            </div>
           ) : (
-            <EmptyState
-              description="Elige una herramienta, ajusta sus opciones y describe lo que necesitas."
-              icon={Sparkles}
-              title="Empieza una conversación"
-            />
+            <div className="m-auto flex max-w-md flex-col items-center gap-4 text-center">
+              <EmptyState
+                description="Elige una herramienta, ajusta sus opciones y describe lo que necesitas."
+                icon={Sparkles}
+                title="Empieza una conversación"
+              />
+            </div>
           )}
         </div>
 
         <form
           aria-busy={pending}
-          className="flex flex-col gap-2 border-t border-border p-3"
+          className="shrink-0 p-3"
           noValidate
           onSubmit={(event) => void submit(event)}
         >
-          <Tabs
-            onValueChange={(value) => setTool(value as ChatTool)}
-            value={tool}
-          >
-            <TabsList className="flex h-auto flex-wrap" variant="line">
-              {chatToolKeys.map((key) => (
-                <TabsTrigger key={key} value={key}>
-                  {chatTools[key].label}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-          <InputGroup>
-            <InputGroupTextarea
+          <div className="mx-auto flex w-full max-w-3xl flex-col gap-2 rounded-xl border border-border bg-background p-2.5 transition-colors focus-within:border-ring">
+            <Textarea
               aria-label={chatTools[tool].promptLabel}
+              className="min-h-16 resize-none border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
               disabled={pending}
               onChange={(event) => setPrompt(event.target.value)}
               placeholder={chatTools[tool].placeholder}
-              rows={3}
               value={prompt}
             />
-            <InputGroupAddon align="block-end">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-1">
+                {chatToolKeys.map((key) => (
+                  <button
+                    aria-pressed={tool === key}
+                    className={cn(
+                      "rounded-md px-2 py-1 text-sm transition-colors",
+                      tool === key
+                        ? "bg-muted font-medium text-foreground"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                    key={key}
+                    onClick={() => setTool(key)}
+                    type="button"
+                  >
+                    {chatTools[key].label}
+                  </button>
+                ))}
+              </div>
               <Button
-                className="ml-auto"
+                aria-label="Enviar"
                 disabled={!prompt.trim() || pending}
-                size="sm"
+                size="icon-sm"
                 type="submit"
               >
-                {pending ? (
-                  <Spinner data-icon="inline-start" />
-                ) : (
-                  <Send data-icon="inline-start" />
-                )}
-                Enviar
+                {pending ? <Spinner /> : <Send />}
               </Button>
-            </InputGroupAddon>
-          </InputGroup>
+            </div>
+          </div>
         </form>
       </div>
 

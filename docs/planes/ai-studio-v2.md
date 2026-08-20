@@ -769,3 +769,27 @@ listado es ahora la columna de conversaciones.
 `ai-studio-page.tsx` permanece porque Automatizaciones, Ajustes y Créditos siguen siendo sus
 vistas. Sus vistas de generación quedan sin ruta que las alcance y se retirarán cuando esas
 tres superficies se muevan a componentes propios.
+
+### Bloques 21st integrados
+
+La primera versión del chat mezclaba primitives sin una composición de referencia y se veía
+inconsistente. Se recuperaron bloques por MCP y se extrajo únicamente su composición:
+
+| Bloque                     | Qué se tomó                                                                        |
+| -------------------------- | ---------------------------------------------------------------------------------- |
+| `@theshanelevine/chat`     | Encabezado con pestañas, burbuja solo del lado del usuario y compositor enfocable. |
+| `@theshanelevine/thinking` | Traza plegable con etiqueta animada, línea de tiempo y pasos escalonados.          |
+| `@kvnkld/image-generation` | Lienzo de media en curso con resplandor, insignia de resolución y pie con prompt.  |
+
+Los tres traían tokens propios (`--ink`, `bg-surface`, `rounded-card`), SVG en línea y estado
+simulado como arquitectura. Nada de eso se integró: se sustituyó por los tokens semánticos
+del sistema, iconos de `lucide-react` y los primitives de `packages/ui`. Las tres animaciones
+necesarias —`shimmer-text`, `fade-up` y `generation-glow`— se añadieron a
+`packages/ui/src/styles/globals.css`, que es el único lugar donde pueden vivir, y respetan
+`prefers-reduced-motion`.
+
+Quedan sin integrar `@educalvolpz/ai-context-meter` y `@educalvolpz/ai-sources`: el medidor
+de contexto necesita el consumo por conversación, que la API aún no expone por solicitud, y
+el listado de fuentes aplica a la herramienta de investigación, cuyos resultados hoy son
+internos y no citas externas. Ambos quedan anotados aquí en lugar de rellenarse con datos
+inventados.
