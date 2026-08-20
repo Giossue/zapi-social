@@ -4,15 +4,14 @@ import { channelConnectionsApi } from "@workspace/api-client"
 import { Button } from "@workspace/ui/components/button"
 import { CardGrid } from "@workspace/ui/components/card-grid"
 import { Card, CardContent } from "@workspace/ui/components/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
-import { ScrollArea } from "@workspace/ui/components/scroll-area"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@workspace/ui/components/sheet"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
 import { CheckCircle2, ShieldCheck } from "lucide-react"
@@ -295,18 +294,21 @@ export function ChannelConnectionDialog({
     : (capability?.candidates ?? [])
 
   return (
-    <Dialog onOpenChange={handleOpenChange} open={open}>
-      <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-hidden sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>
+    <Sheet onOpenChange={handleOpenChange} open={open}>
+      <SheetContent
+        className="w-full gap-0 p-0 sm:max-w-none data-[side=right]:sm:w-full data-[side=right]:sm:border-l-0"
+        side="right"
+      >
+        <SheetHeader className="border-b">
+          <SheetTitle>{title}</SheetTitle>
+          <SheetDescription>
             {capability?.provider === "meta"
               ? "Autoriza Meta para ver y conectar los recursos elegibles de tu cuenta."
               : "Los conectores disponibles fuera de Meta permanecen en modo de referencia."}
-          </DialogDescription>
-        </DialogHeader>
-        <ScrollArea className="max-h-[calc(100dvh-10rem)]">
-          <div className="grid gap-4">
+          </SheetDescription>
+        </SheetHeader>
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4">
+          <div className="mx-auto grid w-full max-w-5xl gap-4">
             {step === "capabilities" ? (
               <ChannelCapabilityGrid
                 capabilities={capabilities}
@@ -456,8 +458,8 @@ export function ChannelConnectionDialog({
               </Card>
             ) : null}
           </div>
-        </ScrollArea>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </SheetContent>
+    </Sheet>
   )
 }

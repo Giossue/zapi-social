@@ -78,7 +78,7 @@ Antes de crear markup o un componente, ejecutar `codebase-memory` para comprobar
 - Un componente específico de dominio permanece en `features/<dominio>/components`.
 - Antes de cerrar cambios que afecten Portal o Admin, ejecutar `bun run audit:portal-admin-ui`. El auditor estático cubre todas sus rutas y features de una vez: tabs con scrollbar nativo, formularios sin `noValidate`, pickers nativos, conteos duplicados, contexto duplicado en tablas Portal y enlaces visibles sin ruta. Para CI o cierre estricto se usa `python3 scripts/audit_portal_admin_ui.py --fail-on-findings`. El auditor no sustituye build, typecheck ni revisión visual.
 - `TabsList` nunca usa `overflow-x-auto` ni `overflow-y-auto`: las pestañas visibles envuelven con `flex h-auto flex-wrap` para no mostrar scrollbar nativo.
-- Crear, editar o ver un registro desde una tabla operativa abre `Sheet` lateral, incluidos formularios y detalle de fila. `AlertDialog` permanece para confirmaciones destructivas. Channels conserva su flujo actual como excepción explícita; no introducir otra excepción sin decisión documentada.
+- Crear, editar o ver un registro desde una tabla operativa abre `Sheet` lateral, incluidos formularios y detalle de fila. `AlertDialog` permanece para confirmaciones destructivas. Conectar un canal usa `Sheet` a pantalla completa por la densidad de su selector de proveedores; no introducir otra excepción sin decisión documentada.
 - Las tablas operativas usan `CollectionHeader`, `DataTableHeader`,
   `DataTableToolbar` y `DataTableFilter` para fijar jerarquía, búsqueda, acción
   y filtros. Cada ruta muestra una sola vez su título y descripción, siempre en
