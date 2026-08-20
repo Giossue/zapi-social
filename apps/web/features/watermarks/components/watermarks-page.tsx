@@ -47,12 +47,12 @@ import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { PageLoading } from "@workspace/ui/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
@@ -908,303 +908,312 @@ export function WatermarksPage() {
 
   return (
     <>
-      <form
-        className="flex flex-col gap-3"
-        noValidate
-        onSubmit={(event) => {
-          event.preventDefault()
-          void save()
-        }}
-      >
-        <Card variant="subtle">
-          <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
-            <CardTitle className="text-xl leading-none">
-              Marca de agua
-            </CardTitle>
-            <CardDescription className="max-w-xl leading-snug">
-              Añade una marca visual que se aplicará al contenido antes de
-              enviarlo a tus canales.
-            </CardDescription>
-            <CardAction className="col-start-1 row-start-auto flex w-full justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:justify-end md:justify-self-end">
-              {targetRules.length ? (
-                <Button
-                  onClick={() => setDeleteOpen(true)}
-                  size="sm"
-                  variant="destructive"
-                >
-                  <Trash2 /> Eliminar
-                </Button>
-              ) : null}
-            </CardAction>
-          </CardHeader>
-          <CardContent className="grid gap-6 p-4 lg:grid-cols-[minmax(0,1fr)_21rem] lg:p-6">
-            <div className="flex flex-col gap-6">
-              <Field>
-                <FieldLabel>
-                  Aplicar en{" "}
-                  <span aria-hidden="true" className="text-destructive">
-                    *
-                  </span>
-                </FieldLabel>
-                <WatermarkScopePicker
-                  accounts={accounts}
-                  isGlobalScope={isGlobalScope}
-                  onGlobalSelect={() => {
-                    setIsGlobalScope(true)
-                    setSelectedAccountIds([])
-                  }}
-                  onSelectedAccountIdsChange={(accountIds) => {
-                    setIsGlobalScope(false)
-                    setSelectedAccountIds(accountIds)
-                  }}
-                  selectedAccountIds={selectedAccountIds}
-                />
-                <FieldDescription>
-                  La regla global se aplica a todos los canales. Si seleccionas
-                  cuentas, la misma configuración se aplicará solo a ellas.
-                </FieldDescription>
-              </Field>
-              <Tabs
-                onValueChange={(value) =>
-                  updateDraft("type", value as WatermarkType)
-                }
-                value={draft.type}
-              >
-                <TabsList>
-                  <TabsTrigger value="image">Imagen</TabsTrigger>
-                  <TabsTrigger value="text">Texto</TabsTrigger>
-                </TabsList>
-                <TabsContent className="pt-4" value="image">
-                  <Field>
-                    <FieldLabel>
-                      Archivo de la biblioteca{" "}
-                      <span aria-hidden="true" className="text-destructive">
-                        *
-                      </span>
-                    </FieldLabel>
-                    <button
-                      aria-expanded={imagePickerOpen}
-                      aria-required="true"
-                      className="flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-                      onClick={() => setImagePickerOpen(true)}
-                      role="combobox"
-                      type="button"
-                    >
-                      <span className="flex size-12 shrink-0 items-center justify-center rounded-md bg-muted p-2 text-muted-foreground">
-                        {selectedImage ? (
-                          // eslint-disable-next-line @next/next/no-img-element -- la biblioteca sirve las imágenes desde la API, fuera del optimizador de Next.
-                          <img
-                            alt=""
-                            className="max-h-full max-w-full object-contain"
-                            src={selectedImage.previewSrc}
-                          />
-                        ) : (
-                          <ImageIcon aria-hidden="true" className="size-5" />
-                        )}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium">
-                          {selectedImage?.name ?? "Seleccionar archivo"}
-                        </span>
-                        <span className="mt-0.5 block text-sm text-muted-foreground">
-                          Elige una imagen del administrador de archivos.
-                        </span>
-                      </span>
-                      <Button asChild size="sm" variant="outline">
-                        <span>Cambiar</span>
-                      </Button>
-                    </button>
-                  </Field>
-                </TabsContent>
-                <TabsContent className="pt-4" value="text">
-                  <Field>
-                    <FieldLabel htmlFor="watermark-text">
-                      Texto de la marca{" "}
-                      <span aria-hidden="true" className="text-destructive">
-                        *
-                      </span>
-                    </FieldLabel>
-                    <Textarea
-                      aria-required="true"
-                      id="watermark-text"
-                      maxLength={1000}
-                      onChange={(event) =>
-                        updateDraft("text", event.target.value)
-                      }
-                      placeholder="Ej. @tu_marca"
-                      rows={3}
-                      value={draft.text ?? ""}
-                    />
-                    <FieldDescription>
-                      Usa un texto breve que se mantenga legible sobre el
-                      contenido.
-                    </FieldDescription>
-                  </Field>
-                </TabsContent>
-              </Tabs>
-              <FieldGroup className="gap-5">
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <CollectionHeader
+            description="Añade una marca visual que se aplicará al contenido antes de enviarlo a tus canales."
+            title="Marca de agua"
+          />
+          {targetRules.length ? (
+            <Button
+              onClick={() => setDeleteOpen(true)}
+              size="sm"
+              type="button"
+              variant="destructive"
+            >
+              <Trash2 /> Eliminar
+            </Button>
+          ) : null}
+        </div>
+        <form
+          className="flex flex-col gap-3"
+          noValidate
+          onSubmit={(event) => {
+            event.preventDefault()
+            void save()
+          }}
+        >
+          <Card variant="subtle">
+            <CardContent className="grid gap-6 p-4 lg:grid-cols-[minmax(0,1fr)_21rem] lg:p-6">
+              <div className="flex flex-col gap-6">
                 <Field>
-                  <FieldLabel>Posición</FieldLabel>
-                  <ToggleGroup
-                    onValueChange={(value) => {
-                      if (value)
-                        updateDraft("position", value as WatermarkPosition)
+                  <FieldLabel>
+                    Aplicar en{" "}
+                    <span aria-hidden="true" className="text-destructive">
+                      *
+                    </span>
+                  </FieldLabel>
+                  <WatermarkScopePicker
+                    accounts={accounts}
+                    isGlobalScope={isGlobalScope}
+                    onGlobalSelect={() => {
+                      setIsGlobalScope(true)
+                      setSelectedAccountIds([])
                     }}
-                    size="sm"
-                    spacing={1}
-                    type="single"
-                    value={draft.position}
-                    variant="outline"
-                  >
-                    {positionItems.map(({ value, label, icon: Icon }) => (
-                      <ToggleGroupItem
-                        aria-label={label}
-                        key={value}
-                        value={value}
+                    onSelectedAccountIdsChange={(accountIds) => {
+                      setIsGlobalScope(false)
+                      setSelectedAccountIds(accountIds)
+                    }}
+                    selectedAccountIds={selectedAccountIds}
+                  />
+                  <FieldDescription>
+                    La regla global se aplica a todos los canales. Si
+                    seleccionas cuentas, la misma configuración se aplicará solo
+                    a ellas.
+                  </FieldDescription>
+                </Field>
+                <Tabs
+                  onValueChange={(value) =>
+                    updateDraft("type", value as WatermarkType)
+                  }
+                  value={draft.type}
+                >
+                  <TabsList>
+                    <TabsTrigger value="image">Imagen</TabsTrigger>
+                    <TabsTrigger value="text">Texto</TabsTrigger>
+                  </TabsList>
+                  <TabsContent className="pt-4" value="image">
+                    <Field>
+                      <FieldLabel>
+                        Archivo de la biblioteca{" "}
+                        <span aria-hidden="true" className="text-destructive">
+                          *
+                        </span>
+                      </FieldLabel>
+                      <button
+                        aria-expanded={imagePickerOpen}
+                        aria-required="true"
+                        className="flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+                        onClick={() => setImagePickerOpen(true)}
+                        role="combobox"
+                        type="button"
                       >
-                        <Icon />
-                      </ToggleGroupItem>
-                    ))}
-                  </ToggleGroup>
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="watermark-scale">
-                    Tamaño{" "}
-                    <span className="text-muted-foreground">
-                      {draft.scalePercent}%
-                    </span>
-                  </FieldLabel>
-                  <Slider
-                    id="watermark-scale"
-                    max={100}
-                    min={5}
-                    onValueChange={([value]) =>
-                      updateDraft("scalePercent", value ?? draft.scalePercent)
-                    }
-                    step={1}
-                    value={[draft.scalePercent]}
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="watermark-opacity">
-                    Opacidad{" "}
-                    <span className="text-muted-foreground">
-                      {draft.opacityPercent}%
-                    </span>
-                  </FieldLabel>
-                  <Slider
-                    id="watermark-opacity"
-                    max={100}
-                    min={5}
-                    onValueChange={([value]) =>
-                      updateDraft(
-                        "opacityPercent",
-                        value ?? draft.opacityPercent
-                      )
-                    }
-                    step={1}
-                    value={[draft.opacityPercent]}
-                  />
-                </Field>
-              </FieldGroup>
-              {draft.type === "text" ? (
-                <FieldGroup className="grid gap-4 sm:grid-cols-3">
+                        <span className="flex size-12 shrink-0 items-center justify-center rounded-md bg-muted p-2 text-muted-foreground">
+                          {selectedImage ? (
+                            // eslint-disable-next-line @next/next/no-img-element -- la biblioteca sirve las imágenes desde la API, fuera del optimizador de Next.
+                            <img
+                              alt=""
+                              className="max-h-full max-w-full object-contain"
+                              src={selectedImage.previewSrc}
+                            />
+                          ) : (
+                            <ImageIcon aria-hidden="true" className="size-5" />
+                          )}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-medium">
+                            {selectedImage?.name ?? "Seleccionar archivo"}
+                          </span>
+                          <span className="mt-0.5 block text-sm text-muted-foreground">
+                            Elige una imagen del administrador de archivos.
+                          </span>
+                        </span>
+                        <Button asChild size="sm" variant="outline">
+                          <span>Cambiar</span>
+                        </Button>
+                      </button>
+                    </Field>
+                  </TabsContent>
+                  <TabsContent className="pt-4" value="text">
+                    <Field>
+                      <FieldLabel htmlFor="watermark-text">
+                        Texto de la marca{" "}
+                        <span aria-hidden="true" className="text-destructive">
+                          *
+                        </span>
+                      </FieldLabel>
+                      <Textarea
+                        aria-required="true"
+                        id="watermark-text"
+                        maxLength={1000}
+                        onChange={(event) =>
+                          updateDraft("text", event.target.value)
+                        }
+                        placeholder="Ej. @tu_marca"
+                        rows={3}
+                        value={draft.text ?? ""}
+                      />
+                      <FieldDescription>
+                        Usa un texto breve que se mantenga legible sobre el
+                        contenido.
+                      </FieldDescription>
+                    </Field>
+                  </TabsContent>
+                </Tabs>
+                <FieldGroup className="gap-5">
                   <Field>
-                    <FieldLabel>Estilo</FieldLabel>
-                    <Select
-                      onValueChange={(value) =>
-                        updateDraft("textPreset", value as WatermarkTextPreset)
-                      }
-                      value={draft.textPreset}
+                    <FieldLabel>Posición</FieldLabel>
+                    <ToggleGroup
+                      onValueChange={(value) => {
+                        if (value)
+                          updateDraft("position", value as WatermarkPosition)
+                      }}
+                      size="sm"
+                      spacing={1}
+                      type="single"
+                      value={draft.position}
+                      variant="outline"
                     >
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectItem value="glass">Cristal</SelectItem>
-                          <SelectItem value="solid-dark">
-                            Sólido oscuro
-                          </SelectItem>
-                          <SelectItem value="solid-light">
-                            Sólido claro
-                          </SelectItem>
-                          <SelectItem value="minimal">Minimal</SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                      {positionItems.map(({ value, label, icon: Icon }) => (
+                        <ToggleGroupItem
+                          aria-label={label}
+                          key={value}
+                          value={value}
+                        >
+                          <Icon />
+                        </ToggleGroupItem>
+                      ))}
+                    </ToggleGroup>
                   </Field>
                   <Field>
-                    <FieldLabel>Color</FieldLabel>
-                    <Select
-                      onValueChange={(value) =>
-                        updateDraft("textColor", value as WatermarkTextColor)
+                    <FieldLabel htmlFor="watermark-scale">
+                      Tamaño{" "}
+                      <span className="text-muted-foreground">
+                        {draft.scalePercent}%
+                      </span>
+                    </FieldLabel>
+                    <Slider
+                      id="watermark-scale"
+                      max={100}
+                      min={5}
+                      onValueChange={([value]) =>
+                        updateDraft("scalePercent", value ?? draft.scalePercent)
                       }
-                      value={draft.textColor}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectItem value="brand-gradient">Marca</SelectItem>
-                          <SelectItem value="sunset-gradient">
-                            Atardecer
-                          </SelectItem>
-                          <SelectItem value="ocean-gradient">Océano</SelectItem>
-                          <SelectItem value="dark">Oscuro</SelectItem>
-                          <SelectItem value="white">Blanco</SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                      step={1}
+                      value={[draft.scalePercent]}
+                    />
                   </Field>
                   <Field>
-                    <FieldLabel>Peso</FieldLabel>
-                    <Select
-                      onValueChange={(value) =>
-                        updateDraft("textWeight", value as WatermarkTextWeight)
+                    <FieldLabel htmlFor="watermark-opacity">
+                      Opacidad{" "}
+                      <span className="text-muted-foreground">
+                        {draft.opacityPercent}%
+                      </span>
+                    </FieldLabel>
+                    <Slider
+                      id="watermark-opacity"
+                      max={100}
+                      min={5}
+                      onValueChange={([value]) =>
+                        updateDraft(
+                          "opacityPercent",
+                          value ?? draft.opacityPercent
+                        )
                       }
-                      value={draft.textWeight}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectItem value="medium">Medio</SelectItem>
-                          <SelectItem value="semibold">Semibold</SelectItem>
-                          <SelectItem value="bold">Negrita</SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                      step={1}
+                      value={[draft.opacityPercent]}
+                    />
                   </Field>
                 </FieldGroup>
-              ) : null}
-            </div>
-            <WatermarkPreview draft={draft} image={selectedImage} />
-          </CardContent>
-        </Card>
-        <div className="flex justify-end">
-          <Button
-            aria-busy={pending}
-            disabled={!canSave || pending}
-            type="submit"
-          >
-            {pending ? (
-              <Spinner data-icon="inline-start" />
-            ) : isCreating ? (
-              <Plus aria-hidden="true" data-icon="inline-start" />
-            ) : (
-              <Save aria-hidden="true" data-icon="inline-start" />
-            )}
-            {isCreating
-              ? isGlobalScope
-                ? "Crear marca de agua"
-                : "Aplicar a cuentas"
-              : "Guardar cambios"}
-          </Button>
-        </div>
-      </form>
+                {draft.type === "text" ? (
+                  <FieldGroup className="grid gap-4 sm:grid-cols-3">
+                    <Field>
+                      <FieldLabel>Estilo</FieldLabel>
+                      <Select
+                        onValueChange={(value) =>
+                          updateDraft(
+                            "textPreset",
+                            value as WatermarkTextPreset
+                          )
+                        }
+                        value={draft.textPreset}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectItem value="glass">Cristal</SelectItem>
+                            <SelectItem value="solid-dark">
+                              Sólido oscuro
+                            </SelectItem>
+                            <SelectItem value="solid-light">
+                              Sólido claro
+                            </SelectItem>
+                            <SelectItem value="minimal">Minimal</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                    <Field>
+                      <FieldLabel>Color</FieldLabel>
+                      <Select
+                        onValueChange={(value) =>
+                          updateDraft("textColor", value as WatermarkTextColor)
+                        }
+                        value={draft.textColor}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectItem value="brand-gradient">
+                              Marca
+                            </SelectItem>
+                            <SelectItem value="sunset-gradient">
+                              Atardecer
+                            </SelectItem>
+                            <SelectItem value="ocean-gradient">
+                              Océano
+                            </SelectItem>
+                            <SelectItem value="dark">Oscuro</SelectItem>
+                            <SelectItem value="white">Blanco</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                    <Field>
+                      <FieldLabel>Peso</FieldLabel>
+                      <Select
+                        onValueChange={(value) =>
+                          updateDraft(
+                            "textWeight",
+                            value as WatermarkTextWeight
+                          )
+                        }
+                        value={draft.textWeight}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectItem value="medium">Medio</SelectItem>
+                            <SelectItem value="semibold">Semibold</SelectItem>
+                            <SelectItem value="bold">Negrita</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                  </FieldGroup>
+                ) : null}
+              </div>
+              <WatermarkPreview draft={draft} image={selectedImage} />
+            </CardContent>
+          </Card>
+          <div className="flex justify-end">
+            <Button
+              aria-busy={pending}
+              disabled={!canSave || pending}
+              type="submit"
+            >
+              {pending ? (
+                <Spinner data-icon="inline-start" />
+              ) : isCreating ? (
+                <Plus aria-hidden="true" data-icon="inline-start" />
+              ) : (
+                <Save aria-hidden="true" data-icon="inline-start" />
+              )}
+              {isCreating
+                ? isGlobalScope
+                  ? "Crear marca de agua"
+                  : "Aplicar a cuentas"
+                : "Guardar cambios"}
+            </Button>
+          </div>
+        </form>
+      </div>
       <WatermarkImagePicker
         library={library}
         onOpenChange={setImagePickerOpen}
