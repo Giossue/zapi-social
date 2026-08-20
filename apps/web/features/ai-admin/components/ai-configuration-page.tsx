@@ -34,6 +34,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@workspace/ui/components/sheet"
 import { Switch } from "@workspace/ui/components/switch"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
@@ -64,6 +72,7 @@ import {
   RefreshCw,
   Route,
   Save,
+  Settings2,
   ShieldCheck,
   Timer,
 } from "lucide-react"
@@ -81,6 +90,37 @@ const kindLabels: Record<AiRequestKind, string> = {
   timing: "Mejor horario",
   search: "Búsqueda inteligente",
   ai_publishing: "Publicación AI",
+}
+
+const reasoningLabels: Record<AiReasoningEffort, string> = {
+  none: "Ninguno",
+  low: "Bajo",
+  medium: "Medio",
+  high: "Alto",
+  xhigh: "Muy alto",
+  max: "Máximo",
+}
+
+type RouteShape = {
+  capability: "text" | "image" | "video"
+  internal: boolean
+  media: boolean
+  primaryModes: string[]
+  referenceModes: string[]
+}
+
+function routeShape(kind: AiRequestKind): RouteShape {
+  return {
+    capability:
+      kind === "image" ? "image" : kind === "video" ? "video" : "text",
+    internal: kind === "timing" || kind === "search",
+    media: kind === "image" || kind === "video",
+    primaryModes: kind === "image" ? ["text-to-image"] : ["text-to-video"],
+    referenceModes:
+      kind === "image"
+        ? ["image-to-image"]
+        : ["image-to-video", "reference-to-video"],
+  }
 }
 
 const capabilityLabels = {
@@ -162,6 +202,8 @@ export function AiConfigurationPage() {
   const [usageError, setUsageError] = useState(false)
   const [modelQuery, setModelQuery] = useState("")
   const [modelPage, setModelPage] = useState(1)
+  const [editingRouteKind, setEditingRouteKind] =
+    useState<AiRequestKind | null>(null)
 
   const filteredModels = useMemo(() => {
     const normalized = modelQuery.trim().toLocaleLowerCase("es")
@@ -350,8 +392,10 @@ export function AiConfigurationPage() {
           : current
       )
       toast.success(`Ruta de ${kindLabels[route.kind]} guardada.`)
+      return true
     } catch (error) {
       toast.error(errorMessage(error))
+      return false
     } finally {
       setPending(null)
     }
@@ -399,6 +443,9 @@ export function AiConfigurationPage() {
     )
   }
 
+  const editingRoute =
+    configuration.routes.find((route) => route.kind === editingRouteKind) ??
+    null
   const readyProviders = configuration.providers.filter(
     (provider) => provider.readiness === "ready"
   ).length
@@ -665,17 +712,104 @@ export function AiConfigurationPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="routing" className="flex flex-col gap-3 pt-3">
-          {configuration.routes.map((route) => (
-            <RouteCard
-              key={route.kind}
-              route={route}
+        <TabsContent value="routing" className="pt-3">
+          <Card variant="subtle">
+            <CardContent className="px-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Herramienta</TableHead>
+                    <TableHead>Modelo principal</TableHead>
+                    <TableHead>Respaldo</TableHead>
+                    <TableHead>Razonamiento</TableHead>
+                    <TableHead>Costo</TableHead>
+                    <TableHead>Estado</TableHead>
+                    <TableHead className="text-right">Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {configuration.routes.map((route) => {
+                    const shape = routeShape(route.kind)
+                    return (
+                      <TableRow key={route.kind}>
+                        <TableCell>
+                          <p className="font-medium">
+                            {kindLabels[route.kind]}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {shape.internal
+                              ? "Se resuelve dentro de Zapi"
+                              : capabilityLabels[shape.capability]}
+                          </p>
+                        </TableCell>
+                        <TableCell>
+                          <RouteModelCell
+                            models={configuration.models}
+                            primaryId={route.primaryModelId}
+                            referenceId={route.referenceModelId}
+                            shape={shape}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <RouteModelCell
+                            models={configuration.models}
+                            primaryId={route.fallbackModelId}
+                            referenceId={route.referenceFallbackModelId}
+                            shape={shape}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          {shape.internal || shape.media
+                            ? "—"
+                            : reasoningLabels[route.reasoningEffort]}
+                        </TableCell>
+                        <TableCell>{route.costUnits}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={route.enabled ? "success" : "neutral"}
+                          >
+                            {route.enabled ? "Habilitada" : "Deshabilitada"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            onClick={() => setEditingRouteKind(route.kind)}
+                            size="sm"
+                            variant="brand-secondary"
+                          >
+                            <Settings2 data-icon="inline-start" />
+                            Configurar
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+                  {configuration.routes.length === 0 ? (
+                    <TableEmptyRow
+                      colSpan={7}
+                      description="Configura un proveedor y sus modelos para enrutar las herramientas del Portal."
+                      title="Aún no hay rutas"
+                    />
+                  ) : null}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+          {editingRoute ? (
+            <RouteSheet
               models={configuration.models}
-              pending={pending === `route-${route.kind}`}
-              onChange={(patch) => updateRoute(route.kind, patch)}
-              onSave={() => void saveRoute(route)}
+              onChange={(patch) => updateRoute(editingRoute.kind, patch)}
+              onOpenChange={(nextOpen) =>
+                setEditingRouteKind(nextOpen ? editingRoute.kind : null)
+              }
+              onSave={async () => {
+                const saved = await saveRoute(editingRoute)
+                if (saved) setEditingRouteKind(null)
+              }}
+              pending={pending === `route-${editingRoute.kind}`}
+              route={editingRoute}
             />
-          ))}
+          ) : null}
         </TabsContent>
 
         <TabsContent value="usage" className="flex flex-col gap-4 pt-3">
@@ -690,29 +824,54 @@ export function AiConfigurationPage() {
   )
 }
 
-function RouteCard({
+function modelLabel(models: AdminAiModel[], id: string | null) {
+  if (!id) return "Sin modelo"
+  return (
+    models.find((model) => model.id === id)?.label ?? "Modelo no disponible"
+  )
+}
+
+function RouteModelCell({
+  models,
+  primaryId,
+  referenceId,
+  shape,
+}: {
+  models: AdminAiModel[]
+  primaryId: string | null
+  referenceId: string | null
+  shape: RouteShape
+}) {
+  if (shape.internal) return <>—</>
+  if (!shape.media) return <>{modelLabel(models, primaryId)}</>
+
+  return (
+    <div className="flex flex-col">
+      <span>{modelLabel(models, primaryId)}</span>
+      <span className="text-xs text-muted-foreground">
+        Con referencias: {modelLabel(models, referenceId)}
+      </span>
+    </div>
+  )
+}
+
+function RouteSheet({
   route,
   models,
   pending,
   onChange,
+  onOpenChange,
   onSave,
 }: {
   route: AdminAiRoute
   models: AdminAiModel[]
   pending: boolean
   onChange: (patch: Partial<AdminAiRoute>) => void
+  onOpenChange: (open: boolean) => void
   onSave: () => void
 }) {
-  const capability =
-    route.kind === "image" ? "image" : route.kind === "video" ? "video" : "text"
-  const internal = route.kind === "timing" || route.kind === "search"
-  const media = route.kind === "image" || route.kind === "video"
-  const primaryModes =
-    route.kind === "image" ? ["text-to-image"] : ["text-to-video"]
-  const referenceModes =
-    route.kind === "image"
-      ? ["image-to-image"]
-      : ["image-to-video", "reference-to-video"]
+  const { capability, internal, media, primaryModes, referenceModes } =
+    routeShape(route.kind)
   const options = models.filter(
     (model) =>
       model.capability === capability &&
@@ -731,199 +890,203 @@ function RouteCard({
     : []
 
   return (
-    <Card variant="subtle">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Route className="size-4" /> {kindLabels[route.kind]}
-        </CardTitle>
-        <CardDescription>
-          {internal
-            ? "Esta herramienta se resuelve dentro de Zapi y no consume un modelo externo."
-            : media
-              ? "Separa la generación desde texto de la generación con archivos de referencia."
-              : `Elige el modelo principal y el respaldo para ${capabilityLabels[capability].toLowerCase()}.`}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {!internal ? (
-            <>
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium">
-                  {media ? "Principal · sin referencias" : "Modelo principal"}
-                  {route.enabled ? (
-                    <span aria-hidden="true" className="text-destructive">
-                      *
-                    </span>
-                  ) : null}
-                </label>
-                <Select
-                  value={route.primaryModelId ?? "none"}
-                  onValueChange={(value) =>
-                    onChange({
-                      primaryModelId: value === "none" ? null : value,
-                    })
-                  }
-                >
-                  <SelectTrigger
-                    aria-required={route.enabled ? "true" : undefined}
-                    className="w-full"
+    <Sheet onOpenChange={onOpenChange} open>
+      <SheetContent className="w-full gap-0 p-0 sm:max-w-2xl" side="right">
+        <SheetHeader className="border-b">
+          <SheetTitle className="flex items-center gap-2">
+            <Route className="size-4" /> {kindLabels[route.kind]}
+          </SheetTitle>
+          <SheetDescription>
+            {internal
+              ? "Esta herramienta se resuelve dentro de Zapi y no consume un modelo externo."
+              : media
+                ? "Separa la generación desde texto de la generación con archivos de referencia."
+                : `Elige el modelo principal y el respaldo para ${capabilityLabels[capability].toLowerCase()}.`}
+          </SheetDescription>
+        </SheetHeader>
+        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            {!internal ? (
+              <>
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium">
+                    {media ? "Principal · sin referencias" : "Modelo principal"}
+                    {route.enabled ? (
+                      <span aria-hidden="true" className="text-destructive">
+                        *
+                      </span>
+                    ) : null}
+                  </label>
+                  <Select
+                    value={route.primaryModelId ?? "none"}
+                    onValueChange={(value) =>
+                      onChange({
+                        primaryModelId: value === "none" ? null : value,
+                      })
+                    }
                   >
-                    <SelectValue placeholder="Selecciona" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="none">Sin modelo</SelectItem>
-                      {options.map((model) => (
-                        <SelectItem key={model.id} value={model.id}>
-                          {model.label}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-medium">
-                  {media ? "Respaldo · sin referencias" : "Modelo de respaldo"}
-                </label>
-                <Select
-                  value={route.fallbackModelId ?? "none"}
-                  onValueChange={(value) =>
-                    onChange({
-                      fallbackModelId: value === "none" ? null : value,
-                    })
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecciona" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="none">Sin respaldo</SelectItem>
-                      {options
-                        .filter((model) => model.id !== route.primaryModelId)
-                        .map((model) => (
+                    <SelectTrigger
+                      aria-required={route.enabled ? "true" : undefined}
+                      className="w-full"
+                    >
+                      <SelectValue placeholder="Selecciona" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="none">Sin modelo</SelectItem>
+                        {options.map((model) => (
                           <SelectItem key={model.id} value={model.id}>
                             {model.label}
                           </SelectItem>
                         ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-              {media ? (
-                <>
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-medium">
-                      Principal · con referencias
-                      {route.enabled ? (
-                        <span aria-hidden="true" className="text-destructive">
-                          *
-                        </span>
-                      ) : null}
-                    </label>
-                    <Select
-                      value={route.referenceModelId ?? "none"}
-                      onValueChange={(value) =>
-                        onChange({
-                          referenceModelId: value === "none" ? null : value,
-                        })
-                      }
-                    >
-                      <SelectTrigger
-                        aria-required={route.enabled ? "true" : undefined}
-                        className="w-full"
-                      >
-                        <SelectValue placeholder="Selecciona" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectItem value="none">Sin modelo</SelectItem>
-                          {referenceOptions.map((model) => (
-                            <SelectItem key={model.id} value={model.id}>
-                              {model.label}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-medium">
-                      Respaldo · con referencias
-                    </label>
-                    <Select
-                      value={route.referenceFallbackModelId ?? "none"}
-                      onValueChange={(value) =>
-                        onChange({
-                          referenceFallbackModelId:
-                            value === "none" ? null : value,
-                        })
-                      }
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Selecciona" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectItem value="none">Sin respaldo</SelectItem>
-                          {referenceOptions
-                            .filter(
-                              (model) => model.id !== route.referenceModelId
-                            )
-                            .map((model) => (
-                              <SelectItem key={model.id} value={model.id}>
-                                {model.label}
-                              </SelectItem>
-                            ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </>
-              ) : null}
-              {!media ? (
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium">Razonamiento</label>
-                  <Select
-                    value={route.reasoningEffort}
-                    onValueChange={(value) =>
-                      onChange({ reasoningEffort: value as AiReasoningEffort })
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem value="none">Ninguno</SelectItem>
-                        <SelectItem value="low">Bajo</SelectItem>
-                        <SelectItem value="medium">Medio</SelectItem>
-                        <SelectItem value="high">Alto</SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>
                 </div>
-              ) : null}
-            </>
-          ) : null}
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">Costo en créditos</label>
-            <Input
-              type="number"
-              min={0}
-              max={10000}
-              value={route.costUnits}
-              onChange={(event) =>
-                onChange({
-                  costUnits: Math.max(0, Number(event.target.value) || 0),
-                })
-              }
-            />
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium">
+                    {media
+                      ? "Respaldo · sin referencias"
+                      : "Modelo de respaldo"}
+                  </label>
+                  <Select
+                    value={route.fallbackModelId ?? "none"}
+                    onValueChange={(value) =>
+                      onChange({
+                        fallbackModelId: value === "none" ? null : value,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Selecciona" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="none">Sin respaldo</SelectItem>
+                        {options
+                          .filter((model) => model.id !== route.primaryModelId)
+                          .map((model) => (
+                            <SelectItem key={model.id} value={model.id}>
+                              {model.label}
+                            </SelectItem>
+                          ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {media ? (
+                  <>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-medium">
+                        Principal · con referencias
+                        {route.enabled ? (
+                          <span aria-hidden="true" className="text-destructive">
+                            *
+                          </span>
+                        ) : null}
+                      </label>
+                      <Select
+                        value={route.referenceModelId ?? "none"}
+                        onValueChange={(value) =>
+                          onChange({
+                            referenceModelId: value === "none" ? null : value,
+                          })
+                        }
+                      >
+                        <SelectTrigger
+                          aria-required={route.enabled ? "true" : undefined}
+                          className="w-full"
+                        >
+                          <SelectValue placeholder="Selecciona" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectItem value="none">Sin modelo</SelectItem>
+                            {referenceOptions.map((model) => (
+                              <SelectItem key={model.id} value={model.id}>
+                                {model.label}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-medium">
+                        Respaldo · con referencias
+                      </label>
+                      <Select
+                        value={route.referenceFallbackModelId ?? "none"}
+                        onValueChange={(value) =>
+                          onChange({
+                            referenceFallbackModelId:
+                              value === "none" ? null : value,
+                          })
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Selecciona" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectItem value="none">Sin respaldo</SelectItem>
+                            {referenceOptions
+                              .filter(
+                                (model) => model.id !== route.referenceModelId
+                              )
+                              .map((model) => (
+                                <SelectItem key={model.id} value={model.id}>
+                                  {model.label}
+                                </SelectItem>
+                              ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </>
+                ) : null}
+                {!media ? (
+                  <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium">Razonamiento</label>
+                    <Select
+                      value={route.reasoningEffort}
+                      onValueChange={(value) =>
+                        onChange({
+                          reasoningEffort: value as AiReasoningEffort,
+                        })
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectItem value="none">Ninguno</SelectItem>
+                          <SelectItem value="low">Bajo</SelectItem>
+                          <SelectItem value="medium">Medio</SelectItem>
+                          <SelectItem value="high">Alto</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : null}
+              </>
+            ) : null}
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium">Costo en créditos</label>
+              <Input
+                type="number"
+                min={0}
+                max={10000}
+                value={route.costUnits}
+                onChange={(event) =>
+                  onChange({
+                    costUnits: Math.max(0, Number(event.target.value) || 0),
+                  })
+                }
+              />
+            </div>
           </div>
-        </div>
-        <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Switch
               checked={route.enabled}
@@ -932,6 +1095,16 @@ function RouteCard({
             />
             <span className="text-sm">Herramienta habilitada</span>
           </div>
+        </div>
+        <SheetFooter className="flex-row justify-end border-t">
+          <Button
+            disabled={pending}
+            onClick={() => onOpenChange(false)}
+            type="button"
+            variant="brand-secondary"
+          >
+            Cancelar
+          </Button>
           <Button
             onClick={onSave}
             disabled={
@@ -947,9 +1120,9 @@ function RouteCard({
             )}
             Guardar ruta
           </Button>
-        </div>
-      </CardContent>
-    </Card>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   )
 }
 

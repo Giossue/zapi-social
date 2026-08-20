@@ -19,6 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import {
   Field,
@@ -396,6 +397,10 @@ export function IntegrationsPage() {
   if (activeProvider === "meta" && loading) {
     return (
       <div className="flex flex-col gap-6">
+        <CollectionHeader
+          description="Configura las credenciales y el alcance de los proveedores externos que usa el Portal."
+          title="Integraciones"
+        />
         <Tabs
           onValueChange={(value) => setActiveProvider(value as ProviderTab)}
           value={activeProvider}
@@ -419,6 +424,10 @@ export function IntegrationsPage() {
   if (activeProvider === "meta" && (loadError || !integration)) {
     return (
       <div className="flex flex-col gap-6">
+        <CollectionHeader
+          description="Configura las credenciales y el alcance de los proveedores externos que usa el Portal."
+          title="Integraciones"
+        />
         <Tabs
           onValueChange={(value) => setActiveProvider(value as ProviderTab)}
           value={activeProvider}
@@ -465,6 +474,10 @@ export function IntegrationsPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      <CollectionHeader
+        description="Configura las credenciales y el alcance de los proveedores externos que usa el Portal."
+        title="Integraciones"
+      />
       <Tabs
         onValueChange={(value) => setActiveProvider(value as ProviderTab)}
         value={activeProvider}
