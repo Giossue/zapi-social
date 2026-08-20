@@ -1,5 +1,5 @@
-import { PortalModuleMockup } from "@/features/portal-mockups/components/portal-module-mockup"
+import { GroupsPage } from "@/features/groups/components/groups-page"
 
-export default function GroupsPage() {
-  return <PortalModuleMockup moduleKey="groups" />
+export default function GroupsRoutePage() {
+  return <GroupsPage />
 }

@@ -2,6 +2,8 @@
 
 Lee este archivo primero. Es un **índice**, no una copia de las reglas: cada norma vive en un único documento canónico y se actualiza allí.
 
+`AGENTS.md` es un enlace simbólico a este mismo archivo: existe una sola copia del índice.
+
 ## Carga obligatoria y precedencia
 
 - Antes de buscar, planificar, editar, ejecutar comandos o responder sobre el repositorio, clasificar la tarea con la tabla de este índice y leer **completamente** todos los documentos indicados en las filas aplicables.
@@ -19,14 +21,16 @@ Lee este archivo primero. Es un **índice**, no una copia de las reglas: cada no
 
 ## Qué leer antes de actuar
 
-| Si vas a… | Lee antes | Actualiza al cambiar… |
-| --- | --- | --- |
-| Ubicar código, usar `.env`, privilegios, PostgreSQL o migraciones Drizzle | [`docs/reglas/workflow.md`](./docs/reglas/workflow.md) | Ese mismo archivo si cambia una norma operativa o de acceso a datos. |
-| Diseñar o refactorizar UI, usar primitives, tokens, 21st, Next o Tailwind | [`docs/reglas/design.md`](./docs/reglas/design.md) y [`packages/ui/COMPONENTS.md`](./packages/ui/COMPONENTS.md) | `design.md` para reglas; `COMPONENTS.md` al añadir, quitar o promover un primitive/pattern global. |
-| Cerrar un cambio, validar, revisar o actualizar documentación | [`docs/reglas/calidad.md`](./docs/reglas/calidad.md) | El documento canónico del dominio y evidencia de validación en plan/PR. |
-| Entender límites de Web, API, Worker, paquetes o dependencias | [`ARCHITECTURE.md`](./ARCHITECTURE.md) | `ARCHITECTURE.md` si cambia una responsabilidad transversal. |
-| Cambiar una vertical de producto | El plan pertinente en [`docs/planes/`](./docs/planes/) y la referencia Laravel equivalente | El plan de esa vertical al cambiar decisiones, equivalencias, alcance o estado. |
-| Consultar estado técnico, stack, despliegue o navegación actual | [`docs/README.md`](./docs/README.md) para elegir el documento de `conocimiento/` correcto | El archivo de `conocimiento/` que sea fuente de verdad del hecho observado. |
+| Si vas a…                                                                      | Lee antes                                                                                                       | Actualiza al cambiar…                                                                              |
+| ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Ubicar código, usar `.env`, privilegios, PostgreSQL o migraciones Drizzle      | [`docs/reglas/workflow.md`](./docs/reglas/workflow.md)                                                          | Ese mismo archivo si cambia una norma operativa o de acceso a datos.                               |
+| Diseñar o refactorizar UI, usar primitives, tokens, 21st, Next o Tailwind      | [`docs/reglas/design.md`](./docs/reglas/design.md) y [`packages/ui/COMPONENTS.md`](./packages/ui/COMPONENTS.md) | `design.md` para reglas; `COMPONENTS.md` al añadir, quitar o promover un primitive/pattern global. |
+| Cerrar un cambio, validar, revisar o actualizar documentación                  | [`docs/reglas/calidad.md`](./docs/reglas/calidad.md)                                                            | El documento canónico del dominio y evidencia de validación en plan/PR.                            |
+| Tocar sesión, permisos, ownership, secretos, providers o validación de entrada | [`docs/reglas/seguridad.md`](./docs/reglas/seguridad.md)                                                        | Ese mismo archivo si cambia una frontera de seguridad.                                             |
+| Confirmar, publicar o abrir un PR                                              | [`docs/reglas/entrega.md`](./docs/reglas/entrega.md)                                                            | Ese mismo archivo si cambia la convención de commits o publicación.                                |
+| Entender límites de Web, API, Worker, paquetes o dependencias                  | [`ARCHITECTURE.md`](./ARCHITECTURE.md)                                                                          | `ARCHITECTURE.md` si cambia una responsabilidad transversal.                                       |
+| Cambiar una vertical de producto                                               | El plan pertinente en [`docs/planes/`](./docs/planes/) y la referencia Laravel equivalente                      | El plan de esa vertical al cambiar decisiones, equivalencias, alcance o estado.                    |
+| Consultar estado técnico, stack, despliegue o navegación actual                | [`docs/README.md`](./docs/README.md) para elegir el documento de `conocimiento/` correcto                       | El archivo de `conocimiento/` que sea fuente de verdad del hecho observado.                        |
 
 ## Orden mínimo de lectura
 

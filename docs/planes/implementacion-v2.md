@@ -227,13 +227,13 @@ Cada vertical se cierra solo con:
 
 La foundation y varias verticales Portal ya tienen contrato, API, persistencia y, cuando corresponde, Worker. La migración consolidada `0020_mushy_peter_parker` incorpora Groups, Bulk Posts, Automation, AI, intentos Publishing, Commerce, Affiliate y metadata de Files; `0021_pale_thor` añade FKs cross-workspace, cuotas AI seguras e inventario consistente.
 
-| Slice                                 | Backend                   | Web                                               |
-| ------------------------------------- | ------------------------- | ------------------------------------------------- |
-| Publishing, RSS, Support y Watermarks | REST/Worker operativo     | conectado a REST en sus superficies implementadas |
-| Groups, Bulk Posts y Automation       | REST/Worker operativo     | mock source-first; conexión REST pendiente         |
-| AI Studio/AI Publishing               | REST/Worker operativo     | conserva fixtures en rutas AI                     |
-| Commerce y Affiliate                  | REST operativo            | Commerce no se expone en Portal; Affiliate conserva mock y conexión REST pendiente |
-| Online Media                          | búsqueda/importación REST | conserva fixtures                                 |
+| Slice                                 | Backend                   | Web                                                         |
+| ------------------------------------- | ------------------------- | ----------------------------------------------------------- |
+| Publishing, RSS, Support y Watermarks | REST/Worker operativo     | conectado a REST en sus superficies implementadas           |
+| Groups, Bulk Posts y Automation       | REST/Worker operativo     | conectado a REST                                            |
+| AI Studio                             | REST/Worker operativo     | conectado a REST en todas sus vistas                        |
+| Commerce y Affiliate                  | REST operativo            | Commerce no se expone en Portal; Affiliate conectado a REST |
+| Online Media                          | búsqueda/importación REST | conectado a REST                                            |
 
 La capa Commerce no incluye pagos: no hay gateway, checkout, suscripción ni cobro inventado. Los pendientes de frontend no invalidan la persistencia, pero impiden considerar esas rutas cerradas de extremo a extremo.
 

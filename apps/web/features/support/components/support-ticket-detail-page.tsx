@@ -1,9 +1,11 @@
 "use client"
 
 import Link from "next/link"
-import { useMemo, useState, type FormEvent } from "react"
+import { useRouter } from "next/navigation"
+import { useCallback, useEffect, useState, type FormEvent } from "react"
 import { ArrowLeft, CheckCircle2, LifeBuoy, Send } from "lucide-react"
 
+import { ApiError, authApi, supportApi } from "@workspace/api-client"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import {
@@ -21,6 +23,9 @@ import {
 } from "@workspace/ui/components/card"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
+import { PageLoading } from "@workspace/ui/components/page-loading"
+import { RetryButton } from "@workspace/ui/components/retry-button"
+import { Spinner } from "@workspace/ui/components/spinner"
 import {
   Message,
   MessageAvatar,
@@ -31,7 +36,6 @@ import {
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
 
-import { supportTicketsFixture } from "@/features/support/fixtures/support"
 import type {
   SupportComment,
   SupportTicketDetail,
@@ -55,15 +59,96 @@ function formatDateTime(value: string) {
   }).format(new Date(value))
 }
 
+function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part.slice(0, 1))
+    .join("")
+    .slice(0, 2)
+    .toUpperCase()
+}
+
 export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
-  const initialTicket = useMemo(
-    () => supportTicketsFixture.find(({ id }) => id === ticketId) ?? null,
-    [ticketId]
-  )
-  const [ticket, setTicket] = useState<SupportTicketDetail | null>(
-    initialTicket
-  )
+  const router = useRouter()
+  const [ticket, setTicket] = useState<SupportTicketDetail | null>(null)
+  const [requesterName, setRequesterName] = useState("")
   const [reply, setReply] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [pending, setPending] = useState(false)
+
+  const handleError = useCallback(
+    (error: unknown) => {
+      if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
+        router.replace("/login")
+        return true
+      }
+      return false
+    },
+    [router]
+  )
+
+  const load = useCallback(async () => {
+    setIsLoading(true)
+    setLoadError(false)
+    try {
+      setTicket(await supportApi.get(ticketId))
+    } catch (error) {
+      if (handleError(error)) return
+      if (error instanceof ApiError && error.status === 404) {
+        setTicket(null)
+        return
+      }
+      console.error("Support ticket request failed", error)
+      setLoadError(true)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [handleError, ticketId])
+
+  useEffect(() => {
+    void load()
+  }, [load])
+
+  useEffect(() => {
+    let isCurrent = true
+    void authApi
+      .session()
+      .then((session) => {
+        if (isCurrent) setRequesterName(session.user.displayName)
+      })
+      .catch(() => {
+        // El nombre solo se usa para etiquetar la conversación.
+      })
+    return () => {
+      isCurrent = false
+    }
+  }, [])
+
+  if (isLoading) {
+    return <PageLoading aria-label="Cargando caso de soporte" />
+  }
+
+  if (loadError) {
+    return (
+      <Card variant="subtle">
+        <CardContent>
+          <EmptyState
+            action={
+              <RetryButton
+                onClick={() => void load()}
+                variant="brand-secondary"
+              />
+            }
+            description="No pudimos cargar este caso de soporte."
+            icon={LifeBuoy}
+            title="Caso no disponible"
+          />
+        </CardContent>
+      </Card>
+    )
+  }
 
   if (!ticket) {
     return (
@@ -71,7 +156,7 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
         <CardContent>
           <EmptyState
             action={
-              <Button asChild variant="outline">
+              <Button asChild variant="brand-secondary">
                 <Link href="/portal/support">
                   <ArrowLeft data-icon="inline-start" /> Volver a soporte
                 </Link>
@@ -89,7 +174,7 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
   const conversationMessages: SupportComment[] = [
     {
       id: `ticket-description-${ticket.id}`,
-      authorName: "Zapi test chang",
+      authorName: requesterName || "Tú",
       authorRole: "requester",
       body: ticket.description,
       createdAt: ticket.createdAt,
@@ -97,40 +182,39 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
     ...ticket.comments,
   ]
 
-  function sendReply(event: FormEvent<HTMLFormElement>) {
+  async function sendReply(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!reply.trim()) {
       toast.error("Escribe un mensaje antes de enviarlo.")
       return
     }
-    const comment: SupportComment = {
-      id: `fixture-comment-${Date.now()}`,
-      authorName: "Zapi test chang",
-      authorRole: "requester",
-      body: reply.trim(),
-      createdAt: new Date().toISOString(),
+    setPending(true)
+    try {
+      setTicket(await supportApi.addComment(ticketId, { body: reply.trim() }))
+      setReply("")
+      toast.success("Respuesta enviada.")
+    } catch (error) {
+      if (handleError(error)) return
+      console.error("Support comment failed", error)
+      toast.error("No pudimos enviar tu respuesta. Inténtalo de nuevo.")
+    } finally {
+      setPending(false)
     }
-    setTicket((current) =>
-      current
-        ? {
-            ...current,
-            comments: [...current.comments, comment],
-            commentCount: current.commentCount + 1,
-            updatedAt: comment.createdAt,
-          }
-        : current
-    )
-    setReply("")
-    toast.success("Respuesta enviada.")
   }
 
-  function resolveTicket() {
-    const resolvedAt = new Date().toISOString()
-    setTicket((current) =>
-      current
-        ? { ...current, status: "resolved", resolvedAt, updatedAt: resolvedAt }
-        : current
-    )
+  async function resolveTicket() {
+    setPending(true)
+    try {
+      await supportApi.resolve(ticketId)
+      await load()
+      toast.success("Caso marcado como resuelto.")
+    } catch (error) {
+      if (handleError(error)) return
+      console.error("Support ticket resolve failed", error)
+      toast.error("No pudimos marcar el caso como resuelto.")
+    } finally {
+      setPending(false)
+    }
   }
 
   return (
@@ -162,11 +246,12 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
             </div>
             {ticket.status === "open" ? (
               <Button
-                onClick={resolveTicket}
+                disabled={pending}
+                onClick={() => void resolveTicket()}
                 size="sm"
                 variant="brand-secondary"
               >
-                <CheckCircle2 /> Marcar como resuelto
+                {pending ? <Spinner /> : <CheckCircle2 />} Marcar como resuelto
               </Button>
             ) : null}
           </div>
@@ -188,7 +273,7 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
                             : "bg-muted text-xs text-foreground"
                         }
                       >
-                        {isOutbound ? "ZT" : "ZS"}
+                        {initials(comment.authorName)}
                       </AvatarFallback>
                     </Avatar>
                   </MessageAvatar>
@@ -222,9 +307,10 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
           </CardHeader>
           <CardContent>
             <form
+              aria-busy={pending}
               className="flex flex-col gap-3"
               noValidate
-              onSubmit={sendReply}
+              onSubmit={(event) => void sendReply(event)}
             >
               <Field>
                 <FieldLabel htmlFor="support-reply">
@@ -244,8 +330,13 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
                 />
               </Field>
               <div className="flex justify-end">
-                <Button disabled={!reply.trim()} type="submit">
-                  <Send data-icon="inline-start" /> Enviar respuesta
+                <Button disabled={!reply.trim() || pending} type="submit">
+                  {pending ? (
+                    <Spinner data-icon="inline-start" />
+                  ) : (
+                    <Send data-icon="inline-start" />
+                  )}
+                  Enviar respuesta
                 </Button>
               </div>
             </form>

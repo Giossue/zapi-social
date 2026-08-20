@@ -25,7 +25,6 @@ Laravel es la referencia funcional, visual y de datos; no es la arquitectura obj
 | `packages/api-client`     | Cliente REST tipado derivado del contrato/OpenAPI.                                                  | Contener reglas de negocio o acceso directo a datos.                          |
 | `packages/database`       | Schema Drizzle, migraciones y cliente PostgreSQL.                                                   | Ser importado desde Web.                                                      |
 | `packages/file-ingestion` | Política pura y compartida de MIME, extensión, firma binaria, tipo y límite para entradas de Files. | Acceder a base de datos, filesystem, HTTP, secretos o lógica de autorización. |
-| `infra/podman`            | Infraestructura local declarativa.                                                                  | Guardar secretos.                                                             |
 
 ## Dependencias permitidas
 

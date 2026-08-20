@@ -34,18 +34,3 @@ export type FileLibraryData = {
   page: number
   filesTotal: number
 }
-
-export type OnlineMediaItem = {
-  id: string
-  title: string
-  provider: string
-  photographer: string
-  kind: "photo" | "illustration" | "video"
-  dimensions: string
-}
-
-export type OnlineMediaSearchData = {
-  canSearch: boolean
-  query: string
-  items: readonly OnlineMediaItem[]
-}

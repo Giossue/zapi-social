@@ -1,5 +1,5 @@
-import { PortalModuleMockup } from "@/features/portal-mockups/components/portal-module-mockup"
+import { BulkPostsPage } from "@/features/bulk-posts/components/bulk-posts-page"
 
-export default function BulkPostsPage() {
-  return <PortalModuleMockup moduleKey="bulk-posts" />
+export default function BulkPostsRoutePage() {
+  return <BulkPostsPage />
 }

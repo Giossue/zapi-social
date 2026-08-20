@@ -1,7 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { useMemo, useState, type FormEvent } from "react"
+import { useRouter } from "next/navigation"
+import { useCallback, useEffect, useState, type FormEvent } from "react"
 import {
   CircleCheck,
   CircleDot,
@@ -14,6 +15,7 @@ import {
   X,
 } from "lucide-react"
 
+import { ApiError, supportApi } from "@workspace/api-client"
 import { Badge } from "@workspace/ui/components/badge"
 import { CardGrid } from "@workspace/ui/components/card-grid"
 import { Button } from "@workspace/ui/components/button"
@@ -34,6 +36,8 @@ import {
 } from "@workspace/ui/components/sheet"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
+import { PageLoading } from "@workspace/ui/components/page-loading"
+import { RetryButton } from "@workspace/ui/components/retry-button"
 import { MetricCard } from "@workspace/ui/components/metric-card"
 import {
   Field,
@@ -42,6 +46,7 @@ import {
   FieldLabel,
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
+import { Spinner } from "@workspace/ui/components/spinner"
 import {
   Select,
   SelectContent,
@@ -63,11 +68,8 @@ import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
 
-import {
-  supportCategoriesFixture,
-  supportTicketsFixture,
-} from "@/features/support/fixtures/support"
 import type {
+  SupportCategory,
   SupportTicket,
   SupportTicketStatus,
 } from "@/features/support/types/support"
@@ -107,25 +109,29 @@ const emptyTicketValues: NewTicketValues = {
   description: "",
 }
 
-function SupportMetrics({ tickets }: { tickets: readonly SupportTicket[] }) {
+type SupportCounts = Record<SupportTicketStatus, number>
+
+const emptyCounts: SupportCounts = { open: 0, resolved: 0, closed: 0 }
+
+function SupportMetrics({ counts }: { counts: SupportCounts }) {
   const items = [
     {
       description: "En espera de atención",
       icon: CircleDot,
       label: "Abiertos",
-      value: tickets.filter((ticket) => ticket.status === "open").length,
+      value: counts.open,
     },
     {
       description: "Resueltos en el historial",
       icon: CircleCheck,
       label: "Resueltos",
-      value: tickets.filter((ticket) => ticket.status === "resolved").length,
+      value: counts.resolved,
     },
     {
       description: "Sin acciones pendientes",
       icon: CircleX,
       label: "Cerrados",
-      value: tickets.filter((ticket) => ticket.status === "closed").length,
+      value: counts.closed,
     },
   ]
 
@@ -139,13 +145,17 @@ function SupportMetrics({ tickets }: { tickets: readonly SupportTicket[] }) {
 }
 
 function NewSupportTicketSheet({
+  categories,
   onCreate,
   onOpenChange,
   open,
+  pending,
 }: {
-  onCreate: (values: NewTicketValues) => void
+  categories: readonly SupportCategory[]
+  onCreate: (values: NewTicketValues) => Promise<boolean>
   onOpenChange: (open: boolean) => void
   open: boolean
+  pending: boolean
 }) {
   const [values, setValues] = useState(emptyTicketValues)
   const canSubmit = Boolean(
@@ -157,19 +167,19 @@ function NewSupportTicketSheet({
     onOpenChange(false)
   }
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!canSubmit) {
       toast.error("Completa todos los campos obligatorios.")
       return
     }
 
-    onCreate({
+    const created = await onCreate({
       categoryId: values.categoryId,
       subject: values.subject.trim(),
       description: values.description.trim(),
     })
-    close()
+    if (created) close()
   }
 
   return (
@@ -186,9 +196,10 @@ function NewSupportTicketSheet({
           </SheetDescription>
         </SheetHeader>
         <form
+          aria-busy={pending}
           className="flex min-h-0 flex-1 flex-col"
           noValidate
-          onSubmit={submit}
+          onSubmit={(event) => void submit(event)}
         >
           <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4">
             <FieldGroup>
@@ -215,7 +226,7 @@ function NewSupportTicketSheet({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      {supportCategoriesFixture.map((category) => (
+                      {categories.map((category) => (
                         <SelectItem key={category.id} value={category.id}>
                           {category.name}
                         </SelectItem>
@@ -275,11 +286,20 @@ function NewSupportTicketSheet({
             </FieldGroup>
           </div>
           <SheetFooter className="flex-row justify-end border-t">
-            <Button onClick={close} type="button" variant="brand-secondary">
+            <Button
+              disabled={pending}
+              onClick={close}
+              type="button"
+              variant="brand-secondary"
+            >
               <X data-icon="inline-start" /> Cancelar
             </Button>
-            <Button disabled={!canSubmit} type="submit">
-              <LifeBuoy data-icon="inline-start" />
+            <Button disabled={!canSubmit || pending} type="submit">
+              {pending ? (
+                <Spinner data-icon="inline-start" />
+              ) : (
+                <LifeBuoy data-icon="inline-start" />
+              )}
               Crear caso
             </Button>
           </SheetFooter>
@@ -289,37 +309,101 @@ function NewSupportTicketSheet({
   )
 }
 
+const pageSize = 10
+
 export function SupportTicketsPage() {
-  const [tickets, setTickets] = useState<SupportTicket[]>(supportTicketsFixture)
+  const router = useRouter()
+  const [tickets, setTickets] = useState<SupportTicket[]>([])
+  const [categories, setCategories] = useState<SupportCategory[]>([])
+  const [counts, setCounts] = useState<SupportCounts>(emptyCounts)
+  const [total, setTotal] = useState(0)
   const [query, setQuery] = useState("")
   const [status, setStatus] = useState<SupportTicketStatus | "all">("all")
   const [page, setPage] = useState(1)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
-  const canView = true
-  const pageSize = 10
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [canView, setCanView] = useState(true)
+  const [pending, setPending] = useState(false)
 
-  const filteredTickets = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase("es")
-    return tickets.filter((ticket) => {
-      const matchesStatus = status === "all" || ticket.status === status
-      const matchesQuery =
-        !normalizedQuery ||
-        [ticket.subject, ticket.description, ticket.category.name].some(
-          (value) => value.toLocaleLowerCase("es").includes(normalizedQuery)
-        )
-      return matchesStatus && matchesQuery
-    })
-  }, [query, status, tickets])
-  const pageCount = Math.max(1, Math.ceil(filteredTickets.length / pageSize))
-  const safePage = Math.min(page, pageCount)
-  const visibleTickets = filteredTickets.slice(
-    (safePage - 1) * pageSize,
-    safePage * pageSize
+  const handleError = useCallback(
+    (error: unknown) => {
+      if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
+        router.replace("/login")
+        return true
+      }
+      if (error instanceof ApiError && error.status === 403) {
+        setCanView(false)
+        return true
+      }
+      return false
+    },
+    [router]
   )
-  const rangeStart = filteredTickets.length ? (safePage - 1) * pageSize + 1 : 0
-  const rangeEnd = filteredTickets.length
-    ? rangeStart + visibleTickets.length - 1
-    : 0
+
+  const loadCounts = useCallback(async () => {
+    const [open, resolved, closed] = await Promise.all([
+      supportApi.list({ limit: 1, status: "open" }),
+      supportApi.list({ limit: 1, status: "resolved" }),
+      supportApi.list({ limit: 1, status: "closed" }),
+    ])
+    setCounts({
+      open: open.total,
+      resolved: resolved.total,
+      closed: closed.total,
+    })
+  }, [])
+
+  const load = useCallback(async () => {
+    setIsLoading(true)
+    setLoadError(false)
+    try {
+      const [response] = await Promise.all([
+        supportApi.list({
+          limit: pageSize,
+          page,
+          ...(query.trim() ? { q: query.trim() } : {}),
+          ...(status === "all" ? {} : { status }),
+        }),
+        loadCounts(),
+      ])
+      setTickets(response.tickets)
+      setTotal(response.total)
+      setCanView(true)
+    } catch (error) {
+      if (handleError(error)) return
+      console.error("Support tickets request failed", error)
+      setLoadError(true)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [handleError, loadCounts, page, query, status])
+
+  useEffect(() => {
+    const timer = setTimeout(() => void load(), query ? 300 : 0)
+    return () => clearTimeout(timer)
+  }, [load, query])
+
+  useEffect(() => {
+    let isCurrent = true
+    void supportApi
+      .categories()
+      .then((response) => {
+        if (isCurrent) setCategories(response)
+      })
+      .catch((error: unknown) => {
+        if (handleError(error)) return
+        console.error("Support categories request failed", error)
+      })
+    return () => {
+      isCurrent = false
+    }
+  }, [handleError])
+
+  const pageCount = Math.max(1, Math.ceil(total / pageSize))
+  const safePage = Math.min(page, pageCount)
+  const rangeStart = total ? (safePage - 1) * pageSize + 1 : 0
+  const rangeEnd = total ? rangeStart + tickets.length - 1 : 0
   const hasFilters = Boolean(query || status !== "all")
 
   function clearFilters() {
@@ -328,27 +412,22 @@ export function SupportTicketsPage() {
     setPage(1)
   }
 
-  function createTicket(values: NewTicketValues) {
-    const category = supportCategoriesFixture.find(
-      ({ id }) => id === values.categoryId
-    )
-    if (!category) return
-    const now = new Date().toISOString()
-    setTickets((current) => [
-      {
-        id: `fixture-${Date.now()}`,
-        category,
-        subject: values.subject,
-        description: values.description,
-        status: "open",
-        commentCount: 0,
-        createdAt: now,
-        updatedAt: now,
-        resolvedAt: null,
-      },
-      ...current,
-    ])
-    setPage(1)
+  async function createTicket(values: NewTicketValues) {
+    setPending(true)
+    try {
+      await supportApi.create(values)
+      setPage(1)
+      await load()
+      toast.success("Caso de soporte creado.")
+      return true
+    } catch (error) {
+      if (handleError(error)) return false
+      console.error("Support ticket creation failed", error)
+      toast.error("No pudimos crear el caso. Inténtalo de nuevo.")
+      return false
+    } finally {
+      setPending(false)
+    }
   }
 
   if (!canView) {
@@ -365,6 +444,30 @@ export function SupportTicketsPage() {
     )
   }
 
+  if (isLoading && !tickets.length && !loadError) {
+    return <PageLoading aria-label="Cargando casos de soporte" />
+  }
+
+  if (loadError) {
+    return (
+      <Card variant="subtle">
+        <CardContent>
+          <EmptyState
+            action={
+              <RetryButton
+                onClick={() => void load()}
+                variant="brand-secondary"
+              />
+            }
+            description="No pudimos cargar tus casos de soporte."
+            icon={LifeBuoy}
+            title="Soporte no disponible"
+          />
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <>
       <div className="flex flex-col gap-4">
@@ -372,7 +475,7 @@ export function SupportTicketsPage() {
           description="Revisa tus casos abiertos y habla con el equipo de Zapi desde un único lugar."
           title="Soporte"
         />
-        <SupportMetrics tickets={tickets} />
+        <SupportMetrics counts={counts} />
         <Card variant="subtle">
           <DataTableHeader
             action={
@@ -443,8 +546,8 @@ export function SupportTicketsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {visibleTickets.length ? (
-                    visibleTickets.map((ticket) => (
+                  {tickets.length ? (
+                    tickets.map((ticket) => (
                       <TableRow key={ticket.id}>
                         <TableCell>
                           <div className="flex min-w-48 flex-col gap-1">
@@ -523,7 +626,7 @@ export function SupportTicketsPage() {
               }
               rangeEnd={rangeEnd}
               rangeStart={rangeStart}
-              total={filteredTickets.length}
+              total={total}
             />
           </CardContent>
         </Card>
@@ -534,9 +637,11 @@ export function SupportTicketsPage() {
         />
       </div>
       <NewSupportTicketSheet
+        categories={categories}
         onCreate={createTicket}
         onOpenChange={setIsCreateOpen}
         open={isCreateOpen}
+        pending={pending}
       />
     </>
   )

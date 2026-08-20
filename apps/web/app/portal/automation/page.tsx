@@ -1,5 +1,5 @@
-import { PortalModuleMockup } from "@/features/portal-mockups/components/portal-module-mockup"
+import { AutomationPage } from "@/features/automation/components/automation-page"
 
-export default function AutomationPage() {
-  return <PortalModuleMockup moduleKey="automation" />
+export default function AutomationRoutePage() {
+  return <AutomationPage />
 }

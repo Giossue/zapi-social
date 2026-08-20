@@ -1,5 +1,5 @@
-import { PortalModuleMockup } from "@/features/portal-mockups/components/portal-module-mockup"
+import { redirect } from "next/navigation"
 
-export default function AiPublishingPage() {
-  return <PortalModuleMockup moduleKey="ai-publishing" />
+export default function AiPublishingRedirect() {
+  redirect("/portal/ai-studio/automation")
 }

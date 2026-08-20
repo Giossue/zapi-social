@@ -1,5 +1,5 @@
-import { PortalModuleMockup } from "@/features/portal-mockups/components/portal-module-mockup"
+import { AffiliatePage } from "@/features/affiliate/components/affiliate-page"
 
-export default function AffiliatePage() {
-  return <PortalModuleMockup moduleKey="affiliate" />
+export default function AffiliateRoutePage() {
+  return <AffiliatePage />
 }
