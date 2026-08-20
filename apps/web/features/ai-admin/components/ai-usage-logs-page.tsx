@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Activity, CircleAlert, ShieldCheck, X } from "lucide-react"
+import { CircleAlert, ShieldCheck, X } from "lucide-react"
 
 import { ApiError, adminAiApi } from "@workspace/api-client"
 import type { AdminAiRequestsResponse } from "@workspace/contracts"
@@ -325,7 +325,6 @@ export function AiUsageLogsPage() {
                       ? "Prueba con otro término, proveedor o estado."
                       : "Aquí aparecerá cada generación en cuanto se registre."
                   }
-                  icon={Activity}
                   title={
                     hasFilters
                       ? "No hay coincidencias"

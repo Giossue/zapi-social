@@ -11,7 +11,6 @@ import {
   LockKeyhole,
   MessageSquare,
   Plus,
-  Search,
   X,
 } from "lucide-react"
 
@@ -592,18 +591,13 @@ export function SupportTicketsPage() {
                           <Button onClick={clearFilters} variant="outline">
                             Restablecer filtros
                           </Button>
-                        ) : (
-                          <Button onClick={() => setIsCreateOpen(true)}>
-                            <Plus data-icon="inline-start" /> Crear caso
-                          </Button>
-                        )
+                        ) : null
                       }
                       description={
                         hasFilters
                           ? "Prueba con otro término o estado."
                           : "Cuando necesites ayuda, abre un caso y tendrás toda la conversación aquí."
                       }
-                      icon={hasFilters ? Search : LifeBuoy}
                       title={
                         hasFilters
                           ? "No hay coincidencias"

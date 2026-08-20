@@ -288,7 +288,6 @@ export function CronsSettingsPage() {
                   <TableEmptyRow
                     colSpan={4}
                     description="El Worker no reporta trabajos recurrentes en Redis."
-                    icon={Clock}
                     title="Sin tareas programadas"
                   />
                 )}

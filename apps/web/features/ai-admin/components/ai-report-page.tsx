@@ -325,7 +325,6 @@ export function AiReportPage() {
                     <TableEmptyRow
                       colSpan={6}
                       description="No hay generaciones registradas en este rango."
-                      icon={Activity}
                       title="Sin actividad"
                     />
                   )}
@@ -371,7 +370,6 @@ export function AiReportPage() {
                     <TableEmptyRow
                       colSpan={5}
                       description="No hay generaciones registradas en este rango."
-                      icon={Activity}
                       title="Sin actividad"
                     />
                   )}

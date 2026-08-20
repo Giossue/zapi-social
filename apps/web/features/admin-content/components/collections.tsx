@@ -1,13 +1,6 @@
 "use client"
 
-import {
-  FileText,
-  FolderTree,
-  Globe,
-  HelpCircle,
-  Sparkles,
-  Tags,
-} from "lucide-react"
+import {} from "lucide-react"
 
 import { adminContentApi } from "@workspace/api-client"
 import type {
@@ -93,7 +86,6 @@ function taxonomyConfig(
     createLabel: copy.createLabel,
     description: copy.description,
     emptyDescription: copy.emptyDescription,
-    emptyIcon: FolderTree,
     emptyTitle: copy.emptyTitle,
     fields: () => [
       { kind: "text", label: "Nombre", name: "name", required: true },
@@ -180,7 +172,6 @@ export function LanguagesCollection() {
     description:
       "Idiomas disponibles para la interfaz y el contenido de la plataforma.",
     emptyDescription: "Añade el primer idioma para publicar contenido.",
-    emptyIcon: Globe,
     emptyTitle: "No hay idiomas",
     fields: () => [
       { kind: "text", label: "Nombre", name: "name", required: true },
@@ -298,7 +289,6 @@ export function BlogTagsCollection() {
     createLabel: "Nueva etiqueta",
     description: "Etiquetas transversales para relacionar entradas del blog.",
     emptyDescription: "Crea una etiqueta para agrupar entradas por tema.",
-    emptyIcon: Tags,
     emptyTitle: "No hay etiquetas",
     fields: () => [
       { kind: "text", label: "Nombre", name: "name", required: true },
@@ -351,7 +341,6 @@ export function BlogPostsCollection() {
     createLabel: "Nueva entrada",
     description: "Entradas del blog público, sus categorías y etiquetas.",
     emptyDescription: "Publica tu primera entrada para el blog.",
-    emptyIcon: FileText,
     emptyTitle: "No hay entradas",
     fields: (response) => [
       { kind: "text", label: "Título", name: "title", required: true },
@@ -458,7 +447,6 @@ export function FaqsCollection() {
     createLabel: "Nueva pregunta",
     description: "Preguntas frecuentes visibles para los clientes.",
     emptyDescription: "Añade la primera pregunta frecuente.",
-    emptyIcon: HelpCircle,
     emptyTitle: "No hay preguntas",
     fields: () => [
       { kind: "text", label: "Pregunta", name: "question", required: true },
@@ -530,7 +518,6 @@ export function AiTemplatesCollection() {
     description:
       "Prompts reutilizables que el Portal ofrece dentro de AI Studio.",
     emptyDescription: "Crea una plantilla para acelerar las generaciones.",
-    emptyIcon: Sparkles,
     emptyTitle: "No hay plantillas",
     fields: (response) => [
       { kind: "text", label: "Nombre", name: "name", required: true },

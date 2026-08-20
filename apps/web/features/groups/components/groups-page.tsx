@@ -9,7 +9,6 @@ import {
   MoreHorizontal,
   Pencil,
   Plus,
-  Search,
   Share2,
   Trash2,
   X,
@@ -738,7 +737,6 @@ export function GroupsPage() {
                         ? "Prueba con otro término o estado."
                         : "Crea un grupo para ordenar tus cuentas conectadas."
                     }
-                    icon={hasFilters ? Search : FolderKanban}
                     title={
                       hasFilters ? "No hay coincidencias" : "No hay grupos"
                     }

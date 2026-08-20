@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import {
   CircleAlert,
-  FileSpreadsheet,
   ListChecks,
   LockKeyhole,
   MoreHorizontal,
@@ -423,7 +422,6 @@ function BatchRowsSheet({
                   <TableEmptyRow
                     colSpan={3}
                     description="Este lote todavía no registra filas procesadas."
-                    icon={ListChecks}
                     title="Sin filas"
                   />
                 )}
@@ -787,7 +785,6 @@ export function BulkPostsPage() {
                         ? "Sube un CSV a la biblioteca y crea un lote para procesarlo."
                         : "No hay lotes con ese estado."
                     }
-                    icon={FileSpreadsheet}
                     title={
                       status === "all"
                         ? "No hay lotes todavía"

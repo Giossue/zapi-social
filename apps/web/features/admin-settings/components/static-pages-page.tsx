@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import {
   CircleAlert,
-  FileText,
   MoreHorizontal,
   Pencil,
   Plus,
@@ -319,7 +318,6 @@ export function StaticPagesSettingsPage() {
                   <TableEmptyRow
                     colSpan={3}
                     description="Crea páginas como términos de servicio o privacidad."
-                    icon={FileText}
                     title="No hay páginas"
                   />
                 )}

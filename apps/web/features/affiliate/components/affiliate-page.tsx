@@ -480,7 +480,6 @@ export function AffiliatePage() {
                       <TableEmptyRow
                         colSpan={3}
                         description="Cuando alguien compre usando tu código verás aquí su comisión."
-                        icon={CircleDollarSign}
                         title="Aún no hay comisiones"
                       />
                     )}
@@ -526,7 +525,6 @@ export function AffiliatePage() {
                       <TableEmptyRow
                         colSpan={3}
                         description="Tus solicitudes de retiro aparecerán en este historial."
-                        icon={Wallet}
                         title="No hay retiros"
                       />
                     )}

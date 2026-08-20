@@ -101,7 +101,9 @@ export function PublishingCalendar({
     PublishingProvider[]
   >([])
   const [title, setTitle] = React.useState(() =>
-    format(new Date(`${initialDate}T12:00:00`), "MMMM 'de' yyyy", { locale: es })
+    format(new Date(`${initialDate}T12:00:00`), "MMMM 'de' yyyy", {
+      locale: es,
+    })
   )
 
   const viewKey = controller.view?.type ?? initialCalendarView
@@ -113,8 +115,7 @@ export function PublishingCalendar({
 
     return posts
       .filter((post) => {
-        const matchesQuery =
-          !term || post.title.toLowerCase().includes(term)
+        const matchesQuery = !term || post.title.toLowerCase().includes(term)
         const matchesChannel =
           selectedChannels.length === 0 ||
           selectedChannels.includes(post.provider)

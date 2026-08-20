@@ -1,5 +1,10 @@
 import type { ColumnDef } from "@tanstack/react-table"
-import { ArrowUpRight, FolderOpen, Megaphone, TriangleAlert } from "lucide-react"
+import {
+  ArrowUpRight,
+  FolderOpen,
+  Megaphone,
+  TriangleAlert,
+} from "lucide-react"
 import Link from "next/link"
 
 import { Badge } from "@workspace/ui/components/badge"
@@ -14,7 +19,11 @@ const categoryIcons = {
   Biblioteca: FolderOpen,
 } as const
 
-function CategoryIcon({ category }: { category: DashboardOverviewRow["category"] }) {
+function CategoryIcon({
+  category,
+}: {
+  category: DashboardOverviewRow["category"]
+}) {
   const Icon = categoryIcons[category]
 
   return <Icon className="size-4 text-muted-foreground" />
@@ -26,7 +35,10 @@ export const dashboardOverviewColumns: ColumnDef<DashboardOverviewRow>[] = [
     header: ({ table }) => (
       <div className="flex items-center justify-center">
         <Checkbox
-          checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Seleccionar todos los elementos de esta página"
         />
@@ -54,9 +66,13 @@ export const dashboardOverviewColumns: ColumnDef<DashboardOverviewRow>[] = [
         <div className="min-w-0 flex-1">
           <div className="flex items-end justify-between gap-3">
             <div className="grid min-w-0 gap-0.5">
-              <span className="truncate font-medium text-sm leading-none">{row.original.title}</span>
+              <span className="truncate text-sm leading-none font-medium">
+                {row.original.title}
+              </span>
               {row.original.detail ? (
-                <span className="truncate text-muted-foreground text-xs leading-none">{row.original.detail}</span>
+                <span className="truncate text-xs leading-none text-muted-foreground">
+                  {row.original.detail}
+                </span>
               ) : null}
             </div>
           </div>
@@ -67,7 +83,8 @@ export const dashboardOverviewColumns: ColumnDef<DashboardOverviewRow>[] = [
   },
   {
     id: "search",
-    accessorFn: (row) => `${row.category} ${row.title} ${row.detail} ${row.value}`,
+    accessorFn: (row) =>
+      `${row.category} ${row.title} ${row.detail} ${row.value}`,
     filterFn: "includesString",
     enableHiding: true,
   },
@@ -84,7 +101,9 @@ export const dashboardOverviewColumns: ColumnDef<DashboardOverviewRow>[] = [
   {
     accessorKey: "value",
     header: "Valor",
-    cell: ({ row }) => <span className="text-sm">{row.original.value || "—"}</span>,
+    cell: ({ row }) => (
+      <span className="text-sm">{row.original.value || "—"}</span>
+    ),
   },
   {
     id: "action",

@@ -3,16 +3,13 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import {
-  Activity,
   CircleAlert,
   Copy,
-  KeyRound,
   LockKeyhole,
   MoreHorizontal,
   Pencil,
   Plus,
   Trash2,
-  Webhook,
   X,
 } from "lucide-react"
 
@@ -775,7 +772,6 @@ export function AutomationPage() {
                       <TableEmptyRow
                         colSpan={data.canManage ? 5 : 4}
                         description="Crea una clave para que tus herramientas consulten o publiquen por API."
-                        icon={KeyRound}
                         title="No hay claves API"
                       />
                     )}
@@ -900,7 +896,6 @@ export function AutomationPage() {
                       <TableEmptyRow
                         colSpan={data.canManage ? 5 : 4}
                         description="Recibe un aviso en tu sistema cuando una publicación se cree, se envíe o falle."
-                        icon={Webhook}
                         title="No hay webhooks"
                       />
                     )}
@@ -970,7 +965,6 @@ export function AutomationPage() {
                       <TableEmptyRow
                         colSpan={4}
                         description="Aquí aparecerán las llamadas por API y los envíos de webhook."
-                        icon={Activity}
                         title="Sin actividad todavía"
                       />
                     )}

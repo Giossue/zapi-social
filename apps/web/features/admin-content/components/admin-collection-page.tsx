@@ -17,7 +17,6 @@ import {
   ShieldCheck,
   Trash2,
   X,
-  type LucideIcon,
 } from "lucide-react"
 
 import { ApiError } from "@workspace/api-client"
@@ -143,7 +142,6 @@ export type AdminCollectionConfig<TRow, TResponse> = {
   createLabel: string
   description: string
   emptyDescription: string
-  emptyIcon: LucideIcon
   emptyTitle: string
   fields: (response: TResponse | null) => readonly CollectionField[]
   filter?: CollectionFilter
@@ -719,7 +717,6 @@ export function AdminCollectionPage<TRow, TResponse>({
                         ? "Prueba con otro término o restablece los filtros."
                         : config.emptyDescription
                     }
-                    icon={config.emptyIcon}
                     title={
                       hasFilters ? "No hay coincidencias" : config.emptyTitle
                     }
