@@ -10,6 +10,7 @@ import {
   jsonb,
   numeric,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   unique,
@@ -3202,3 +3203,151 @@ export const billingWebhookEvents = pgTable(
     ),
   ]
 )
+
+/**
+ * Contenido de plataforma administrado desde Admin. No pertenece a un workspace:
+ * blogs, preguntas frecuentes, idiomas y plantillas de IA son globales.
+ */
+export const languages = pgTable(
+  "languages",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    code: varchar("code", { length: 12 }).notNull(),
+    name: varchar("name", { length: 120 }).notNull(),
+    nativeName: varchar("native_name", { length: 120 }).notNull(),
+    direction: varchar("direction", { length: 3 })
+      .$type<"ltr" | "rtl">()
+      .notNull()
+      .default("ltr"),
+    isDefault: boolean("is_default").notNull().default(false),
+    isActive: boolean("is_active").notNull().default(true),
+    sortOrder: integer("sort_order").notNull().default(0),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("languages_code_unique").on(table.code),
+    check("languages_direction_check", sql`${table.direction} in ('ltr', 'rtl')`),
+  ]
+)
+
+export const blogCategories = pgTable(
+  "blog_categories",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    slug: varchar("slug", { length: 140 }).notNull(),
+    name: varchar("name", { length: 160 }).notNull(),
+    description: text("description").notNull().default(""),
+    isActive: boolean("is_active").notNull().default(true),
+    sortOrder: integer("sort_order").notNull().default(0),
+    ...timestamps,
+  },
+  (table) => [uniqueIndex("blog_categories_slug_unique").on(table.slug)]
+)
+
+export const blogTags = pgTable(
+  "blog_tags",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    slug: varchar("slug", { length: 140 }).notNull(),
+    name: varchar("name", { length: 120 }).notNull(),
+    ...timestamps,
+  },
+  (table) => [uniqueIndex("blog_tags_slug_unique").on(table.slug)]
+)
+
+export const blogPosts = pgTable(
+  "blog_posts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    categoryId: uuid("category_id").references(() => blogCategories.id, {
+      onDelete: "set null",
+    }),
+    slug: varchar("slug", { length: 180 }).notNull(),
+    title: varchar("title", { length: 200 }).notNull(),
+    excerpt: text("excerpt").notNull().default(""),
+    content: text("content").notNull().default(""),
+    status: varchar("status", { length: 16 })
+      .$type<"draft" | "published">()
+      .notNull()
+      .default("draft"),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("blog_posts_slug_unique").on(table.slug),
+    index("blog_posts_status_idx").on(table.status),
+    check(
+      "blog_posts_status_check",
+      sql`${table.status} in ('draft', 'published')`
+    ),
+  ]
+)
+
+export const blogPostTags = pgTable(
+  "blog_post_tags",
+  {
+    postId: uuid("post_id")
+      .notNull()
+      .references(() => blogPosts.id, { onDelete: "cascade" }),
+    tagId: uuid("tag_id")
+      .notNull()
+      .references(() => blogTags.id, { onDelete: "cascade" }),
+  },
+  (table) => [
+    primaryKey({ columns: [table.postId, table.tagId] }),
+    index("blog_post_tags_tag_idx").on(table.tagId),
+  ]
+)
+
+export const faqs = pgTable("faqs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  question: varchar("question", { length: 250 }).notNull(),
+  answer: text("answer").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+  ...timestamps,
+})
+
+export const aiTemplateCategories = pgTable(
+  "ai_template_categories",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    slug: varchar("slug", { length: 140 }).notNull(),
+    name: varchar("name", { length: 160 }).notNull(),
+    description: text("description").notNull().default(""),
+    isActive: boolean("is_active").notNull().default(true),
+    sortOrder: integer("sort_order").notNull().default(0),
+    ...timestamps,
+  },
+  (table) => [uniqueIndex("ai_template_categories_slug_unique").on(table.slug)]
+)
+
+export const aiTemplates = pgTable(
+  "ai_templates",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    categoryId: uuid("category_id").references(() => aiTemplateCategories.id, {
+      onDelete: "set null",
+    }),
+    slug: varchar("slug", { length: 180 }).notNull(),
+    name: varchar("name", { length: 200 }).notNull(),
+    description: text("description").notNull().default(""),
+    prompt: text("prompt").notNull(),
+    isActive: boolean("is_active").notNull().default(true),
+    sortOrder: integer("sort_order").notNull().default(0),
+    ...timestamps,
+  },
+  (table) => [uniqueIndex("ai_templates_slug_unique").on(table.slug)]
+)
+
+/** Ajustes de plataforma en clave/valor, equivalentes al OptionStore de Laravel. */
+export const platformSettings = pgTable("platform_settings", {
+  key: varchar("key", { length: 120 }).primaryKey(),
+  value: jsonb("value")
+    .$type<Record<string, unknown>>()
+    .notNull()
+    .default(sql`'{}'::jsonb`),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+})

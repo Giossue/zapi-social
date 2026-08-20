@@ -8,6 +8,9 @@ import { validateEnv } from './config/env';
 import { DatabaseModule } from './database/database.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { HealthController } from './health/health.controller';
+import { SystemInformationController } from './platform/system-information.controller';
+import { ContentModule } from './content/content.module';
+import { PlatformSettingsModule } from './settings/platform-settings.module';
 import { IdentityModule } from './identity/identity.module';
 import { IntegrationsModule } from './integrations/integrations.module';
 import { PlansModule } from './plans/plans.module';
@@ -143,6 +146,8 @@ const pinoRedactPaths = [
     OnlineMediaModule,
     BillingModule,
     AuditModule,
+    ContentModule,
+    PlatformSettingsModule,
     IdentityModule,
     CaptchaAdminModule,
     BullModule.forRoot({
@@ -154,6 +159,6 @@ const pinoRedactPaths = [
       },
     }),
   ],
-  controllers: [HealthController],
+  controllers: [HealthController, SystemInformationController],
 })
 export class AppModule {}

@@ -1,5 +1,5 @@
-import { AdminSecondaryModuleMockup } from "@/features/platform-admin-mockups/components/admin-secondary-module-mockup"
+import { AiReportPage } from "@/features/ai-admin/components/ai-report-page"
 
-export default function AdminAiReportPage() {
-  return <AdminSecondaryModuleMockup moduleKey="ai-report" />
+export default function AiReportRoutePage() {
+  return <AiReportPage />
 }

@@ -611,6 +611,83 @@ export const adminAiUsageSchema = z.object({
   ),
 })
 
+export const adminAiRequestLogSchema = z.object({
+  id: z.uuid(),
+  createdAt: z.string().datetime(),
+  kind: aiRequestKindSchema,
+  status: z.enum(["queued", "processing", "succeeded", "failed", "cancelled"]),
+  provider: z.string().nullable(),
+  model: z.string().nullable(),
+  workspaceName: z.string(),
+  userName: z.string(),
+  userEmail: z.string(),
+  inputTokens: z.number().int().nonnegative(),
+  outputTokens: z.number().int().nonnegative(),
+  estimatedCostMicrousd: z.number().int().nonnegative(),
+  latencyMs: z.number().int().nonnegative().nullable(),
+  errorCode: z.string().nullable(),
+})
+export const adminAiRequestsQuerySchema = z
+  .object({
+    q: z.string().trim().min(1).max(255).optional(),
+    provider: z.string().trim().min(1).max(64).optional(),
+    kind: aiRequestKindSchema.optional(),
+    status: z
+      .enum(["queued", "processing", "succeeded", "failed", "cancelled"])
+      .optional(),
+    from: z.string().date().optional(),
+    to: z.string().date().optional(),
+    page: z.coerce.number().int().positive().default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(25),
+  })
+  .strict()
+export const adminAiRequestsResponseSchema = z.object({
+  requests: z.array(adminAiRequestLogSchema),
+  providers: z.array(z.string()),
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+  total: z.number().int().nonnegative(),
+})
+
+export const adminAiReportQuerySchema = z
+  .object({
+    from: z.string().date().optional(),
+    to: z.string().date().optional(),
+  })
+  .strict()
+export const adminAiReportSchema = z.object({
+  from: z.string().date(),
+  to: z.string().date(),
+  totals: z.object({
+    requests: z.number().int().nonnegative(),
+    succeeded: z.number().int().nonnegative(),
+    failed: z.number().int().nonnegative(),
+    tokens: z.number().int().nonnegative(),
+    estimatedCostMicrousd: z.number().int().nonnegative(),
+    averageLatencyMs: z.number().int().nonnegative(),
+    successRate: z.number().min(0).max(100),
+  }),
+  daily: z.array(
+    z.object({
+      date: z.string().date(),
+      requests: z.number().int().nonnegative(),
+      tokens: z.number().int().nonnegative(),
+      estimatedCostMicrousd: z.number().int().nonnegative(),
+      successRate: z.number().min(0).max(100),
+      averageLatencyMs: z.number().int().nonnegative(),
+    })
+  ),
+  byProvider: z.array(
+    z.object({
+      provider: z.string(),
+      requests: z.number().int().nonnegative(),
+      tokens: z.number().int().nonnegative(),
+      estimatedCostMicrousd: z.number().int().nonnegative(),
+      successRate: z.number().min(0).max(100),
+    })
+  ),
+})
+
 export const aiPublishingScheduleStatusSchema = z.enum([
   "draft",
   "active",
@@ -749,6 +826,13 @@ export type CreateAdminAiModelInput = z.infer<typeof createAdminAiModelSchema>
 export type UpdateAdminAiModelInput = z.infer<typeof updateAdminAiModelSchema>
 export type UpdateAdminAiRouteInput = z.infer<typeof updateAdminAiRouteSchema>
 export type AdminAiUsage = z.infer<typeof adminAiUsageSchema>
+export type AdminAiRequestLog = z.infer<typeof adminAiRequestLogSchema>
+export type AdminAiRequestsQuery = z.infer<typeof adminAiRequestsQuerySchema>
+export type AdminAiRequestsResponse = z.infer<
+  typeof adminAiRequestsResponseSchema
+>
+export type AdminAiReportQuery = z.infer<typeof adminAiReportQuerySchema>
+export type AdminAiReport = z.infer<typeof adminAiReportSchema>
 export type PortalAiPublishingSchedule = z.infer<
   typeof portalAiPublishingScheduleSchema
 >

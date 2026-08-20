@@ -1,5 +1,5 @@
-import { AdminSecondaryModuleMockup } from "@/features/platform-admin-mockups/components/admin-secondary-module-mockup"
+import { FaqsCollection } from "@/features/admin-content/components/collections"
 
-export default function AdminFaqsPage() {
-  return <AdminSecondaryModuleMockup moduleKey="faqs" />
+export default function FaqsRoutePage() {
+  return <FaqsCollection />
 }

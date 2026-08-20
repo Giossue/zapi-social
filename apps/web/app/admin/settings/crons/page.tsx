@@ -1,5 +1,5 @@
-import { AdminSecondaryModuleMockup } from "@/features/platform-admin-mockups/components/admin-secondary-module-mockup"
+import { CronsSettingsPage } from "@/features/admin-settings/components/infrastructure-pages"
 
-export default function AdminCronsSettingsPage() {
-  return <AdminSecondaryModuleMockup moduleKey="settings-crons" />
+export default function CronsSettingsRoutePage() {
+  return <CronsSettingsPage />
 }

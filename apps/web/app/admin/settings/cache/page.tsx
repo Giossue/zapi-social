@@ -1,5 +1,5 @@
-import { AdminSecondaryModuleMockup } from "@/features/platform-admin-mockups/components/admin-secondary-module-mockup"
+import { CacheSettingsPage } from "@/features/admin-settings/components/infrastructure-pages"
 
-export default function AdminCacheSettingsPage() {
-  return <AdminSecondaryModuleMockup moduleKey="settings-cache" />
+export default function CacheSettingsRoutePage() {
+  return <CacheSettingsPage />
 }

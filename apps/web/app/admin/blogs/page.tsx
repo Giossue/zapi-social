@@ -1,5 +1,5 @@
-import { AdminSecondaryModuleMockup } from "@/features/platform-admin-mockups/components/admin-secondary-module-mockup"
+import { BlogPostsCollection } from "@/features/admin-content/components/collections"
 
-export default function AdminBlogsPage() {
-  return <AdminSecondaryModuleMockup moduleKey="blogs" />
+export default function BlogsRoutePage() {
+  return <BlogPostsCollection />
 }

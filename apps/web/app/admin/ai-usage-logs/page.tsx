@@ -1,5 +1,5 @@
-import { AdminSecondaryModuleMockup } from "@/features/platform-admin-mockups/components/admin-secondary-module-mockup"
+import { AiUsageLogsPage } from "@/features/ai-admin/components/ai-usage-logs-page"
 
-export default function AdminAiUsageLogsPage() {
-  return <AdminSecondaryModuleMockup moduleKey="ai-usage-logs" />
+export default function AiUsageLogsRoutePage() {
+  return <AiUsageLogsPage />
 }

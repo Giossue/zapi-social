@@ -10,6 +10,7 @@ export {
   ilike,
   inArray,
   isNull,
+  ne,
   not,
   or,
   sql,

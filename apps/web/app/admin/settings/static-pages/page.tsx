@@ -1,5 +1,5 @@
-import { AdminSecondaryModuleMockup } from "@/features/platform-admin-mockups/components/admin-secondary-module-mockup"
+import { StaticPagesSettingsPage } from "@/features/admin-settings/components/static-pages-page"
 
-export default function AdminStaticPagesSettingsPage() {
-  return <AdminSecondaryModuleMockup moduleKey="settings-static-pages" />
+export default function StaticPagesSettingsRoutePage() {
+  return <StaticPagesSettingsPage />
 }

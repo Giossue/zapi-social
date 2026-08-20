@@ -6,6 +6,7 @@ import {
   CircleAlert,
   FolderKanban,
   LockKeyhole,
+  MoreHorizontal,
   Pencil,
   Plus,
   Search,
@@ -35,6 +36,13 @@ import { Card, CardContent } from "@workspace/ui/components/card"
 import { CardGrid } from "@workspace/ui/components/card-grid"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
 import {
   DataTableFilter,
   DataTableHeader,
@@ -81,10 +89,13 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
+import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
 
 import { capabilityLabels } from "@/features/channels/components/channel-table/channels-columns"
+
+const pageSize = 10
 
 type GroupStatus = PortalAccountGroup["status"]
 type GroupAccount = PortalGroupsResponse["accounts"][number]
@@ -379,6 +390,7 @@ export function GroupsPage() {
   const [loadError, setLoadError] = useState(false)
   const [canView, setCanView] = useState(true)
   const [pending, setPending] = useState(false)
+  const [page, setPage] = useState(1)
   const [isSheetOpen, setIsSheetOpen] = useState(false)
   const [editing, setEditing] = useState<PortalAccountGroup | null>(null)
   const [toDelete, setToDelete] = useState<PortalAccountGroup | null>(null)
@@ -503,10 +515,21 @@ export function GroupsPage() {
     data.accounts.map((account) => [account.id, account])
   )
   const hasFilters = Boolean(query || status !== "all")
+  const pageCount = Math.max(1, Math.ceil(data.groups.length / pageSize))
+  const safePage = Math.min(page, pageCount)
+  const visibleGroups = data.groups.slice(
+    (safePage - 1) * pageSize,
+    safePage * pageSize
+  )
+  const rangeStart = data.groups.length ? (safePage - 1) * pageSize + 1 : 0
+  const rangeEnd = data.groups.length
+    ? rangeStart + visibleGroups.length - 1
+    : 0
 
   function clearFilters() {
     setQuery("")
     setStatus("all")
+    setPage(1)
   }
 
   function openCreate() {
@@ -557,7 +580,10 @@ export function GroupsPage() {
             }
             search={{
               ariaLabel: "Buscar grupos",
-              onChange: setQuery,
+              onChange: (value) => {
+                setQuery(value)
+                setPage(1)
+              },
               placeholder: "Buscar grupos...",
               value: query,
             }}
@@ -580,9 +606,10 @@ export function GroupsPage() {
               <DataTableFilter
                 ariaLabel="Filtrar por estado"
                 label="Estado"
-                onValueChange={(value) =>
+                onValueChange={(value) => {
                   setStatus(value as GroupStatus | "all")
-                }
+                  setPage(1)
+                }}
                 options={[
                   { label: "Todos", value: "all" },
                   { label: "Activos", value: "active" },
@@ -606,8 +633,8 @@ export function GroupsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data.groups.length ? (
-                  data.groups.map((group) => {
+                {visibleGroups.length ? (
+                  visibleGroups.map((group) => {
                     const names = group.accountIds
                       .map((id) => accountsById.get(id)?.displayName)
                       .filter(Boolean)
@@ -658,28 +685,39 @@ export function GroupsPage() {
                         </TableCell>
                         {data.canManage ? (
                           <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                onClick={() => {
-                                  setEditing(group)
-                                  setIsSheetOpen(true)
-                                }}
-                                size="sm"
-                                variant="brand-secondary"
-                              >
-                                <Pencil data-icon="inline-start" /> Editar
-                              </Button>
-                              <Button
-                                onClick={() => setToDelete(group)}
-                                size="icon-sm"
-                                variant="destructive"
-                              >
-                                <Trash2 />
-                                <span className="sr-only">
-                                  Eliminar {group.name}
-                                </span>
-                              </Button>
-                            </div>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  aria-label={`Abrir acciones para ${group.name}`}
+                                  className="size-8 rounded-md text-muted-foreground hover:bg-muted/50"
+                                  size="icon-sm"
+                                  variant="brand-secondary"
+                                >
+                                  <MoreHorizontal className="size-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" size="compact">
+                                <DropdownMenuItem
+                                  onSelect={() => {
+                                    setEditing(group)
+                                    setIsSheetOpen(true)
+                                  }}
+                                  size="compact"
+                                >
+                                  <Pencil />
+                                  Editar
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onSelect={() => setToDelete(group)}
+                                  size="compact"
+                                  variant="destructive"
+                                >
+                                  <Trash2 />
+                                  Eliminar
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         ) : null}
                       </TableRow>
@@ -692,11 +730,7 @@ export function GroupsPage() {
                         <Button onClick={clearFilters} variant="outline">
                           Restablecer filtros
                         </Button>
-                      ) : data.canManage ? (
-                        <Button onClick={openCreate}>
-                          <Plus data-icon="inline-start" /> Crear grupo
-                        </Button>
-                      ) : undefined
+                      ) : null
                     }
                     colSpan={data.canManage ? 5 : 4}
                     description={
@@ -712,6 +746,20 @@ export function GroupsPage() {
                 )}
               </TableBody>
             </Table>
+            <TablePagination
+              canGoNext={safePage < pageCount}
+              canGoPrevious={safePage > 1}
+              itemLabel="grupos"
+              onNextPage={() =>
+                setPage((current) => Math.min(current + 1, pageCount))
+              }
+              onPreviousPage={() =>
+                setPage((current) => Math.max(current - 1, 1))
+              }
+              rangeEnd={rangeEnd}
+              rangeStart={rangeStart}
+              total={data.groups.length}
+            />
           </CardContent>
         </Card>
         {data.canManage ? (

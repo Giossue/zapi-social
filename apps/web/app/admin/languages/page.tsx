@@ -1,5 +1,5 @@
-import { AdminSecondaryModuleMockup } from "@/features/platform-admin-mockups/components/admin-secondary-module-mockup"
+import { LanguagesCollection } from "@/features/admin-content/components/collections"
 
-export default function AdminLanguagesPage() {
-  return <AdminSecondaryModuleMockup moduleKey="languages" />
+export default function LanguagesRoutePage() {
+  return <LanguagesCollection />
 }

@@ -1,5 +1,5 @@
-import { AdminSecondaryModuleMockup } from "@/features/platform-admin-mockups/components/admin-secondary-module-mockup"
+import { SystemInformationPage } from "@/features/platform-admin/components/system-information-page"
 
-export default function AdminSystemInformationPage() {
-  return <AdminSecondaryModuleMockup moduleKey="settings-system-information" />
+export default function SystemInformationRoutePage() {
+  return <SystemInformationPage />
 }

@@ -7,18 +7,25 @@ import {
   aiRequests,
   apiAuditLogs,
   providerIntegrations,
+  users,
+  workspaces,
 } from '@workspace/database';
 import {
   and,
+  asc,
   desc,
   eq,
   gte,
+  ilike,
   inArray,
+  lte,
   or,
   sql,
 } from '@workspace/database/query';
 import { z } from 'zod';
 import {
+  adminAiReportQuerySchema,
+  adminAiRequestsQuerySchema,
   aiRequestKindSchema,
   createAdminAiModelSchema,
   testAdminAiProviderSchema,
@@ -27,6 +34,8 @@ import {
   updateAdminAiRouteSchema,
   type AdminAiConfiguration,
   type AdminAiModel,
+  type AdminAiReport,
+  type AdminAiRequestsResponse,
   type AdminAiProviderKey,
   type AdminAiRoute,
   type AdminAiUsage,
@@ -738,6 +747,166 @@ export class AdminAiService {
     return new Aes256GcmService(
       this.config.getOrThrow<string>('PROVIDER_INTEGRATIONS_ENCRYPTION_KEY'),
     );
+  }
+
+  /** Registro de peticiones AI para auditar consumo por usuario, proveedor y estado. */
+  async requests(query: unknown): Promise<AdminAiRequestsResponse> {
+    const parsed = adminAiRequestsQuerySchema.safeParse(query ?? {});
+    if (!parsed.success) throw this.invalid();
+    const { q, provider, kind, status, from, to, page, limit } = parsed.data;
+
+    const filters = [
+      provider ? eq(aiRequests.provider, provider) : undefined,
+      kind ? eq(aiRequests.kind, kind) : undefined,
+      status ? eq(aiRequests.status, status) : undefined,
+      from
+        ? gte(aiRequests.createdAt, new Date(`${from}T00:00:00.000Z`))
+        : undefined,
+      to
+        ? lte(aiRequests.createdAt, new Date(`${to}T23:59:59.999Z`))
+        : undefined,
+      q
+        ? or(
+            ilike(users.displayName, `%${q}%`),
+            ilike(users.email, `%${q}%`),
+            ilike(workspaces.name, `%${q}%`),
+          )
+        : undefined,
+    ].filter(Boolean);
+    const where = filters.length ? and(...filters) : undefined;
+
+    const [rows, totals, providers] = await Promise.all([
+      this.database.db
+        .select({
+          id: aiRequests.id,
+          createdAt: aiRequests.createdAt,
+          kind: aiRequests.kind,
+          status: aiRequests.status,
+          provider: aiRequests.provider,
+          model: aiRequests.model,
+          workspaceName: workspaces.name,
+          userName: users.displayName,
+          userEmail: users.email,
+          inputTokens: aiRequests.inputTokens,
+          outputTokens: aiRequests.outputTokens,
+          estimatedCostMicrousd: aiRequests.estimatedCostMicrousd,
+          latencyMs: aiRequests.latencyMs,
+          errorCode: aiRequests.errorCode,
+        })
+        .from(aiRequests)
+        .innerJoin(users, eq(users.id, aiRequests.requestedByUserId))
+        .innerJoin(workspaces, eq(workspaces.id, aiRequests.workspaceId))
+        .where(where)
+        .orderBy(desc(aiRequests.createdAt))
+        .limit(limit)
+        .offset((page - 1) * limit),
+      this.database.db
+        .select({ total: sql<number>`count(*)::int` })
+        .from(aiRequests)
+        .innerJoin(users, eq(users.id, aiRequests.requestedByUserId))
+        .innerJoin(workspaces, eq(workspaces.id, aiRequests.workspaceId))
+        .where(where),
+      this.database.db
+        .selectDistinct({ provider: aiRequests.provider })
+        .from(aiRequests)
+        .orderBy(asc(aiRequests.provider)),
+    ]);
+
+    return {
+      requests: rows.map((row) => ({
+        ...row,
+        createdAt: row.createdAt.toISOString(),
+      })),
+      providers: providers
+        .map((row) => row.provider)
+        .filter((value): value is string => Boolean(value)),
+      page,
+      limit,
+      total: totals[0]?.total ?? 0,
+    };
+  }
+
+  /** Consumo AI agregado por día y por proveedor dentro de un rango de fechas. */
+  async report(query: unknown): Promise<AdminAiReport> {
+    const parsed = adminAiReportQuerySchema.safeParse(query ?? {});
+    if (!parsed.success) throw this.invalid();
+
+    const today = new Date();
+    const defaultFrom = new Date(today.getTime() - 29 * 86_400_000);
+    const from = parsed.data.from ?? defaultFrom.toISOString().slice(0, 10);
+    const to = parsed.data.to ?? today.toISOString().slice(0, 10);
+    if (from > to) throw this.invalid();
+
+    const start = new Date(`${from}T00:00:00.000Z`);
+    const end = new Date(`${to}T23:59:59.999Z`);
+    const range = and(
+      gte(aiRequests.createdAt, start),
+      lte(aiRequests.createdAt, end),
+    );
+    const successRate = sql<number>`case when count(*) = 0 then 0 else round((count(*) filter (where ${aiRequests.status} = 'succeeded')::numeric / count(*)) * 100, 1) end`;
+
+    const [totals, daily, byProvider] = await Promise.all([
+      this.database.db
+        .select({
+          requests: sql<number>`count(*)::int`,
+          succeeded: sql<number>`count(*) filter (where ${aiRequests.status} = 'succeeded')::int`,
+          failed: sql<number>`count(*) filter (where ${aiRequests.status} = 'failed')::int`,
+          tokens: sql<number>`coalesce(sum(${aiRequests.inputTokens} + ${aiRequests.outputTokens}), 0)::int`,
+          estimatedCostMicrousd: sql<number>`coalesce(sum(${aiRequests.estimatedCostMicrousd}), 0)::int`,
+          averageLatencyMs: sql<number>`coalesce(avg(${aiRequests.latencyMs}), 0)::int`,
+          successRate,
+        })
+        .from(aiRequests)
+        .where(range),
+      this.database.db
+        .select({
+          date: sql<string>`to_char(${aiRequests.createdAt}, 'YYYY-MM-DD')`,
+          requests: sql<number>`count(*)::int`,
+          tokens: sql<number>`coalesce(sum(${aiRequests.inputTokens} + ${aiRequests.outputTokens}), 0)::int`,
+          estimatedCostMicrousd: sql<number>`coalesce(sum(${aiRequests.estimatedCostMicrousd}), 0)::int`,
+          averageLatencyMs: sql<number>`coalesce(avg(${aiRequests.latencyMs}), 0)::int`,
+          successRate,
+        })
+        .from(aiRequests)
+        .where(range)
+        .groupBy(sql`to_char(${aiRequests.createdAt}, 'YYYY-MM-DD')`)
+        .orderBy(asc(sql`to_char(${aiRequests.createdAt}, 'YYYY-MM-DD')`)),
+      this.database.db
+        .select({
+          provider: sql<string>`coalesce(${aiRequests.provider}, 'interno')`,
+          requests: sql<number>`count(*)::int`,
+          tokens: sql<number>`coalesce(sum(${aiRequests.inputTokens} + ${aiRequests.outputTokens}), 0)::int`,
+          estimatedCostMicrousd: sql<number>`coalesce(sum(${aiRequests.estimatedCostMicrousd}), 0)::int`,
+          successRate,
+        })
+        .from(aiRequests)
+        .where(range)
+        .groupBy(sql`coalesce(${aiRequests.provider}, 'interno')`)
+        .orderBy(desc(sql`count(*)`)),
+    ]);
+
+    const total = totals[0];
+    return {
+      from,
+      to,
+      totals: {
+        requests: total?.requests ?? 0,
+        succeeded: total?.succeeded ?? 0,
+        failed: total?.failed ?? 0,
+        tokens: total?.tokens ?? 0,
+        estimatedCostMicrousd: total?.estimatedCostMicrousd ?? 0,
+        averageLatencyMs: total?.averageLatencyMs ?? 0,
+        successRate: Number(total?.successRate ?? 0),
+      },
+      daily: daily.map((row) => ({
+        ...row,
+        successRate: Number(row.successRate),
+      })),
+      byProvider: byProvider.map((row) => ({
+        ...row,
+        successRate: Number(row.successRate),
+      })),
+    };
   }
 
   private invalid() {

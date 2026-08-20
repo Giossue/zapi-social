@@ -1,5 +1,5 @@
-import { AdminSecondaryModuleMockup } from "@/features/platform-admin-mockups/components/admin-secondary-module-mockup"
+import { AuthSettingsPage } from "@/features/admin-settings/components/settings-pages"
 
-export default function AdminAuthSettingsPage() {
-  return <AdminSecondaryModuleMockup moduleKey="settings-auth" />
+export default function AuthSettingsRoutePage() {
+  return <AuthSettingsPage />
 }

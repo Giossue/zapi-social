@@ -7,6 +7,7 @@ import {
   FileSpreadsheet,
   ListChecks,
   LockKeyhole,
+  MoreHorizontal,
   Plus,
   Trash2,
   X,
@@ -39,6 +40,13 @@ import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
 import {
   DataTableFilter,
   DataTableHeader,
@@ -720,27 +728,40 @@ export function BulkPostsPage() {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              onClick={() => void openDetail(batch)}
-                              size="sm"
-                              variant="brand-secondary"
-                            >
-                              <ListChecks data-icon="inline-start" /> Ver filas
-                            </Button>
-                            {cancellable ? (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
                               <Button
-                                onClick={() => setToCancel(batch)}
+                                aria-label={`Abrir acciones para ${batch.sourceFileName}`}
+                                className="size-8 rounded-md text-muted-foreground hover:bg-muted/50"
                                 size="icon-sm"
-                                variant="destructive"
+                                variant="brand-secondary"
                               >
-                                <Trash2 />
-                                <span className="sr-only">
-                                  Cancelar {batch.sourceFileName}
-                                </span>
+                                <MoreHorizontal className="size-4" />
                               </Button>
-                            ) : null}
-                          </div>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" size="compact">
+                              <DropdownMenuItem
+                                onSelect={() => void openDetail(batch)}
+                                size="compact"
+                              >
+                                <ListChecks />
+                                Ver filas
+                              </DropdownMenuItem>
+                              {cancellable ? (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onSelect={() => setToCancel(batch)}
+                                    size="compact"
+                                    variant="destructive"
+                                  >
+                                    <Trash2 />
+                                    Cancelar lote
+                                  </DropdownMenuItem>
+                                </>
+                              ) : null}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     )
@@ -748,11 +769,7 @@ export function BulkPostsPage() {
                 ) : (
                   <TableEmptyRow
                     action={
-                      status === "all" ? (
-                        <Button onClick={() => setIsCreateOpen(true)}>
-                          <Plus data-icon="inline-start" /> Crear lote
-                        </Button>
-                      ) : (
+                      status === "all" ? null : (
                         <Button
                           onClick={() => {
                             setStatus("all")

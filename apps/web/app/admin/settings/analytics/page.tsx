@@ -1,5 +1,5 @@
-import { AdminSecondaryModuleMockup } from "@/features/platform-admin-mockups/components/admin-secondary-module-mockup"
+import { AnalyticsSettingsPage } from "@/features/admin-settings/components/settings-pages"
 
-export default function AdminAnalyticsSettingsPage() {
-  return <AdminSecondaryModuleMockup moduleKey="settings-analytics" />
+export default function AnalyticsSettingsRoutePage() {
+  return <AnalyticsSettingsPage />
 }

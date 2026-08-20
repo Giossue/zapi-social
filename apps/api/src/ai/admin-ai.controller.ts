@@ -92,4 +92,16 @@ export class AdminAiController {
     await this.access.requirePlatformAdmin(request);
     return this.ai.usage(days);
   }
+
+  @Get('requests')
+  async requests(@Req() request: FastifyRequest, @Query() query: unknown) {
+    await this.access.requirePlatformAdmin(request);
+    return this.ai.requests(query);
+  }
+
+  @Get('report')
+  async report(@Req() request: FastifyRequest, @Query() query: unknown) {
+    await this.access.requirePlatformAdmin(request);
+    return this.ai.report(query);
+  }
 }

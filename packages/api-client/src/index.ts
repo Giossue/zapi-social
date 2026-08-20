@@ -54,7 +54,26 @@ import type {
   CreatePortalPublishingPostsInput,
   UpdatePortalPublishingPostInput,
   PortalPublishingPost,
+  AdminAiTemplatesResponse,
+  AdminAnalyticsSettings,
   AdminAuditEventsResponse,
+  AdminAuthSettings,
+  AdminCacheState,
+  AdminBlogPostsResponse,
+  AdminBlogTagsResponse,
+  AdminFaqsResponse,
+  AdminGeneralSettings,
+  AdminLanguagesResponse,
+  AdminScheduledJobs,
+  AdminStaticPagesSettings,
+  AdminSystemInformation,
+  AdminTaxonomiesResponse,
+  UpsertAdminAiTemplateInput,
+  UpsertAdminBlogPostInput,
+  UpsertAdminBlogTagInput,
+  UpsertAdminFaqInput,
+  UpsertAdminLanguageInput,
+  UpsertAdminTaxonomyInput,
   CreatePortalRssScheduleInput,
   PortalRssSchedule,
   PortalRssFeedValidation,
@@ -113,6 +132,10 @@ import type {
   AdminAiConfiguration,
   AdminAiModel,
   AdminAiProviderKey,
+  AdminAiReport,
+  AdminAiReportQuery,
+  AdminAiRequestsQuery,
+  AdminAiRequestsResponse,
   AdminAiRoute,
   AdminAiUsage,
   ArchivePortalAiRequestInput,
@@ -913,6 +936,32 @@ export const adminAiApi = {
     }),
   usage: (days = 30) =>
     request<AdminAiUsage>(`/v1/admin/ai/usage?days=${days}`, { method: "GET" }),
+  requests: (query: Partial<AdminAiRequestsQuery> = {}) => {
+    const params = new URLSearchParams()
+    if (query.q) params.set("q", query.q)
+    if (query.provider) params.set("provider", query.provider)
+    if (query.kind) params.set("kind", query.kind)
+    if (query.status) params.set("status", query.status)
+    if (query.from) params.set("from", query.from)
+    if (query.to) params.set("to", query.to)
+    if (query.page) params.set("page", String(query.page))
+    if (query.limit) params.set("limit", String(query.limit))
+    const serialized = params.toString()
+    return request<AdminAiRequestsResponse>(
+      `/v1/admin/ai/requests${serialized ? `?${serialized}` : ""}`,
+      { method: "GET" }
+    )
+  },
+  report: (query: Partial<AdminAiReportQuery> = {}) => {
+    const params = new URLSearchParams()
+    if (query.from) params.set("from", query.from)
+    if (query.to) params.set("to", query.to)
+    const serialized = params.toString()
+    return request<AdminAiReport>(
+      `/v1/admin/ai/report${serialized ? `?${serialized}` : ""}`,
+      { method: "GET" }
+    )
+  },
 }
 
 function portalCommerceQueryString(query: Partial<PortalCommerceQuery> = {}) {
@@ -1304,6 +1353,120 @@ export const polarApi = {
     request<TestPolarIntegrationResponse>("/v1/admin/integrations/polar/test", {
       method: "POST",
       body: JSON.stringify(input),
+    }),
+}
+
+function adminContentQueryString(query: Record<string, unknown> = {}) {
+  const params = new URLSearchParams()
+  for (const [key, value] of Object.entries(query)) {
+    if (value === undefined || value === null || value === "") continue
+    params.set(key, String(value))
+  }
+  const serialized = params.toString()
+  return serialized ? `?${serialized}` : ""
+}
+
+function adminContentResource<TList, TInput>(path: string) {
+  return {
+    list: (query: Record<string, unknown> = {}) =>
+      request<TList>(
+        `/v1/admin/content/${path}${adminContentQueryString(query)}`,
+        { method: "GET" }
+      ),
+    create: (input: TInput) =>
+      request<{ id: string }>(`/v1/admin/content/${path}`, {
+        method: "POST",
+        body: JSON.stringify(input),
+      }),
+    update: (id: string, input: TInput) =>
+      request<{ id: string }>(`/v1/admin/content/${path}/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(input),
+      }),
+    remove: (id: string) =>
+      request<void>(`/v1/admin/content/${path}/${id}`, { method: "DELETE" }),
+  }
+}
+
+export const adminContentApi = {
+  languages: adminContentResource<
+    AdminLanguagesResponse,
+    UpsertAdminLanguageInput
+  >("languages"),
+  blogCategories: adminContentResource<
+    AdminTaxonomiesResponse,
+    UpsertAdminTaxonomyInput
+  >("blog-categories"),
+  blogTags: adminContentResource<
+    AdminBlogTagsResponse,
+    UpsertAdminBlogTagInput
+  >("blog-tags"),
+  blogPosts: adminContentResource<
+    AdminBlogPostsResponse,
+    UpsertAdminBlogPostInput
+  >("blog-posts"),
+  faqs: adminContentResource<AdminFaqsResponse, UpsertAdminFaqInput>("faqs"),
+  aiTemplateCategories: adminContentResource<
+    AdminTaxonomiesResponse,
+    UpsertAdminTaxonomyInput
+  >("ai-template-categories"),
+  aiTemplates: adminContentResource<
+    AdminAiTemplatesResponse,
+    UpsertAdminAiTemplateInput
+  >("ai-templates"),
+}
+
+export const adminSettingsApi = {
+  general: () =>
+    request<AdminGeneralSettings>("/v1/admin/settings/general", {
+      method: "GET",
+    }),
+  saveGeneral: (input: AdminGeneralSettings) =>
+    request<AdminGeneralSettings>("/v1/admin/settings/general", {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  auth: () =>
+    request<AdminAuthSettings>("/v1/admin/settings/auth", { method: "GET" }),
+  saveAuth: (input: AdminAuthSettings) =>
+    request<AdminAuthSettings>("/v1/admin/settings/auth", {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  analytics: () =>
+    request<AdminAnalyticsSettings>("/v1/admin/settings/analytics", {
+      method: "GET",
+    }),
+  saveAnalytics: (input: AdminAnalyticsSettings) =>
+    request<AdminAnalyticsSettings>("/v1/admin/settings/analytics", {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  staticPages: () =>
+    request<AdminStaticPagesSettings>("/v1/admin/settings/static-pages", {
+      method: "GET",
+    }),
+  saveStaticPages: (input: AdminStaticPagesSettings) =>
+    request<AdminStaticPagesSettings>("/v1/admin/settings/static-pages", {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  cache: () =>
+    request<AdminCacheState>("/v1/admin/settings/cache", { method: "GET" }),
+  purgeCache: () =>
+    request<{ removed: number }>("/v1/admin/settings/cache/purge", {
+      method: "POST",
+    }),
+  scheduledJobs: () =>
+    request<AdminScheduledJobs>("/v1/admin/settings/scheduled-jobs", {
+      method: "GET",
+    }),
+}
+
+export const adminSystemApi = {
+  information: () =>
+    request<AdminSystemInformation>("/v1/admin/system-information", {
+      method: "GET",
     }),
 }
 

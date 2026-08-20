@@ -8,6 +8,8 @@ import {
   Copy,
   KeyRound,
   LockKeyhole,
+  MoreHorizontal,
+  Pencil,
   Plus,
   Trash2,
   Webhook,
@@ -36,6 +38,13 @@ import { Card, CardContent } from "@workspace/ui/components/card"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import { DataTableHeader } from "@workspace/ui/components/data-table-controls"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import {
   Field,
@@ -732,13 +741,31 @@ export function AutomationPage() {
                           {data.canManage ? (
                             <TableCell className="text-right">
                               {apiKey.status === "active" ? (
-                                <Button
-                                  onClick={() => setKeyToRevoke(apiKey)}
-                                  size="sm"
-                                  variant="destructive"
-                                >
-                                  <Trash2 data-icon="inline-start" /> Revocar
-                                </Button>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      aria-label={`Abrir acciones para ${apiKey.name}`}
+                                      className="size-8 rounded-md text-muted-foreground hover:bg-muted/50"
+                                      size="icon-sm"
+                                      variant="brand-secondary"
+                                    >
+                                      <MoreHorizontal className="size-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent
+                                    align="end"
+                                    size="compact"
+                                  >
+                                    <DropdownMenuItem
+                                      onSelect={() => setKeyToRevoke(apiKey)}
+                                      size="compact"
+                                      variant="destructive"
+                                    >
+                                      <Trash2 />
+                                      Revocar clave
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               ) : null}
                             </TableCell>
                           ) : null}
@@ -746,13 +773,6 @@ export function AutomationPage() {
                       ))
                     ) : (
                       <TableEmptyRow
-                        action={
-                          data.canManage ? (
-                            <Button onClick={() => setIsKeyOpen(true)}>
-                              <Plus data-icon="inline-start" /> Crear clave
-                            </Button>
-                          ) : undefined
-                        }
                         colSpan={data.canManage ? 5 : 4}
                         description="Crea una clave para que tus herramientas consulten o publiquen por API."
                         icon={KeyRound}
@@ -839,46 +859,45 @@ export function AutomationPage() {
                           </TableCell>
                           {data.canManage ? (
                             <TableCell className="text-right">
-                              <div className="flex justify-end gap-2">
-                                <Button
-                                  onClick={() => {
-                                    setEditingWebhook(webhook)
-                                    setIsWebhookOpen(true)
-                                  }}
-                                  size="sm"
-                                  variant="brand-secondary"
-                                >
-                                  Editar
-                                </Button>
-                                <Button
-                                  onClick={() => setWebhookToDelete(webhook)}
-                                  size="icon-sm"
-                                  variant="destructive"
-                                >
-                                  <Trash2 />
-                                  <span className="sr-only">
-                                    Eliminar {webhook.name}
-                                  </span>
-                                </Button>
-                              </div>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    aria-label={`Abrir acciones para ${webhook.name}`}
+                                    className="size-8 rounded-md text-muted-foreground hover:bg-muted/50"
+                                    size="icon-sm"
+                                    variant="brand-secondary"
+                                  >
+                                    <MoreHorizontal className="size-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" size="compact">
+                                  <DropdownMenuItem
+                                    onSelect={() => {
+                                      setEditingWebhook(webhook)
+                                      setIsWebhookOpen(true)
+                                    }}
+                                    size="compact"
+                                  >
+                                    <Pencil />
+                                    Editar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    onSelect={() => setWebhookToDelete(webhook)}
+                                    size="compact"
+                                    variant="destructive"
+                                  >
+                                    <Trash2 />
+                                    Eliminar
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             </TableCell>
                           ) : null}
                         </TableRow>
                       ))
                     ) : (
                       <TableEmptyRow
-                        action={
-                          data.canManage ? (
-                            <Button
-                              onClick={() => {
-                                setEditingWebhook(null)
-                                setIsWebhookOpen(true)
-                              }}
-                            >
-                              <Plus data-icon="inline-start" /> Crear webhook
-                            </Button>
-                          ) : undefined
-                        }
                         colSpan={data.canManage ? 5 : 4}
                         description="Recibe un aviso en tu sistema cuando una publicación se cree, se envíe o falle."
                         icon={Webhook}

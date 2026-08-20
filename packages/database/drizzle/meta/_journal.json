@@ -225,6 +225,20 @@
       "when": 1786634865084,
       "tag": "0031_plans_currency_usd_only",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1787207855747,
+      "tag": "0032_married_blindfold",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1787208558624,
+      "tag": "0033_tense_captain_universe",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,5 @@
-import { AdminSecondaryModuleMockup } from "@/features/platform-admin-mockups/components/admin-secondary-module-mockup"
+import { BlogTagsCollection } from "@/features/admin-content/components/collections"
 
-export default function AdminBlogTagsPage() {
-  return <AdminSecondaryModuleMockup moduleKey="blog-tags" />
+export default function BlogTagsRoutePage() {
+  return <BlogTagsCollection />
 }

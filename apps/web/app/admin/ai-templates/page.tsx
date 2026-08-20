@@ -1,5 +1,5 @@
-import { AdminSecondaryModuleMockup } from "@/features/platform-admin-mockups/components/admin-secondary-module-mockup"
+import { AiTemplatesCollection } from "@/features/admin-content/components/collections"
 
-export default function AdminAiTemplatesPage() {
-  return <AdminSecondaryModuleMockup moduleKey="ai-templates" />
+export default function AiTemplatesRoutePage() {
+  return <AiTemplatesCollection />
 }

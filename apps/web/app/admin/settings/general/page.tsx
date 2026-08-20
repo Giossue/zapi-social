@@ -1,5 +1,5 @@
-import { AdminSecondaryModuleMockup } from "@/features/platform-admin-mockups/components/admin-secondary-module-mockup"
+import { GeneralSettingsPage } from "@/features/admin-settings/components/settings-pages"
 
-export default function AdminGeneralSettingsPage() {
-  return <AdminSecondaryModuleMockup moduleKey="settings-general" />
+export default function GeneralSettingsRoutePage() {
+  return <GeneralSettingsPage />
 }
