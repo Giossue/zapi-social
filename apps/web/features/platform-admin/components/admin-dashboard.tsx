@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import {
-  Activity,
   ArrowRight,
   CheckCircle2,
   CircleAlert,
@@ -13,10 +12,14 @@ import {
   TriangleAlert,
 } from "lucide-react"
 
-import { ApiError, integrationsApi, polarApi } from "@workspace/api-client"
+import {
+  ApiError,
+  adminDashboardApi,
+  integrationsApi,
+  polarApi,
+} from "@workspace/api-client"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { CardGrid } from "@workspace/ui/components/card-grid"
 import {
   Card,
   CardAction,
@@ -26,11 +29,18 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import { EmptyState } from "@workspace/ui/components/empty-state"
-import { MetricCard } from "@workspace/ui/components/metric-card"
 import { PageLoading } from "@workspace/ui/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import { Separator } from "@workspace/ui/components/separator"
 import { loginPath } from "@/features/identity/login-redirect"
+
+import { AdminMetricCards } from "./admin-metric-cards"
+import { PlanBreakdown } from "./plan-breakdown"
+import { PlatformAiActivity } from "./platform-ai-activity"
+import { RecentPayments } from "./recent-payments"
+import { UserGrowth } from "./user-growth"
+
+import type { AdminDashboard as AdminDashboardData } from "@workspace/contracts"
 
 type Readiness = "ready" | "incomplete" | "untested" | "disabled"
 
@@ -57,6 +67,7 @@ const readinessCopy: Record<Readiness, { label: string; detail: string }> = {
 
 export function AdminDashboard() {
   const router = useRouter()
+  const [dashboard, setDashboard] = useState<AdminDashboardData | null>(null)
   const [providers, setProviders] = useState<ProviderState[] | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
@@ -66,13 +77,16 @@ export function AdminDashboard() {
     setIsLoading(true)
     setLoadError(false)
     try {
-      const [meta, whatsapp, smtp, drive, polar] = await Promise.all([
-        integrationsApi.getMeta(),
-        integrationsApi.getWhatsAppStatus(),
-        integrationsApi.getEmailSmtp(),
-        integrationsApi.getGoogleDrive(),
-        polarApi.get(),
-      ])
+      const [nextDashboard, meta, whatsapp, smtp, drive, polar] =
+        await Promise.all([
+          adminDashboardApi.get(),
+          integrationsApi.getMeta(),
+          integrationsApi.getWhatsAppStatus(),
+          integrationsApi.getEmailSmtp(),
+          integrationsApi.getGoogleDrive(),
+          polarApi.get(),
+        ])
+      setDashboard(nextDashboard)
       setProviders([
         { label: "Meta", readiness: meta.readiness },
         { label: "WhatsApp Status", readiness: whatsapp.readiness },
@@ -115,11 +129,11 @@ export function AdminDashboard() {
     )
   }
 
-  if (isLoading && !providers) {
+  if (isLoading && !dashboard) {
     return <PageLoading aria-label="Cargando estado de la plataforma" />
   }
 
-  if (loadError || !providers) {
+  if (loadError || !dashboard || !providers) {
     return (
       <Card variant="subtle">
         <CardContent>
@@ -130,7 +144,7 @@ export function AdminDashboard() {
                 variant="brand-secondary"
               />
             }
-            description="No pudimos consultar el estado de los proveedores."
+            description="No pudimos consultar el estado de la plataforma."
             icon={CircleAlert}
             title="Panel no disponible"
           />
@@ -139,38 +153,42 @@ export function AdminDashboard() {
     )
   }
 
-  const ready = providers.filter((provider) => provider.readiness === "ready")
   const attention = providers.filter(
     (provider) =>
       provider.readiness === "incomplete" || provider.readiness === "untested"
-  )
-  const disabled = providers.filter(
-    (provider) => provider.readiness === "disabled"
   )
 
   return (
     <div className="flex flex-col gap-4 md:gap-6">
       <section aria-label="Estado de la plataforma">
-        <CardGrid layout="md-3">
-          <MetricCard
-            description="Disponibles para los workspaces"
-            icon={CheckCircle2}
-            label="Proveedores listos"
-            value={`${ready.length}/${providers.length}`}
+        <AdminMetricCards metrics={dashboard.metrics} />
+      </section>
+
+      <section
+        aria-label="Crecimiento y distribución"
+        className="grid grid-cols-1 items-stretch gap-4 xl:grid-cols-12"
+      >
+        <div className="xl:col-span-7">
+          <UserGrowth data={dashboard.userGrowth} />
+        </div>
+        <div className="xl:col-span-5">
+          <PlanBreakdown
+            aiTools={dashboard.aiActivity.kinds}
+            plans={dashboard.plans}
           />
-          <MetricCard
-            description="Credenciales o pruebas pendientes"
-            icon={TriangleAlert}
-            label="Requieren atención"
-            value={attention.length}
-          />
-          <MetricCard
-            description="No se ofrecen a los workspaces"
-            icon={Activity}
-            label="Deshabilitados"
-            value={disabled.length}
-          />
-        </CardGrid>
+        </div>
+      </section>
+
+      <section
+        aria-label="Facturación y actividad"
+        className="grid grid-cols-1 items-stretch gap-4 xl:grid-cols-12"
+      >
+        <div className="xl:col-span-7">
+          <RecentPayments payments={dashboard.recentPayments} />
+        </div>
+        <div className="xl:col-span-5 xl:col-start-8">
+          <PlatformAiActivity aiActivity={dashboard.aiActivity} />
+        </div>
       </section>
 
       <section

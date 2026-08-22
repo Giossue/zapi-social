@@ -1,4 +1,5 @@
 import type {
+  AdminDashboard,
   AdminPlan,
   AdminPlansList,
   AdminTurnstileConfiguration,
@@ -459,6 +460,10 @@ export const adminTurnstileApi = {
 export const portalApi = {
   dashboard: () =>
     request<PortalDashboard>("/v1/portal/dashboard", { method: "GET" }),
+}
+
+export const adminDashboardApi = {
+  get: () => request<AdminDashboard>("/v1/admin/dashboard", { method: "GET" }),
 }
 
 export const profileApi = {

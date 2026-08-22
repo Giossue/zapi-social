@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
 import { DashboardLoading } from "./dashboard-loading"
 import { PortalDashboardPage } from "./dashboard-page"
-import type { PortalDashboard } from "../types/dashboard"
+import type { PortalDashboard } from "@workspace/contracts"
 import { loginPath } from "@/features/identity/login-redirect"
 
 export function LivePortalDashboard() {

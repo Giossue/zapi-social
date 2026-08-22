@@ -1,28 +1,28 @@
 import type { LucideIcon } from "lucide-react"
 import {
-  CalendarDays,
-  FolderOpen,
-  Share2,
-  Sparkles,
+  CreditCard,
+  DollarSign,
   TrendingDown,
   TrendingUp,
+  UserPlus,
+  Users,
 } from "lucide-react"
 
 import { Badge } from "@workspace/ui/components/badge"
 import { MetricCard } from "@workspace/ui/components/metric-card"
 
-import type { PortalDashboard } from "@workspace/contracts"
+import type { AdminDashboard } from "@workspace/contracts"
 
-type DashboardKpi = PortalDashboard["metrics"][number]
+type AdminKpi = AdminDashboard["metrics"][number]
 
-const metricIcons: Record<DashboardKpi["icon"], LucideIcon> = {
-  ai: Sparkles,
-  calendar: CalendarDays,
-  channels: Share2,
-  files: FolderOpen,
+const metricIcons: Record<AdminKpi["icon"], LucideIcon> = {
+  revenue: DollarSign,
+  subscriptions: CreditCard,
+  users: UserPlus,
+  workspaces: Users,
 }
 
-export function MetricCards({ metrics }: { metrics: DashboardKpi[] }) {
+export function AdminMetricCards({ metrics }: { metrics: AdminKpi[] }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {metrics.map((metric) => (

@@ -129,26 +129,35 @@ export const authSessionSchema = z.discriminatedUnion("area", [
   portalAuthSessionSchema,
 ])
 
-const dashboardActionSchema = z.object({
-  label: z.string(),
-  href: z.string(),
-})
+const dashboardKpiChangeSchema = z
+  .object({
+    direction: z.enum(["up", "down"]),
+    label: z.string(),
+  })
+  .nullable()
 
-const dashboardMetricSchema = z.object({
+const portalDashboardKpiSchema = z.object({
   label: z.string(),
   value: z.string(),
-  description: z.string().optional(),
-  icon: z.enum(["ai", "calendar", "channels", "files", "storage", "templates"]),
-})
-
-const dashboardToolSchema = dashboardActionSchema.extend({
-  uses: z.number().int().nonnegative(),
-  icon: z.enum(["content", "image", "repurpose", "timing"]),
-})
-
-const dashboardAttentionSchema = dashboardActionSchema.extend({
+  change: dashboardKpiChangeSchema,
   description: z.string(),
-  icon: z.enum(["ai", "channels", "credits", "publishing"]),
+  icon: z.enum(["ai", "calendar", "channels", "files"]),
+})
+
+const dashboardComparisonPointSchema = z.object({
+  date: z.string(),
+  current: z.number().int().nonnegative(),
+  previous: z.number().int().nonnegative(),
+})
+
+const dashboardDayCountSchema = z.object({
+  date: z.string(),
+  count: z.number().int().nonnegative(),
+})
+
+const dashboardBreakdownItemSchema = z.object({
+  label: z.string(),
+  count: z.number().int().nonnegative(),
 })
 
 export const portalCaptionSourceTypeSchema = z.enum(["manual", "ai"])
@@ -1005,14 +1014,63 @@ export const portalTeamActivityQuerySchema = z
   })
   .strict()
 
+export const portalUpcomingPostStatusSchema = z.enum(["draft", "scheduled"])
+
 export const portalDashboardSchema = z.object({
-  welcome: z.object({ name: z.string() }),
-  primaryAction: dashboardActionSchema,
-  workspace: z.array(dashboardMetricSchema),
-  tools: z.array(dashboardToolSchema),
-  publishing: z.array(dashboardMetricSchema),
-  library: z.array(dashboardMetricSchema),
-  attention: z.array(dashboardAttentionSchema),
+  metrics: z.array(portalDashboardKpiSchema),
+  publishingActivity: z.array(dashboardComparisonPointSchema),
+  aiUsage: z.object({
+    creditsUsed: z.number().int().nonnegative(),
+    days: z.array(dashboardDayCountSchema),
+    kinds: z.array(dashboardBreakdownItemSchema),
+  }),
+  channels: z.array(dashboardBreakdownItemSchema),
+  aiTools: z.array(dashboardBreakdownItemSchema),
+  upcoming: z.array(
+    z.object({
+      content: z.string(),
+      channel: z.string(),
+      status: portalUpcomingPostStatusSchema,
+      date: z.string().nullable(),
+    })
+  ),
+})
+
+const adminDashboardKpiSchema = z.object({
+  label: z.string(),
+  value: z.string(),
+  change: dashboardKpiChangeSchema,
+  description: z.string(),
+  icon: z.enum(["users", "workspaces", "subscriptions", "revenue"]),
+})
+
+export const adminPaymentStatusSchema = z.enum([
+  "pending",
+  "paid",
+  "partially_refunded",
+  "refunded",
+  "failed",
+])
+
+export const adminDashboardSchema = z.object({
+  metrics: z.array(adminDashboardKpiSchema),
+  userGrowth: z.array(dashboardComparisonPointSchema),
+  plans: z.array(dashboardBreakdownItemSchema),
+  aiActivity: z.object({
+    total: z.number().int().nonnegative(),
+    days: z.array(dashboardDayCountSchema),
+    kinds: z.array(dashboardBreakdownItemSchema),
+  }),
+  recentPayments: z.array(
+    z.object({
+      product: z.string(),
+      workspace: z.string(),
+      status: adminPaymentStatusSchema,
+      amountMinor: z.number().int().nonnegative(),
+      currency: z.string(),
+      date: z.string(),
+    })
+  ),
 })
 
 export const channelStatusSchema = z.enum(["active", "paused"])
@@ -1151,6 +1209,7 @@ export type PlatformAdminAuthSession = z.infer<
 >
 export type PortalAuthSession = z.infer<typeof portalAuthSessionSchema>
 export type PortalDashboard = z.infer<typeof portalDashboardSchema>
+export type AdminDashboard = z.infer<typeof adminDashboardSchema>
 export type PortalCaptionSourceType = z.infer<
   typeof portalCaptionSourceTypeSchema
 >
