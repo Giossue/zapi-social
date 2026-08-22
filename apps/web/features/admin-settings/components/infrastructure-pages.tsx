@@ -26,6 +26,7 @@ import {
 } from "@workspace/ui/components/table"
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { toast } from "@workspace/ui/components/toast"
+import { loginPath } from "@/features/identity/login-redirect"
 
 function formatDateTime(value: string | null) {
   if (!value) return "Nunca"
@@ -53,7 +54,7 @@ function useAdminResource<T>(load: () => Promise<T>, label: string) {
       setForbidden(false)
     } catch (error) {
       if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
-        router.replace("/login")
+        router.replace(loginPath())
         return
       }
       if (error instanceof ApiError && error.status === 403) {

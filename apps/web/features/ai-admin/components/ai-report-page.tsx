@@ -45,6 +45,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs"
+import { loginPath } from "@/features/identity/login-redirect"
 
 function money(microusd: number) {
   return new Intl.NumberFormat("es-EC", {
@@ -142,7 +143,7 @@ export function AiReportPage() {
           error instanceof ApiError &&
           error.code === "AUTH_SESSION_EXPIRED"
         ) {
-          router.replace("/login")
+          router.replace(loginPath())
           return
         }
         if (error instanceof ApiError && error.status === 403) {

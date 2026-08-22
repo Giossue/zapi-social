@@ -10,6 +10,7 @@ import { useCallback, useEffect, useState } from "react"
 import { DashboardLoading } from "./dashboard-loading"
 import { PortalDashboardPage } from "./dashboard-page"
 import type { PortalDashboard } from "../types/dashboard"
+import { loginPath } from "@/features/identity/login-redirect"
 
 export function LivePortalDashboard() {
   const router = useRouter()
@@ -26,7 +27,7 @@ export function LivePortalDashboard() {
       setDashboard(nextDashboard)
     } catch (error) {
       if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
-        router.replace("/login")
+        router.replace(loginPath())
         return
       }
 

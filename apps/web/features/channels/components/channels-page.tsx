@@ -53,6 +53,7 @@ import {
   type MetaPickerSession,
 } from "./channel-connection-dialog"
 import { ChannelsLoading } from "./channels-loading"
+import { loginPath } from "@/features/identity/login-redirect"
 
 const META_OAUTH_SESSION_KEY = "zapi:channels:meta-oauth"
 const CHANNELS_PAGE_SIZE = 10
@@ -346,7 +347,7 @@ export function LiveChannelsPage() {
     } catch (error) {
       if (requestId !== requestSequence.current) return
       if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
-        router.replace("/login")
+        router.replace(loginPath())
         return
       }
       if (error instanceof ApiError && error.status === 403) {

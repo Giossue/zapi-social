@@ -93,6 +93,7 @@ import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
 
 import { capabilityLabels } from "@/features/channels/components/channel-table/channels-columns"
+import { loginPath } from "@/features/identity/login-redirect"
 
 const pageSize = 10
 
@@ -397,7 +398,7 @@ export function GroupsPage() {
   const handleError = useCallback(
     (error: unknown) => {
       if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
-        router.replace("/login")
+        router.replace(loginPath())
         return true
       }
       if (error instanceof ApiError && error.status === 403) {

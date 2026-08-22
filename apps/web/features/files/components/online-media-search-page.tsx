@@ -30,6 +30,7 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
 
 import { FilesPermissionState } from "@/features/files/components/files-states"
+import { loginPath } from "@/features/identity/login-redirect"
 
 const typeMeta = {
   image: { icon: Image, label: "Imagen" },
@@ -62,7 +63,7 @@ export function OnlineMediaSearchPage() {
   const handleError = useCallback(
     (error: unknown) => {
       if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
-        router.replace("/login")
+        router.replace(loginPath())
         return true
       }
       if (error instanceof ApiError && error.status === 403) {

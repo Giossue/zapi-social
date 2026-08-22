@@ -93,6 +93,7 @@ import {
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { toast } from "@workspace/ui/components/toast"
+import { loginPath } from "@/features/identity/login-redirect"
 
 type BatchStatus = PortalBulkPostBatch["status"]
 type RowStatus = PortalBulkPostBatchDetail["rows"][number]["status"]
@@ -458,7 +459,7 @@ export function BulkPostsPage() {
   const handleError = useCallback(
     (error: unknown) => {
       if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
-        router.replace("/login")
+        router.replace(loginPath())
         return true
       }
       if (error instanceof ApiError && error.status === 403) {

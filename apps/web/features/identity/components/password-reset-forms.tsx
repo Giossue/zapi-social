@@ -17,6 +17,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useState, type FormEvent, type ReactNode } from "react"
 
 import { AuthShell } from "./auth-page"
+import { loginPath } from "@/features/identity/login-redirect"
 
 function RecoveryLayout({
   children,
@@ -183,7 +184,7 @@ export function ResetPasswordForm() {
       toast.success(
         "Contraseña actualizada. Inicia sesión con la nueva contraseña."
       )
-      router.replace("/login")
+      router.replace(loginPath())
     } catch (error) {
       if (
         error instanceof ApiError &&

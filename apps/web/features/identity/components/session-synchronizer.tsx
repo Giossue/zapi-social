@@ -7,6 +7,7 @@ import {
   getAreaDestination,
   getSessionArea,
 } from "@/features/identity/session-area"
+import { loginPath } from "@/features/identity/login-redirect"
 
 const logoutStorageKey = "zapi:session:logout"
 const sessionInvalidEvent = "zapi:session-invalid"
@@ -31,7 +32,7 @@ export function SessionSynchronizer() {
 
   const redirectToLogin = useCallback(() => {
     if (!isProtectedPath(window.location.pathname)) return
-    router.replace("/login")
+    router.replace(loginPath())
     router.refresh()
   }, [router])
 

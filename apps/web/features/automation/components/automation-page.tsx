@@ -81,6 +81,7 @@ import {
   TabsTrigger,
 } from "@workspace/ui/components/tabs"
 import { toast } from "@workspace/ui/components/toast"
+import { loginPath } from "@/features/identity/login-redirect"
 
 type PortalAutomationApiKey = PortalAutomationResponse["apiKeys"][number]
 type PortalAutomationWebhook = PortalAutomationResponse["webhooks"][number]
@@ -492,7 +493,7 @@ export function AutomationPage() {
   const handleError = useCallback(
     (error: unknown) => {
       if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
-        router.replace("/login")
+        router.replace(loginPath())
         return true
       }
       if (error instanceof ApiError && error.status === 403) {

@@ -69,6 +69,7 @@ import {
   isChatTool,
   type ChatTool,
 } from "./ai-chat-tools"
+import { loginPath } from "@/features/identity/login-redirect"
 
 const statusLabels: Record<PortalAiRequest["status"], string> = {
   queued: "En cola",
@@ -362,7 +363,7 @@ export function AiChatPage() {
       setRequests(response.requests)
     } catch (error) {
       if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
-        router.replace("/login")
+        router.replace(loginPath())
         return
       }
       console.error("AI requests request failed", error)
@@ -430,7 +431,7 @@ export function AiChatPage() {
       setPrompt("")
     } catch (error) {
       if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
-        router.replace("/login")
+        router.replace(loginPath())
         return
       }
       console.error("AI request creation failed", error)

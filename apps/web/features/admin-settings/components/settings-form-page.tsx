@@ -24,6 +24,7 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { Switch } from "@workspace/ui/components/switch"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
+import { loginPath } from "@/features/identity/login-redirect"
 
 export type SettingsField<TValues> = {
   description?: string
@@ -62,7 +63,7 @@ export function SettingsFormPage<TValues extends Record<string, unknown>>({
   const handleError = useCallback(
     (error: unknown) => {
       if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
-        router.replace("/login")
+        router.replace(loginPath())
         return true
       }
       if (error instanceof ApiError && error.status === 403) {

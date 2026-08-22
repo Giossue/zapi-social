@@ -103,6 +103,7 @@ import {
   itemBlockTypes,
   templates,
 } from "./link-bio-blocks"
+import { loginPath } from "@/features/identity/login-redirect"
 
 type Draft = UpsertPortalLinkBioPageInput
 
@@ -631,7 +632,7 @@ export function LinkBioPage() {
   const handleError = useCallback(
     (error: unknown) => {
       if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
-        router.replace("/login")
+        router.replace(loginPath())
         return true
       }
       if (error instanceof ApiError && error.status === 403) {

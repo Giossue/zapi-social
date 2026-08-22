@@ -90,6 +90,7 @@ import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
+import { loginPath } from "@/features/identity/login-redirect"
 
 export type CollectionValues = Record<string, unknown>
 
@@ -440,7 +441,7 @@ export function AdminCollectionPage<TRow, TResponse>({
   const handleError = useCallback(
     (error: unknown) => {
       if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
-        router.replace("/login")
+        router.replace(loginPath())
         return true
       }
       if (error instanceof ApiError && error.status === 403) {

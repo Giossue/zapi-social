@@ -90,6 +90,7 @@ import {
   useMemo,
   useState,
 } from "react"
+import { loginPath } from "@/features/identity/login-redirect"
 
 import type {
   Caption,
@@ -425,7 +426,7 @@ export function CaptionsLibraryPage() {
       setHasPermission(true)
     } catch (error) {
       if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
-        router.replace("/login")
+        router.replace(loginPath())
         return
       }
       if (error instanceof ApiError && error.status === 403) {
@@ -456,7 +457,7 @@ export function CaptionsLibraryPage() {
           error instanceof ApiError &&
           error.code === "AUTH_SESSION_EXPIRED"
         ) {
-          router.replace("/login")
+          router.replace(loginPath())
           return
         }
         if (error instanceof ApiError && error.status === 403) {
@@ -559,7 +560,7 @@ export function CaptionsLibraryPage() {
       return null
     } catch (error) {
       if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
-        router.replace("/login")
+        router.replace(loginPath())
         return null
       }
 
@@ -584,7 +585,7 @@ export function CaptionsLibraryPage() {
       toast.success("Caption eliminado.")
     } catch (error) {
       if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
-        router.replace("/login")
+        router.replace(loginPath())
         return
       }
 

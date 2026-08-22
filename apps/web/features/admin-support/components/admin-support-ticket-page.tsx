@@ -48,6 +48,7 @@ import { RetryButton } from "@workspace/ui/components/retry-button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
+import { loginPath } from "@/features/identity/login-redirect"
 
 const statusLabel: Record<AdminSupportTicketStatus, string> = {
   open: "Abierto",
@@ -89,7 +90,7 @@ export function AdminSupportTicketPage({ ticketId }: { ticketId: string }) {
   const handleError = useCallback(
     (error: unknown) => {
       if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
-        router.replace("/login")
+        router.replace(loginPath())
         return true
       }
       if (error instanceof ApiError && error.status === 403) {

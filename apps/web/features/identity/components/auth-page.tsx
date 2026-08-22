@@ -48,7 +48,7 @@ export function AuthPage({
   returnTo,
 }: {
   initialMode: AuthMode
-  returnTo?: "/invite"
+  returnTo?: string
 }) {
   const isLogin = initialMode === "login"
   const alternatePath = isLogin ? "/register" : "/login"

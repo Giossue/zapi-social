@@ -30,6 +30,7 @@ import { MetricCard } from "@workspace/ui/components/metric-card"
 import { PageLoading } from "@workspace/ui/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import { Separator } from "@workspace/ui/components/separator"
+import { loginPath } from "@/features/identity/login-redirect"
 
 type Readiness = "ready" | "incomplete" | "untested" | "disabled"
 
@@ -82,7 +83,7 @@ export function AdminDashboard() {
       setForbidden(false)
     } catch (error) {
       if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
-        router.replace("/login")
+        router.replace(loginPath())
         return
       }
       if (error instanceof ApiError && error.status === 403) {

@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation"
 
 import { ThemeMenuItem } from "@/components/dashboard-shell/theme-switcher"
 import { announceSessionLogout } from "@/features/identity/components/session-synchronizer"
+import { loginPath } from "@/features/identity/login-redirect"
 
 export type AccountProfile = {
   displayName: string
@@ -44,7 +45,7 @@ export function useSessionLogout() {
     try {
       await authApi.logout()
       announceSessionLogout()
-      router.replace("/login")
+      router.replace(loginPath())
       router.refresh()
     } catch (error) {
       if (error instanceof ApiError) {

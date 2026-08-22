@@ -138,7 +138,7 @@ export function AuthForm({
   returnTo,
 }: {
   initialMode: AuthMode
-  returnTo?: "/invite"
+  returnTo?: string
 }) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -284,9 +284,14 @@ export function AuthForm({
         )
         return
       }
-      router.replace(
-        returnTo && area === "portal" ? returnTo : getAreaDestination(area)
-      )
+      /** El destino solo se respeta si pertenece al área de la sesión. */
+      const areaPrefix = area === "admin" ? "/admin" : "/portal"
+      const destination =
+        returnTo &&
+        (returnTo === areaPrefix || returnTo.startsWith(`${areaPrefix}/`))
+          ? returnTo
+          : getAreaDestination(area)
+      router.replace(destination)
       router.refresh()
     } catch (caught) {
       if (caught instanceof ApiError) {

@@ -28,6 +28,7 @@ import {
 } from "@workspace/ui/components/table"
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
+import { loginPath } from "@/features/identity/login-redirect"
 
 type RequestLog = AdminAiRequestsResponse["requests"][number]
 
@@ -108,7 +109,7 @@ export function AiUsageLogsPage() {
       setForbidden(false)
     } catch (error) {
       if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
-        router.replace("/login")
+        router.replace(loginPath())
         return
       }
       if (error instanceof ApiError && error.status === 403) {
