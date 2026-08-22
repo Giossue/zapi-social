@@ -21,6 +21,7 @@ import { createHash } from 'node:crypto';
 import nodemailer from 'nodemailer';
 import type { ReactElement } from 'react';
 import { DatabaseService } from '../database/database.service';
+import { EmailTemplatesService } from './email-templates.service';
 import { Aes256GcmService } from '../platform/crypto/aes-256-gcm.service';
 import { AppException } from '../platform/errors/app-exception';
 import {
@@ -48,6 +49,7 @@ export class EmailService {
   constructor(
     private readonly config: ConfigService,
     private readonly database: DatabaseService,
+    private readonly templates: EmailTemplatesService,
   ) {}
 
   async getSmtpIntegration(): Promise<EmailSmtpIntegration> {
@@ -184,10 +186,11 @@ export class EmailService {
       this.config.getOrThrow<string>('WEB_ORIGIN'),
     );
     resetUrl.searchParams.set('token', token);
+    const copy = await this.templates.resolve('password_reset');
     await this.sendEmail(
       email,
-      'Restablece tu contraseña de Zapi',
-      passwordResetEmail(resetUrl.toString()),
+      copy.subject,
+      passwordResetEmail(resetUrl.toString(), copy),
     );
   }
 
@@ -204,16 +207,26 @@ export class EmailService {
       this.config.getOrThrow<string>('WEB_ORIGIN'),
     );
     invitationUrl.hash = new URLSearchParams({ token: input.token }).toString();
+    const expiresLabel = this.dateLabel(input.expiresAt);
+    const copy = await this.templates.resolve('team_invitation', {
+      workspaceName: input.workspaceName,
+      inviterName: input.inviterName,
+      role: input.role,
+      expiresLabel,
+    });
     await this.sendEmail(
       input.email,
-      `Invitación a ${input.workspaceName} en Zapi`,
-      teamInvitationEmail({
-        invitationUrl: invitationUrl.toString(),
-        workspaceName: input.workspaceName,
-        inviterName: input.inviterName,
-        role: input.role,
-        expiresLabel: this.dateLabel(input.expiresAt),
-      }),
+      copy.subject,
+      teamInvitationEmail(
+        {
+          invitationUrl: invitationUrl.toString(),
+          workspaceName: input.workspaceName,
+          inviterName: input.inviterName,
+          role: input.role,
+          expiresLabel,
+        },
+        copy,
+      ),
     );
   }
 
@@ -224,13 +237,19 @@ export class EmailService {
     memberEmail: string;
     role: 'admin' | 'member';
   }): Promise<void> {
+    const copy = await this.templates.resolve('team_invitation_accepted', {
+      workspaceName: input.workspaceName,
+      memberName: input.memberName,
+      memberEmail: input.memberEmail,
+      role: input.role,
+    });
     await this.sendEmail(
       input.email,
-      `${input.memberName} aceptó tu invitación`,
-      teamInvitationAcceptedEmail({
-        ...input,
-        teamsUrl: this.webUrl('/portal/teams'),
-      }),
+      copy.subject,
+      teamInvitationAcceptedEmail(
+        { ...input, teamsUrl: this.webUrl('/portal/teams') },
+        copy,
+      ),
     );
   }
 
@@ -242,13 +261,19 @@ export class EmailService {
     role: 'admin' | 'member';
     accountCount: number | null;
   }): Promise<void> {
+    const copy = await this.templates.resolve('team_access_updated', {
+      workspaceName: input.workspaceName,
+      recipientName: input.recipientName,
+      actorName: input.actorName,
+      role: input.role,
+    });
     await this.sendEmail(
       input.email,
-      `Tu acceso a ${input.workspaceName} fue actualizado`,
-      teamAccessUpdatedEmail({
-        ...input,
-        teamsUrl: this.webUrl('/portal/teams'),
-      }),
+      copy.subject,
+      teamAccessUpdatedEmail(
+        { ...input, teamsUrl: this.webUrl('/portal/teams') },
+        copy,
+      ),
     );
   }
 
@@ -258,13 +283,18 @@ export class EmailService {
     recipientName: string;
     actorName: string;
   }): Promise<void> {
+    const copy = await this.templates.resolve('team_member_removed', {
+      workspaceName: input.workspaceName,
+      recipientName: input.recipientName,
+      actorName: input.actorName,
+    });
     await this.sendEmail(
       input.email,
-      `Tu acceso a ${input.workspaceName} fue retirado`,
-      teamMemberRemovedEmail({
-        ...input,
-        portalUrl: this.webUrl('/portal/dashboard'),
-      }),
+      copy.subject,
+      teamMemberRemovedEmail(
+        { ...input, portalUrl: this.webUrl('/portal/dashboard') },
+        copy,
+      ),
     );
   }
 
@@ -275,15 +305,23 @@ export class EmailService {
     counterpartName: string;
     perspective: 'new-owner' | 'previous-owner';
   }): Promise<void> {
+    const copy = await this.templates.resolve(
+      input.perspective === 'new-owner'
+        ? 'team_ownership_new_owner'
+        : 'team_ownership_previous_owner',
+      {
+        workspaceName: input.workspaceName,
+        recipientName: input.recipientName,
+        counterpartName: input.counterpartName,
+      },
+    );
     await this.sendEmail(
       input.email,
-      input.perspective === 'new-owner'
-        ? `Ahora eres propietario de ${input.workspaceName}`
-        : `Transferiste la propiedad de ${input.workspaceName}`,
-      teamOwnershipTransferredEmail({
-        ...input,
-        teamsUrl: this.webUrl('/portal/teams'),
-      }),
+      copy.subject,
+      teamOwnershipTransferredEmail(
+        { ...input, teamsUrl: this.webUrl('/portal/teams') },
+        copy,
+      ),
     );
   }
 

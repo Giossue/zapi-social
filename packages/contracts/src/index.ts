@@ -1537,6 +1537,16 @@ export * from "./link-bio.js"
 
 export * from "./admin-operations.js"
 
+export * from "./admin-support.js"
+
+export * from "./admin-payment-report.js"
+
+export * from "./notifications.js"
+
+export * from "./admin-manual-payments.js"
+
+export * from "./admin-email-templates.js"
+
 export * from "./portal-core-v2.js"
 
 export * from "./ai-v2.js"

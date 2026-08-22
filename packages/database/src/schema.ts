@@ -3437,3 +3437,183 @@ export const linkBioEvents = pgTable(
     check("link_bio_events_type_check", sql`${table.type} in ('view', 'click')`),
   ]
 )
+
+/**
+ * Anuncios manuales de plataforma, equivalentes a `notification_manual` de
+ * Laravel. El estado por persona vive en `platform_announcement_reads` para que
+ * un anuncio global no duplique una fila por usuario al publicarse.
+ */
+export const platformAnnouncements = pgTable(
+  "platform_announcements",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    title: varchar("title", { length: 200 }).notNull(),
+    body: text("body").notNull(),
+    url: varchar("url", { length: 2048 }),
+    audience: varchar("audience", { length: 16 })
+      .$type<"all" | "workspace" | "user">()
+      .notNull()
+      .default("all"),
+    targetWorkspaceId: uuid("target_workspace_id").references(
+      () => workspaces.id,
+      { onDelete: "cascade" }
+    ),
+    targetUserId: uuid("target_user_id").references(() => users.id, {
+      onDelete: "cascade",
+    }),
+    status: varchar("status", { length: 16 })
+      .$type<"draft" | "published">()
+      .notNull()
+      .default("draft"),
+    publishedAt: timestamp("published_at", { withTimezone: true }),
+    createdByUserId: uuid("created_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    ...timestamps,
+  },
+  (table) => [
+    index("platform_announcements_status_published_index").on(
+      table.status,
+      table.publishedAt
+    ),
+    index("platform_announcements_audience_index").on(
+      table.audience,
+      table.targetWorkspaceId,
+      table.targetUserId
+    ),
+    check(
+      "platform_announcements_audience_check",
+      sql`${table.audience} in ('all', 'workspace', 'user')`
+    ),
+    check(
+      "platform_announcements_status_check",
+      sql`${table.status} in ('draft', 'published')`
+    ),
+    check(
+      "platform_announcements_target_check",
+      sql`(${table.audience} = 'all' and ${table.targetWorkspaceId} is null and ${table.targetUserId} is null) or (${table.audience} = 'workspace' and ${table.targetWorkspaceId} is not null and ${table.targetUserId} is null) or (${table.audience} = 'user' and ${table.targetUserId} is not null and ${table.targetWorkspaceId} is null)`
+    ),
+    check(
+      "platform_announcements_published_check",
+      sql`${table.status} = 'draft' or ${table.publishedAt} is not null`
+    ),
+  ]
+)
+
+export const platformAnnouncementReads = pgTable(
+  "platform_announcement_reads",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    announcementId: uuid("announcement_id")
+      .notNull()
+      .references(() => platformAnnouncements.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("platform_announcement_reads_unique").on(
+      table.announcementId,
+      table.userId
+    ),
+    index("platform_announcement_reads_user_index").on(
+      table.userId,
+      table.archivedAt
+    ),
+  ]
+)
+
+/**
+ * Pagos registrados fuera de Polar (transferencia, depósito, efectivo),
+ * equivalentes a `payment_manual` de Laravel. Al aprobarse se materializa un
+ * `billing_payments` para que la facturación tenga una sola fuente de verdad.
+ */
+export const manualPayments = pgTable(
+  "manual_payments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "restrict" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    planId: uuid("plan_id").references(() => plans.id, {
+      onDelete: "restrict",
+    }),
+    creditPackageId: uuid("credit_package_id").references(
+      () => creditPackages.id,
+      { onDelete: "restrict" }
+    ),
+    productType: varchar("product_type", { length: 16 })
+      .$type<"plan" | "credits">()
+      .notNull(),
+    reference: varchar("reference", { length: 190 }).notNull(),
+    paymentInfo: varchar("payment_info", { length: 2000 })
+      .notNull()
+      .default(""),
+    note: text("note").notNull().default(""),
+    amountMinor: integer("amount_minor").notNull(),
+    currency: varchar("currency", { length: 3 }).notNull().default("USD"),
+    status: varchar("status", { length: 16 })
+      .$type<"pending" | "approved" | "rejected">()
+      .notNull()
+      .default("pending"),
+    billingPaymentId: uuid("billing_payment_id").references(
+      () => billingPayments.id,
+      { onDelete: "set null" }
+    ),
+    reviewedByUserId: uuid("reviewed_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    createdByUserId: uuid("created_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("manual_payments_reference_unique").on(table.reference),
+    index("manual_payments_status_created_index").on(
+      table.status,
+      table.createdAt
+    ),
+    index("manual_payments_workspace_index").on(table.workspaceId),
+    check("manual_payments_amount_check", sql`${table.amountMinor} > 0`),
+    check(
+      "manual_payments_status_check",
+      sql`${table.status} in ('pending', 'approved', 'rejected')`
+    ),
+    check(
+      "manual_payments_product_reference_check",
+      sql`(${table.productType} = 'plan' and ${table.planId} is not null and ${table.creditPackageId} is null) or (${table.productType} = 'credits' and ${table.planId} is null and ${table.creditPackageId} is not null)`
+    ),
+  ]
+)
+
+/**
+ * Textos editables de los correos transaccionales. Solo guarda las cadenas que
+ * un administrador puede sobrescribir; la maquetación, los enlaces y los
+ * detalles calculados siguen viviendo en el código del correo.
+ */
+export const emailTemplates = pgTable(
+  "email_templates",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    key: varchar("key", { length: 96 }).notNull(),
+    subject: varchar("subject", { length: 250 }).notNull(),
+    title: varchar("title", { length: 250 }).notNull(),
+    description: text("description").notNull(),
+    actionLabel: varchar("action_label", { length: 120 }),
+    notice: text("notice"),
+    isActive: boolean("is_active").notNull().default(true),
+    updatedByUserId: uuid("updated_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    ...timestamps,
+  },
+  (table) => [uniqueIndex("email_templates_key_unique").on(table.key)]
+)

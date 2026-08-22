@@ -47,6 +47,8 @@ No se recuperan Stripe, PayPal, pagos manuales ni ningún otro gateway eliminado
 | `/admin/coupons`       | Descuentos, límites, planes y vigencia.                                         |
 | `/admin/payments`      | Historial exclusivo de Polar, detalle, sincronización y reembolsos.             |
 | `/admin/subscriptions` | Renovaciones, mora, cancelación al final y revocación inmediata.                |
+| `/admin/payment-report` | Reporte agregado del periodo: bruto, neto, reembolsos, ticket medio, evolución, producto, estado y espacios. |
+| `/admin/manual-payments` | Cobros fuera de Polar: registro, aprobación, rechazo y configuración de instrucciones. |
 
 ## Fuente visual
 
@@ -134,6 +136,8 @@ Importes se guardan en unidad menor e ISO-4217. Pagos y reembolsos no se borran;
 - [x] Implementar configuración cifrada, adapter oficial Polar y verificación de webhooks.
 - [x] Persistir pagos, suscripciones, reembolsos y eventos idempotentes.
 - [x] Conectar planes, cupones, créditos y comisiones al ciclo de pago verificado.
+- [x] Añadir el reporte agregado de pagos equivalente a `AdminPaymentReport` de Laravel.
+- [x] Añadir pagos manuales y su configuración, equivalentes a `AdminManualPayments` y `AdminPaymentManualConfig`.
 
 ## Evidencia de la fase mock
 
@@ -189,3 +193,70 @@ Importes se guardan en unidad menor e ISO-4217. Pagos y reembolsos no se borran;
 - La prueba focal de `BillingPolarService` confirma que API rechaza un borrador
   activo cuyo fingerprint no coincide con la última comprobación Polar.
 - Typecheck, lint focal y build Web correctos; lint focal sin errores.
+
+## Reporte de pagos — 21 de agosto de 2026
+
+Equivalencia del módulo Laravel `AdminPaymentReport`. Es una superficie de solo
+lectura: no crea tablas ni muta pagos, agrega sobre `billing_payments`.
+
+- `GET /v1/admin/payment-report` con `range` (`30d`, `90d`, `12m`) y
+  `productType` (`all`, `plan`, `credits`); exige `requirePlatformAdmin`.
+- Un pago cuenta como liquidado cuando su estado es `paid`,
+  `partially_refunded` o `refunded`; el bruto suma `amount_minor` de ese
+  conjunto y el neto le resta `refunded_amount_minor`. Pendientes y fallidos
+  aparecen en el desglose por estado pero no suman al bruto, para no inflar la
+  facturación con intentos que nunca se cobraron.
+- El pago se imputa a `coalesce(paid_at, created_at)`, de modo que la serie
+  refleja la fecha real de liquidación y no la de creación del checkout.
+- La respuesta agrega una sola moneda —la dominante del periodo— y declara en
+  `currencies` las demás presentes. Sumar monedas distintas daría un total sin
+  significado; la UI lo indica explícitamente.
+- Todos los importes viajan en unidades menores enteras y se formatean en Web.
+
+### Evidencia — 21 de agosto de 2026
+
+- `packages/contracts`, `packages/api-client`, `apps/api` y `apps/web` pasan
+  `tsc --noEmit`; `bun run build` correcto en los 6 workspaces y la salida de
+  Next incluye `/admin/payment-report`.
+- `bun run audit:portal-admin-ui` sin hallazgos.
+- No se ejecutó prueba de integración contra PostgreSQL: la superficie es de
+  solo lectura y no existe todavía una suite focal para reporting.
+- Falta la aprobación visual del usuario.
+
+## Pagos manuales — 22 de agosto de 2026
+
+Equivalencia de `AdminManualPayments` y `AdminPaymentManualConfig`. Cubre el
+cobro recibido fuera de Polar: transferencia, depósito o efectivo.
+
+- Aprobar **no es solo cambiar un estado**: dentro de una transacción registra
+  el `billing_payments` equivalente (`external_order_id` = `manual-<id>`,
+  estado `paid`, `metadata.source = 'manual'`) y concede el plan o los créditos
+  con la misma lógica que el webhook de Polar. Así el pago aparece en Pagos y
+  en el Reporte, y la facturación conserva una sola fuente de verdad.
+- La concesión de créditos usa `idempotencyKey = manual-payment-<id>` y
+  `onConflictDoNothing`: aprobar dos veces no duplica saldo.
+- El plan concedido se marca con `source: 'admin'`, no `subscription`, para
+  distinguir una asignación manual de una suscripción viva de Polar.
+- Un pago aprobado no se puede borrar: ya movió saldo o plan y queda como
+  historial. Solo se eliminan pendientes y rechazados.
+- `reference` es único: impide registrar dos veces el mismo comprobante.
+- El pago se atribuye al propietario del espacio de trabajo, no a quien lo
+  registra.
+- La configuración —aceptar pagos manuales, prefijo de referencia e
+  instrucciones— vive en `platform_settings` bajo la clave `manual_payments`;
+  no necesitó tabla propia.
+
+Fuera de alcance: que el cliente suba el comprobante desde Portal, adjuntos,
+recibo por correo y conciliación bancaria.
+
+### Evidencia — 22 de agosto de 2026
+
+- Migración `0036_mean_red_skull` probada en `BEGIN … ROLLBACK` y aplicada;
+  historial 36 → 37 en `zapi_v2_local` y en la remota.
+- `packages/database`, `packages/contracts`, `packages/api-client`, `apps/api` y
+  `apps/web` pasan `tsc --noEmit`; `bun run build` correcto en los 6 workspaces
+  con `/admin/manual-payments` en la salida de Next.
+- `bun run audit:portal-admin-ui` sin hallazgos.
+- No se ejecutó una aprobación real contra la base: no existe suite focal de
+  billing y hacerlo movería saldo de un espacio real.
+- Falta la aprobación visual del usuario.

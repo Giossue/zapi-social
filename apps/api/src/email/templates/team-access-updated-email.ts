@@ -1,3 +1,4 @@
+import type { EmailCopyOverride } from './email-copy';
 import { teamRoleLabel, zapiEmailTemplate } from './email-template';
 
 export type TeamAccessUpdatedEmailInput = {
@@ -9,7 +10,10 @@ export type TeamAccessUpdatedEmailInput = {
   teamsUrl: string;
 };
 
-export function teamAccessUpdatedEmail(input: TeamAccessUpdatedEmailInput) {
+export function teamAccessUpdatedEmail(
+  input: TeamAccessUpdatedEmailInput,
+  copy?: EmailCopyOverride,
+) {
   const details = [
     { label: 'Espacio', value: input.workspaceName },
     { label: 'Rol', value: teamRoleLabel(input.role) },
@@ -23,11 +27,17 @@ export function teamAccessUpdatedEmail(input: TeamAccessUpdatedEmailInput) {
 
   return zapiEmailTemplate({
     preview: `Tu acceso a ${input.workspaceName} fue actualizado.`,
-    title: 'Tu acceso al equipo cambió',
-    description: `${input.actorName} actualizó el acceso de ${input.recipientName} en Zapi.`,
+    title: copy?.title ?? 'Tu acceso al equipo cambió',
+    description:
+      copy?.body ??
+      `${input.actorName} actualizó el acceso de ${input.recipientName} en Zapi.`,
     details,
-    action: { label: 'Ver mi acceso', url: input.teamsUrl },
+    action: {
+      label: copy?.actionLabel ?? 'Ver mi acceso',
+      url: input.teamsUrl,
+    },
     notice:
+      copy?.notice ??
       'Si no reconoces este cambio, contacta al propietario del espacio de trabajo.',
   });
 }

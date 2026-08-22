@@ -13,8 +13,12 @@ import {
   Globe2,
   HandCoins,
   KeyRound,
+  Landmark,
   Languages,
   LayoutDashboard,
+  LifeBuoy,
+  Mail,
+  Megaphone,
   PackageCheck,
   PlugZap,
   ReceiptText,
@@ -53,10 +57,27 @@ export const adminNavigationGroups: readonly AdminNavigationGroup[] = [
       { label: "Cupones", href: "/admin/coupons", icon: Tags },
       { label: "Pagos", href: "/admin/payments", icon: CreditCard },
       {
+        label: "Pagos manuales",
+        href: "/admin/manual-payments",
+        icon: Landmark,
+      },
+      {
+        label: "Reporte de pagos",
+        href: "/admin/payment-report",
+        icon: ReceiptText,
+      },
+      {
         label: "Suscripciones",
         href: "/admin/subscriptions",
         icon: ReceiptText,
       },
+    ],
+  },
+  {
+    label: "Soporte",
+    items: [
+      { label: "Casos", href: "/admin/support", icon: LifeBuoy },
+      { label: "Anuncios", href: "/admin/notifications", icon: Megaphone },
     ],
   },
   {
@@ -109,6 +130,11 @@ export const adminNavigationGroups: readonly AdminNavigationGroup[] = [
         icon: KeyRound,
       },
       { label: "Captcha", href: "/admin/settings/captcha", icon: ShieldCheck },
+      {
+        label: "Plantillas de correo",
+        href: "/admin/email-templates",
+        icon: Mail,
+      },
       {
         label: "Analítica",
         href: "/admin/settings/analytics",

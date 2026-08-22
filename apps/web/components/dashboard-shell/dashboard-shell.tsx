@@ -20,6 +20,7 @@ import type {
   DashboardNavigationGroup,
   DashboardNavigationLink,
 } from "./navigation-types"
+import { NotificationBell } from "./notification-bell"
 import { DashboardSearchDialog } from "./search-dialog"
 import { WorkspaceSwitcher } from "./workspace-switcher"
 
@@ -121,7 +122,10 @@ export function DashboardShell({
             </div>
             <div className="flex items-center gap-2">
               {workspaceContext ? (
-                <WorkspaceSwitcher {...workspaceContext} />
+                <>
+                  <NotificationBell />
+                  <WorkspaceSwitcher {...workspaceContext} />
+                </>
               ) : null}
               <AccountMenu profile={profile} />
             </div>

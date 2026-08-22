@@ -196,6 +196,28 @@ import type {
   TestPolarIntegrationInput,
   TestPolarIntegrationResponse,
   UpdatePolarIntegrationInput,
+  AdminPaymentReport,
+  AdminPaymentReportQuery,
+  AdminSupportTicketDetail,
+  AdminSupportTicketsQuery,
+  AdminSupportTicketsResponse,
+  CreateAdminSupportReplyInput,
+  UpdateAdminSupportTicketStatusInput,
+  AdminAnnouncement,
+  AdminAnnouncementsQuery,
+  AdminAnnouncementsResponse,
+  AdminAnnouncementTargets,
+  PortalNotificationsResponse,
+  UpsertAdminAnnouncementInput,
+  AdminManualPayment,
+  AdminManualPaymentOptions,
+  AdminManualPaymentsQuery,
+  AdminManualPaymentsResponse,
+  CreateAdminManualPaymentInput,
+  ManualPaymentSettings,
+  UpdateManualPaymentSettingsInput,
+  AdminEmailTemplatesResponse,
+  UpdateAdminEmailTemplateInput,
 } from "@workspace/contracts"
 
 const apiBaseUrl =
@@ -1341,6 +1363,135 @@ export const adminOperationsApi = {
         method: "POST",
         body: JSON.stringify({ action, values }),
       }
+    ),
+}
+
+export const adminEmailTemplatesApi = {
+  list: () =>
+    request<AdminEmailTemplatesResponse>("/v1/admin/email-templates", {
+      method: "GET",
+    }),
+  update: (key: string, input: UpdateAdminEmailTemplateInput) =>
+    request<AdminEmailTemplatesResponse>(`/v1/admin/email-templates/${key}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  reset: (key: string) =>
+    request<AdminEmailTemplatesResponse>(`/v1/admin/email-templates/${key}`, {
+      method: "DELETE",
+    }),
+}
+
+export const adminManualPaymentsApi = {
+  list: (query: Partial<AdminManualPaymentsQuery> = {}) =>
+    request<AdminManualPaymentsResponse>(
+      `/v1/admin/manual-payments${adminContentQueryString(query)}`,
+      { method: "GET" }
+    ),
+  options: (q?: string) =>
+    request<AdminManualPaymentOptions>(
+      `/v1/admin/manual-payments/options${adminContentQueryString({ q })}`,
+      { method: "GET" }
+    ),
+  updateSettings: (input: UpdateManualPaymentSettingsInput) =>
+    request<ManualPaymentSettings>("/v1/admin/manual-payments/settings", {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  create: (input: CreateAdminManualPaymentInput) =>
+    request<AdminManualPayment>("/v1/admin/manual-payments", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  approve: (id: string) =>
+    request<AdminManualPayment>(`/v1/admin/manual-payments/${id}/approve`, {
+      method: "POST",
+    }),
+  reject: (id: string) =>
+    request<AdminManualPayment>(`/v1/admin/manual-payments/${id}/reject`, {
+      method: "POST",
+    }),
+  remove: (id: string) =>
+    request<{ id: string }>(`/v1/admin/manual-payments/${id}`, {
+      method: "DELETE",
+    }),
+}
+
+export const adminNotificationsApi = {
+  list: (query: Partial<AdminAnnouncementsQuery> = {}) =>
+    request<AdminAnnouncementsResponse>(
+      `/v1/admin/notifications${adminContentQueryString(query)}`,
+      { method: "GET" }
+    ),
+  targets: (q?: string) =>
+    request<AdminAnnouncementTargets>(
+      `/v1/admin/notifications/targets${adminContentQueryString({ q })}`,
+      { method: "GET" }
+    ),
+  create: (input: UpsertAdminAnnouncementInput) =>
+    request<AdminAnnouncement>("/v1/admin/notifications", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  update: (id: string, input: UpsertAdminAnnouncementInput) =>
+    request<AdminAnnouncement>(`/v1/admin/notifications/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) =>
+    request<{ id: string }>(`/v1/admin/notifications/${id}`, {
+      method: "DELETE",
+    }),
+}
+
+export const notificationsApi = {
+  feed: () =>
+    request<PortalNotificationsResponse>("/v1/portal/notifications", {
+      method: "GET",
+    }),
+  markRead: (id: string) =>
+    request<PortalNotificationsResponse>(
+      `/v1/portal/notifications/${id}/read`,
+      { method: "POST" }
+    ),
+  markAllRead: () =>
+    request<PortalNotificationsResponse>("/v1/portal/notifications/read-all", {
+      method: "POST",
+    }),
+  archiveAll: () =>
+    request<PortalNotificationsResponse>(
+      "/v1/portal/notifications/archive-all",
+      { method: "POST" }
+    ),
+}
+
+export const adminSupportApi = {
+  list: (query: Partial<AdminSupportTicketsQuery> = {}) =>
+    request<AdminSupportTicketsResponse>(
+      `/v1/admin/support${adminContentQueryString(query)}`,
+      { method: "GET" }
+    ),
+  get: (id: string) =>
+    request<AdminSupportTicketDetail>(`/v1/admin/support/${id}`, {
+      method: "GET",
+    }),
+  reply: (id: string, input: CreateAdminSupportReplyInput) =>
+    request<AdminSupportTicketDetail>(`/v1/admin/support/${id}/comments`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  setStatus: (id: string, input: UpdateAdminSupportTicketStatusInput) =>
+    request<AdminSupportTicketDetail>(`/v1/admin/support/${id}/status`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+}
+
+export const adminPaymentReportApi = {
+  get: (query: Partial<AdminPaymentReportQuery> = {}) =>
+    request<AdminPaymentReport>(
+      `/v1/admin/payment-report${adminContentQueryString(query)}`,
+      { method: "GET" }
     ),
 }
 
