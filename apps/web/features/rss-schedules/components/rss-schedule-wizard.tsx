@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 
-import { ArrowLeft, ArrowRight, Check, Plus, X } from "lucide-react"
+import { ArrowRight, Check, Plus } from "lucide-react"
 
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
@@ -528,7 +528,6 @@ export function RssScheduleWizard({
               type="button"
               variant="brand-secondary"
             >
-              <X data-icon="inline-start" />
               Cancelar
             </Button>
             {step > 0 ? (
@@ -538,7 +537,6 @@ export function RssScheduleWizard({
                 type="button"
                 variant="brand-secondary"
               >
-                <ArrowLeft data-icon="inline-start" />
                 Anterior
               </Button>
             ) : null}

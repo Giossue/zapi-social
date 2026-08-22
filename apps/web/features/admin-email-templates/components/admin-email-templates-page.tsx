@@ -8,8 +8,7 @@ import {
   RotateCcw,
   Save,
   ShieldX,
-  X,
-} from "lucide-react"
+  } from "lucide-react"
 
 import { adminEmailTemplatesApi, ApiError } from "@workspace/api-client"
 import type { AdminEmailTemplate } from "@workspace/contracts"
@@ -259,7 +258,7 @@ function TemplateSheet({
               type="button"
               variant="brand-secondary"
             >
-              <X data-icon="inline-start" /> Cancelar
+              Cancelar
             </Button>
             <Button disabled={!canSubmit || pending} type="submit">
               {pending ? (

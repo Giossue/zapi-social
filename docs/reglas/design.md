@@ -43,7 +43,7 @@ No aplicar clases de color a un primitive para cambiar su apariencia (`bg-*`, `t
 
 La jerarquía de superficies debe seguir siendo perceptible en claro y oscuro: el lienzo usa `background`, las cards estándar usan `Card variant="subtle"`, los controles dentro de cards recuperan `background` y los encabezados de tabla usan el plano `muted` definido por `TableHeader`. Esta separación vive en tokens y primitives globales; una feature no añade fondos locales para corregir una pantalla plana.
 
-Toda acción principal incluye un icono semántico a la izquierda del texto con `data-icon="inline-start"`. Durante un estado pendiente, `Spinner` ocupa esa misma posición. No colocar el icono principal al final.
+Toda acción principal incluye un icono semántico a la izquierda del texto con `data-icon="inline-start"`. Durante un estado pendiente, `Spinner` ocupa esa misma posición. No colocar el icono principal al final. Dentro de un `Sheet`, solo la acción principal lleva icono: los botones secundarios (Cancelar, Anterior, Cerrar y equivalentes) se muestran sin icono.
 
 ### Política de elevación y sombras
 

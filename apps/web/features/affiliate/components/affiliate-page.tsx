@@ -11,8 +11,7 @@ import {
   MousePointerClick,
   Users,
   Wallet,
-  X,
-} from "lucide-react"
+  } from "lucide-react"
 
 import { ApiError, affiliateApi } from "@workspace/api-client"
 import type { PortalAffiliateDashboard } from "@workspace/contracts"
@@ -197,7 +196,7 @@ function WithdrawalSheet({
               type="button"
               variant="brand-secondary"
             >
-              <X data-icon="inline-start" /> Cancelar
+              Cancelar
             </Button>
             <Button disabled={!canSubmit || pending} type="submit">
               {pending ? (

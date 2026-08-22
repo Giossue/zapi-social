@@ -9,8 +9,7 @@ import {
   Plus,
   ShieldCheck,
   Trash2,
-  X,
-} from "lucide-react"
+  } from "lucide-react"
 
 import { ApiError, adminSettingsApi } from "@workspace/api-client"
 import type { AdminStaticPage } from "@workspace/contracts"
@@ -419,7 +418,7 @@ export function StaticPagesSettingsPage() {
                 type="button"
                 variant="brand-secondary"
               >
-                <X data-icon="inline-start" /> Cancelar
+                Cancelar
               </Button>
               <Button disabled={pending || !draft.title.trim()} type="submit">
                 {pending ? (

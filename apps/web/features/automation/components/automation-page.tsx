@@ -10,8 +10,7 @@ import {
   Pencil,
   Plus,
   Trash2,
-  X,
-} from "lucide-react"
+  } from "lucide-react"
 
 import { ApiError, automationApi } from "@workspace/api-client"
 import type {
@@ -290,7 +289,7 @@ function ApiKeySheet({
               type="button"
               variant="brand-secondary"
             >
-              <X data-icon="inline-start" /> Cancelar
+              Cancelar
             </Button>
             <Button disabled={!canSubmit || pending} type="submit">
               {pending ? (
@@ -454,7 +453,7 @@ function WebhookSheet({
               type="button"
               variant="brand-secondary"
             >
-              <X data-icon="inline-start" /> Cancelar
+              Cancelar
             </Button>
             <Button disabled={!canSubmit || pending} type="submit">
               {pending ? (

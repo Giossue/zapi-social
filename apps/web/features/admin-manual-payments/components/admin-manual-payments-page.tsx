@@ -436,7 +436,7 @@ function ManualPaymentSheet({
               type="button"
               variant="brand-secondary"
             >
-              <X data-icon="inline-start" /> Cancelar
+              Cancelar
             </Button>
             <Button disabled={!canSubmit || pending} type="submit">
               {pending ? (
