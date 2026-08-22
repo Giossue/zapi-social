@@ -52,7 +52,7 @@ export class AdminDashboardService {
       db.select({ value: count() }).from(workspaces),
       db
         .select({
-          period: sql<string>`case when ${workspaces.createdAt} >= ${currentStart} then 'current' else 'previous' end`,
+          period: sql<string>`case when ${workspaces.createdAt} >= ${currentStart.toISOString()}::timestamptz then 'current' else 'previous' end`,
           value: count(),
         })
         .from(workspaces)
@@ -71,7 +71,7 @@ export class AdminDashboardService {
         .orderBy(desc(count())),
       db
         .select({
-          period: sql<string>`case when ${billingPayments.paidAt} >= ${currentStart} then 'current' else 'previous' end`,
+          period: sql<string>`case when ${billingPayments.paidAt} >= ${currentStart.toISOString()}::timestamptz then 'current' else 'previous' end`,
           value: sql<number>`coalesce(sum(${billingPayments.amountMinor} - ${billingPayments.refundedAmountMinor}), 0)::int`,
           currency: billingPayments.currency,
         })

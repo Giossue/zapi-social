@@ -75,7 +75,7 @@ export class DashboardService {
         ),
       db
         .select({
-          period: sql<string>`case when ${aiRequests.createdAt} >= ${currentStart} then 'current' else 'previous' end`,
+          period: sql<string>`case when ${aiRequests.createdAt} >= ${currentStart.toISOString()}::timestamptz then 'current' else 'previous' end`,
           value: sql<number>`coalesce(sum(${aiRequests.costUnits}), 0)::int`,
         })
         .from(aiRequests)
@@ -110,7 +110,7 @@ export class DashboardService {
         .orderBy(desc(count())),
       db
         .select({
-          period: sql<string>`case when ${fileAssets.createdAt} >= ${currentStart} then 'current' else 'previous' end`,
+          period: sql<string>`case when ${fileAssets.createdAt} >= ${currentStart.toISOString()}::timestamptz then 'current' else 'previous' end`,
           value: count(),
         })
         .from(fileAssets)
