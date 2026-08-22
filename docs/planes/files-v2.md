@@ -27,6 +27,7 @@ contratos, seguridad, evidencia y pendientes de smoke real se mantienen en
 - Ninguna URL de archivo o miniatura será pública. Todo acceso pasa por API autenticada; el volumen nunca se expone como directorio HTTP.
 - Eliminar borra original, miniatura y registro de base de datos de inmediato. Los archivos usados por Publishing no se pueden eliminar hasta retirar su referencia.
 - La selección múltiple no es una fuente de verdad de negocio. Las acciones mutan por IDs validados por API y respetan ownership para cada recurso.
+- La clave de almacenamiento sigue una disposición fija por espacio, definida en `packages/file-ingestion` y compartida por API y Worker. Ninguna feature compone rutas por su cuenta.
 
 ## Estado actual comprobado
 
@@ -166,3 +167,56 @@ La implementación visual se hace primero en `diseño ideal` y se copia literalm
 - Preview y descarga son autenticados, no URLs estáticas del volumen. Preview y miniatura declaran caché privada de 24 horas para evitar repetir la descarga al volver a la biblioteca.
 - Las miniaturas no bloquean la subida ni hacen que un archivo listo desaparezca si fallan.
 - La UI Portal es copia literal de la superficie aprobada en `diseño ideal`; solo datos, texto y handlers difieren.
+
+## Disposición del almacenamiento — 22 de agosto de 2026
+
+```text
+$FILES_STORAGE_PATH/
+├── ws/<shard>/<workspaceId>/
+│   ├── orig/<yyyy>/<mm>/<assetId>[.ext]
+│   └── drv/<assetId>/{thumb.webp, publish-<postId>[.ext]}
+└── tmp/<uploadId>
+```
+
+Sustituye a la disposición plana anterior (`<workspaceId>/<uuid>` con derivados
+como hermanos por sufijo). Cada nivel resuelve un límite concreto:
+
+- **`ws/<shard>/`** — los dos primeros caracteres del identificador del espacio
+  acotan la raíz a 256 entradas. Sin shard, la raíz crecía una carpeta por
+  cliente.
+- **`<workspaceId>/`** — sigue siendo la unidad de borrado, cuota y copia: dar
+  de baja una cuenta es retirar una carpeta, y medir su consumo es un `du`.
+- **`orig/` frente a `drv/`** — el original es irreemplazable y el derivado se
+  regenera. Separarlos permite excluir derivados de la copia de seguridad,
+  borrarlos en bloque y reconstruirlos. El plan ya exigía ese namespace
+  separado; la implementación anterior no lo cumplía.
+- **`<yyyy>/<mm>/`** — acota el crecimiento dentro de un espacio activo y abre
+  la puerta a retención y copias incrementales por periodo.
+- **`drv/<assetId>/`** — todos los derivados de un archivo en una carpeta: al
+  eliminarlo se retira entera, sin rastrear sufijos.
+- **`tmp/`** — una subida interrumpida ya no deja restos dentro de la carpeta
+  del cliente. Vive en el mismo volumen, así que el `rename` final sigue siendo
+  atómico.
+
+Decisiones asociadas:
+
+- **La cuenta social no entra en la ruta.** Un archivo pertenece al espacio y
+  puede publicarse en varias cuentas; colgarlo de una obligaría a duplicarlo.
+- **Las claves anteriores siguen siendo válidas.** La ruta sale siempre de
+  `file_assets.storage_key`, nunca se recalcula, así que los archivos ya
+  guardados se resuelven sin migración. Solo cambió el generador.
+- La clave es también válida como key de almacenamiento de objetos, de modo que
+  un traslado futuro a S3/R2 sería una copia y no un rediseño.
+
+### Evidencia — 22 de agosto de 2026
+
+- Cinco generadores actualizados: subida de Files, importación online, variante
+  de Publishing, importación de Google Drive y media generada por IA.
+- `apps/api/src/files/file-storage-layout.spec.ts`: 7 pruebas sobre shard,
+  partición por fecha, agrupación de derivados, aislamiento de temporales y
+  nombres hostiles.
+- `tsc --noEmit` en `file-ingestion`, `apps/api` y `apps/worker`;
+  `bun run build` 6/6; suites de API 12/12 y de Worker 31/31.
+- Producción conserva dos assets con clave antigua; se resuelven con normalidad
+  y no requieren traslado. El volumen vive en el servidor de Dokploy, fuera del
+  alcance de este cambio.

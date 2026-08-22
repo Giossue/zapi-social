@@ -12,6 +12,8 @@ import {
   detectFileMime,
   matchesFileSignature,
   MAX_FILE_BYTES,
+  originalStorageKey,
+  temporaryStorageKey,
 } from '@workspace/file-ingestion';
 import type { Job, Queue } from 'bullmq';
 import { createWriteStream } from 'node:fs';
@@ -287,8 +289,9 @@ export class GoogleDriveImportProcessor extends WorkerHost {
     }
 
     const target = this.path(asset.storageKey);
-    const temporary = `${target}.${crypto.randomUUID()}.tmp`;
+    const temporary = this.path(temporaryStorageKey(crypto.randomUUID()));
     try {
+      await mkdir(resolve(temporary, '..'), { recursive: true });
       await mkdir(resolve(target, '..'), { recursive: true });
       const response = await this.driveFetch(
         providerFileId,
@@ -400,11 +403,17 @@ export class GoogleDriveImportProcessor extends WorkerHost {
       }
     }
 
-    const storageKey = `${batch.workspaceId}/${crypto.randomUUID()}`;
+    const assetId = crypto.randomUUID();
+    const storageKey = originalStorageKey({
+      workspaceId: batch.workspaceId,
+      assetId,
+      extension: metadata.name,
+    });
     const [asset] = await this.database.db.transaction(async (tx) => {
       const [created] = await tx
         .insert(fileAssets)
         .values({
+          id: assetId,
           workspaceId: batch.workspaceId,
           folderId: batch.destinationFolderId,
           createdByUserId: batch.requestedByUserId,

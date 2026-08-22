@@ -38,9 +38,12 @@ import {
 } from '@workspace/contracts';
 import {
   allowedMime,
+  derivativeStoragePrefix,
   detectFileMime,
   fileKind,
   matchesFileSignature,
+  originalStorageKey,
+  temporaryStorageKey,
 } from '@workspace/file-ingestion';
 import { DatabaseService } from '../database/database.service';
 import { AppException } from '../platform/errors/app-exception';
@@ -185,10 +188,16 @@ export class FilesService {
     if (!mimeType) throw this.invalid();
     if (parsed.data.folderId)
       await this.folder(auth, parsed.data.folderId, 'active');
-    const storageKey = `${auth.workspace.id}/${crypto.randomUUID()}`;
+    const assetId = crypto.randomUUID();
+    const storageKey = originalStorageKey({
+      workspaceId: auth.workspace.id,
+      assetId,
+      extension: name,
+    });
     const [asset] = await this.database.db
       .insert(fileAssets)
       .values({
+        id: assetId,
         workspaceId: auth.workspace.id,
         folderId: parsed.data.folderId ?? null,
         createdByUserId: auth.user.id,
@@ -216,7 +225,7 @@ export class FilesService {
     this.requireManage(auth);
     const asset = await this.asset(auth, id, 'pending');
     const path = this.path(asset.storageKey);
-    const temporaryPath = `${path}.${crypto.randomUUID()}.tmp`;
+    const temporaryPath = this.path(temporaryStorageKey(crypto.randomUUID()));
     let receivedBytes = 0;
     const guard = new Transform({
       transform: (chunk: Buffer, _encoding, callback) => {
@@ -228,6 +237,7 @@ export class FilesService {
       },
     });
     try {
+      await mkdir(resolve(temporaryPath, '..'), { recursive: true });
       await mkdir(resolve(path, '..'), { recursive: true });
       await pipeline(
         stream,
@@ -710,6 +720,11 @@ export class FilesService {
     await Promise.all(
       assets.flatMap((asset) => [
         rm(this.path(asset.storageKey), { force: true }),
+        /** Se retira la carpeta completa de derivados: miniatura y variantes de publicación. */
+        rm(this.path(derivativeStoragePrefix(asset.workspaceId, asset.id)), {
+          force: true,
+          recursive: true,
+        }),
         ...(asset.thumbnailKey
           ? [rm(this.path(asset.thumbnailKey), { force: true })]
           : []),

@@ -16,6 +16,10 @@ import {
   type PortalOnlineMediaSearchResponse,
 } from '@workspace/contracts';
 import type { Queue } from 'bullmq';
+import {
+  originalStorageKey,
+  temporaryStorageKey,
+} from '@workspace/file-ingestion';
 import { DatabaseService } from '../database/database.service';
 import { AppException } from '../platform/errors/app-exception';
 
@@ -105,9 +109,16 @@ export class OnlineMediaService {
     }
     const extension = extensionForMime(mimeType);
     const id = crypto.randomUUID();
-    const storageKey = `${session.workspace.id}/${id}`;
+    const storageKey = originalStorageKey({
+      workspaceId: session.workspace.id,
+      assetId: id,
+      extension,
+    });
     const path = resolve(this.storageRoot, storageKey);
-    const temporaryPath = `${path}.${crypto.randomUUID()}.tmp`;
+    const temporaryPath = resolve(
+      this.storageRoot,
+      temporaryStorageKey(crypto.randomUUID()),
+    );
     let receivedBytes = 0;
     const guard = new Transform({
       transform(chunk: Buffer, _encoding, callback) {

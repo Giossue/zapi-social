@@ -31,6 +31,7 @@ import {
   type PortalPublishingResponse,
   type PublishingProvider,
 } from '@workspace/contracts';
+import { publishVariantStorageKey } from '@workspace/file-ingestion';
 import { DatabaseService } from '../database/database.service';
 import { AutomationEventsService } from '../automation/automation-events.service';
 import { AppException } from '../platform/errors/app-exception';
@@ -129,7 +130,12 @@ export class PublishingService {
       if (!relation) throw this.notFound();
     }
     const storageKey = variant
-      ? `${asset.storageKey}.publish-${variant}`
+      ? publishVariantStorageKey({
+          workspaceId: asset.workspaceId,
+          assetId: asset.id,
+          postId: variant,
+          extension: asset.storageKey,
+        })
       : asset.storageKey;
     const path = resolve(this.storageRoot, storageKey);
     if (!path.startsWith(`${this.storageRoot}/`)) throw this.notFound();

@@ -1,3 +1,7 @@
+import {
+  originalStorageKey,
+  thumbnailStorageKey,
+} from '@workspace/file-ingestion';
 import { createHash, randomUUID } from 'node:crypto';
 import { lookup } from 'node:dns/promises';
 import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
@@ -769,12 +773,17 @@ export class AiRequestProcessor extends WorkerHost {
     }
     const id = randomUUID();
     const extension = metadata.format === 'jpeg' ? 'jpg' : metadata.format;
-    const storageKey = `${request.workspaceId}/${id}.${extension}`;
-    const thumbnailKey = `${request.workspaceId}/${id}.thumb.webp`;
+    const storageKey = originalStorageKey({
+      workspaceId: request.workspaceId,
+      assetId: id,
+      extension,
+    });
+    const thumbnailKey = thumbnailStorageKey(request.workspaceId, id);
     const sourcePath = resolve(this.storageRoot, storageKey);
     const thumbnailPath = resolve(this.storageRoot, thumbnailKey);
     try {
       await mkdir(resolve(sourcePath, '..'), { recursive: true });
+      await mkdir(resolve(thumbnailPath, '..'), { recursive: true });
       await writeFile(sourcePath, buffer);
       await sharp(buffer)
         .rotate()
@@ -868,7 +877,11 @@ export class AiRequestProcessor extends WorkerHost {
           ? { width: 1080, height: 1080 }
           : { width: 1080, height: 1920 };
     const id = randomUUID();
-    const storageKey = `${request.workspaceId}/${id}.mp4`;
+    const storageKey = originalStorageKey({
+      workspaceId: request.workspaceId,
+      assetId: id,
+      extension: 'mp4',
+    });
     const sourcePath = resolve(this.storageRoot, storageKey);
     try {
       await mkdir(resolve(sourcePath, '..'), { recursive: true });

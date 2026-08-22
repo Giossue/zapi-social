@@ -1,5 +1,6 @@
+import { publishVariantStorageKey } from '@workspace/file-ingestion';
 import { execFile } from 'node:child_process';
-import { readFile, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { promisify } from 'node:util';
 import { Injectable } from '@nestjs/common';
@@ -52,8 +53,14 @@ export class PublishingMediaPreparationService {
     let completed = false;
     try {
       for (const asset of assets) {
-        const targetKey = `${asset.storageKey}.publish-${post.id}`;
+        const targetKey = publishVariantStorageKey({
+          workspaceId: asset.workspaceId,
+          assetId: asset.id,
+          postId: post.id,
+          extension: asset.storageKey,
+        });
         const targetPath = this.path(targetKey);
+        await mkdir(resolve(targetPath, '..'), { recursive: true });
         const isImage = asset.mimeType.startsWith('image/');
         const isVideo = asset.mimeType.startsWith('video/');
         if (!isImage && !isVideo) {

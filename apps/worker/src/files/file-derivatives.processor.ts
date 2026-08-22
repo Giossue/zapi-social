@@ -1,3 +1,7 @@
+import {
+  temporaryStorageKey,
+  thumbnailStorageKey,
+} from '@workspace/file-ingestion';
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
 import { fileAssets } from '@workspace/database';
@@ -46,10 +50,14 @@ export class FileDerivativesProcessor extends WorkerHost {
     )
       return;
     const source = resolve(this.root, asset.storageKey);
-    const key = `${asset.storageKey}.thumb.webp`;
+    const key = thumbnailStorageKey(asset.workspaceId, asset.id);
     const target = resolve(this.root, key);
-    const temporary = `${target}.${crypto.randomUUID()}.tmp.webp`;
+    const temporary = resolve(
+      this.root,
+      `${temporaryStorageKey(crypto.randomUUID())}.webp`,
+    );
     try {
+      await mkdir(resolve(temporary, '..'), { recursive: true });
       await mkdir(resolve(target, '..'), { recursive: true });
       const metadata = asset.mimeType.startsWith('image/')
         ? await sharp(source)
