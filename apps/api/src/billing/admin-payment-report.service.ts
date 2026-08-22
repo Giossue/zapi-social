@@ -129,9 +129,15 @@ export class AdminPaymentReportService {
     settledScope: SQL,
     range: AdminPaymentReportQuery['range'],
   ) {
-    const unit = range === '12m' ? 'month' : 'day';
-    const format = range === '12m' ? 'YYYY-MM' : 'YYYY-MM-DD';
-    const bucket = sql<string>`to_char(date_trunc(${unit}, ${this.settledAt}), ${format})`;
+    /**
+     * El bucket no puede viajar como parámetro: PostgreSQL trata `$1` en SELECT
+     * y `$5` en GROUP BY como expresiones distintas y rechaza la consulta. Se
+     * elige entre dos fragmentos literales de un conjunto cerrado.
+     */
+    const bucket =
+      range === '12m'
+        ? sql<string>`to_char(date_trunc('month', ${this.settledAt}), 'YYYY-MM')`
+        : sql<string>`to_char(date_trunc('day', ${this.settledAt}), 'YYYY-MM-DD')`;
     const rows = await this.database.db
       .select({
         period: bucket,

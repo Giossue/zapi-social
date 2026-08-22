@@ -75,7 +75,7 @@ export class NotificationsService {
       .where(and(eq(platformAnnouncements.id, id), this.visibleCondition(session)))
       .limit(1);
     if (!visible) throw this.notFound();
-    await this.upsertState(session.user.id, [visible.id], { read: true });
+    await this.upsertState(session.user.id, [visible.id]);
     return this.feed(session);
   }
 
@@ -83,7 +83,7 @@ export class NotificationsService {
     session: PortalAuthSession,
   ): Promise<PortalNotificationsResponse> {
     const ids = await this.visibleIds(session);
-    await this.upsertState(session.user.id, ids, { read: true });
+    await this.upsertState(session.user.id, ids);
     return this.feed(session);
   }
 
@@ -91,7 +91,7 @@ export class NotificationsService {
     session: PortalAuthSession,
   ): Promise<PortalNotificationsResponse> {
     const ids = await this.visibleIds(session);
-    await this.upsertState(session.user.id, ids, { read: true, archive: true });
+    await this.upsertState(session.user.id, ids, { archive: true });
     return this.feed(session);
   }
 
@@ -124,20 +124,26 @@ export class NotificationsService {
     return rows.map((row) => row.id);
   }
 
+  /**
+   * Marca como leídos —y opcionalmente archiva— los anuncios indicados.
+   * `now()` se resuelve en PostgreSQL: incrustar un `Date` dentro de un
+   * fragmento `sql` rompe la serialización del driver.
+   */
   private async upsertState(
     userId: string,
     announcementIds: string[],
-    state: { read?: boolean; archive?: boolean },
+    state: { archive?: boolean } = {},
   ) {
     if (!announcementIds.length) return;
     const now = new Date();
+    const readAt = sql`coalesce(${platformAnnouncementReads.readAt}, now())`;
     await this.database.db
       .insert(platformAnnouncementReads)
       .values(
         announcementIds.map((announcementId) => ({
           announcementId,
           userId,
-          readAt: state.read ? now : null,
+          readAt: now,
           archivedAt: state.archive ? now : null,
           createdAt: now,
           updatedAt: now,
@@ -148,15 +154,9 @@ export class NotificationsService {
           platformAnnouncementReads.announcementId,
           platformAnnouncementReads.userId,
         ],
-        set: {
-          readAt: state.read
-            ? sql`coalesce(${platformAnnouncementReads.readAt}, ${now})`
-            : platformAnnouncementReads.readAt,
-          archivedAt: state.archive
-            ? now
-            : platformAnnouncementReads.archivedAt,
-          updatedAt: now,
-        },
+        set: state.archive
+          ? { readAt, archivedAt: now, updatedAt: now }
+          : { readAt, updatedAt: now },
       });
   }
 
