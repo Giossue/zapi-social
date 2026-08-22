@@ -44,6 +44,7 @@ import {
   Trash2,
   Upload,
   WandSparkles,
+  X,
 } from "lucide-react"
 import {
   Alert,
@@ -62,6 +63,12 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import { MetricCard } from "@workspace/ui/components/metric-card"
+import { CollectionHeader } from "@workspace/ui/components/collection-header"
+import {
+  DataTableFilter,
+  DataTableHeader,
+  DataTableToolbar,
+} from "@workspace/ui/components/data-table-controls"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -294,14 +301,16 @@ function StudioHeader({
   )
 }
 
+const requestStatusLabels: Record<PortalAiRequest["status"], string> = {
+  queued: "En cola",
+  processing: "Procesando",
+  succeeded: "Completado",
+  failed: "Falló",
+  cancelled: "Cancelado",
+}
+
 function StatusBadge({ status }: { status: PortalAiRequest["status"] }) {
-  const copy = {
-    queued: "En cola",
-    processing: "Procesando",
-    succeeded: "Completado",
-    failed: "Falló",
-    cancelled: "Cancelado",
-  }[status]
+  const copy = requestStatusLabels[status]
   if (status === "succeeded") return <Badge variant="success">{copy}</Badge>
   if (status === "failed") return <Badge variant="destructive">{copy}</Badge>
   return <Badge variant="secondary">{copy}</Badge>
@@ -392,78 +401,186 @@ function JobActions({
 }
 
 function JobsTable({
-  rows,
+  action,
   onChanged,
+  rows,
 }: {
-  rows: PortalAiRequest[]
+  action?: React.ReactNode
   onChanged?: () => void
+  rows: PortalAiRequest[]
 }) {
+  const [query, setQuery] = useState("")
+  const [kindFilter, setKindFilter] = useState("all")
+  const [statusFilter, setStatusFilter] = useState("all")
   const [page, setPage] = useState(1)
-  const pageCount = Math.max(1, Math.ceil(rows.length / AI_TABLE_PAGE_SIZE))
+
+  const kindOptions = Array.from(new Set(rows.map((row) => row.kind)))
+  const statusOptions = Array.from(new Set(rows.map((row) => row.status)))
+  const normalizedQuery = query.trim().toLocaleLowerCase("es")
+  const hasFilters = Boolean(
+    normalizedQuery || kindFilter !== "all" || statusFilter !== "all"
+  )
+  const filteredRows = rows.filter(
+    (row) =>
+      (kindFilter === "all" || row.kind === kindFilter) &&
+      (statusFilter === "all" || row.status === statusFilter) &&
+      (!normalizedQuery ||
+        row.title.toLocaleLowerCase("es").includes(normalizedQuery))
+  )
+  const pageCount = Math.max(
+    1,
+    Math.ceil(filteredRows.length / AI_TABLE_PAGE_SIZE)
+  )
   const currentPage = Math.min(page, pageCount)
-  const visibleRows = rows.slice(
+  const visibleRows = filteredRows.slice(
     (currentPage - 1) * AI_TABLE_PAGE_SIZE,
     currentPage * AI_TABLE_PAGE_SIZE
   )
 
+  function clearFilters() {
+    setQuery("")
+    setKindFilter("all")
+    setStatusFilter("all")
+    setPage(1)
+  }
+
   return (
     <>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Generación</TableHead>
-            <TableHead>Tipo</TableHead>
-            <TableHead>Estado</TableHead>
-            <TableHead>Consumo</TableHead>
-            <TableHead>Fecha</TableHead>
-            <TableHead className="text-right">Acciones</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {visibleRows.map((row) => (
-            <TableRow key={row.id}>
-              <TableCell>
-                <div>
-                  <p className="font-medium">{row.title}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {row.id.slice(0, 8)}
-                  </p>
-                </div>
-              </TableCell>
-              <TableCell>{requestKindLabels[row.kind]}</TableCell>
-              <TableCell>
-                <StatusBadge status={row.status} />
-              </TableCell>
-              <TableCell>{row.costUnits} créditos</TableCell>
-              <TableCell className="text-muted-foreground">
-                {formatDate(row.createdAt)}
-              </TableCell>
-              <TableCell className="text-right">
-                <JobActions request={row} onChanged={onChanged} />
-              </TableCell>
-            </TableRow>
-          ))}
-          {rows.length === 0 ? (
-            <TableEmptyRow
-              colSpan={6}
-              description="Elige una herramienta para crear el primer resultado."
-              title="Aún no hay generaciones"
-            />
-          ) : null}
-        </TableBody>
-      </Table>
-      <TablePagination
-        canGoNext={currentPage < pageCount}
-        canGoPrevious={currentPage > 1}
-        itemLabel="generaciones"
-        onNextPage={() => setPage(currentPage + 1)}
-        onPreviousPage={() => setPage(currentPage - 1)}
-        rangeEnd={Math.min(currentPage * AI_TABLE_PAGE_SIZE, rows.length)}
-        rangeStart={
-          rows.length ? (currentPage - 1) * AI_TABLE_PAGE_SIZE + 1 : 0
-        }
-        total={rows.length}
+      <DataTableHeader
+        action={action}
+        search={{
+          ariaLabel: "Buscar generaciones",
+          onChange: (value) => {
+            setQuery(value)
+            setPage(1)
+          },
+          placeholder: "Buscar generaciones...",
+          value: query,
+        }}
       />
+      <CardContent className="flex flex-col gap-4 px-0">
+        <DataTableToolbar
+          actions={
+            hasFilters ? (
+              <Button
+                onClick={clearFilters}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                <X /> Limpiar
+              </Button>
+            ) : undefined
+          }
+        >
+          <DataTableFilter
+            ariaLabel="Filtrar por tipo"
+            label="Tipo"
+            onValueChange={(value) => {
+              setKindFilter(value)
+              setPage(1)
+            }}
+            options={[
+              { label: "Todos", value: "all" },
+              ...kindOptions.map((kind) => ({
+                label: requestKindLabels[kind],
+                value: kind,
+              })),
+            ]}
+            value={kindFilter}
+          />
+          <DataTableFilter
+            ariaLabel="Filtrar por estado"
+            label="Estado"
+            onValueChange={(value) => {
+              setStatusFilter(value)
+              setPage(1)
+            }}
+            options={[
+              { label: "Todos", value: "all" },
+              ...statusOptions.map((status) => ({
+                label: requestStatusLabels[status],
+                value: status,
+              })),
+            ]}
+            value={statusFilter}
+          />
+        </DataTableToolbar>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Generación</TableHead>
+              <TableHead>Tipo</TableHead>
+              <TableHead>Estado</TableHead>
+              <TableHead>Consumo</TableHead>
+              <TableHead>Fecha</TableHead>
+              <TableHead className="text-right">Acciones</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {visibleRows.map((row) => (
+              <TableRow key={row.id}>
+                <TableCell>
+                  <div>
+                    <p className="font-medium">{row.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {row.id.slice(0, 8)}
+                    </p>
+                  </div>
+                </TableCell>
+                <TableCell>{requestKindLabels[row.kind]}</TableCell>
+                <TableCell>
+                  <StatusBadge status={row.status} />
+                </TableCell>
+                <TableCell>{row.costUnits} créditos</TableCell>
+                <TableCell className="text-muted-foreground">
+                  {formatDate(row.createdAt)}
+                </TableCell>
+                <TableCell className="text-right">
+                  <JobActions request={row} onChanged={onChanged} />
+                </TableCell>
+              </TableRow>
+            ))}
+            {filteredRows.length === 0 ? (
+              <TableEmptyRow
+                action={
+                  hasFilters ? (
+                    <Button onClick={clearFilters} variant="outline">
+                      Limpiar filtros
+                    </Button>
+                  ) : null
+                }
+                colSpan={6}
+                description={
+                  hasFilters
+                    ? "Prueba con otro término, tipo o estado."
+                    : "Elige una herramienta para crear el primer resultado."
+                }
+                title={
+                  hasFilters
+                    ? "No hay coincidencias"
+                    : "Aún no hay generaciones"
+                }
+              />
+            ) : null}
+          </TableBody>
+        </Table>
+        <TablePagination
+          canGoNext={currentPage < pageCount}
+          canGoPrevious={currentPage > 1}
+          itemLabel="generaciones"
+          onNextPage={() => setPage(currentPage + 1)}
+          onPreviousPage={() => setPage(currentPage - 1)}
+          rangeEnd={Math.min(
+            currentPage * AI_TABLE_PAGE_SIZE,
+            filteredRows.length
+          )}
+          rangeStart={
+            filteredRows.length ? (currentPage - 1) * AI_TABLE_PAGE_SIZE + 1 : 0
+          }
+          total={filteredRows.length}
+        />
+      </CardContent>
     </>
   )
 }
@@ -588,27 +705,26 @@ function Overview() {
         </CardGrid>
       </section>
 
-      <Card variant="subtle">
-        <CardHeader>
-          <CardTitle>Actividad reciente</CardTitle>
-          <CardDescription>
-            Generaciones de este espacio de trabajo.
-          </CardDescription>
-          <CardAction>
-            <Button asChild size="sm" variant="brand-secondary">
-              <Link href="/portal/ai-studio/history">
-                Ver historial <ArrowRight data-icon="inline-end" />
-              </Link>
-            </Button>
-          </CardAction>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4 px-0">
+      <section className="flex flex-col gap-3">
+        <CollectionHeader
+          description="Generaciones de este espacio de trabajo."
+          level="h2"
+          title="Actividad reciente"
+        />
+        <Card variant="subtle">
           <JobsTable
-            rows={dashboard.recentRequests}
+            action={
+              <Button asChild size="sm" variant="brand-secondary">
+                <Link href="/portal/ai-studio/history">
+                  Ver historial <ArrowRight data-icon="inline-end" />
+                </Link>
+              </Button>
+            }
             onChanged={() => void load()}
+            rows={dashboard.recentRequests}
           />
-        </CardContent>
-      </Card>
+        </Card>
+      </section>
     </div>
   )
 }

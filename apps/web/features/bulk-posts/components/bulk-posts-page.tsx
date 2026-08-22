@@ -440,6 +440,7 @@ export function BulkPostsPage() {
   const [batches, setBatches] = useState<PortalBulkPostBatch[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
+  const [query, setQuery] = useState("")
   const [status, setStatus] = useState<BatchStatus | "all">("all")
   const [accounts, setAccounts] = useState<PortalChannelAccount[]>([])
   const [files, setFiles] = useState<PortalFileAsset[]>([])
@@ -610,10 +611,25 @@ export function BulkPostsPage() {
     )
   }
 
+  const normalizedQuery = query.trim().toLowerCase()
+  const visibleBatches = normalizedQuery
+    ? batches.filter((batch) =>
+        batch.sourceFileName.toLowerCase().includes(normalizedQuery)
+      )
+    : batches
+  const hasFilters = Boolean(normalizedQuery || status !== "all")
   const pageCount = Math.max(1, Math.ceil(total / pageSize))
   const safePage = Math.min(page, pageCount)
-  const rangeStart = total ? (safePage - 1) * pageSize + 1 : 0
-  const rangeEnd = total ? rangeStart + batches.length - 1 : 0
+  const rangeStart =
+    total && visibleBatches.length ? (safePage - 1) * pageSize + 1 : 0
+  const rangeEnd =
+    total && visibleBatches.length ? rangeStart + visibleBatches.length - 1 : 0
+
+  function clearFilters() {
+    setQuery("")
+    setStatus("all")
+    setPage(1)
+  }
 
   return (
     <>
@@ -634,16 +650,22 @@ export function BulkPostsPage() {
                 <Plus data-icon="inline-start" /> Nuevo lote
               </Button>
             }
+            search={{
+              ariaLabel: "Buscar lotes",
+              onChange: (value) => {
+                setQuery(value)
+                setPage(1)
+              },
+              placeholder: "Buscar lotes...",
+              value: query,
+            }}
           />
           <CardContent className="flex flex-col gap-4 px-0">
             <DataTableToolbar
               actions={
-                status !== "all" ? (
+                hasFilters ? (
                   <Button
-                    onClick={() => {
-                      setStatus("all")
-                      setPage(1)
-                    }}
+                    onClick={clearFilters}
                     size="sm"
                     type="button"
                     variant="outline"
@@ -682,8 +704,8 @@ export function BulkPostsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {batches.length ? (
-                  batches.map((batch) => {
+                {visibleBatches.length ? (
+                  visibleBatches.map((batch) => {
                     const cancellable =
                       batch.status === "queued" || batch.status === "processing"
                     return (
@@ -768,28 +790,20 @@ export function BulkPostsPage() {
                 ) : (
                   <TableEmptyRow
                     action={
-                      status === "all" ? null : (
-                        <Button
-                          onClick={() => {
-                            setStatus("all")
-                            setPage(1)
-                          }}
-                          variant="outline"
-                        >
+                      hasFilters ? (
+                        <Button onClick={clearFilters} variant="outline">
                           Restablecer filtros
                         </Button>
-                      )
+                      ) : null
                     }
                     colSpan={5}
                     description={
-                      status === "all"
-                        ? "Sube un CSV a la biblioteca y crea un lote para procesarlo."
-                        : "No hay lotes con ese estado."
+                      hasFilters
+                        ? "Prueba con otro término o estado."
+                        : "Sube un CSV a la biblioteca y crea un lote para procesarlo."
                     }
                     title={
-                      status === "all"
-                        ? "No hay lotes todavía"
-                        : "No hay coincidencias"
+                      hasFilters ? "No hay coincidencias" : "No hay lotes todavía"
                     }
                   />
                 )}

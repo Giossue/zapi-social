@@ -8,7 +8,8 @@ import {
   RotateCcw,
   Save,
   ShieldX,
-  } from "lucide-react"
+  X,
+} from "lucide-react"
 
 import { adminEmailTemplatesApi, ApiError } from "@workspace/api-client"
 import type { AdminEmailTemplate } from "@workspace/contracts"
@@ -26,6 +27,11 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
+import {
+  DataTableFilter,
+  DataTableHeader,
+  DataTableToolbar,
+} from "@workspace/ui/components/data-table-controls"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import {
   Field,
@@ -53,8 +59,12 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
+import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
+import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
+
+const pageSize = 10
 
 type FormValues = {
   subject: string
@@ -277,6 +287,11 @@ function TemplateSheet({
 
 export function AdminEmailTemplatesPage() {
   const [templates, setTemplates] = useState<AdminEmailTemplate[]>([])
+  const [query, setQuery] = useState("")
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "customized" | "default"
+  >("all")
+  const [currentPage, setCurrentPage] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [forbidden, setForbidden] = useState(false)
@@ -333,6 +348,39 @@ export function AdminEmailTemplatesPage() {
     )
   }
 
+  const normalizedQuery = query.trim().toLowerCase()
+  const filteredTemplates = templates.filter((template) => {
+    const matchesQuery =
+      !normalizedQuery ||
+      template.name.toLowerCase().includes(normalizedQuery) ||
+      template.subject.toLowerCase().includes(normalizedQuery)
+    const matchesStatus =
+      statusFilter === "all" ||
+      (statusFilter === "customized"
+        ? template.customized
+        : !template.customized)
+    return matchesQuery && matchesStatus
+  })
+  const hasFilters = Boolean(query || statusFilter !== "all")
+  const pageCount = Math.max(1, Math.ceil(filteredTemplates.length / pageSize))
+  const safePage = Math.min(currentPage, pageCount)
+  const visibleTemplates = filteredTemplates.slice(
+    (safePage - 1) * pageSize,
+    safePage * pageSize
+  )
+  const rangeStart = filteredTemplates.length
+    ? (safePage - 1) * pageSize + 1
+    : 0
+  const rangeEnd = filteredTemplates.length
+    ? rangeStart + visibleTemplates.length - 1
+    : 0
+
+  function clearFilters() {
+    setQuery("")
+    setStatusFilter("all")
+    setCurrentPage(1)
+  }
+
   return (
     <>
       <div className="flex flex-col gap-4">
@@ -341,7 +389,47 @@ export function AdminEmailTemplatesPage() {
           title="Plantillas de correo"
         />
         <Card variant="subtle">
-          <CardContent className="px-0">
+          <DataTableHeader
+            search={{
+              ariaLabel: "Buscar plantillas",
+              onChange: (value) => {
+                setQuery(value)
+                setCurrentPage(1)
+              },
+              placeholder: "Buscar plantillas...",
+              value: query,
+            }}
+          />
+          <CardContent className="flex flex-col gap-4 px-0">
+            <DataTableToolbar
+              actions={
+                hasFilters ? (
+                  <Button
+                    onClick={clearFilters}
+                    size="sm"
+                    type="button"
+                    variant="outline"
+                  >
+                    <X /> Limpiar
+                  </Button>
+                ) : undefined
+              }
+            >
+              <DataTableFilter
+                ariaLabel="Filtrar por estado"
+                label="Estado"
+                onValueChange={(value) => {
+                  setStatusFilter(value as "all" | "customized" | "default")
+                  setCurrentPage(1)
+                }}
+                options={[
+                  { label: "Todos", value: "all" },
+                  { label: "Personalizada", value: "customized" },
+                  { label: "Texto por defecto", value: "default" },
+                ]}
+                value={statusFilter}
+              />
+            </DataTableToolbar>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -352,56 +440,93 @@ export function AdminEmailTemplatesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {templates.map((template) => (
-                  <TableRow key={template.key}>
-                    <TableCell>
-                      <div className="flex min-w-48 flex-col">
-                        <span className="font-medium">{template.name}</span>
-                        <span className="text-sm text-muted-foreground">
-                          {template.description}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden text-muted-foreground lg:table-cell">
-                      {template.subject}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={template.customized ? "info" : "secondary"}
-                      >
-                        {template.customized
-                          ? "Personalizada"
-                          : "Texto por defecto"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          onClick={() => {
-                            setEditing(template)
-                            setSheetOpen(true)
-                          }}
-                          size="sm"
-                          variant="brand-secondary"
+                {visibleTemplates.length ? (
+                  visibleTemplates.map((template) => (
+                    <TableRow key={template.key}>
+                      <TableCell>
+                        <div className="flex min-w-48 flex-col">
+                          <span className="font-medium">{template.name}</span>
+                          <span className="text-sm text-muted-foreground">
+                            {template.description}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden text-muted-foreground lg:table-cell">
+                        {template.subject}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={template.customized ? "info" : "secondary"}
                         >
-                          <Pencil data-icon="inline-start" /> Editar
-                        </Button>
-                        {template.customized ? (
+                          {template.customized
+                            ? "Personalizada"
+                            : "Texto por defecto"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
                           <Button
-                            aria-label={`Restablecer ${template.name}`}
-                            onClick={() => setResetting(template)}
-                            size="icon-sm"
+                            onClick={() => {
+                              setEditing(template)
+                              setSheetOpen(true)
+                            }}
+                            size="sm"
                             variant="brand-secondary"
                           >
-                            <RotateCcw />
+                            <Pencil data-icon="inline-start" /> Editar
                           </Button>
-                        ) : null}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                          {template.customized ? (
+                            <Button
+                              aria-label={`Restablecer ${template.name}`}
+                              onClick={() => setResetting(template)}
+                              size="icon-sm"
+                              variant="brand-secondary"
+                            >
+                              <RotateCcw />
+                            </Button>
+                          ) : null}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableEmptyRow
+                    action={
+                      hasFilters ? (
+                        <Button onClick={clearFilters} variant="outline">
+                          Limpiar filtros
+                        </Button>
+                      ) : null
+                    }
+                    colSpan={4}
+                    description={
+                      hasFilters
+                        ? "Prueba con otro término o estado."
+                        : "Las plantillas del sistema aparecerán aquí."
+                    }
+                    title={
+                      hasFilters
+                        ? "No hay coincidencias"
+                        : "No hay plantillas de correo"
+                    }
+                  />
+                )}
               </TableBody>
             </Table>
+            <TablePagination
+              canGoNext={safePage < pageCount}
+              canGoPrevious={safePage > 1}
+              itemLabel="plantillas"
+              onNextPage={() =>
+                setCurrentPage((current) => Math.min(current + 1, pageCount))
+              }
+              onPreviousPage={() =>
+                setCurrentPage((current) => Math.max(current - 1, 1))
+              }
+              rangeEnd={rangeEnd}
+              rangeStart={rangeStart}
+              total={filteredTemplates.length}
+            />
           </CardContent>
         </Card>
         <p className="text-sm text-muted-foreground">

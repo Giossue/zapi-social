@@ -13,7 +13,11 @@ import type {
 import { Badge } from "@workspace/ui/components/badge"
 import { CardGrid } from "@workspace/ui/components/card-grid"
 import { Button } from "@workspace/ui/components/button"
-import { DataTableHeader } from "@workspace/ui/components/data-table-controls"
+import {
+  DataTableFilter,
+  DataTableHeader,
+  DataTableToolbar,
+} from "@workspace/ui/components/data-table-controls"
 import {
   Card,
   CardContent,
@@ -75,6 +79,7 @@ import {
   Settings2,
   ShieldCheck,
   Timer,
+  X,
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
@@ -201,19 +206,56 @@ export function AiConfigurationPage() {
   const [forbidden, setForbidden] = useState(false)
   const [usageError, setUsageError] = useState(false)
   const [modelQuery, setModelQuery] = useState("")
+  const [modelProviderFilter, setModelProviderFilter] = useState("all")
+  const [modelCapabilityFilter, setModelCapabilityFilter] = useState("all")
+  const [modelEnabledFilter, setModelEnabledFilter] = useState("all")
   const [modelPage, setModelPage] = useState(1)
+  const [routeQuery, setRouteQuery] = useState("")
+  const [routeCapabilityFilter, setRouteCapabilityFilter] = useState("all")
+  const [routeStatusFilter, setRouteStatusFilter] = useState("all")
+  const [routePage, setRoutePage] = useState(1)
   const [editingRouteKind, setEditingRouteKind] =
     useState<AiRequestKind | null>(null)
 
+  const hasModelFilters = Boolean(
+    modelQuery.trim() ||
+    modelProviderFilter !== "all" ||
+    modelCapabilityFilter !== "all" ||
+    modelEnabledFilter !== "all"
+  )
   const filteredModels = useMemo(() => {
     const normalized = modelQuery.trim().toLocaleLowerCase("es")
-    if (!normalized) return configuration?.models ?? []
-    return (configuration?.models ?? []).filter((model) =>
-      [model.label, model.modelId, model.providerKey, model.capability].some(
-        (value) => value.toLocaleLowerCase("es").includes(normalized)
+    return (configuration?.models ?? []).filter((model) => {
+      if (
+        modelProviderFilter !== "all" &&
+        model.providerKey !== modelProviderFilter
       )
-    )
-  }, [configuration?.models, modelQuery])
+        return false
+      if (
+        modelCapabilityFilter !== "all" &&
+        model.capability !== modelCapabilityFilter
+      )
+        return false
+      if (
+        modelEnabledFilter !== "all" &&
+        model.enabled !== (modelEnabledFilter === "enabled")
+      )
+        return false
+      if (!normalized) return true
+      return [
+        model.label,
+        model.modelId,
+        model.providerKey,
+        model.capability,
+      ].some((value) => value.toLocaleLowerCase("es").includes(normalized))
+    })
+  }, [
+    configuration?.models,
+    modelCapabilityFilter,
+    modelEnabledFilter,
+    modelProviderFilter,
+    modelQuery,
+  ])
   const modelPageCount = Math.max(
     1,
     Math.ceil(filteredModels.length / TABLE_PAGE_SIZE)
@@ -228,6 +270,49 @@ export function AiConfigurationPage() {
     : 0
   const modelRangeEnd = filteredModels.length
     ? modelRangeStart + visibleModels.length - 1
+    : 0
+
+  const hasRouteFilters = Boolean(
+    routeQuery.trim() ||
+    routeCapabilityFilter !== "all" ||
+    routeStatusFilter !== "all"
+  )
+  const filteredRoutes = useMemo(() => {
+    const normalized = routeQuery.trim().toLocaleLowerCase("es")
+    return (configuration?.routes ?? []).filter((route) => {
+      if (
+        routeCapabilityFilter !== "all" &&
+        routeShape(route.kind).capability !== routeCapabilityFilter
+      )
+        return false
+      if (
+        routeStatusFilter !== "all" &&
+        route.enabled !== (routeStatusFilter === "enabled")
+      )
+        return false
+      if (!normalized) return true
+      return kindLabels[route.kind].toLocaleLowerCase("es").includes(normalized)
+    })
+  }, [
+    configuration?.routes,
+    routeCapabilityFilter,
+    routeQuery,
+    routeStatusFilter,
+  ])
+  const routePageCount = Math.max(
+    1,
+    Math.ceil(filteredRoutes.length / TABLE_PAGE_SIZE)
+  )
+  const safeRoutePage = Math.min(routePage, routePageCount)
+  const visibleRoutes = filteredRoutes.slice(
+    (safeRoutePage - 1) * TABLE_PAGE_SIZE,
+    safeRoutePage * TABLE_PAGE_SIZE
+  )
+  const routeRangeStart = filteredRoutes.length
+    ? (safeRoutePage - 1) * TABLE_PAGE_SIZE + 1
+    : 0
+  const routeRangeEnd = filteredRoutes.length
+    ? routeRangeStart + visibleRoutes.length - 1
     : 0
 
   const load = useCallback(async () => {
@@ -412,6 +497,21 @@ export function AiConfigurationPage() {
           }
         : current
     )
+  }
+
+  function clearModelFilters() {
+    setModelQuery("")
+    setModelProviderFilter("all")
+    setModelCapabilityFilter("all")
+    setModelEnabledFilter("all")
+    setModelPage(1)
+  }
+
+  function clearRouteFilters() {
+    setRouteQuery("")
+    setRouteCapabilityFilter("all")
+    setRouteStatusFilter("all")
+    setRoutePage(1)
   }
 
   if (!configuration) {
@@ -624,6 +724,66 @@ export function AiConfigurationPage() {
               }}
             />
             <CardContent className="flex flex-col gap-4 px-0">
+              <DataTableToolbar
+                actions={
+                  hasModelFilters ? (
+                    <Button
+                      onClick={clearModelFilters}
+                      size="sm"
+                      type="button"
+                      variant="outline"
+                    >
+                      <X /> Limpiar
+                    </Button>
+                  ) : undefined
+                }
+              >
+                <DataTableFilter
+                  ariaLabel="Filtrar por proveedor"
+                  label="Proveedor"
+                  onValueChange={(value) => {
+                    setModelProviderFilter(value)
+                    setModelPage(1)
+                  }}
+                  options={[
+                    { label: "Todos", value: "all" },
+                    ...configuration.providers.map((provider) => ({
+                      label: provider.label,
+                      value: provider.providerKey,
+                    })),
+                  ]}
+                  value={modelProviderFilter}
+                />
+                <DataTableFilter
+                  ariaLabel="Filtrar por capacidad"
+                  label="Capacidad"
+                  onValueChange={(value) => {
+                    setModelCapabilityFilter(value)
+                    setModelPage(1)
+                  }}
+                  options={[
+                    { label: "Todas", value: "all" },
+                    { label: "Texto", value: "text" },
+                    { label: "Imagen", value: "image" },
+                    { label: "Video", value: "video" },
+                  ]}
+                  value={modelCapabilityFilter}
+                />
+                <DataTableFilter
+                  ariaLabel="Filtrar por habilitado"
+                  label="Habilitado"
+                  onValueChange={(value) => {
+                    setModelEnabledFilter(value)
+                    setModelPage(1)
+                  }}
+                  options={[
+                    { label: "Todos", value: "all" },
+                    { label: "Habilitados", value: "enabled" },
+                    { label: "Deshabilitados", value: "disabled" },
+                  ]}
+                  value={modelEnabledFilter}
+                />
+              </DataTableToolbar>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -677,14 +837,21 @@ export function AiConfigurationPage() {
                   ))}
                   {visibleModels.length === 0 ? (
                     <TableEmptyRow
-                      colSpan={5}
+                      action={
+                        hasModelFilters ? (
+                          <Button onClick={clearModelFilters} variant="outline">
+                            Limpiar filtros
+                          </Button>
+                        ) : null
+                      }
+                      colSpan={6}
                       description={
-                        modelQuery
-                          ? "Prueba con otro término de búsqueda."
+                        hasModelFilters
+                          ? "Prueba con otro término, proveedor o capacidad."
                           : "Configura un modelo para habilitar las rutas de generación."
                       }
                       title={
-                        modelQuery
+                        hasModelFilters
                           ? "No encontramos modelos"
                           : "Aún no hay modelos"
                       }
@@ -714,7 +881,62 @@ export function AiConfigurationPage() {
 
         <TabsContent value="routing" className="pt-3">
           <Card variant="subtle">
-            <CardContent className="px-0">
+            <DataTableHeader
+              search={{
+                ariaLabel: "Buscar rutas AI",
+                onChange: (value) => {
+                  setRouteQuery(value)
+                  setRoutePage(1)
+                },
+                placeholder: "Buscar rutas...",
+                value: routeQuery,
+              }}
+            />
+            <CardContent className="flex flex-col gap-4 px-0">
+              <DataTableToolbar
+                actions={
+                  hasRouteFilters ? (
+                    <Button
+                      onClick={clearRouteFilters}
+                      size="sm"
+                      type="button"
+                      variant="outline"
+                    >
+                      <X /> Limpiar
+                    </Button>
+                  ) : undefined
+                }
+              >
+                <DataTableFilter
+                  ariaLabel="Filtrar por capacidad"
+                  label="Capacidad"
+                  onValueChange={(value) => {
+                    setRouteCapabilityFilter(value)
+                    setRoutePage(1)
+                  }}
+                  options={[
+                    { label: "Todas", value: "all" },
+                    { label: "Texto", value: "text" },
+                    { label: "Imagen", value: "image" },
+                    { label: "Video", value: "video" },
+                  ]}
+                  value={routeCapabilityFilter}
+                />
+                <DataTableFilter
+                  ariaLabel="Filtrar por estado"
+                  label="Estado"
+                  onValueChange={(value) => {
+                    setRouteStatusFilter(value)
+                    setRoutePage(1)
+                  }}
+                  options={[
+                    { label: "Todas", value: "all" },
+                    { label: "Habilitadas", value: "enabled" },
+                    { label: "Deshabilitadas", value: "disabled" },
+                  ]}
+                  value={routeStatusFilter}
+                />
+              </DataTableToolbar>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -728,7 +950,7 @@ export function AiConfigurationPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {configuration.routes.map((route) => {
+                  {visibleRoutes.map((route) => {
                     const shape = routeShape(route.kind)
                     return (
                       <TableRow key={route.kind}>
@@ -784,15 +1006,46 @@ export function AiConfigurationPage() {
                       </TableRow>
                     )
                   })}
-                  {configuration.routes.length === 0 ? (
+                  {visibleRoutes.length === 0 ? (
                     <TableEmptyRow
+                      action={
+                        hasRouteFilters ? (
+                          <Button onClick={clearRouteFilters} variant="outline">
+                            Limpiar filtros
+                          </Button>
+                        ) : null
+                      }
                       colSpan={7}
-                      description="Configura un proveedor y sus modelos para enrutar las herramientas del Portal."
-                      title="Aún no hay rutas"
+                      description={
+                        hasRouteFilters
+                          ? "Prueba con otro término, capacidad o estado."
+                          : "Configura un proveedor y sus modelos para enrutar las herramientas del Portal."
+                      }
+                      title={
+                        hasRouteFilters
+                          ? "No encontramos rutas"
+                          : "Aún no hay rutas"
+                      }
                     />
                   ) : null}
                 </TableBody>
               </Table>
+              <TablePagination
+                canGoNext={safeRoutePage < routePageCount}
+                canGoPrevious={safeRoutePage > 1}
+                itemLabel="rutas"
+                onNextPage={() =>
+                  setRoutePage((current) =>
+                    Math.min(current + 1, routePageCount)
+                  )
+                }
+                onPreviousPage={() =>
+                  setRoutePage((current) => Math.max(current - 1, 1))
+                }
+                rangeEnd={routeRangeEnd}
+                rangeStart={routeRangeStart}
+                total={filteredRoutes.length}
+              />
             </CardContent>
           </Card>
           {editingRoute ? (
@@ -1254,9 +1507,30 @@ function UsagePanel({
                 ))
               ) : (
                 <TableEmptyRow
+                  action={
+                    query.trim() ? (
+                      <Button
+                        onClick={() => {
+                          setQuery("")
+                          setPage(1)
+                        }}
+                        variant="outline"
+                      >
+                        Limpiar filtros
+                      </Button>
+                    ) : null
+                  }
                   colSpan={5}
-                  description="El consumo aparecerá aquí en cuanto se registren generaciones."
-                  title="Aún no hay consumo AI"
+                  description={
+                    query.trim()
+                      ? "Prueba con otro término de búsqueda."
+                      : "El consumo aparecerá aquí en cuanto se registren generaciones."
+                  }
+                  title={
+                    query.trim()
+                      ? "No encontramos consumo"
+                      : "Aún no hay consumo AI"
+                  }
                 />
               )}
             </TableBody>

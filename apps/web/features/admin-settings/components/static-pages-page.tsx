@@ -9,6 +9,7 @@ import {
   Plus,
   ShieldCheck,
   Trash2,
+  X,
   } from "lucide-react"
 
 import { ApiError, adminSettingsApi } from "@workspace/api-client"
@@ -27,7 +28,11 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
-import { DataTableHeader } from "@workspace/ui/components/data-table-controls"
+import {
+  DataTableFilter,
+  DataTableHeader,
+  DataTableToolbar,
+} from "@workspace/ui/components/data-table-controls"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -67,9 +72,14 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
+import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
 import { loginPath } from "@/features/identity/login-redirect"
+
+const pageSize = 10
+
+type PublicationFilter = "all" | "published" | "draft"
 
 const emptyPage: AdminStaticPage = {
   slug: "",
@@ -91,6 +101,9 @@ function slugify(value: string) {
 export function StaticPagesSettingsPage() {
   const router = useRouter()
   const [pages, setPages] = useState<AdminStaticPage[] | null>(null)
+  const [query, setQuery] = useState("")
+  const [statusFilter, setStatusFilter] = useState<PublicationFilter>("all")
+  const [currentPage, setCurrentPage] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [forbidden, setForbidden] = useState(false)
@@ -222,6 +235,35 @@ export function StaticPagesSettingsPage() {
     )
   }
 
+  const normalizedQuery = query.trim().toLowerCase()
+  const filteredPages = pages.filter((page) => {
+    const matchesQuery =
+      !normalizedQuery ||
+      page.title.toLowerCase().includes(normalizedQuery) ||
+      page.slug.toLowerCase().includes(normalizedQuery)
+    const matchesStatus =
+      statusFilter === "all" ||
+      (statusFilter === "published" ? page.isPublished : !page.isPublished)
+    return matchesQuery && matchesStatus
+  })
+  const hasFilters = Boolean(query || statusFilter !== "all")
+  const pageCount = Math.max(1, Math.ceil(filteredPages.length / pageSize))
+  const safePage = Math.min(currentPage, pageCount)
+  const visiblePages = filteredPages.slice(
+    (safePage - 1) * pageSize,
+    safePage * pageSize
+  )
+  const rangeStart = filteredPages.length ? (safePage - 1) * pageSize + 1 : 0
+  const rangeEnd = filteredPages.length
+    ? rangeStart + visiblePages.length - 1
+    : 0
+
+  function clearFilters() {
+    setQuery("")
+    setStatusFilter("all")
+    setCurrentPage(1)
+  }
+
   function openCreate() {
     setDraft(emptyPage)
     setEditingSlug(null)
@@ -247,8 +289,46 @@ export function StaticPagesSettingsPage() {
                 <Plus data-icon="inline-start" /> Nueva página
               </Button>
             }
+            search={{
+              ariaLabel: "Buscar páginas",
+              onChange: (value) => {
+                setQuery(value)
+                setCurrentPage(1)
+              },
+              placeholder: "Buscar páginas...",
+              value: query,
+            }}
           />
-          <CardContent className="px-0">
+          <CardContent className="flex flex-col gap-4 px-0">
+            <DataTableToolbar
+              actions={
+                hasFilters ? (
+                  <Button
+                    onClick={clearFilters}
+                    size="sm"
+                    type="button"
+                    variant="outline"
+                  >
+                    <X /> Limpiar
+                  </Button>
+                ) : undefined
+              }
+            >
+              <DataTableFilter
+                ariaLabel="Filtrar por estado"
+                label="Estado"
+                onValueChange={(value) => {
+                  setStatusFilter(value as PublicationFilter)
+                  setCurrentPage(1)
+                }}
+                options={[
+                  { label: "Todas", value: "all" },
+                  { label: "Publicadas", value: "published" },
+                  { label: "Borradores", value: "draft" },
+                ]}
+                value={statusFilter}
+              />
+            </DataTableToolbar>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -258,8 +338,8 @@ export function StaticPagesSettingsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {pages.length ? (
-                  pages.map((page) => (
+                {visiblePages.length ? (
+                  visiblePages.map((page) => (
                     <TableRow key={page.slug}>
                       <TableCell>
                         <div className="flex min-w-40 flex-col">
@@ -316,13 +396,40 @@ export function StaticPagesSettingsPage() {
                   ))
                 ) : (
                   <TableEmptyRow
+                    action={
+                      hasFilters ? (
+                        <Button onClick={clearFilters} variant="outline">
+                          Restablecer filtros
+                        </Button>
+                      ) : null
+                    }
                     colSpan={3}
-                    description="Crea páginas como términos de servicio o privacidad."
-                    title="No hay páginas"
+                    description={
+                      hasFilters
+                        ? "Prueba con otro término o estado."
+                        : "Crea páginas como términos de servicio o privacidad."
+                    }
+                    title={
+                      hasFilters ? "No hay coincidencias" : "No hay páginas"
+                    }
                   />
                 )}
               </TableBody>
             </Table>
+            <TablePagination
+              canGoNext={safePage < pageCount}
+              canGoPrevious={safePage > 1}
+              itemLabel="páginas"
+              onNextPage={() =>
+                setCurrentPage((current) => Math.min(current + 1, pageCount))
+              }
+              onPreviousPage={() =>
+                setCurrentPage((current) => Math.max(current - 1, 1))
+              }
+              rangeEnd={rangeEnd}
+              rangeStart={rangeStart}
+              total={filteredPages.length}
+            />
           </CardContent>
         </Card>
         <FloatingActionButton label="Nueva página" onClick={openCreate} />

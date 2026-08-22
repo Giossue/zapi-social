@@ -41,7 +41,11 @@ import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { CardGrid } from "@workspace/ui/components/card-grid"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
-import { DataTableHeader } from "@workspace/ui/components/data-table-controls"
+import {
+  DataTableFilter,
+  DataTableHeader,
+  DataTableToolbar,
+} from "@workspace/ui/components/data-table-controls"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -91,6 +95,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
+import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
 
@@ -104,6 +109,8 @@ import {
   templates,
 } from "./link-bio-blocks"
 import { loginPath } from "@/features/identity/login-redirect"
+
+const pageSize = 10
 
 type Draft = UpsertPortalLinkBioPageInput
 
@@ -621,6 +628,11 @@ function PageSheet({
 export function LinkBioPage() {
   const router = useRouter()
   const [data, setData] = useState<PortalLinkBioPagesResponse | null>(null)
+  const [query, setQuery] = useState("")
+  const [statusFilter, setStatusFilter] = useState<
+    PortalLinkBioPage["status"] | "all"
+  >("all")
+  const [currentPage, setCurrentPage] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [forbidden, setForbidden] = useState(false)
@@ -739,6 +751,33 @@ export function LinkBioPage() {
     )
   }
 
+  const normalizedQuery = query.trim().toLowerCase()
+  const filteredPages = data.pages.filter((page) => {
+    const matchesQuery =
+      !normalizedQuery ||
+      page.title.toLowerCase().includes(normalizedQuery) ||
+      page.slug.toLowerCase().includes(normalizedQuery)
+    const matchesStatus = statusFilter === "all" || page.status === statusFilter
+    return matchesQuery && matchesStatus
+  })
+  const hasFilters = Boolean(query || statusFilter !== "all")
+  const pageCount = Math.max(1, Math.ceil(filteredPages.length / pageSize))
+  const safePage = Math.min(currentPage, pageCount)
+  const visiblePages = filteredPages.slice(
+    (safePage - 1) * pageSize,
+    safePage * pageSize
+  )
+  const rangeStart = filteredPages.length ? (safePage - 1) * pageSize + 1 : 0
+  const rangeEnd = filteredPages.length
+    ? rangeStart + visiblePages.length - 1
+    : 0
+
+  function clearFilters() {
+    setQuery("")
+    setStatusFilter("all")
+    setCurrentPage(1)
+  }
+
   function openCreate() {
     setEditing(null)
     setIsSheetOpen(true)
@@ -785,8 +824,46 @@ export function LinkBioPage() {
                 </Button>
               ) : undefined
             }
+            search={{
+              ariaLabel: "Buscar páginas",
+              onChange: (value) => {
+                setQuery(value)
+                setCurrentPage(1)
+              },
+              placeholder: "Buscar páginas...",
+              value: query,
+            }}
           />
-          <CardContent className="px-0">
+          <CardContent className="flex flex-col gap-4 px-0">
+            <DataTableToolbar
+              actions={
+                hasFilters ? (
+                  <Button
+                    onClick={clearFilters}
+                    size="sm"
+                    type="button"
+                    variant="outline"
+                  >
+                    <X /> Limpiar
+                  </Button>
+                ) : undefined
+              }
+            >
+              <DataTableFilter
+                ariaLabel="Filtrar por estado"
+                label="Estado"
+                onValueChange={(value) => {
+                  setStatusFilter(value as PortalLinkBioPage["status"] | "all")
+                  setCurrentPage(1)
+                }}
+                options={[
+                  { label: "Todos", value: "all" },
+                  { label: "Publicada", value: "published" },
+                  { label: "Borrador", value: "draft" },
+                ]}
+                value={statusFilter}
+              />
+            </DataTableToolbar>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -799,8 +876,8 @@ export function LinkBioPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data.pages.length ? (
-                  data.pages.map((page) => (
+                {visiblePages.length ? (
+                  visiblePages.map((page) => (
                     <TableRow key={page.id}>
                       <TableCell>
                         <div className="flex min-w-48 flex-col">
@@ -886,13 +963,42 @@ export function LinkBioPage() {
                   ))
                 ) : (
                   <TableEmptyRow
+                    action={
+                      hasFilters ? (
+                        <Button onClick={clearFilters} variant="outline">
+                          Limpiar filtros
+                        </Button>
+                      ) : null
+                    }
                     colSpan={data.canManage ? 4 : 3}
-                    description="Crea una página para reunir todos tus enlaces en una sola dirección."
-                    title="No hay páginas todavía"
+                    description={
+                      hasFilters
+                        ? "Prueba con otro término o estado."
+                        : "Crea una página para reunir todos tus enlaces en una sola dirección."
+                    }
+                    title={
+                      hasFilters
+                        ? "No hay coincidencias"
+                        : "No hay páginas todavía"
+                    }
                   />
                 )}
               </TableBody>
             </Table>
+            <TablePagination
+              canGoNext={safePage < pageCount}
+              canGoPrevious={safePage > 1}
+              itemLabel="páginas"
+              onNextPage={() =>
+                setCurrentPage((current) => Math.min(current + 1, pageCount))
+              }
+              onPreviousPage={() =>
+                setCurrentPage((current) => Math.max(current - 1, 1))
+              }
+              rangeEnd={rangeEnd}
+              rangeStart={rangeStart}
+              total={filteredPages.length}
+            />
           </CardContent>
         </Card>
         {data.canManage ? (

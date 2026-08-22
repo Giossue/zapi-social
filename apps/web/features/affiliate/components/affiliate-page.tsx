@@ -11,6 +11,7 @@ import {
   MousePointerClick,
   Users,
   Wallet,
+  X,
   } from "lucide-react"
 
 import { ApiError, affiliateApi } from "@workspace/api-client"
@@ -20,6 +21,11 @@ import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { CardGrid } from "@workspace/ui/components/card-grid"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
+import {
+  DataTableFilter,
+  DataTableHeader,
+  DataTableToolbar,
+} from "@workspace/ui/components/data-table-controls"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import {
   Field,
@@ -49,6 +55,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
+import { TablePagination } from "@workspace/ui/components/table-pagination"
 import {
   Tabs,
   TabsContent,
@@ -60,6 +67,8 @@ import { loginPath } from "@/features/identity/login-redirect"
 
 type Commission = PortalAffiliateDashboard["commissions"][number]
 type Withdrawal = PortalAffiliateDashboard["withdrawals"][number]
+
+const pageSize = 10
 
 const commissionLabel: Record<Commission["status"], string> = {
   pending: "Pendiente",
@@ -108,6 +117,24 @@ function formatDate(value: string) {
     month: "short",
     year: "numeric",
   }).format(new Date(value))
+}
+
+function matchesAmount(amountMinor: number, currency: string, query: string) {
+  const normalized = query.trim().toLowerCase()
+  if (!normalized) return true
+  return (
+    money(amountMinor, currency).toLowerCase().includes(normalized) ||
+    (amountMinor / 100).toFixed(2).includes(normalized)
+  )
+}
+
+function paginate<T>(items: readonly T[], page: number) {
+  const pageCount = Math.max(1, Math.ceil(items.length / pageSize))
+  const safePage = Math.min(page, pageCount)
+  const visible = items.slice((safePage - 1) * pageSize, safePage * pageSize)
+  const rangeStart = items.length ? (safePage - 1) * pageSize + 1 : 0
+  const rangeEnd = items.length ? rangeStart + visible.length - 1 : 0
+  return { pageCount, rangeEnd, rangeStart, safePage, visible }
 }
 
 function WithdrawalSheet({
@@ -220,6 +247,16 @@ export function AffiliatePage() {
   const [loadError, setLoadError] = useState(false)
   const [pending, setPending] = useState(false)
   const [isWithdrawalOpen, setIsWithdrawalOpen] = useState(false)
+  const [commissionQuery, setCommissionQuery] = useState("")
+  const [commissionStatus, setCommissionStatus] = useState<
+    Commission["status"] | "all"
+  >("all")
+  const [commissionPage, setCommissionPage] = useState(1)
+  const [withdrawalQuery, setWithdrawalQuery] = useState("")
+  const [withdrawalStatus, setWithdrawalStatus] = useState<
+    Withdrawal["status"] | "all"
+  >("all")
+  const [withdrawalPage, setWithdrawalPage] = useState(1)
 
   const handleError = useCallback(
     (error: unknown) => {
@@ -352,6 +389,46 @@ export function AffiliatePage() {
   const { profile, totals } = data
   const commissionRate = (profile.commissionRateBps / 100).toFixed(2)
 
+  const filteredCommissions = data.commissions.filter(
+    (commission) =>
+      matchesAmount(
+        commission.amountMinor,
+        commission.currency,
+        commissionQuery
+      ) &&
+      (commissionStatus === "all" || commission.status === commissionStatus)
+  )
+  const hasCommissionFilters = Boolean(
+    commissionQuery || commissionStatus !== "all"
+  )
+  const commissions = paginate(filteredCommissions, commissionPage)
+
+  const filteredWithdrawals = data.withdrawals.filter(
+    (withdrawal) =>
+      matchesAmount(
+        withdrawal.amountMinor,
+        withdrawal.currency,
+        withdrawalQuery
+      ) &&
+      (withdrawalStatus === "all" || withdrawal.status === withdrawalStatus)
+  )
+  const hasWithdrawalFilters = Boolean(
+    withdrawalQuery || withdrawalStatus !== "all"
+  )
+  const withdrawals = paginate(filteredWithdrawals, withdrawalPage)
+
+  function clearCommissionFilters() {
+    setCommissionQuery("")
+    setCommissionStatus("all")
+    setCommissionPage(1)
+  }
+
+  function clearWithdrawalFilters() {
+    setWithdrawalQuery("")
+    setWithdrawalStatus("all")
+    setWithdrawalPage(1)
+  }
+
   return (
     <>
       <div className="flex flex-col gap-4">
@@ -388,12 +465,6 @@ export function AffiliatePage() {
                 variant="brand-secondary"
               >
                 <Copy data-icon="inline-start" /> Copiar código
-              </Button>
-              <Button
-                disabled={totals.availableMinor <= 0}
-                onClick={() => setIsWithdrawalOpen(true)}
-              >
-                <Wallet data-icon="inline-start" /> Solicitar retiro
               </Button>
             </div>
           </CardContent>
@@ -438,7 +509,13 @@ export function AffiliatePage() {
           />
         </CardGrid>
 
-        <Tabs defaultValue="commissions">
+        <Tabs
+          defaultValue="commissions"
+          onValueChange={() => {
+            setCommissionPage(1)
+            setWithdrawalPage(1)
+          }}
+        >
           <TabsList className="flex h-auto flex-wrap">
             <TabsTrigger value="commissions">Comisiones</TabsTrigger>
             <TabsTrigger value="withdrawals">Retiros</TabsTrigger>
@@ -446,7 +523,49 @@ export function AffiliatePage() {
 
           <TabsContent className="pt-3" value="commissions">
             <Card variant="subtle">
-              <CardContent className="px-0">
+              <DataTableHeader
+                search={{
+                  ariaLabel: "Buscar comisiones",
+                  onChange: (value) => {
+                    setCommissionQuery(value)
+                    setCommissionPage(1)
+                  },
+                  placeholder: "Buscar por monto...",
+                  value: commissionQuery,
+                }}
+              />
+              <CardContent className="flex flex-col gap-4 px-0">
+                <DataTableToolbar
+                  actions={
+                    hasCommissionFilters ? (
+                      <Button
+                        onClick={clearCommissionFilters}
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                      >
+                        <X /> Limpiar
+                      </Button>
+                    ) : undefined
+                  }
+                >
+                  <DataTableFilter
+                    ariaLabel="Filtrar por estado"
+                    label="Estado"
+                    onValueChange={(value) => {
+                      setCommissionStatus(value as Commission["status"] | "all")
+                      setCommissionPage(1)
+                    }}
+                    options={[
+                      { label: "Todas", value: "all" },
+                      { label: "Pendientes", value: "pending" },
+                      { label: "Disponibles", value: "available" },
+                      { label: "Pagadas", value: "paid" },
+                      { label: "Canceladas", value: "cancelled" },
+                    ]}
+                    value={commissionStatus}
+                  />
+                </DataTableToolbar>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -458,8 +577,8 @@ export function AffiliatePage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {data.commissions.length ? (
-                      data.commissions.map((commission) => (
+                    {commissions.visible.length ? (
+                      commissions.visible.map((commission) => (
                         <TableRow key={commission.id}>
                           <TableCell className="font-medium">
                             {money(commission.amountMinor, commission.currency)}
@@ -478,20 +597,106 @@ export function AffiliatePage() {
                       ))
                     ) : (
                       <TableEmptyRow
+                        action={
+                          hasCommissionFilters ? (
+                            <Button
+                              onClick={clearCommissionFilters}
+                              variant="outline"
+                            >
+                              Restablecer filtros
+                            </Button>
+                          ) : null
+                        }
                         colSpan={3}
-                        description="Cuando alguien compre usando tu código verás aquí su comisión."
-                        title="Aún no hay comisiones"
+                        description={
+                          hasCommissionFilters
+                            ? "Prueba con otro término o estado."
+                            : "Cuando alguien compre usando tu código verás aquí su comisión."
+                        }
+                        title={
+                          hasCommissionFilters
+                            ? "No hay coincidencias"
+                            : "Aún no hay comisiones"
+                        }
                       />
                     )}
                   </TableBody>
                 </Table>
+                <TablePagination
+                  canGoNext={commissions.safePage < commissions.pageCount}
+                  canGoPrevious={commissions.safePage > 1}
+                  itemLabel="comisiones"
+                  onNextPage={() =>
+                    setCommissionPage((current) =>
+                      Math.min(current + 1, commissions.pageCount)
+                    )
+                  }
+                  onPreviousPage={() =>
+                    setCommissionPage((current) => Math.max(current - 1, 1))
+                  }
+                  rangeEnd={commissions.rangeEnd}
+                  rangeStart={commissions.rangeStart}
+                  total={filteredCommissions.length}
+                />
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent className="pt-3" value="withdrawals">
             <Card variant="subtle">
-              <CardContent className="px-0">
+              <DataTableHeader
+                action={
+                  <Button
+                    disabled={totals.availableMinor <= 0}
+                    onClick={() => setIsWithdrawalOpen(true)}
+                    size="sm"
+                    type="button"
+                  >
+                    <Wallet data-icon="inline-start" /> Solicitar retiro
+                  </Button>
+                }
+                search={{
+                  ariaLabel: "Buscar retiros",
+                  onChange: (value) => {
+                    setWithdrawalQuery(value)
+                    setWithdrawalPage(1)
+                  },
+                  placeholder: "Buscar por monto...",
+                  value: withdrawalQuery,
+                }}
+              />
+              <CardContent className="flex flex-col gap-4 px-0">
+                <DataTableToolbar
+                  actions={
+                    hasWithdrawalFilters ? (
+                      <Button
+                        onClick={clearWithdrawalFilters}
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                      >
+                        <X /> Limpiar
+                      </Button>
+                    ) : undefined
+                  }
+                >
+                  <DataTableFilter
+                    ariaLabel="Filtrar por estado"
+                    label="Estado"
+                    onValueChange={(value) => {
+                      setWithdrawalStatus(value as Withdrawal["status"] | "all")
+                      setWithdrawalPage(1)
+                    }}
+                    options={[
+                      { label: "Todos", value: "all" },
+                      { label: "Solicitados", value: "requested" },
+                      { label: "Aprobados", value: "approved" },
+                      { label: "Pagados", value: "paid" },
+                      { label: "Rechazados", value: "rejected" },
+                    ]}
+                    value={withdrawalStatus}
+                  />
+                </DataTableToolbar>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -503,8 +708,8 @@ export function AffiliatePage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {data.withdrawals.length ? (
-                      data.withdrawals.map((withdrawal) => (
+                    {withdrawals.visible.length ? (
+                      withdrawals.visible.map((withdrawal) => (
                         <TableRow key={withdrawal.id}>
                           <TableCell className="font-medium">
                             {money(withdrawal.amountMinor, withdrawal.currency)}
@@ -523,13 +728,47 @@ export function AffiliatePage() {
                       ))
                     ) : (
                       <TableEmptyRow
+                        action={
+                          hasWithdrawalFilters ? (
+                            <Button
+                              onClick={clearWithdrawalFilters}
+                              variant="outline"
+                            >
+                              Restablecer filtros
+                            </Button>
+                          ) : null
+                        }
                         colSpan={3}
-                        description="Tus solicitudes de retiro aparecerán en este historial."
-                        title="No hay retiros"
+                        description={
+                          hasWithdrawalFilters
+                            ? "Prueba con otro término o estado."
+                            : "Tus solicitudes de retiro aparecerán en este historial."
+                        }
+                        title={
+                          hasWithdrawalFilters
+                            ? "No hay coincidencias"
+                            : "No hay retiros"
+                        }
                       />
                     )}
                   </TableBody>
                 </Table>
+                <TablePagination
+                  canGoNext={withdrawals.safePage < withdrawals.pageCount}
+                  canGoPrevious={withdrawals.safePage > 1}
+                  itemLabel="retiros"
+                  onNextPage={() =>
+                    setWithdrawalPage((current) =>
+                      Math.min(current + 1, withdrawals.pageCount)
+                    )
+                  }
+                  onPreviousPage={() =>
+                    setWithdrawalPage((current) => Math.max(current - 1, 1))
+                  }
+                  rangeEnd={withdrawals.rangeEnd}
+                  rangeStart={withdrawals.rangeStart}
+                  total={filteredWithdrawals.length}
+                />
               </CardContent>
             </Card>
           </TabsContent>

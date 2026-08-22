@@ -10,7 +10,8 @@ import {
   Pencil,
   Plus,
   Trash2,
-  } from "lucide-react"
+  X,
+} from "lucide-react"
 
 import { ApiError, automationApi } from "@workspace/api-client"
 import type {
@@ -33,7 +34,11 @@ import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
-import { DataTableHeader } from "@workspace/ui/components/data-table-controls"
+import {
+  DataTableFilter,
+  DataTableHeader,
+  DataTableToolbar,
+} from "@workspace/ui/components/data-table-controls"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -73,6 +78,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
+import { TablePagination } from "@workspace/ui/components/table-pagination"
 import {
   Tabs,
   TabsContent,
@@ -99,6 +105,17 @@ const eventLabels: Record<AutomationWebhookEvent, string> = {
 
 const permissions = Object.keys(permissionLabels) as AutomationPermission[]
 const events = Object.keys(eventLabels) as AutomationWebhookEvent[]
+
+const pageSize = 10
+
+function paginate<T>(items: readonly T[], page: number) {
+  const pageCount = Math.max(1, Math.ceil(items.length / pageSize))
+  const safePage = Math.min(page, pageCount)
+  const visible = items.slice((safePage - 1) * pageSize, safePage * pageSize)
+  const rangeStart = items.length ? (safePage - 1) * pageSize + 1 : 0
+  const rangeEnd = items.length ? rangeStart + visible.length - 1 : 0
+  return { pageCount, rangeEnd, rangeStart, safePage, visible }
+}
 
 function formatDateTime(value: string | null) {
   if (!value) return "Nunca"
@@ -477,6 +494,21 @@ export function AutomationPage() {
   const [loadError, setLoadError] = useState(false)
   const [canView, setCanView] = useState(true)
   const [pending, setPending] = useState(false)
+  const [keysQuery, setKeysQuery] = useState("")
+  const [keysStatus, setKeysStatus] = useState<"all" | "active" | "revoked">(
+    "all"
+  )
+  const [keysPage, setKeysPage] = useState(1)
+  const [webhooksQuery, setWebhooksQuery] = useState("")
+  const [webhooksStatus, setWebhooksStatus] = useState<
+    "all" | "enabled" | "disabled"
+  >("all")
+  const [webhooksPage, setWebhooksPage] = useState(1)
+  const [logsQuery, setLogsQuery] = useState("")
+  const [logsStatus, setLogsStatus] = useState<
+    "all" | "accepted" | "succeeded" | "failed"
+  >("all")
+  const [logsPage, setLogsPage] = useState(1)
   const [isKeyOpen, setIsKeyOpen] = useState(false)
   const [isWebhookOpen, setIsWebhookOpen] = useState(false)
   const [editingWebhook, setEditingWebhook] =
@@ -654,6 +686,59 @@ export function AutomationPage() {
     )
   }
 
+  const normalizedKeysQuery = keysQuery.trim().toLowerCase()
+  const filteredKeys = data.apiKeys.filter(
+    (apiKey) =>
+      (!normalizedKeysQuery ||
+        apiKey.name.toLowerCase().includes(normalizedKeysQuery)) &&
+      (keysStatus === "all" || apiKey.status === keysStatus)
+  )
+  const hasKeysFilters = Boolean(normalizedKeysQuery || keysStatus !== "all")
+  const keysPagination = paginate(filteredKeys, keysPage)
+
+  const normalizedWebhooksQuery = webhooksQuery.trim().toLowerCase()
+  const filteredWebhooks = data.webhooks.filter(
+    (webhook) =>
+      (!normalizedWebhooksQuery ||
+        webhook.name.toLowerCase().includes(normalizedWebhooksQuery) ||
+        webhook.url.toLowerCase().includes(normalizedWebhooksQuery)) &&
+      (webhooksStatus === "all" ||
+        webhook.enabled === (webhooksStatus === "enabled"))
+  )
+  const hasWebhooksFilters = Boolean(
+    normalizedWebhooksQuery || webhooksStatus !== "all"
+  )
+  const webhooksPagination = paginate(filteredWebhooks, webhooksPage)
+
+  const normalizedLogsQuery = logsQuery.trim().toLowerCase()
+  const filteredLogs = data.logs.filter(
+    (log) =>
+      (!normalizedLogsQuery ||
+        log.event.toLowerCase().includes(normalizedLogsQuery) ||
+        (log.summary ?? "").toLowerCase().includes(normalizedLogsQuery)) &&
+      (logsStatus === "all" || log.status === logsStatus)
+  )
+  const hasLogsFilters = Boolean(normalizedLogsQuery || logsStatus !== "all")
+  const logsPagination = paginate(filteredLogs, logsPage)
+
+  function clearKeysFilters() {
+    setKeysQuery("")
+    setKeysStatus("all")
+    setKeysPage(1)
+  }
+
+  function clearWebhooksFilters() {
+    setWebhooksQuery("")
+    setWebhooksStatus("all")
+    setWebhooksPage(1)
+  }
+
+  function clearLogsFilters() {
+    setLogsQuery("")
+    setLogsStatus("all")
+    setLogsPage(1)
+  }
+
   return (
     <>
       <div className="flex flex-col gap-4">
@@ -682,8 +767,46 @@ export function AutomationPage() {
                     </Button>
                   ) : undefined
                 }
+                search={{
+                  ariaLabel: "Buscar claves API",
+                  onChange: (value) => {
+                    setKeysQuery(value)
+                    setKeysPage(1)
+                  },
+                  placeholder: "Buscar claves...",
+                  value: keysQuery,
+                }}
               />
-              <CardContent className="px-0">
+              <CardContent className="flex flex-col gap-4 px-0">
+                <DataTableToolbar
+                  actions={
+                    hasKeysFilters ? (
+                      <Button
+                        onClick={clearKeysFilters}
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                      >
+                        <X /> Limpiar
+                      </Button>
+                    ) : undefined
+                  }
+                >
+                  <DataTableFilter
+                    ariaLabel="Filtrar por estado"
+                    label="Estado"
+                    onValueChange={(value) => {
+                      setKeysStatus(value as "all" | "active" | "revoked")
+                      setKeysPage(1)
+                    }}
+                    options={[
+                      { label: "Todas", value: "all" },
+                      { label: "Activas", value: "active" },
+                      { label: "Revocadas", value: "revoked" },
+                    ]}
+                    value={keysStatus}
+                  />
+                </DataTableToolbar>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -699,8 +822,8 @@ export function AutomationPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {data.apiKeys.length ? (
-                      data.apiKeys.map((apiKey) => (
+                    {keysPagination.visible.length ? (
+                      keysPagination.visible.map((apiKey) => (
                         <TableRow key={apiKey.id}>
                           <TableCell>
                             <div className="flex min-w-40 flex-col">
@@ -770,13 +893,47 @@ export function AutomationPage() {
                       ))
                     ) : (
                       <TableEmptyRow
+                        action={
+                          hasKeysFilters ? (
+                            <Button
+                              onClick={clearKeysFilters}
+                              variant="outline"
+                            >
+                              Restablecer filtros
+                            </Button>
+                          ) : null
+                        }
                         colSpan={data.canManage ? 5 : 4}
-                        description="Crea una clave para que tus herramientas consulten o publiquen por API."
-                        title="No hay claves API"
+                        description={
+                          hasKeysFilters
+                            ? "Prueba con otro término o estado."
+                            : "Crea una clave para que tus herramientas consulten o publiquen por API."
+                        }
+                        title={
+                          hasKeysFilters
+                            ? "No hay coincidencias"
+                            : "No hay claves API"
+                        }
                       />
                     )}
                   </TableBody>
                 </Table>
+                <TablePagination
+                  canGoNext={keysPagination.safePage < keysPagination.pageCount}
+                  canGoPrevious={keysPagination.safePage > 1}
+                  itemLabel="claves"
+                  onNextPage={() =>
+                    setKeysPage((current) =>
+                      Math.min(current + 1, keysPagination.pageCount)
+                    )
+                  }
+                  onPreviousPage={() =>
+                    setKeysPage((current) => Math.max(current - 1, 1))
+                  }
+                  rangeEnd={keysPagination.rangeEnd}
+                  rangeStart={keysPagination.rangeStart}
+                  total={filteredKeys.length}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -798,8 +955,46 @@ export function AutomationPage() {
                     </Button>
                   ) : undefined
                 }
+                search={{
+                  ariaLabel: "Buscar webhooks",
+                  onChange: (value) => {
+                    setWebhooksQuery(value)
+                    setWebhooksPage(1)
+                  },
+                  placeholder: "Buscar webhooks...",
+                  value: webhooksQuery,
+                }}
               />
-              <CardContent className="px-0">
+              <CardContent className="flex flex-col gap-4 px-0">
+                <DataTableToolbar
+                  actions={
+                    hasWebhooksFilters ? (
+                      <Button
+                        onClick={clearWebhooksFilters}
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                      >
+                        <X /> Limpiar
+                      </Button>
+                    ) : undefined
+                  }
+                >
+                  <DataTableFilter
+                    ariaLabel="Filtrar por estado"
+                    label="Estado"
+                    onValueChange={(value) => {
+                      setWebhooksStatus(value as "all" | "enabled" | "disabled")
+                      setWebhooksPage(1)
+                    }}
+                    options={[
+                      { label: "Todos", value: "all" },
+                      { label: "Habilitados", value: "enabled" },
+                      { label: "Deshabilitados", value: "disabled" },
+                    ]}
+                    value={webhooksStatus}
+                  />
+                </DataTableToolbar>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -815,8 +1010,8 @@ export function AutomationPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {data.webhooks.length ? (
-                      data.webhooks.map((webhook) => (
+                    {webhooksPagination.visible.length ? (
+                      webhooksPagination.visible.map((webhook) => (
                         <TableRow key={webhook.id}>
                           <TableCell>
                             <div className="flex min-w-40 flex-col">
@@ -894,20 +1089,99 @@ export function AutomationPage() {
                       ))
                     ) : (
                       <TableEmptyRow
+                        action={
+                          hasWebhooksFilters ? (
+                            <Button
+                              onClick={clearWebhooksFilters}
+                              variant="outline"
+                            >
+                              Restablecer filtros
+                            </Button>
+                          ) : null
+                        }
                         colSpan={data.canManage ? 5 : 4}
-                        description="Recibe un aviso en tu sistema cuando una publicación se cree, se envíe o falle."
-                        title="No hay webhooks"
+                        description={
+                          hasWebhooksFilters
+                            ? "Prueba con otro término o estado."
+                            : "Recibe un aviso en tu sistema cuando una publicación se cree, se envíe o falle."
+                        }
+                        title={
+                          hasWebhooksFilters
+                            ? "No hay coincidencias"
+                            : "No hay webhooks"
+                        }
                       />
                     )}
                   </TableBody>
                 </Table>
+                <TablePagination
+                  canGoNext={
+                    webhooksPagination.safePage < webhooksPagination.pageCount
+                  }
+                  canGoPrevious={webhooksPagination.safePage > 1}
+                  itemLabel="webhooks"
+                  onNextPage={() =>
+                    setWebhooksPage((current) =>
+                      Math.min(current + 1, webhooksPagination.pageCount)
+                    )
+                  }
+                  onPreviousPage={() =>
+                    setWebhooksPage((current) => Math.max(current - 1, 1))
+                  }
+                  rangeEnd={webhooksPagination.rangeEnd}
+                  rangeStart={webhooksPagination.rangeStart}
+                  total={filteredWebhooks.length}
+                />
               </CardContent>
             </Card>
           </TabsContent>
 
           <TabsContent className="pt-3" value="logs">
             <Card variant="subtle">
-              <CardContent className="px-0">
+              <DataTableHeader
+                search={{
+                  ariaLabel: "Buscar actividad",
+                  onChange: (value) => {
+                    setLogsQuery(value)
+                    setLogsPage(1)
+                  },
+                  placeholder: "Buscar actividad...",
+                  value: logsQuery,
+                }}
+              />
+              <CardContent className="flex flex-col gap-4 px-0">
+                <DataTableToolbar
+                  actions={
+                    hasLogsFilters ? (
+                      <Button
+                        onClick={clearLogsFilters}
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                      >
+                        <X /> Limpiar
+                      </Button>
+                    ) : undefined
+                  }
+                >
+                  <DataTableFilter
+                    ariaLabel="Filtrar por resultado"
+                    label="Resultado"
+                    onValueChange={(value) => {
+                      setLogsStatus(
+                        value as "all" | "accepted" | "succeeded" | "failed"
+                      )
+                      setLogsPage(1)
+                    }}
+                    options={[
+                      { label: "Todos", value: "all" },
+                      { label: "Aceptados", value: "accepted" },
+                      { label: "Correctos", value: "succeeded" },
+                      { label: "Fallidos", value: "failed" },
+                    ]}
+                    value={logsStatus}
+                  />
+                </DataTableToolbar>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -920,8 +1194,8 @@ export function AutomationPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {data.logs.length ? (
-                      data.logs.map((log) => (
+                    {logsPagination.visible.length ? (
+                      logsPagination.visible.map((log) => (
                         <TableRow key={log.id}>
                           <TableCell>
                             <div className="flex min-w-40 flex-col">
@@ -963,13 +1237,47 @@ export function AutomationPage() {
                       ))
                     ) : (
                       <TableEmptyRow
+                        action={
+                          hasLogsFilters ? (
+                            <Button
+                              onClick={clearLogsFilters}
+                              variant="outline"
+                            >
+                              Restablecer filtros
+                            </Button>
+                          ) : null
+                        }
                         colSpan={4}
-                        description="Aquí aparecerán las llamadas por API y los envíos de webhook."
-                        title="Sin actividad todavía"
+                        description={
+                          hasLogsFilters
+                            ? "Prueba con otro término o resultado."
+                            : "Aquí aparecerán las llamadas por API y los envíos de webhook."
+                        }
+                        title={
+                          hasLogsFilters
+                            ? "No hay coincidencias"
+                            : "Sin actividad todavía"
+                        }
                       />
                     )}
                   </TableBody>
                 </Table>
+                <TablePagination
+                  canGoNext={logsPagination.safePage < logsPagination.pageCount}
+                  canGoPrevious={logsPagination.safePage > 1}
+                  itemLabel="registros"
+                  onNextPage={() =>
+                    setLogsPage((current) =>
+                      Math.min(current + 1, logsPagination.pageCount)
+                    )
+                  }
+                  onPreviousPage={() =>
+                    setLogsPage((current) => Math.max(current - 1, 1))
+                  }
+                  rangeEnd={logsPagination.rangeEnd}
+                  rangeStart={logsPagination.rangeStart}
+                  total={filteredLogs.length}
+                />
               </CardContent>
             </Card>
           </TabsContent>
