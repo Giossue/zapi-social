@@ -106,8 +106,7 @@ type Tab = {
   label: string
   searchPlaceholder: string
   columns: string[]
-  metrics: Metric[]
-  rows: Row[]
+  metricIcons: Record<string, Icon>
   primaryAction?: {
     label: string
     icon: Icon
@@ -128,85 +127,12 @@ const modules: Record<AdminModuleKey, Module> = {
         label: "Usuarios",
         searchPlaceholder: "Buscar por nombre o correo...",
         columns: ["Usuario", "Acceso", "Plan", "Espacio", "Registro"],
-        metrics: [
-          {
-            label: "Usuarios",
-            value: "2,684",
-            description: "Cuentas visibles",
-            icon: Users,
-          },
-          {
-            label: "Nuevos",
-            value: "84",
-            description: "Últimos 7 días",
-            icon: UserPlus,
-          },
-          {
-            label: "Con plan",
-            value: "91%",
-            description: "Cobertura de plan",
-            icon: WalletCards,
-          },
-          {
-            label: "Por revisar",
-            value: "17",
-            description: "Acceso incompleto",
-            icon: ShieldX,
-          },
-        ],
-        rows: [
-          {
-            id: "u1",
-            cells: [
-              { primary: "María Andrade", secondary: "maria@aurora.ec" },
-              { primary: "Propietaria", secondary: "Aurora Studio" },
-              { primary: "Profesional" },
-              { primary: "Aurora Studio" },
-              { primary: "8 ago 2026" },
-            ],
-            status: "Activo",
-            tone: "success",
-            actions: [
-              { label: "Ver usuario" },
-              { label: "Editar usuario" },
-              { label: "Desactivar", kind: "destructive" },
-            ],
-          },
-          {
-            id: "u2",
-            cells: [
-              { primary: "Daniel Vera", secondary: "daniel@north.ec" },
-              { primary: "Administración", secondary: "North Lab" },
-              { primary: "Business" },
-              { primary: "North Lab" },
-              { primary: "6 ago 2026" },
-            ],
-            status: "Activo",
-            tone: "success",
-            actions: [
-              { label: "Ver usuario" },
-              { label: "Editar usuario" },
-              { label: "Desactivar", kind: "destructive" },
-            ],
-          },
-          {
-            id: "u3",
-            cells: [
-              { primary: "Sofía Torres", secondary: "sofia@demo.ec" },
-              { primary: "Miembro", secondary: "Demo Workspace" },
-              { primary: "Gratis" },
-              { primary: "Demo Workspace" },
-              { primary: "1 ago 2026" },
-            ],
-            status: "Revisar",
-            tone: "warning",
-            actions: [
-              { label: "Ver usuario" },
-              { label: "Editar usuario" },
-              { label: "Eliminar", kind: "destructive" },
-            ],
-          },
-        ],
+        metricIcons: {
+          ["Usuarios"]: Users,
+          ["Nuevos"]: UserPlus,
+          ["Con plan"]: WalletCards,
+          ["Por revisar"]: ShieldX,
+        },
         primaryAction: {
           label: "Crear usuario",
           icon: UserPlus,
@@ -228,85 +154,12 @@ const modules: Record<AdminModuleKey, Module> = {
         label: "Paquetes",
         searchPlaceholder: "Buscar paquete...",
         columns: ["Paquete", "Créditos", "Precio", "Compras", "Orden"],
-        metrics: [
-          {
-            label: "Paquetes",
-            value: "4",
-            description: "Ofertas configuradas",
-            icon: BadgeDollarSign,
-          },
-          {
-            label: "Activos",
-            value: "3",
-            description: "Disponibles en Portal",
-            icon: Check,
-          },
-          {
-            label: "Destacados",
-            value: "1",
-            description: "Oferta principal",
-            icon: PackagePlus,
-          },
-          {
-            label: "Ventas",
-            value: "326",
-            description: "Compras históricas",
-            icon: ReceiptText,
-          },
-        ],
-        rows: [
-          {
-            id: "cp1",
-            cells: [
-              { primary: "Impulso", secondary: "impulso-500" },
-              { primary: "500" },
-              { primary: "USD 9.00" },
-              { primary: "184" },
-              { primary: "1" },
-            ],
-            status: "Activo",
-            tone: "success",
-            actions: [
-              { label: "Editar paquete" },
-              { label: "Duplicar" },
-              { label: "Eliminar", kind: "destructive" },
-            ],
-          },
-          {
-            id: "cp2",
-            cells: [
-              { primary: "Crecimiento", secondary: "crecimiento-1500" },
-              { primary: "1,500" },
-              { primary: "USD 24.00" },
-              { primary: "109" },
-              { primary: "2" },
-            ],
-            status: "Activo",
-            tone: "success",
-            actions: [
-              { label: "Editar paquete" },
-              { label: "Duplicar" },
-              { label: "Eliminar", kind: "destructive" },
-            ],
-          },
-          {
-            id: "cp3",
-            cells: [
-              { primary: "Escala", secondary: "escala-5000" },
-              { primary: "5,000" },
-              { primary: "USD 69.00" },
-              { primary: "33" },
-              { primary: "3" },
-            ],
-            status: "Oculto",
-            tone: "neutral",
-            actions: [
-              { label: "Editar paquete" },
-              { label: "Activar", kind: "success" },
-              { label: "Eliminar", kind: "destructive" },
-            ],
-          },
-        ],
+        metricIcons: {
+          ["Paquetes"]: BadgeDollarSign,
+          ["Activos"]: Check,
+          ["Destacados"]: PackagePlus,
+          ["Ventas"]: ReceiptText,
+        },
         primaryAction: {
           label: "Añadir paquete",
           icon: PackagePlus,
@@ -321,76 +174,12 @@ const modules: Record<AdminModuleKey, Module> = {
         label: "Movimientos",
         searchPlaceholder: "Buscar usuario, paquete o movimiento...",
         columns: ["Usuario", "Tipo", "Paquete", "Créditos", "Saldo", "Fecha"],
-        metrics: [
-          {
-            label: "Movimientos",
-            value: "8,942",
-            description: "Filas del libro",
-            icon: ReceiptText,
-          },
-          {
-            label: "Compras",
-            value: "326",
-            description: "Recargas pagadas",
-            icon: CircleDollarSign,
-          },
-          {
-            label: "Otorgados",
-            value: "684k",
-            description: "Compras y ajustes",
-            icon: BadgeDollarSign,
-          },
-          {
-            label: "Disponibles",
-            value: "291k",
-            description: "Saldo abierto",
-            icon: WalletCards,
-          },
-        ],
-        rows: [
-          {
-            id: "cl1",
-            cells: [
-              { primary: "María Andrade", secondary: "maria@aurora.ec" },
-              { primary: "Compra" },
-              { primary: "Crecimiento" },
-              { primary: "+1,500" },
-              { primary: "1,420" },
-              { primary: "8 ago 2026" },
-            ],
-            status: "Aplicado",
-            tone: "success",
-            actions: [{ label: "Ver movimiento" }],
-          },
-          {
-            id: "cl2",
-            cells: [
-              { primary: "Daniel Vera", secondary: "daniel@north.ec" },
-              { primary: "Consumo" },
-              { primary: "Impulso" },
-              { primary: "-24" },
-              { primary: "318" },
-              { primary: "8 ago 2026" },
-            ],
-            status: "Aplicado",
-            tone: "success",
-            actions: [{ label: "Ver movimiento" }],
-          },
-          {
-            id: "cl3",
-            cells: [
-              { primary: "Sofía Torres", secondary: "sofia@demo.ec" },
-              { primary: "Ajuste" },
-              { primary: "—" },
-              { primary: "+100" },
-              { primary: "100" },
-              { primary: "7 ago 2026" },
-            ],
-            status: "Manual",
-            tone: "warning",
-            actions: [{ label: "Ver movimiento" }],
-          },
-        ],
+        metricIcons: {
+          ["Movimientos"]: ReceiptText,
+          ["Compras"]: CircleDollarSign,
+          ["Otorgados"]: BadgeDollarSign,
+          ["Disponibles"]: WalletCards,
+        },
       },
       {
         value: "usage",
@@ -404,76 +193,12 @@ const modules: Record<AdminModuleKey, Module> = {
           "Cantidad",
           "Fecha",
         ],
-        metrics: [
-          {
-            label: "Registros",
-            value: "12,406",
-            description: "Usos medidos",
-            icon: ReceiptText,
-          },
-          {
-            label: "Consumidos",
-            value: "393k",
-            description: "Créditos gastados",
-            icon: BadgeDollarSign,
-          },
-          {
-            label: "Usuarios",
-            value: "1,204",
-            description: "Consumidores únicos",
-            icon: Users,
-          },
-          {
-            label: "Acciones",
-            value: "18",
-            description: "Claves de consumo",
-            icon: RotateCcw,
-          },
-        ],
-        rows: [
-          {
-            id: "cu1",
-            cells: [
-              { primary: "María Andrade", secondary: "maria@aurora.ec" },
-              { primary: "ai.image.generate", mono: true },
-              { primary: "Generación de imagen" },
-              { primary: "18" },
-              { primary: "1" },
-              { primary: "8 ago 2026" },
-            ],
-            status: "Cobrado",
-            tone: "success",
-            actions: [{ label: "Ver detalle" }],
-          },
-          {
-            id: "cu2",
-            cells: [
-              { primary: "Daniel Vera", secondary: "daniel@north.ec" },
-              { primary: "ai.copy.generate", mono: true },
-              { primary: "Generación de texto" },
-              { primary: "6" },
-              { primary: "3" },
-              { primary: "8 ago 2026" },
-            ],
-            status: "Cobrado",
-            tone: "success",
-            actions: [{ label: "Ver detalle" }],
-          },
-          {
-            id: "cu3",
-            cells: [
-              { primary: "Sofía Torres", secondary: "sofia@demo.ec" },
-              { primary: "ai.video.generate", mono: true },
-              { primary: "Generación de video" },
-              { primary: "40" },
-              { primary: "1" },
-              { primary: "7 ago 2026" },
-            ],
-            status: "Revertido",
-            tone: "neutral",
-            actions: [{ label: "Ver detalle" }],
-          },
-        ],
+        metricIcons: {
+          ["Registros"]: ReceiptText,
+          ["Consumidos"]: BadgeDollarSign,
+          ["Usuarios"]: Users,
+          ["Acciones"]: RotateCcw,
+        },
       },
     ],
   },
@@ -486,231 +211,36 @@ const modules: Record<AdminModuleKey, Module> = {
         label: "Afiliados",
         searchPlaceholder: "Buscar afiliado o código...",
         columns: ["Afiliado", "Código", "Clics", "Conversiones", "Saldo"],
-        metrics: [
-          {
-            label: "Afiliados",
-            value: "148",
-            description: "Perfiles activos",
-            icon: HandCoins,
-          },
-          {
-            label: "Clics",
-            value: "8,294",
-            description: "Visitas referidas",
-            icon: Eye,
-          },
-          {
-            label: "Conversiones",
-            value: "376",
-            description: "Pagos atribuidos",
-            icon: Check,
-          },
-          {
-            label: "Aprobado",
-            value: "$4,820",
-            description: "Ganancia histórica",
-            icon: CircleDollarSign,
-          },
-        ],
-        rows: [
-          {
-            id: "a1",
-            cells: [
-              { primary: "Lucía Paz", secondary: "lucia@creator.ec" },
-              { primary: "LUCIA20", mono: true },
-              { primary: "1,842" },
-              { primary: "94" },
-              { primary: "USD 420.00" },
-            ],
-            status: "Activo",
-            tone: "success",
-            actions: [{ label: "Ver afiliado" }, { label: "Ver comisiones" }],
-          },
-          {
-            id: "a2",
-            cells: [
-              { primary: "Marco Ruiz", secondary: "marco@agency.ec" },
-              { primary: "MARCO10", mono: true },
-              { primary: "986" },
-              { primary: "47" },
-              { primary: "USD 184.50" },
-            ],
-            status: "Activo",
-            tone: "success",
-            actions: [{ label: "Ver afiliado" }, { label: "Ver comisiones" }],
-          },
-          {
-            id: "a3",
-            cells: [
-              { primary: "Elena Mora", secondary: "elena@demo.ec" },
-              { primary: "ELENA15", mono: true },
-              { primary: "124" },
-              { primary: "3" },
-              { primary: "USD 18.00" },
-            ],
-            status: "Pausado",
-            tone: "neutral",
-            actions: [
-              { label: "Ver afiliado" },
-              { label: "Reactivar", kind: "success" },
-            ],
-          },
-        ],
+        metricIcons: {
+          ["Afiliados"]: HandCoins,
+          ["Clics"]: Eye,
+          ["Conversiones"]: Check,
+          ["Aprobado"]: CircleDollarSign,
+        },
       },
       {
         value: "commissions",
         label: "Comisiones",
         searchPlaceholder: "Buscar afiliado, referido o pago...",
         columns: ["Afiliado", "Referido", "Pago", "Comisión", "Creada"],
-        metrics: [
-          {
-            label: "Comisiones",
-            value: "376",
-            description: "Registros totales",
-            icon: ReceiptText,
-          },
-          {
-            label: "Pendientes",
-            value: "42",
-            description: "En período de espera",
-            icon: RotateCcw,
-          },
-          {
-            label: "Disponibles",
-            value: "$1,284",
-            description: "Listas para retirar",
-            icon: CircleDollarSign,
-          },
-          {
-            label: "Rechazadas",
-            value: "9",
-            description: "No elegibles",
-            icon: X,
-          },
-        ],
-        rows: [
-          {
-            id: "ac1",
-            cells: [
-              { primary: "Lucía Paz" },
-              { primary: "Carlos Peña", secondary: "carlos@buyer.ec" },
-              { primary: "INV-10482", mono: true },
-              { primary: "USD 12.00" },
-              { primary: "8 ago 2026" },
-            ],
-            status: "Pendiente",
-            tone: "warning",
-            actions: [
-              { label: "Aprobar", kind: "success" },
-              { label: "Rechazar", kind: "destructive" },
-            ],
-          },
-          {
-            id: "ac2",
-            cells: [
-              { primary: "Marco Ruiz" },
-              { primary: "Ana Ríos", secondary: "ana@buyer.ec" },
-              { primary: "INV-10461", mono: true },
-              { primary: "USD 8.70" },
-              { primary: "6 ago 2026" },
-            ],
-            status: "Disponible",
-            tone: "success",
-            actions: [{ label: "Ver detalle" }],
-          },
-          {
-            id: "ac3",
-            cells: [
-              { primary: "Lucía Paz" },
-              { primary: "Diego Sol", secondary: "diego@buyer.ec" },
-              { primary: "INV-10392", mono: true },
-              { primary: "USD 12.00" },
-              { primary: "31 jul 2026" },
-            ],
-            status: "Pagada",
-            tone: "neutral",
-            actions: [{ label: "Ver detalle" }],
-          },
-        ],
+        metricIcons: {
+          ["Comisiones"]: ReceiptText,
+          ["Pendientes"]: RotateCcw,
+          ["Disponibles"]: CircleDollarSign,
+          ["Rechazadas"]: X,
+        },
       },
       {
         value: "withdrawals",
         label: "Retiros",
         searchPlaceholder: "Buscar afiliado, retiro o método...",
         columns: ["Afiliado", "Solicitud", "Método", "Importe", "Solicitada"],
-        metrics: [
-          {
-            label: "Solicitudes",
-            value: "64",
-            description: "Retiros históricos",
-            icon: ReceiptText,
-          },
-          {
-            label: "Pendientes",
-            value: "7",
-            description: "Esperan revisión",
-            icon: RotateCcw,
-          },
-          {
-            label: "Aprobados",
-            value: "$940",
-            description: "Listos para pagar",
-            icon: Check,
-          },
-          {
-            label: "Pagados",
-            value: "$3,520",
-            description: "Acumulado enviado",
-            icon: CircleDollarSign,
-          },
-        ],
-        rows: [
-          {
-            id: "aw1",
-            cells: [
-              { primary: "Lucía Paz", secondary: "lucia@creator.ec" },
-              { primary: "WD-0084", mono: true },
-              { primary: "PayPal" },
-              { primary: "USD 240.00" },
-              { primary: "8 ago 2026" },
-            ],
-            status: "Pendiente",
-            tone: "warning",
-            actions: [
-              { label: "Aprobar", kind: "success" },
-              { label: "Rechazar", kind: "destructive" },
-            ],
-          },
-          {
-            id: "aw2",
-            cells: [
-              { primary: "Marco Ruiz", secondary: "marco@agency.ec" },
-              { primary: "WD-0081", mono: true },
-              { primary: "Transferencia" },
-              { primary: "USD 180.00" },
-              { primary: "5 ago 2026" },
-            ],
-            status: "Aprobado",
-            tone: "success",
-            actions: [
-              { label: "Marcar pagado", kind: "success" },
-              { label: "Ver detalle" },
-            ],
-          },
-          {
-            id: "aw3",
-            cells: [
-              { primary: "Elena Mora", secondary: "elena@demo.ec" },
-              { primary: "WD-0074", mono: true },
-              { primary: "PayPal" },
-              { primary: "USD 96.00" },
-              { primary: "28 jul 2026" },
-            ],
-            status: "Pagado",
-            tone: "neutral",
-            actions: [{ label: "Ver detalle" }],
-          },
-        ],
+        metricIcons: {
+          ["Solicitudes"]: ReceiptText,
+          ["Pendientes"]: RotateCcw,
+          ["Aprobados"]: Check,
+          ["Pagados"]: CircleDollarSign,
+        },
       },
     ],
   },
@@ -723,85 +253,12 @@ const modules: Record<AdminModuleKey, Module> = {
         label: "Cupones",
         searchPlaceholder: "Buscar nombre, código o descuento...",
         columns: ["Cupón", "Descuento", "Uso", "Planes", "Vigencia"],
-        metrics: [
-          {
-            label: "Cupones",
-            value: "18",
-            description: "Códigos creados",
-            icon: Tags,
-          },
-          {
-            label: "Activos",
-            value: "11",
-            description: "Disponibles hoy",
-            icon: Check,
-          },
-          {
-            label: "Canjes",
-            value: "438",
-            description: "Usos acumulados",
-            icon: ReceiptText,
-          },
-          {
-            label: "Sin límite",
-            value: "4",
-            description: "Uso ilimitado",
-            icon: RotateCcw,
-          },
-        ],
-        rows: [
-          {
-            id: "co1",
-            cells: [
-              { primary: "Bienvenida", secondary: "HOLA20", mono: true },
-              { primary: "20%" },
-              { primary: "184 / 500" },
-              { primary: "Profesional, Business" },
-              { primary: "1–31 ago 2026" },
-            ],
-            status: "Activo",
-            tone: "success",
-            actions: [
-              { label: "Editar cupón" },
-              { label: "Duplicar" },
-              { label: "Eliminar", kind: "destructive" },
-            ],
-          },
-          {
-            id: "co2",
-            cells: [
-              { primary: "Lanzamiento", secondary: "ZAPI10", mono: true },
-              { primary: "USD 10.00" },
-              { primary: "76 / ∞" },
-              { primary: "Todos los pagos" },
-              { primary: "Sin vencimiento" },
-            ],
-            status: "Activo",
-            tone: "success",
-            actions: [
-              { label: "Editar cupón" },
-              { label: "Duplicar" },
-              { label: "Eliminar", kind: "destructive" },
-            ],
-          },
-          {
-            id: "co3",
-            cells: [
-              { primary: "Black Friday", secondary: "BLACK30", mono: true },
-              { primary: "30%" },
-              { primary: "178 / 200" },
-              { primary: "Business" },
-              { primary: "Finalizó 30 nov 2025" },
-            ],
-            status: "Vencido",
-            tone: "neutral",
-            actions: [
-              { label: "Editar cupón" },
-              { label: "Duplicar" },
-              { label: "Eliminar", kind: "destructive" },
-            ],
-          },
-        ],
+        metricIcons: {
+          ["Cupones"]: Tags,
+          ["Activos"]: Check,
+          ["Canjes"]: ReceiptText,
+          ["Sin límite"]: RotateCcw,
+        },
         primaryAction: {
           label: "Crear cupón",
           icon: Plus,
@@ -830,79 +287,12 @@ const modules: Record<AdminModuleKey, Module> = {
           "Importe",
           "Fecha",
         ],
-        metrics: [
-          {
-            label: "Transacciones",
-            value: "1,284",
-            description: "Registros de Polar",
-            icon: ReceiptText,
-          },
-          {
-            label: "Completadas",
-            value: "1,198",
-            description: "Pagos confirmados",
-            icon: Check,
-          },
-          {
-            label: "Reembolsadas",
-            value: "18",
-            description: "Total o parcial",
-            icon: RotateCcw,
-          },
-          {
-            label: "Volumen",
-            value: "$38,420",
-            description: "Importe completado",
-            icon: CircleDollarSign,
-          },
-        ],
-        rows: [
-          {
-            id: "p1",
-            cells: [
-              { primary: "INV-10482", secondary: "Polar.sh", mono: true },
-              { primary: "Carlos Peña", secondary: "carlos@buyer.ec" },
-              { primary: "Profesional mensual" },
-              { primary: "chk_7c91…12af", mono: true },
-              { primary: "USD 29.00" },
-              { primary: "8 ago 2026" },
-            ],
-            status: "Completado",
-            tone: "success",
-            actions: [
-              { label: "Ver recibo" },
-              { label: "Reembolsar", kind: "destructive" },
-            ],
-          },
-          {
-            id: "p2",
-            cells: [
-              { primary: "INV-10481", secondary: "Polar.sh", mono: true },
-              { primary: "Ana Ríos", secondary: "ana@buyer.ec" },
-              { primary: "Business mensual" },
-              { primary: "chk_6bd2…7c40", mono: true },
-              { primary: "USD 79.00" },
-              { primary: "8 ago 2026" },
-            ],
-            status: "Pendiente",
-            tone: "warning",
-            actions: [{ label: "Ver detalle" }, { label: "Sincronizar" }],
-          },
-          {
-            id: "p3",
-            cells: [
-              { primary: "INV-10420", secondary: "Polar.sh", mono: true },
-              { primary: "Diego Sol", secondary: "diego@buyer.ec" },
-              { primary: "Crecimiento · créditos" },
-              { primary: "chk_29fa…003b", mono: true },
-              { primary: "USD 24.00" },
-              { primary: "31 jul 2026" },
-            ],
-            status: "Reembolsado",
-            tone: "neutral",
-            actions: [{ label: "Ver recibo" }, { label: "Ver reembolso" }],
-          },
-        ],
+        metricIcons: {
+          ["Transacciones"]: ReceiptText,
+          ["Completadas"]: Check,
+          ["Reembolsadas"]: RotateCcw,
+          ["Volumen"]: CircleDollarSign,
+        },
       },
     ],
   },
@@ -923,88 +313,12 @@ const modules: Record<AdminModuleKey, Module> = {
           "Renovación",
           "Actualizada",
         ],
-        metrics: [
-          {
-            label: "Suscripciones",
-            value: "842",
-            description: "Registros de Polar",
-            icon: ReceiptText,
-          },
-          {
-            label: "Activas",
-            value: "779",
-            description: "Renovación vigente",
-            icon: Check,
-          },
-          {
-            label: "En mora",
-            value: "21",
-            description: "Polar reintentando",
-            icon: RotateCcw,
-          },
-          {
-            label: "MRR",
-            value: "$24,980",
-            description: "Valor mensual activo",
-            icon: CircleDollarSign,
-          },
-        ],
-        rows: [
-          {
-            id: "s1",
-            cells: [
-              { primary: "sub_018f…81a2", secondary: "Polar.sh", mono: true },
-              { primary: "Carlos Peña", secondary: "carlos@buyer.ec" },
-              { primary: "Profesional mensual" },
-              { primary: "USD 29.00 / mes" },
-              { primary: "8 sep 2026" },
-              { primary: "8 ago 2026" },
-            ],
-            status: "Activa",
-            tone: "success",
-            actions: [
-              { label: "Ver suscripción" },
-              { label: "Cancelar al final" },
-              { label: "Revocar ahora", kind: "destructive" },
-            ],
-          },
-          {
-            id: "s2",
-            cells: [
-              { primary: "sub_019a…d18c", secondary: "Polar.sh", mono: true },
-              { primary: "Ana Ríos", secondary: "ana@buyer.ec" },
-              { primary: "Business mensual" },
-              { primary: "USD 79.00 / mes" },
-              { primary: "11 ago 2026" },
-              { primary: "8 ago 2026" },
-            ],
-            status: "En mora",
-            tone: "warning",
-            actions: [
-              { label: "Ver suscripción" },
-              { label: "Abrir cliente en Polar" },
-              { label: "Revocar ahora", kind: "destructive" },
-            ],
-          },
-          {
-            id: "s3",
-            cells: [
-              { primary: "sub_017b…903f", secondary: "Polar.sh", mono: true },
-              { primary: "Diego Sol", secondary: "diego@buyer.ec" },
-              { primary: "Profesional anual" },
-              { primary: "USD 290.00 / año" },
-              { primary: "Finaliza 31 ago 2026" },
-              { primary: "31 jul 2026" },
-            ],
-            status: "Cancela al final",
-            tone: "neutral",
-            actions: [
-              { label: "Ver suscripción" },
-              { label: "Reactivar", kind: "success" },
-              { label: "Revocar ahora", kind: "destructive" },
-            ],
-          },
-        ],
+        metricIcons: {
+          ["Suscripciones"]: ReceiptText,
+          ["Activas"]: Check,
+          ["En mora"]: RotateCcw,
+          ["MRR"]: CircleDollarSign,
+        },
       },
     ],
   },
@@ -1077,15 +391,10 @@ function editValuesFor(
   return Array.from({ length: fieldCount }, () => "")
 }
 
-type AdminModuleViewState =
-  "normal" | "loading" | "empty" | "error" | "forbidden"
-
 export function AdminModulePreview({
   moduleKey,
-  viewState = "normal",
 }: {
   moduleKey: AdminModuleKey
-  viewState?: AdminModuleViewState
 }) {
   const moduleConfig = modules[moduleKey]
   const firstTab = moduleConfig.tabs[0]
@@ -1114,7 +423,7 @@ export function AdminModulePreview({
   } | null>(null)
   const active =
     moduleConfig.tabs.find((tab) => tab.value === activeTab) ?? firstTab
-  const rows = viewState === "empty" ? [] : (remote?.rows ?? [])
+  const rows = remote?.rows ?? []
   const statuses = remote?.statusOptions ?? []
   const pageCount = remote?.pagination.pageCount ?? 1
   const currentPageIndex = (remote?.pagination.page ?? pageIndex + 1) - 1
@@ -1122,14 +431,10 @@ export function AdminModulePreview({
   const rangeStart = remote?.pagination.rangeStart ?? 0
   const rangeEnd = remote?.pagination.rangeEnd ?? 0
   const total = remote?.pagination.total ?? 0
-  const metrics = remote
-    ? remote.metrics.map((metric) => ({
-        ...metric,
-        icon:
-          active.metrics.find((candidate) => candidate.label === metric.label)
-            ?.icon ?? CircleAlert,
-      }))
-    : active.metrics
+  const metrics: Metric[] = (remote?.metrics ?? []).map((metric) => ({
+    ...metric,
+    icon: active.metricIcons[metric.label] ?? CircleAlert,
+  }))
   const primaryAction = active.primaryAction
   const PrimaryIcon = primaryAction?.icon
   const formComplete =
@@ -1174,11 +479,7 @@ export function AdminModulePreview({
     }
   }, [activeTab, moduleKey, pageIndex, pageSize, refreshKey, search, status])
 
-  if (viewState === "loading" || (requestState === "loading" && !remote)) {
-    return <PageLoading className="min-h-80" />
-  }
-
-  if (viewState === "error" || requestState === "error") {
+  if (requestState === "error") {
     return (
       <EmptyState
         action={
@@ -1193,7 +494,7 @@ export function AdminModulePreview({
     )
   }
 
-  if (viewState === "forbidden" || requestState === "forbidden") {
+  if (requestState === "forbidden") {
     return (
       <EmptyState
         description="Tu cuenta no tiene permisos para administrar esta sección de la plataforma."
@@ -1201,6 +502,10 @@ export function AdminModulePreview({
         title="Acceso restringido"
       />
     )
+  }
+
+  if (!remote) {
+    return <PageLoading className="min-h-80" />
   }
 
   function openCreateSheet() {
@@ -1216,6 +521,7 @@ export function AdminModulePreview({
     setPageIndex(0)
     setFormValues([])
     setRemote(null)
+    setRequestState("loading")
   }
 
   return (
@@ -1637,39 +943,6 @@ export function AdminModulePreview({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
-  )
-}
-
-export function PlatformAdminPreview() {
-  const [moduleKey, setModuleKey] = React.useState<AdminModuleKey>("users")
-  return (
-    <div className="space-y-6">
-      <Tabs
-        onValueChange={(value) => setModuleKey(value as AdminModuleKey)}
-        value={moduleKey}
-      >
-        <TabsList
-          className="flex h-auto flex-wrap"
-          aria-label="Mockups de administración"
-        >
-          {(
-            [
-              "users",
-              "credits",
-              "affiliate",
-              "coupons",
-              "payments",
-              "subscriptions",
-            ] as const
-          ).map((key) => (
-            <TabsTrigger key={key} value={key}>
-              {modules[key].title}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
-      <AdminModulePreview moduleKey={moduleKey} />
     </div>
   )
 }
