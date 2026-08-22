@@ -218,6 +218,11 @@ import type {
   UpdateManualPaymentSettingsInput,
   AdminEmailTemplatesResponse,
   UpdateAdminEmailTemplateInput,
+  PublicSiteOverview,
+  PublicSitePage,
+  PublicSitePost,
+  PublicSitePostsQuery,
+  PublicSitePostsResponse,
 } from "@workspace/contracts"
 
 const apiBaseUrl =
@@ -1364,6 +1369,21 @@ export const adminOperationsApi = {
         body: JSON.stringify({ action, values }),
       }
     ),
+}
+
+/** Superficie sin sesión que consume el sitio público de marketing. */
+export const publicSiteApi = {
+  overview: () =>
+    request<PublicSiteOverview>("/v1/public/site", { method: "GET" }),
+  posts: (query: Partial<PublicSitePostsQuery> = {}) =>
+    request<PublicSitePostsResponse>(
+      `/v1/public/site/posts${adminContentQueryString(query)}`,
+      { method: "GET" }
+    ),
+  post: (slug: string) =>
+    request<PublicSitePost>(`/v1/public/site/posts/${slug}`, { method: "GET" }),
+  page: (slug: string) =>
+    request<PublicSitePage>(`/v1/public/site/pages/${slug}`, { method: "GET" }),
 }
 
 export const adminEmailTemplatesApi = {

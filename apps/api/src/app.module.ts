@@ -21,6 +21,7 @@ import { AuditModule } from './audit/audit.module';
 import { RssSchedulesModule } from './rss-schedules/rss-schedules.module';
 import { AdminEmailTemplatesModule } from './email/admin-email-templates.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { PublicSiteModule } from './public-site/public-site.module';
 import { SupportModule } from './support/support.module';
 import { WatermarksModule } from './watermarks/watermarks.module';
 import { TeamsModule } from './teams/teams.module';
@@ -139,6 +140,7 @@ const pinoRedactPaths = [
     RssSchedulesModule,
     AdminEmailTemplatesModule,
     NotificationsModule,
+    PublicSiteModule,
     SupportModule,
     WatermarksModule,
     TeamsModule,
