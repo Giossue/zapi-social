@@ -3820,5 +3820,103 @@ declare const messages: {
     statusLabel: "Estado"
     unavailable: "Configuración no disponible"
   }
+  watermarks: {
+    allNetworks: "Todas"
+    applyToAccounts: "Aplicar a cuentas"
+    cancel: "Cancelar"
+    change: "Cambiar"
+    clearFilters: "Limpiar filtros"
+    color: {
+      brand: "Marca"
+      dark: "Oscuro"
+      ocean: "Océano"
+      sunset: "Atardecer"
+      white: "Blanco"
+    }
+    colorLabel: "Color"
+    create: "Crear marca de agua"
+    created: "Marca de agua creada"
+    delete: "Eliminar"
+    deleteConfirm: "Eliminar marca"
+    deleteDescription: "Las publicaciones nuevas dejarán de usarlas. Esta acción no afecta el contenido ya publicado."
+    deleteTitle: "{count, plural, one {¿Eliminar esta marca de agua?} other {¿Eliminar estas marcas de agua?}}"
+    deleted: "{count, plural, one {Marca de agua eliminada} other {Marcas de agua eliminadas}}"
+    deleting: "Eliminando..."
+    description: "Añade una marca visual que se aplicará al contenido antes de enviarlo a tus canales."
+    error: {
+      forbidden: "No tienes permiso para administrar marcas de agua."
+      invalid: "Revisa la imagen o el texto: el servidor rechazó la configuración."
+      missing: "La marca de agua ya no existe. Recarga la página."
+      saveFailed: "No pudimos guardar los cambios. Inténtalo de nuevo."
+      targetExists: "Ese destino ya tiene una marca de agua. Recarga la página para verla."
+    }
+    filterAccounts: "Filtrar cuentas por red"
+    forbiddenDescription: "Tu rol actual no permite administrar las marcas de agua de este espacio de trabajo."
+    globalRule: "Regla global"
+    globalRuleHint: "Se aplica a todos los canales sin una regla propia."
+    globalScope: "Regla global · todos los canales"
+    image: "Imagen"
+    loadFailed: "No pudimos cargar las marcas de agua"
+    noAccounts: "No encontramos cuentas con esos filtros."
+    opacity: "Opacidad"
+    pickAccounts: "Seleccionar cuentas"
+    pickFile: "Seleccionar archivo"
+    pickFileHint: "Elige una imagen del administrador de archivos."
+    picker: {
+      allFolders: "Todas las carpetas"
+      description: "Selecciona una imagen cuadrada o con fondo transparente para usarla como marca de agua."
+      emptyDescription: "Sube una imagen al administrador de archivos para usarla como marca de agua."
+      emptyFilteredDescription: "Prueba con otro término o quita los filtros."
+      emptyTitle: "Aún no tienes imágenes"
+      folder: "Carpeta"
+      loadFailed: "No pudimos cargar tu biblioteca"
+      noMatches: "No encontramos imágenes"
+      searchAria: "Buscar imágenes"
+      searchPlaceholder: "Buscar imágenes..."
+      starred: "Destacados"
+      starredAria: "Solo destacados"
+      title: "Elegir archivo de la biblioteca"
+    }
+    position: "Posición"
+    positionLabel: {
+      "bottom-left": "Inferior izquierda"
+      "bottom-right": "Inferior derecha"
+      center: "Centro"
+      "top-left": "Superior izquierda"
+      "top-right": "Superior derecha"
+    }
+    preset: {
+      glass: "Cristal"
+      minimal: "Minimal"
+      solidDark: "Sólido oscuro"
+      solidLight: "Sólido claro"
+    }
+    preview: {
+      description: "Así se aplicará sobre el contenido al publicar."
+      samplePost: "Publicación de ejemplo"
+      selectedWatermark: "Marca de agua seleccionada"
+      title: "Vista previa"
+    }
+    retryHint: "Comprueba tu conexión e inténtalo de nuevo."
+    saveChanges: "Guardar cambios"
+    searchAccounts: "Buscar una cuenta"
+    searchAccountsAria: "Buscar cuentas"
+    selectedAccounts: "{count, plural, one {# cuenta seleccionada} other {# cuentas seleccionadas}}"
+    size: "Tamaño"
+    style: "Estilo"
+    text: "Texto"
+    title: "Marca de agua"
+    unavailable: "Marca de agua no disponible"
+    updated: "Marca de agua actualizada"
+    watermarkText: "Texto de la marca"
+    watermarkTextHint: "Usa un texto breve que se mantenga legible sobre el contenido."
+    watermarkTextPlaceholder: "Ej. @tu_marca"
+    weight: {
+      bold: "Negrita"
+      medium: "Medio"
+      semibold: "Semibold"
+    }
+    weightLabel: "Peso"
+  }
 }
 export default messages

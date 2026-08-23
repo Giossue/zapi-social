@@ -8,6 +8,7 @@ import {
   useMemo,
   useState,
 } from "react"
+import { useLocale, useTranslations } from "next-intl"
 import { ApiError, filesApi, watermarksApi } from "@workspace/api-client"
 import type {
   CreatePortalWatermarkInput,
@@ -139,8 +140,9 @@ const providerLabels: Record<string, string> = {
   linkedin: "LinkedIn",
 }
 
+/** «Todas» sale de `messages`; el resto son nombres propios de red. */
 const accountProviderFilters = [
-  { label: "Todas", value: "all" },
+  { label: null, value: "all" },
   { label: "Instagram", value: "instagram" },
   { label: "Facebook", value: "facebook" },
   { label: "LinkedIn", value: "linkedin" },
@@ -148,14 +150,13 @@ const accountProviderFilters = [
 
 const positionItems: Array<{
   value: WatermarkPosition
-  label: string
   icon: typeof MoveUpLeft
 }> = [
-  { value: "top-left", label: "Superior izquierda", icon: MoveUpLeft },
-  { value: "top-right", label: "Superior derecha", icon: MoveUpRight },
-  { value: "center", label: "Centro", icon: ScanLine },
-  { value: "bottom-left", label: "Inferior izquierda", icon: MoveDownLeft },
-  { value: "bottom-right", label: "Inferior derecha", icon: MoveDownRight },
+  { value: "top-left", icon: MoveUpLeft },
+  { value: "top-right", icon: MoveUpRight },
+  { value: "center", icon: ScanLine },
+  { value: "bottom-left", icon: MoveDownLeft },
+  { value: "bottom-right", icon: MoveDownRight },
 ]
 
 const positionClass: Record<WatermarkPosition, string> = {
@@ -246,19 +247,14 @@ function toWatermarkInput(
   return text ? { ...shared, type: "text", text } : null
 }
 
-function watermarkErrorMessage(error: unknown) {
-  if (!(error instanceof ApiError))
-    return "No pudimos guardar los cambios. Inténtalo de nuevo."
-
-  if (error.code === "WATERMARK_TARGET_EXISTS")
-    return "Ese destino ya tiene una marca de agua. Recarga la página para verla."
-  if (error.status === 403)
-    return "No tienes permiso para administrar marcas de agua."
-  if (error.status === 404)
-    return "La marca de agua ya no existe. Recarga la página."
-  if (error.status === 400)
-    return "Revisa la imagen o el texto: el servidor rechazó la configuración."
-  return "No pudimos guardar los cambios. Inténtalo de nuevo."
+/** Devuelve la clave del aviso; el componente la traduce. */
+function watermarkErrorKey(error: unknown) {
+  if (!(error instanceof ApiError)) return "saveFailed"
+  if (error.code === "WATERMARK_TARGET_EXISTS") return "targetExists"
+  if (error.status === 403) return "forbidden"
+  if (error.status === 404) return "missing"
+  if (error.status === 400) return "invalid"
+  return "saveFailed"
 }
 
 function draftFromRule(rule: WatermarkRule | null): WatermarkDraft {
@@ -292,6 +288,8 @@ function WatermarkScopePicker({
   onSelectedAccountIdsChange: (accountIds: string[]) => void
   selectedAccountIds: string[]
 }) {
+  const t = useTranslations("watermarks")
+  const locale = useLocale()
   const [open, setOpen] = useState(false)
   const [provider, setProvider] =
     useState<(typeof accountProviderFilters)[number]["value"]>("all")
@@ -300,7 +298,7 @@ function WatermarkScopePicker({
     selectedAccountIds.includes(account.id)
   )
   const filteredAccounts = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase("es")
+    const normalizedQuery = query.trim().toLocaleLowerCase(locale)
     return accounts.filter((account) => {
       const matchesProvider =
         provider === "all" || account.providerKey === provider
@@ -311,12 +309,12 @@ function WatermarkScopePicker({
           providerLabels[account.providerKey] ?? account.providerKey,
         ]
           .join(" ")
-          .toLocaleLowerCase("es")
+          .toLocaleLowerCase(locale)
           .includes(normalizedQuery)
 
       return matchesProvider && matchesQuery
     })
-  }, [accounts, provider, query])
+  }, [accounts, locale, provider, query])
 
   function toggleAccount(accountId: string, checked: boolean) {
     onSelectedAccountIdsChange(
@@ -338,10 +336,10 @@ function WatermarkScopePicker({
           >
             <span className="truncate">
               {isGlobalScope
-                ? "Regla global · todos los canales"
+                ? t("globalScope")
                 : selectedAccounts.length
-                  ? `${selectedAccounts.length} cuenta${selectedAccounts.length === 1 ? "" : "s"} seleccionada${selectedAccounts.length === 1 ? "" : "s"}`
-                  : "Seleccionar cuentas"}
+                  ? t("selectedAccounts", { count: selectedAccounts.length })
+                  : t("pickAccounts")}
             </span>
             <ChevronDown data-icon="inline-end" />
           </Button>
@@ -356,14 +354,14 @@ function WatermarkScopePicker({
                 <Search aria-hidden="true" />
               </InputGroupAddon>
               <InputGroupInput
-                aria-label="Buscar cuentas"
+                aria-label={t("searchAccountsAria")}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Buscar una cuenta"
+                placeholder={t("searchAccounts")}
                 value={query}
               />
             </InputGroup>
             <ToggleGroup
-              aria-label="Filtrar cuentas por red"
+              aria-label={t("filterAccounts")}
               onValueChange={(value) =>
                 value &&
                 setProvider(
@@ -378,7 +376,7 @@ function WatermarkScopePicker({
             >
               {accountProviderFilters.map((filter) => (
                 <ToggleGroupItem key={filter.value} value={filter.value}>
-                  {filter.label}
+                  {filter.label ?? t("allNetworks")}
                 </ToggleGroupItem>
               ))}
             </ToggleGroup>
@@ -393,10 +391,10 @@ function WatermarkScopePicker({
                   />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-medium">
-                      Regla global
+                      {t("globalRule")}
                     </span>
                     <span className="block truncate text-xs text-muted-foreground">
-                      Se aplica a todos los canales sin una regla propia.
+                      {t("globalRuleHint")}
                     </span>
                   </span>
                   {isGlobalScope ? (
@@ -433,7 +431,7 @@ function WatermarkScopePicker({
                 })}
                 {!filteredAccounts.length ? (
                   <p className="px-1 py-3 text-sm text-muted-foreground">
-                    No encontramos cuentas con esos filtros.
+                    {t("noAccounts")}
                   </p>
                 ) : null}
               </div>
@@ -535,6 +533,7 @@ function WatermarkImagePicker({
   open: boolean
   selectedId: string | null
 }) {
+  const t = useTranslations("watermarks")
   const isFiltering =
     library.query.trim() !== "" ||
     library.folderId !== "all" ||
@@ -553,11 +552,8 @@ function WatermarkImagePicker({
         side="right"
       >
         <SheetHeader className="border-b">
-          <SheetTitle>Elegir archivo de la biblioteca</SheetTitle>
-          <SheetDescription>
-            Selecciona una imagen cuadrada o con fondo transparente para usarla
-            como marca de agua.
-          </SheetDescription>
+          <SheetTitle>{t("picker.title")}</SheetTitle>
+          <SheetDescription>{t("picker.description")}</SheetDescription>
         </SheetHeader>
         <div className="flex flex-col gap-3 border-b p-4">
           <InputGroup>
@@ -565,9 +561,9 @@ function WatermarkImagePicker({
               <Search />
             </InputGroupAddon>
             <InputGroupInput
-              aria-label="Buscar imágenes"
+              aria-label={t("picker.searchAria")}
               onChange={(event) => library.setQuery(event.target.value)}
-              placeholder="Buscar imágenes..."
+              placeholder={t("picker.searchPlaceholder")}
               value={library.query}
             />
           </InputGroup>
@@ -576,12 +572,15 @@ function WatermarkImagePicker({
               onValueChange={library.setFolderId}
               value={library.folderId}
             >
-              <SelectTrigger aria-label="Carpeta" className="max-w-full">
+              <SelectTrigger
+                aria-label={t("picker.folder")}
+                className="max-w-full"
+              >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="all">Todas las carpetas</SelectItem>
+                  <SelectItem value="all">{t("picker.allFolders")}</SelectItem>
                   {library.folders.map((folder) => (
                     <SelectItem key={folder.id} value={folder.id}>
                       {folder.name}
@@ -591,12 +590,12 @@ function WatermarkImagePicker({
               </SelectContent>
             </Select>
             <Toggle
-              aria-label="Solo destacados"
+              aria-label={t("picker.starredAria")}
               onPressedChange={library.setStarredOnly}
               pressed={library.starredOnly}
             >
               <Star aria-hidden="true" data-icon="inline-start" />
-              Destacados
+              {t("picker.starred")}
             </Toggle>
           </div>
         </div>
@@ -610,9 +609,9 @@ function WatermarkImagePicker({
                   variant="brand-secondary"
                 />
               }
-              description="Comprueba tu conexión e inténtalo de nuevo."
+              description={t("retryHint")}
               icon={TriangleAlert}
-              title="No pudimos cargar tu biblioteca"
+              title={t("picker.loadFailed")}
             />
           ) : null}
           {library.status === "ready" && library.assets.length === 0 ? (
@@ -620,20 +619,18 @@ function WatermarkImagePicker({
               action={
                 isFiltering ? (
                   <Button onClick={clearFilters} variant="brand-secondary">
-                    Limpiar filtros
+                    {t("clearFilters")}
                   </Button>
                 ) : null
               }
               description={
                 isFiltering
-                  ? "Prueba con otro término o quita los filtros."
-                  : "Sube una imagen al administrador de archivos para usarla como marca de agua."
+                  ? t("picker.emptyFilteredDescription")
+                  : t("picker.emptyDescription")
               }
               icon={ImageIcon}
               title={
-                isFiltering
-                  ? "No encontramos imágenes"
-                  : "Aún no tienes imágenes"
+                isFiltering ? t("picker.noMatches") : t("picker.emptyTitle")
               }
             />
           ) : null}
@@ -680,18 +677,17 @@ function WatermarkPreview({
   draft: WatermarkDraft
   image: WatermarkImageAsset | null
 }) {
+  const t = useTranslations("watermarks")
   return (
     <Card className="overflow-hidden" variant="surface">
       <CardHeader className="border-b">
-        <CardTitle className="text-base">Vista previa</CardTitle>
-        <CardDescription>
-          Así se aplicará sobre el contenido al publicar.
-        </CardDescription>
+        <CardTitle className="text-base">{t("preview.title")}</CardTitle>
+        <CardDescription>{t("preview.description")}</CardDescription>
       </CardHeader>
       <CardContent className="p-0">
         <div className="relative aspect-[4/5] w-full overflow-hidden bg-muted">
           <Image
-            alt="Publicación de ejemplo"
+            alt={t("preview.samplePost")}
             className="object-cover"
             fill
             sizes="(min-width: 1024px) 21rem, 100vw"
@@ -708,7 +704,7 @@ function WatermarkPreview({
             {draft.type === "image" && image ? (
               // eslint-disable-next-line @next/next/no-img-element -- la biblioteca sirve las imágenes desde la API, fuera del optimizador de Next.
               <img
-                alt="Marca de agua seleccionada"
+                alt={t("preview.selectedWatermark")}
                 className="h-auto w-full"
                 src={image.previewSrc}
               />
@@ -731,6 +727,7 @@ function WatermarkPreview({
 }
 
 export function WatermarksPage() {
+  const t = useTranslations("watermarks")
   const [rules, setRules] = useState<WatermarkRule[]>([])
   const [accounts, setAccounts] = useState<WatermarkAccount[]>([])
   const [canManage, setCanManage] = useState(false)
@@ -836,11 +833,9 @@ export function WatermarksPage() {
         })
       )
       await loadRules()
-      toast.success(
-        isCreating ? "Marca de agua creada" : "Marca de agua actualizada"
-      )
+      toast.success(isCreating ? t("created") : t("updated"))
     } catch (error) {
-      toast.error(watermarkErrorMessage(error))
+      toast.error(t(`error.${watermarkErrorKey(error)}`))
     } finally {
       setPending(false)
     }
@@ -856,13 +851,9 @@ export function WatermarksPage() {
       )
       await loadRules()
       setDeleteOpen(false)
-      toast.success(
-        targetRules.length === 1
-          ? "Marca de agua eliminada"
-          : "Marcas de agua eliminadas"
-      )
+      toast.success(t("deleted", { count: targetRules.length }))
     } catch (error) {
-      toast.error(watermarkErrorMessage(error))
+      toast.error(t(`error.${watermarkErrorKey(error)}`))
     } finally {
       setPending(false)
     }
@@ -884,9 +875,9 @@ export function WatermarksPage() {
                 variant="brand-secondary"
               />
             }
-            description="Comprueba tu conexión e inténtalo de nuevo."
+            description={t("retryHint")}
             icon={TriangleAlert}
-            title="No pudimos cargar las marcas de agua"
+            title={t("loadFailed")}
           />
         </CardContent>
       </Card>
@@ -898,9 +889,9 @@ export function WatermarksPage() {
       <Card variant="subtle">
         <CardContent>
           <EmptyState
-            description="Tu rol actual no permite administrar las marcas de agua de este espacio de trabajo."
+            description={t("forbiddenDescription")}
             icon={Sparkles}
-            title="Marca de agua no disponible"
+            title={t("unavailable")}
           />
         </CardContent>
       </Card>
@@ -911,10 +902,7 @@ export function WatermarksPage() {
     <>
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-          <CollectionHeader
-            description="Añade una marca visual que se aplicará al contenido antes de enviarlo a tus canales."
-            title="Marca de agua"
-          />
+          <CollectionHeader description={t("description")} title={t("title")} />
           {targetRules.length ? (
             <Button
               onClick={() => setDeleteOpen(true)}
@@ -922,7 +910,7 @@ export function WatermarksPage() {
               type="button"
               variant="destructive"
             >
-              <Trash2 /> Eliminar
+              <Trash2 /> {t("delete")}
             </Button>
           ) : null}
         </div>
@@ -970,8 +958,8 @@ export function WatermarksPage() {
                   value={draft.type}
                 >
                   <TabsList>
-                    <TabsTrigger value="image">Imagen</TabsTrigger>
-                    <TabsTrigger value="text">Texto</TabsTrigger>
+                    <TabsTrigger value="image">{t("image")}</TabsTrigger>
+                    <TabsTrigger value="text">{t("text")}</TabsTrigger>
                   </TabsList>
                   <TabsContent className="pt-4" value="image">
                     <Field>
@@ -1003,14 +991,14 @@ export function WatermarksPage() {
                         </span>
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-sm font-medium">
-                            {selectedImage?.name ?? "Seleccionar archivo"}
+                            {selectedImage?.name ?? t("pickFile")}
                           </span>
                           <span className="mt-0.5 block text-sm text-muted-foreground">
-                            Elige una imagen del administrador de archivos.
+                            {t("pickFileHint")}
                           </span>
                         </span>
                         <Button asChild size="sm" variant="outline">
-                          <span>Cambiar</span>
+                          <span>{t("change")}</span>
                         </Button>
                       </button>
                     </Field>
@@ -1018,7 +1006,7 @@ export function WatermarksPage() {
                   <TabsContent className="pt-4" value="text">
                     <Field>
                       <FieldLabel htmlFor="watermark-text">
-                        Texto de la marca{" "}
+                        {t("watermarkText")}{" "}
                         <span aria-hidden="true" className="text-destructive">
                           *
                         </span>
@@ -1030,20 +1018,19 @@ export function WatermarksPage() {
                         onChange={(event) =>
                           updateDraft("text", event.target.value)
                         }
-                        placeholder="Ej. @tu_marca"
+                        placeholder={t("watermarkTextPlaceholder")}
                         rows={3}
                         value={draft.text ?? ""}
                       />
                       <FieldDescription>
-                        Usa un texto breve que se mantenga legible sobre el
-                        contenido.
+                        {t("watermarkTextHint")}
                       </FieldDescription>
                     </Field>
                   </TabsContent>
                 </Tabs>
                 <FieldGroup className="gap-5">
                   <Field>
-                    <FieldLabel>Posición</FieldLabel>
+                    <FieldLabel>{t("position")}</FieldLabel>
                     <ToggleGroup
                       onValueChange={(value) => {
                         if (value)
@@ -1055,9 +1042,9 @@ export function WatermarksPage() {
                       value={draft.position}
                       variant="outline"
                     >
-                      {positionItems.map(({ value, label, icon: Icon }) => (
+                      {positionItems.map(({ value, icon: Icon }) => (
                         <ToggleGroupItem
-                          aria-label={label}
+                          aria-label={t(`positionLabel.${value}`)}
                           key={value}
                           value={value}
                         >
@@ -1068,7 +1055,7 @@ export function WatermarksPage() {
                   </Field>
                   <Field>
                     <FieldLabel htmlFor="watermark-scale">
-                      Tamaño{" "}
+                      {t("size")}{" "}
                       <span className="text-muted-foreground">
                         {draft.scalePercent}%
                       </span>
@@ -1086,7 +1073,7 @@ export function WatermarksPage() {
                   </Field>
                   <Field>
                     <FieldLabel htmlFor="watermark-opacity">
-                      Opacidad{" "}
+                      {t("opacity")}{" "}
                       <span className="text-muted-foreground">
                         {draft.opacityPercent}%
                       </span>
@@ -1109,7 +1096,7 @@ export function WatermarksPage() {
                 {draft.type === "text" ? (
                   <FieldGroup className="grid gap-4 sm:grid-cols-3">
                     <Field>
-                      <FieldLabel>Estilo</FieldLabel>
+                      <FieldLabel>{t("style")}</FieldLabel>
                       <Select
                         onValueChange={(value) =>
                           updateDraft(
@@ -1124,20 +1111,24 @@ export function WatermarksPage() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem value="glass">Cristal</SelectItem>
+                            <SelectItem value="glass">
+                              {t("preset.glass")}
+                            </SelectItem>
                             <SelectItem value="solid-dark">
-                              Sólido oscuro
+                              {t("preset.solidDark")}
                             </SelectItem>
                             <SelectItem value="solid-light">
-                              Sólido claro
+                              {t("preset.solidLight")}
                             </SelectItem>
-                            <SelectItem value="minimal">Minimal</SelectItem>
+                            <SelectItem value="minimal">
+                              {t("preset.minimal")}
+                            </SelectItem>
                           </SelectGroup>
                         </SelectContent>
                       </Select>
                     </Field>
                     <Field>
-                      <FieldLabel>Color</FieldLabel>
+                      <FieldLabel>{t("colorLabel")}</FieldLabel>
                       <Select
                         onValueChange={(value) =>
                           updateDraft("textColor", value as WatermarkTextColor)
@@ -1150,22 +1141,26 @@ export function WatermarksPage() {
                         <SelectContent>
                           <SelectGroup>
                             <SelectItem value="brand-gradient">
-                              Marca
+                              {t("color.brand")}
                             </SelectItem>
                             <SelectItem value="sunset-gradient">
-                              Atardecer
+                              {t("color.sunset")}
                             </SelectItem>
                             <SelectItem value="ocean-gradient">
-                              Océano
+                              {t("color.ocean")}
                             </SelectItem>
-                            <SelectItem value="dark">Oscuro</SelectItem>
-                            <SelectItem value="white">Blanco</SelectItem>
+                            <SelectItem value="dark">
+                              {t("color.dark")}
+                            </SelectItem>
+                            <SelectItem value="white">
+                              {t("color.white")}
+                            </SelectItem>
                           </SelectGroup>
                         </SelectContent>
                       </Select>
                     </Field>
                     <Field>
-                      <FieldLabel>Peso</FieldLabel>
+                      <FieldLabel>{t("weightLabel")}</FieldLabel>
                       <Select
                         onValueChange={(value) =>
                           updateDraft(
@@ -1180,9 +1175,15 @@ export function WatermarksPage() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem value="medium">Medio</SelectItem>
-                            <SelectItem value="semibold">Semibold</SelectItem>
-                            <SelectItem value="bold">Negrita</SelectItem>
+                            <SelectItem value="medium">
+                              {t("weight.medium")}
+                            </SelectItem>
+                            <SelectItem value="semibold">
+                              {t("weight.semibold")}
+                            </SelectItem>
+                            <SelectItem value="bold">
+                              {t("weight.bold")}
+                            </SelectItem>
                           </SelectGroup>
                         </SelectContent>
                       </Select>
@@ -1209,9 +1210,9 @@ export function WatermarksPage() {
               )}
               {isCreating
                 ? isGlobalScope
-                  ? "Crear marca de agua"
-                  : "Aplicar a cuentas"
-                : "Guardar cambios"}
+                  ? t("create")
+                  : t("applyToAccounts")
+                : t("saveChanges")}
             </Button>
           </div>
         </form>
@@ -1226,9 +1227,9 @@ export function WatermarksPage() {
           label={
             isCreating
               ? isGlobalScope
-                ? "Crear marca de agua"
-                : "Aplicar a cuentas"
-              : "Guardar cambios"
+                ? t("create")
+                : t("applyToAccounts")
+              : t("saveChanges")
           }
           onClick={() => void save()}
         />
@@ -1244,17 +1245,16 @@ export function WatermarksPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {targetRules.length === 1
-                ? "¿Eliminar esta marca de agua?"
-                : "¿Eliminar estas marcas de agua?"}
+              {t("deleteTitle", { count: targetRules.length })}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Las publicaciones nuevas dejarán de usarlas. Esta acción no afecta
-              el contenido ya publicado.
+              {t("deleteDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={pending}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={pending}>
+              {t("cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               disabled={pending}
               onClick={(event) => {
@@ -1264,7 +1264,7 @@ export function WatermarksPage() {
               variant="destructive"
             >
               {pending ? <Spinner data-icon="inline-start" /> : null}
-              {pending ? "Eliminando..." : "Eliminar marca"}
+              {pending ? t("deleting") : t("deleteConfirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

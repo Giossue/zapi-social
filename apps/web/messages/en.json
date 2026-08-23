@@ -3816,5 +3816,103 @@
     "siteKey": "Site key",
     "statusLabel": "Status",
     "unavailable": "Configuration unavailable"
+  },
+  "watermarks": {
+    "allNetworks": "All",
+    "applyToAccounts": "Apply to accounts",
+    "cancel": "Cancel",
+    "change": "Change",
+    "clearFilters": "Clear filters",
+    "color": {
+      "brand": "Brand",
+      "dark": "Dark",
+      "ocean": "Ocean",
+      "sunset": "Sunset",
+      "white": "White"
+    },
+    "colorLabel": "Color",
+    "create": "Create watermark",
+    "created": "Watermark created",
+    "delete": "Delete",
+    "deleteConfirm": "Delete watermark",
+    "deleteDescription": "New posts will stop using them. This doesn't affect already published content.",
+    "deleteTitle": "{count, plural, one {Delete this watermark?} other {Delete these watermarks?}}",
+    "deleted": "{count, plural, one {Watermark deleted} other {Watermarks deleted}}",
+    "deleting": "Deleting...",
+    "description": "Add a visual mark applied to content before it goes out to your channels.",
+    "error": {
+      "forbidden": "You don't have permission to manage watermarks.",
+      "invalid": "Check the image or the text: the server rejected the configuration.",
+      "missing": "The watermark no longer exists. Reload the page.",
+      "saveFailed": "We couldn't save the changes. Try again.",
+      "targetExists": "That target already has a watermark. Reload the page to see it."
+    },
+    "filterAccounts": "Filter accounts by network",
+    "forbiddenDescription": "Your current role can't manage the watermarks of this workspace.",
+    "globalRule": "Global rule",
+    "globalRuleHint": "Applies to every channel without a rule of its own.",
+    "globalScope": "Global rule · all channels",
+    "image": "Image",
+    "loadFailed": "We couldn't load the watermarks",
+    "noAccounts": "We couldn't find accounts with those filters.",
+    "opacity": "Opacity",
+    "pickAccounts": "Select accounts",
+    "pickFile": "Select file",
+    "pickFileHint": "Choose an image from the file manager.",
+    "picker": {
+      "allFolders": "All folders",
+      "description": "Select a square image or one with a transparent background to use as a watermark.",
+      "emptyDescription": "Upload an image to the file manager to use it as a watermark.",
+      "emptyFilteredDescription": "Try another term or remove the filters.",
+      "emptyTitle": "You don't have images yet",
+      "folder": "Folder",
+      "loadFailed": "We couldn't load your library",
+      "noMatches": "We couldn't find any images",
+      "searchAria": "Search images",
+      "searchPlaceholder": "Search images...",
+      "starred": "Starred",
+      "starredAria": "Starred only",
+      "title": "Choose a file from the library"
+    },
+    "position": "Position",
+    "positionLabel": {
+      "bottom-left": "Bottom left",
+      "bottom-right": "Bottom right",
+      "center": "Center",
+      "top-left": "Top left",
+      "top-right": "Top right"
+    },
+    "preset": {
+      "glass": "Glass",
+      "minimal": "Minimal",
+      "solidDark": "Solid dark",
+      "solidLight": "Solid light"
+    },
+    "preview": {
+      "description": "This is how it will be applied to content when publishing.",
+      "samplePost": "Sample post",
+      "selectedWatermark": "Selected watermark",
+      "title": "Preview"
+    },
+    "retryHint": "Check your connection and try again.",
+    "saveChanges": "Save changes",
+    "searchAccounts": "Search an account",
+    "searchAccountsAria": "Search accounts",
+    "selectedAccounts": "{count, plural, one {# account selected} other {# accounts selected}}",
+    "size": "Size",
+    "style": "Style",
+    "text": "Text",
+    "title": "Watermark",
+    "unavailable": "Watermark unavailable",
+    "updated": "Watermark updated",
+    "watermarkText": "Watermark text",
+    "watermarkTextHint": "Use a short text that stays readable over the content.",
+    "watermarkTextPlaceholder": "e.g. @your_brand",
+    "weight": {
+      "bold": "Bold",
+      "medium": "Medium",
+      "semibold": "Semibold"
+    },
+    "weightLabel": "Weight"
   }
 }
