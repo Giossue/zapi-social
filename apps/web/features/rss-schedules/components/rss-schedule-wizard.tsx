@@ -37,6 +37,7 @@ import { Switch } from "@workspace/ui/components/switch"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { TimePicker } from "@workspace/ui/components/time-picker"
 import { toast } from "@workspace/ui/components/toast"
+import { useTranslations } from "next-intl"
 
 export type RssScheduleWizardInput = {
   contentRules: {
@@ -59,7 +60,7 @@ type RssScheduleWizardProps = {
   open: boolean
 }
 
-const steps = ["Feed", "Destinos", "Contenido", "Revisar"]
+const stepKeys = ["feed", "targets", "content", "review"] as const
 
 export type RssScheduleTargetAccount = {
   description: string
@@ -68,9 +69,9 @@ export type RssScheduleTargetAccount = {
 }
 
 const frequencyOptions = [
-  ["daily", "Una vez al día"],
-  ["weekdays", "De lunes a viernes"],
-  ["weekly", "Una vez por semana"],
+  ["daily", "frequency.daily"],
+  ["weekdays", "frequency.weekdays"],
+  ["weekly", "frequency.weekly"],
 ] as const
 
 const defaultTemplate = "{title}\n\n{summary}\n\nLeer más: {url}"
@@ -91,6 +92,7 @@ export function RssScheduleWizard({
   onValidateFeed,
   open,
 }: RssScheduleWizardProps) {
+  const t = useTranslations("rssSchedules.wizard")
   const initialTargetIds = accounts.slice(0, 2).map(({ id }) => id)
   const [step, setStep] = useState(0)
   const [name, setName] = useState("")
@@ -105,7 +107,7 @@ export function RssScheduleWizard({
   const [isValidating, setIsValidating] = useState(false)
 
   const isPending = isCreating || isValidating
-  const isLastStep = step === steps.length - 1
+  const isLastStep = step === stepKeys.length - 1
   const feedStepComplete = Boolean(feedUrl.trim() && name.trim())
   const destinationStepComplete = Boolean(
     targets.length && frequency && preferredTime
@@ -113,21 +115,21 @@ export function RssScheduleWizard({
   const canContinue =
     (step !== 0 || feedStepComplete) && (step !== 1 || destinationStepComplete)
   let primaryIcon = <ArrowRight data-icon="inline-start" />
-  let primaryLabel = "Continuar"
+  let primaryLabel = t("continue")
 
   if (isLastStep) {
     primaryIcon = <Plus data-icon="inline-start" />
-    primaryLabel = "Crear programación"
+    primaryLabel = t("create")
   }
 
   if (isCreating) {
     primaryIcon = <Spinner data-icon="inline-start" />
-    primaryLabel = "Creando..."
+    primaryLabel = t("creating")
   }
 
   if (isValidating) {
     primaryIcon = <Spinner data-icon="inline-start" />
-    primaryLabel = "Validando..."
+    primaryLabel = t("validating")
   }
 
   function close() {
@@ -147,18 +149,18 @@ export function RssScheduleWizard({
   function validateCurrentStep() {
     if (step === 0) {
       if (!feedUrl.trim() || !name.trim()) {
-        toast.error("Completa todos los campos obligatorios.")
+        toast.error(t("missingFields"))
         return false
       }
 
       if (!isHttpUrl(feedUrl.trim())) {
-        toast.error("Usa una URL válida que comience con http:// o https://.")
+        toast.error(t("invalidUrl"))
         return false
       }
     }
 
     if (step === 1 && (!targets.length || !frequency || !preferredTime)) {
-      toast.error("Completa todos los campos obligatorios.")
+      toast.error(t("missingFields"))
       return false
     }
 
@@ -181,16 +183,14 @@ export function RssScheduleWizard({
       try {
         await onValidateFeed(feedUrl.trim())
       } catch {
-        toast.error(
-          "No pudimos validar este feed. Comprueba que sea público y esté disponible."
-        )
+        toast.error(t("validationFailed"))
         return
       } finally {
         setIsValidating(false)
       }
     }
 
-    if (step === steps.length - 1) {
+    if (step === stepKeys.length - 1) {
       setIsCreating(true)
       try {
         await onCreate({
@@ -207,9 +207,7 @@ export function RssScheduleWizard({
         })
         close()
       } catch {
-        toast.error(
-          "No pudimos crear la programación. Comprueba los datos e inténtalo de nuevo."
-        )
+        toast.error(t("createFailed"))
       } finally {
         setIsCreating(false)
       }
@@ -234,26 +232,23 @@ export function RssScheduleWizard({
           }}
         >
           <SheetHeader className="border-b">
-            <SheetTitle>Nueva programación RSS</SheetTitle>
-            <SheetDescription>
-              Configura cómo convertir artículos nuevos de un feed en
-              publicaciones para tus canales.
-            </SheetDescription>
+            <SheetTitle>{t("title")}</SheetTitle>
+            <SheetDescription>{t("description")}</SheetDescription>
           </SheetHeader>
 
           <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
             <ol
-              aria-label="Pasos de la programación RSS"
+              aria-label={t("stepsLabel")}
               className="mx-auto flex w-full max-w-lg items-start"
             >
-              {steps.map((label, index) => {
+              {stepKeys.map((stepKey, index) => {
                 const isCurrent = index === step
                 const isComplete = index < step
 
                 return (
                   <li
                     className="flex min-w-0 flex-1 items-start last:flex-none"
-                    key={label}
+                    key={stepKey}
                   >
                     <div className="flex shrink-0 flex-col items-center gap-2">
                       <span
@@ -272,10 +267,10 @@ export function RssScheduleWizard({
                       <span
                         className={`text-center text-xs ${isCurrent ? "font-medium" : "text-muted-foreground"}`}
                       >
-                        {label}
+                        {t(`step.${stepKey}`)}
                       </span>
                     </div>
-                    {index < steps.length - 1 ? (
+                    {index < stepKeys.length - 1 ? (
                       <span
                         aria-hidden="true"
                         className={`mt-3 h-px flex-1 ${index < step ? "bg-primary" : "bg-border"}`}
@@ -299,7 +294,7 @@ export function RssScheduleWizard({
                 <Field>
                   <FieldLabel htmlFor="rss-feed-url">
                     <span>
-                      URL del feed{" "}
+                      {t("feedUrl")}{" "}
                       <span aria-hidden="true" className="text-destructive">
                         *
                       </span>
@@ -310,19 +305,16 @@ export function RssScheduleWizard({
                     aria-required="true"
                     id="rss-feed-url"
                     onChange={(event) => setFeedUrl(event.target.value)}
-                    placeholder="https://sitio.com/feed.xml"
+                    placeholder={t("feedUrlPlaceholder")}
                     type="url"
                     value={feedUrl}
                   />
-                  <FieldDescription>
-                    Usa la URL directa del RSS, no la página principal del
-                    sitio.
-                  </FieldDescription>
+                  <FieldDescription>{t("feedUrlHint")}</FieldDescription>
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="rss-schedule-name">
                     <span>
-                      Nombre de la programación{" "}
+                      {t("name")}{" "}
                       <span aria-hidden="true" className="text-destructive">
                         *
                       </span>
@@ -333,12 +325,10 @@ export function RssScheduleWizard({
                     aria-required="true"
                     id="rss-schedule-name"
                     onChange={(event) => setName(event.target.value)}
-                    placeholder="Ej. Noticias del blog"
+                    placeholder={t("namePlaceholder")}
                     value={name}
                   />
-                  <FieldDescription>
-                    Solo lo verá tu equipo al administrar esta automatización.
-                  </FieldDescription>
+                  <FieldDescription>{t("nameHint")}</FieldDescription>
                 </Field>
               </FieldGroup>
             ) : null}
@@ -352,16 +342,14 @@ export function RssScheduleWizard({
                 >
                   <FieldLabel id="rss-targets-label">
                     <span>
-                      Publicar en{" "}
+                      {t("publishTo")}{" "}
                       <span aria-hidden="true" className="text-destructive">
                         *
                       </span>
                       <span className="sr-only"> obligatorio</span>
                     </span>
                   </FieldLabel>
-                  <FieldDescription>
-                    Elige las cuentas que recibirán cada artículo nuevo.
-                  </FieldDescription>
+                  <FieldDescription>{t("publishToHint")}</FieldDescription>
                   <div className="grid gap-2 sm:grid-cols-2">
                     {accounts.map((account) => (
                       <Field key={account.id} orientation="horizontal">
@@ -382,16 +370,14 @@ export function RssScheduleWizard({
                     ))}
                   </div>
                   {accounts.length === 0 ? (
-                    <FieldDescription>
-                      Conecta al menos un canal antes de crear una programación.
-                    </FieldDescription>
+                    <FieldDescription>{t("noAccounts")}</FieldDescription>
                   ) : null}
                 </Field>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field>
                     <FieldLabel htmlFor="rss-frequency">
                       <span>
-                        Frecuencia{" "}
+                        {t("frequencyLabel")}{" "}
                         <span aria-hidden="true" className="text-destructive">
                           *
                         </span>
@@ -411,9 +397,9 @@ export function RssScheduleWizard({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
-                          {frequencyOptions.map(([value, label]) => (
+                          {frequencyOptions.map(([value, labelKey]) => (
                             <SelectItem key={value} value={value}>
-                              {label}
+                              {t(labelKey)}
                             </SelectItem>
                           ))}
                         </SelectGroup>
@@ -423,7 +409,7 @@ export function RssScheduleWizard({
                   <Field>
                     <FieldLabel htmlFor="rss-time">
                       <span>
-                        Hora preferida{" "}
+                        {t("preferredTime")}{" "}
                         <span aria-hidden="true" className="text-destructive">
                           *
                         </span>
@@ -445,11 +431,8 @@ export function RssScheduleWizard({
               <FieldGroup>
                 <Field>
                   <FieldContent>
-                    <FieldTitle>Evitar artículos repetidos</FieldTitle>
-                    <FieldDescription>
-                      La programación nunca volverá a enviar el mismo artículo a
-                      la misma cuenta.
-                    </FieldDescription>
+                    <FieldTitle>{t("avoidRepeats")}</FieldTitle>
+                    <FieldDescription>{t("avoidRepeatsHint")}</FieldDescription>
                   </FieldContent>
                 </Field>
                 <Field orientation="horizontal">
@@ -459,15 +442,15 @@ export function RssScheduleWizard({
                     onCheckedChange={setIncludeSummary}
                   />
                   <FieldContent>
-                    <FieldTitle>Incluir resumen del artículo</FieldTitle>
+                    <FieldTitle>{t("includeSummary")}</FieldTitle>
                     <FieldDescription>
-                      Se usará como base del texto de la publicación.
+                      {t("includeSummaryHint")}
                     </FieldDescription>
                   </FieldContent>
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="rss-template">
-                    Texto que acompaña cada publicación
+                    {t("template")}
                   </FieldLabel>
                   <Textarea
                     id="rss-template"
@@ -475,10 +458,7 @@ export function RssScheduleWizard({
                     rows={5}
                     value={template}
                   />
-                  <FieldDescription>
-                    Variables disponibles: título, resumen y enlace del
-                    artículo.
-                  </FieldDescription>
+                  <FieldDescription>{t("templateHint")}</FieldDescription>
                 </Field>
               </FieldGroup>
             ) : null}
@@ -488,15 +468,21 @@ export function RssScheduleWizard({
                 <CardContent className="px-0">
                   <dl className="divide-y text-sm">
                     <div className="grid grid-cols-[9rem_1fr] gap-4 p-3">
-                      <dt className="text-muted-foreground">Programación</dt>
+                      <dt className="text-muted-foreground">
+                        {t("reviewSchedule")}
+                      </dt>
                       <dd className="font-medium">{name}</dd>
                     </div>
                     <div className="grid grid-cols-[9rem_1fr] gap-4 p-3">
-                      <dt className="text-muted-foreground">Feed</dt>
+                      <dt className="text-muted-foreground">
+                        {t("step.feed")}
+                      </dt>
                       <dd className="truncate font-medium">{feedUrl}</dd>
                     </div>
                     <div className="grid grid-cols-[9rem_1fr] gap-4 p-3">
-                      <dt className="text-muted-foreground">Destinos</dt>
+                      <dt className="text-muted-foreground">
+                        {t("step.targets")}
+                      </dt>
                       <dd className="font-medium">
                         {accounts
                           .filter((account) => targets.includes(account.id))
@@ -505,14 +491,16 @@ export function RssScheduleWizard({
                       </dd>
                     </div>
                     <div className="grid grid-cols-[9rem_1fr] gap-4 p-3">
-                      <dt className="text-muted-foreground">Publicación</dt>
+                      <dt className="text-muted-foreground">
+                        {t("reviewPublishing")}
+                      </dt>
                       <dd className="font-medium">
-                        {
+                        {t(
                           frequencyOptions.find(
                             ([value]) => value === frequency
-                          )?.[1]
-                        }{" "}
-                        a las {preferredTime}
+                          )?.[1] ?? "frequency.daily"
+                        )}{" "}
+                        {t("atTime", { time: preferredTime })}
                       </dd>
                     </div>
                   </dl>
@@ -528,7 +516,7 @@ export function RssScheduleWizard({
               type="button"
               variant="brand-secondary"
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             {step > 0 ? (
               <Button
@@ -537,7 +525,7 @@ export function RssScheduleWizard({
                 type="button"
                 variant="brand-secondary"
               >
-                Anterior
+                {t("previous")}
               </Button>
             ) : null}
             <Button disabled={!canContinue || isPending} type="submit">

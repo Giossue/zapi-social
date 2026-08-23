@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState, type FormEvent } from "react"
+import { useFormatter, useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import {
   CircleAlert,
@@ -92,18 +93,13 @@ import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
 
-import { capabilityLabels } from "@/features/channels/components/channel-table/channels-columns"
+import { useChannelLabels } from "@/lib/channel-labels"
 import { loginPath } from "@/features/identity/login-redirect"
 
 const pageSize = 10
 
 type GroupStatus = PortalAccountGroup["status"]
 type GroupAccount = PortalGroupsResponse["accounts"][number]
-
-const statusLabel: Record<GroupStatus, string> = {
-  active: "Activo",
-  inactive: "Inactivo",
-}
 
 const statusVariant: Record<GroupStatus, "success" | "neutral"> = {
   active: "success",
@@ -112,12 +108,12 @@ const statusVariant: Record<GroupStatus, "success" | "neutral"> = {
 
 /** Paleta fija para que un grupo sea reconocible de un vistazo sin abrir un selector nativo. */
 const groupColors = [
-  { label: "Azul", value: "#2563eb" },
-  { label: "Verde", value: "#16a34a" },
-  { label: "Ámbar", value: "#d97706" },
-  { label: "Rojo", value: "#dc2626" },
-  { label: "Violeta", value: "#7c3aed" },
-  { label: "Gris", value: "#475569" },
+  { labelKey: "color.blue", value: "#2563eb" },
+  { labelKey: "color.green", value: "#16a34a" },
+  { labelKey: "color.amber", value: "#d97706" },
+  { labelKey: "color.red", value: "#dc2626" },
+  { labelKey: "color.violet", value: "#7c3aed" },
+  { labelKey: "color.gray", value: "#475569" },
 ] as const
 
 type GroupDraft = {
@@ -146,21 +142,6 @@ function draftFrom(group: PortalAccountGroup): GroupDraft {
   }
 }
 
-function accountLabel(account: GroupAccount) {
-  const capability = capabilityLabels[
-    account.capabilityKey as keyof typeof capabilityLabels
-  ] as string | undefined
-  return capability ?? account.capabilityKey
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("es-EC", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(value))
-}
-
 function GroupSheet({
   accounts,
   group,
@@ -176,6 +157,8 @@ function GroupSheet({
   open: boolean
   pending: boolean
 }) {
+  const t = useTranslations("groups")
+  const labels = useChannelLabels()
   const [draft, setDraft] = useState<GroupDraft>(emptyDraft)
 
   useEffect(() => {
@@ -196,7 +179,7 @@ function GroupSheet({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!canSubmit) {
-      toast.error("El grupo necesita un nombre.")
+      toast.error(t("nameRequired"))
       return
     }
     const saved = await onSubmit({ ...draft, name: draft.name.trim() })
@@ -207,7 +190,7 @@ function GroupSheet({
     <Sheet onOpenChange={onOpenChange} open={open}>
       <SheetContent className="w-full gap-0 p-0 sm:max-w-lg" side="right">
         <SheetHeader className="border-b">
-          <SheetTitle>{group ? "Editar grupo" : "Nuevo grupo"}</SheetTitle>
+          <SheetTitle>{group ? t("editTitle") : t("createTitle")}</SheetTitle>
           <SheetDescription>
             Un grupo organiza cuentas conectadas; no modifica permisos ni
             miembros del equipo.
@@ -240,12 +223,14 @@ function GroupSheet({
                       name: event.target.value,
                     }))
                   }
-                  placeholder="Ej. Retail Ecuador"
+                  placeholder={t("namePlaceholder")}
                   value={draft.name}
                 />
               </Field>
               <Field>
-                <FieldLabel htmlFor="group-description">Descripción</FieldLabel>
+                <FieldLabel htmlFor="group-description">
+                  {t("description")}
+                </FieldLabel>
                 <Textarea
                   disabled={pending}
                   id="group-description"
@@ -256,17 +241,17 @@ function GroupSheet({
                       description: event.target.value,
                     }))
                   }
-                  placeholder="Explica cuándo usar este grupo."
+                  placeholder={t("descriptionPlaceholder")}
                   rows={3}
                   value={draft.description}
                 />
               </Field>
               <Field>
-                <FieldLabel>Color</FieldLabel>
+                <FieldLabel>{t("color.label")}</FieldLabel>
                 <div className="flex flex-wrap gap-2">
                   {groupColors.map((color) => (
                     <Button
-                      aria-label={color.label}
+                      aria-label={t(color.labelKey)}
                       aria-pressed={draft.color === color.value}
                       disabled={pending}
                       key={color.value}
@@ -292,12 +277,10 @@ function GroupSheet({
                     </Button>
                   ))}
                 </div>
-                <FieldDescription>
-                  Identifica el grupo en listas y selectores.
-                </FieldDescription>
+                <FieldDescription>{t("colorHint")}</FieldDescription>
               </Field>
               <Field>
-                <FieldLabel htmlFor="group-status">Estado</FieldLabel>
+                <FieldLabel htmlFor="group-status">{t("status")}</FieldLabel>
                 <Select
                   disabled={pending}
                   onValueChange={(value) =>
@@ -313,15 +296,19 @@ function GroupSheet({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="active">Activo</SelectItem>
-                      <SelectItem value="inactive">Inactivo</SelectItem>
+                      <SelectItem value="active">
+                        {t("statusLabel.active")}
+                      </SelectItem>
+                      <SelectItem value="inactive">
+                        {t("statusLabel.inactive")}
+                      </SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
               </Field>
               <FieldSet>
                 <FieldLabel asChild>
-                  <legend>Cuentas</legend>
+                  <legend>{t("accounts")}</legend>
                 </FieldLabel>
                 {accounts.length ? (
                   <FieldGroup className="gap-3" data-slot="checkbox-group">
@@ -341,7 +328,7 @@ function GroupSheet({
                             <FieldContent>
                               <FieldTitle>{account.displayName}</FieldTitle>
                               <FieldDescription>
-                                {accountLabel(account)}
+                                {labels.capability(account.capabilityKey)}
                               </FieldDescription>
                             </FieldContent>
                           </FieldLabel>
@@ -350,9 +337,7 @@ function GroupSheet({
                     })}
                   </FieldGroup>
                 ) : (
-                  <FieldDescription>
-                    No hay cuentas conectadas para agrupar.
-                  </FieldDescription>
+                  <FieldDescription>{t("noAccounts")}</FieldDescription>
                 )}
               </FieldSet>
             </FieldGroup>
@@ -364,7 +349,7 @@ function GroupSheet({
               type="button"
               variant="brand-secondary"
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button disabled={!canSubmit || pending} type="submit">
               {pending ? (
@@ -372,7 +357,7 @@ function GroupSheet({
               ) : (
                 <Plus data-icon="inline-start" />
               )}
-              {group ? "Guardar grupo" : "Crear grupo"}
+              {group ? t("save") : t("create")}
             </Button>
           </SheetFooter>
         </form>
@@ -382,6 +367,8 @@ function GroupSheet({
 }
 
 export function GroupsPage() {
+  const t = useTranslations("groups")
+  const format = useFormatter()
   const router = useRouter()
   const [data, setData] = useState<PortalGroupsResponse | null>(null)
   const [query, setQuery] = useState("")
@@ -440,17 +427,17 @@ export function GroupsPage() {
     try {
       if (editing) {
         await groupsApi.update(editing.id, draft)
-        toast.success("Grupo actualizado.")
+        toast.success(t("groupUpdated"))
       } else {
         await groupsApi.create(draft)
-        toast.success("Grupo creado.")
+        toast.success(t("created"))
       }
       await load()
       return true
     } catch (error) {
       if (handleError(error)) return false
       console.error("Group save failed", error)
-      toast.error("No pudimos guardar el grupo. Inténtalo de nuevo.")
+      toast.error(t("saveFailed"))
       return false
     } finally {
       setPending(false)
@@ -463,11 +450,11 @@ export function GroupsPage() {
       await groupsApi.remove(group.id)
       setToDelete(null)
       await load()
-      toast.success("Grupo eliminado.")
+      toast.success(t("deleted"))
     } catch (error) {
       if (handleError(error)) return
       console.error("Group deletion failed", error)
-      toast.error("No pudimos eliminar el grupo. Inténtalo de nuevo.")
+      toast.error(t("deleteFailed"))
     } finally {
       setPending(false)
     }
@@ -478,7 +465,7 @@ export function GroupsPage() {
       <Card variant="subtle">
         <CardContent>
           <EmptyState
-            description="Tu acceso actual no permite consultar los grupos de este espacio de trabajo."
+            description={t("forbiddenDescription")}
             icon={LockKeyhole}
             title="Grupos no disponibles"
           />
@@ -488,7 +475,7 @@ export function GroupsPage() {
   }
 
   if (isLoading && !data && !loadError) {
-    return <PageLoading aria-label="Cargando grupos" />
+    return <PageLoading aria-label={t("loading")} />
   }
 
   if (loadError || !data) {
@@ -502,7 +489,7 @@ export function GroupsPage() {
                 variant="brand-secondary"
               />
             }
-            description="No pudimos cargar los grupos de este espacio de trabajo."
+            description={t("loadFailedDescription")}
             icon={CircleAlert}
             title="Grupos no disponibles"
           />
@@ -541,26 +528,26 @@ export function GroupsPage() {
     <>
       <div className="flex flex-col gap-4">
         <CollectionHeader
-          description="Organiza cuentas relacionadas para encontrarlas y seleccionarlas más rápido."
-          title="Grupos"
+          description={t("pageDescription")}
+          title={t("pageTitle")}
         />
         <CardGrid layout="xl-3">
           <MetricCard
-            description="Creados en este espacio"
+            description={t("metrics.totalDescription")}
             icon={FolderKanban}
-            label="Grupos"
+            label={t("pageTitle")}
             value={data.metrics.total}
           />
           <MetricCard
-            description="Listos para usar"
+            description={t("metrics.activeDescription")}
             icon={FolderKanban}
-            label="Activos"
+            label={t("metrics.active")}
             value={data.metrics.active}
           />
           <MetricCard
-            description="Incluidas en algún grupo"
+            description={t("metrics.reachedDescription")}
             icon={Share2}
-            label="Cuentas alcanzadas"
+            label={t("metrics.reached")}
             value={data.metrics.reachedAccounts}
           />
         </CardGrid>
@@ -579,12 +566,12 @@ export function GroupsPage() {
               ) : undefined
             }
             search={{
-              ariaLabel: "Buscar grupos",
+              ariaLabel: t("searchLabel"),
               onChange: (value) => {
                 setQuery(value)
                 setPage(1)
               },
-              placeholder: "Buscar grupos...",
+              placeholder: t("searchPlaceholder"),
               value: query,
             }}
           />
@@ -604,16 +591,16 @@ export function GroupsPage() {
               }
             >
               <DataTableFilter
-                ariaLabel="Filtrar por estado"
-                label="Estado"
+                ariaLabel={t("filterStatus")}
+                label={t("status")}
                 onValueChange={(value) => {
                   setStatus(value as GroupStatus | "all")
                   setPage(1)
                 }}
                 options={[
-                  { label: "Todos", value: "all" },
-                  { label: "Activos", value: "active" },
-                  { label: "Inactivos", value: "inactive" },
+                  { label: t("filter.all"), value: "all" },
+                  { label: t("filter.active"), value: "active" },
+                  { label: t("filter.inactive"), value: "inactive" },
                 ]}
                 value={status}
               />
@@ -621,14 +608,14 @@ export function GroupsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Grupo</TableHead>
-                  <TableHead>Cuentas</TableHead>
+                  <TableHead>{t("group")}</TableHead>
+                  <TableHead>{t("accounts")}</TableHead>
                   <TableHead className="hidden lg:table-cell">
-                    Actualizado
+                    {t("updated")}
                   </TableHead>
-                  <TableHead>Estado</TableHead>
+                  <TableHead>{t("status")}</TableHead>
                   {data.canManage ? (
-                    <TableHead className="text-right">Acciones</TableHead>
+                    <TableHead className="text-right">{t("actions")}</TableHead>
                   ) : null}
                 </TableRow>
               </TableHeader>
@@ -660,27 +647,28 @@ export function GroupsPage() {
                         <TableCell>
                           <div className="flex flex-col">
                             <span>
-                              {group.accountIds.length}{" "}
-                              {group.accountIds.length === 1
-                                ? "cuenta"
-                                : "cuentas"}
+                              {t("accountCount", {
+                                count: group.accountIds.length,
+                              })}
                             </span>
                             {names.length ? (
                               <span className="text-sm text-muted-foreground">
                                 {names.slice(0, 2).join(", ")}
                                 {names.length > 2
-                                  ? ` y ${names.length - 2} más`
+                                  ? t("andMore", { count: names.length - 2 })
                                   : ""}
                               </span>
                             ) : null}
                           </div>
                         </TableCell>
                         <TableCell className="hidden text-muted-foreground lg:table-cell">
-                          {formatDate(group.updatedAt)}
+                          {format.dateTime(new Date(group.updatedAt), {
+                            dateStyle: "medium",
+                          })}
                         </TableCell>
                         <TableCell>
                           <Badge variant={statusVariant[group.status]}>
-                            {statusLabel[group.status]}
+                            {t(`statusLabel.${group.status}`)}
                           </Badge>
                         </TableCell>
                         {data.canManage ? (
@@ -688,7 +676,9 @@ export function GroupsPage() {
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button
-                                  aria-label={`Abrir acciones para ${group.name}`}
+                                  aria-label={t("openActions", {
+                                    name: group.name,
+                                  })}
                                   className="size-8 rounded-md text-muted-foreground hover:bg-muted/50"
                                   size="icon-sm"
                                   variant="brand-secondary"
@@ -705,7 +695,7 @@ export function GroupsPage() {
                                   size="compact"
                                 >
                                   <Pencil />
-                                  Editar
+                                  {t("edit")}
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
@@ -714,7 +704,7 @@ export function GroupsPage() {
                                   variant="destructive"
                                 >
                                   <Trash2 />
-                                  Eliminar
+                                  {t("delete")}
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -728,19 +718,17 @@ export function GroupsPage() {
                     action={
                       hasFilters ? (
                         <Button onClick={clearFilters} variant="outline">
-                          Restablecer filtros
+                          {t("clearFilters")}
                         </Button>
                       ) : null
                     }
                     colSpan={data.canManage ? 5 : 4}
                     description={
                       hasFilters
-                        ? "Prueba con otro término o estado."
-                        : "Crea un grupo para ordenar tus cuentas conectadas."
+                        ? t("emptyFilteredDescription")
+                        : t("emptyDescription")
                     }
-                    title={
-                      hasFilters ? "No hay coincidencias" : "No hay grupos"
-                    }
+                    title={hasFilters ? t("noMatches") : t("emptyTitle")}
                   />
                 )}
               </TableBody>
@@ -748,7 +736,7 @@ export function GroupsPage() {
             <TablePagination
               canGoNext={safePage < pageCount}
               canGoPrevious={safePage > 1}
-              itemLabel="grupos"
+              itemLabel={t("itemLabel")}
               onNextPage={() =>
                 setPage((current) => Math.min(current + 1, pageCount))
               }
@@ -762,7 +750,7 @@ export function GroupsPage() {
           </CardContent>
         </Card>
         {data.canManage ? (
-          <FloatingActionButton label="Nuevo grupo" onClick={openCreate} />
+          <FloatingActionButton label={t("createTitle")} onClick={openCreate} />
         ) : null}
       </div>
       <GroupSheet
@@ -779,14 +767,17 @@ export function GroupsPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar “{toDelete?.name}”?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("deleteTitle", { name: toDelete?.name ?? "" })}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Las cuentas seguirán conectadas; solo se pierde esta
-              clasificación.
+              {t("deleteDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={pending}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={pending}>
+              {t("cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               disabled={pending}
               onClick={(event) => {
@@ -796,7 +787,7 @@ export function GroupsPage() {
               variant="destructive"
             >
               {pending ? <Spinner data-icon="inline-start" /> : null}
-              Eliminar grupo
+              {t("deleteAction")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

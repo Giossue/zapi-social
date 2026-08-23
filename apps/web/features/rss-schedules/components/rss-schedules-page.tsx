@@ -53,6 +53,7 @@ import {
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { toast } from "@workspace/ui/components/toast"
+import { useFormatter, useTranslations } from "next-intl"
 
 import type {
   RssSchedule,
@@ -70,11 +71,6 @@ import {
 } from "./rss-schedules-states"
 
 const pageSize = 10
-
-const statusLabel: Record<RssScheduleStatus, string> = {
-  active: "Activa",
-  paused: "En pausa",
-}
 
 const providerLabel = {
   facebook: "Facebook",
@@ -105,46 +101,13 @@ type SetupLoadState =
       status: "ready"
     }
 
-function destinationsSummary(targets: readonly string[]) {
-  const [firstTarget, ...remainingTargets] = targets
-
-  if (!firstTarget) return { primary: "Sin destinos", secondary: "" }
-
-  return {
-    primary: firstTarget,
-    secondary: remainingTargets.length
-      ? `+${remainingTargets.length} destino${remainingTargets.length === 1 ? "" : "s"}`
-      : "1 canal conectado",
-  }
-}
-
-function dateTimeLabel(value: string | null, fallback: string) {
-  if (!value) return fallback
-
-  const date = new Date(value)
-  if (Number.isNaN(date.valueOf())) return fallback
-
-  return new Intl.DateTimeFormat("es-EC", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date)
-}
-
 function toRssScheduleRow(schedule: PortalRssSchedule): RssSchedule {
   return {
     feedUrl: schedule.feedUrl,
     id: schedule.id,
-    lastRun: dateTimeLabel(
-      schedule.lastQueuedAt ?? schedule.lastCheckedAt,
-      "Aún no se ejecuta"
-    ),
+    lastRunAt: schedule.lastQueuedAt ?? schedule.lastCheckedAt,
     name: schedule.name,
-    nextRun: dateTimeLabel(
-      schedule.nextRunAt,
-      schedule.status === "paused"
-        ? "En pausa"
-        : "Pendiente de la primera ejecución"
-    ),
+    nextRunAt: schedule.nextRunAt,
     queued: schedule.queuedCount,
     status: schedule.status,
     targets: schedule.targets.map((target) => target.displayName),
@@ -152,12 +115,13 @@ function toRssScheduleRow(schedule: PortalRssSchedule): RssSchedule {
 }
 
 function setupTargetAccounts(
-  accounts: Awaited<ReturnType<typeof publishingApi.list>>["accounts"]
+  accounts: Awaited<ReturnType<typeof publishingApi.list>>["accounts"],
+  connectedLabel: string
 ) {
   return accounts
     .filter((account) => account.connected)
     .map((account) => ({
-      description: "Conectada",
+      description: connectedLabel,
       id: account.id,
       label: `${providerLabel[account.provider]} · ${account.name}`,
     }))
@@ -167,13 +131,19 @@ function clientTimezone() {
   return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"
 }
 
-function apiErrorMessage(error: unknown, fallback: string) {
+/** Un fallo de validación tiene su propio texto; el resto usa el del contexto. */
+function scheduleError(
+  error: unknown,
+  fallback: string,
+  validationMessage: string
+) {
   if (error instanceof ApiError && error.code === "VALIDATION_FAILED")
-    return "Revisa las cuentas y los datos de la programación."
+    return validationMessage
   return fallback
 }
 
 export function RssSchedulesPage() {
+  const t = useTranslations("rssSchedules")
   const [query, setQuery] = useState("")
   const deferredQuery = useDeferredValue(query)
   const [status, setStatus] = useState<"all" | RssScheduleStatus>("all")
@@ -194,7 +164,7 @@ export function RssSchedulesPage() {
       .then(([publishing, profile]) => {
         if (!isCurrent) return
         setSetupState({
-          accounts: setupTargetAccounts(publishing.accounts),
+          accounts: setupTargetAccounts(publishing.accounts, t("connected")),
           status: "ready",
           timezone: profile.timezone ?? clientTimezone(),
         })
@@ -206,7 +176,7 @@ export function RssSchedulesPage() {
     return () => {
       isCurrent = false
     }
-  }, [setupReloadToken])
+  }, [setupReloadToken, t])
 
   useEffect(() => {
     let isCurrent = true
@@ -302,6 +272,8 @@ function RssSchedules({
   timezone: string
   total: number
 }) {
+  const t = useTranslations("rssSchedules")
+  const format = useFormatter()
   const [wizardOpen, setWizardOpen] = useState(false)
   const [pendingId, setPendingId] = useState<string | null>(null)
   const visibleRows = initialRows
@@ -320,7 +292,7 @@ function RssSchedules({
       timezone,
       weekdays: weekdaysByFrequency[input.frequency],
     })
-    toast.success("La programación RSS se creó.")
+    toast.success(t("created"))
     onRefresh()
   }
 
@@ -332,15 +304,11 @@ function RssSchedules({
     setPendingId(id)
     try {
       const schedule = await rssSchedulesApi.toggle(id)
-      toast.success(
-        schedule.status === "active"
-          ? "La programación se reactivó."
-          : "La programación quedó en pausa."
-      )
+      toast.success(schedule.status === "active" ? t("resumed") : t("paused"))
       onRefresh()
     } catch (error) {
       toast.error(
-        apiErrorMessage(error, "No pudimos actualizar la programación.")
+        scheduleError(error, t("updateFailed"), t("validationFailed"))
       )
     } finally {
       setPendingId(null)
@@ -351,11 +319,11 @@ function RssSchedules({
     setPendingId(id)
     try {
       await rssSchedulesApi.remove(id)
-      toast.success("La programación RSS se eliminó.")
+      toast.success(t("deleted"))
       onRefresh()
     } catch (error) {
       toast.error(
-        apiErrorMessage(error, "No pudimos eliminar la programación.")
+        scheduleError(error, t("deleteFailed"), t("validationFailed"))
       )
     } finally {
       setPendingId(null)
@@ -366,10 +334,10 @@ function RssSchedules({
     setPendingId(id)
     try {
       await rssSchedulesApi.run(id)
-      toast.success("La ejecución se añadió a la cola.")
+      toast.success(t("runQueued"))
       onRefresh()
     } catch (error) {
-      toast.error(apiErrorMessage(error, "No pudimos iniciar la ejecución."))
+      toast.error(scheduleError(error, t("runFailed"), t("validationFailed")))
     } finally {
       setPendingId(null)
     }
@@ -384,8 +352,8 @@ function RssSchedules({
     <>
       <div className="flex flex-col gap-4">
         <CollectionHeader
-          description="Gestiona los feeds que convierten artículos nuevos en publicaciones programadas."
-          title="Programaciones RSS"
+          description={t("pageDescription")}
+          title={t("pageTitle")}
         />
         <Card variant="subtle">
           <DataTableHeader
@@ -402,24 +370,24 @@ function RssSchedules({
               ) : undefined
             }
             search={{
-              ariaLabel: "Buscar programaciones RSS",
+              ariaLabel: t("searchLabel"),
               onChange: onQueryChange,
-              placeholder: "Buscar programaciones...",
+              placeholder: t("searchPlaceholder"),
               value: query,
             }}
           />
           <CardContent className="flex flex-col gap-4 px-0">
             <DataTableToolbar>
               <DataTableFilter
-                ariaLabel="Filtrar por estado"
-                label="Estado"
+                ariaLabel={t("filterStatus")}
+                label={t("status")}
                 onValueChange={(value) =>
                   onStatusChange(value as "all" | RssScheduleStatus)
                 }
                 options={[
-                  { label: "Todos", value: "all" },
-                  { label: "Activas", value: "active" },
-                  { label: "En pausa", value: "paused" },
+                  { label: t("filter.all"), value: "all" },
+                  { label: t("filter.active"), value: "active" },
+                  { label: t("filter.paused"), value: "paused" },
                 ]}
                 value={status}
               />
@@ -430,7 +398,7 @@ function RssSchedules({
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Feed</TableHead>
+                      <TableHead>{t("feed")}</TableHead>
                       <TableHead className="hidden lg:table-cell">
                         Destinos
                       </TableHead>
@@ -440,14 +408,14 @@ function RssSchedules({
                       <TableHead className="hidden lg:table-cell">
                         Actividad
                       </TableHead>
-                      <TableHead>Estado</TableHead>
+                      <TableHead>{t("status")}</TableHead>
                       <TableHead className="text-right">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {visibleRows.length ? (
                       visibleRows.map((row) => {
-                        const destinations = destinationsSummary(row.targets)
+                        const [firstTarget, ...otherTargets] = row.targets
                         const isPending = pendingId === row.id
 
                         return (
@@ -473,25 +441,45 @@ function RssSchedules({
                             <TableCell className="hidden lg:table-cell">
                               <div className="grid max-w-48 gap-0.5">
                                 <span className="truncate text-sm">
-                                  {destinations.primary}
+                                  {firstTarget ?? t("noTargets")}
                                 </span>
                                 <span className="text-xs text-muted-foreground">
-                                  {destinations.secondary}
+                                  {otherTargets.length
+                                    ? t("moreTargets", {
+                                        count: otherTargets.length,
+                                      })
+                                    : firstTarget
+                                      ? t("oneChannel")
+                                      : ""}
                                 </span>
                               </div>
                             </TableCell>
                             <TableCell className="hidden md:table-cell">
                               <span className="text-sm text-foreground">
-                                {row.nextRun}
+                                {row.nextRunAt
+                                  ? format.dateTime(new Date(row.nextRunAt), {
+                                      dateStyle: "medium",
+                                      timeStyle: "short",
+                                    })
+                                  : row.status === "paused"
+                                    ? t("statusLabel.paused")
+                                    : t("pendingFirstRun")}
                               </span>
                             </TableCell>
                             <TableCell className="hidden lg:table-cell">
                               <div className="grid gap-0.5">
-                                <span className="text-sm">{row.lastRun}</span>
+                                <span className="text-sm">
+                                  {row.lastRunAt
+                                    ? format.dateTime(new Date(row.lastRunAt), {
+                                        dateStyle: "medium",
+                                        timeStyle: "short",
+                                      })
+                                    : t("neverRun")}
+                                </span>
                                 <span className="text-xs text-muted-foreground">
                                   {row.queued
                                     ? `${row.queued} borrador${row.queued === 1 ? "" : "es"} por revisar`
-                                    : "Sin borradores generados"}
+                                    : t("noDrafts")}
                                 </span>
                               </div>
                             </TableCell>
@@ -503,7 +491,7 @@ function RssSchedules({
                                     : "secondary"
                                 }
                               >
-                                {statusLabel[row.status]}
+                                {t(`statusLabel.${row.status}`)}
                               </Badge>
                             </TableCell>
                             <TableCell>
@@ -537,8 +525,8 @@ function RssSchedules({
                                         <Play />
                                       )}
                                       {row.status === "active"
-                                        ? "Pausar"
-                                        : "Reactivar"}
+                                        ? t("pause")
+                                        : t("resume")}
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem
@@ -568,13 +556,13 @@ function RssSchedules({
                         }
                         description={
                           query || status !== "all"
-                            ? "Prueba con otro término o restablece los filtros."
-                            : "Añade un feed y elige cuándo publicarlo en tus canales."
+                            ? t("emptyFilteredDescription")
+                            : t("emptyDescription")
                         }
                         title={
                           query || status !== "all"
-                            ? "No hay coincidencias"
-                            : "Aún no tienes programaciones RSS"
+                            ? t("noMatches")
+                            : t("emptyTitle")
                         }
                       />
                     )}
@@ -597,7 +585,7 @@ function RssSchedules({
 
         {canManage ? (
           <FloatingActionButton
-            label="Crear programación"
+            label={t("create")}
             onClick={() => setWizardOpen(true)}
           />
         ) : null}

@@ -71,6 +71,7 @@ import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
+import { useFormatter, useTranslations } from "next-intl"
 import {
   LockKeyhole,
   MoreHorizontal,
@@ -118,17 +119,6 @@ type CaptionTableActions = {
   onRemove: (caption: Caption) => void
 }
 
-const sourceLabels: Record<CaptionSourceType, string> = {
-  manual: "Manual",
-  ai: "Generado por IA",
-}
-
-const statusLabels: Record<CaptionStatus, string> = {
-  active: "Activo",
-  draft: "Borrador",
-  archived: "Archivado",
-}
-
 const emptyEditorValues: CaptionEditorValues = {
   content: "",
   name: "",
@@ -149,17 +139,6 @@ function toEditorValues(caption: Caption): CaptionEditorValues {
   }
 }
 
-function formatUpdatedAt(value: string) {
-  const updatedAt = new Date(value)
-  if (Number.isNaN(updatedAt.getTime())) return "Actualizado recientemente"
-
-  return new Intl.DateTimeFormat("es", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(updatedAt)
-}
-
 function normalizeTags(value: string) {
   const uniqueTags = new Map<string, string>()
 
@@ -172,20 +151,22 @@ function normalizeTags(value: string) {
 }
 
 function CaptionStatusBadge({ status }: { status: CaptionStatus }) {
+  const t = useTranslations("captions")
+
   if (status === "active") {
     return (
       <Badge
         className="bg-success leading-none text-success-foreground"
         variant="secondary"
       >
-        {statusLabels[status]}
+        {t(`statusLabel.${status}`)}
       </Badge>
     )
   }
 
   return (
     <Badge className="leading-none" variant="outline">
-      {statusLabels[status]}
+      {t(`statusLabel.${status}`)}
     </Badge>
   )
 }
@@ -204,9 +185,11 @@ function CaptionCell({ caption }: { caption: Caption }) {
 }
 
 function SourceCell({ sourceType }: { sourceType: CaptionSourceType }) {
+  const t = useTranslations("captions")
+
   return (
     <Badge className="leading-none" variant="outline">
-      {sourceLabels[sourceType]}
+      {t(`sourceLabel.${sourceType}`)}
     </Badge>
   )
 }
@@ -231,46 +214,58 @@ function TagsCell({ tags }: { tags: readonly string[] }) {
   )
 }
 
+/** Las columnas reciben el traductor: se construyen fuera del render. */
 function createCaptionColumns({
   onEdit,
   onRemove,
-}: CaptionTableActions): ColumnDef<Caption>[] {
+  t,
+  format,
+}: CaptionTableActions & {
+  t: ReturnType<typeof useTranslations<"captions">>
+  format: ReturnType<typeof useFormatter>
+}): ColumnDef<Caption>[] {
   return [
     {
       accessorKey: "name",
-      header: "Caption",
+      header: t("caption"),
       cell: ({ row }) => <CaptionCell caption={row.original} />,
     },
     {
       accessorKey: "sourceType",
-      header: "Origen",
+      header: t("source"),
       cell: ({ row }) => <SourceCell sourceType={row.original.sourceType} />,
       meta: { className: "hidden md:table-cell" },
     },
     {
       accessorKey: "status",
-      header: "Estado",
+      header: t("status"),
       cell: ({ row }) => <CaptionStatusBadge status={row.original.status} />,
     },
     {
       accessorKey: "tags",
-      header: "Etiquetas",
+      header: t("tags"),
       cell: ({ row }) => <TagsCell tags={row.original.tags} />,
       meta: { className: "hidden lg:table-cell" },
     },
     {
       accessorKey: "updatedAt",
-      header: "Actualizado",
+      header: t("updated"),
       cell: ({ row }) => (
         <span className="text-sm text-foreground">
-          {formatUpdatedAt(row.original.updatedAt)}
+          {Number.isNaN(new Date(row.original.updatedAt).getTime())
+            ? t("updatedRecently")
+            : format.dateTime(new Date(row.original.updatedAt), {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })}
         </span>
       ),
       meta: { className: "hidden lg:table-cell" },
     },
     {
       id: "actions",
-      header: () => <div className="text-right">Acciones</div>,
+      header: () => <div className="text-right">{t("actions")}</div>,
       cell: ({ row }) => {
         const caption = row.original
 
@@ -326,6 +321,8 @@ function CaptionsTable({
   onEdit: (caption: Caption) => void
   onRemove: (caption: Caption) => void
 }) {
+  const t = useTranslations("captions")
+  const format = useFormatter()
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
@@ -333,7 +330,7 @@ function CaptionsTable({
   const tableData = useMemo(() => [...captions], [captions])
   const table = useReactTable({
     data: tableData,
-    columns: createCaptionColumns({ onEdit, onRemove }),
+    columns: createCaptionColumns({ format, onEdit, onRemove, t }),
     state: { pagination },
     getRowId: (caption) => caption.id,
     onPaginationChange: setPagination,
@@ -415,6 +412,7 @@ function CaptionsLoading() {
 }
 
 export function CaptionsLibraryPage() {
+  const t = useTranslations("captions")
   const router = useRouter()
   const [captions, setCaptions] = useState<Caption[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -537,9 +535,9 @@ export function CaptionsLibraryPage() {
     const content = values.content.trim()
     const tags = normalizeTags(values.tags)
 
-    if (!name || !content) return "Nombre y contenido son obligatorios."
+    if (!name || !content) return t("requiredFields")
     if (tags.length > 20 || tags.some((tag) => tag.length > 64)) {
-      return "Usa hasta 20 etiquetas de 64 caracteres como máximo."
+      return t("tagsLimit")
     }
 
     const draft: CaptionDraft = {
@@ -563,11 +561,11 @@ export function CaptionsLibraryPage() {
             caption.id === updatedCaption.id ? updatedCaption : caption
           )
         )
-        toast.success("Cambios guardados.")
+        toast.success(t("saved"))
       } else {
         const newCaption = await captionsApi.create(draft)
         setCaptions((currentCaptions) => [newCaption, ...currentCaptions])
-        toast.success("Caption creado.")
+        toast.success(t("created"))
       }
 
       setIsEditorOpen(false)
@@ -580,8 +578,8 @@ export function CaptionsLibraryPage() {
       }
 
       console.error("Caption save failed", error)
-      toast.error("No se pudo guardar el caption.")
-      return "No pudimos guardar los cambios. Revisa los datos e inténtalo de nuevo."
+      toast.error(t("saveFailedToast"))
+      return t("saveFailed")
     } finally {
       setPending(false)
     }
@@ -597,7 +595,7 @@ export function CaptionsLibraryPage() {
         currentCaptions.filter((caption) => caption.id !== captionToDelete.id)
       )
       setCaptionToDelete(null)
-      toast.success("Caption eliminado.")
+      toast.success(t("deleted"))
     } catch (error) {
       if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
         router.replace(loginPath())
@@ -605,7 +603,7 @@ export function CaptionsLibraryPage() {
       }
 
       console.error("Caption delete failed", error)
-      toast.error("No se pudo eliminar el caption.")
+      toast.error(t("deleteFailed"))
     } finally {
       setPending(false)
     }
@@ -618,9 +616,9 @@ export function CaptionsLibraryPage() {
       <Card variant="subtle">
         <CardContent>
           <EmptyState
-            description="Pide acceso a un administrador del espacio de trabajo."
+            description={t("forbiddenDescription")}
             icon={LockKeyhole}
-            title="No tienes acceso a los captions"
+            title={t("forbiddenTitle")}
           />
         </CardContent>
       </Card>
@@ -633,9 +631,9 @@ export function CaptionsLibraryPage() {
         <CardContent>
           <EmptyState
             action={<RetryButton onClick={() => void loadCaptions()} />}
-            description="No pudimos cargar la biblioteca en este momento. Inténtalo de nuevo."
+            description={t("loadFailedDescription")}
             icon={TriangleAlert}
-            title="No pudimos cargar los captions"
+            title={t("loadFailedTitle")}
           />
         </CardContent>
       </Card>
@@ -650,15 +648,15 @@ export function CaptionsLibraryPage() {
           Limpiar filtros
         </Button>
       }
-      description="Prueba con otro término de búsqueda."
+      description={t("emptyFilteredDescription")}
       icon={TABLE_EMPTY_ICON}
-      title="No encontramos captions"
+      title={t("noMatches")}
     />
   ) : (
     <EmptyState
-      description="Crea un caption para empezar a construir tu biblioteca."
+      description={t("emptyDescription")}
       icon={TABLE_EMPTY_ICON}
-      title="Aún no hay captions"
+      title={t("emptyTitle")}
     />
   )
 
@@ -666,8 +664,8 @@ export function CaptionsLibraryPage() {
     <>
       <div className="flex flex-col gap-4">
         <CollectionHeader
-          description="Gestiona textos reutilizables para mantener una voz consistente en tus publicaciones."
-          title="Biblioteca de captions"
+          description={t("pageDescription")}
+          title={t("pageTitle")}
         />
         <Card variant="subtle">
           <DataTableHeader
@@ -683,9 +681,9 @@ export function CaptionsLibraryPage() {
               </Button>
             }
             search={{
-              ariaLabel: "Buscar captions",
+              ariaLabel: t("searchLabel"),
               onChange: setSearchQuery,
-              placeholder: "Buscar captions...",
+              placeholder: t("searchPlaceholder"),
               value: searchQuery,
             }}
           />
@@ -706,29 +704,29 @@ export function CaptionsLibraryPage() {
               }
             >
               <DataTableFilter
-                ariaLabel="Filtrar por origen"
-                label="Origen"
+                ariaLabel={t("filterSource")}
+                label={t("source")}
                 onValueChange={(value) =>
                   setSourceFilter(value as CaptionSourceType | "all")
                 }
                 options={[
-                  { label: "Todos", value: "all" },
-                  { label: "Manual", value: "manual" },
-                  { label: "Generado por IA", value: "ai" },
+                  { label: t("all"), value: "all" },
+                  { label: t("sourceLabel.manual"), value: "manual" },
+                  { label: t("sourceLabel.ai"), value: "ai" },
                 ]}
                 value={sourceFilter}
               />
               <DataTableFilter
-                ariaLabel="Filtrar por estado"
-                label="Estado"
+                ariaLabel={t("filterStatus")}
+                label={t("status")}
                 onValueChange={(value) =>
                   setStatusFilter(value as CaptionStatus | "all")
                 }
                 options={[
-                  { label: "Todos", value: "all" },
-                  { label: "Activo", value: "active" },
-                  { label: "Borrador", value: "draft" },
-                  { label: "Archivado", value: "archived" },
+                  { label: t("all"), value: "all" },
+                  { label: t("statusLabel.active"), value: "active" },
+                  { label: t("statusLabel.draft"), value: "draft" },
+                  { label: t("statusLabel.archived"), value: "archived" },
                 ]}
                 value={statusFilter}
               />
@@ -743,7 +741,10 @@ export function CaptionsLibraryPage() {
         </Card>
       </div>
 
-      <FloatingActionButton label="Nuevo caption" onClick={openCreateEditor} />
+      <FloatingActionButton
+        label={t("createTitle")}
+        onClick={openCreateEditor}
+      />
 
       <CaptionEditor
         caption={editingCaption}
@@ -770,11 +771,13 @@ export function CaptionsLibraryPage() {
             <AlertDialogDescription>
               {captionToDelete
                 ? `“${captionToDelete.name}” se eliminará de la biblioteca. Esta acción no se puede deshacer.`
-                : "Esta acción no se puede deshacer."}
+                : t("deleteWarning")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={pending}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={pending}>
+              {t("cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               disabled={pending}
               onClick={(event) => {
@@ -784,7 +787,7 @@ export function CaptionsLibraryPage() {
               variant="destructive"
             >
               {pending ? (
-                <Spinner aria-label="Eliminando" data-icon="inline-start" />
+                <Spinner aria-label={t("deleting")} data-icon="inline-start" />
               ) : null}
               Eliminar caption
             </AlertDialogAction>
@@ -808,6 +811,7 @@ function CaptionEditor({
   open: boolean
   pending: boolean
 }) {
+  const t = useTranslations("captions")
   const [values, setValues] = useState<CaptionEditorValues>(() =>
     caption ? toEditorValues(caption) : emptyEditorValues
   )
@@ -823,7 +827,7 @@ function CaptionEditor({
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!formComplete) {
-      toast.error("Completa todos los campos obligatorios.")
+      toast.error(t("missingFields"))
       return
     }
     const saveError = await onSave(values)
@@ -837,13 +841,9 @@ function CaptionEditor({
         side="right"
       >
         <SheetHeader className="border-b">
-          <SheetTitle>
-            {caption ? "Editar caption" : "Nuevo caption"}
-          </SheetTitle>
+          <SheetTitle>{caption ? t("editTitle") : t("createTitle")}</SheetTitle>
           <SheetDescription>
-            {caption
-              ? "Actualiza el contenido y los metadatos que tu equipo necesita para reutilizarlo."
-              : "Guarda un caption que puedas encontrar y adaptar en futuras publicaciones."}
+            {caption ? t("editDescription") : t("createDescription")}
           </SheetDescription>
         </SheetHeader>
         <form
@@ -865,12 +865,12 @@ function CaptionEditor({
                   id="caption-name"
                   maxLength={120}
                   onChange={(event) => updateValue("name", event.target.value)}
-                  placeholder="Ej. Lanzamiento de colección"
+                  placeholder={t("namePlaceholder")}
                   value={values.name}
                 />
               </Field>
               <Field>
-                <FieldLabel htmlFor="caption-tags">Etiquetas</FieldLabel>
+                <FieldLabel htmlFor="caption-tags">{t("tags")}</FieldLabel>
                 <Input
                   id="caption-tags"
                   maxLength={1299}
@@ -901,8 +901,10 @@ function CaptionEditor({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="manual">Manual</SelectItem>
-                      <SelectItem value="ai">Generado por IA</SelectItem>
+                      <SelectItem value="manual">
+                        {t("sourceLabel.manual")}
+                      </SelectItem>
+                      <SelectItem value="ai">{t("sourceLabel.ai")}</SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -929,9 +931,15 @@ function CaptionEditor({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="active">Activo</SelectItem>
-                      <SelectItem value="draft">Borrador</SelectItem>
-                      <SelectItem value="archived">Archivado</SelectItem>
+                      <SelectItem value="active">
+                        {t("statusLabel.active")}
+                      </SelectItem>
+                      <SelectItem value="draft">
+                        {t("statusLabel.draft")}
+                      </SelectItem>
+                      <SelectItem value="archived">
+                        {t("statusLabel.archived")}
+                      </SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -952,18 +960,18 @@ function CaptionEditor({
                   onChange={(event) =>
                     updateValue("content", event.target.value)
                   }
-                  placeholder="Escribe el caption que quieres guardar"
+                  placeholder={t("contentPlaceholder")}
                   rows={5}
                   value={values.content}
                 />
               </Field>
               <Field>
-                <FieldLabel htmlFor="caption-notes">Notas internas</FieldLabel>
+                <FieldLabel htmlFor="caption-notes">{t("notes")}</FieldLabel>
                 <Textarea
                   id="caption-notes"
                   maxLength={2000}
                   onChange={(event) => updateValue("notes", event.target.value)}
-                  placeholder="Contexto, aprobaciones o instrucciones para el equipo"
+                  placeholder={t("notesPlaceholder")}
                   rows={3}
                   value={values.notes}
                 />
@@ -981,11 +989,11 @@ function CaptionEditor({
             </Button>
             <Button disabled={pending || !formComplete} type="submit">
               {pending ? (
-                <Spinner aria-label="Guardando" data-icon="inline-start" />
+                <Spinner aria-label={t("saving")} data-icon="inline-start" />
               ) : (
                 <Save aria-hidden="true" data-icon="inline-start" />
               )}
-              {caption ? "Guardar cambios" : "Guardar caption"}
+              {caption ? t("saveChanges") : t("save")}
             </Button>
           </SheetFooter>
         </form>
