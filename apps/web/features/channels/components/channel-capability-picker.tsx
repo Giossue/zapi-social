@@ -92,7 +92,7 @@ export function ChannelCapabilityGrid({
       aria-label="Tipos de canal"
       as="section"
       className="p-px pr-3 sm:pr-8"
-      layout="2"
+      layout="md-3"
     >
       {capabilities.map((capability) => (
         <ChannelCapabilityCard
