@@ -24,6 +24,11 @@ aprobación visual del usuario.
 
 `audit:i18n-hardcoded` encuentra texto de interfaz escrito en el código, que es
 justo lo que `audit:i18n` no puede ver: si una superficie nunca se migró, los
-dos catálogos siguen sincronizados y ese auditor pasa. Falla mientras queden
-superficies pendientes de la fase 2; el recuento vive en
-[`docs/planes/i18n-v2.md`](../../docs/planes/i18n-v2.md).
+dos catálogos siguen sincronizados y ese auditor pasa.
+
+Prohíbe **cualquier** literal en un nodo JSX o una prop de rótulo, sin mirar el
+idioma ni la longitud. Sus dos versiones anteriores fallaron por acotar de más
+—buscar marcas del español dejaba pasar «Guardar perfil»; pedir tres caracteres
+dejaba pasar «Tú»—, y en ambos casos el hueco solo se vio en pantalla. Por eso
+el comando se comprueba a sí mismo contra casos conocidos antes de escanear: si
+deja de reconocerlos, falla.

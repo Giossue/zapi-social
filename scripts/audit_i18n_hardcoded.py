@@ -62,10 +62,11 @@ LABEL_PROPS = (
 
 PATTERNS = (
     # Prop de rótulo con texto literal.
-    re.compile(rf'(?:{LABEL_PROPS})\s*[:=]\s*"([^"]{{2,}})"'),
-    # Nodo de texto dentro de JSX. Basta un carácter más: «Tú» o «Ver» son
-    # texto de interfaz igual que una frase larga.
-    re.compile(r">\s*([A-Za-zÁÉÍÓÚÑáéíóúñ¿¡][^<>{}\n]{1,})\s*<"),
+    re.compile(rf'(?:{LABEL_PROPS})\s*[:=]\s*"([^"]+)"'),
+    # Nodo de texto dentro de JSX. Sin mínimo de longitud: «Tú» es texto de
+    # interfaz igual que una frase, y poner un suelo dejaba fuera justo las
+    # palabras cortas —que son las más frecuentes en botones y distintivos—.
+    re.compile(r">\s*([A-Za-zÁÉÍÓÚÑáéíóúñ¿¡][^<>{}\n]*)\s*<"),
     # Aviso al usuario.
     re.compile(r'toast\.(?:success|error|info)\(\s*"([^"]+)"'),
 )
@@ -103,6 +104,37 @@ def files() -> list[Path]:
     )
 
 
+# Casos que el detector debe acertar. Sus límites ya fallaron dos veces —una
+# heurística por idioma y un mínimo de longitud—, y en ambas el hueco solo se
+# vio en pantalla. Esto lo convierte en un fallo del comando.
+SELF_TEST = (
+    ("<Badge>Tú</Badge>", "Tú"),
+    ("<Button>Ver</Button>", "Ver"),
+    ("<p>Guardar perfil</p>", "Guardar perfil"),
+    ('itemLabel="canales"', "canales"),
+    ('label="Tú"', "Tú"),
+    ('toast.error("Falló")', "Falló"),
+    ('<Badge>{t("you")}</Badge>', None),
+    ("<CardTitle>Meta</CardTitle>", None),
+)
+
+
+def self_test() -> list[str]:
+    """Comprueba el detector contra casos conocidos; devuelve los que fallan."""
+    failures = []
+    for source, expected in SELF_TEST:
+        found = [
+            value
+            for pattern in PATTERNS
+            for match in pattern.finditer(source)
+            if is_ui_text(value := match.group(1).strip())
+        ]
+        ok = expected in found if expected else not found
+        if not ok:
+            failures.append(f"{source} -> {found}")
+    return failures
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -111,6 +143,13 @@ def main() -> int:
         help="Lista cada cadena con su línea en vez del resumen por archivo.",
     )
     args = parser.parse_args()
+
+    broken = self_test()
+    if broken:
+        print("i18n: el detector no reconoce sus propios casos:", file=sys.stderr)
+        for case in broken:
+            print(f"  {case}", file=sys.stderr)
+        return 1
 
     findings = [(path, scan(path)) for path in files()]
     findings = [(path, hits) for path, hits in findings if hits]
