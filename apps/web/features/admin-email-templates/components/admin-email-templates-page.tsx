@@ -4,7 +4,12 @@ import { useCallback, useEffect, useState, type FormEvent } from "react"
 import { CircleAlert, Pencil, RotateCcw, Save, ShieldX, X } from "lucide-react"
 
 import { adminEmailTemplatesApi, ApiError } from "@workspace/api-client"
-import type { AdminEmailTemplate } from "@workspace/contracts"
+import type {
+  AdminEmailTemplate,
+  AdminEmailTemplateCopy,
+  AdminEmailTemplatesResponse,
+  SupportedLocale,
+} from "@workspace/contracts"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -53,6 +58,7 @@ import {
 } from "@workspace/ui/components/table"
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
+import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
 import { useTranslations } from "next-intl"
@@ -67,23 +73,38 @@ type FormValues = {
   notice: string
 }
 
-function toForm(template: AdminEmailTemplate): FormValues {
+function toForm(copy: AdminEmailTemplateCopy): FormValues {
   return {
-    subject: template.subject,
-    title: template.title,
-    body: template.body,
-    actionLabel: template.actionLabel ?? "",
-    notice: template.notice ?? "",
+    subject: copy.subject,
+    title: copy.title,
+    body: copy.body,
+    actionLabel: copy.actionLabel ?? "",
+    notice: copy.notice ?? "",
   }
 }
 
+/** Los textos de un idioma; `es` es el respaldo cuando el correo no lo trae. */
+function copyFor(
+  template: AdminEmailTemplate,
+  locale: SupportedLocale
+): AdminEmailTemplateCopy {
+  return (
+    template.copies.find((copy) => copy.locale === locale) ??
+    template.copies[0]!
+  )
+}
+
 function TemplateSheet({
+  locale,
+  onLocaleChange,
   onOpenChange,
   onSubmit,
   open,
   pending,
   template,
 }: {
+  locale: SupportedLocale
+  onLocaleChange: (locale: SupportedLocale) => void
   onOpenChange: (open: boolean) => void
   onSubmit: (values: FormValues) => Promise<boolean>
   open: boolean
@@ -99,9 +120,13 @@ function TemplateSheet({
     notice: "",
   })
 
+  /**
+   * Cada idioma se edita por separado: al cambiar de pestaña se recargan sus
+   * textos, no los del anterior.
+   */
   useEffect(() => {
-    if (open && template) setValues(toForm(template))
-  }, [open, template])
+    if (open && template) setValues(toForm(copyFor(template, locale)))
+  }, [locale, open, template])
 
   const canSubmit = Boolean(
     values.subject.trim() && values.title.trim() && values.body.trim()
@@ -135,10 +160,24 @@ function TemplateSheet({
           onSubmit={(event) => void submit(event)}
         >
           <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4">
+            <Tabs
+              onValueChange={(value) =>
+                onLocaleChange(value as SupportedLocale)
+              }
+              value={locale}
+            >
+              <TabsList aria-label={t("localeTabs")}>
+                {template?.copies.map((copy) => (
+                  <TabsTrigger key={copy.locale} value={copy.locale}>
+                    {t(`locale.${copy.locale}`)}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
             {template?.variables.length ? (
               <Card variant="inset">
                 <CardContent className="flex flex-col gap-2 py-3">
-                  <p className="text-sm font-medium">Variables disponibles</p>
+                  <p className="text-sm font-medium">{t("variables")}</p>
                   <ul className="flex flex-col gap-1">
                     {template.variables.map((variable) => (
                       <li
@@ -158,11 +197,11 @@ function TemplateSheet({
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="template-subject">
-                  Asunto{" "}
+                  {t("subject")}{" "}
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
-                  <span className="sr-only"> obligatorio</span>
+                  <span className="sr-only"> {t("required")}</span>
                 </FieldLabel>
                 <Input
                   aria-required="true"
@@ -183,7 +222,7 @@ function TemplateSheet({
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
-                  <span className="sr-only"> obligatorio</span>
+                  <span className="sr-only"> {t("required")}</span>
                 </FieldLabel>
                 <Input
                   aria-required="true"
@@ -204,7 +243,7 @@ function TemplateSheet({
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
-                  <span className="sr-only"> obligatorio</span>
+                  <span className="sr-only"> {t("required")}</span>
                 </FieldLabel>
                 <Textarea
                   aria-required="true"
@@ -261,7 +300,7 @@ function TemplateSheet({
               type="button"
               variant="brand-secondary"
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button disabled={!canSubmit || pending} type="submit">
               {pending ? (
@@ -269,7 +308,7 @@ function TemplateSheet({
               ) : (
                 <Save data-icon="inline-start" />
               )}
-              Guardar
+              {t("save")}
             </Button>
           </SheetFooter>
         </form>
@@ -290,6 +329,7 @@ export function AdminEmailTemplatesPage() {
   const [loadError, setLoadError] = useState(false)
   const [forbidden, setForbidden] = useState(false)
   const [editing, setEditing] = useState<AdminEmailTemplate | null>(null)
+  const [editingLocale, setEditingLocale] = useState<SupportedLocale>("es")
   const [sheetOpen, setSheetOpen] = useState(false)
   const [resetting, setResetting] = useState<AdminEmailTemplate | null>(null)
   const [pending, setPending] = useState(false)
@@ -347,12 +387,13 @@ export function AdminEmailTemplatesPage() {
     const matchesQuery =
       !normalizedQuery ||
       template.name.toLowerCase().includes(normalizedQuery) ||
-      template.subject.toLowerCase().includes(normalizedQuery)
+      template.copies.some((copy) =>
+        copy.subject.toLowerCase().includes(normalizedQuery)
+      )
+    const customized = template.copies.some((copy) => copy.customized)
     const matchesStatus =
       statusFilter === "all" ||
-      (statusFilter === "customized"
-        ? template.customized
-        : !template.customized)
+      (statusFilter === "customized" ? customized : !customized)
     return matchesQuery && matchesStatus
   })
   const hasFilters = Boolean(query || statusFilter !== "all")
@@ -404,7 +445,7 @@ export function AdminEmailTemplatesPage() {
                     type="button"
                     variant="outline"
                   >
-                    <X /> Limpiar
+                    <X /> {t("clear")}
                   </Button>
                 ) : undefined
               }
@@ -428,9 +469,11 @@ export function AdminEmailTemplatesPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>{t("email")}</TableHead>
-                  <TableHead className="hidden lg:table-cell">Asunto</TableHead>
+                  <TableHead className="hidden lg:table-cell">
+                    {t("subjectColumn")}
+                  </TableHead>
                   <TableHead>{t("statusColumn")}</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
+                  <TableHead className="text-right">{t("actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -446,32 +489,41 @@ export function AdminEmailTemplatesPage() {
                         </div>
                       </TableCell>
                       <TableCell className="hidden text-muted-foreground lg:table-cell">
-                        {template.subject}
+                        {copyFor(template, "es").subject}
                       </TableCell>
                       <TableCell>
-                        <Badge
-                          variant={template.customized ? "info" : "secondary"}
-                        >
-                          {template.customized
-                            ? t("status.customized")
-                            : t("status.default")}
-                        </Badge>
+                        <div className="flex flex-wrap gap-1">
+                          {template.copies.map((copy) => (
+                            <Badge
+                              key={copy.locale}
+                              variant={copy.customized ? "info" : "secondary"}
+                            >
+                              {t(`locale.${copy.locale}`)} ·{" "}
+                              {copy.customized
+                                ? t("status.customized")
+                                : t("status.default")}
+                            </Badge>
+                          ))}
+                        </div>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
                             onClick={() => {
                               setEditing(template)
+                              setEditingLocale("es")
                               setSheetOpen(true)
                             }}
                             size="sm"
                             variant="brand-secondary"
                           >
-                            <Pencil data-icon="inline-start" /> Editar
+                            <Pencil data-icon="inline-start" /> {t("edit")}
                           </Button>
-                          {template.customized ? (
+                          {template.copies.some((copy) => copy.customized) ? (
                             <Button
-                              aria-label={`Restablecer ${template.name}`}
+                              aria-label={t("resetAria", {
+                                name: template.name,
+                              })}
                               onClick={() => setResetting(template)}
                               size="icon-sm"
                               variant="brand-secondary"
@@ -488,7 +540,7 @@ export function AdminEmailTemplatesPage() {
                     action={
                       hasFilters ? (
                         <Button onClick={clearFilters} variant="outline">
-                          Limpiar filtros
+                          {t("clearFilters")}
                         </Button>
                       ) : null
                     }
@@ -506,7 +558,7 @@ export function AdminEmailTemplatesPage() {
             <TablePagination
               canGoNext={safePage < pageCount}
               canGoPrevious={safePage > 1}
-              itemLabel="plantillas"
+              itemLabel={t("itemLabel")}
               onNextPage={() =>
                 setCurrentPage((current) => Math.min(current + 1, pageCount))
               }
@@ -521,12 +573,15 @@ export function AdminEmailTemplatesPage() {
         </Card>
       </div>
       <TemplateSheet
+        locale={editingLocale}
+        onLocaleChange={setEditingLocale}
         onOpenChange={setSheetOpen}
         onSubmit={async (values) => {
           if (!editing) return false
           setPending(true)
           try {
             const response = await adminEmailTemplatesApi.update(editing.key, {
+              locale: editingLocale,
               subject: values.subject.trim(),
               title: values.title.trim(),
               body: values.body.trim(),
@@ -570,10 +625,23 @@ export function AdminEmailTemplatesPage() {
                 const target = resetting
                 if (!target) return
                 setPending(true)
-                void adminEmailTemplatesApi
-                  .reset(target.key)
+                /* Restablecer devuelve el correo al texto del código en todos
+                   los idiomas que se hubieran personalizado. */
+                const customized = target.copies.filter(
+                  (copy) => copy.customized
+                )
+                void customized
+                  .reduce(
+                    (chain, copy) =>
+                      chain.then(() =>
+                        adminEmailTemplatesApi.reset(target.key, {
+                          locale: copy.locale,
+                        })
+                      ),
+                    Promise.resolve<AdminEmailTemplatesResponse | null>(null)
+                  )
                   .then((response) => {
-                    setTemplates(response.templates)
+                    if (response) setTemplates(response.templates)
                     setResetting(null)
                     toast.success(t("reset"))
                   })

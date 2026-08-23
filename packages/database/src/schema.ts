@@ -3226,7 +3226,10 @@ export const languages = pgTable(
   },
   (table) => [
     uniqueIndex("languages_code_unique").on(table.code),
-    check("languages_direction_check", sql`${table.direction} in ('ltr', 'rtl')`),
+    check(
+      "languages_direction_check",
+      sql`${table.direction} in ('ltr', 'rtl')`
+    ),
   ]
 )
 
@@ -3415,9 +3418,7 @@ export const linkBioEvents = pgTable(
     pageId: uuid("page_id")
       .notNull()
       .references(() => linkBioPages.id, { onDelete: "cascade" }),
-    type: varchar("type", { length: 16 })
-      .$type<"view" | "click">()
-      .notNull(),
+    type: varchar("type", { length: 16 }).$type<"view" | "click">().notNull(),
     blockIndex: integer("block_index"),
     itemIndex: integer("item_index"),
     url: text("url"),
@@ -3434,7 +3435,10 @@ export const linkBioEvents = pgTable(
       table.blockIndex,
       table.itemIndex
     ),
-    check("link_bio_events_type_check", sql`${table.type} in ('view', 'click')`),
+    check(
+      "link_bio_events_type_check",
+      sql`${table.type} in ('view', 'click')`
+    ),
   ]
 )
 
@@ -3604,6 +3608,8 @@ export const emailTemplates = pgTable(
   {
     id: uuid("id").defaultRandom().primaryKey(),
     key: varchar("key", { length: 96 }).notNull(),
+    /** Un override por plantilla e idioma; `es` es el respaldo del catálogo. */
+    locale: varchar("locale", { length: 8 }).notNull().default("es"),
     subject: varchar("subject", { length: 250 }).notNull(),
     title: varchar("title", { length: 250 }).notNull(),
     description: text("description").notNull(),
@@ -3615,5 +3621,10 @@ export const emailTemplates = pgTable(
     }),
     ...timestamps,
   },
-  (table) => [uniqueIndex("email_templates_key_unique").on(table.key)]
+  (table) => [
+    uniqueIndex("email_templates_key_locale_unique").on(
+      table.key,
+      table.locale
+    ),
+  ]
 )

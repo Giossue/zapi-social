@@ -1,5 +1,7 @@
+import type { SupportedLocale } from '@workspace/contracts';
 import type { EmailCopyOverride } from './email-copy';
-import { teamRoleLabel, zapiEmailTemplate } from './email-template';
+import { emailChrome, teamRoleLabel } from './email-chrome';
+import { zapiEmailTemplate } from './email-template';
 
 export type TeamAccessUpdatedEmailInput = {
   workspaceName: string;
@@ -12,32 +14,30 @@ export type TeamAccessUpdatedEmailInput = {
 
 export function teamAccessUpdatedEmail(
   input: TeamAccessUpdatedEmailInput,
-  copy?: EmailCopyOverride,
+  copy: EmailCopyOverride,
+  locale: SupportedLocale,
 ) {
+  const chrome = emailChrome(locale);
   const details = [
-    { label: 'Espacio', value: input.workspaceName },
-    { label: 'Rol', value: teamRoleLabel(input.role) },
+    { label: chrome.space, value: input.workspaceName },
+    { label: chrome.role, value: teamRoleLabel(input.role, chrome) },
   ];
   if (input.accountCount !== null) {
     details.push({
-      label: 'Cuentas disponibles',
-      value: String(input.accountCount),
+      label: chrome.availableAccounts,
+      value: chrome.accountCount(input.accountCount),
     });
   }
 
   return zapiEmailTemplate({
-    preview: `Tu acceso a ${input.workspaceName} fue actualizado.`,
-    title: copy?.title ?? 'Tu acceso al equipo cambió',
-    description:
-      copy?.body ??
-      `${input.actorName} actualizó el acceso de ${input.recipientName} en Zapi.`,
+    locale,
+    preview: copy.preview,
+    title: copy.title,
+    description: copy.body,
     details,
-    action: {
-      label: copy?.actionLabel ?? 'Ver mi acceso',
-      url: input.teamsUrl,
-    },
-    notice:
-      copy?.notice ??
-      'Si no reconoces este cambio, contacta al propietario del espacio de trabajo.',
+    action: copy.actionLabel
+      ? { label: copy.actionLabel, url: input.teamsUrl }
+      : undefined,
+    notice: copy.notice ?? undefined,
   });
 }

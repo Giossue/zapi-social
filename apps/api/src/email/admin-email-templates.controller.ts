@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Get, Param, Patch, Req } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Req,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { FastifyRequest } from 'fastify';
 import { SessionAccessService } from '../identity/session-access.service';
@@ -32,10 +40,15 @@ export class AdminEmailTemplatesController {
   }
 
   @Delete(':key')
-  async reset(@Req() request: FastifyRequest, @Param('key') key: string) {
+  async reset(
+    @Req() request: FastifyRequest,
+    @Param('key') key: string,
+    @Body() body: unknown,
+  ) {
     return this.templates.reset(
       await this.access.requirePlatformAdmin(request),
       key,
+      body,
     );
   }
 }

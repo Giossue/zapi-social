@@ -1,13 +1,17 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { apiAuditLogs, emailTemplates } from '@workspace/database';
-import { eq } from '@workspace/database/query';
+import { and, eq } from '@workspace/database/query';
 import {
   emailTemplateKeySchema,
+  resetAdminEmailTemplateSchema,
+  supportedLocaleSchema,
   updateAdminEmailTemplateSchema,
   type AdminEmailTemplate,
+  type AdminEmailTemplateCopy,
   type AdminEmailTemplatesResponse,
   type EmailTemplateKey,
   type PlatformAdminAuthSession,
+  type SupportedLocale,
 } from '@workspace/contracts';
 import { DatabaseService } from '../database/database.service';
 import { AppException } from '../platform/errors/app-exception';
@@ -22,24 +26,34 @@ export class EmailTemplatesService {
 
   async list(): Promise<AdminEmailTemplatesResponse> {
     const rows = await this.database.db.select().from(emailTemplates);
-    const overrides = new Map(rows.map((row) => [row.key, row]));
+    const overrides = new Map(
+      rows.map((row) => [`${row.key}:${row.locale}`, row]),
+    );
     const templates = (
       Object.keys(EMAIL_TEMPLATE_CATALOG) as EmailTemplateKey[]
     ).map((key): AdminEmailTemplate => {
       const entry = EMAIL_TEMPLATE_CATALOG[key];
-      const override = overrides.get(key);
       return {
         key,
         name: entry.name,
         description: entry.description,
-        subject: override?.subject ?? entry.copy.subject,
-        title: override?.title ?? entry.copy.title,
-        body: override?.description ?? entry.copy.body,
-        actionLabel: override?.actionLabel ?? entry.copy.actionLabel,
-        notice: override?.notice ?? entry.copy.notice,
-        customized: Boolean(override),
+        copies: supportedLocaleSchema.options.map(
+          (locale): AdminEmailTemplateCopy => {
+            const override = overrides.get(`${key}:${locale}`);
+            const fallback = entry.copy[locale];
+            return {
+              locale,
+              subject: override?.subject ?? fallback.subject,
+              title: override?.title ?? fallback.title,
+              body: override?.description ?? fallback.body,
+              actionLabel: override?.actionLabel ?? fallback.actionLabel,
+              notice: override?.notice ?? fallback.notice,
+              customized: Boolean(override),
+              updatedAt: override?.updatedAt.toISOString() ?? null,
+            };
+          },
+        ),
         variables: entry.variables,
-        updatedAt: override?.updatedAt.toISOString() ?? null,
       };
     });
     return { templates };
@@ -51,14 +65,13 @@ export class EmailTemplatesService {
     input: unknown,
   ): Promise<AdminEmailTemplatesResponse> {
     const templateKey = this.key(key);
-    const values = this.parse(
-      updateAdminEmailTemplateSchema.safeParse(input),
-    );
+    const values = this.parse(updateAdminEmailTemplateSchema.safeParse(input));
     const now = new Date();
     await this.database.db
       .insert(emailTemplates)
       .values({
         key: templateKey,
+        locale: values.locale,
         subject: values.subject,
         title: values.title,
         description: values.body,
@@ -69,7 +82,7 @@ export class EmailTemplatesService {
         updatedAt: now,
       })
       .onConflictDoUpdate({
-        target: emailTemplates.key,
+        target: [emailTemplates.key, emailTemplates.locale],
         set: {
           subject: values.subject,
           title: values.title,
@@ -84,43 +97,62 @@ export class EmailTemplatesService {
     return this.list();
   }
 
-  /** Restablecer borra la personalización: el correo vuelve al texto del código. */
+  /**
+   * Restablecer borra la personalización de un idioma: ese correo vuelve al
+   * texto del código sin tocar los demás idiomas.
+   */
   async reset(
     session: PlatformAdminAuthSession,
     key: string,
+    input: unknown,
   ): Promise<AdminEmailTemplatesResponse> {
     const templateKey = this.key(key);
+    const { locale } = this.parse(
+      resetAdminEmailTemplateSchema.safeParse(input),
+    );
     await this.database.db
       .delete(emailTemplates)
-      .where(eq(emailTemplates.key, templateKey));
+      .where(
+        and(
+          eq(emailTemplates.key, templateKey),
+          eq(emailTemplates.locale, locale),
+        ),
+      );
     await this.audit(session, templateKey, 'email_template.reset');
     return this.list();
   }
 
   /**
-   * Resuelve los textos de un correo aplicando la personalización guardada y
-   * sustituyendo las variables declaradas en el catálogo.
+   * Resuelve los textos de un correo en el idioma del destinatario, aplicando
+   * la personalización guardada para ese idioma y sustituyendo las variables
+   * declaradas en el catálogo.
    */
   async resolve(
     key: EmailTemplateKey,
     variables: Record<string, string> = {},
+    locale: SupportedLocale = 'es',
   ): Promise<EmailTemplateCopy> {
     const entry = EMAIL_TEMPLATE_CATALOG[key];
     const [override] = await this.database.db
       .select()
       .from(emailTemplates)
-      .where(eq(emailTemplates.key, key))
+      .where(
+        and(eq(emailTemplates.key, key), eq(emailTemplates.locale, locale)),
+      )
       .limit(1);
+    /* La vista previa no es personalizable: sale siempre del catálogo. */
     const copy: EmailTemplateCopy = override
       ? {
+          preview: entry.copy[locale].preview,
           subject: override.subject,
           title: override.title,
           body: override.description,
           actionLabel: override.actionLabel,
           notice: override.notice,
         }
-      : entry.copy;
+      : entry.copy[locale];
     return {
+      preview: this.render(copy.preview, variables),
       subject: this.render(copy.subject, variables),
       title: this.render(copy.title, variables),
       body: this.render(copy.body, variables),

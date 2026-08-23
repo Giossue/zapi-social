@@ -1,4 +1,6 @@
+import type { SupportedLocale } from '@workspace/contracts';
 import type { EmailCopyOverride } from './email-copy';
+import { emailChrome } from './email-chrome';
 import { zapiEmailTemplate } from './email-template';
 
 export type TeamMemberRemovedEmailInput = {
@@ -10,21 +12,19 @@ export type TeamMemberRemovedEmailInput = {
 
 export function teamMemberRemovedEmail(
   input: TeamMemberRemovedEmailInput,
-  copy?: EmailCopyOverride,
+  copy: EmailCopyOverride,
+  locale: SupportedLocale,
 ) {
+  const chrome = emailChrome(locale);
   return zapiEmailTemplate({
-    preview: `Tu acceso a ${input.workspaceName} fue retirado.`,
-    title: copy?.title ?? 'Ya no formas parte del espacio',
-    description:
-      copy?.body ??
-      `${input.actorName} retiró el acceso de ${input.recipientName} a ${input.workspaceName}.`,
-    details: [{ label: 'Espacio', value: input.workspaceName }],
-    action: {
-      label: copy?.actionLabel ?? 'Abrir Zapi',
-      url: input.portalUrl,
-    },
-    notice:
-      copy?.notice ??
-      'Tus otros espacios de trabajo y tu cuenta personal no fueron modificados.',
+    locale,
+    preview: copy.preview,
+    title: copy.title,
+    description: copy.body,
+    details: [{ label: chrome.space, value: input.workspaceName }],
+    action: copy.actionLabel
+      ? { label: copy.actionLabel, url: input.portalUrl }
+      : undefined,
+    notice: copy.notice ?? undefined,
   });
 }

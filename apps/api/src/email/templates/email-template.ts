@@ -1,4 +1,6 @@
+import type { SupportedLocale } from '@workspace/contracts';
 import { createElement, type CSSProperties, type ReactElement } from 'react';
+import { emailChrome } from './email-chrome';
 
 type EmailDetail = {
   label: string;
@@ -6,6 +8,8 @@ type EmailDetail = {
 };
 
 type ZapiEmailTemplateInput = {
+  /** Idioma del destinatario: fija `lang` y el pie del correo. */
+  locale: SupportedLocale;
   preview: string;
   title: string;
   description: string;
@@ -54,6 +58,7 @@ const buttonStyle: CSSProperties = {
 };
 
 export function zapiEmailTemplate({
+  locale,
   preview,
   title,
   description,
@@ -63,7 +68,7 @@ export function zapiEmailTemplate({
 }: ZapiEmailTemplateInput): ReactElement {
   return createElement(
     'html',
-    { lang: 'es' },
+    { lang: locale },
     createElement(
       'head',
       null,
@@ -227,15 +232,11 @@ export function zapiEmailTemplate({
                   padding: '20px 32px',
                 },
               },
-              'Correo transaccional enviado automáticamente por Zapi.',
+              emailChrome(locale).footer,
             ),
           ),
         ),
       ),
     ),
   );
-}
-
-export function teamRoleLabel(role: 'admin' | 'member') {
-  return role === 'admin' ? 'Administrador' : 'Miembro';
 }

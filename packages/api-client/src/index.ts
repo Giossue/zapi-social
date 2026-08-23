@@ -218,6 +218,7 @@ import type {
   ManualPaymentSettings,
   UpdateManualPaymentSettingsInput,
   AdminEmailTemplatesResponse,
+  ResetAdminEmailTemplateInput,
   UpdateAdminEmailTemplateInput,
   PublicSiteOverview,
   PublicSitePage,
@@ -1401,9 +1402,10 @@ export const adminEmailTemplatesApi = {
       method: "PATCH",
       body: JSON.stringify(input),
     }),
-  reset: (key: string) =>
+  reset: (key: string, input: ResetAdminEmailTemplateInput) =>
     request<AdminEmailTemplatesResponse>(`/v1/admin/email-templates/${key}`, {
       method: "DELETE",
+      body: JSON.stringify(input),
     }),
 }
 

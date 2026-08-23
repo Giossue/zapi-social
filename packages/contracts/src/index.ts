@@ -66,7 +66,8 @@ export const updateAdminTurnstileConfigurationSchema = z
   .strict()
 
 /** Idiomas con traducción disponible en la interfaz. */
-export const supportedLocaleSchema = z.enum(["es", "en"])
+export { supportedLocaleSchema } from "./locale.js"
+import { supportedLocaleSchema } from "./locale.js"
 
 export const portalProfileSchema = z.object({
   id: z.uuid(),
@@ -1226,7 +1227,7 @@ export type ActiveWorkspace = z.infer<typeof activeWorkspaceSchema>
 export type ActivateAuthWorkspaceInput = z.infer<
   typeof activateAuthWorkspaceSchema
 >
-export type SupportedLocale = z.infer<typeof supportedLocaleSchema>
+export type { SupportedLocale } from "./locale.js"
 export type PortalProfile = z.infer<typeof portalProfileSchema>
 export type UpdatePortalProfileInput = z.infer<typeof updatePortalProfileSchema>
 export type ChangePortalPasswordInput = z.infer<

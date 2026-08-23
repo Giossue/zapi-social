@@ -7,14 +7,16 @@ import { ConfigService } from '@nestjs/config';
 import {
   emailSmtpIntegrationConfigurationSchema,
   emailSmtpIntegrationProviderKey,
+  supportedLocaleSchema,
   testEmailSmtpIntegrationSchema,
   updateEmailSmtpIntegrationSchema,
   type AuthSession,
   type EmailSmtpIntegration,
   type EmailSmtpIntegrationConfiguration,
+  type SupportedLocale,
   type TestEmailSmtpIntegrationResponse,
 } from '@workspace/contracts';
-import { providerIntegrations } from '@workspace/database';
+import { providerIntegrations, users } from '@workspace/database';
 import { eq } from '@workspace/database/query';
 import { render } from '@react-email/render';
 import { createHash } from 'node:crypto';
@@ -186,11 +188,12 @@ export class EmailService {
       this.config.getOrThrow<string>('WEB_ORIGIN'),
     );
     resetUrl.searchParams.set('token', token);
-    const copy = await this.templates.resolve('password_reset');
+    const locale = await this.localeFor(email);
+    const copy = await this.templates.resolve('password_reset', {}, locale);
     await this.sendEmail(
       email,
       copy.subject,
-      passwordResetEmail(resetUrl.toString(), copy),
+      passwordResetEmail(resetUrl.toString(), copy, locale),
     );
   }
 
@@ -202,18 +205,23 @@ export class EmailService {
     role: 'admin' | 'member';
     expiresAt: Date;
   }): Promise<void> {
+    const locale = await this.localeFor(input.email);
     const invitationUrl = new URL(
       '/invite',
       this.config.getOrThrow<string>('WEB_ORIGIN'),
     );
     invitationUrl.hash = new URLSearchParams({ token: input.token }).toString();
-    const expiresLabel = this.dateLabel(input.expiresAt);
-    const copy = await this.templates.resolve('team_invitation', {
-      workspaceName: input.workspaceName,
-      inviterName: input.inviterName,
-      role: input.role,
-      expiresLabel,
-    });
+    const expiresLabel = this.dateLabel(input.expiresAt, locale);
+    const copy = await this.templates.resolve(
+      'team_invitation',
+      {
+        workspaceName: input.workspaceName,
+        inviterName: input.inviterName,
+        role: input.role,
+        expiresLabel,
+      },
+      locale,
+    );
     await this.sendEmail(
       input.email,
       copy.subject,
@@ -226,6 +234,7 @@ export class EmailService {
           expiresLabel,
         },
         copy,
+        locale,
       ),
     );
   }
@@ -237,18 +246,24 @@ export class EmailService {
     memberEmail: string;
     role: 'admin' | 'member';
   }): Promise<void> {
-    const copy = await this.templates.resolve('team_invitation_accepted', {
-      workspaceName: input.workspaceName,
-      memberName: input.memberName,
-      memberEmail: input.memberEmail,
-      role: input.role,
-    });
+    const locale = await this.localeFor(input.email);
+    const copy = await this.templates.resolve(
+      'team_invitation_accepted',
+      {
+        workspaceName: input.workspaceName,
+        memberName: input.memberName,
+        memberEmail: input.memberEmail,
+        role: input.role,
+      },
+      locale,
+    );
     await this.sendEmail(
       input.email,
       copy.subject,
       teamInvitationAcceptedEmail(
         { ...input, teamsUrl: this.webUrl('/portal/teams') },
         copy,
+        locale,
       ),
     );
   }
@@ -261,18 +276,24 @@ export class EmailService {
     role: 'admin' | 'member';
     accountCount: number | null;
   }): Promise<void> {
-    const copy = await this.templates.resolve('team_access_updated', {
-      workspaceName: input.workspaceName,
-      recipientName: input.recipientName,
-      actorName: input.actorName,
-      role: input.role,
-    });
+    const locale = await this.localeFor(input.email);
+    const copy = await this.templates.resolve(
+      'team_access_updated',
+      {
+        workspaceName: input.workspaceName,
+        recipientName: input.recipientName,
+        actorName: input.actorName,
+        role: input.role,
+      },
+      locale,
+    );
     await this.sendEmail(
       input.email,
       copy.subject,
       teamAccessUpdatedEmail(
         { ...input, teamsUrl: this.webUrl('/portal/teams') },
         copy,
+        locale,
       ),
     );
   }
@@ -283,17 +304,23 @@ export class EmailService {
     recipientName: string;
     actorName: string;
   }): Promise<void> {
-    const copy = await this.templates.resolve('team_member_removed', {
-      workspaceName: input.workspaceName,
-      recipientName: input.recipientName,
-      actorName: input.actorName,
-    });
+    const locale = await this.localeFor(input.email);
+    const copy = await this.templates.resolve(
+      'team_member_removed',
+      {
+        workspaceName: input.workspaceName,
+        recipientName: input.recipientName,
+        actorName: input.actorName,
+      },
+      locale,
+    );
     await this.sendEmail(
       input.email,
       copy.subject,
       teamMemberRemovedEmail(
         { ...input, portalUrl: this.webUrl('/portal/dashboard') },
         copy,
+        locale,
       ),
     );
   }
@@ -305,6 +332,7 @@ export class EmailService {
     counterpartName: string;
     perspective: 'new-owner' | 'previous-owner';
   }): Promise<void> {
+    const locale = await this.localeFor(input.email);
     const copy = await this.templates.resolve(
       input.perspective === 'new-owner'
         ? 'team_ownership_new_owner'
@@ -314,6 +342,7 @@ export class EmailService {
         recipientName: input.recipientName,
         counterpartName: input.counterpartName,
       },
+      locale,
     );
     await this.sendEmail(
       input.email,
@@ -321,6 +350,7 @@ export class EmailService {
       teamOwnershipTransferredEmail(
         { ...input, teamsUrl: this.webUrl('/portal/teams') },
         copy,
+        locale,
       ),
     );
   }
@@ -359,8 +389,22 @@ export class EmailService {
     ).toString();
   }
 
-  private dateLabel(date: Date) {
-    return new Intl.DateTimeFormat('es', {
+  /**
+   * Idioma del destinatario. Una invitación puede ir a un correo sin cuenta
+   * todavía: en ese caso, y ante un valor desconocido, se usa español.
+   */
+  private async localeFor(email: string): Promise<SupportedLocale> {
+    const [row] = await this.database.db
+      .select({ locale: users.locale })
+      .from(users)
+      .where(eq(users.email, email))
+      .limit(1);
+    const parsed = supportedLocaleSchema.safeParse(row?.locale);
+    return parsed.success ? parsed.data : 'es';
+  }
+
+  private dateLabel(date: Date, locale: SupportedLocale) {
+    return new Intl.DateTimeFormat(locale, {
       dateStyle: 'long',
       timeZone: 'UTC',
     }).format(date);

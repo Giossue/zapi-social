@@ -1,5 +1,7 @@
+import type { SupportedLocale } from '@workspace/contracts';
 import type { EmailCopyOverride } from './email-copy';
-import { teamRoleLabel, zapiEmailTemplate } from './email-template';
+import { emailChrome, teamRoleLabel } from './email-chrome';
+import { zapiEmailTemplate } from './email-template';
 
 export type TeamInvitationEmailInput = {
   invitationUrl: string;
@@ -11,25 +13,23 @@ export type TeamInvitationEmailInput = {
 
 export function teamInvitationEmail(
   input: TeamInvitationEmailInput,
-  copy?: EmailCopyOverride,
+  copy: EmailCopyOverride,
+  locale: SupportedLocale,
 ) {
+  const chrome = emailChrome(locale);
   return zapiEmailTemplate({
-    preview: `${input.inviterName} te invitó a ${input.workspaceName}.`,
-    title: copy?.title ?? 'Te invitaron a un espacio de trabajo',
-    description:
-      copy?.body ??
-      `${input.inviterName} quiere que formes parte de ${input.workspaceName} en Zapi.`,
+    locale,
+    preview: copy.preview,
+    title: copy.title,
+    description: copy.body,
     details: [
-      { label: 'Espacio', value: input.workspaceName },
-      { label: 'Rol', value: teamRoleLabel(input.role) },
-      { label: 'Disponible hasta', value: input.expiresLabel },
+      { label: chrome.space, value: input.workspaceName },
+      { label: chrome.role, value: teamRoleLabel(input.role, chrome) },
+      { label: chrome.availableUntil, value: input.expiresLabel },
     ],
-    action: {
-      label: copy?.actionLabel ?? 'Revisar invitación',
-      url: input.invitationUrl,
-    },
-    notice:
-      copy?.notice ??
-      'El enlace es privado, está vinculado a este correo y solo puede utilizarse una vez.',
+    action: copy.actionLabel
+      ? { label: copy.actionLabel, url: input.invitationUrl }
+      : undefined,
+    notice: copy.notice ?? undefined,
   });
 }

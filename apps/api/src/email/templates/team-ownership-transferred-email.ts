@@ -1,4 +1,6 @@
+import type { SupportedLocale } from '@workspace/contracts';
 import type { EmailCopyOverride } from './email-copy';
+import { emailChrome } from './email-chrome';
 import { zapiEmailTemplate } from './email-template';
 
 export type TeamOwnershipTransferredEmailInput = {
@@ -11,34 +13,26 @@ export type TeamOwnershipTransferredEmailInput = {
 
 export function teamOwnershipTransferredEmail(
   input: TeamOwnershipTransferredEmailInput,
-  copy?: EmailCopyOverride,
+  copy: EmailCopyOverride,
+  locale: SupportedLocale,
 ) {
+  const chrome = emailChrome(locale);
   const isNewOwner = input.perspective === 'new-owner';
   return zapiEmailTemplate({
-    preview: isNewOwner
-      ? `Ahora eres propietario de ${input.workspaceName}.`
-      : `La propiedad de ${input.workspaceName} fue transferida.`,
-    title:
-      copy?.title ??
-      (isNewOwner
-        ? 'Ahora eres propietario del espacio'
-        : 'Propiedad transferida correctamente'),
-    description:
-      copy?.body ??
-      (isNewOwner
-        ? `${input.counterpartName} te transfirió la propiedad de ${input.workspaceName}.`
-        : `Transferiste la propiedad de ${input.workspaceName} a ${input.counterpartName}. Tu rol ahora es Administrador.`),
+    locale,
+    preview: copy.preview,
+    title: copy.title,
+    description: copy.body,
     details: [
-      { label: 'Espacio', value: input.workspaceName },
+      { label: chrome.space, value: input.workspaceName },
       {
-        label: isNewOwner ? 'Rol nuevo' : 'Tu rol nuevo',
-        value: isNewOwner ? 'Propietario' : 'Administrador',
+        label: isNewOwner ? chrome.newRole : chrome.yourNewRole,
+        value: isNewOwner ? chrome.owner : chrome.admin,
       },
     ],
-    action: {
-      label: copy?.actionLabel ?? 'Abrir Teams',
-      url: input.teamsUrl,
-    },
-    notice: copy?.notice ?? undefined,
+    action: copy.actionLabel
+      ? { label: copy.actionLabel, url: input.teamsUrl }
+      : undefined,
+    notice: copy.notice ?? undefined,
   });
 }

@@ -6,6 +6,11 @@ Implementado el 22 de agosto de 2026: contrato, API Nest, cliente REST,
 superficie Admin y sustitución real en el envío. La migración aditiva
 `0037_needy_steel_serpent` está aplicada en `zapi_v2_local` y en la remota.
 
+Ampliado el 23 de agosto de 2026 con la dimensión de idioma
+([`i18n-v2.md`](./i18n-v2.md), fase 4): cada correo sale en el idioma del
+destinatario. La migración `0038_reflective_tombstone` **está generada pero no
+aplicada**: la base local no era alcanzable en el entorno donde se escribió.
+
 ## Referencia Laravel
 
 `AdminMailServer` solo configura el transporte (protocolo, SMTP, remitente,
@@ -25,6 +30,17 @@ cifrada, así que este plan cubre exclusivamente el contenido.
 - El catálogo del código es la fuente de verdad. La tabla solo guarda
   personalizaciones: si no hay fila, el correo usa el texto por defecto y la UI
   lo muestra como «Texto por defecto». Restablecer borra la fila.
+- El idioma sale de `users.locale` del destinatario, no de quien dispara la
+  acción. Una invitación puede ir a un correo que todavía no tiene cuenta: en
+  ese caso, y ante un valor desconocido, se usa español.
+- La personalización es por idioma. Un override guardado en español no se
+  aplica a los destinatarios en inglés: cada idioma tiene su propia fila y su
+  propio estado «personalizado». Restablecer desde la tabla limpia todos los
+  idiomas de ese correo.
+- La vista previa del cliente de correo, las etiquetas de detalle («Espacio»,
+  «Rol»), los nombres de rol y el pie siguen el idioma pero **no** son
+  editables desde Admin: un cuerpo en inglés con etiquetas en español se ve
+  roto, y exponerlas multiplicaría los campos del editor sin necesidad.
 - Cada plantilla declara sus variables (`{{workspaceName}}`, `{{actorName}}`…)
   y la sustitución solo reemplaza tokens conocidos. Un token inventado se
   queda literal en vez de romper el envío o vaciar la frase.
@@ -35,8 +51,9 @@ cifrada, así que este plan cubre exclusivamente el contenido.
 
 ## Modelo durable
 
-`email_templates`: clave única, asunto, título, cuerpo, texto de botón, aviso,
-estado, autor de la última edición y timestamps.
+`email_templates`: clave, idioma, asunto, título, cuerpo, texto de botón,
+aviso, estado, autor de la última edición y timestamps. El índice único es
+`(key, locale)`: una fila por correo e idioma personalizado.
 
 ## Contrato REST
 

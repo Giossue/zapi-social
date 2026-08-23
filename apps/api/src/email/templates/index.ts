@@ -1,3 +1,4 @@
+export * from './email-chrome';
 export * from './email-copy';
 export * from './email-template';
 export * from './password-reset-email';

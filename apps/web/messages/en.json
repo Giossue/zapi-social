@@ -179,10 +179,14 @@
     "unavailable": "{section} unavailable"
   },
   "adminEmailTemplates": {
+    "actions": "Actions",
     "all": "All",
     "buttonText": "Button text",
     "buttonUrlHint": "The button destination is calculated by the system.",
     "cancel": "Cancel",
+    "clear": "Clear",
+    "clearFilters": "Clear filters",
+    "edit": "Edit",
     "email": "Email",
     "emptyDescription": "The system templates will show up here.",
     "emptyFilteredDescription": "Try another term or status.",
@@ -190,18 +194,27 @@
     "filterStatus": "Filter by status",
     "forbiddenDescription": "Your account can't edit email templates.",
     "forbiddenTitle": "Restricted access",
+    "itemLabel": "templates",
     "loadFailedDescription": "The email templates couldn't be loaded.",
     "loadFailedTitle": "We couldn't load this section",
     "loading": "Loading email templates",
+    "locale": {
+      "en": "English",
+      "es": "Spanish"
+    },
+    "localeTabs": "Email language",
     "missingFields": "Fill in every required field.",
     "noMatches": "No matches",
     "notice": "Closing notice",
     "pageDescription": "Subject and copy of the transactional emails Zapi sends.",
     "pageTitle": "Email templates",
+    "required": "required",
     "reset": "Template reset.",
+    "resetAria": "Reset {name}",
     "resetDescription": "“{name}” returns to the system default text and the saved customisation is lost.",
     "resetFailed": "We couldn't reset the template.",
     "resetTitle": "Reset template",
+    "save": "Save",
     "saveFailed": "We couldn't save the template.",
     "searchLabel": "Search templates",
     "searchPlaceholder": "Search templates...",
@@ -211,8 +224,11 @@
       "default": "Default text"
     },
     "statusColumn": "Status",
+    "subject": "Subject",
+    "subjectColumn": "Subject",
     "template": "Template",
-    "updated": "Template updated."
+    "updated": "Template updated.",
+    "variables": "Available variables"
   },
   "adminManualPayments": {
     "acceptManual": "Accept manual payments",

@@ -1,5 +1,7 @@
+import type { SupportedLocale } from '@workspace/contracts';
 import type { EmailCopyOverride } from './email-copy';
-import { teamRoleLabel, zapiEmailTemplate } from './email-template';
+import { emailChrome, teamRoleLabel } from './email-chrome';
+import { zapiEmailTemplate } from './email-template';
 
 export type TeamInvitationAcceptedEmailInput = {
   workspaceName: string;
@@ -11,22 +13,23 @@ export type TeamInvitationAcceptedEmailInput = {
 
 export function teamInvitationAcceptedEmail(
   input: TeamInvitationAcceptedEmailInput,
-  copy?: EmailCopyOverride,
+  copy: EmailCopyOverride,
+  locale: SupportedLocale,
 ) {
+  const chrome = emailChrome(locale);
   return zapiEmailTemplate({
-    preview: `${input.memberName} aceptó tu invitación a ${input.workspaceName}.`,
-    title: copy?.title ?? 'Invitación aceptada',
-    description:
-      copy?.body ??
-      `${input.memberName} ya forma parte de ${input.workspaceName}.`,
+    locale,
+    preview: copy.preview,
+    title: copy.title,
+    description: copy.body,
     details: [
-      { label: 'Correo', value: input.memberEmail },
-      { label: 'Rol', value: teamRoleLabel(input.role) },
+      { label: chrome.space, value: input.workspaceName },
+      { label: chrome.email, value: input.memberEmail },
+      { label: chrome.role, value: teamRoleLabel(input.role, chrome) },
     ],
-    action: {
-      label: copy?.actionLabel ?? 'Administrar equipo',
-      url: input.teamsUrl,
-    },
-    notice: copy?.notice ?? undefined,
+    action: copy.actionLabel
+      ? { label: copy.actionLabel, url: input.teamsUrl }
+      : undefined,
+    notice: copy.notice ?? undefined,
   });
 }
