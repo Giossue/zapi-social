@@ -35,7 +35,10 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
 import { LockKeyhole, Save, Trash2, TriangleAlert } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react"
+
+import { capabilityKeys, useChannelLabels } from "@/lib/channel-labels"
 
 import { channelsFixture } from "../fixtures/channels"
 import type {
@@ -43,10 +46,7 @@ import type {
   PortalChannelAccount,
   PortalChannelCapability,
 } from "../types/channels"
-import {
-  capabilityLabels,
-  type ChannelTableActions,
-} from "./channel-table/channels-columns"
+import { type ChannelTableActions } from "./channel-table/channels-columns"
 import { ChannelsUsers } from "./channel-table/channels-users"
 import {
   ChannelConnectionDialog,
@@ -152,13 +152,14 @@ function EditChannelDialog({
   onSave: (displayName: string) => void
   pending: boolean
 }) {
+  const t = useTranslations("channels")
   const [displayName, setDisplayName] = useState(account?.displayName ?? "")
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const normalizedDisplayName = displayName.trim()
     if (!normalizedDisplayName) {
-      toast.error("Introduce un nombre visible para el canal.")
+      toast.error(t("nameRequired"))
       return
     }
     onSave(normalizedDisplayName)
@@ -168,7 +169,7 @@ function EditChannelDialog({
     <Dialog onOpenChange={onOpenChange} open={account !== null}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Editar canal</DialogTitle>
+          <DialogTitle>{t("editTitle")}</DialogTitle>
           <DialogDescription>
             Este cambio solo actualiza el nombre visible en Zapi.
           </DialogDescription>
@@ -204,7 +205,7 @@ function EditChannelDialog({
             <Button disabled={pending || !displayName.trim()} type="submit">
               {pending ? (
                 <Spinner
-                  aria-label="Guardando nombre del canal"
+                  aria-label={t("savingName")}
                   data-icon="inline-start"
                 />
               ) : (
@@ -230,6 +231,8 @@ function DeleteChannelDialog({
   pending: boolean
   onOpenChange: (open: boolean) => void
 }) {
+  const t = useTranslations("channels")
+
   return (
     <AlertDialog onOpenChange={onOpenChange} open={account !== null}>
       <AlertDialogContent>
@@ -237,7 +240,7 @@ function DeleteChannelDialog({
           <AlertDialogMedia>
             <Trash2 aria-hidden="true" />
           </AlertDialogMedia>
-          <AlertDialogTitle>Eliminar canal</AlertDialogTitle>
+          <AlertDialogTitle>{t("deleteTitle")}</AlertDialogTitle>
           <AlertDialogDescription>
             {account
               ? `Eliminarás “${account.displayName}” de este espacio de trabajo. Esta acción no se puede deshacer.`
@@ -245,14 +248,16 @@ function DeleteChannelDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={pending}>Cancelar</AlertDialogCancel>
+          <AlertDialogCancel disabled={pending}>
+            {t("cancel")}
+          </AlertDialogCancel>
           <AlertDialogAction
             disabled={pending}
             onClick={onConfirm}
             variant="destructive"
           >
             {pending ? (
-              <Spinner aria-label="Eliminando canal" data-icon="inline-start" />
+              <Spinner aria-label={t("deleting")} data-icon="inline-start" />
             ) : (
               <Trash2 data-icon="inline-start" />
             )}
@@ -265,6 +270,8 @@ function DeleteChannelDialog({
 }
 
 export function LiveChannelsPage() {
+  const t = useTranslations("channels")
+  const labels = useChannelLabels()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [accounts, setAccounts] = useState<PortalChannelAccount[]>([])
@@ -417,17 +424,13 @@ export function LiveChannelsPage() {
 
     if (outcome === "denied" || outcome === "failed") {
       window.sessionStorage.removeItem(META_OAUTH_SESSION_KEY)
-      toast.error(
-        outcome === "denied"
-          ? "La autorización con Meta fue cancelada."
-          : "No pudimos completar la autorización con Meta."
-      )
+      toast.error(outcome === "denied" ? t("metaCancelled") : t("metaFailed"))
       return
     }
 
     if (outcome !== "authorized") {
       window.sessionStorage.removeItem(META_OAUTH_SESSION_KEY)
-      toast.error("No pudimos completar la autorización con Meta.")
+      toast.error(t("metaFailed"))
       return
     }
 
@@ -459,12 +462,10 @@ export function LiveChannelsPage() {
       } catch (error) {
         window.sessionStorage.removeItem(META_OAUTH_SESSION_KEY)
         console.error("Meta candidates request failed", error)
-        toast.error(
-          "No pudimos recuperar las cuentas de Meta autorizadas. Inténtalo de nuevo."
-        )
+        toast.error(t("metaAccountsFailed"))
       }
     })()
-  }, [capabilities, router, searchParams])
+  }, [capabilities, router, searchParams, t])
 
   function addAccount(account: PortalChannelAccount) {
     setAccounts((current) => [
@@ -502,9 +503,7 @@ export function LiveChannelsPage() {
       beginMetaAuthorization(result, capability)
     } catch (error) {
       console.error("Channel reconnect failed", error)
-      toast.error(
-        "No pudimos iniciar la reconexión del canal. Inténtalo de nuevo."
-      )
+      toast.error(t("reconnectFailed"))
       setPendingAccountId(null)
     }
   }
@@ -513,20 +512,16 @@ export function LiveChannelsPage() {
     setPendingAccountId(account.id)
     try {
       await channelsApi.requestProfileSync(account.id)
-      toast.success(
-        "Actualización de perfil programada. Puede tardar unos minutos."
-      )
+      toast.success(t("profileSyncQueued"))
     } catch (error) {
       if (
         error instanceof ApiError &&
         error.code === "CHANNEL_PROFILE_SYNC_COOLDOWN"
       ) {
-        toast.error(
-          "Ya solicitaste una actualización. Inténtalo de nuevo en 15 minutos."
-        )
+        toast.error(t("profileSyncCooldown"))
       } else {
         console.error("Channel profile sync request failed", error)
-        toast.error("No pudimos programar la actualización del perfil.")
+        toast.error(t("profileSyncFailed"))
       }
     } finally {
       setPendingAccountId(null)
@@ -542,10 +537,10 @@ export function LiveChannelsPage() {
       })
       addAccount(toPortalAccount(updated))
       setEditingAccount(null)
-      toast.success("Nombre del canal actualizado.")
+      toast.success(t("nameUpdated"))
     } catch (error) {
       console.error("Channel update failed", error)
-      toast.error("No pudimos actualizar el canal. Inténtalo de nuevo.")
+      toast.error(t("updateFailed"))
     } finally {
       setPendingAccountId(null)
     }
@@ -557,11 +552,11 @@ export function LiveChannelsPage() {
     try {
       await channelsApi.remove(deletingAccount.id)
       setDeletingAccount(null)
-      toast.success("Canal eliminado.")
+      toast.success(t("deleted"))
       await loadChannels()
     } catch (error) {
       console.error("Channel delete failed", error)
-      toast.error("No pudimos eliminar el canal. Inténtalo de nuevo.")
+      toast.error(t("deleteFailed"))
     } finally {
       setPendingAccountId(null)
     }
@@ -602,9 +597,9 @@ export function LiveChannelsPage() {
       <Card variant="subtle">
         <CardContent>
           <EmptyState
-            description="Pide acceso a un administrador del espacio de trabajo."
+            description={t("forbiddenDescription")}
             icon={LockKeyhole}
-            title="No tienes acceso a los canales"
+            title={t("forbiddenTitle")}
           />
         </CardContent>
       </Card>
@@ -615,9 +610,9 @@ export function LiveChannelsPage() {
         <CardContent>
           <EmptyState
             action={<RetryButton onClick={() => void loadChannels()} />}
-            description="Comprueba tu conexión e inténtalo de nuevo."
+            description={t("loadFailedDescription")}
             icon={TriangleAlert}
-            title="No pudimos cargar los canales"
+            title={t("loadFailedTitle")}
           />
         </CardContent>
       </Card>
@@ -631,16 +626,17 @@ export function LiveChannelsPage() {
         canGoPrevious={cursorHistory.length > 0}
         canManage={canManage}
         capabilityFilter={capabilityFilter}
-        capabilityOptions={Object.entries(capabilityLabels)}
+        capabilityOptions={capabilityKeys.map((key) => [
+          key,
+          labels.capability(key),
+        ])}
         emptyState={
           <EmptyState
             description={
-              query
-                ? "Prueba con otro término de búsqueda."
-                : "Conecta un tipo de canal para empezar."
+              query ? t("emptyFilteredDescription") : t("emptyDescription")
             }
             icon={TABLE_EMPTY_ICON}
-            title={query ? "No encontramos canales" : "Aún no hay canales"}
+            title={query ? t("noMatches") : t("emptyTitle")}
           />
         }
         isFiltering={isFiltering}

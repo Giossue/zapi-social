@@ -16,6 +16,10 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@workspace/ui/components/avatar"
+import { useFormatter, useTranslations } from "next-intl"
+
+import { useChannelLabels } from "@/lib/channel-labels"
+
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -34,24 +38,6 @@ declare module "@tanstack/react-table" {
   }
 }
 
-export const capabilityLabels = {
-  facebook_page: "Página de Facebook",
-  instagram_profile: "Perfil de Instagram",
-  linkedin_page: "Página de LinkedIn",
-  linkedin_profile: "Perfil de LinkedIn",
-  x_profile: "Perfil de X",
-  tiktok_profile: "Perfil de TikTok",
-  whatsapp_status: "Historias de WhatsApp",
-} as const
-
-const providerLabels = {
-  meta: "Meta",
-  linkedin: "LinkedIn",
-  x: "X",
-  tiktok: "TikTok",
-  whatsapp: "Meta",
-} as const
-
 const providerIcons = {
   meta: BrandMeta,
   linkedin: BrandLinkedIn,
@@ -68,15 +54,9 @@ export type ChannelTableActions = {
   pendingAccountId: string | null
 }
 
-function formatConnectionDate(value: string) {
-  const instant = value.includes("T")
-    ? new Date(value)
-    : new Date(`${value}T12:00:00`)
-  return new Intl.DateTimeFormat("es", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(instant)
+/** El backend envía fecha sola o instante completo. */
+function connectionInstant(value: string) {
+  return value.includes("T") ? new Date(value) : new Date(`${value}T12:00:00`)
 }
 
 function capabilityInitials(account: PortalChannelAccount) {
@@ -100,18 +80,13 @@ function whatsappPhone(handle?: string | null) {
   return digits ? `+${digits}` : value
 }
 
-function providerLabel(account: PortalChannelAccount) {
-  return account.capabilityKey === "whatsapp_status"
-    ? "Meta"
-    : providerLabels[account.provider]
-}
-
 function StatusBadge({ status }: { status: PortalChannelAccount["status"] }) {
+  const t = useTranslations("channels")
   const disconnected = status === "disconnected"
 
   return (
     <Badge variant={disconnected ? "warning" : "success"}>
-      {disconnected ? "Desconectado" : "Conectado"}
+      {disconnected ? t("status.disconnected") : t("status.connected")}
     </Badge>
   )
 }
@@ -160,13 +135,15 @@ function CapabilityCell({
   capabilityKey,
   provider,
 }: Pick<PortalChannelAccount, "capabilityKey" | "provider">) {
+  const labels = useChannelLabels()
+
   return (
     <div className="grid gap-0.5">
       <span className="whitespace-nowrap">
-        {capabilityLabels[capabilityKey]}
+        {labels.capability(capabilityKey)}
       </span>
       <span className="text-xs text-muted-foreground">
-        {providerLabels[provider]}
+        {labels.provider(provider)}
       </span>
     </div>
   )
@@ -178,16 +155,23 @@ export function createChannelsColumns({
   onReconnect,
   onProfileSync,
   pendingAccountId,
-}: ChannelTableActions): ColumnDef<PortalChannelAccount>[] {
+  labels,
+  t,
+  format,
+}: ChannelTableActions & {
+  labels: ReturnType<typeof useChannelLabels>
+  t: ReturnType<typeof useTranslations<"channels">>
+  format: ReturnType<typeof useFormatter>
+}): ColumnDef<PortalChannelAccount>[] {
   return [
     {
       accessorKey: "displayName",
-      header: "Cuenta",
+      header: t("account"),
       cell: ({ row }) => <AccountCell account={row.original} />,
     },
     {
       accessorKey: "capabilityKey",
-      header: "Tipo de canal",
+      header: t("channelType"),
       cell: ({ row }) => (
         <CapabilityCell
           capabilityKey={row.original.capabilityKey}
@@ -197,14 +181,16 @@ export function createChannelsColumns({
     },
     {
       accessorKey: "provider",
-      header: "Proveedor",
+      header: t("provider"),
       cell: ({ row }) => {
         const Icon = providerIcons[row.original.provider]
 
         return (
           <div className="flex items-center gap-2 text-sm">
             {Icon ? <Icon className="size-4 shrink-0" /> : null}
-            {providerLabel(row.original)}
+            {row.original.capabilityKey === "whatsapp_status"
+              ? "Meta"
+              : labels.provider(row.original.provider)}
           </div>
         )
       },
@@ -212,22 +198,26 @@ export function createChannelsColumns({
     },
     {
       accessorKey: "status",
-      header: "Estado",
+      header: t("statusColumn"),
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
     {
       accessorKey: "connectedAt",
-      header: "Conectado el",
+      header: t("connectedAt"),
       cell: ({ row }) => (
         <div className="text-sm text-foreground">
-          {formatConnectionDate(row.original.connectedAt)}
+          {format.dateTime(connectionInstant(row.original.connectedAt), {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          })}
         </div>
       ),
       meta: { className: "hidden lg:table-cell" },
     },
     {
       id: "actions",
-      header: () => <div className="text-right">Acciones</div>,
+      header: () => <div className="text-right">{t("actions")}</div>,
       cell: ({ row }) => {
         const account = row.original
         const pending = pendingAccountId === account.id

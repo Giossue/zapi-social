@@ -17,6 +17,9 @@ import {
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 
 import type { PortalChannelAccount } from "../../types/channels"
+import { useFormatter, useTranslations } from "next-intl"
+
+import { useChannelLabels } from "@/lib/channel-labels"
 import {
   createChannelsColumns,
   type ChannelTableActions,
@@ -76,9 +79,12 @@ export function ChannelsUsers({
   tableActions,
   total,
 }: ChannelsUsersProps) {
+  const t = useTranslations("channels")
+  const labels = useChannelLabels()
+  const format = useFormatter()
   const table = useReactTable({
     data: accounts,
-    columns: createChannelsColumns(tableActions),
+    columns: createChannelsColumns({ ...tableActions, format, labels, t }),
     getRowId: (row) => row.id,
     autoResetPageIndex: false,
     getCoreRowModel: getCoreRowModel(),
@@ -87,8 +93,8 @@ export function ChannelsUsers({
   return (
     <div className="flex flex-col gap-4">
       <CollectionHeader
-        description="Gestiona las cuentas conectadas y su acceso para publicar."
-        title="Canales"
+        description={t("pageDescription")}
+        title={t("pageTitle")}
       />
       <Card variant="subtle">
         <DataTableHeader
@@ -104,30 +110,30 @@ export function ChannelsUsers({
             ) : undefined
           }
           search={{
-            ariaLabel: "Buscar canales",
+            ariaLabel: t("searchLabel"),
             onChange: onQueryChange,
-            placeholder: "Buscar canales...",
+            placeholder: t("searchPlaceholder"),
             value: query,
           }}
         />
         <CardContent className="flex flex-col gap-4 px-0">
           <DataTableToolbar>
             <DataTableFilter
-              ariaLabel="Filtrar por proveedor"
-              label="Proveedor"
+              ariaLabel={t("filterProvider")}
+              label={t("provider")}
               onValueChange={onProviderFilterChange}
               options={[
-                { label: "Todos", value: "all" },
+                { label: t("all"), value: "all" },
                 ...providerOptions.map(([value, label]) => ({ label, value })),
               ]}
               value={providerFilter}
             />
             <DataTableFilter
-              ariaLabel="Filtrar por tipo"
-              label="Tipo"
+              ariaLabel={t("filterType")}
+              label={t("type")}
               onValueChange={onCapabilityFilterChange}
               options={[
-                { label: "Todos", value: "all" },
+                { label: t("all"), value: "all" },
                 ...capabilityOptions.map(([value, label]) => ({
                   label,
                   value,
@@ -136,13 +142,13 @@ export function ChannelsUsers({
               value={capabilityFilter}
             />
             <DataTableFilter
-              ariaLabel="Filtrar por estado"
-              label="Estado"
+              ariaLabel={t("filterStatus")}
+              label={t("statusColumn")}
               onValueChange={onStatusFilterChange}
               options={[
-                { label: "Todos", value: "all" },
-                { label: "Conectados", value: "connected" },
-                { label: "Desconectados", value: "disconnected" },
+                { label: t("all"), value: "all" },
+                { label: t("filter.connected"), value: "connected" },
+                { label: t("filter.disconnected"), value: "disconnected" },
               ]}
               value={statusFilter}
             />
@@ -164,7 +170,7 @@ export function ChannelsUsers({
       </Card>
 
       {canManage ? (
-        <FloatingActionButton label="Conectar canal" onClick={onConnect} />
+        <FloatingActionButton label={t("connect")} onClick={onConnect} />
       ) : null}
     </div>
   )

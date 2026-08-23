@@ -5,6 +5,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
+import { useTranslations } from "next-intl"
 import { CircleAlert, QrCode, Smartphone } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import type { PortalChannelAccount } from "../types/channels"
@@ -49,6 +50,7 @@ export function WhatsAppStatusConnection({
   reconnectAccountId?: string
   onConnected: (account: PortalChannelAccount) => Promise<void>
 }) {
+  const t = useTranslations("channels.whatsapp")
   const [connection, setConnection] = useState<Connection | null>(null)
   const [error, setError] = useState(false)
   const [errorCode, setErrorCode] = useState<string | null>(null)
@@ -58,25 +60,28 @@ export function WhatsAppStatusConnection({
   const refreshingConnectionId = useRef<string | null>(null)
   const imageRefreshAttempts = useRef(0)
 
-  const refresh = useCallback(async (connectionId: string) => {
-    if (refreshingConnectionId.current === connectionId) return
-    refreshingConnectionId.current = connectionId
-    setIsStarting(true)
-    setError(false)
-    setErrorCode(null)
-    try {
-      setConnection(
-        await channelConnectionsApi.refreshWhatsAppStatusQr(connectionId)
-      )
-    } catch (refreshError) {
-      console.error("WhatsApp QR refresh failed", refreshError)
-      setError(true)
-      toast.error("No pudimos actualizar el código QR. Inténtalo de nuevo.")
-    } finally {
-      refreshingConnectionId.current = null
-      setIsStarting(false)
-    }
-  }, [])
+  const refresh = useCallback(
+    async (connectionId: string) => {
+      if (refreshingConnectionId.current === connectionId) return
+      refreshingConnectionId.current = connectionId
+      setIsStarting(true)
+      setError(false)
+      setErrorCode(null)
+      try {
+        setConnection(
+          await channelConnectionsApi.refreshWhatsAppStatusQr(connectionId)
+        )
+      } catch (refreshError) {
+        console.error("WhatsApp QR refresh failed", refreshError)
+        setError(true)
+        toast.error(t("refreshFailed"))
+      } finally {
+        refreshingConnectionId.current = null
+        setIsStarting(false)
+      }
+    },
+    [t]
+  )
 
   const start = useCallback(async () => {
     setIsStarting(true)
@@ -91,11 +96,11 @@ export function WhatsAppStatusConnection({
     } catch (startError) {
       console.error("WhatsApp QR start failed", startError)
       setError(true)
-      toast.error("No pudimos generar el código QR. Inténtalo de nuevo.")
+      toast.error(t("generateFailed"))
     } finally {
       setIsStarting(false)
     }
-  }, [reconnectAccountId])
+  }, [reconnectAccountId, t])
 
   useEffect(() => {
     void start()
@@ -141,7 +146,7 @@ export function WhatsAppStatusConnection({
         if (result.account) {
           completedConnectionId.current = connection.connection.id
           await onConnected(toPortalAccount(result.account))
-          toast.success("Estados de WhatsApp conectados.")
+          toast.success(t("connected"))
           return
         }
         if (result.connection.state === "expired") {
@@ -155,9 +160,7 @@ export function WhatsAppStatusConnection({
           setConnection(null)
           setErrorCode(result.publicError?.code ?? null)
           setError(true)
-          toast.error(
-            "No pudimos completar la conexión con WhatsApp. Genera un QR nuevo."
-          )
+          toast.error(t("connectFailed"))
         }
       } catch (pollError) {
         console.error("WhatsApp QR status failed", pollError)
@@ -170,7 +173,7 @@ export function WhatsAppStatusConnection({
       active = false
       window.clearInterval(timer)
     }
-  }, [connection, onConnected, refresh])
+  }, [connection, onConnected, refresh, t])
 
   useEffect(() => {
     if (!connectionId) return
@@ -185,7 +188,7 @@ export function WhatsAppStatusConnection({
     return (
       <Card variant="inset">
         <CardContent className="flex items-center gap-3 py-5 text-sm text-muted-foreground">
-          <Spinner aria-label="Generando código QR" />
+          <Spinner aria-label={t("generating")} />
           Generando un QR de un solo uso…
         </CardContent>
       </Card>
@@ -200,7 +203,7 @@ export function WhatsAppStatusConnection({
       <Card variant="inset">
         <CardContent className="grid justify-items-center gap-4 py-5 text-center">
           <img
-            alt="Código QR para conectar Estados de WhatsApp"
+            alt={t("qrAlt")}
             className="size-52 rounded-lg border border-border bg-card object-contain p-2"
             onError={() => {
               if (imageRefreshAttempts.current >= 1) {
@@ -228,7 +231,7 @@ export function WhatsAppStatusConnection({
               className="mt-2 text-sm text-muted-foreground"
             >
               {isStarting
-                ? "Actualizando QR…"
+                ? t("refreshing")
                 : `Este QR se actualiza en ${countdownLabel(expiresIn)}.`}
             </p>
           </div>
@@ -239,10 +242,7 @@ export function WhatsAppStatusConnection({
             variant="brand-secondary"
           >
             {isStarting ? (
-              <Spinner
-                aria-label="Actualizando código QR"
-                data-icon="inline-start"
-              />
+              <Spinner aria-label={t("refreshing")} data-icon="inline-start" />
             ) : null}
             Generar otro QR
           </Button>
@@ -262,15 +262,15 @@ export function WhatsAppStatusConnection({
           <div className="grid gap-1">
             <p className="font-medium">
               {errorCode === "WHATSAPP_ACCOUNT_MISMATCH"
-                ? "El teléfono escaneado no corresponde a este canal"
+                ? t("accountMismatch")
                 : error
-                  ? "El QR expiró o el conector no respondió"
-                  : "Preparar vínculo por QR"}
+                  ? t("qrExpired")
+                  : t("prepareQr")}
             </p>
             <p className="text-sm text-muted-foreground">
               {errorCode === "WHATSAPP_ACCOUNT_MISMATCH"
-                ? "Escanea el teléfono original o cierra este diálogo para conectar el otro teléfono como un canal nuevo."
-                : "Genera un QR nuevo para continuar con la conexión."}
+                ? t("accountMismatchHint")
+                : t("qrExpiredHint")}
             </p>
           </div>
         </CardContent>
@@ -282,10 +282,7 @@ export function WhatsAppStatusConnection({
           type="button"
         >
           {isStarting ? (
-            <Spinner
-              aria-label="Generando código QR"
-              data-icon="inline-start"
-            />
+            <Spinner aria-label={t("generating")} data-icon="inline-start" />
           ) : (
             <Smartphone data-icon="inline-start" />
           )}

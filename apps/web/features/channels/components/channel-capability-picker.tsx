@@ -13,23 +13,19 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 
-import type {
-  ChannelAvailability,
-  PortalChannelCapability,
-} from "../types/channels"
+import { useTranslations } from "next-intl"
 
-const availabilityCopy: Record<ChannelAvailability, { label: string }> = {
-  ready: { label: "Disponible" },
-  coming_soon: { label: "Próximamente" },
-  plan_locked: { label: "Plan requerido" },
-}
+import type { PortalChannelCapability } from "../types/channels"
 
-function capabilityDescription(capability: PortalChannelCapability) {
+function capabilityDescription(
+  capability: PortalChannelCapability,
+  t: (key: "planLocked" | "comingSoon") => string
+) {
   if (capability.availability === "ready") return capability.description
   if (capability.availability === "plan_locked") {
-    return "Este canal no está incluido en tu plan actual."
+    return t("planLocked")
   }
-  return "Estamos preparando esta conexión."
+  return t("comingSoon")
 }
 
 function ChannelCapabilityCard({
@@ -39,8 +35,8 @@ function ChannelCapabilityCard({
   capability: PortalChannelCapability
   onSelect: () => void
 }) {
+  const t = useTranslations("channels.picker")
   const Icon = capability.icon
-  const availability = availabilityCopy[capability.availability]
   const isAvailable = capability.availability === "ready"
 
   return (
@@ -59,7 +55,7 @@ function ChannelCapabilityCard({
       </CardHeader>
       <CardContent className="flex-1">
         <p className="text-sm leading-snug text-muted-foreground">
-          {capabilityDescription(capability)}
+          {capabilityDescription(capability, t)}
         </p>
       </CardContent>
       {/* An available channel is already signalled by its button, so only the
@@ -72,7 +68,7 @@ function ChannelCapabilityCard({
           </Button>
         ) : (
           <Badge className="leading-none" variant="neutral">
-            {availability.label}
+            {t(`availability.${capability.availability}`)}
           </Badge>
         )}
       </CardFooter>
@@ -87,9 +83,10 @@ export function ChannelCapabilityGrid({
   capabilities: readonly PortalChannelCapability[]
   onSelect: (capability: PortalChannelCapability) => void
 }) {
+  const t = useTranslations("channels.picker")
   return (
     <CardGrid
-      aria-label="Tipos de canal"
+      aria-label={t("typesLabel")}
       as="section"
       className="p-px pr-3 sm:pr-8"
       layout="md-3"
