@@ -270,9 +270,7 @@ function ManualPaymentSheet({
                     </SelectGroup>
                   </SelectContent>
                 </Select>
-                <FieldDescription>
-                  {t("ownerHint")}
-                </FieldDescription>
+                <FieldDescription>{t("ownerHint")}</FieldDescription>
               </Field>
               <Field>
                 <FieldLabel htmlFor="manual-product-type">
@@ -339,7 +337,10 @@ function ManualPaymentSheet({
                       {catalog.map((option) => (
                         <SelectItem key={option.id} value={option.id}>
                           {option.label} ·{" "}
-                          {format.number(option.amountMinor / 100, { currency: option.currency, style: "currency" })}
+                          {format.number(option.amountMinor / 100, {
+                            currency: option.currency,
+                            style: "currency",
+                          })}
                         </SelectItem>
                       ))}
                     </SelectGroup>
@@ -389,9 +390,7 @@ function ManualPaymentSheet({
                   placeholder={t("referencePlaceholder")}
                   value={values.reference}
                 />
-                <FieldDescription>
-                  {t("referenceHint")}
-                </FieldDescription>
+                <FieldDescription>{t("referenceHint")}</FieldDescription>
               </Field>
               <Field>
                 <FieldLabel htmlFor="manual-info">
@@ -608,7 +607,10 @@ export function AdminManualPaymentsPage() {
                 description={t("metrics.amountDescription")}
                 icon={BadgeDollarSign}
                 label={t("metrics.amount")}
-                value={format.number(metrics.approvedAmountMinor / 100, { currency: metrics.currency, style: "currency" })}
+                value={format.number(metrics.approvedAmountMinor / 100, {
+                  currency: metrics.currency,
+                  style: "currency",
+                })}
               />
             </CardGrid>
             <Card variant="subtle">
@@ -697,7 +699,10 @@ export function AdminManualPaymentsPage() {
                                   {payment.reference}
                                 </span>
                                 <span className="text-sm text-muted-foreground">
-                                  {format.dateTime(new Date(payment.createdAt), { dateStyle: "medium", timeStyle: "short" })}
+                                  {format.dateTime(
+                                    new Date(payment.createdAt),
+                                    { dateStyle: "medium", timeStyle: "short" }
+                                  )}
                                 </span>
                               </div>
                             </TableCell>
@@ -708,7 +713,10 @@ export function AdminManualPaymentsPage() {
                               {payment.productLabel}
                             </TableCell>
                             <TableCell>
-                              {format.number(payment.amountMinor / 100, { currency: payment.currency, style: "currency" })}
+                              {format.number(payment.amountMinor / 100, {
+                                currency: payment.currency,
+                                style: "currency",
+                              })}
                             </TableCell>
                             <TableCell>
                               <Badge variant={statusVariant[payment.status]}>
@@ -775,11 +783,7 @@ export function AdminManualPaymentsPage() {
                               ? t("emptyFilteredDescription")
                               : t("emptyDescription")
                           }
-                          title={
-                            hasFilters
-                              ? t("noMatches")
-                              : t("emptyTitle")
-                          }
+                          title={hasFilters ? t("noMatches") : t("emptyTitle")}
                         />
                       )}
                     </TableBody>

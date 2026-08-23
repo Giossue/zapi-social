@@ -221,9 +221,7 @@ function AnnouncementSheet({
     >
       <SheetContent className="w-full gap-0 p-0 sm:max-w-xl" side="right">
         <SheetHeader className="border-b">
-          <SheetTitle>
-            {editing ? t("editTitle") : t("createTitle")}
-          </SheetTitle>
+          <SheetTitle>{editing ? t("editTitle") : t("createTitle")}</SheetTitle>
           <SheetDescription>
             Los anuncios publicados aparecen en la campana del Portal de sus
             destinatarios.
@@ -297,9 +295,7 @@ function AnnouncementSheet({
                   placeholder="https://..."
                   value={values.url}
                 />
-                <FieldDescription>
-                  {t("linkHint")}
-                </FieldDescription>
+                <FieldDescription>{t("linkHint")}</FieldDescription>
               </Field>
               <Field>
                 <FieldLabel htmlFor="announcement-audience">
@@ -480,9 +476,7 @@ export function AdminNotificationsPage() {
       if (editing) await adminNotificationsApi.update(editing.id, values)
       else await adminNotificationsApi.create(values)
       await load()
-      toast.success(
-        values.publish ? t("published") : t("draftSaved")
-      )
+      toast.success(values.publish ? t("published") : t("draftSaved"))
       return true
     } catch (error) {
       console.error("Announcement save failed", error)
@@ -681,7 +675,10 @@ export function AdminNotificationsPage() {
                           {announcement.readCount}
                         </TableCell>
                         <TableCell className="hidden text-muted-foreground lg:table-cell">
-                          {format.dateTime(new Date(announcement.createdAt), { dateStyle: "medium", timeStyle: "short" })}
+                          {format.dateTime(new Date(announcement.createdAt), {
+                            dateStyle: "medium",
+                            timeStyle: "short",
+                          })}
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
@@ -723,11 +720,7 @@ export function AdminNotificationsPage() {
                           ? t("emptyFilteredDescription")
                           : t("emptyDescription")
                       }
-                      title={
-                        hasFilters
-                          ? t("noMatches")
-                          : t("emptyTitle")
-                      }
+                      title={hasFilters ? t("noMatches") : t("emptyTitle")}
                     />
                   )}
                 </TableBody>
