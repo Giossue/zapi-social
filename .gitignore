@@ -46,3 +46,6 @@ next-env.d.ts
 # local deployment connection notes
 /docs/db.conf
 temp/
+
+# Caché de los auditores en Python
+__pycache__/
