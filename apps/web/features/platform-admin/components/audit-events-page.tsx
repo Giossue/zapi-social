@@ -1,8 +1,9 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { useFormatter, useLocale, useTranslations } from "next-intl"
 import { Activity, RefreshCw } from "lucide-react"
-import { auditApi, ApiError } from "@workspace/api-client"
+import { auditApi } from "@workspace/api-client"
 import type { AdminAuditEvent } from "@workspace/contracts"
 import {
   DataTableFilter,
@@ -35,32 +36,25 @@ const severityVariant = {
 } as const
 const PAGE_SIZE = 10
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("es", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value))
-}
-
 export function AuditEventsPage() {
+  const t = useTranslations("audit")
+  const format = useFormatter()
+  const locale = useLocale()
   const [events, setEvents] = useState<AdminAuditEvent[] | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState(false)
   const [query, setQuery] = useState("")
   const [source, setSource] = useState("all")
   const [page, setPage] = useState(1)
   const [refreshing, setRefreshing] = useState(false)
 
   const load = useCallback(async () => {
-    setError(null)
+    setLoadError(false)
     try {
       const response = await auditApi.list()
       setEvents(response.events)
     } catch (caught) {
-      setError(
-        caught instanceof ApiError
-          ? "No se pudo cargar la auditoría."
-          : "No se pudo cargar la auditoría."
-      )
+      console.error("Audit events request failed", caught)
+      setLoadError(true)
       setEvents([])
     }
   }, [])
@@ -70,7 +64,7 @@ export function AuditEventsPage() {
   }, [load])
 
   const filteredEvents = useMemo(() => {
-    const needle = query.trim().toLocaleLowerCase("es")
+    const needle = query.trim().toLocaleLowerCase(locale)
     return (events ?? []).filter((item) => {
       const matchesSource = source === "all" || item.source === source
       const searchable = [
@@ -82,10 +76,10 @@ export function AuditEventsPage() {
       ]
         .filter(Boolean)
         .join(" ")
-        .toLocaleLowerCase("es")
+        .toLocaleLowerCase(locale)
       return matchesSource && (!needle || searchable.includes(needle))
     })
-  }, [events, query, source])
+  }, [events, locale, query, source])
   const pageCount = Math.max(1, Math.ceil(filteredEvents.length / PAGE_SIZE))
   const currentPage = Math.min(page, pageCount)
   const rangeStart = filteredEvents.length
@@ -98,7 +92,7 @@ export function AuditEventsPage() {
     <section className="flex flex-col gap-4 py-4">
       {events === null ? (
         <PageLoading />
-      ) : error ? (
+      ) : loadError ? (
         <Card variant="subtle">
           <EmptyState
             action={
@@ -107,9 +101,9 @@ export function AuditEventsPage() {
                 variant="brand-secondary"
               />
             }
-            description={error}
+            description={t("loadFailed")}
             icon={Activity}
-            title="Auditoría no disponible"
+            title={t("unavailable")}
           />
         </Card>
       ) : (
@@ -130,32 +124,32 @@ export function AuditEventsPage() {
                 ) : (
                   <RefreshCw aria-hidden="true" data-icon="inline-start" />
                 )}
-                {refreshing ? "Actualizando..." : "Actualizar"}
+                {refreshing ? t("refreshing") : t("refresh")}
               </Button>
             }
-            description="Actividad registrada por Web, API y Worker."
+            description={t("description")}
             search={{
-              ariaLabel: "Buscar eventos de auditoría",
+              ariaLabel: t("searchAriaLabel"),
               onChange: (value) => {
                 setQuery(value)
                 setPage(1)
               },
-              placeholder: "Buscar eventos...",
+              placeholder: t("searchPlaceholder"),
               value: query,
             }}
-            title="Auditoría"
+            title={t("title")}
           />
           <CardContent className="flex flex-col gap-4 px-0">
             <DataTableToolbar>
               <DataTableFilter
-                ariaLabel="Filtrar eventos por origen"
-                label="Origen"
+                ariaLabel={t("filterSource")}
+                label={t("sourceColumn")}
                 onValueChange={(value) => {
                   setSource(value)
                   setPage(1)
                 }}
                 options={[
-                  { label: "Todos los orígenes", value: "all" },
+                  { label: t("allSources"), value: "all" },
                   { label: "Web", value: "web" },
                   { label: "API", value: "api" },
                   { label: "Worker", value: "worker" },
@@ -166,14 +160,18 @@ export function AuditEventsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Evento</TableHead>
-                  <TableHead className="hidden md:table-cell">Origen</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="hidden md:table-cell">Cuenta</TableHead>
-                  <TableHead className="hidden lg:table-cell">
-                    Espacio
+                  <TableHead>{t("eventColumn")}</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    {t("sourceColumn")}
                   </TableHead>
-                  <TableHead>Fecha</TableHead>
+                  <TableHead>{t("statusColumn")}</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    {t("accountColumn")}
+                  </TableHead>
+                  <TableHead className="hidden lg:table-cell">
+                    {t("workspaceColumn")}
+                  </TableHead>
+                  <TableHead>{t("dateColumn")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -190,17 +188,17 @@ export function AuditEventsPage() {
                     </TableCell>
                     <TableCell>
                       <Badge variant={severityVariant[item.severity]}>
-                        {item.severity}
+                        {t(`severity.${item.severity}`)}
                       </Badge>
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
-                      {item.actorName ?? item.actorEmail ?? "Sistema"}
+                      {item.actorName ?? item.actorEmail ?? t("system")}
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
                       {item.workspaceName ?? "—"}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {formatDate(item.createdAt)}
+                      {format.dateTime(new Date(item.createdAt), "dateTime")}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -209,13 +207,11 @@ export function AuditEventsPage() {
                     colSpan={6}
                     description={
                       events.length === 0
-                        ? "Las acciones administrativas aparecerán aquí en cuanto ocurran."
-                        : "Prueba con otro término o restablece los filtros."
+                        ? t("emptyDescription")
+                        : t("emptyFilteredDescription")
                     }
                     title={
-                      events.length === 0
-                        ? "Aún no hay eventos registrados"
-                        : "No encontramos eventos"
+                      events.length === 0 ? t("emptyTitle") : t("noMatches")
                     }
                   />
                 ) : null}
@@ -224,7 +220,7 @@ export function AuditEventsPage() {
             <TablePagination
               canGoNext={currentPage < pageCount}
               canGoPrevious={currentPage > 1}
-              itemLabel="eventos"
+              itemLabel={t("itemLabel")}
               onNextPage={() =>
                 setPage((current) => Math.min(current + 1, pageCount))
               }

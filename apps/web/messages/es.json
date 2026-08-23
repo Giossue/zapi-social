@@ -1048,6 +1048,35 @@
       }
     }
   },
+  "audit": {
+    "accountColumn": "Cuenta",
+    "allSources": "Todos los orígenes",
+    "dateColumn": "Fecha",
+    "description": "Actividad registrada por Web, API y Worker.",
+    "emptyDescription": "Las acciones administrativas aparecerán aquí en cuanto ocurran.",
+    "emptyFilteredDescription": "Prueba con otro término o restablece los filtros.",
+    "emptyTitle": "Aún no hay eventos registrados",
+    "eventColumn": "Evento",
+    "filterSource": "Filtrar eventos por origen",
+    "itemLabel": "eventos",
+    "loadFailed": "No se pudo cargar la auditoría.",
+    "noMatches": "No encontramos eventos",
+    "refresh": "Actualizar",
+    "refreshing": "Actualizando...",
+    "searchAriaLabel": "Buscar eventos de auditoría",
+    "searchPlaceholder": "Buscar eventos...",
+    "severity": {
+      "success": "Correcto",
+      "warning": "Aviso",
+      "error": "Error"
+    },
+    "sourceColumn": "Origen",
+    "statusColumn": "Estado",
+    "system": "Sistema",
+    "title": "Auditoría",
+    "unavailable": "Auditoría no disponible",
+    "workspaceColumn": "Espacio"
+  },
   "auth": {
     "metadata": {
       "login": "Iniciar sesión - Zapi Social",
@@ -2587,6 +2616,32 @@
     "resolved": "Caso marcado como resuelto.",
     "resolveFailed": "No pudimos marcar el caso como resuelto."
   },
+  "systemInformation": {
+    "available": "Disponible",
+    "dependencies": "Dependencias",
+    "description": "Runtime, dependencias y migraciones aplicadas en el entorno actual.",
+    "down": "Caído",
+    "environment": "Entorno",
+    "environmentHint": "Entorno de ejecución",
+    "forbiddenDescription": "Solicita a un administrador el permiso necesario para ver el estado del sistema.",
+    "loadFailed": "No pudimos consultar el estado de la plataforma.",
+    "loading": "Cargando información del sistema",
+    "migrations": "Migraciones",
+    "migrationsHint": "Registradas en la base",
+    "noResponse": "No responde a la comprobación.",
+    "runtime": {
+      "node": "Node.js",
+      "platform": "Plataforma",
+      "memory": "Memoria en uso"
+    },
+    "title": "Información del sistema",
+    "unavailable": "Información no disponible",
+    "up": "Disponible",
+    "uptime": "Tiempo activo",
+    "uptimeHint": "Desde el último reinicio",
+    "uptimeValue": "{days, plural, =0 {{hours, plural, =0 {{minutes, number} min} other {{hours, number} h {minutes, number} min}}} other {{days, number} d {hours, number} h}}",
+    "version": "Versión {version}"
+  },
   "teams": {
     "pageTitle": "Equipo",
     "myAccessTitle": "Mi acceso",
@@ -2756,5 +2811,39 @@
       }
     },
     "created": "Creada"
+  },
+  "turnstile": {
+    "active": "Activo",
+    "availability": "Disponibilidad",
+    "availabilityHint": "Exige Turnstile antes de iniciar sesión o crear una cuenta.",
+    "cancel": "Cancelar",
+    "cardDescription": "Protección contra bots para autenticación pública.",
+    "configure": "Configurar",
+    "coverage": "Cobertura",
+    "coverageValue": "Inicio de sesión y Registro",
+    "credentials": "Credenciales",
+    "credentialsSet": "Configuradas",
+    "credentialsUnset": "Sin configurar",
+    "disabled": "Deshabilitado",
+    "enableAriaLabel": "Habilitar Cloudflare Turnstile",
+    "forbidden": "No tienes permiso para administrar Captcha.",
+    "forbiddenDescription": "Solo administradores de plataforma pueden modificar esta configuración.",
+    "forbiddenTitle": "Acceso restringido",
+    "invalidKeys": "Revisa las claves antes de guardar esta configuración.",
+    "keysRequired": "Completa las claves pública y secreta antes de habilitar Turnstile.",
+    "loadFailed": "No pudimos cargar la configuración de Turnstile.",
+    "loadFailedDescription": "No fue posible obtener la configuración de seguridad.",
+    "save": "Guardar configuración",
+    "saveFailed": "No pudimos guardar la configuración de Turnstile.",
+    "saved": "Configuración de Turnstile guardada.",
+    "saving": "Guardando",
+    "secretKey": "Clave secreta",
+    "secretKeyPlaceholder": "Deja vacío para conservar la clave actual",
+    "sessionExpired": "Tu sesión expiró. Vuelve a iniciar sesión.",
+    "sheetDescription": "Protege Inicio de sesión y Registro con una verificación anti-bots.",
+    "sheetTitle": "Configurar Cloudflare Turnstile",
+    "siteKey": "Clave pública",
+    "statusLabel": "Estado",
+    "unavailable": "Configuración no disponible"
   }
 }

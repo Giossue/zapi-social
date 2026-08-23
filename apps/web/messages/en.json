@@ -1048,6 +1048,35 @@
       }
     }
   },
+  "audit": {
+    "accountColumn": "Account",
+    "allSources": "All sources",
+    "dateColumn": "Date",
+    "description": "Activity recorded by Web, API and Worker.",
+    "emptyDescription": "Administrative actions will show up here as soon as they happen.",
+    "emptyFilteredDescription": "Try another term or reset the filters.",
+    "emptyTitle": "No events recorded yet",
+    "eventColumn": "Event",
+    "filterSource": "Filter events by source",
+    "itemLabel": "events",
+    "loadFailed": "The audit log could not be loaded.",
+    "noMatches": "We couldn't find any events",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing...",
+    "searchAriaLabel": "Search audit events",
+    "searchPlaceholder": "Search events...",
+    "severity": {
+      "success": "Success",
+      "warning": "Warning",
+      "error": "Error"
+    },
+    "sourceColumn": "Source",
+    "statusColumn": "Status",
+    "system": "System",
+    "title": "Audit",
+    "unavailable": "Audit unavailable",
+    "workspaceColumn": "Workspace"
+  },
   "auth": {
     "metadata": {
       "login": "Sign in - Zapi Social",
@@ -2587,6 +2616,32 @@
     "resolved": "Case marked as resolved.",
     "resolveFailed": "We couldn't mark the case as resolved."
   },
+  "systemInformation": {
+    "available": "Available",
+    "dependencies": "Dependencies",
+    "description": "Runtime, dependencies and migrations applied in the current environment.",
+    "down": "Down",
+    "environment": "Environment",
+    "environmentHint": "Execution environment",
+    "forbiddenDescription": "Ask an administrator for the permission needed to view the system status.",
+    "loadFailed": "We couldn't check the platform status.",
+    "loading": "Loading system information",
+    "migrations": "Migrations",
+    "migrationsHint": "Recorded in the database",
+    "noResponse": "Not responding to the health check.",
+    "runtime": {
+      "node": "Node.js",
+      "platform": "Platform",
+      "memory": "Memory in use"
+    },
+    "title": "System information",
+    "unavailable": "Information unavailable",
+    "up": "Available",
+    "uptime": "Uptime",
+    "uptimeHint": "Since the last restart",
+    "uptimeValue": "{days, plural, =0 {{hours, plural, =0 {{minutes, number} min} other {{hours, number} h {minutes, number} min}}} other {{days, number} d {hours, number} h}}",
+    "version": "Version {version}"
+  },
   "teams": {
     "pageTitle": "Team",
     "myAccessTitle": "My access",
@@ -2756,5 +2811,39 @@
       }
     },
     "created": "Created"
+  },
+  "turnstile": {
+    "active": "Active",
+    "availability": "Availability",
+    "availabilityHint": "Require Turnstile before signing in or creating an account.",
+    "cancel": "Cancel",
+    "cardDescription": "Bot protection for public authentication.",
+    "configure": "Configure",
+    "coverage": "Coverage",
+    "coverageValue": "Sign in and Sign up",
+    "credentials": "Credentials",
+    "credentialsSet": "Configured",
+    "credentialsUnset": "Not configured",
+    "disabled": "Disabled",
+    "enableAriaLabel": "Enable Cloudflare Turnstile",
+    "forbidden": "You don't have permission to manage Captcha.",
+    "forbiddenDescription": "Only platform administrators can change this configuration.",
+    "forbiddenTitle": "Restricted access",
+    "invalidKeys": "Check the keys before saving this configuration.",
+    "keysRequired": "Fill in the site and secret keys before enabling Turnstile.",
+    "loadFailed": "We couldn't load the Turnstile configuration.",
+    "loadFailedDescription": "The security configuration could not be retrieved.",
+    "save": "Save configuration",
+    "saveFailed": "We couldn't save the Turnstile configuration.",
+    "saved": "Turnstile configuration saved.",
+    "saving": "Saving",
+    "secretKey": "Secret key",
+    "secretKeyPlaceholder": "Leave empty to keep the current key",
+    "sessionExpired": "Your session expired. Sign in again.",
+    "sheetDescription": "Protect Sign in and Sign up with an anti-bot check.",
+    "sheetTitle": "Configure Cloudflare Turnstile",
+    "siteKey": "Site key",
+    "statusLabel": "Status",
+    "unavailable": "Configuration unavailable"
   }
 }

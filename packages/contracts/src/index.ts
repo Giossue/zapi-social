@@ -751,13 +751,18 @@ export const runPortalRssScheduleSchema = z
   .strict()
 
 export const adminSystemCheckSchema = z.object({
-  label: z.string(),
-  detail: z.string(),
+  key: z.enum(["postgres", "redis"]),
+  /** Versión detectada; `null` cuando la dependencia no respondió. */
+  version: z.string().nullable(),
   passed: z.boolean(),
+})
+export const adminSystemRuntimeEntrySchema = z.object({
+  key: z.enum(["node", "platform", "memory"]),
+  value: z.string(),
 })
 export const adminSystemInformationSchema = z.object({
   environment: z.string(),
-  runtime: z.array(z.object({ label: z.string(), value: z.string() })),
+  runtime: z.array(adminSystemRuntimeEntrySchema),
   services: z.array(adminSystemCheckSchema),
   migrationsApplied: z.number().int().nonnegative(),
   uptimeSeconds: z.number().int().nonnegative(),

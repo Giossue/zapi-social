@@ -28,10 +28,10 @@ export class SystemInformationController {
     return {
       environment: process.env.NODE_ENV ?? 'development',
       runtime: [
-        { label: 'Node.js', value: process.version },
-        { label: 'Plataforma', value: `${process.platform} ${process.arch}` },
+        { key: 'node', value: process.version },
+        { key: 'platform', value: `${process.platform} ${process.arch}` },
         {
-          label: 'Memoria en uso',
+          key: 'memory',
           value: `${Math.round(process.memoryUsage().rss / 1024 / 1024)} MB`,
         },
       ],
@@ -44,20 +44,17 @@ export class SystemInformationController {
 
   private async databaseCheck() {
     try {
-      const [row] = await this.database.client.unsafe<
-        { version: string }[]
-      >('select version() as version');
+      const [row] = await this.database.client.unsafe<{ version: string }[]>(
+        'select version() as version',
+      );
+      // `version()` devuelve «PostgreSQL 17.2 on x86_64…»: basta el número.
       return {
-        label: 'PostgreSQL',
-        detail: row?.version?.split(' ').slice(0, 2).join(' ') ?? 'Disponible',
+        key: 'postgres' as const,
+        version: row?.version?.split(' ')[1] ?? null,
         passed: true,
       };
     } catch {
-      return {
-        label: 'PostgreSQL',
-        detail: 'No responde a la consulta de verificación.',
-        passed: false,
-      };
+      return { key: 'postgres' as const, version: null, passed: false };
     }
   }
 
@@ -74,17 +71,9 @@ export class SystemInformationController {
       await redis.connect();
       const info = await redis.info('server');
       const version = /redis_version:(\S+)/.exec(info)?.[1];
-      return {
-        label: 'Redis',
-        detail: version ? `Versión ${version}` : 'Disponible',
-        passed: true,
-      };
+      return { key: 'redis' as const, version: version ?? null, passed: true };
     } catch {
-      return {
-        label: 'Redis',
-        detail: 'No responde al ping de verificación.',
-        passed: false,
-      };
+      return { key: 'redis' as const, version: null, passed: false };
     } finally {
       redis.disconnect();
     }

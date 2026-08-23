@@ -41,6 +41,7 @@ import {
   useState,
   type FormEvent,
 } from "react"
+import { useTranslations } from "next-intl"
 
 type Draft = {
   enabled: boolean
@@ -84,6 +85,7 @@ function isDirty(draft: Draft, configuration: AdminTurnstileConfiguration) {
 }
 
 export function AdminTurnstileSettingsPage() {
+  const t = useTranslations("turnstile")
   const [configuration, setConfiguration] =
     useState<AdminTurnstileConfiguration | null>(null)
   const [draft, setDraft] = useState<Draft | null>(null)
@@ -102,16 +104,16 @@ export function AdminTurnstileSettingsPage() {
       setLoadError(true)
       if (error instanceof ApiError && error.status === 403) {
         setForbidden(true)
-        toast.error("No tienes permiso para administrar Captcha.")
+        toast.error(t("forbidden"))
       } else if (error instanceof ApiError && error.status === 401) {
-        toast.error("Tu sesión expiró. Vuelve a iniciar sesión.")
+        toast.error(t("sessionExpired"))
       } else {
-        toast.error("No pudimos cargar la configuración de Turnstile.")
+        toast.error(t("loadFailed"))
       }
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     const timeout = window.setTimeout(() => void load(), 0)
@@ -124,20 +126,20 @@ export function AdminTurnstileSettingsPage() {
     (draft.secretKey.trim() || configuration?.secretConfigured)
   )
   const dirty = Boolean(draft && configuration && isDirty(draft, configuration))
-  const status = configuration?.enabled ? "Activo" : "Deshabilitado"
+  const status = configuration?.enabled ? t("active") : t("disabled")
   const statusVariant = configuration?.enabled ? "success" : "neutral"
   const summary = useMemo(
     () => [
-      { label: "Estado", value: status },
-      { label: "Cobertura", value: "Inicio de sesión y Registro" },
+      { label: t("statusLabel"), value: status },
+      { label: t("coverage"), value: t("coverageValue") },
       {
-        label: "Credenciales",
+        label: t("credentials"),
         value: configuration?.secretConfigured
-          ? "Configuradas"
-          : "Sin configurar",
+          ? t("credentialsSet")
+          : t("credentialsUnset"),
       },
     ],
-    [configuration?.secretConfigured, status]
+    [configuration?.secretConfigured, status, t]
   )
 
   function open() {
@@ -158,9 +160,7 @@ export function AdminTurnstileSettingsPage() {
     event.preventDefault()
     if (!draft || !configuration) return
     if (draft.enabled && !complete) {
-      toast.error(
-        "Completa las claves pública y secreta antes de habilitar Turnstile."
-      )
+      toast.error(t("keysRequired"))
       return
     }
 
@@ -175,14 +175,14 @@ export function AdminTurnstileSettingsPage() {
       })
       setConfiguration(saved)
       setDraft(null)
-      toast.success("Configuración de Turnstile guardada.")
+      toast.success(t("saved"))
     } catch (error) {
       if (error instanceof ApiError && error.status === 400) {
-        toast.error("Revisa las claves antes de guardar esta configuración.")
+        toast.error(t("invalidKeys"))
       } else if (error instanceof ApiError && error.status === 403) {
-        toast.error("No tienes permiso para administrar Captcha.")
+        toast.error(t("forbidden"))
       } else {
-        toast.error("No pudimos guardar la configuración de Turnstile.")
+        toast.error(t("saveFailed"))
       }
     } finally {
       setSaving(false)
@@ -197,12 +197,10 @@ export function AdminTurnstileSettingsPage() {
           forbidden ? undefined : <RetryButton onClick={() => void load()} />
         }
         description={
-          forbidden
-            ? "Solo administradores de plataforma pueden modificar esta configuración."
-            : "No fue posible obtener la configuración de seguridad."
+          forbidden ? t("forbiddenDescription") : t("loadFailedDescription")
         }
         icon={ShieldCheck}
-        title={forbidden ? "Acceso restringido" : "Configuración no disponible"}
+        title={forbidden ? t("forbiddenTitle") : t("unavailable")}
       />
     )
   }
@@ -221,13 +219,11 @@ export function AdminTurnstileSettingsPage() {
                 <CardTitle>Cloudflare Turnstile</CardTitle>
                 <Badge variant={statusVariant}>{status}</Badge>
               </div>
-              <CardDescription>
-                Protección contra bots para autenticación pública.
-              </CardDescription>
+              <CardDescription>{t("cardDescription")}</CardDescription>
             </div>
             <Button onClick={open} variant="brand-secondary">
               <Settings2 data-icon="inline-start" />
-              Configurar
+              {t("configure")}
             </Button>
           </div>
         </CardHeader>
@@ -245,25 +241,21 @@ export function AdminTurnstileSettingsPage() {
         >
           <form className="flex min-h-full flex-col" noValidate onSubmit={save}>
             <SheetHeader className="border-b">
-              <SheetTitle>Configurar Cloudflare Turnstile</SheetTitle>
-              <SheetDescription>
-                Protege Inicio de sesión y Registro con una verificación
-                anti-bots.
-              </SheetDescription>
+              <SheetTitle>{t("sheetTitle")}</SheetTitle>
+              <SheetDescription>{t("sheetDescription")}</SheetDescription>
             </SheetHeader>
             <div className="flex flex-col gap-6 p-4">
               <Card className="gap-0 py-0" variant="inset">
                 <CardContent className="px-4 py-4">
                   <Field orientation="horizontal">
                     <FieldContent>
-                      <FieldTitle>Disponibilidad</FieldTitle>
+                      <FieldTitle>{t("availability")}</FieldTitle>
                       <p className="text-xs text-muted-foreground">
-                        Exige Turnstile antes de iniciar sesión o crear una
-                        cuenta.
+                        {t("availabilityHint")}
                       </p>
                     </FieldContent>
                     <Switch
-                      aria-label="Habilitar Cloudflare Turnstile"
+                      aria-label={t("enableAriaLabel")}
                       checked={draft?.enabled ?? false}
                       disabled={saving}
                       onCheckedChange={(enabled) => updateDraft({ enabled })}
@@ -285,13 +277,13 @@ export function AdminTurnstileSettingsPage() {
                     className="text-sm font-semibold"
                     id="turnstile-credentials"
                   >
-                    Credenciales
+                    {t("credentials")}
                   </h2>
                 </div>
                 <FieldGroup>
                   <Field className="gap-1.5">
                     <FieldLabel htmlFor="turnstile-site-key">
-                      Clave pública <RequiredMark />
+                      {t("siteKey")} <RequiredMark />
                     </FieldLabel>
                     <Input
                       aria-required="true"
@@ -305,7 +297,7 @@ export function AdminTurnstileSettingsPage() {
                   </Field>
                   <Field className="gap-1.5">
                     <FieldLabel htmlFor="turnstile-secret-key">
-                      Clave secreta
+                      {t("secretKey")}
                       {configuration.secretConfigured ? null : <RequiredMark />}
                     </FieldLabel>
                     <Input
@@ -317,7 +309,7 @@ export function AdminTurnstileSettingsPage() {
                       }
                       placeholder={
                         configuration.secretConfigured
-                          ? "Deja vacío para conservar la clave actual"
+                          ? t("secretKeyPlaceholder")
                           : undefined
                       }
                       type="password"
@@ -334,7 +326,7 @@ export function AdminTurnstileSettingsPage() {
                 type="button"
                 variant="brand-secondary"
               >
-                Cancelar
+                {t("cancel")}
               </Button>
               <Button
                 disabled={
@@ -347,7 +339,7 @@ export function AdminTurnstileSettingsPage() {
                 ) : (
                   <Save data-icon="inline-start" />
                 )}
-                {saving ? "Guardando" : "Guardar configuración"}
+                {saving ? t("saving") : t("save")}
               </Button>
             </SheetFooter>
           </form>

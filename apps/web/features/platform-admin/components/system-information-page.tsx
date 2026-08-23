@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import {
   CheckCircle2,
@@ -24,17 +25,18 @@ import { RetryButton } from "@workspace/ui/components/retry-button"
 import { Separator } from "@workspace/ui/components/separator"
 import { loginPath } from "@/features/identity/login-redirect"
 
-function uptime(seconds: number) {
-  const days = Math.floor(seconds / 86_400)
-  const hours = Math.floor((seconds % 86_400) / 3_600)
-  const minutes = Math.floor((seconds % 3_600) / 60)
-  if (days) return `${days} d ${hours} h`
-  if (hours) return `${hours} h ${minutes} min`
-  return `${minutes} min`
+/** Los nombres propios de las dependencias no se traducen. */
+const serviceNames: Record<
+  AdminSystemInformation["services"][number]["key"],
+  string
+> = {
+  postgres: "PostgreSQL",
+  redis: "Redis",
 }
 
 export function SystemInformationPage() {
   const router = useRouter()
+  const t = useTranslations("systemInformation")
   const [data, setData] = useState<AdminSystemInformation | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
@@ -71,9 +73,9 @@ export function SystemInformationPage() {
       <Card variant="subtle">
         <CardContent>
           <EmptyState
-            description="Solicita a un administrador el permiso necesario para ver el estado del sistema."
+            description={t("forbiddenDescription")}
             icon={ShieldCheck}
-            title="Información no disponible"
+            title={t("unavailable")}
           />
         </CardContent>
       </Card>
@@ -81,7 +83,7 @@ export function SystemInformationPage() {
   }
 
   if (isLoading && !data) {
-    return <PageLoading aria-label="Cargando información del sistema" />
+    return <PageLoading aria-label={t("loading")} />
   }
 
   if (loadError || !data) {
@@ -95,9 +97,9 @@ export function SystemInformationPage() {
                 variant="brand-secondary"
               />
             }
-            description="No pudimos consultar el estado de la plataforma."
+            description={t("loadFailed")}
             icon={CircleAlert}
-            title="Información no disponible"
+            title={t("unavailable")}
           />
         </CardContent>
       </Card>
@@ -106,28 +108,29 @@ export function SystemInformationPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <CollectionHeader
-        description="Runtime, dependencias y migraciones aplicadas en el entorno actual."
-        title="Información del sistema"
-      />
+      <CollectionHeader description={t("description")} title={t("title")} />
 
       <CardGrid layout="md-3">
         <MetricCard
-          description="Entorno de ejecución"
+          description={t("environmentHint")}
           icon={Cpu}
-          label="Entorno"
+          label={t("environment")}
           value={data.environment}
         />
         <MetricCard
-          description="Desde el último reinicio"
+          description={t("uptimeHint")}
           icon={Cpu}
-          label="Tiempo activo"
-          value={uptime(data.uptimeSeconds)}
+          label={t("uptime")}
+          value={t("uptimeValue", {
+            hours: Math.floor((data.uptimeSeconds % 86_400) / 3_600),
+            days: Math.floor(data.uptimeSeconds / 86_400),
+            minutes: Math.floor((data.uptimeSeconds % 3_600) / 60),
+          })}
         />
         <MetricCard
-          description="Registradas en la base"
+          description={t("migrationsHint")}
           icon={Database}
-          label="Migraciones"
+          label={t("migrations")}
           value={data.migrationsApplied}
         />
       </CardGrid>
@@ -135,9 +138,9 @@ export function SystemInformationPage() {
       <div className="grid gap-4 xl:grid-cols-2">
         <Card variant="subtle">
           <CardContent className="flex flex-col gap-3 py-4">
-            <p className="font-medium">Dependencias</p>
+            <p className="font-medium">{t("dependencies")}</p>
             {data.services.map((service, index) => (
-              <div className="flex flex-col gap-3" key={service.label}>
+              <div className="flex flex-col gap-3" key={service.key}>
                 {index > 0 ? <Separator /> : null}
                 <div className="flex items-start gap-3">
                   {service.passed ? (
@@ -152,13 +155,19 @@ export function SystemInformationPage() {
                     />
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium">{service.label}</p>
+                    <p className="text-sm font-medium">
+                      {serviceNames[service.key]}
+                    </p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {service.detail}
+                      {service.passed
+                        ? service.version
+                          ? t("version", { version: service.version })
+                          : t("available")
+                        : t("noResponse")}
                     </p>
                   </div>
                   <Badge variant={service.passed ? "success" : "destructive"}>
-                    {service.passed ? "Disponible" : "Caído"}
+                    {service.passed ? t("up") : t("down")}
                   </Badge>
                 </div>
               </div>
@@ -170,11 +179,11 @@ export function SystemInformationPage() {
           <CardContent className="flex flex-col gap-3 py-4">
             <p className="font-medium">Runtime</p>
             {data.runtime.map((item, index) => (
-              <div className="flex flex-col gap-3" key={item.label}>
+              <div className="flex flex-col gap-3" key={item.key}>
                 {index > 0 ? <Separator /> : null}
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-sm text-muted-foreground">
-                    {item.label}
+                    {t(`runtime.${item.key}`)}
                   </span>
                   <span className="font-mono text-sm">{item.value}</span>
                 </div>
