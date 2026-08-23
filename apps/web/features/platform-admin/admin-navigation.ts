@@ -1,30 +1,21 @@
 import type { LucideIcon } from "lucide-react"
 import {
   Activity,
-  BadgeDollarSign,
   BarChart3,
   Bot,
   BrainCircuit,
-  Cable,
   CreditCard,
   FileQuestion,
   FileText,
-  Gauge,
   Globe2,
   HandCoins,
-  KeyRound,
-  Landmark,
   Languages,
   LayoutDashboard,
   LifeBuoy,
   Mail,
   Megaphone,
-  PackageCheck,
   PlugZap,
-  ReceiptText,
   Settings2,
-  ShieldCheck,
-  Tags,
   Users,
   Workflow,
 } from "lucide-react"
@@ -32,11 +23,21 @@ import {
 export type AdminNavigationLink = {
   label: string
   href: string
-  icon: LucideIcon
+  icon?: LucideIcon
 }
+
+export type AdminNavigationDisclosure = {
+  label: string
+  icon?: LucideIcon
+  children: readonly AdminNavigationLink[]
+}
+
+export type AdminNavigationItem =
+  AdminNavigationLink | AdminNavigationDisclosure
+
 export type AdminNavigationGroup = {
   label: string
-  items: readonly AdminNavigationLink[]
+  items: readonly AdminNavigationItem[]
 }
 
 export const adminNavigationGroups: readonly AdminNavigationGroup[] = [
@@ -51,26 +52,20 @@ export const adminNavigationGroups: readonly AdminNavigationGroup[] = [
     items: [
       { label: "Integraciones", href: "/admin/integrations", icon: PlugZap },
       { label: "Usuarios", href: "/admin/users", icon: Users },
-      { label: "Planes", href: "/admin/plans", icon: PackageCheck },
-      { label: "Créditos", href: "/admin/credits", icon: BadgeDollarSign },
+      {
+        label: "Facturación",
+        icon: CreditCard,
+        children: [
+          { label: "Planes", href: "/admin/plans" },
+          { label: "Suscripciones", href: "/admin/subscriptions" },
+          { label: "Pagos", href: "/admin/payments" },
+          { label: "Pagos manuales", href: "/admin/manual-payments" },
+          { label: "Reporte de pagos", href: "/admin/payment-report" },
+          { label: "Cupones", href: "/admin/coupons" },
+          { label: "Créditos", href: "/admin/credits" },
+        ],
+      },
       { label: "Afiliados", href: "/admin/affiliate", icon: HandCoins },
-      { label: "Cupones", href: "/admin/coupons", icon: Tags },
-      { label: "Pagos", href: "/admin/payments", icon: CreditCard },
-      {
-        label: "Pagos manuales",
-        href: "/admin/manual-payments",
-        icon: Landmark,
-      },
-      {
-        label: "Reporte de pagos",
-        href: "/admin/payment-report",
-        icon: ReceiptText,
-      },
-      {
-        label: "Suscripciones",
-        href: "/admin/subscriptions",
-        icon: ReceiptText,
-      },
     ],
   },
   {
@@ -83,13 +78,15 @@ export const adminNavigationGroups: readonly AdminNavigationGroup[] = [
   {
     label: "Contenido",
     items: [
-      { label: "Blogs", href: "/admin/blogs", icon: FileText },
       {
-        label: "Categorías de blog",
-        href: "/admin/blog-categories",
-        icon: Tags,
+        label: "Blog",
+        icon: FileText,
+        children: [
+          { label: "Entradas", href: "/admin/blogs" },
+          { label: "Categorías", href: "/admin/blog-categories" },
+          { label: "Etiquetas", href: "/admin/blog-tags" },
+        ],
       },
-      { label: "Etiquetas de blog", href: "/admin/blog-tags", icon: Tags },
       {
         label: "Preguntas frecuentes",
         href: "/admin/faqs",
@@ -106,70 +103,85 @@ export const adminNavigationGroups: readonly AdminNavigationGroup[] = [
         href: "/admin/settings/ai",
         icon: BrainCircuit,
       },
-      { label: "Plantillas AI", href: "/admin/ai-templates", icon: Bot },
       {
-        label: "Categorías AI",
-        href: "/admin/ai-template-categories",
-        icon: Tags,
+        label: "Plantillas AI",
+        icon: Bot,
+        children: [
+          { label: "Plantillas", href: "/admin/ai-templates" },
+          { label: "Categorías", href: "/admin/ai-template-categories" },
+        ],
       },
-      { label: "Uso AI", href: "/admin/ai-usage-logs", icon: BarChart3 },
-      { label: "Reporte AI", href: "/admin/ai-report", icon: Gauge },
+      {
+        label: "Observabilidad AI",
+        icon: BarChart3,
+        children: [
+          { label: "Uso", href: "/admin/ai-usage-logs" },
+          { label: "Reporte", href: "/admin/ai-report" },
+        ],
+      },
     ],
   },
   {
     label: "Sistema",
     items: [
       {
-        label: "Configuración general",
-        href: "/admin/settings/general",
+        label: "Ajustes",
         icon: Settings2,
+        children: [
+          { label: "General", href: "/admin/settings/general" },
+          { label: "Autenticación", href: "/admin/settings/auth" },
+          { label: "Captcha", href: "/admin/settings/captcha" },
+          { label: "Analítica", href: "/admin/settings/analytics" },
+        ],
       },
-      {
-        label: "Reglas de autenticación",
-        href: "/admin/settings/auth",
-        icon: KeyRound,
-      },
-      { label: "Captcha", href: "/admin/settings/captcha", icon: ShieldCheck },
       {
         label: "Plantillas de correo",
         href: "/admin/email-templates",
         icon: Mail,
       },
       {
-        label: "Analítica",
-        href: "/admin/settings/analytics",
-        icon: BarChart3,
-      },
-      {
         label: "Páginas estáticas",
         href: "/admin/settings/static-pages",
         icon: Globe2,
       },
-      { label: "Cache", href: "/admin/settings/cache", icon: Workflow },
       {
-        label: "Tareas programadas",
-        href: "/admin/settings/crons",
-        icon: Cable,
-      },
-      {
-        label: "Sistema",
-        href: "/admin/settings/system-information",
-        icon: Activity,
+        label: "Operación",
+        icon: Workflow,
+        children: [
+          { label: "Cache", href: "/admin/settings/cache" },
+          { label: "Tareas programadas", href: "/admin/settings/crons" },
+          { label: "Sistema", href: "/admin/settings/system-information" },
+        ],
       },
       { label: "Auditoría", href: "/admin/audit", icon: Activity },
     ],
   },
 ]
 
+function getDeepestAdminNavigationItem(pathname: string) {
+  return adminNavigationGroups
+    .flatMap((group) =>
+      group.items.flatMap((item) =>
+        "children" in item ? [item, ...item.children] : [item]
+      )
+    )
+    .filter((item): item is AdminNavigationLink => "href" in item)
+    .filter(
+      (item) => pathname === item.href || pathname.startsWith(`${item.href}/`)
+    )
+    .sort((first, second) => second.href.length - first.href.length)[0]
+}
+
 export function isAdminNavigationItemActive(
-  item: AdminNavigationLink,
+  item: AdminNavigationItem,
   pathname: string
 ) {
-  return pathname === item.href || pathname.startsWith(`${item.href}/`)
+  return (
+    "href" in item &&
+    getDeepestAdminNavigationItem(pathname)?.href === item.href
+  )
 }
 
 export function getAdminNavigationItem(pathname: string) {
-  return adminNavigationGroups
-    .flatMap((group) => group.items)
-    .find((item) => isAdminNavigationItemActive(item, pathname))
+  return getDeepestAdminNavigationItem(pathname)
 }
