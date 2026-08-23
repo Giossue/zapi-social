@@ -132,6 +132,7 @@ WEB_ORIGIN=https://app.zapisocial.com
 DATABASE_URL=postgresql://USER:PASSWORD@POSTGRES_HOST:5432/zapi_v2
 JWT_ACCESS_SECRET=GENERATED_LONG_SECRET
 COOKIE_SECURE=true
+COOKIE_DOMAIN=.zapisocial.com
 REDIS_HOST=REDIS_SERVICE_HOST
 REDIS_PORT=6379
 REDIS_USERNAME=default
@@ -148,6 +149,11 @@ Notas:
 
 - `API_PUBLIC_ORIGIN` recibe callbacks OAuth y debe ser un dominio HTTPS público.
 - `WEB_ORIGIN` es el único origen permitido por CORS con cookies.
+- `COOKIE_DOMAIN=.zapisocial.com` hace que la sesión sea visible también para el
+  sitio público de marketing (los CTA «Ir al panel»). Sin él, la cookie es
+  host-only de `app.` y la landing nunca detecta sesión. Al introducirlo, las
+  cookies host-only previas quedan huérfanas: el logout de la API limpia ambas
+  variantes y el middleware de Web borra las que encuentre inválidas.
 - `DATABASE_URL`, JWT, Redis y clave de cifrado son secretos de Dokploy: nunca se versionan ni se copian a documentación, issues o chat.
 - `PROVIDER_INTEGRATIONS_ENCRYPTION_KEY` debe mantenerse estable. Rotarla requiere un proceso explícito de re-cifrado de configuraciones OAuth existentes.
 - Redis autenticado usa `REDIS_HOST`, `REDIS_PORT`, `REDIS_USERNAME` y `REDIS_PASSWORD` separados. No usar una URL Redis como valor de `REDIS_HOST`.
