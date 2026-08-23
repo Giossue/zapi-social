@@ -121,6 +121,9 @@ import {
 } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
+import { useFormatter, useTranslations } from "next-intl"
+
+import { useApiErrorMessage } from "@/lib/api-error-message"
 
 import {
   type AiStudioView,
@@ -137,73 +140,6 @@ import {
   DownloadTableButton,
 } from "@/features/ai-studio/components/ai-studio-operations"
 
-const pageCopy: Record<AiStudioView, { description: string; title: string }> = {
-  automation: {
-    description:
-      "Crea reglas que investigan, generan y dejan borradores listos para revisión.",
-    title: "Automatizaciones",
-  },
-  content: {
-    description:
-      "Genera publicaciones consistentes con tu voz de marca y cada canal.",
-    title: "Contenido con IA",
-  },
-  credits: {
-    description:
-      "Entiende el consumo de IA y controla el presupuesto de tu espacio de trabajo.",
-    title: "Créditos y consumo",
-  },
-  history: {
-    description:
-      "Encuentra, reutiliza y descarga cualquier generación anterior.",
-    title: "Historial de IA",
-  },
-  image: {
-    description:
-      "Crea piezas visuales desde una idea, una referencia o una campaña.",
-    title: "Generador de imágenes",
-  },
-  overview: {
-    description: "Crea, investiga y mejora contenido desde un solo lugar.",
-    title: "AI Studio",
-  },
-  planner: {
-    description:
-      "Convierte un objetivo en un plan editorial equilibrado y listo para producir.",
-    title: "Planificador inteligente",
-  },
-  repurpose: {
-    description:
-      "Transforma una pieza existente en variantes nativas para cada red.",
-    title: "Reutilizar contenido",
-  },
-  review: {
-    description:
-      "Detecta problemas de claridad, marca, cumplimiento y rendimiento antes de publicar.",
-    title: "Revisión inteligente",
-  },
-  search: {
-    description:
-      "Explora tendencias, preguntas e ideas con señales útiles para crear contenido.",
-    title: "Investigación asistida",
-  },
-  settings: {
-    description:
-      "Define la voz, el idioma y las reglas que guían todas las generaciones.",
-    title: "Configuración de IA",
-  },
-  timing: {
-    description:
-      "Descubre cuándo publicar según el rendimiento real de tus cuentas.",
-    title: "Mejor hora para publicar",
-  },
-  video: {
-    description:
-      "Diseña el guion, las escenas y el clip final sin salir del flujo de trabajo.",
-    title: "Generador de video",
-  },
-}
-
 function RequiredMark() {
   return (
     <span aria-hidden="true" className="text-destructive">
@@ -212,16 +148,9 @@ function RequiredMark() {
   )
 }
 
-function aiErrorMessage(error: unknown) {
-  if (error instanceof ApiError) {
-    if (error.code === "AI_PROVIDER_NOT_READY")
-      return "El administrador todavía no habilitó un modelo para esta herramienta."
-    if (error.code === "AI_CREDITS_INSUFFICIENT")
-      return "No hay créditos suficientes para iniciar esta generación."
-    if (error.code === "AI_REQUEST_RATE_LIMITED")
-      return "Hay demasiadas solicitudes. Espera un momento e inténtalo otra vez."
-  }
-  return "No pudimos completar la operación."
+/** El código de la API alimenta el diccionario único de errores. */
+function errorCode(error: unknown) {
+  return error instanceof ApiError ? error.code : undefined
 }
 
 function aiLoadState(
@@ -234,26 +163,6 @@ function aiLoadState(
 
 function idempotencyKey(prefix: string) {
   return `${prefix}-${crypto.randomUUID()}`
-}
-
-function formatDate(value: string | null) {
-  if (!value) return "—"
-  return new Intl.DateTimeFormat("es-EC", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value))
-}
-
-const requestKindLabels: Record<AiRequestKind, string> = {
-  content: "Contenido",
-  image: "Imagen",
-  video: "Video",
-  repurpose: "Reutilizar",
-  planner: "Plan",
-  review: "Revisión",
-  timing: "Mejor hora",
-  search: "Investigación",
-  ai_publishing: "Publicación AI",
 }
 
 function usePolledRequest() {
@@ -282,16 +191,16 @@ function StudioHeader({
   actions?: React.ReactNode
   view: AiStudioView
 }) {
-  const copy = pageCopy[view]
+  const t = useTranslations("aiStudio.views")
 
   return (
     <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
       <div className="flex flex-col gap-1">
         <h1 className="font-heading text-2xl font-semibold tracking-tight">
-          {copy.title}
+          {t(`${view}.title` as "overview.title")}
         </h1>
         <p className="max-w-2xl text-sm text-muted-foreground">
-          {copy.description}
+          {t(`${view}.description` as "overview.description")}
         </p>
       </div>
       {actions ? (
@@ -301,16 +210,9 @@ function StudioHeader({
   )
 }
 
-const requestStatusLabels: Record<PortalAiRequest["status"], string> = {
-  queued: "En cola",
-  processing: "Procesando",
-  succeeded: "Completado",
-  failed: "Falló",
-  cancelled: "Cancelado",
-}
-
 function StatusBadge({ status }: { status: PortalAiRequest["status"] }) {
-  const copy = requestStatusLabels[status]
+  const t = useTranslations("aiStudio.operations")
+  const copy = t(`historyStatusBadge.${status}`)
   if (status === "succeeded") return <Badge variant="success">{copy}</Badge>
   if (status === "failed") return <Badge variant="destructive">{copy}</Badge>
   return <Badge variant="secondary">{copy}</Badge>
@@ -323,6 +225,8 @@ function JobActions({
   request: PortalAiRequest
   onChanged?: () => void
 }) {
+  const t = useTranslations("aiStudio.studio")
+  const apiErrorMessage = useApiErrorMessage()
   const [pending, setPending] = useState(false)
 
   async function retry() {
@@ -331,10 +235,10 @@ function JobActions({
       await aiApi.retryRequest(request.id, {
         idempotencyKey: idempotencyKey("retry"),
       })
-      toast.success("La generación volvió a la cola.")
+      toast.success(t("retryQueued"))
       onChanged?.()
     } catch (error) {
-      toast.error(aiErrorMessage(error))
+      toast.error(apiErrorMessage(errorCode(error)))
     } finally {
       setPending(false)
     }
@@ -344,10 +248,10 @@ function JobActions({
     setPending(true)
     try {
       await aiApi.archiveRequest(request.id, { archived: true })
-      toast.success("Generación archivada.")
+      toast.success(t("archived"))
       onChanged?.()
     } catch (error) {
-      toast.error(aiErrorMessage(error))
+      toast.error(apiErrorMessage(errorCode(error)))
     } finally {
       setPending(false)
     }
@@ -357,13 +261,13 @@ function JobActions({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          aria-label={`Acciones para ${request.title}`}
+          aria-label={t("actionsFor", { title: request.title })}
           disabled={pending}
           size="icon-sm"
           variant="brand-secondary"
         >
           {pending ? (
-            <Spinner aria-label="Procesando acción" />
+            <Spinner aria-label={t("processing")} />
           ) : (
             <MoreHorizontal />
           )}
@@ -376,24 +280,24 @@ function JobActions({
               toast.info(
                 request.result && Object.keys(request.result).length
                   ? JSON.stringify(request.result)
-                  : "La generación todavía no tiene resultado."
+                  : t("noResultYet")
               )
             }
           >
             <Eye />
-            Vista previa
+            {t("preview")}
           </DropdownMenuItem>
           {request.status === "failed" || request.status === "cancelled" ? (
             <DropdownMenuItem onSelect={() => void retry()}>
               <Copy />
-              Reintentar
+              {t("retry")}
             </DropdownMenuItem>
           ) : null}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => void archive()} variant="destructive">
           <Trash2 />
-          Archivar
+          {t("archive")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -409,6 +313,9 @@ function JobsTable({
   onChanged?: () => void
   rows: PortalAiRequest[]
 }) {
+  const t = useTranslations("aiStudio.studio")
+  const tOps = useTranslations("aiStudio.operations")
+  const format = useFormatter()
   const [query, setQuery] = useState("")
   const [kindFilter, setKindFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
@@ -449,12 +356,12 @@ function JobsTable({
       <DataTableHeader
         action={action}
         search={{
-          ariaLabel: "Buscar generaciones",
+          ariaLabel: tOps("history.searchLabel"),
           onChange: (value) => {
             setQuery(value)
             setPage(1)
           },
-          placeholder: "Buscar generaciones...",
+          placeholder: tOps("history.searchPlaceholder"),
           value: query,
         }}
       />
@@ -468,38 +375,38 @@ function JobsTable({
                 type="button"
                 variant="outline"
               >
-                <X /> Limpiar
+                <X /> {t("clear")}
               </Button>
             ) : undefined
           }
         >
           <DataTableFilter
-            ariaLabel="Filtrar por tipo"
-            label="Tipo"
+            ariaLabel={t("filterKind")}
+            label={tOps("type")}
             onValueChange={(value) => {
               setKindFilter(value)
               setPage(1)
             }}
             options={[
-              { label: "Todos", value: "all" },
+              { label: t("all"), value: "all" },
               ...kindOptions.map((kind) => ({
-                label: requestKindLabels[kind],
+                label: tOps(`kind.${kind}`),
                 value: kind,
               })),
             ]}
             value={kindFilter}
           />
           <DataTableFilter
-            ariaLabel="Filtrar por estado"
-            label="Estado"
+            ariaLabel={t("filterStatus")}
+            label={tOps("status")}
             onValueChange={(value) => {
               setStatusFilter(value)
               setPage(1)
             }}
             options={[
-              { label: "Todos", value: "all" },
+              { label: t("all"), value: "all" },
               ...statusOptions.map((status) => ({
-                label: requestStatusLabels[status],
+                label: tOps(`historyStatusBadge.${status}`),
                 value: status,
               })),
             ]}
@@ -509,12 +416,18 @@ function JobsTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Generación</TableHead>
-              <TableHead className="hidden md:table-cell">Tipo</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead className="hidden lg:table-cell">Consumo</TableHead>
-              <TableHead className="hidden md:table-cell">Fecha</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
+              <TableHead>{tOps("history.generation")}</TableHead>
+              <TableHead className="hidden md:table-cell">
+                {tOps("type")}
+              </TableHead>
+              <TableHead>{tOps("status")}</TableHead>
+              <TableHead className="hidden lg:table-cell">
+                {t("usage")}
+              </TableHead>
+              <TableHead className="hidden md:table-cell">
+                {tOps("date")}
+              </TableHead>
+              <TableHead className="text-right">{t("actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -529,16 +442,21 @@ function JobsTable({
                   </div>
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
-                  {requestKindLabels[row.kind]}
+                  {tOps(`kind.${row.kind}`)}
                 </TableCell>
                 <TableCell>
                   <StatusBadge status={row.status} />
                 </TableCell>
                 <TableCell className="hidden lg:table-cell">
-                  {row.costUnits} créditos
+                  {t("credits", { count: row.costUnits })}
                 </TableCell>
                 <TableCell className="hidden text-muted-foreground md:table-cell">
-                  {formatDate(row.createdAt)}
+                  {row.createdAt
+                    ? format.dateTime(new Date(row.createdAt), {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })
+                    : "—"}
                 </TableCell>
                 <TableCell className="text-right">
                   <JobActions request={row} onChanged={onChanged} />
@@ -550,21 +468,17 @@ function JobsTable({
                 action={
                   hasFilters ? (
                     <Button onClick={clearFilters} variant="outline">
-                      Limpiar filtros
+                      {t("clearFilters")}
                     </Button>
                   ) : null
                 }
                 colSpan={6}
                 description={
                   hasFilters
-                    ? "Prueba con otro término, tipo o estado."
-                    : "Elige una herramienta para crear el primer resultado."
+                    ? t("emptyFilteredDescription")
+                    : t("emptyDescription")
                 }
-                title={
-                  hasFilters
-                    ? "No hay coincidencias"
-                    : "Aún no hay generaciones"
-                }
+                title={hasFilters ? t("noMatches") : tOps("history.emptyTitle")}
               />
             ) : null}
           </TableBody>
@@ -572,7 +486,7 @@ function JobsTable({
         <TablePagination
           canGoNext={currentPage < pageCount}
           canGoPrevious={currentPage > 1}
-          itemLabel="generaciones"
+          itemLabel={t("generations")}
           onNextPage={() => setPage(currentPage + 1)}
           onPreviousPage={() => setPage(currentPage - 1)}
           rangeEnd={Math.min(
@@ -590,6 +504,8 @@ function JobsTable({
 }
 
 function Overview() {
+  const t = useTranslations("aiStudio.studio")
+  const tOps = useTranslations("aiStudio.operations")
   const [dashboard, setDashboard] = useState<PortalAiDashboard | null>(null)
   const [failed, setFailed] = useState(false)
   const load = useCallback(async () => {
@@ -607,16 +523,16 @@ function Overview() {
   }, [load])
 
   if (!dashboard) {
-    if (!failed) return <PageLoading aria-label="Cargando AI Studio" />
+    if (!failed) return <PageLoading aria-label={t("loading")} />
     return (
       <Card variant="subtle">
         <EmptyState
           icon={CircleAlert}
-          title="AI Studio no disponible"
-          description="No pudimos cargar la actividad del espacio."
+          title={t("loadFailedTitle")}
+          description={t("loadFailedDescription")}
           action={
             <Button onClick={() => void load()} variant="brand-secondary">
-              <RefreshCw data-icon="inline-start" /> Reintentar
+              <RefreshCw data-icon="inline-start" /> {t("retry")}
             </Button>
           }
         />
@@ -626,29 +542,29 @@ function Overview() {
 
   const metrics = [
     {
-      label: "Créditos disponibles",
+      label: t("metrics.credits"),
       value: dashboard.credits.unlimited
-        ? "Sin límite"
+        ? t("metrics.unlimited")
         : String(dashboard.credits.balanceUnits),
-      detail: `${dashboard.credits.usedUnits} usados en el ciclo`,
+      detail: t("metrics.usedInCycle", { count: dashboard.credits.usedUnits }),
       icon: Coins,
     },
     {
-      label: "Generaciones correctas",
+      label: t("metrics.succeeded"),
       value: String(dashboard.counts.succeededThisCycle),
-      detail: "Durante el ciclo actual",
+      detail: t("metrics.currentCycle"),
       icon: Sparkles,
     },
     {
-      label: "En proceso",
+      label: t("metrics.inProgress"),
       value: String(dashboard.counts.queued + dashboard.counts.processing),
-      detail: `${dashboard.counts.queued} en cola`,
+      detail: t("metrics.queued", { count: dashboard.counts.queued }),
       icon: Clock3,
     },
     {
-      label: "Borradores creados",
+      label: t("metrics.drafts"),
       value: String(dashboard.counts.draftsThisCycle),
-      detail: "Listos para revisión humana",
+      detail: t("metrics.readyForReview"),
       icon: ShieldCheck,
     },
   ]
@@ -711,9 +627,9 @@ function Overview() {
 
       <section className="flex flex-col gap-3">
         <CollectionHeader
-          description="Generaciones de este espacio de trabajo."
+          description={tOps("history.description")}
           level="h2"
-          title="Actividad reciente"
+          title={t("recentActivity")}
         />
         <Card variant="subtle">
           <JobsTable
@@ -735,59 +651,17 @@ function Overview() {
 
 type CreationView = "content" | "image" | "video" | "repurpose" | "review"
 
-const creationConfig: Record<
-  CreationView,
-  {
-    button: string
-    cost: string
-    placeholder: string
-    resultDescription: string
-    resultTitle: string
-  }
-> = {
-  content: {
-    button: "Generar borradores",
-    cost: "2 créditos",
-    placeholder:
-      "Ejemplo: anuncia el nuevo menú ejecutivo, disponible de lunes a viernes...",
-    resultDescription: "Tres variantes adaptadas al canal seleccionado.",
-    resultTitle: "Borradores generados",
-  },
-  image: {
-    button: "Generar imágenes",
-    cost: "4 créditos",
-    placeholder:
-      "Ejemplo: hamburguesa artesanal sobre mesa oscura, luz cálida, estilo editorial...",
-    resultDescription: "Cuatro composiciones listas para revisar.",
-    resultTitle: "Propuestas visuales",
-  },
-  repurpose: {
-    button: "Crear variantes",
-    cost: "2 créditos",
-    placeholder:
-      "Pega una publicación, artículo, transcripción o idea que ya tengas...",
-    resultDescription: "La idea original adaptada sin perder su mensaje.",
-    resultTitle: "Variantes por canal",
-  },
-  review: {
-    button: "Analizar contenido",
-    cost: "1 crédito",
-    placeholder:
-      "Pega aquí el contenido que quieres validar antes de publicarlo...",
-    resultDescription: "Hallazgos priorizados y correcciones sugeridas.",
-    resultTitle: "Informe de revisión",
-  },
-  video: {
-    button: "Generar video",
-    cost: "12 créditos",
-    placeholder:
-      "Ejemplo: video vertical de 15 segundos mostrando la preparación del producto...",
-    resultDescription: "Guion, escenas y render dentro del mismo trabajo.",
-    resultTitle: "Proyecto de video",
-  },
+/** Solo permanece el coste; los textos viven en `aiStudio.creation`. */
+const creationCostUnits: Record<CreationView, number> = {
+  content: 2,
+  image: 4,
+  repurpose: 2,
+  review: 1,
+  video: 12,
 }
 
 function ContentResult({ request }: { request: PortalAiRequest }) {
+  const t = useTranslations("aiStudio.creation")
   const result = request.result as {
     variants?: Array<{ platform: string; caption: string; hashtags?: string[] }>
   }
@@ -807,7 +681,7 @@ function ContentResult({ request }: { request: PortalAiRequest }) {
               onClick={() =>
                 void navigator.clipboard
                   .writeText(variant.caption)
-                  .then(() => toast.success("Texto copiado"))
+                  .then(() => toast.success(t("textCopied")))
               }
               size="icon-xs"
               variant="brand-secondary"
@@ -828,6 +702,7 @@ function ContentResult({ request }: { request: PortalAiRequest }) {
 }
 
 function ImageResult({ request }: { request: PortalAiRequest }) {
+  const t = useTranslations("aiStudio.creation")
   const result = request.result as {
     assets?: Array<{
       fileAssetId: string
@@ -850,7 +725,7 @@ function ImageResult({ request }: { request: PortalAiRequest }) {
           />
           <div className="absolute right-2 bottom-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
             <Button
-              aria-label="Vista previa"
+              aria-label={t("preview")}
               asChild
               size="icon-sm"
               variant="brand-secondary"
@@ -864,7 +739,7 @@ function ImageResult({ request }: { request: PortalAiRequest }) {
               </a>
             </Button>
             <Button
-              aria-label="Descargar"
+              aria-label={t("download")}
               asChild
               size="icon-sm"
               variant="brand-secondary"
@@ -881,6 +756,7 @@ function ImageResult({ request }: { request: PortalAiRequest }) {
 }
 
 function VideoResult({ request }: { request: PortalAiRequest }) {
+  const t = useTranslations("aiStudio.creation")
   const result = request.result as {
     fileAssetId?: string
     durationSeconds?: number
@@ -889,7 +765,7 @@ function VideoResult({ request }: { request: PortalAiRequest }) {
     return (
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between text-sm">
-          <span>Render del video</span>
+          <span>{t("videoRender")}</span>
           <span className="text-muted-foreground">{request.progress}%</span>
         </div>
         <Progress value={request.progress} />
@@ -925,6 +801,7 @@ function VideoResult({ request }: { request: PortalAiRequest }) {
 }
 
 function RepurposeResult({ request }: { request: PortalAiRequest }) {
+  const t = useTranslations("aiStudio.creation")
   const result = request.result as {
     strategy?: string
     variants?: Array<{ platform: string; format: string; content: string }>
@@ -956,7 +833,7 @@ function RepurposeResult({ request }: { request: PortalAiRequest }) {
               onClick={() =>
                 void navigator.clipboard
                   .writeText(variant.content)
-                  .then(() => toast.success("Variante copiada"))
+                  .then(() => toast.success(t("variantCopied")))
               }
               size="sm"
               variant="brand-secondary"
@@ -974,6 +851,7 @@ function RepurposeResult({ request }: { request: PortalAiRequest }) {
 }
 
 function ReviewResult({ request }: { request: PortalAiRequest }) {
+  const t = useTranslations("aiStudio.creation")
   const result = request.result as {
     score?: number
     verdict?: string
@@ -988,10 +866,10 @@ function ReviewResult({ request }: { request: PortalAiRequest }) {
     revisedContent?: string
   }
   const dimensions = [
-    ["Claridad", result.dimensions?.clarity],
-    ["Voz de marca", result.dimensions?.brandVoice],
-    ["Llamada a la acción", result.dimensions?.callToAction],
-    ["Seguridad", result.dimensions?.safety],
+    [t("dimension.clarity"), result.dimensions?.clarity],
+    [t("dimension.brandVoice"), result.dimensions?.brandVoice],
+    [t("dimension.callToAction"), result.dimensions?.callToAction],
+    [t("dimension.safety"), result.dimensions?.safety],
   ]
   return (
     <div className="flex flex-col gap-4">
@@ -1021,10 +899,10 @@ function ReviewResult({ request }: { request: PortalAiRequest }) {
   )
 }
 
-function creationTitle(view: CreationView) {
-  if (view === "repurpose") return "Contenido original"
-  if (view === "review") return "Contenido para analizar"
-  return "Describe lo que necesitas"
+function creationTitleKey(view: CreationView) {
+  if (view === "repurpose") return "promptTitle.repurpose" as const
+  if (view === "review") return "promptTitle.review" as const
+  return "promptTitle.default" as const
 }
 
 function CreationResult({
@@ -1042,6 +920,8 @@ function CreationResult({
 }
 
 function CreationWorkspace({ view }: { view: CreationView }) {
+  const apiErrorMessage = useApiErrorMessage()
+  const t = useTranslations("aiStudio.creation")
   const [brief, setBrief] = useState("")
   const [objective, setObjective] = useState(
     view === "repurpose" ? "adaptar" : "engagement"
@@ -1053,7 +933,7 @@ function CreationWorkspace({ view }: { view: CreationView }) {
   const [request, setRequest] = useState<PortalAiRequest | null>(null)
   const [pending, setPending] = useState(false)
   const fileInput = useRef<HTMLInputElement>(null)
-  const config = creationConfig[view]
+  const costUnits = creationCostUnits[view]
   const isMedia = view === "image" || view === "video"
 
   useEffect(() => {
@@ -1074,7 +954,7 @@ function CreationWorkspace({ view }: { view: CreationView }) {
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!brief.trim()) {
-      toast.error("Completa la instrucción para continuar.")
+      toast.error(t("missingPrompt"))
       return
     }
     setPending(true)
@@ -1119,9 +999,9 @@ function CreationWorkspace({ view }: { view: CreationView }) {
           idempotencyKey: idempotencyKey(view),
         })
       )
-      toast.success("Trabajo añadido a la cola.")
+      toast.success(t("jobQueued"))
     } catch (error) {
-      toast.error(aiErrorMessage(error))
+      toast.error(apiErrorMessage(errorCode(error)))
     } finally {
       setPending(false)
     }
@@ -1142,7 +1022,7 @@ function CreationWorkspace({ view }: { view: CreationView }) {
           file.size > 30 * 1024 * 1024
       )
     ) {
-      toast.error("Usa imágenes JPG, PNG o WEBP de máximo 30 MB.")
+      toast.error(t("invalidReference"))
       return
     }
     setPending(true)
@@ -1162,11 +1042,11 @@ function CreationWorkspace({ view }: { view: CreationView }) {
       setReferenceAssetIds((current) => [...current, ...uploadedIds])
       toast.success(
         uploadedIds.length === 1
-          ? "Referencia añadida."
+          ? t("referenceAdded")
           : `${uploadedIds.length} referencias añadidas.`
       )
     } catch {
-      toast.error("No pudimos subir la referencia.")
+      toast.error(t("referenceFailed"))
     } finally {
       setPending(false)
     }
@@ -1177,7 +1057,7 @@ function CreationWorkspace({ view }: { view: CreationView }) {
       <StudioHeader
         actions={
           <Badge variant="warning">
-            <Coins data-icon="inline-start" /> {config.cost}
+            <Coins data-icon="inline-start" /> {t("cost", { count: costUnits })}
           </Badge>
         }
         view={view}
@@ -1186,7 +1066,7 @@ function CreationWorkspace({ view }: { view: CreationView }) {
         <form className="flex flex-col gap-3" noValidate onSubmit={submit}>
           <Card variant="subtle">
             <CardHeader>
-              <CardTitle>{creationTitle(view)}</CardTitle>
+              <CardTitle>{t(creationTitleKey(view))}</CardTitle>
               <CardDescription>
                 La información sensible no debe incluirse en la instrucción.
               </CardDescription>
@@ -1200,7 +1080,9 @@ function CreationWorkspace({ view }: { view: CreationView }) {
                   <Textarea
                     id={`${view}-brief`}
                     onChange={(event) => setBrief(event.target.value)}
-                    placeholder={config.placeholder}
+                    placeholder={t(
+                      `${view}.placeholder` as "content.placeholder"
+                    )}
                     rows={7}
                     value={brief}
                   />
@@ -1226,7 +1108,9 @@ function CreationWorkspace({ view }: { view: CreationView }) {
                             <SelectItem value="sales">
                               Impulsar ventas
                             </SelectItem>
-                            <SelectItem value="inform">Informar</SelectItem>
+                            <SelectItem value="inform">
+                              {t("objective.inform")}
+                            </SelectItem>
                             <SelectItem value="adaptar">
                               Adaptar a canales
                             </SelectItem>
@@ -1236,7 +1120,7 @@ function CreationWorkspace({ view }: { view: CreationView }) {
                     </Field>
                     <Field>
                       <FieldLabel>
-                        {isMedia ? "Formato" : "Tono"} <RequiredMark />
+                        {isMedia ? t("format") : t("tone")} <RequiredMark />
                       </FieldLabel>
                       <Select value={option} onValueChange={setOption}>
                         <SelectTrigger className="w-full">
@@ -1258,9 +1142,15 @@ function CreationWorkspace({ view }: { view: CreationView }) {
                               </>
                             ) : (
                               <>
-                                <SelectItem value="cercano">Cercano</SelectItem>
-                                <SelectItem value="experto">Experto</SelectItem>
-                                <SelectItem value="directo">Directo</SelectItem>
+                                <SelectItem value="cercano">
+                                  {t("tones.cercano")}
+                                </SelectItem>
+                                <SelectItem value="experto">
+                                  {t("tones.experto")}
+                                </SelectItem>
+                                <SelectItem value="directo">
+                                  {t("tones.directo")}
+                                </SelectItem>
                               </>
                             )}
                           </SelectGroup>
@@ -1281,8 +1171,8 @@ function CreationWorkspace({ view }: { view: CreationView }) {
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {view === "video"
-                            ? "Hasta 9 imágenes para animación, personaje, estilo o escena."
-                            : "Hasta 10 imágenes para orientar estilo, composición o edición."}
+                            ? t("referenceHintVideo")
+                            : t("referenceHintImage")}
                         </p>
                       </div>
                       <Button
@@ -1294,7 +1184,7 @@ function CreationWorkspace({ view }: { view: CreationView }) {
                         <Upload data-icon="inline-start" />{" "}
                         {referenceAssetIds.length
                           ? `Añadir más · ${referenceAssetIds.length}`
-                          : "Seleccionar"}
+                          : t("select")}
                       </Button>
                       <input
                         ref={fileInput}
@@ -1321,15 +1211,19 @@ function CreationWorkspace({ view }: { view: CreationView }) {
               ) : (
                 <WandSparkles data-icon="inline-start" />
               )}
-              {config.button}
+              {t(`${view}.button` as "content.button")}
             </Button>
           </div>
         </form>
 
         <Card variant="subtle">
           <CardHeader>
-            <CardTitle>{config.resultTitle}</CardTitle>
-            <CardDescription>{config.resultDescription}</CardDescription>
+            <CardTitle>
+              {t(`${view}.resultTitle` as "content.resultTitle")}
+            </CardTitle>
+            <CardDescription>
+              {t(`${view}.resultDescription` as "content.resultDescription")}
+            </CardDescription>
             {request ? (
               <CardAction>
                 <StatusBadge status={request.status} />
@@ -1342,19 +1236,16 @@ function CreationWorkspace({ view }: { view: CreationView }) {
             ) : request?.status === "failed" ? (
               <EmptyState
                 icon={CircleAlert}
-                title="La generación falló"
-                description={
-                  request.errorCode ??
-                  "El proveedor no pudo completar el trabajo."
-                }
+                title={t("generationFailed")}
+                description={request.errorCode ?? t("providerFailed")}
               />
             ) : request ? (
               <div className="flex min-h-80 flex-col items-center justify-center gap-3">
                 <Progress className="max-w-sm" value={request.progress} />
                 <p className="text-sm text-muted-foreground">
                   {request.status === "queued"
-                    ? "Esperando turno"
-                    : "Generando resultado"}{" "}
+                    ? t("waiting")
+                    : t("generatingResult")}{" "}
                   · {request.progress}%
                 </p>
               </div>
@@ -1382,6 +1273,9 @@ function CreationWorkspace({ view }: { view: CreationView }) {
 }
 
 function Planner() {
+  const apiErrorMessage = useApiErrorMessage()
+  const t = useTranslations("aiStudio.pages")
+  const tOps = useTranslations("aiStudio.operations")
   const [goal, setGoal] = useState("")
   const [durationDays, setDurationDays] = useState("7")
   const [frequency, setFrequency] = useState("4")
@@ -1408,7 +1302,7 @@ function Planner() {
 
   async function generate(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!goal.trim()) return toast.error("Completa el objetivo del plan.")
+    if (!goal.trim()) return toast.error(t("planner.missingGoal"))
     setPending(true)
     try {
       setRequest(
@@ -1423,9 +1317,9 @@ function Planner() {
           idempotencyKey: idempotencyKey("planner"),
         })
       )
-      toast.success("Plan añadido a la cola.")
+      toast.success(t("planner.queued"))
     } catch (error) {
-      toast.error(aiErrorMessage(error))
+      toast.error(apiErrorMessage(errorCode(error)))
     } finally {
       setPending(false)
     }
@@ -1438,7 +1332,7 @@ function Planner() {
         <form className="flex flex-col gap-3" noValidate onSubmit={generate}>
           <Card variant="subtle">
             <CardHeader>
-              <CardTitle>Objetivo del plan</CardTitle>
+              <CardTitle>{t("planner.goalTitle")}</CardTitle>
               <CardDescription>
                 Define el resultado y la frecuencia deseada.
               </CardDescription>
@@ -1452,7 +1346,7 @@ function Planner() {
                   <Textarea
                     id="planner-goal"
                     onChange={(event) => setGoal(event.target.value)}
-                    placeholder="Ejemplo: aumentar visitas al local durante agosto..."
+                    placeholder={t("planner.goalPlaceholder")}
                     rows={5}
                     value={goal}
                   />
@@ -1521,7 +1415,7 @@ function Planner() {
         </form>
         <Card variant="subtle">
           <CardHeader>
-            <CardTitle>Plan semanal</CardTitle>
+            <CardTitle>{t("planner.weeklyPlan")}</CardTitle>
             <CardDescription>
               Propuesta equilibrada por canal, formato y objetivo.
             </CardDescription>
@@ -1535,7 +1429,7 @@ function Planner() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Fecha sugerida</TableHead>
+                      <TableHead>{t("planner.suggestedDate")}</TableHead>
                       <TableHead>Idea</TableHead>
                       <TableHead className="hidden md:table-cell">
                         Canal
@@ -1543,7 +1437,7 @@ function Planner() {
                       <TableHead className="hidden lg:table-cell">
                         Formato
                       </TableHead>
-                      <TableHead>Estado</TableHead>
+                      <TableHead>{tOps("status")}</TableHead>
                       <TableHead className="text-right">Acción</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1563,7 +1457,9 @@ function Planner() {
                           {row.format}
                         </TableCell>
                         <TableCell>
-                          <Badge variant="success">Idea lista</Badge>
+                          <Badge variant="success">
+                            {t("planner.ideaReady")}
+                          </Badge>
                         </TableCell>
                         <TableCell className="text-right">
                           <Button
@@ -1582,8 +1478,8 @@ function Planner() {
                     {ideas.length === 0 ? (
                       <TableEmptyRow
                         colSpan={6}
-                        description="El plan se generó sin ideas. Ajusta el objetivo y vuelve a intentarlo."
-                        title="Sin ideas en el plan"
+                        description={t("planner.emptyIdeasDescription")}
+                        title={t("planner.emptyIdeasTitle")}
                       />
                     ) : null}
                   </TableBody>
@@ -1616,8 +1512,8 @@ function Planner() {
             ) : (
               <EmptyState
                 icon={CalendarPlus}
-                title="Crea tu primer plan"
-                description="Completa el objetivo y la frecuencia."
+                title={t("planner.emptyTitle")}
+                description={t("planner.emptyDescription")}
               />
             )}
           </CardContent>
@@ -1637,6 +1533,8 @@ const heatLevels = [
 const weekdays = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"]
 
 function Timing() {
+  const apiErrorMessage = useApiErrorMessage()
+  const t = useTranslations("aiStudio.pages")
   const [request, setRequest] = usePolledRequest()
   const [pending, setPending] = useState(false)
   const result = request?.result as
@@ -1657,8 +1555,7 @@ function Timing() {
       setRequest(
         await aiApi.createRequest({
           kind: "timing",
-          prompt:
-            "Analiza el historial de rendimiento y recomienda las mejores horas para publicar.",
+          prompt: t("timing.prompt"),
           input: {
             socialAccountIds: [],
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -1667,9 +1564,9 @@ function Timing() {
           idempotencyKey: idempotencyKey("timing"),
         })
       )
-      toast.success("Análisis añadido a la cola.")
+      toast.success(t("timing.queued"))
     } catch (error) {
-      toast.error(aiErrorMessage(error))
+      toast.error(apiErrorMessage(errorCode(error)))
     } finally {
       setPending(false)
     }
@@ -1695,7 +1592,7 @@ function Timing() {
       />
       <Alert>
         <Clock3 />
-        <AlertTitle>Recomendación basada en una muestra</AlertTitle>
+        <AlertTitle>{t("timing.sampleWarning")}</AlertTitle>
         <AlertDescription>
           Se analizan hasta 90 días. La confianza depende de la cantidad de
           publicaciones encontradas.
@@ -1704,7 +1601,7 @@ function Timing() {
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.25fr)_minmax(20rem,0.75fr)]">
         <Card variant="subtle">
           <CardHeader>
-            <CardTitle>Mapa de oportunidades</CardTitle>
+            <CardTitle>{t("timing.mapTitle")}</CardTitle>
             <CardDescription>
               Más intensidad significa mayor probabilidad de rendimiento.
             </CardDescription>
@@ -1736,17 +1633,17 @@ function Timing() {
               </div>
             </div>
             <div className="mt-4 flex items-center justify-end gap-2 text-xs text-muted-foreground">
-              <span>Menor oportunidad</span>
+              <span>{t("timing.lowOpportunity")}</span>
               {heatLevels.map((level) => (
                 <span className={`size-3 rounded-sm ${level}`} key={level} />
               ))}
-              <span>Mayor oportunidad</span>
+              <span>{t("timing.highOpportunity")}</span>
             </div>
           </CardContent>
         </Card>
         <Card variant="subtle">
           <CardHeader>
-            <CardTitle>Recomendaciones por cuenta</CardTitle>
+            <CardTitle>{t("timing.perAccount")}</CardTitle>
             <CardDescription>
               La mejor ventana próxima para cada audiencia.
             </CardDescription>
@@ -1764,15 +1661,11 @@ function Timing() {
                       {String(row.hour).padStart(2, "0")}:00
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {row.sampleCount} publicaciones en la muestra
+                      {t("timing.sampleCount", { count: row.sampleCount })}
                     </p>
                   </div>
                   <Badge variant="secondary">
-                    {row.confidence === "high"
-                      ? "Alta"
-                      : row.confidence === "medium"
-                        ? "Media"
-                        : "Baja"}
+                    {t(`timing.confidence.${row.confidence}`)}
                   </Badge>
                 </div>
               </div>
@@ -1780,16 +1673,18 @@ function Timing() {
             {!request ? (
               <EmptyState
                 icon={Clock3}
-                title="Aún no hay análisis"
-                description="Pulsa Actualizar análisis para calcular horarios."
+                title={t("timing.emptyTitle")}
+                description={t("timing.emptyDescription")}
               />
             ) : request.status !== "succeeded" ? (
               <Progress value={request.progress} />
             ) : result?.recommendations?.length === 0 ? (
               <EmptyState
                 icon={Clock3}
-                title="Muestra insuficiente"
-                description={`Se encontraron ${result.sampleSize ?? 0} publicaciones con datos útiles.`}
+                title={t("timing.insufficientSample")}
+                description={t("timing.sampleFound", {
+                  count: result.sampleSize ?? 0,
+                })}
               />
             ) : null}
           </CardContent>
@@ -1800,6 +1695,8 @@ function Timing() {
 }
 
 function Research() {
+  const apiErrorMessage = useApiErrorMessage()
+  const t = useTranslations("aiStudio.pages")
   const [query, setQuery] = useState("")
   const [request, setRequest] = usePolledRequest()
   const [pending, setPending] = useState(false)
@@ -1828,7 +1725,7 @@ function Research() {
         })
       )
     } catch (error) {
-      toast.error(aiErrorMessage(error))
+      toast.error(apiErrorMessage(errorCode(error)))
     } finally {
       setPending(false)
     }
@@ -1839,7 +1736,7 @@ function Research() {
       <StudioHeader view="search" />
       <Card variant="subtle">
         <CardHeader>
-          <CardTitle>Buscar señales</CardTitle>
+          <CardTitle>{t("research.title")}</CardTitle>
           <CardDescription>
             Combina tendencias, formatos y preguntas frecuentes.
           </CardDescription>
@@ -1851,9 +1748,9 @@ function Research() {
                 <Search />
               </InputGroupAddon>
               <InputGroupInput
-                aria-label="Tema para investigar"
+                aria-label={t("research.topicLabel")}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Tema, palabra clave o competidor..."
+                placeholder={t("research.topicPlaceholder")}
                 value={query}
               />
             </InputGroup>
@@ -1870,7 +1767,7 @@ function Research() {
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_20rem]">
         <Card variant="subtle">
           <CardHeader>
-            <CardTitle>Hallazgos destacados</CardTitle>
+            <CardTitle>{t("research.findings")}</CardTitle>
             <CardDescription>
               Resultados priorizados por relevancia y crecimiento.
             </CardDescription>
@@ -1888,7 +1785,7 @@ function Research() {
                   <div>
                     <Badge variant="secondary">{item.type}</Badge>
                     <h3 className="mt-2 font-medium">
-                      {item.title ?? "Sin título"}
+                      {item.title ?? t("research.untitled")}
                     </h3>
                   </div>
                   {item.score !== null ? (
@@ -1913,16 +1810,16 @@ function Research() {
             {!request ? (
               <EmptyState
                 icon={FileSearch}
-                title="Busca dentro de tu contenido"
-                description="Encuentra captions, borradores y generaciones anteriores."
+                title={t("research.emptyTitle")}
+                description={t("research.emptyDescription")}
               />
             ) : request.status !== "succeeded" ? (
               <Progress value={request.progress} />
             ) : result?.results?.length === 0 ? (
               <EmptyState
                 icon={FileSearch}
-                title="Sin coincidencias"
-                description="Prueba con otras palabras."
+                title={t("research.noMatchesTitle")}
+                description={t("research.noMatchesDescription")}
               />
             ) : null}
           </CardContent>
@@ -1930,7 +1827,7 @@ function Research() {
         <div className="flex flex-col gap-4">
           <Card variant="subtle">
             <CardHeader>
-              <CardTitle>Preguntas de la audiencia</CardTitle>
+              <CardTitle>{t("research.questions")}</CardTitle>
               <CardDescription>
                 Ideas detectadas alrededor del tema.
               </CardDescription>
@@ -1953,7 +1850,7 @@ function Research() {
           </Card>
           <Card variant="subtle">
             <CardHeader>
-              <CardTitle>Resumen IA</CardTitle>
+              <CardTitle>{t("research.summary")}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm leading-relaxed text-muted-foreground">
@@ -1969,16 +1866,18 @@ function Research() {
 }
 
 function FunctionalSettings() {
+  const apiErrorMessage = useApiErrorMessage()
+  const t = useTranslations("aiStudio.pages")
+  const tt = useTranslations("aiStudio.tools")
   const [settings, setSettings] = useState<PortalAiSettings | null>(null)
   const [pending, setPending] = useState(false)
   useEffect(() => {
     void aiApi
       .getSettings()
       .then(setSettings)
-      .catch((error) => toast.error(aiErrorMessage(error)))
-  }, [])
-  if (!settings)
-    return <PageLoading aria-label="Cargando configuración de IA" />
+      .catch((error) => toast.error(apiErrorMessage(errorCode(error))))
+  }, [apiErrorMessage])
+  if (!settings) return <PageLoading aria-label={t("settings.loading")} />
   const currentSettings = settings
   const safetyItems: Array<
     [
@@ -1986,9 +1885,9 @@ function FunctionalSettings() {
       "requireHumanReview" | "warnSensitiveClaims" | "redactPersonalData",
     ]
   > = [
-    ["Revisión antes de publicar", "requireHumanReview"],
-    ["Advertir afirmaciones sensibles", "warnSensitiveClaims"],
-    ["Ocultar datos personales", "redactPersonalData"],
+    [t("settings.requireHumanReview"), "requireHumanReview"],
+    [t("settings.warnSensitiveClaims"), "warnSensitiveClaims"],
+    [t("settings.redactPersonalData"), "redactPersonalData"],
   ]
   async function save() {
     if (
@@ -1996,7 +1895,7 @@ function FunctionalSettings() {
       !currentSettings.brandDescription.trim() ||
       !currentSettings.brandPersonality.trim()
     )
-      return toast.error("Completa los campos obligatorios.")
+      return toast.error(t("settings.missingFields"))
     setPending(true)
     try {
       setSettings(
@@ -2014,9 +1913,9 @@ function FunctionalSettings() {
           redactPersonalData: currentSettings.redactPersonalData,
         })
       )
-      toast.success("Configuración de IA guardada.")
+      toast.success(t("settings.saved"))
     } catch (error) {
-      toast.error(aiErrorMessage(error))
+      toast.error(apiErrorMessage(errorCode(error)))
     } finally {
       setPending(false)
     }
@@ -2028,14 +1927,16 @@ function FunctionalSettings() {
       <StudioHeader view="settings" />
       <Tabs defaultValue="brand">
         <TabsList>
-          <TabsTrigger value="brand">Voz de marca</TabsTrigger>
-          <TabsTrigger value="defaults">Preferencias</TabsTrigger>
-          <TabsTrigger value="safety">Seguridad</TabsTrigger>
+          <TabsTrigger value="brand">{t("settings.brandVoice")}</TabsTrigger>
+          <TabsTrigger value="defaults">
+            {t("settings.preferences")}
+          </TabsTrigger>
+          <TabsTrigger value="safety">{t("settings.safety")}</TabsTrigger>
         </TabsList>
         <TabsContent className="mt-4" value="brand">
           <Card variant="subtle">
             <CardHeader>
-              <CardTitle>Identidad de la marca</CardTitle>
+              <CardTitle>{t("settings.brandIdentity")}</CardTitle>
               <CardDescription>
                 La IA usará esta información en cada herramienta.
               </CardDescription>
@@ -2079,7 +1980,7 @@ function FunctionalSettings() {
                   />
                 </Field>
                 <Field>
-                  <FieldLabel>Voz de marca</FieldLabel>
+                  <FieldLabel>{t("settings.brandVoice")}</FieldLabel>
                   <Textarea
                     rows={3}
                     value={settings.brandVoice}
@@ -2090,7 +1991,7 @@ function FunctionalSettings() {
                 </Field>
                 <div className="grid gap-4 md:grid-cols-2">
                   <Field>
-                    <FieldLabel>Palabras que sí usamos</FieldLabel>
+                    <FieldLabel>{t("settings.wordsUse")}</FieldLabel>
                     <Input
                       value={settings.preferredWords.join(", ")}
                       onChange={(event) =>
@@ -2104,7 +2005,7 @@ function FunctionalSettings() {
                     />
                   </Field>
                   <Field>
-                    <FieldLabel>Palabras que evitamos</FieldLabel>
+                    <FieldLabel>{t("settings.wordsAvoid")}</FieldLabel>
                     <Input
                       value={settings.forbiddenWords.join(", ")}
                       onChange={(event) =>
@@ -2125,12 +2026,12 @@ function FunctionalSettings() {
         <TabsContent className="mt-4" value="defaults">
           <Card variant="subtle">
             <CardHeader>
-              <CardTitle>Valores predeterminados</CardTitle>
+              <CardTitle>{t("settings.defaults")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2">
                 <Field>
-                  <FieldLabel>Idioma</FieldLabel>
+                  <FieldLabel>{t("settings.language")}</FieldLabel>
                   <Select
                     value={settings.language}
                     onValueChange={(language) => update({ language })}
@@ -2139,14 +2040,14 @@ function FunctionalSettings() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="es">Español</SelectItem>
-                      <SelectItem value="en">Inglés</SelectItem>
-                      <SelectItem value="pt">Portugués</SelectItem>
+                      <SelectItem value="es">{tt("language.es")}</SelectItem>
+                      <SelectItem value="en">{tt("language.en")}</SelectItem>
+                      <SelectItem value="pt">{tt("language.pt")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </Field>
                 <Field>
-                  <FieldLabel>Tono predeterminado</FieldLabel>
+                  <FieldLabel>{t("settings.defaultTone")}</FieldLabel>
                   <Input
                     value={settings.defaultTone}
                     onChange={(event) =>
@@ -2161,7 +2062,7 @@ function FunctionalSettings() {
         <TabsContent className="mt-4" value="safety">
           <Card variant="subtle">
             <CardHeader>
-              <CardTitle>Controles de seguridad</CardTitle>
+              <CardTitle>{t("settings.safetyControls")}</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
               {safetyItems.map(([label, key]) => (
@@ -2200,6 +2101,9 @@ function FunctionalSettings() {
 const AI_TABLE_PAGE_SIZE = 10
 
 function OperationalHistory() {
+  const t = useTranslations("aiStudio.pages")
+  const tOps = useTranslations("aiStudio.operations")
+  const format = useFormatter()
   const [query, setQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [kindFilter, setKindFilter] = useState("all")
@@ -2253,16 +2157,21 @@ function OperationalHistory() {
     () =>
       (result?.requests ?? []).map((request) => ({
         cost: `${request.costUnits} ${request.costUnits === 1 ? "crédito" : "créditos"}`,
-        date: formatDate(request.createdAt),
+        date: request.createdAt
+          ? format.dateTime(new Date(request.createdAt), {
+              dateStyle: "medium",
+              timeStyle: "short",
+            })
+          : "—",
         id: request.id,
-        kind: requestKindLabels[request.kind],
+        kind: tOps(`kind.${request.kind}`),
         status: request.status,
         subtitle: request.prompt.trim()
           ? request.prompt.trim().slice(0, 72)
-          : "Sin instrucción",
+          : t("operational.noPrompt"),
         title: request.title,
       })),
-    [result]
+    [format, result, t, tOps]
   )
   const hasFilters = Boolean(
     query.trim() || statusFilter !== "all" || kindFilter !== "all"
@@ -2270,14 +2179,14 @@ function OperationalHistory() {
 
   function exportHistory() {
     if (!result?.requests.length)
-      return toast.info("No hay filas para exportar.")
+      return toast.info(t("operational.nothingToExport"))
 
     const csv = [
       "titulo,tipo,estado,creditos,fecha",
       ...result.requests.map((request) =>
         [
           request.title,
-          requestKindLabels[request.kind],
+          tOps(`kind.${request.kind}`),
           request.status,
           request.costUnits,
           request.createdAt,
@@ -2301,7 +2210,7 @@ function OperationalHistory() {
       action={
         <DownloadTableButton
           disabled={!result?.requests.length}
-          label="Exportar"
+          label={t("operational.export")}
           onClick={exportHistory}
         />
       }
@@ -2346,6 +2255,9 @@ function OperationalHistory() {
 }
 
 function OperationalAutomation() {
+  const apiErrorMessage = useApiErrorMessage()
+  const t = useTranslations("aiStudio.pages")
+  const format = useFormatter()
   const [schedules, setSchedules] = useState<PortalAiPublishingSchedule[]>([])
   const [accounts, setAccounts] = useState<PortalChannelAccount[]>([])
   const [viewState, setViewState] = useState<AiOperationalViewState>("loading")
@@ -2419,19 +2331,24 @@ function OperationalAutomation() {
   const rows = useMemo<AiAutomationRow[]>(
     () =>
       visibleSchedules.map((schedule) => ({
-        cadence: `${schedule.frequency === "daily" ? "Diario" : "Semanal"} · ${schedule.preferredTime}`,
+        cadence: `${t(`operational.frequency.${schedule.frequency}`)} · ${schedule.preferredTime}`,
         id: schedule.id,
         name: schedule.name,
-        nextRun: formatDate(schedule.nextRunAt),
+        nextRun: schedule.nextRunAt
+          ? format.dateTime(new Date(schedule.nextRunAt), {
+              dateStyle: "medium",
+              timeStyle: "short",
+            })
+          : "—",
         status: schedule.status,
       })),
-    [visibleSchedules]
+    [format, t, visibleSchedules]
   )
 
   async function create(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!name.trim() || !prompt.trim() || !time || !accountId)
-      return toast.error("Completa todos los campos obligatorios.")
+      return toast.error(t("operational.missingFields"))
 
     setPendingCreate(true)
     try {
@@ -2451,9 +2368,9 @@ function OperationalAutomation() {
       setShowForm(false)
       setPage(1)
       await load(false)
-      toast.success("Automatización creada.")
+      toast.success(t("operational.automationCreated"))
     } catch (error) {
-      toast.error(aiErrorMessage(error))
+      toast.error(apiErrorMessage(errorCode(error)))
     } finally {
       setPendingCreate(false)
     }
@@ -2467,7 +2384,7 @@ function OperationalAutomation() {
       })
       await load(false)
     } catch (error) {
-      toast.error(aiErrorMessage(error))
+      toast.error(apiErrorMessage(errorCode(error)))
     } finally {
       setBusyRowId(null)
     }
@@ -2477,9 +2394,9 @@ function OperationalAutomation() {
     setBusyRowId(row.id)
     try {
       await aiApi.runPublishingSchedule(row.id)
-      toast.success("Ejecución añadida a la cola.")
+      toast.success(t("operational.runQueued"))
     } catch (error) {
-      toast.error(aiErrorMessage(error))
+      toast.error(apiErrorMessage(errorCode(error)))
     } finally {
       setBusyRowId(null)
     }
@@ -2494,9 +2411,9 @@ function OperationalAutomation() {
       await load(false)
       setPage(1)
       setPendingDelete(null)
-      toast.success("Automatización eliminada.")
+      toast.success(t("operational.automationDeleted"))
     } catch (error) {
-      toast.error(aiErrorMessage(error))
+      toast.error(apiErrorMessage(errorCode(error)))
     } finally {
       setDeleting(false)
       setBusyRowId(null)
@@ -2561,6 +2478,11 @@ function OperationalAutomation() {
 }
 
 function OperationalCredits() {
+  const apiErrorMessage = useApiErrorMessage()
+  const t = useTranslations("aiStudio.pages")
+  const format = useFormatter()
+  const tOps = useTranslations("aiStudio.operations")
+  const tStudio = useTranslations("aiStudio.studio")
   const [credits, setCredits] = useState<PortalCreditsResponse | null>(null)
   const [viewState, setViewState] = useState<AiOperationalViewState>("loading")
   const [query, setQuery] = useState("")
@@ -2625,12 +2547,17 @@ function OperationalCredits() {
     () =>
       visibleEntries.map((entry) => ({
         credits: entry.units > 0 ? `+${entry.units}` : String(entry.units),
-        date: formatDate(entry.createdAt),
+        date: entry.createdAt
+          ? format.dateTime(new Date(entry.createdAt), {
+              dateStyle: "medium",
+              timeStyle: "short",
+            })
+          : "—",
         detail: entry.action,
         id: entry.id,
         type: entry.type,
       })),
-    [visibleEntries]
+    [format, visibleEntries]
   )
 
   async function saveBudget(event: React.FormEvent<HTMLFormElement>) {
@@ -2645,7 +2572,7 @@ function OperationalCredits() {
       parsedAlert > 100 ||
       (budget !== "" && (!Number.isFinite(parsedBudget) || parsedBudget < 0))
     ) {
-      toast.error("Revisa el presupuesto y el porcentaje de alerta.")
+      toast.error(t("operational.invalidBudget"))
       return
     }
 
@@ -2660,13 +2587,13 @@ function OperationalCredits() {
             : null,
         })
       )
-      toast.success("Presupuesto guardado.")
+      toast.success(t("operational.budgetSaved"))
     } catch (error) {
       if (error instanceof ApiError && error.status === 403) {
         setBudgetEditable(false)
-        toast.error("Tu rol no permite cambiar el presupuesto de este espacio.")
+        toast.error(t("operational.budgetForbidden"))
       } else {
-        toast.error(aiErrorMessage(error))
+        toast.error(apiErrorMessage(errorCode(error)))
       }
     } finally {
       setPendingBudget(false)
@@ -2674,8 +2601,7 @@ function OperationalCredits() {
   }
 
   function exportLedger() {
-    if (!filteredEntries.length)
-      return toast.info("No hay movimientos para exportar.")
+    if (!filteredEntries.length) return toast.info(t("operational.noMovements"))
 
     const csv = [
       "fecha,tipo,accion,creditos",
@@ -2698,7 +2624,7 @@ function OperationalCredits() {
   let balanceLabel = "—"
   if (credits) {
     balanceLabel = credits.unlimited
-      ? "Sin límite"
+      ? t("operational.unlimited")
       : String(credits.balanceUnits)
   }
 
@@ -2738,20 +2664,24 @@ function OperationalCredits() {
       pendingBudget={pendingBudget}
       query={query}
       renewal={
-        credits?.cycleEndsAt ? formatDate(credits.cycleEndsAt) : "Sin fecha"
+        credits?.cycleEndsAt
+          ? format.dateTime(new Date(credits.cycleEndsAt), {
+              dateStyle: "medium",
+            })
+          : t("operational.noDate")
       }
       state={viewState}
       tableAction={
         <DownloadTableButton
           disabled={!filteredEntries.length}
-          label="Descargar"
+          label={t("operational.download")}
           onClick={exportLedger}
         />
       }
       toolCosts={(credits?.costs ?? []).map((item) => ({
-        cost: `${item.units} ${item.units === 1 ? "crédito" : "créditos"}`,
+        cost: tStudio("credits", { count: item.units }),
         id: item.kind,
-        label: requestKindLabels[item.kind],
+        label: tOps(`kind.${item.kind}`),
       }))}
       total={filteredEntries.length}
     />

@@ -3,55 +3,62 @@ import type { AiRequestKind } from "@workspace/contracts"
 /** Herramientas conversacionales: cada una era una ruta propia de AI Studio. */
 export type ChatTool = Exclude<AiRequestKind, "ai_publishing">
 
+/**
+ * El catálogo es dato estático a nivel de módulo, así que declara la clave de
+ * cada texto en vez del texto: el chat lo traduce al renderizar, igual que el
+ * catálogo de navegación. Las claves viven en `messages/` bajo `aiStudio.tools`.
+ */
+type ToolOption = { labelKey: string; value: string }
+
 export type ToolOptionField =
-  | { kind: "text"; label: string; name: string; placeholder?: string }
-  | { kind: "number"; label: string; max: number; min: number; name: string }
-  | { kind: "date"; label: string; name: string }
+  | { kind: "text"; labelKey: string; name: string; placeholderKey?: string }
+  | { kind: "number"; labelKey: string; max: number; min: number; name: string }
+  | { kind: "date"; labelKey: string; name: string }
   | {
       kind: "select"
-      label: string
+      labelKey: string
       name: string
-      options: readonly { label: string; value: string }[]
+      options: readonly ToolOption[]
     }
   | {
       kind: "toggles"
-      label: string
+      labelKey: string
       name: string
-      options: readonly { label: string; value: string }[]
+      options: readonly ToolOption[]
     }
-  | { kind: "switch"; label: string; name: string }
+  | { kind: "switch"; labelKey: string; name: string }
 
 export type ToolDefinition = {
-  description: string
+  descriptionKey: string
   fields: readonly ToolOptionField[]
-  label: string
-  placeholder: string
-  promptLabel: string
+  labelKey: string
+  placeholderKey: string
+  promptLabelKey: string
   values: Record<string, unknown>
 }
 
 const platforms = [
-  { label: "Instagram", value: "instagram" },
-  { label: "Facebook", value: "facebook" },
-  { label: "LinkedIn", value: "linkedin" },
-  { label: "TikTok", value: "tiktok" },
-  { label: "X", value: "x" },
-  { label: "YouTube", value: "youtube" },
-  { label: "Correo", value: "email" },
+  { labelKey: "platform.instagram", value: "instagram" },
+  { labelKey: "platform.facebook", value: "facebook" },
+  { labelKey: "platform.linkedin", value: "linkedin" },
+  { labelKey: "platform.tiktok", value: "tiktok" },
+  { labelKey: "platform.x", value: "x" },
+  { labelKey: "platform.youtube", value: "youtube" },
+  { labelKey: "platform.email", value: "email" },
 ] as const
 
 const languages = [
-  { label: "Español", value: "es" },
-  { label: "Inglés", value: "en" },
-  { label: "Portugués", value: "pt" },
+  { labelKey: "language.es", value: "es" },
+  { labelKey: "language.en", value: "en" },
+  { labelKey: "language.pt", value: "pt" },
 ] as const
 
 const tones = [
-  { label: "Cercano", value: "cercano" },
-  { label: "Profesional", value: "profesional" },
-  { label: "Divertido", value: "divertido" },
-  { label: "Inspirador", value: "inspirador" },
-  { label: "Directo", value: "directo" },
+  { labelKey: "tone.cercano", value: "cercano" },
+  { labelKey: "tone.profesional", value: "profesional" },
+  { labelKey: "tone.divertido", value: "divertido" },
+  { labelKey: "tone.inspirador", value: "inspirador" },
+  { labelKey: "tone.directo", value: "directo" },
 ] as const
 
 /**
@@ -60,35 +67,44 @@ const tones = [
  */
 export const chatTools: Record<ChatTool, ToolDefinition> = {
   content: {
-    description: "Publicaciones, anuncios y textos por canal.",
+    descriptionKey: "content.description",
     fields: [
-      { kind: "text", label: "Objetivo", name: "objective" },
-      { kind: "select", label: "Tono", name: "tone", options: tones },
-      { kind: "select", label: "Idioma", name: "language", options: languages },
+      { kind: "text", labelKey: "field.objective", name: "objective" },
+      { kind: "select", labelKey: "field.tone", name: "tone", options: tones },
+      {
+        kind: "select",
+        labelKey: "field.language",
+        name: "language",
+        options: languages,
+      },
       {
         kind: "toggles",
-        label: "Plataformas",
+        labelKey: "field.platforms",
         name: "platforms",
         options: platforms,
       },
       {
         kind: "number",
-        label: "Variantes",
+        labelKey: "field.variantCount",
         max: 8,
         min: 1,
         name: "variantCount",
       },
-      { kind: "switch", label: "Incluir hashtags", name: "includeHashtags" },
+      {
+        kind: "switch",
+        labelKey: "field.includeHashtags",
+        name: "includeHashtags",
+      },
       {
         kind: "text",
-        label: "Llamada a la acción",
+        labelKey: "field.callToAction",
         name: "callToAction",
-        placeholder: "Opcional",
+        placeholderKey: "field.optional",
       },
     ],
-    label: "Contenido",
-    placeholder: "Describe la publicación que necesitas…",
-    promptLabel: "Brief",
+    labelKey: "content.label",
+    placeholderKey: "content.placeholder",
+    promptLabelKey: "content.promptLabel",
     values: {
       callToAction: "",
       includeHashtags: true,
@@ -100,63 +116,63 @@ export const chatTools: Record<ChatTool, ToolDefinition> = {
     },
   },
   image: {
-    description: "Imágenes generadas o editadas desde una referencia.",
+    descriptionKey: "image.description",
     fields: [
-      { kind: "text", label: "Objetivo", name: "objective" },
+      { kind: "text", labelKey: "field.objective", name: "objective" },
       {
         kind: "select",
-        label: "Proporción",
+        labelKey: "field.aspectRatio",
         name: "aspectRatio",
         options: [
-          { label: "Cuadrada 1:1", value: "1:1" },
-          { label: "Vertical 9:16", value: "9:16" },
-          { label: "Horizontal 16:9", value: "16:9" },
+          { labelKey: "ratio.square", value: "1:1" },
+          { labelKey: "ratio.vertical", value: "9:16" },
+          { labelKey: "ratio.horizontal", value: "16:9" },
         ],
       },
       {
         kind: "select",
-        label: "Calidad",
+        labelKey: "field.quality",
         name: "quality",
         options: [
-          { label: "Baja", value: "low" },
-          { label: "Media", value: "medium" },
-          { label: "Alta", value: "high" },
+          { labelKey: "quality.low", value: "low" },
+          { labelKey: "quality.medium", value: "medium" },
+          { labelKey: "quality.high", value: "high" },
         ],
       },
     ],
-    label: "Imagen",
-    placeholder: "Describe la imagen que quieres generar…",
-    promptLabel: "Prompt",
+    labelKey: "image.label",
+    placeholderKey: "image.placeholder",
+    promptLabelKey: "image.promptLabel",
     values: { aspectRatio: "1:1", objective: "engagement", quality: "medium" },
   },
   video: {
-    description: "Video corto desde texto o desde una referencia.",
+    descriptionKey: "video.description",
     fields: [
-      { kind: "text", label: "Objetivo", name: "objective" },
+      { kind: "text", labelKey: "field.objective", name: "objective" },
       {
         kind: "select",
-        label: "Proporción",
+        labelKey: "field.aspectRatio",
         name: "aspectRatio",
         options: [
-          { label: "Vertical 9:16", value: "9:16" },
-          { label: "Horizontal 16:9", value: "16:9" },
-          { label: "Cuadrada 1:1", value: "1:1" },
+          { labelKey: "ratio.vertical", value: "9:16" },
+          { labelKey: "ratio.horizontal", value: "16:9" },
+          { labelKey: "ratio.square", value: "1:1" },
         ],
       },
       {
         kind: "select",
-        label: "Duración",
+        labelKey: "field.duration",
         name: "durationSeconds",
         options: [
-          { label: "4 segundos", value: "4" },
-          { label: "8 segundos", value: "8" },
-          { label: "12 segundos", value: "12" },
+          { labelKey: "duration.4", value: "4" },
+          { labelKey: "duration.8", value: "8" },
+          { labelKey: "duration.12", value: "12" },
         ],
       },
     ],
-    label: "Video",
-    placeholder: "Describe el video que quieres generar…",
-    promptLabel: "Prompt",
+    labelKey: "video.label",
+    placeholderKey: "video.placeholder",
+    promptLabelKey: "video.promptLabel",
     values: {
       aspectRatio: "9:16",
       durationSeconds: 8,
@@ -164,21 +180,26 @@ export const chatTools: Record<ChatTool, ToolDefinition> = {
     },
   },
   repurpose: {
-    description: "Adapta contenido existente a otros canales.",
+    descriptionKey: "repurpose.description",
     fields: [
-      { kind: "text", label: "Objetivo", name: "objective" },
-      { kind: "select", label: "Tono", name: "tone", options: tones },
-      { kind: "select", label: "Idioma", name: "language", options: languages },
+      { kind: "text", labelKey: "field.objective", name: "objective" },
+      { kind: "select", labelKey: "field.tone", name: "tone", options: tones },
+      {
+        kind: "select",
+        labelKey: "field.language",
+        name: "language",
+        options: languages,
+      },
       {
         kind: "toggles",
-        label: "Plataformas destino",
+        labelKey: "field.targetPlatforms",
         name: "platforms",
         options: platforms,
       },
     ],
-    label: "Reutilizar",
-    placeholder: "Pega el contenido original que quieres adaptar…",
-    promptLabel: "Contenido original",
+    labelKey: "repurpose.label",
+    placeholderKey: "repurpose.placeholder",
+    promptLabelKey: "repurpose.promptLabel",
     values: {
       language: "es",
       objective: "adaptar",
@@ -187,44 +208,55 @@ export const chatTools: Record<ChatTool, ToolDefinition> = {
     },
   },
   review: {
-    description: "Analiza un texto y propone correcciones.",
+    descriptionKey: "review.description",
     fields: [
-      { kind: "text", label: "Objetivo", name: "objective" },
-      { kind: "select", label: "Idioma", name: "language", options: languages },
+      { kind: "text", labelKey: "field.objective", name: "objective" },
+      {
+        kind: "select",
+        labelKey: "field.language",
+        name: "language",
+        options: languages,
+      },
       {
         kind: "toggles",
-        label: "Plataformas",
+        labelKey: "field.platforms",
         name: "platforms",
         options: platforms,
       },
     ],
-    label: "Revisión",
-    placeholder: "Pega el contenido que quieres analizar…",
-    promptLabel: "Contenido para analizar",
+    labelKey: "review.label",
+    placeholderKey: "review.placeholder",
+    promptLabelKey: "review.promptLabel",
     values: { language: "es", objective: "calidad", platforms: [] },
   },
   planner: {
-    description: "Calendario de contenidos por días y frecuencia.",
+    descriptionKey: "planner.description",
     fields: [
-      { kind: "number", label: "Días", max: 31, min: 3, name: "durationDays" },
       {
         kind: "number",
-        label: "Publicaciones por semana",
+        labelKey: "field.durationDays",
+        max: 31,
+        min: 3,
+        name: "durationDays",
+      },
+      {
+        kind: "number",
+        labelKey: "field.frequencyPerWeek",
         max: 14,
         min: 1,
         name: "frequencyPerWeek",
       },
       {
         kind: "toggles",
-        label: "Plataformas",
+        labelKey: "field.platforms",
         name: "platforms",
         options: platforms,
       },
-      { kind: "date", label: "Fecha inicial", name: "startDate" },
+      { kind: "date", labelKey: "field.startDate", name: "startDate" },
     ],
-    label: "Planificador",
-    placeholder: "Describe la campaña que quieres planificar…",
-    promptLabel: "Brief de campaña",
+    labelKey: "planner.label",
+    placeholderKey: "planner.placeholder",
+    promptLabelKey: "planner.promptLabel",
     values: {
       durationDays: 7,
       frequencyPerWeek: 4,
@@ -233,40 +265,46 @@ export const chatTools: Record<ChatTool, ToolDefinition> = {
     },
   },
   timing: {
-    description: "Mejores horarios según tu histórico de publicación.",
+    descriptionKey: "timing.description",
     fields: [
-      { kind: "text", label: "Zona horaria", name: "timezone" },
+      { kind: "text", labelKey: "field.timezone", name: "timezone" },
       {
         kind: "number",
-        label: "Días de histórico",
+        labelKey: "field.historyDays",
         max: 365,
         min: 7,
         name: "historyDays",
       },
     ],
-    label: "Mejor horario",
-    placeholder: "Indica qué cuentas o campaña quieres analizar…",
-    promptLabel: "Contexto",
+    labelKey: "timing.label",
+    placeholderKey: "timing.placeholder",
+    promptLabelKey: "timing.promptLabel",
     values: { historyDays: 90, socialAccountIds: [], timezone: "UTC" },
   },
   search: {
-    description: "Busca dentro de tu contenido y generaciones previas.",
+    descriptionKey: "search.description",
     fields: [
       {
         kind: "toggles",
-        label: "Dónde buscar",
+        labelKey: "field.searchIn",
         name: "types",
         options: [
-          { label: "Captions", value: "caption" },
-          { label: "Publicaciones", value: "publishing_post" },
-          { label: "Generaciones", value: "ai_request" },
+          { labelKey: "searchType.caption", value: "caption" },
+          { labelKey: "searchType.publishing_post", value: "publishing_post" },
+          { labelKey: "searchType.ai_request", value: "ai_request" },
         ],
       },
-      { kind: "number", label: "Resultados", max: 50, min: 1, name: "limit" },
+      {
+        kind: "number",
+        labelKey: "field.limit",
+        max: 50,
+        min: 1,
+        name: "limit",
+      },
     ],
-    label: "Investigación",
-    placeholder: "¿Qué quieres encontrar?",
-    promptLabel: "Consulta",
+    labelKey: "search.label",
+    placeholderKey: "search.placeholder",
+    promptLabelKey: "search.promptLabel",
     values: { limit: 20, types: [] },
   },
 }

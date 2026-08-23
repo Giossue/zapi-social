@@ -67,6 +67,7 @@ import {
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Switch } from "@workspace/ui/components/switch"
 import { toast } from "@workspace/ui/components/toast"
+import { useFormatter, useTranslations } from "next-intl"
 import { useIsLg } from "@workspace/ui/hooks/use-lg"
 import { cn } from "@workspace/ui/lib/utils"
 
@@ -79,14 +80,6 @@ import {
   type ChatTool,
 } from "./ai-chat-tools"
 import { loginPath } from "@/features/identity/login-redirect"
-
-const statusLabels: Record<PortalAiRequest["status"], string> = {
-  queued: "En cola",
-  processing: "Generando",
-  succeeded: "Listo",
-  failed: "Falló",
-  cancelled: "Cancelada",
-}
 
 const statusVariants: Record<
   PortalAiRequest["status"],
@@ -103,25 +96,18 @@ function idempotencyKey() {
   return `chat-${crypto.randomUUID()}`
 }
 
-function formatTime(value: string) {
-  return new Intl.DateTimeFormat("es-EC", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(new Date(value))
-}
-
 /** Pasos que se muestran mientras la generación no ha terminado. */
-function traceSteps(request: PortalAiRequest): TraceStep[] {
+function traceSteps(
+  request: PortalAiRequest,
+  t: (key: "received" | "reserving" | "generating") => string
+): TraceStep[] {
   const queued = request.status === "queued"
   return [
-    { label: "Solicitud recibida", state: "done" },
-    {
-      label: "Reservando créditos",
-      state: queued ? "active" : "done",
-    },
+    { label: t("received"), state: "done" },
+    { label: t("reserving"), state: queued ? "active" : "done" },
     {
       detail: request.model ?? undefined,
-      label: "Generando con el modelo",
+      label: t("generating"),
       state: queued ? "pending" : "active",
     },
   ]
@@ -129,11 +115,14 @@ function traceSteps(request: PortalAiRequest): TraceStep[] {
 
 /** Renderiza el resultado tipado que devuelve cada herramienta. */
 function ResultBody({ request }: { request: PortalAiRequest }) {
+  const t = useTranslations("aiStudio.chat")
+
   if (request.status === "failed") {
     return (
       <p className="text-sm text-destructive">
-        No pudimos completar la generación
-        {request.errorCode ? ` (${request.errorCode})` : ""}.
+        {request.errorCode
+          ? t("generationFailedWithCode", { code: request.errorCode })
+          : t("generationFailed")}
       </p>
     )
   }
@@ -143,9 +132,9 @@ function ResultBody({ request }: { request: PortalAiRequest }) {
     return (
       <div className="flex flex-col gap-3">
         <AiThinkingTrace
-          activeLabel={media ? "Generando media" : "Pensando"}
-          doneLabel="Trabajo terminado"
-          steps={traceSteps(request)}
+          activeLabel={media ? t("generatingMedia") : t("thinking")}
+          doneLabel={t("workDone")}
+          steps={traceSteps(request, (key) => t(`trace.${key}`))}
           working
         />
         {media ? (
@@ -154,7 +143,9 @@ function ResultBody({ request }: { request: PortalAiRequest }) {
               (request.input as Record<string, unknown>).aspectRatio ?? "1:1"
             ).replace(":", " / ")}
             label={
-              request.kind === "image" ? "Generando imagen" : "Generando video"
+              request.kind === "image"
+                ? t("generatingImage")
+                : t("generatingVideo")
             }
             prompt={request.prompt}
           />
@@ -164,9 +155,7 @@ function ResultBody({ request }: { request: PortalAiRequest }) {
   }
 
   if (request.status === "cancelled") {
-    return (
-      <p className="text-sm text-muted-foreground">La generación se canceló.</p>
-    )
+    return <p className="text-sm text-muted-foreground">{t("cancelled")}</p>
   }
 
   const result = request.result as Record<string, unknown>
@@ -224,6 +213,12 @@ function ResultBody({ request }: { request: PortalAiRequest }) {
   )
 }
 
+/** Traduce las claves declaradas por el catálogo de herramientas. */
+function useToolText() {
+  const t = useTranslations("aiStudio.tools")
+  return (key: string) => t(key as Parameters<typeof t>[0])
+}
+
 function ToolOptions({
   onChange,
   tool,
@@ -233,6 +228,8 @@ function ToolOptions({
   tool: ChatTool
   values: Record<string, unknown>
 }) {
+  const tt = useToolText()
+
   return (
     <FieldGroup>
       {chatTools[tool].fields.map((field) => {
@@ -247,7 +244,7 @@ function ToolOptions({
                 id={controlId}
                 onCheckedChange={(checked) => onChange(field.name, checked)}
               />
-              <FieldLabel htmlFor={controlId}>{field.label}</FieldLabel>
+              <FieldLabel htmlFor={controlId}>{tt(field.labelKey)}</FieldLabel>
             </Field>
           )
         }
@@ -256,7 +253,7 @@ function ToolOptions({
           const selected = Array.isArray(value) ? (value as string[]) : []
           return (
             <Field key={field.name}>
-              <FieldLabel>{field.label}</FieldLabel>
+              <FieldLabel>{tt(field.labelKey)}</FieldLabel>
               <FieldGroup className="gap-2" data-slot="checkbox-group">
                 {field.options.map((option) => {
                   const optionId = `${controlId}-${option.value}`
@@ -274,7 +271,9 @@ function ToolOptions({
                           )
                         }
                       />
-                      <FieldLabel htmlFor={optionId}>{option.label}</FieldLabel>
+                      <FieldLabel htmlFor={optionId}>
+                        {tt(option.labelKey)}
+                      </FieldLabel>
                     </Field>
                   )
                 })}
@@ -286,7 +285,7 @@ function ToolOptions({
         if (field.kind === "select") {
           return (
             <Field key={field.name}>
-              <FieldLabel htmlFor={controlId}>{field.label}</FieldLabel>
+              <FieldLabel htmlFor={controlId}>{tt(field.labelKey)}</FieldLabel>
               <Select
                 onValueChange={(next) => onChange(field.name, next)}
                 value={String(value ?? "")}
@@ -298,7 +297,7 @@ function ToolOptions({
                   <SelectGroup>
                     {field.options.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
-                        {option.label}
+                        {tt(option.labelKey)}
                       </SelectItem>
                     ))}
                   </SelectGroup>
@@ -310,7 +309,7 @@ function ToolOptions({
 
         return (
           <Field key={field.name}>
-            <FieldLabel htmlFor={controlId}>{field.label}</FieldLabel>
+            <FieldLabel htmlFor={controlId}>{tt(field.labelKey)}</FieldLabel>
             <Input
               id={controlId}
               max={field.kind === "number" ? field.max : undefined}
@@ -324,7 +323,9 @@ function ToolOptions({
                 )
               }
               placeholder={
-                field.kind === "text" ? field.placeholder : undefined
+                field.kind === "text" && field.placeholderKey
+                  ? tt(field.placeholderKey)
+                  : undefined
               }
               type={field.kind === "number" ? "number" : "text"}
               value={String(value ?? "")}
@@ -337,6 +338,9 @@ function ToolOptions({
 }
 
 export function AiChatPage() {
+  const t = useTranslations("aiStudio.chat")
+  const tt = useToolText()
+  const format = useFormatter()
   const router = useRouter()
   const params = useSearchParams()
   const requestedTool = params.get("tool")
@@ -422,7 +426,7 @@ export function AiChatPage() {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!prompt.trim()) {
-      toast.error("Escribe qué necesitas antes de enviar.")
+      toast.error(t("emptyPrompt"))
       return
     }
     setPending(true)
@@ -447,7 +451,7 @@ export function AiChatPage() {
         return
       }
       console.error("AI request creation failed", error)
-      toast.error("No pudimos enviar la solicitud. Revisa las opciones.")
+      toast.error(t("sendFailed"))
     } finally {
       setPending(false)
     }
@@ -461,10 +465,10 @@ export function AiChatPage() {
       setRequests((current) =>
         current.map((item) => (item.id === fresh.id ? fresh : item))
       )
-      toast.success("Generación reintentada.")
+      toast.success(t("retrySuccess"))
     } catch (error) {
       console.error("AI retry failed", error)
-      toast.error("No pudimos reintentar la generación.")
+      toast.error(t("retryFailed"))
     }
   }
 
@@ -473,25 +477,25 @@ export function AiChatPage() {
       await aiApi.archiveRequest(request.id, { archived: true })
       setRequests((current) => current.filter((item) => item.id !== request.id))
       if (selectedId === request.id) setSelectedId(null)
-      toast.success("Conversación archivada.")
+      toast.success(t("archived"))
     } catch (error) {
       console.error("AI archive failed", error)
-      toast.error("No pudimos archivar la conversación.")
+      toast.error(t("archiveFailed"))
     }
   }
 
   async function copyResult(request: PortalAiRequest) {
     if (!navigator.clipboard) {
-      toast.error("Tu navegador no permite copiar el resultado.")
+      toast.error(t("clipboardUnsupported"))
       return
     }
     try {
       await navigator.clipboard.writeText(
         JSON.stringify(request.result, null, 2)
       )
-      toast.success("Resultado copiado.")
+      toast.success(t("copied"))
     } catch {
-      toast.error("No pudimos copiar el resultado.")
+      toast.error(t("copyFailed"))
     }
   }
 
@@ -501,7 +505,7 @@ export function AiChatPage() {
         className="flex h-[calc(100svh-var(--dashboard-header-height))] items-center justify-center"
         data-content-padding="false"
       >
-        <PageLoading aria-label="Cargando AI Studio" />
+        <PageLoading aria-label={t("loading")} />
       </div>
     )
   }
@@ -517,9 +521,9 @@ export function AiChatPage() {
                 variant="brand-secondary"
               />
             }
-            description="No pudimos cargar tus generaciones."
+            description={t("loadFailedDescription")}
             icon={CircleAlert}
-            title="AI Studio no disponible"
+            title={t("loadFailedTitle")}
           />
         </CardContent>
       </Card>
@@ -550,14 +554,14 @@ export function AiChatPage() {
               <Search />
             </InputGroupAddon>
             <InputGroupInput
-              aria-label="Buscar generaciones"
+              aria-label={t("searchLabel")}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Buscar…"
+              placeholder={t("searchPlaceholder")}
               value={query}
             />
           </InputGroup>
           <Button
-            aria-label="Nueva conversación"
+            aria-label={t("newConversation")}
             onClick={() => {
               setSelectedId(null)
               setPrompt("")
@@ -589,10 +593,13 @@ export function AiChatPage() {
                 </span>
                 <span className="flex items-center gap-2">
                   <Badge variant={statusVariants[request.status]}>
-                    {statusLabels[request.status]}
+                    {t(`status.${request.status}`)}
                   </Badge>
                   <span className="text-xs text-muted-foreground">
-                    {formatTime(request.createdAt)}
+                    {format.dateTime(new Date(request.createdAt), {
+                      dateStyle: "short",
+                      timeStyle: "short",
+                    })}
                   </span>
                 </span>
               </button>
@@ -616,7 +623,7 @@ export function AiChatPage() {
         <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border p-3">
           <div className="flex min-w-0 items-center gap-2">
             <Button
-              aria-label="Volver a las conversaciones"
+              aria-label={t("backToConversations")}
               className="md:hidden"
               onClick={() => setShowThread(false)}
               size="icon-sm"
@@ -626,10 +633,10 @@ export function AiChatPage() {
             </Button>
             <div className="flex min-w-0 flex-col">
               <span className="truncate font-medium">
-                {selected ? selected.title : "Nueva conversación"}
+                {selected ? selected.title : t("newConversation")}
               </span>
               <span className="text-sm text-muted-foreground">
-                {chatTools[tool].description}
+                {tt(chatTools[tool].descriptionKey)}
               </span>
             </div>
           </div>
@@ -640,13 +647,16 @@ export function AiChatPage() {
               </Link>
             </Button>
             <Button asChild size="icon-sm" variant="brand-secondary">
-              <Link aria-label="Ajustes AI" href="/portal/ai-studio/settings">
+              <Link
+                aria-label={t("settings")}
+                href="/portal/ai-studio/settings"
+              >
                 <Settings2 />
               </Link>
             </Button>
             <Button
               aria-label={
-                isLg && showOptions ? "Ocultar opciones" : "Mostrar opciones"
+                isLg && showOptions ? t("hideOptions") : t("showOptions")
               }
               onClick={() =>
                 isLg
@@ -672,11 +682,17 @@ export function AiChatPage() {
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <span className="font-medium text-foreground">
-                    {chatTools[selected.kind as ChatTool]?.label ??
-                      selected.kind}
+                    {chatTools[selected.kind as ChatTool]
+                      ? tt(chatTools[selected.kind as ChatTool].labelKey)
+                      : selected.kind}
                   </span>
                   <span>·</span>
-                  <span>{formatTime(selected.createdAt)}</span>
+                  <span>
+                    {format.dateTime(new Date(selected.createdAt), {
+                      dateStyle: "short",
+                      timeStyle: "short",
+                    })}
+                  </span>
                   {selected.model ? (
                     <>
                       <span>·</span>
@@ -715,9 +731,9 @@ export function AiChatPage() {
           ) : (
             <div className="m-auto flex max-w-md flex-col items-center gap-4 text-center">
               <EmptyState
-                description="Elige una herramienta, ajusta sus opciones y describe lo que necesitas."
+                description={t("emptyDescription")}
                 icon={Sparkles}
-                title="Empieza una conversación"
+                title={t("emptyTitle")}
               />
             </div>
           )}
@@ -731,11 +747,11 @@ export function AiChatPage() {
         >
           <div className="mx-auto flex w-full max-w-3xl flex-col gap-2 rounded-xl border border-border bg-background p-2.5 transition-colors focus-within:border-ring">
             <Textarea
-              aria-label={chatTools[tool].promptLabel}
+              aria-label={tt(chatTools[tool].promptLabelKey)}
               className="min-h-16 resize-none border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
               disabled={pending}
               onChange={(event) => setPrompt(event.target.value)}
-              placeholder={chatTools[tool].placeholder}
+              placeholder={tt(chatTools[tool].placeholderKey)}
               value={prompt}
             />
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -753,12 +769,12 @@ export function AiChatPage() {
                     onClick={() => setTool(key)}
                     type="button"
                   >
-                    {chatTools[key].label}
+                    {tt(chatTools[key].labelKey)}
                   </button>
                 ))}
               </div>
               <Button
-                aria-label="Enviar"
+                aria-label={t("send")}
                 disabled={!prompt.trim() || pending}
                 size="icon-sm"
                 type="submit"
@@ -778,7 +794,7 @@ export function AiChatPage() {
       >
         <div className="flex flex-col gap-1 pb-3">
           <span className="font-medium">
-            Opciones de {chatTools[tool].label}
+            {t("toolOptions", { tool: tt(chatTools[tool].labelKey) })}
           </span>
           <FieldDescription>
             Se aplican a la próxima generación de esta herramienta.
@@ -797,7 +813,9 @@ export function AiChatPage() {
         <Sheet onOpenChange={setOptionsSheetOpen} open={optionsSheetOpen}>
           <SheetContent side="right">
             <SheetHeader className="pb-0">
-              <SheetTitle>Opciones de {chatTools[tool].label}</SheetTitle>
+              <SheetTitle>
+                {t("toolOptions", { tool: tt(chatTools[tool].labelKey) })}
+              </SheetTitle>
               <SheetDescription>
                 Se aplican a la próxima generación de esta herramienta.
               </SheetDescription>

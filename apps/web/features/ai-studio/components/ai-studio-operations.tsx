@@ -90,42 +90,38 @@ import {
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { TimePicker } from "@workspace/ui/components/time-picker"
+import { useTranslations } from "next-intl"
 
 const historyStatusOptions = [
-  { label: "Todos los estados", value: "all" },
-  { label: "En cola", value: "queued" },
-  { label: "Procesando", value: "processing" },
-  { label: "Completados", value: "succeeded" },
-  { label: "Fallidos", value: "failed" },
-  { label: "Cancelados", value: "cancelled" },
+  "all",
+  "queued",
+  "processing",
+  "succeeded",
+  "failed",
+  "cancelled",
 ] as const
 
 const historyKindOptions = [
-  { label: "Todas las herramientas", value: "all" },
-  { label: "Contenido", value: "content" },
-  { label: "Imagen", value: "image" },
-  { label: "Video", value: "video" },
-  { label: "Reutilizar", value: "repurpose" },
-  { label: "Planificador", value: "planner" },
-  { label: "Revisión", value: "review" },
-  { label: "Mejor hora", value: "timing" },
-  { label: "Investigación", value: "search" },
-  { label: "Publicación AI", value: "ai_publishing" },
+  "all",
+  "content",
+  "image",
+  "video",
+  "repurpose",
+  "planner",
+  "review",
+  "timing",
+  "search",
+  "ai_publishing",
 ] as const
 
-const automationStatusOptions = [
-  { label: "Todos los estados", value: "all" },
-  { label: "Activas", value: "active" },
-  { label: "Pausadas", value: "paused" },
-  { label: "Borradores", value: "draft" },
-] as const
+const automationStatusOptions = ["all", "active", "paused", "draft"] as const
 
 const creditTypeOptions = [
-  { label: "Todos los movimientos", value: "all" },
-  { label: "Asignaciones", value: "grant" },
-  { label: "Consumos", value: "debit" },
-  { label: "Reembolsos", value: "refund" },
-  { label: "Ajustes", value: "adjustment" },
+  "all",
+  "grant",
+  "debit",
+  "refund",
+  "adjustment",
 ] as const
 
 type AiOperationalViewState = "loading" | "ready" | "error" | "forbidden"
@@ -226,8 +222,10 @@ function CollectionState({
   onRetry,
   state,
 }: CollectionStateProps) {
+  const t = useTranslations("aiStudio.operations")
+
   if (state === "loading") {
-    return <PageLoading aria-label="Cargando registros" />
+    return <PageLoading aria-label={t("loadingRecords")} />
   }
 
   if (state === "error") {
@@ -236,12 +234,12 @@ function CollectionState({
         action={
           <Button onClick={onRetry} type="button" variant="brand-secondary">
             <RefreshCw aria-hidden="true" data-icon="inline-start" />
-            Reintentar
+            {t("retry")}
           </Button>
         }
         description={errorDescription}
         icon={CircleAlert}
-        title="No pudimos cargar esta información"
+        title={t("loadFailedTitle")}
       />
     )
   }
@@ -251,7 +249,7 @@ function CollectionState({
       <EmptyState
         description={forbiddenDescription}
         icon={ShieldX}
-        title="No tienes permiso para ver esta información"
+        title={t("forbiddenTitle")}
       />
     )
   }
@@ -266,11 +264,13 @@ function CollectionPagination({
   pageSize,
   total,
 }: PaginationProps) {
+  const t = useTranslations("aiStudio.operations")
+
   return (
     <TablePagination
       canGoNext={page * pageSize < total}
       canGoPrevious={page > 1}
-      itemLabel="registros"
+      itemLabel={t("records")}
       onNextPage={onNextPage}
       onPreviousPage={onPreviousPage}
       rangeEnd={Math.min(page * pageSize, total)}
@@ -281,13 +281,8 @@ function CollectionPagination({
 }
 
 function HistoryStatusBadge({ status }: { status: AiHistoryStatus }) {
-  const label = {
-    cancelled: "Cancelado",
-    failed: "Falló",
-    processing: "Procesando",
-    queued: "En cola",
-    succeeded: "Completado",
-  }[status]
+  const t = useTranslations("aiStudio.operations")
+  const label = t(`historyStatusBadge.${status}`)
 
   if (status === "succeeded") return <Badge variant="success">{label}</Badge>
   if (status === "failed") return <Badge variant="destructive">{label}</Badge>
@@ -295,18 +290,17 @@ function HistoryStatusBadge({ status }: { status: AiHistoryStatus }) {
 }
 
 function AutomationStatusBadge({ status }: { status: AiAutomationStatus }) {
-  if (status === "active") return <Badge variant="success">Activa</Badge>
-  if (status === "paused") return <Badge variant="warning">Pausada</Badge>
-  return <Badge variant="secondary">Borrador</Badge>
+  const t = useTranslations("aiStudio.operations")
+  const label = t(`automationStatusBadge.${status}`)
+
+  if (status === "active") return <Badge variant="success">{label}</Badge>
+  if (status === "paused") return <Badge variant="warning">{label}</Badge>
+  return <Badge variant="secondary">{label}</Badge>
 }
 
 function CreditTypeBadge({ type }: { type: AiCreditMovementType }) {
-  const label = {
-    adjustment: "Ajuste",
-    debit: "Consumo",
-    grant: "Asignación",
-    refund: "Reembolso",
-  }[type]
+  const t = useTranslations("aiStudio.operations")
+  const label = t(`creditTypeBadge.${type}`)
 
   if (type === "grant" || type === "refund")
     return <Badge variant="success">{label}</Badge>
@@ -350,59 +344,66 @@ function AiHistorySurface({
   statusFilter,
   total,
 }: AiHistorySurfaceProps) {
+  const t = useTranslations("aiStudio.operations")
   return (
     <div className="flex flex-col gap-6">
       <OperationsHeader
-        description="Encuentra, reutiliza y descarga cualquier generación anterior."
-        title="Historial de IA"
+        description={t("history.pageDescription")}
+        title={t("history.pageTitle")}
       />
       <CollectionHeader
-        description="Resultados creados dentro de este espacio de trabajo."
+        description={t("history.description")}
         level="h2"
-        title="Generaciones"
+        title={t("history.title")}
       />
       <Card variant="subtle">
         <DataTableHeader
           action={action}
           search={{
-            ariaLabel: "Buscar generaciones",
+            ariaLabel: t("history.searchLabel"),
             onChange: onQueryChange,
-            placeholder: "Buscar generaciones...",
+            placeholder: t("history.searchPlaceholder"),
             value: query,
           }}
         />
         <CardContent className="flex flex-col gap-4 px-0">
           <DataTableToolbar>
             <DataTableFilter
-              ariaLabel="Filtrar historial por estado"
-              label="Estado"
+              ariaLabel={t("history.filterStatusLabel")}
+              label={t("status")}
               onValueChange={onStatusFilterChange}
-              options={historyStatusOptions}
+              options={historyStatusOptions.map((value) => ({
+                label: t(`historyStatus.${value}`),
+                value,
+              }))}
               value={statusFilter}
             />
             <DataTableFilter
-              ariaLabel="Filtrar historial por herramienta"
-              label="Herramienta"
+              ariaLabel={t("history.filterKindLabel")}
+              label={t("tool")}
               onValueChange={onKindFilterChange}
-              options={historyKindOptions}
+              options={historyKindOptions.map((value) => ({
+                label: t(`kind.${value}`),
+                value,
+              }))}
               value={kindFilter}
             />
           </DataTableToolbar>
 
           <CollectionState
-            errorDescription="El historial no respondió. Puedes volver a intentarlo sin perder tus filtros."
-            forbiddenDescription="Tu rol no permite consultar el historial de IA de este espacio."
+            errorDescription={t("history.errorDescription")}
+            forbiddenDescription={t("history.forbiddenDescription")}
             onRetry={onRetry}
             state={state}
           >
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Generación</TableHead>
+                  <TableHead>{t("history.generation")}</TableHead>
                   <TableHead className="hidden md:table-cell">
                     Herramienta
                   </TableHead>
-                  <TableHead>Estado</TableHead>
+                  <TableHead>{t("status")}</TableHead>
                   <TableHead className="hidden lg:table-cell">
                     Consumo
                   </TableHead>
@@ -454,11 +455,11 @@ function AiHistorySurface({
                     }
                     description={
                       hasFilters
-                        ? "Ajusta la búsqueda, el estado o la herramienta seleccionada."
-                        : "Las nuevas generaciones aparecerán aquí cuando uses AI Studio."
+                        ? t("history.emptyFilteredDescription")
+                        : t("history.emptyDescription")
                     }
                     title={
-                      hasFilters ? "Sin resultados" : "Aún no hay generaciones"
+                      hasFilters ? t("noResults") : t("history.emptyTitle")
                     }
                   />
                 ) : null}
@@ -550,16 +551,13 @@ function AiAutomationSurface({
   time,
   total,
 }: AiAutomationSurfaceProps) {
+  const t = useTranslations("aiStudio.operations")
   const canSubmit = Boolean(name.trim() && prompt.trim() && time && accountId)
-  let emptyDescription =
-    "Conecta primero una cuenta social para elegir un destino."
+  let emptyDescription = t("automation.needsAccount")
 
-  if (accounts.length)
-    emptyDescription =
-      "Crea una regla para producir borradores automáticamente."
-  if (!canManage)
-    emptyDescription = "No hay automatizaciones disponibles para consultar."
-  if (hasFilters) emptyDescription = "Ajusta la búsqueda o el filtro de estado."
+  if (accounts.length) emptyDescription = t("automation.emptyDescription")
+  if (!canManage) emptyDescription = t("automation.noneAvailable")
+  if (hasFilters) emptyDescription = t("automation.emptyFilteredDescription")
 
   return (
     <div className="flex flex-col gap-6">
@@ -577,15 +575,15 @@ function AiAutomationSurface({
             </Button>
           ) : undefined
         }
-        description="Crea reglas que generan borradores listos para revisión humana."
-        title="Automatizaciones"
+        description={t("automation.pageDescription")}
+        title={t("automation.pageTitle")}
       />
 
       {formOpen && canManage ? (
         <form className="flex flex-col gap-3" noValidate onSubmit={onSubmit}>
           <Card variant="subtle">
             <CardHeader>
-              <CardTitle>Nueva automatización</CardTitle>
+              <CardTitle>{t("automation.createTitle")}</CardTitle>
               <CardDescription>
                 Genera borradores; nunca publica sin revisión humana.
               </CardDescription>
@@ -638,7 +636,9 @@ function AiAutomationSurface({
                       className="w-full"
                       id="automation-account"
                     >
-                      <SelectValue placeholder="Selecciona una cuenta" />
+                      <SelectValue
+                        placeholder={t("automation.selectAccount")}
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
@@ -663,60 +663,63 @@ function AiAutomationSurface({
             <Button disabled={pendingCreate || !canSubmit} type="submit">
               {pendingCreate ? (
                 <Spinner
-                  aria-label="Guardando automatización"
+                  aria-label={t("automation.saving")}
                   data-icon="inline-start"
                 />
               ) : (
                 <Save aria-hidden="true" data-icon="inline-start" />
               )}
-              {pendingCreate ? "Guardando..." : "Guardar automatización"}
+              {pendingCreate ? t("saving") : t("automation.save")}
             </Button>
           </div>
         </form>
       ) : null}
 
       <CollectionHeader
-        description="Reglas que crean borradores y conservan la aprobación final en una persona."
+        description={t("automation.rulesDescription")}
         level="h2"
-        title="Reglas"
+        title={t("automation.rulesTitle")}
       />
       <Card variant="subtle">
         <DataTableHeader
           search={{
-            ariaLabel: "Buscar automatizaciones",
+            ariaLabel: t("automation.searchLabel"),
             onChange: onQueryChange,
-            placeholder: "Buscar automatizaciones...",
+            placeholder: t("automation.searchPlaceholder"),
             value: query,
           }}
         />
         <CardContent className="flex flex-col gap-4 px-0">
           <DataTableToolbar>
             <DataTableFilter
-              ariaLabel="Filtrar automatizaciones por estado"
-              label="Estado"
+              ariaLabel={t("automation.filterStatusLabel")}
+              label={t("status")}
               onValueChange={onStatusFilterChange}
-              options={automationStatusOptions}
+              options={automationStatusOptions.map((value) => ({
+                label: t(`automationStatus.${value}`),
+                value,
+              }))}
               value={statusFilter}
             />
           </DataTableToolbar>
 
           <CollectionState
-            errorDescription="Las automatizaciones no respondieron. Inténtalo de nuevo para recuperar la lista."
-            forbiddenDescription="Tu rol no permite consultar ni administrar automatizaciones de este espacio."
+            errorDescription={t("automation.errorDescription")}
+            forbiddenDescription={t("automation.forbiddenDescription")}
             onRetry={onRetry}
             state={state}
           >
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Automatización</TableHead>
+                  <TableHead>{t("automation.rule")}</TableHead>
                   <TableHead className="hidden md:table-cell">
                     Frecuencia
                   </TableHead>
                   <TableHead className="hidden lg:table-cell">
                     Próxima ejecución
                   </TableHead>
-                  <TableHead>Estado</TableHead>
+                  <TableHead>{t("status")}</TableHead>
                   {canManage ? (
                     <TableHead className="text-right">Acciones</TableHead>
                   ) : null}
@@ -761,7 +764,7 @@ function AiAutomationSurface({
                                 variant="brand-secondary"
                               >
                                 {busy ? (
-                                  <Spinner aria-label="Procesando acción" />
+                                  <Spinner aria-label={t("processing")} />
                                 ) : (
                                   <EllipsisVertical aria-hidden="true" />
                                 )}
@@ -807,9 +810,7 @@ function AiAutomationSurface({
                     }
                     description={emptyDescription}
                     title={
-                      hasFilters
-                        ? "Sin resultados"
-                        : "Aún no hay automatizaciones"
+                      hasFilters ? t("noResults") : t("automation.emptyTitle")
                     }
                   />
                 ) : null}
@@ -828,7 +829,7 @@ function AiAutomationSurface({
 
       <Alert>
         <ShieldCheck aria-hidden="true" />
-        <AlertTitle>Aprobación humana activa</AlertTitle>
+        <AlertTitle>{t("automation.humanApproval")}</AlertTitle>
         <AlertDescription>
           Ninguna automatización publica directamente. Todos los resultados
           llegan como borrador.
@@ -838,7 +839,7 @@ function AiAutomationSurface({
       {canManage ? (
         <FloatingActionButton
           disabled={state !== "ready"}
-          label="Nueva automatización"
+          label={t("automation.createTitle")}
           onClick={onToggleForm}
         />
       ) : null}
@@ -869,13 +870,13 @@ function AiAutomationSurface({
             >
               {deleting ? (
                 <Spinner
-                  aria-label="Eliminando automatización"
+                  aria-label={t("automation.deleting")}
                   data-icon="inline-start"
                 />
               ) : (
                 <Trash2 aria-hidden="true" data-icon="inline-start" />
               )}
-              {deleting ? "Eliminando..." : "Eliminar"}
+              {deleting ? t("deleting") : t("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -940,6 +941,7 @@ function AiCreditsSurface({
   toolCosts,
   total,
 }: AiCreditsSurfaceProps) {
+  const t = useTranslations("aiStudio.operations")
   const alertNumber = Number(alertPercent)
   const budgetNumber = Number(budget)
   const budgetIsValid =
@@ -953,8 +955,8 @@ function AiCreditsSurface({
   return (
     <div className="flex flex-col gap-6">
       <OperationsHeader
-        description="Entiende el consumo de IA y controla el presupuesto de tu espacio de trabajo."
-        title="Créditos y consumo"
+        description={t("credits.pageDescription")}
+        title={t("credits.pageTitle")}
       />
 
       {state === "ready" ? (
@@ -964,19 +966,19 @@ function AiCreditsSurface({
               {
                 description: "créditos",
                 icon: Coins,
-                label: "Saldo disponible",
+                label: t("credits.balance"),
                 value: balance,
               },
               {
                 description: "en el ciclo",
                 icon: Sparkles,
-                label: "Consumidos",
+                label: t("credits.used"),
                 value: consumed,
               },
               {
                 description: "ciclo actual",
                 icon: Clock3,
-                label: "Próxima renovación",
+                label: t("credits.nextRenewal"),
                 value: renewal,
               },
             ].map((metric) => (
@@ -987,27 +989,30 @@ function AiCreditsSurface({
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
             <div className="flex flex-col gap-4">
               <CollectionHeader
-                description="Asignaciones, consumos, reembolsos y ajustes del espacio."
+                description={t("credits.movementsDescription")}
                 level="h2"
-                title="Movimientos"
+                title={t("credits.movements")}
               />
               <Card variant="subtle">
                 <DataTableHeader
                   action={tableAction}
                   search={{
-                    ariaLabel: "Buscar movimientos de créditos",
+                    ariaLabel: t("credits.searchLabel"),
                     onChange: onQueryChange,
-                    placeholder: "Buscar movimientos...",
+                    placeholder: t("credits.searchPlaceholder"),
                     value: query,
                   }}
                 />
                 <CardContent className="flex flex-col gap-4 px-0">
                   <DataTableToolbar>
                     <DataTableFilter
-                      ariaLabel="Filtrar movimientos por tipo"
-                      label="Tipo"
+                      ariaLabel={t("credits.filterTypeLabel")}
+                      label={t("type")}
                       onValueChange={onMovementTypeChange}
-                      options={creditTypeOptions}
+                      options={creditTypeOptions.map((value) => ({
+                        label: t(`creditType.${value}`),
+                        value,
+                      }))}
                       value={movementType}
                     />
                   </DataTableToolbar>
@@ -1015,8 +1020,8 @@ function AiCreditsSurface({
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Fecha</TableHead>
-                        <TableHead>Movimiento</TableHead>
+                        <TableHead>{t("date")}</TableHead>
+                        <TableHead>{t("credits.movement")}</TableHead>
                         <TableHead className="hidden md:table-cell">
                           Detalle
                         </TableHead>
@@ -1056,13 +1061,13 @@ function AiCreditsSurface({
                           }
                           description={
                             hasFilters
-                              ? "Ajusta la búsqueda o el tipo de movimiento."
-                              : "Los movimientos aparecerán cuando se asignen o consuman créditos."
+                              ? t("credits.emptyFilteredDescription")
+                              : t("credits.emptyDescription")
                           }
                           title={
                             hasFilters
-                              ? "Sin resultados"
-                              : "Aún no hay movimientos"
+                              ? t("noResults")
+                              : t("credits.emptyTitle")
                           }
                         />
                       ) : null}
@@ -1082,11 +1087,11 @@ function AiCreditsSurface({
             <div className="flex flex-col gap-4">
               <Card variant="subtle">
                 <CardHeader>
-                  <CardTitle>Presupuesto mensual</CardTitle>
+                  <CardTitle>{t("credits.budgetTitle")}</CardTitle>
                   <CardDescription>
                     {budgetEditable
-                      ? "Vacío significa sin límite monetario."
-                      : "Solo propietarios y administradores pueden cambiar este presupuesto."}
+                      ? t("credits.budgetHint")
+                      : t("credits.budgetReadOnly")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -1150,13 +1155,13 @@ function AiCreditsSurface({
                       >
                         {pendingBudget ? (
                           <Spinner
-                            aria-label="Guardando presupuesto"
+                            aria-label={t("credits.savingBudget")}
                             data-icon="inline-start"
                           />
                         ) : (
                           <Save aria-hidden="true" data-icon="inline-start" />
                         )}
-                        {pendingBudget ? "Guardando..." : "Guardar presupuesto"}
+                        {pendingBudget ? t("saving") : t("credits.saveBudget")}
                       </Button>
                     </FieldGroup>
                   </form>
@@ -1165,7 +1170,7 @@ function AiCreditsSurface({
 
               <Card variant="subtle">
                 <CardHeader>
-                  <CardTitle>Costo por herramienta</CardTitle>
+                  <CardTitle>{t("credits.costPerTool")}</CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-2">
                   {toolCosts.map((tool) => (
@@ -1187,8 +1192,8 @@ function AiCreditsSurface({
       ) : (
         <Card variant="subtle">
           <CollectionState
-            errorDescription="No pudimos recuperar el saldo ni los movimientos de créditos."
-            forbiddenDescription="Tu rol no permite consultar el consumo de IA de este espacio."
+            errorDescription={t("credits.errorDescription")}
+            forbiddenDescription={t("credits.forbiddenDescription")}
             onRetry={onRetry}
             state={state}
           >
