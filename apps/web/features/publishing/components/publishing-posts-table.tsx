@@ -20,6 +20,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@workspace/ui/components/alert-dialog"
+import { useFormatter, useTranslations } from "next-intl"
+
 import { Badge } from "@workspace/ui/components/badge"
 import { CardGrid } from "@workspace/ui/components/card-grid"
 import { Button } from "@workspace/ui/components/button"
@@ -58,14 +60,6 @@ const providerLabels: Record<PublishingProvider, string> = {
   whatsapp: "WhatsApp",
 }
 
-const statusLabels: Record<PublishingStatus, string> = {
-  draft: "Borrador",
-  failed: "Fallida",
-  processing: "En proceso",
-  published: "Publicada",
-  scheduled: "Programada",
-}
-
 const statusVariants: Record<
   PublishingStatus,
   "neutral" | "success" | "warning" | "destructive"
@@ -75,13 +69,6 @@ const statusVariants: Record<
   processing: "warning",
   published: "success",
   scheduled: "neutral",
-}
-
-function formatDate(post: PublishingPost) {
-  return new Date(`${post.date}T12:00:00`).toLocaleDateString("es", {
-    day: "numeric",
-    month: "short",
-  })
 }
 
 function PostActions({
@@ -97,6 +84,7 @@ function PostActions({
   onRetry?: (post: PublishingPost) => void
   post: PublishingPost
 }) {
+  const t = useTranslations("publishing.table")
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deletePending, setDeletePending] = useState(false)
 
@@ -123,7 +111,7 @@ function PostActions({
           variant="brand-secondary"
         >
           <FilePenLine data-icon="inline-start" />
-          Editar
+          {t("edit")}
         </Button>
       ) : null}
       {mode === "queue" &&
@@ -132,7 +120,7 @@ function PostActions({
       onRetry ? (
         <Button onClick={() => onRetry(post)} size="sm" type="button">
           <RotateCcw data-icon="inline-start" />
-          Reintentar
+          {t("retry")}
         </Button>
       ) : null}
       {mode === "drafts" && onDelete ? (
@@ -142,7 +130,7 @@ function PostActions({
         >
           <AlertDialogTrigger asChild>
             <Button
-              aria-label={`Eliminar ${post.title}`}
+              aria-label={t("deleteLabel", { title: post.title })}
               size="icon-sm"
               type="button"
               variant="brand-secondary"
@@ -152,10 +140,9 @@ function PostActions({
           </AlertDialogTrigger>
           <AlertDialogContent size="sm">
             <AlertDialogHeader>
-              <AlertDialogTitle>¿Eliminar borrador?</AlertDialogTitle>
+              <AlertDialogTitle>{t("deleteTitle")}</AlertDialogTitle>
               <AlertDialogDescription>
-                El borrador “{post.title}” se eliminará definitivamente. Esta
-                acción no se puede deshacer.
+                {t("deleteDescription", { title: post.title })}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -163,7 +150,7 @@ function PostActions({
                 disabled={deletePending}
                 variant="brand-secondary"
               >
-                Cancelar
+                {t("cancel")}
               </AlertDialogCancel>
               <AlertDialogAction
                 disabled={deletePending}
@@ -176,7 +163,7 @@ function PostActions({
                 ) : (
                   <Trash2 data-icon="inline-start" />
                 )}
-                {deletePending ? "Eliminando..." : "Eliminar borrador"}
+                {deletePending ? t("deleting") : t("deleteAction")}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -220,6 +207,8 @@ export function PublishingPostsTable({
   onRetry?: (post: PublishingPost) => void
   posts: PublishingPost[]
 }) {
+  const t = useTranslations("publishing.table")
+  const format = useFormatter()
   const [query, setQuery] = useState("")
   const [provider, setProvider] = useState<PublishingProvider | "all">("all")
   const [status, setStatus] = useState<PublishingStatus | "all">("all")
@@ -246,18 +235,15 @@ export function PublishingPostsTable({
     currentPage * PAGE_SIZE
   )
   const hasFilters = query || provider !== "all" || status !== "all"
+  const emptyVariant = hasFilters
+    ? "filtered"
+    : mode === "drafts"
+      ? "drafts"
+      : "queue"
   const emptyProps = {
-    description: hasFilters
-      ? "Prueba otros filtros o limpia la búsqueda para ver las publicaciones disponibles."
-      : mode === "drafts"
-        ? "Guarda una publicación como borrador para continuarla después."
-        : "Cuando programes o publiques una pieza, su progreso aparecerá aquí por cada destino.",
+    description: t(`empty.${emptyVariant}.description`),
     icon: TABLE_EMPTY_ICON,
-    title: hasFilters
-      ? "No encontramos publicaciones"
-      : mode === "drafts"
-        ? "Todavía no hay borradores"
-        : "La cola está vacía",
+    title: t(`empty.${emptyVariant}.title`),
   }
   const pageRangeStart = filteredPosts.length
     ? (currentPage - 1) * PAGE_SIZE + 1
@@ -280,16 +266,16 @@ export function PublishingPostsTable({
             size="sm"
           >
             <Plus data-icon="inline-start" />
-            Nueva publicación
+            {t("create")}
           </Button>
         }
         search={{
-          ariaLabel: "Buscar publicaciones",
+          ariaLabel: t("searchLabel"),
           onChange: (value) => {
             setQuery(value)
             setPage(1)
           },
-          placeholder: "Buscar publicaciones",
+          placeholder: t("searchLabel"),
           value: query,
         }}
       />
@@ -303,29 +289,29 @@ export function PublishingPostsTable({
                 variant="brand-secondary"
               >
                 <ListFilter data-icon="inline-start" />
-                Limpiar
+                {t("clearFilters")}
               </Button>
             ) : undefined
           }
         >
           <DataTableFilter
-            ariaLabel="Filtrar por red"
-            label="Red"
+            ariaLabel={t("filterProviderLabel")}
+            label={t("provider")}
             onValueChange={(value) => {
               setProvider(value as PublishingProvider | "all")
               setPage(1)
             }}
             options={[
-              { label: "Todas las redes", value: "all" },
-              { label: "Facebook", value: "facebook" },
-              { label: "Instagram", value: "instagram" },
-              { label: "WhatsApp", value: "whatsapp" },
+              { label: t("allProviders"), value: "all" },
+              { label: providerLabels.facebook, value: "facebook" },
+              { label: providerLabels.instagram, value: "instagram" },
+              { label: providerLabels.whatsapp, value: "whatsapp" },
             ]}
             value={provider}
           />
           <DataTableFilter
-            ariaLabel="Filtrar por estado"
-            label="Estado"
+            ariaLabel={t("filterStatusLabel")}
+            label={t("status")}
             onValueChange={(value) => {
               setStatus(value as PublishingStatus | "all")
               setPage(1)
@@ -333,15 +319,15 @@ export function PublishingPostsTable({
             options={
               mode === "drafts"
                 ? [
-                    { label: "Todos los estados", value: "all" },
-                    { label: "Borrador", value: "draft" },
+                    { label: t("allStatuses"), value: "all" },
+                    { label: t("statusLabel.draft"), value: "draft" },
                   ]
                 : [
-                    { label: "Todos los estados", value: "all" },
-                    { label: "Programada", value: "scheduled" },
-                    { label: "En proceso", value: "processing" },
-                    { label: "Fallida", value: "failed" },
-                    { label: "Publicada", value: "published" },
+                    { label: t("allStatuses"), value: "all" },
+                    { label: t("statusLabel.scheduled"), value: "scheduled" },
+                    { label: t("statusLabel.processing"), value: "processing" },
+                    { label: t("statusLabel.failed"), value: "failed" },
+                    { label: t("statusLabel.published"), value: "published" },
                   ]
             }
             value={status}
@@ -351,20 +337,26 @@ export function PublishingPostsTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="pl-4">Publicación</TableHead>
-              <TableHead className="hidden md:table-cell">Cuenta</TableHead>
-              <TableHead className="hidden lg:table-cell">Fecha</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead className="pr-4 text-right">Acciones</TableHead>
+              <TableHead className="pl-4">{t("post")}</TableHead>
+              <TableHead className="hidden md:table-cell">
+                {t("account")}
+              </TableHead>
+              <TableHead className="hidden lg:table-cell">
+                {t("date")}
+              </TableHead>
+              <TableHead>{t("status")}</TableHead>
+              <TableHead className="pr-4 text-right">{t("actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {pagePosts.map((post) => (
               <TableRow key={post.id}>
                 <TableCell className="max-w-72 pl-4">
-                  <p className="truncate font-medium">{post.title}</p>
+                  <p className="truncate font-medium">
+                    {post.title || t("untitled")}
+                  </p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {post.hasMedia ? "Con archivo" : "Solo texto"}
+                    {post.hasMedia ? t("withMedia") : t("textOnly")}
                   </p>
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
@@ -374,11 +366,15 @@ export function PublishingPostsTable({
                   </p>
                 </TableCell>
                 <TableCell className="hidden whitespace-nowrap text-muted-foreground lg:table-cell">
-                  {formatDate(post)} · {post.time}
+                  {format.dateTime(new Date(`${post.date}T12:00:00`), {
+                    day: "numeric",
+                    month: "short",
+                  })}{" "}
+                  · {post.time === "now" ? t("now") : post.time}
                 </TableCell>
                 <TableCell>
                   <Badge variant={statusVariants[post.status]}>
-                    {statusLabels[post.status]}
+                    {t(`statusLabel.${post.status}`)}
                   </Badge>
                 </TableCell>
                 <TableCell className="pr-4 text-right">

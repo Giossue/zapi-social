@@ -767,14 +767,14 @@ export class PublishingService {
       id: post.id,
       socialAccountId: account.id,
       date,
+      // `now` marca la publicación inmediata: la interfaz decide cómo leerlo.
       time:
         post.status === 'processing' && !post.scheduledAt
-          ? 'Ahora'
+          ? 'now'
           : when.toISOString().slice(11, 16),
+      // Sin texto, el título queda vacío y la interfaz pone su propio rótulo.
       title:
-        content.length > 54
-          ? `${content.slice(0, 51)}…`
-          : content || 'Publicación sin texto',
+        content.length > 54 ? `${content.slice(0, 51)}…` : content,
       content: post.content,
       channel: `${account.displayName} · ${provider === 'facebook' ? 'Facebook' : provider === 'instagram' ? 'Instagram' : 'WhatsApp'}`,
       provider,

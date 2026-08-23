@@ -8,6 +8,7 @@ import { EmptyState } from "@workspace/ui/components/empty-state"
 import { PageLoading } from "@workspace/ui/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import { TriangleAlert } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { PublishingCalendarPage } from "@/features/publishing/components/publishing-calendar-page"
 
 /**
@@ -23,6 +24,7 @@ export function PublishingPageLoader({
 }: {
   initialSection?: "calendar" | "queue" | "drafts"
 }) {
+  const t = useTranslations("publishing.loader")
   const [calendar, setCalendar] = useState<PortalPublishingResponse | null>(
     lastResponse
   )
@@ -69,9 +71,9 @@ export function PublishingPageLoader({
             action={
               <RetryButton onClick={retryLoad} variant="brand-secondary" />
             }
-            description="No pudimos recuperar el calendario. Ninguna publicación fue modificada."
+            description={t("loadFailedDescription")}
             icon={TriangleAlert}
-            title="No se pudo cargar Publishing"
+            title={t("loadFailedTitle")}
           />
         </CardContent>
       </Card>

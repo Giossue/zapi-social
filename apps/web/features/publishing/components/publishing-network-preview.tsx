@@ -1,6 +1,8 @@
 "use client"
 
 import { Image, MoreHorizontal, MonitorPlay } from "lucide-react"
+import { useTranslations } from "next-intl"
+
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
@@ -71,6 +73,8 @@ function InstagramPreview({
   content: string
   hasMedia: boolean
 }) {
+  const t = useTranslations("publishing.preview")
+
   return (
     <Card variant="surface">
       <CardContent className="px-0">
@@ -84,16 +88,17 @@ function InstagramPreview({
         <MediaPlaceholder ratio="instagram" />
         <div className="flex flex-col gap-2 px-4 pt-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold">Instagram</span>
-            <span className="text-xs text-muted-foreground">Ahora</span>
+            <span className="text-sm font-semibold">
+              {providerLabels.instagram}
+            </span>
+            <span className="text-xs text-muted-foreground">{t("now")}</span>
           </div>
           <p className="text-sm leading-6 whitespace-pre-line">
-            {content.trim() ||
-              "Empieza a escribir para ver cómo se leerá tu publicación."}
+            {content.trim() || t("contentPlaceholder")}
           </p>
           {hasMedia ? (
             <p className="text-xs text-muted-foreground">
-              Imagen o video seleccionado
+              {t("mediaSelected")}
             </p>
           ) : null}
         </div>
@@ -111,6 +116,8 @@ function FacebookPreview({
   content: string
   hasMedia: boolean
 }) {
+  const t = useTranslations("publishing.preview")
+
   return (
     <Card variant="surface">
       <CardContent className="px-0">
@@ -121,24 +128,23 @@ function FacebookPreview({
               {account.assignedName ?? account.name}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Ahora · Público
+              {t("nowPublic")}
             </p>
           </div>
           <MoreHorizontal className="size-4 text-muted-foreground" />
         </div>
         <p className="px-4 pb-3 text-sm leading-6 whitespace-pre-line">
-          {content.trim() ||
-            "Empieza a escribir para ver cómo se leerá tu publicación."}
+          {content.trim() || t("contentPlaceholder")}
         </p>
         <MediaPlaceholder ratio="facebook" />
         <div className="grid grid-cols-3 border-t border-border px-3 py-2 text-center text-xs text-muted-foreground">
-          <span>Me gusta</span>
-          <span>Comentar</span>
-          <span>Compartir</span>
+          <span>{t("like")}</span>
+          <span>{t("comment")}</span>
+          <span>{t("share")}</span>
         </div>
         {hasMedia ? (
           <p className="px-4 pb-3 text-xs text-muted-foreground">
-            Imagen o video seleccionado
+            {t("mediaSelected")}
           </p>
         ) : null}
       </CardContent>
@@ -155,6 +161,8 @@ function WhatsAppPreview({
   content: string
   hasMedia: boolean
 }) {
+  const t = useTranslations("publishing.preview")
+
   return (
     <Card className="mx-auto w-full max-w-56 overflow-hidden" variant="surface">
       <CardContent className="relative px-0">
@@ -166,7 +174,7 @@ function WhatsAppPreview({
               <p className="truncate text-sm font-semibold">
                 {account.assignedName ?? account.name}
               </p>
-              <p className="text-xs text-background/70">Estado · Ahora</p>
+              <p className="text-xs text-background/70">{t("statusNow")}</p>
             </div>
             <MoreHorizontal className="size-4" />
           </div>
@@ -178,7 +186,7 @@ function WhatsAppPreview({
         </div>
         {hasMedia ? (
           <p className="px-3 py-2 text-xs text-muted-foreground">
-            Imagen o video seleccionado
+            {t("mediaSelected")}
           </p>
         ) : null}
       </CardContent>
@@ -194,6 +202,7 @@ export function PublishingNetworkPreview({
   onAccountChange,
   selectedAccountIds,
 }: PublishingNetworkPreviewProps) {
+  const t = useTranslations("publishing.preview")
   const selectedAccounts = accounts.filter((account) =>
     selectedAccountIds.includes(account.id)
   )
@@ -204,17 +213,15 @@ export function PublishingNetworkPreview({
   return (
     <Card variant="inset">
       <CardHeader>
-        <CardTitle>Vista previa</CardTitle>
-        <CardDescription>
-          Basada en la cuenta seleccionada, el texto y la media actual.
-        </CardDescription>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {selectedAccounts.length === 0 || !activeAccount ? (
           <EmptyState
-            description="Selecciona una cuenta y añade contenido para revisar el formato antes de publicar."
+            description={t("emptyDescription")}
             icon={MonitorPlay}
-            title="Sin vista previa"
+            title={t("emptyTitle")}
           />
         ) : (
           <>

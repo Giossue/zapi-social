@@ -19,25 +19,25 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from "@workspace/ui/components/toggle-group"
+import { useTranslations } from "next-intl"
+
 import type {
   PublishingAccount,
   PublishingProvider,
 } from "@/features/publishing/types/publishing-calendar"
 
+/** Los nombres de red son marcas: no se traducen. */
 const providerLabels: Record<PublishingProvider, string> = {
   facebook: "Facebook",
   instagram: "Instagram",
   whatsapp: "WhatsApp",
 }
 
-const providerFilters: Array<{
-  label: string
-  value: PublishingProvider | "all"
-}> = [
-  { label: "Todas", value: "all" },
-  { label: "Instagram", value: "instagram" },
-  { label: "Facebook", value: "facebook" },
-  { label: "WhatsApp", value: "whatsapp" },
+const providerFilters: Array<PublishingProvider | "all"> = [
+  "all",
+  "instagram",
+  "facebook",
+  "whatsapp",
 ]
 
 type PublishingAccountPickerProps = {
@@ -53,6 +53,7 @@ export function PublishingAccountPicker({
   onChange,
   selectedAccountIds,
 }: PublishingAccountPickerProps) {
+  const t = useTranslations("publishing.accountPicker")
   const [open, setOpen] = useState(false)
   const [provider, setProvider] = useState<PublishingProvider | "all">("all")
   const [query, setQuery] = useState("")
@@ -96,8 +97,8 @@ export function PublishingAccountPicker({
           >
             <span className="truncate">
               {selectedAccounts.length
-                ? `${selectedAccounts.length} cuenta${selectedAccounts.length === 1 ? "" : "s"} seleccionada${selectedAccounts.length === 1 ? "" : "s"}`
-                : "Seleccionar cuentas destino"}
+                ? t("selectedCount", { count: selectedAccounts.length })
+                : t("placeholder")}
             </span>
             <ChevronDown data-icon="inline-end" />
           </Button>
@@ -112,14 +113,14 @@ export function PublishingAccountPicker({
                 <Search aria-hidden="true" />
               </InputGroupAddon>
               <InputGroupInput
-                aria-label="Buscar cuentas destino"
+                aria-label={t("searchLabel")}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Buscar por cuenta o nombre asignado"
+                placeholder={t("searchPlaceholder")}
                 value={query}
               />
             </InputGroup>
             <ToggleGroup
-              aria-label="Filtrar cuentas por red"
+              aria-label={t("filterLabel")}
               onValueChange={(value) =>
                 value && setProvider(value as PublishingProvider | "all")
               }
@@ -130,8 +131,8 @@ export function PublishingAccountPicker({
               variant="outline"
             >
               {providerFilters.map((filter) => (
-                <ToggleGroupItem key={filter.value} value={filter.value}>
-                  {filter.label}
+                <ToggleGroupItem key={filter} value={filter}>
+                  {filter === "all" ? t("allNetworks") : providerLabels[filter]}
                 </ToggleGroupItem>
               ))}
             </ToggleGroup>
@@ -168,7 +169,7 @@ export function PublishingAccountPicker({
                 </div>
               ) : (
                 <p className="px-1 py-3 text-sm text-muted-foreground">
-                  No encontramos cuentas con esos filtros.
+                  {t("noResults")}
                 </p>
               )}
             </div>
@@ -176,16 +177,15 @@ export function PublishingAccountPicker({
         </PopoverContent>
       </Popover>
       {selectedAccounts.length ? (
-        <div
-          aria-label="Cuentas seleccionadas"
-          className="flex flex-wrap gap-2"
-        >
+        <div aria-label={t("selectedLabel")} className="flex flex-wrap gap-2">
           {selectedAccounts.map((account) => (
             <Badge key={account.id} variant="neutral">
               {account.assignedName ?? account.name} ·{" "}
               {providerLabels[account.provider]}
               <Button
-                aria-label={`Quitar ${account.assignedName ?? account.name}`}
+                aria-label={t("remove", {
+                  account: account.assignedName ?? account.name,
+                })}
                 onClick={() => toggleAccount(account.id, false)}
                 size="icon-xs"
                 type="button"

@@ -22,14 +22,11 @@ import {
 } from "@workspace/ui/components/toggle-group"
 import type { PublishingMediaAsset } from "@/features/publishing/types/publishing-calendar"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { useTranslations } from "next-intl"
 
 type MediaKind = "image" | "video"
 
-const filters: Array<{ label: string; value: MediaKind | "all" }> = [
-  { label: "Todo", value: "all" },
-  { label: "Imágenes", value: "image" },
-  { label: "Videos", value: "video" },
-]
+const filters: Array<MediaKind | "all"> = ["all", "image", "video"]
 
 type PublishingMediaPickerProps = {
   ariaRequired?: boolean
@@ -52,6 +49,7 @@ export function PublishingMediaPicker({
   driveImportStatus,
   onImportFromDrive,
 }: PublishingMediaPickerProps) {
+  const t = useTranslations("publishing.mediaPicker")
   const [kind, setKind] = useState<MediaKind | "all">("all")
   const [query, setQuery] = useState("")
   const visibleAssets = useMemo(() => {
@@ -67,7 +65,7 @@ export function PublishingMediaPicker({
   return (
     <Card size="sm" variant="inset">
       <CardHeader>
-        <CardTitle>Selecciona desde tu almacenamiento</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
         <CardDescription>
           Elige una imagen o video de Files para adjuntarlo a esta publicación.
         </CardDescription>
@@ -79,14 +77,14 @@ export function PublishingMediaPicker({
               <Search aria-hidden="true" />
             </InputGroupAddon>
             <InputGroupInput
-              aria-label="Buscar media en el almacenamiento"
+              aria-label={t("searchLabel")}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Buscar en tu almacenamiento"
+              placeholder={t("searchPlaceholder")}
               value={query}
             />
           </InputGroup>
           <ToggleGroup
-            aria-label="Filtrar media por tipo"
+            aria-label={t("filterLabel")}
             onValueChange={(value) =>
               value && setKind(value as MediaKind | "all")
             }
@@ -97,8 +95,8 @@ export function PublishingMediaPicker({
             variant="outline"
           >
             {filters.map((filter) => (
-              <ToggleGroupItem key={filter.value} value={filter.value}>
-                {filter.label}
+              <ToggleGroupItem key={filter} value={filter}>
+                {t(`filter.${filter}`)}
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
@@ -115,7 +113,7 @@ export function PublishingMediaPicker({
             variant="brand-secondary"
           >
             {driveOpening ? <Spinner data-icon="inline-start" /> : null}
-            {driveOpening ? "Abriendo Google" : "Importar desde Google Drive"}
+            {driveOpening ? t("driveOpening") : t("driveImport")}
           </Button>
         ) : null}
         {driveImportStatus ? (
@@ -124,13 +122,13 @@ export function PublishingMediaPicker({
               <div>
                 <p className="text-sm font-medium">
                   {driveImportStatus === "failed"
-                    ? "No se pudo importar desde Google Drive"
-                    : "Importando desde Google Drive"}
+                    ? t("driveFailedTitle")
+                    : t("driveImportingTitle")}
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
                   {driveImportStatus === "failed"
-                    ? "Elige otro archivo para intentarlo de nuevo."
-                    : "El archivo se guardará en Files y se seleccionará al terminar."}
+                    ? t("driveFailedDescription")
+                    : t("driveImportingDescription")}
                 </p>
               </div>
               {driveImportStatus === "failed" ? null : <Spinner />}
@@ -139,7 +137,7 @@ export function PublishingMediaPicker({
         ) : null}
         {visibleAssets.length ? (
           <div
-            aria-label="Media de la publicación"
+            aria-label={t("selectedLabel")}
             aria-required={ariaRequired}
             className="grid grid-cols-2 gap-3 sm:grid-cols-3"
             role="radiogroup"
@@ -165,7 +163,7 @@ export function PublishingMediaPicker({
                       {asset.name}
                     </span>
                     <span className="mt-1 flex items-center justify-between text-xs">
-                      <span>{asset.kind === "image" ? "Imagen" : "Video"}</span>
+                      <span>{t(`kind.${asset.kind}`)}</span>
                       {selected ? <Check aria-hidden="true" /> : null}
                     </span>
                   </span>
@@ -179,7 +177,7 @@ export function PublishingMediaPicker({
           </p>
         )}
         {selectedAssetId ? (
-          <Badge variant="success">Media seleccionada</Badge>
+          <Badge variant="success">{t("selectedBadge")}</Badge>
         ) : (
           <p className="text-sm text-muted-foreground">
             Puedes publicar solo texto en Facebook. Instagram y WhatsApp

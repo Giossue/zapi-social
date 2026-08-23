@@ -5,11 +5,10 @@ import { useCalendarController } from "@fullcalendar/react"
 import dayGridPlugin from "@fullcalendar/react/daygrid"
 import interactionPlugin from "@fullcalendar/react/interaction"
 import listPlugin from "@fullcalendar/react/list"
-import esLocale from "@fullcalendar/react/locales/es"
 import multiMonthPlugin from "@fullcalendar/react/multimonth"
 import timeGridPlugin from "@fullcalendar/react/timegrid"
 import { format } from "date-fns"
-import { es } from "date-fns/locale"
+import { useTranslations } from "next-intl"
 import {
   CalendarDays,
   ChevronLeft,
@@ -48,16 +47,18 @@ import type {
   PublishingStatus,
 } from "@/features/publishing/types/publishing-calendar"
 
+import { useDateLocale } from "@/lib/date-locale"
 import { EventCalendarViews } from "./event-calendar-views"
 
 const initialCalendarView = "dayGridMonth"
 
 const views = [
-  { key: initialCalendarView, label: "Mes", currentLabel: "Este mes" },
-  { key: "timeGridWeek", label: "Semana", currentLabel: "Esta semana" },
-  { key: "timeGridDay", label: "Día", currentLabel: "Hoy" },
-]
+  { key: initialCalendarView, messageKey: "month" },
+  { key: "timeGridWeek", messageKey: "week" },
+  { key: "timeGridDay", messageKey: "day" },
+] as const
 
+/** Los nombres de canal son marcas: no se traducen. */
 const channels: Array<{ key: PublishingProvider; label: string }> = [
   { key: "facebook", label: "Facebook" },
   { key: "instagram", label: "Instagram" },
@@ -86,7 +87,7 @@ type PublishingCalendarProps = {
 }
 
 function toEventStart(post: PublishingPost) {
-  return `${post.date}T${post.time === "Ahora" ? "12:00" : post.time}`
+  return `${post.date}T${post.time === "now" ? "12:00" : post.time}`
 }
 
 export function PublishingCalendar({
@@ -95,20 +96,24 @@ export function PublishingCalendar({
   onEditPost,
   posts,
 }: PublishingCalendarProps) {
+  const t = useTranslations("publishing.calendar")
+  const dateLocale = useDateLocale()
   const controller = useCalendarController()
   const [query, setQuery] = React.useState("")
   const [selectedChannels, setSelectedChannels] = React.useState<
     PublishingProvider[]
   >([])
   const [title, setTitle] = React.useState(() =>
-    format(new Date(`${initialDate}T12:00:00`), "MMMM 'de' yyyy", {
-      locale: es,
+    format(new Date(`${initialDate}T12:00:00`), "MMMM yyyy", {
+      locale: dateLocale.dateFns,
     })
   )
 
   const viewKey = controller.view?.type ?? initialCalendarView
-  const currentLabel =
-    views.find((view) => view.key === viewKey)?.currentLabel ?? "Hoy"
+  const currentView = views.find((view) => view.key === viewKey)
+  const currentLabel = t(
+    `current.${currentView?.messageKey ?? "day"}` as "current.day"
+  )
 
   const events = React.useMemo(() => {
     const term = query.trim().toLowerCase()
@@ -125,17 +130,17 @@ export function PublishingCalendar({
       .map((post) => ({
         id: post.id,
         start: toEventStart(post),
-        title: post.title,
+        title: post.title || t("untitled"),
       }))
-  }, [posts, query, selectedChannels])
+  }, [posts, query, selectedChannels, t])
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-md border bg-card text-card-foreground">
       <div className="flex flex-wrap items-center gap-2 border-b p-4">
         <DataTableSearch
-          ariaLabel="Buscar publicaciones"
+          ariaLabel={t("searchLabel")}
           onChange={setQuery}
-          placeholder="Buscar publicaciones..."
+          placeholder={t("searchPlaceholder")}
           value={query}
         />
 
@@ -145,7 +150,7 @@ export function PublishingCalendar({
 
         <ButtonGroup>
           <Button
-            aria-label="Periodo anterior"
+            aria-label={t("previousPeriod")}
             onClick={() => controller.prev()}
             size="icon-sm"
             variant="outline"
@@ -157,7 +162,7 @@ export function PublishingCalendar({
             <span className="truncate first-letter:uppercase">{title}</span>
           </ButtonGroupText>
           <Button
-            aria-label="Periodo siguiente"
+            aria-label={t("nextPeriod")}
             onClick={() => controller.next()}
             size="icon-sm"
             variant="outline"
@@ -169,7 +174,7 @@ export function PublishingCalendar({
         <Popover>
           <PopoverTrigger asChild>
             <Button
-              aria-label="Filtrar por canal"
+              aria-label={t("filterChannel")}
               className="relative"
               size="icon-sm"
               variant="outline"
@@ -220,23 +225,19 @@ export function PublishingCalendar({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              aria-label="Opciones del calendario"
-              size="icon-sm"
-              variant="outline"
-            >
+            <Button aria-label={t("options")} size="icon-sm" variant="outline">
               <EllipsisVertical />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-48">
-            <DropdownMenuLabel>Vista del calendario</DropdownMenuLabel>
+            <DropdownMenuLabel>{t("viewLabel")}</DropdownMenuLabel>
             <DropdownMenuRadioGroup
               onValueChange={(value) => controller.changeView(value)}
               value={viewKey}
             >
               {views.map((view) => (
                 <DropdownMenuRadioItem key={view.key} value={view.key}>
-                  {view.label}
+                  {t(`view.${view.messageKey}` as "view.day")}
                 </DropdownMenuRadioItem>
               ))}
             </DropdownMenuRadioGroup>
@@ -249,7 +250,7 @@ export function PublishingCalendar({
           size="sm"
         >
           <Plus />
-          Nueva publicación
+          {t("create")}
         </Button>
       </div>
 
@@ -273,7 +274,7 @@ export function PublishingCalendar({
           height="100%"
           initialDate={initialDate}
           initialView={initialCalendarView}
-          locale={esLocale}
+          locale={dateLocale.fullCalendar}
           nowIndicator
           plugins={[...plugins]}
           popoverCloseContent={() => (
@@ -284,7 +285,7 @@ export function PublishingCalendar({
       </div>
 
       <FloatingActionButton
-        label="Nueva publicación"
+        label={t("create")}
         onClick={() => onCreateAtDate(initialDate)}
         withSpacer={false}
       />

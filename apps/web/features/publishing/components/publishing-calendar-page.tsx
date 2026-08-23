@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react"
 import {
@@ -63,18 +64,10 @@ type ComposerMode = "draft" | "now" | "schedule"
 
 const defaultScheduleDate = "2026-08-03"
 
-const sectionLinks: Array<{
-  href: string
-  label: string
-  value: PublishingSection
-}> = [
-  {
-    href: "/portal/publishing/calendar",
-    label: "Calendario",
-    value: "calendar",
-  },
-  { href: "/portal/publishing/queue", label: "Cola", value: "queue" },
-  { href: "/portal/publishing/drafts", label: "Borradores", value: "drafts" },
+const sectionLinks: Array<{ href: string; value: PublishingSection }> = [
+  { href: "/portal/publishing/calendar", value: "calendar" },
+  { href: "/portal/publishing/queue", value: "queue" },
+  { href: "/portal/publishing/drafts", value: "drafts" },
 ]
 
 function RequiredMark() {
@@ -91,16 +84,10 @@ function ComposerActionIcon({ mode }: { mode: ComposerMode }) {
   return <CalendarDays data-icon="inline-start" />
 }
 
-function composerActionLabel(mode: ComposerMode, pending: boolean) {
-  if (pending) {
-    if (mode === "now") return "Publicando..."
-    if (mode === "schedule") return "Programando..."
-    return "Guardando..."
-  }
-
-  if (mode === "draft") return "Guardar borrador"
-  if (mode === "now") return "Publicar ahora"
-  return "Programar"
+/** La acción del composer cambia con el modo y con el estado pendiente. */
+function composerActionKey(mode: ComposerMode, pending: boolean) {
+  if (pending) return `pending.${mode}` as const
+  return `submit.${mode}` as const
 }
 
 function ComposerDialog({
@@ -128,6 +115,7 @@ function ComposerDialog({
   media: PublishingMediaAsset[]
   open: boolean
 }) {
+  const t = useTranslations("publishing.composer")
   const [content, setContent] = useState(() => editingPost?.content ?? "")
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>(() =>
     editingPost ? [editingPost.socialAccountId] : []
@@ -142,7 +130,7 @@ function ComposerDialog({
     () => editingPost?.date ?? initialScheduledDate
   )
   const [scheduledTime, setScheduledTime] = useState(() =>
-    editingPost?.time === "Ahora" ? "10:00" : (editingPost?.time ?? "10:00")
+    editingPost?.time === "now" ? "10:00" : (editingPost?.time ?? "10:00")
   )
   const [activePreviewAccountId, setActivePreviewAccountId] = useState<
     string | null
@@ -206,7 +194,7 @@ function ComposerDialog({
       (item) => item.status === "completed"
     )?.fileAssetId
     if (!fileAssetId) {
-      toast.error("No pudimos importar el archivo desde Google Drive.")
+      toast.error(t("driveImportFailed"))
       return
     }
     void publishingApi
@@ -221,12 +209,10 @@ function ComposerDialog({
         setSelectedMediaAssetId(asset.id)
         onMediaImported(asset)
         setDriveBatch(null)
-        toast.success("Archivo de Google Drive importado y seleccionado.")
+        toast.success(t("driveImportSuccess"))
       })
-      .catch(() =>
-        toast.error("El archivo se importó, pero no pudimos seleccionarlo.")
-      )
-  }, [driveBatch, onMediaImported])
+      .catch(() => toast.error(t("driveSelectFailed")))
+  }, [driveBatch, onMediaImported, t])
 
   async function importFromGoogleDrive() {
     setOpeningDrive(true)
@@ -239,7 +225,7 @@ function ComposerDialog({
         !currentProvider.browserApiKey ||
         !currentProvider.appId
       ) {
-        toast.error("Google Drive no está disponible en este momento.")
+        toast.error(t("driveUnavailable"))
         return
       }
       const picked = await openGoogleDrivePicker({
@@ -266,7 +252,7 @@ function ComposerDialog({
         })
       )
     } catch {
-      toast.error("No pudimos iniciar la importación desde Google Drive.")
+      toast.error(t("driveStartFailed"))
     } finally {
       setOpeningDrive(false)
     }
@@ -303,11 +289,9 @@ function ComposerDialog({
       >
         <SheetHeader className="border-b">
           <SheetTitle>
-            {editingPost ? "Editar publicación" : "Nueva publicación"}
+            {editingPost ? t("editTitle") : t("createTitle")}
           </SheetTitle>
-          <SheetDescription>
-            Valida cada destino antes de guardar, programar o publicar.
-          </SheetDescription>
+          <SheetDescription>{t("composerDescription")}</SheetDescription>
         </SheetHeader>
 
         <form
@@ -322,7 +306,7 @@ function ComposerDialog({
                 <FieldSet>
                   <FieldLabel asChild>
                     <legend>
-                      Cuentas destino <RequiredMark />
+                      {t("accounts")} <RequiredMark />
                     </legend>
                   </FieldLabel>
                   <PublishingAccountPicker
@@ -335,20 +319,20 @@ function ComposerDialog({
 
                 <Field>
                   <FieldLabel htmlFor="publishing-content">
-                    Texto <RequiredMark />
+                    {t("content")} <RequiredMark />
                   </FieldLabel>
                   <Textarea
                     aria-required="true"
                     id="publishing-content"
                     onChange={(event) => setContent(event.target.value)}
-                    placeholder="Escribe el contenido de tu publicación"
+                    placeholder={t("contentPlaceholder")}
                     value={content}
                   />
                 </Field>
 
                 <Field>
                   <FieldLabel>
-                    Media {requiresMedia ? <RequiredMark /> : null}
+                    {t("media")} {requiresMedia ? <RequiredMark /> : null}
                   </FieldLabel>
                   <PublishingMediaPicker
                     ariaRequired={requiresMedia}
@@ -371,16 +355,18 @@ function ComposerDialog({
                 </Field>
 
                 <Field>
-                  <FieldLabel>Cuándo publicar</FieldLabel>
+                  <FieldLabel>{t("when")}</FieldLabel>
                   <Tabs
-                    aria-label="Cuándo publicar"
+                    aria-label={t("when")}
                     onValueChange={(value) => setMode(value as ComposerMode)}
                     value={mode}
                   >
                     <TabsList className="w-full justify-start sm:w-fit">
-                      <TabsTrigger value="draft">Borrador</TabsTrigger>
-                      <TabsTrigger value="now">Ahora</TabsTrigger>
-                      <TabsTrigger value="schedule">Programar</TabsTrigger>
+                      <TabsTrigger value="draft">{t("mode.draft")}</TabsTrigger>
+                      <TabsTrigger value="now">{t("mode.now")}</TabsTrigger>
+                      <TabsTrigger value="schedule">
+                        {t("mode.schedule")}
+                      </TabsTrigger>
                     </TabsList>
                   </Tabs>
                 </Field>
@@ -416,7 +402,7 @@ function ComposerDialog({
               type="button"
               variant="brand-secondary"
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button disabled={!canSubmit} type="submit">
               {pending ? (
@@ -424,7 +410,7 @@ function ComposerDialog({
               ) : (
                 <ComposerActionIcon mode={mode} />
               )}
-              {composerActionLabel(mode, pending)}
+              {t(composerActionKey(mode, pending))}
             </Button>
           </SheetFooter>
         </form>
@@ -440,6 +426,7 @@ export function PublishingCalendarPage({
   calendar: PublishingCalendarData
   initialSection?: PublishingSection
 }) {
+  const t = useTranslations("publishing.page")
   const router = useRouter()
   const [posts, setPosts] = useState(calendar.posts)
   const [media, setMedia] = useState(calendar.media ?? [])
@@ -469,9 +456,9 @@ export function PublishingCalendarPage({
       <Card variant="subtle">
         <CardContent>
           <EmptyState
-            description="Pide acceso a un administrador del espacio de trabajo para gestionar publicaciones."
+            description={t("noAccessDescription")}
             icon={CircleAlert}
-            title="No tienes acceso a Publishing"
+            title={t("noAccessTitle")}
           />
         </CardContent>
       </Card>
@@ -512,7 +499,7 @@ export function PublishingCalendarPage({
         setPosts((current) =>
           current.map((item) => (item.id === post.id ? post : item))
         )
-        toast.success("Los cambios se guardaron.")
+        toast.success(t("saved"))
       } else {
         createIdempotencyKey.current ??= crypto.randomUUID()
         const nextPosts = await publishingApi.create({
@@ -526,10 +513,10 @@ export function PublishingCalendarPage({
         setPosts((current) => [...nextPosts, ...current])
         toast.success(
           mode === "now"
-            ? `Iniciamos la operación para ${nextPosts.length} destino${nextPosts.length === 1 ? "" : "s"}.`
+            ? t("publishStarted", { count: nextPosts.length })
             : mode === "draft"
-              ? "El borrador se guardó."
-              : `Programamos ${nextPosts.length} publicación${nextPosts.length === 1 ? "" : "es"}.`
+              ? t("draftSaved")
+              : t("scheduled", { count: nextPosts.length })
         )
       }
       createIdempotencyKey.current = null
@@ -538,8 +525,8 @@ export function PublishingCalendarPage({
     } catch (error) {
       toast.error(
         error instanceof ApiError && error.code === "VALIDATION_FAILED"
-          ? "Revisa las cuentas, media y fecha antes de continuar."
-          : "No pudimos guardar la publicación. Inténtalo de nuevo."
+          ? t("validationFailed")
+          : t("saveFailed")
       )
     }
   }
@@ -550,9 +537,9 @@ export function PublishingCalendarPage({
       setPosts((current) =>
         current.map((item) => (item.id === updated.id ? updated : item))
       )
-      toast.success("El reintento se añadió a la cola.")
+      toast.success(t("retryQueued"))
     } catch {
-      toast.error("No pudimos reintentar la publicación.")
+      toast.error(t("retryFailed"))
     }
   }
 
@@ -560,10 +547,10 @@ export function PublishingCalendarPage({
     try {
       await publishingApi.remove(post.id)
       setPosts((current) => current.filter((item) => item.id !== post.id))
-      toast.success("El borrador se eliminó.")
+      toast.success(t("draftDeleted"))
       return true
     } catch {
-      toast.error("No pudimos eliminar el borrador.")
+      toast.error(t("draftDeleteFailed"))
       return false
     }
   }
@@ -577,11 +564,11 @@ export function PublishingCalendarPage({
       )}
     >
       <CollectionHeader
-        description="Planifica el calendario, sigue la cola de envíos y retoma los borradores de tus canales."
-        title="Publicación"
+        description={t("pageDescription")}
+        title={t("pageTitle")}
       />
 
-      <nav aria-label="Secciones de Publishing">
+      <nav aria-label={t("sectionsLabel")}>
         <Tabs
           onValueChange={(value) => {
             const nextSection = value as PublishingSection
@@ -598,7 +585,7 @@ export function PublishingCalendarPage({
           <TabsList>
             {sectionLinks.map((item) => (
               <TabsTrigger key={item.value} value={item.value}>
-                {item.label}
+                {t(`section.${item.value}`)}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -606,10 +593,7 @@ export function PublishingCalendarPage({
       </nav>
 
       {section === "calendar" ? (
-        <section
-          aria-label="Calendario de publicaciones"
-          className="min-h-0 flex-1"
-        >
+        <section aria-label={t("calendarLabel")} className="min-h-0 flex-1">
           <PublishingCalendar
             initialDate={calendar.focusDate}
             onCreateAtDate={(date) => openComposer(null, date)}
@@ -620,30 +604,27 @@ export function PublishingCalendarPage({
       ) : null}
 
       {section === "queue" ? (
-        <section
-          aria-label="Cola de publicaciones"
-          className="flex flex-col gap-4"
-        >
+        <section aria-label={t("queueLabel")} className="flex flex-col gap-4">
           <PublishingMetrics
             items={[
               {
-                description: "Pendientes de publicarse",
+                description: t("metrics.scheduledDescription"),
                 icon: CalendarClock,
-                label: "Programadas",
+                label: t("metrics.scheduled"),
                 value: queuePosts.filter((post) => post.status === "scheduled")
                   .length,
               },
               {
-                description: "Enviando al proveedor",
+                description: t("metrics.processingDescription"),
                 icon: LoaderCircle,
-                label: "En proceso",
+                label: t("metrics.processing"),
                 value: queuePosts.filter((post) => post.status === "processing")
                   .length,
               },
               {
-                description: "Requieren atención",
+                description: t("metrics.failedDescription"),
                 icon: XCircle,
-                label: "Fallidas",
+                label: t("metrics.failed"),
                 value: queuePosts.filter((post) => post.status === "failed")
                   .length,
               },
@@ -659,25 +640,25 @@ export function PublishingCalendarPage({
       ) : null}
 
       {section === "drafts" ? (
-        <section aria-label="Borradores" className="flex flex-col gap-4">
+        <section aria-label={t("draftsLabel")} className="flex flex-col gap-4">
           <PublishingMetrics
             items={[
               {
-                description: "Borradores guardados",
+                description: t("metrics.draftsDescription"),
                 icon: FileText,
-                label: "Total",
+                label: t("metrics.drafts"),
                 value: drafts.length,
               },
               {
-                description: "Con imagen o video",
+                description: t("metrics.withMediaDescription"),
                 icon: ImagePlus,
-                label: "Con archivo",
+                label: t("metrics.withMedia"),
                 value: drafts.filter((post) => post.hasMedia).length,
               },
               {
-                description: "Tienen contenido listo",
+                description: t("metrics.readyDescription"),
                 icon: Send,
-                label: "Listos para programar",
+                label: t("metrics.ready"),
                 value: drafts.filter((post) => post.content.trim().length > 0)
                   .length,
               },
@@ -696,7 +677,7 @@ export function PublishingCalendarPage({
       {section !== "calendar" ? (
         <FloatingActionButton
           icon={<CalendarDays aria-hidden="true" className="size-6" />}
-          label="Nueva publicación"
+          label={t("createTitle")}
           onClick={() => openComposer()}
         />
       ) : null}
