@@ -258,7 +258,7 @@ function BlockEditor({
           {block.type === "video" ? (
             <Field>
               <FieldLabel htmlFor={`block-${index}-url`}>
-                URL del video
+                {t("videoUrl")}
               </FieldLabel>
               <Input
                 id={`block-${index}-url`}
@@ -343,7 +343,7 @@ function BlockEditor({
               type="button"
               variant="brand-secondary"
             >
-              Añadir elemento
+              {t("addItem")}
             </Button>
           </div>
         ) : null}
@@ -409,9 +409,7 @@ function PageSheet({
       >
         <SheetHeader className="border-b">
           <SheetTitle>{page ? t("editTitle") : t("createTitle")}</SheetTitle>
-          <SheetDescription>
-            Los bloques se muestran en el mismo orden en la página pública.
-          </SheetDescription>
+          <SheetDescription>{t("sheetDescription")}</SheetDescription>
         </SheetHeader>
         <form
           aria-busy={pending}
@@ -533,9 +531,7 @@ function PageSheet({
                       placeholder="mi-marca"
                       value={draft.slug ?? ""}
                     />
-                    <FieldDescription>
-                      Se genera del título si la dejas vacía.
-                    </FieldDescription>
+                    <FieldDescription>{t("slugHint")}</FieldDescription>
                   </Field>
                   <Field>
                     <FieldLabel htmlFor="page-headline">
@@ -551,7 +547,7 @@ function PageSheet({
                   </Field>
                   <Field>
                     <FieldLabel htmlFor="page-description">
-                      Descripción
+                      {t("descriptionField")}
                     </FieldLabel>
                     <Textarea
                       id="page-description"
@@ -584,7 +580,7 @@ function PageSheet({
                           <SelectItem value="center">
                             {t("alignCenter")}
                           </SelectItem>
-                          <SelectItem value="left">A la izquierda</SelectItem>
+                          <SelectItem value="left">{t("alignLeft")}</SelectItem>
                         </SelectGroup>
                       </SelectContent>
                     </Select>
@@ -604,7 +600,7 @@ function PageSheet({
                       <FieldContent>
                         <FieldTitle>{t("published")}</FieldTitle>
                         <FieldDescription>
-                          Solo las publicadas son visibles en su dirección.
+                          {t("publishedHint")}
                         </FieldDescription>
                       </FieldContent>
                     </FieldLabel>
@@ -738,7 +734,7 @@ function PageSheet({
                   </Field>
                   <Field>
                     <FieldLabel htmlFor="page-branding">
-                      Texto de marca
+                      {t("brandingText")}
                     </FieldLabel>
                     <Input
                       id="page-branding"
@@ -776,7 +772,7 @@ function PageSheet({
                   Vista previa
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  El mismo renderer que la página pública.
+                  {t("previewHint")}
                 </p>
               </div>
               <div className="min-h-0 flex-1 overflow-y-auto p-6">
@@ -904,7 +900,7 @@ export function LinkBioPage() {
           <EmptyState
             description={t("forbiddenDescription")}
             icon={LockKeyhole}
-            title="Link in bio no disponible"
+            title={t("unavailable")}
           />
         </CardContent>
       </Card>
@@ -928,7 +924,7 @@ export function LinkBioPage() {
             }
             description={t("loadFailedDescription")}
             icon={CircleAlert}
-            title="Link in bio no disponible"
+            title={t("unavailable")}
           />
         </CardContent>
       </Card>
@@ -1004,7 +1000,7 @@ export function LinkBioPage() {
                   size="sm"
                   type="button"
                 >
-                  <Plus data-icon="inline-start" /> Nueva página
+                  <Plus data-icon="inline-start" /> {t("create")}
                 </Button>
               ) : undefined
             }
@@ -1170,7 +1166,7 @@ export function LinkBioPage() {
             <TablePagination
               canGoNext={safePage < pageCount}
               canGoPrevious={safePage > 1}
-              itemLabel="páginas"
+              itemLabel={t("itemLabel")}
               onNextPage={() =>
                 setCurrentPage((current) => Math.min(current + 1, pageCount))
               }
@@ -1202,9 +1198,11 @@ export function LinkBioPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar “{toDelete?.title}”?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("deleteTitle", { title: toDelete?.title ?? "" })}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              La dirección dejará de funcionar y se pierden sus métricas.
+              {t("deleteDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

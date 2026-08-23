@@ -2563,6 +2563,24 @@
     "deleting": "Deleting",
     "cancel": "Cancel"
   },
+  "channelConnection": {
+    "authStartFailed": "We couldn't start the Meta authorization. Try again.",
+    "cancelFailed": "We couldn't cancel the Meta connection. Try again.",
+    "cancelled": "The Meta connection was cancelled.",
+    "connectAnyChannel": "Connect a channel",
+    "connectChannel": "Connect {channel}",
+    "connectFailed": "We couldn't connect the selected account. Try again.",
+    "connected": "{channel} connected",
+    "connectedHint": "The account is ready to publish.",
+    "metaDescription": "Authorize Meta to view and connect the eligible resources of your account.",
+    "mockConnected": "{channel} connected in the mock.",
+    "otherProviderDescription": "Connectors outside Meta stay in reference mode.",
+    "pickAccount": "Select an account to continue.",
+    "preparing": "Preparing the Meta authorization…",
+    "preparingAria": "Preparing Meta authorization",
+    "sessionLost": "We couldn't recover this authorization. Start the connection again.",
+    "simulateAuth": "Simulate accepted authorization"
+  },
   "channels": {
     "pageTitle": "Channels",
     "pageDescription": "Manage connected accounts and their publishing access.",
@@ -3299,177 +3317,191 @@
     }
   },
   "linkBio": {
-    "pageTitle": "Link in bio",
-    "pageDescription": "A public page with all your links, plus its view and click metrics.",
-    "loading": "Loading link pages",
-    "unavailableTitle": "Link in bio unavailable",
-    "forbiddenDescription": "Your current access can't manage link pages.",
-    "loadFailedDescription": "We couldn't load your link pages.",
-    "createTitle": "New page",
-    "editTitle": "Edit page",
-    "tab": {
-      "info": "Info",
-      "blocks": "Blocks",
-      "style": "Style"
-    },
-    "title": "Title",
-    "slug": "Address",
-    "headline": "Headline",
+    "addBlock": "Add block…",
+    "addItem": "Add item",
     "align": "Alignment",
     "alignCenter": "Centred",
-    "published": "Published",
-    "templateLabel": "Template",
-    "templateAria": "Page template",
-    "buttons": "Buttons",
-    "buttonStyle": {
-      "rounded": "Rounded",
-      "pill": "Pill",
-      "square": "Square"
-    },
+    "alignLeft": "Left aligned",
+    "all": "All",
+    "answer": "Answer",
     "avatar": "Avatar",
     "avatarStyle": {
       "circle": "Circle",
       "rounded": "Rounded",
       "square": "Square"
     },
+    "block": {
+      "contact": {
+        "hint": "Email, phone or address.",
+        "label": "Contact"
+      },
+      "embed": {
+        "hint": "External embedded content.",
+        "label": "Embed"
+      },
+      "faq": {
+        "hint": "Questions with their answer.",
+        "label": "FAQs"
+      },
+      "gallery": {
+        "hint": "Image grid.",
+        "label": "Gallery"
+      },
+      "header": {
+        "hint": "Title and introduction text.",
+        "label": "Header"
+      },
+      "links": {
+        "hint": "List of buttons to your destinations.",
+        "label": "Links"
+      },
+      "product": {
+        "hint": "Items with price and link.",
+        "label": "Products"
+      },
+      "social": {
+        "hint": "Icons linking to your profiles.",
+        "label": "Social networks"
+      },
+      "video": {
+        "hint": "A video embedded by its URL.",
+        "label": "Video"
+      }
+    },
     "brandingPlaceholder": "Made with Zapi",
-    "addBlock": "Add block…",
-    "moveUp": "Move block up",
-    "moveDown": "Move block down",
-    "removeBlock": "Remove block",
-    "removeItem": "Remove item",
-    "showBlock": "Show {block}",
-    "label": "Label",
-    "text": "Text",
-    "codeOrUrl": "Code or URL",
-    "question": "Question",
-    "answer": "Answer",
-    "destination": "Destination",
-    "titleRequired": "The page needs a title.",
-    "created": "Page created.",
-    "updated": "Page updated.",
-    "slugTaken": "That address is already taken.",
-    "saveFailed": "We couldn't save the page. Please try again.",
-    "deleted": "Page deleted.",
-    "deleteFailed": "We couldn't delete the page.",
+    "brandingText": "Branding text",
+    "buttonStyle": {
+      "pill": "Pill",
+      "rounded": "Rounded",
+      "square": "Square"
+    },
+    "buttons": "Buttons",
     "cancel": "Cancel",
+    "codeOrUrl": "Code or URL",
+    "create": "New page",
+    "createTitle": "New page",
+    "created": "Page created.",
+    "deleteDescription": "The address will stop working and its metrics are lost.",
+    "deleteFailed": "We couldn't delete the page.",
+    "deleteTitle": "Delete “{title}”?",
+    "deleted": "Page deleted.",
+    "descriptionField": "Description",
+    "destination": "Destination",
+    "editTitle": "Edit page",
+    "emptyDescription": "Create a page to gather all your links under a single address.",
+    "emptyFilteredDescription": "Try another term or status.",
+    "emptyTitle": "No pages yet",
+    "filterStatus": "Filter by status",
+    "forbiddenDescription": "Your current access can't manage link pages.",
+    "headline": "Headline",
+    "itemLabel": "pages",
+    "label": "Label",
+    "loadFailedDescription": "We couldn't load your link pages.",
+    "loading": "Loading link pages",
     "metrics": {
+      "clicks": "Clicks",
+      "clicksDescription": "Clicks on your links",
       "pages": "Pages",
       "pagesDescription": "Created in this workspace",
       "views": "Views",
-      "viewsDescription": "Recorded visits",
-      "clicks": "Clicks",
-      "clicksDescription": "Clicks on your links"
+      "viewsDescription": "Recorded visits"
     },
+    "moveDown": "Move block down",
+    "moveUp": "Move block up",
+    "noMatches": "No matches",
+    "noViews": "No visits yet",
+    "page": "Page",
+    "pageDescription": "A public page with all your links, plus its view and click metrics.",
+    "pageTitle": "Link in bio",
+    "preview": {
+      "descriptionHint": "Add a description",
+      "headlineHint": "Add a headline",
+      "itemHint": "New item",
+      "titleHint": "Your page"
+    },
+    "previewHint": "The same renderer as the public page.",
+    "published": "Published",
+    "publishedHint": "Only published pages are visible at their address.",
+    "question": "Question",
+    "removeBlock": "Remove block",
+    "removeItem": "Remove item",
+    "saveFailed": "We couldn't save the page. Please try again.",
     "searchLabel": "Search pages",
     "searchPlaceholder": "Search pages...",
-    "filterStatus": "Filter by status",
+    "sheetDescription": "Blocks show up in the same order on the public page.",
+    "showBlock": "Show {block}",
+    "slug": "Address",
+    "slugHint": "Generated from the title if you leave it empty.",
+    "slugTaken": "That address is already taken.",
     "status": "Status",
     "statusLabel": {
-      "published": "Published",
-      "draft": "Draft"
+      "draft": "Draft",
+      "published": "Published"
     },
-    "all": "All",
-    "page": "Page",
-    "noViews": "No visits yet",
-    "noMatches": "No matches",
-    "emptyTitle": "No pages yet",
-    "emptyDescription": "Create a page to gather all your links under a single address.",
-    "emptyFilteredDescription": "Try another term or status.",
-    "preview": {
-      "headlineHint": "Add a headline",
-      "descriptionHint": "Add a description",
-      "titleHint": "Your page",
-      "itemHint": "New item"
+    "tab": {
+      "blocks": "Blocks",
+      "info": "Info",
+      "style": "Style"
     },
     "template": {
       "aurora": {
-        "label": "Aurora",
-        "description": "Night gradient with glass blocks."
-      },
-      "pro-dark": {
-        "label": "Pro Dark",
-        "description": "Understated dark for brands."
-      },
-      "spotlight": {
-        "label": "Spotlight",
-        "description": "Violet spotlight over a deep background."
+        "description": "Night gradient with glass blocks.",
+        "label": "Aurora"
       },
       "forest": {
-        "label": "Forest",
-        "description": "Forest green with vivid accents."
-      },
-      "sunset": {
-        "label": "Sunset",
-        "description": "Warm sunset gradient."
-      },
-      "studio": {
-        "label": "Studio",
-        "description": "Professional slate blue."
+        "description": "Forest green with vivid accents.",
+        "label": "Forest"
       },
       "minimal": {
-        "label": "Minimal",
-        "description": "Pure white, typography first."
+        "description": "Pure white, typography first.",
+        "label": "Minimal"
       },
       "paper": {
-        "label": "Paper",
-        "description": "Cards on warm paper."
+        "description": "Cards on warm paper.",
+        "label": "Paper"
       },
-      "soft": {
-        "label": "Soft",
-        "description": "Soft, calm beige."
-      },
-      "sky": {
-        "label": "Sky",
-        "description": "Clean, airy sky blue."
-      },
-      "wave": {
-        "label": "Wave",
-        "description": "Fresh, energetic cyan."
+      "pro-dark": {
+        "description": "Understated dark for brands.",
+        "label": "Pro Dark"
       },
       "promo": {
-        "label": "Promo",
-        "description": "Vivid orange for campaigns."
+        "description": "Vivid orange for campaigns.",
+        "label": "Promo"
+      },
+      "sky": {
+        "description": "Clean, airy sky blue.",
+        "label": "Sky"
+      },
+      "soft": {
+        "description": "Soft, calm beige.",
+        "label": "Soft"
+      },
+      "spotlight": {
+        "description": "Violet spotlight over a deep background.",
+        "label": "Spotlight"
+      },
+      "studio": {
+        "description": "Professional slate blue.",
+        "label": "Studio"
+      },
+      "sunset": {
+        "description": "Warm sunset gradient.",
+        "label": "Sunset"
+      },
+      "wave": {
+        "description": "Fresh, energetic cyan.",
+        "label": "Wave"
       }
     },
-    "block": {
-      "links": {
-        "label": "Links",
-        "hint": "List of buttons to your destinations."
-      },
-      "header": {
-        "label": "Header",
-        "hint": "Title and introduction text."
-      },
-      "social": {
-        "label": "Social networks",
-        "hint": "Icons linking to your profiles."
-      },
-      "contact": {
-        "label": "Contact",
-        "hint": "Email, phone or address."
-      },
-      "gallery": {
-        "label": "Gallery",
-        "hint": "Image grid."
-      },
-      "faq": {
-        "label": "FAQs",
-        "hint": "Questions with their answer."
-      },
-      "product": {
-        "label": "Products",
-        "hint": "Items with price and link."
-      },
-      "video": {
-        "label": "Video",
-        "hint": "A video embedded by its URL."
-      },
-      "embed": {
-        "label": "Embed",
-        "hint": "External embedded content."
-      }
-    }
+    "templateAria": "Page template",
+    "templateLabel": "Template",
+    "text": "Text",
+    "title": "Title",
+    "titleRequired": "The page needs a title.",
+    "unavailable": "Link in bio unavailable",
+    "unavailableTitle": "Link in bio unavailable",
+    "updated": "Page updated.",
+    "videoUrl": "Video URL"
   },
   "navigation": {
     "portal": {

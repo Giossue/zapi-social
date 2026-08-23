@@ -16,6 +16,7 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
 import { CheckCircle2, ShieldCheck } from "lucide-react"
 import { type FormEvent, useEffect, useState } from "react"
+import { useTranslations } from "next-intl"
 import type {
   ChannelCandidate,
   PortalChannelAccount,
@@ -113,6 +114,7 @@ export function ChannelConnectionDialog({
   onOpenChange: (open: boolean) => void
   whatsappReconnectAccountId: string | null
 }) {
+  const t = useTranslations("channelConnection")
   const [capability, setCapability] = useState<PortalChannelCapability | null>(
     null
   )
@@ -169,9 +171,7 @@ export function ChannelConnectionDialog({
         onMetaAuthorizationStart(result, nextCapability)
       } catch (error) {
         console.error("Meta authorization start failed", error)
-        toast.error(
-          "No pudimos iniciar la autorización con Meta. Inténtalo de nuevo."
-        )
+        toast.error(t("authStartFailed"))
         setStep("capabilities")
       } finally {
         setIsAuthorizing(false)
@@ -200,7 +200,7 @@ export function ChannelConnectionDialog({
       connectedAt: "2026-07-31",
     })
     setStep("connected")
-    toast.success(`${capability.label} conectado en el mock.`)
+    toast.success(t("mockConnected", { channel: capability.label }))
   }
 
   function authorizeMock() {
@@ -231,9 +231,7 @@ export function ChannelConnectionDialog({
       toast.success(`${metaPickerSession.capability.label} conectado.`)
     } catch (error) {
       console.error("Meta candidate selection failed", error)
-      toast.error(
-        "No pudimos conectar la cuenta seleccionada. Inténtalo de nuevo."
-      )
+      toast.error(t("connectFailed"))
     } finally {
       setIsSelecting(false)
     }
@@ -248,12 +246,10 @@ export function ChannelConnectionDialog({
         onMetaConnectionCancelled()
         reset()
         onOpenChange(false)
-        toast.success("La conexión con Meta fue cancelada.")
+        toast.success(t("cancelled"))
       } catch (error) {
         console.error("Meta connection cancellation failed", error)
-        toast.error(
-          "No pudimos cancelar la conexión con Meta. Inténtalo de nuevo."
-        )
+        toast.error(t("cancelFailed"))
       } finally {
         setIsSelecting(false)
       }
@@ -267,15 +263,13 @@ export function ChannelConnectionDialog({
   function submitCandidate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!candidate || !capability) {
-      toast.error("Selecciona una cuenta para continuar.")
+      toast.error(t("pickAccount"))
       return
     }
 
     if (capability.provider === "meta") {
       if (!metaPickerSession) {
-        toast.error(
-          "No pudimos recuperar esta autorización. Inicia la conexión de nuevo."
-        )
+        toast.error(t("sessionLost"))
         return
       }
       void selectMetaCandidate()
@@ -286,8 +280,8 @@ export function ChannelConnectionDialog({
   }
 
   const title = capability
-    ? `Conectar ${capability.label}`
-    : "Conectar un canal"
+    ? t("connectChannel", { channel: capability.label })
+    : t("connectAnyChannel")
   const isMetaPicker = capability?.provider === "meta"
   const pickerCandidates = isMetaPicker
     ? (metaPickerSession?.candidates ?? [])
@@ -303,8 +297,8 @@ export function ChannelConnectionDialog({
           <SheetTitle>{title}</SheetTitle>
           <SheetDescription>
             {capability?.provider === "meta"
-              ? "Autoriza Meta para ver y conectar los recursos elegibles de tu cuenta."
-              : "Los conectores disponibles fuera de Meta permanecen en modo de referencia."}
+              ? t("metaDescription")
+              : t("otherProviderDescription")}
           </SheetDescription>
         </SheetHeader>
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4">
@@ -319,8 +313,8 @@ export function ChannelConnectionDialog({
             {isAuthorizing ? (
               <Card variant="inset">
                 <CardContent className="flex items-center gap-3 py-5 text-sm text-muted-foreground">
-                  <Spinner aria-label="Preparando autorización con Meta" />
-                  Preparando la autorización con Meta…
+                  <Spinner aria-label={t("preparingAria")} />
+                  {t("preparing")}
                 </CardContent>
               </Card>
             ) : null}
@@ -348,7 +342,7 @@ export function ChannelConnectionDialog({
                 <div className="flex justify-end">
                   <Button onClick={authorizeMock} type="button">
                     <ShieldCheck data-icon="inline-start" />
-                    Simular autorización aceptada
+                    {t("simulateAuth")}
                   </Button>
                 </div>
               </div>
@@ -449,9 +443,11 @@ export function ChannelConnectionDialog({
                     className="mt-0.5 size-5 text-success"
                   />
                   <div className="grid gap-1">
-                    <p className="font-medium">{capability.label} conectado</p>
+                    <p className="font-medium">
+                      {t("connected", { channel: capability.label })}
+                    </p>
                     <p className="text-sm text-muted-foreground">
-                      La cuenta ya está disponible para publicar.
+                      {t("connectedHint")}
                     </p>
                   </div>
                 </CardContent>

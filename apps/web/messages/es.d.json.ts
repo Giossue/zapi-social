@@ -2566,6 +2566,24 @@ declare const messages: {
     deleting: "Eliminando"
     cancel: "Cancelar"
   }
+  channelConnection: {
+    authStartFailed: "No pudimos iniciar la autorización con Meta. Inténtalo de nuevo."
+    cancelFailed: "No pudimos cancelar la conexión con Meta. Inténtalo de nuevo."
+    cancelled: "La conexión con Meta fue cancelada."
+    connectAnyChannel: "Conectar un canal"
+    connectChannel: "Conectar {channel}"
+    connectFailed: "No pudimos conectar la cuenta seleccionada. Inténtalo de nuevo."
+    connected: "{channel} conectado"
+    connectedHint: "La cuenta ya está disponible para publicar."
+    metaDescription: "Autoriza Meta para ver y conectar los recursos elegibles de tu cuenta."
+    mockConnected: "{channel} conectado en el mock."
+    otherProviderDescription: "Los conectores disponibles fuera de Meta permanecen en modo de referencia."
+    pickAccount: "Selecciona una cuenta para continuar."
+    preparing: "Preparando la autorización con Meta…"
+    preparingAria: "Preparando autorización con Meta"
+    sessionLost: "No pudimos recuperar esta autorización. Inicia la conexión de nuevo."
+    simulateAuth: "Simular autorización aceptada"
+  }
   channels: {
     pageTitle: "Canales"
     pageDescription: "Gestiona las cuentas conectadas y su acceso para publicar."
@@ -3302,177 +3320,191 @@ declare const messages: {
     }
   }
   linkBio: {
-    pageTitle: "Link in bio"
-    pageDescription: "Una página pública con todos tus enlaces, y sus métricas de visitas y clics."
-    loading: "Cargando páginas de enlaces"
-    unavailableTitle: "Link in bio no disponible"
-    forbiddenDescription: "Tu acceso actual no permite administrar las páginas de enlaces."
-    loadFailedDescription: "No pudimos cargar tus páginas de enlaces."
-    createTitle: "Nueva página"
-    editTitle: "Editar página"
-    tab: {
-      info: "Info"
-      blocks: "Bloques"
-      style: "Estilo"
-    }
-    title: "Título"
-    slug: "Dirección"
-    headline: "Titular"
+    addBlock: "Añadir bloque…"
+    addItem: "Añadir elemento"
     align: "Alineación"
     alignCenter: "Centrado"
-    published: "Publicada"
-    templateLabel: "Plantilla"
-    templateAria: "Plantilla de la página"
-    buttons: "Botones"
-    buttonStyle: {
-      rounded: "Redondeados"
-      pill: "Píldora"
-      square: "Rectos"
-    }
+    alignLeft: "A la izquierda"
+    all: "Todos"
+    answer: "Respuesta"
     avatar: "Avatar"
     avatarStyle: {
       circle: "Círculo"
       rounded: "Redondeado"
       square: "Recto"
     }
+    block: {
+      contact: {
+        hint: "Correo, teléfono o dirección."
+        label: "Contacto"
+      }
+      embed: {
+        hint: "Contenido externo incrustado."
+        label: "Incrustado"
+      }
+      faq: {
+        hint: "Preguntas con su respuesta."
+        label: "Preguntas frecuentes"
+      }
+      gallery: {
+        hint: "Cuadrícula de imágenes."
+        label: "Galería"
+      }
+      header: {
+        hint: "Título y texto de presentación."
+        label: "Encabezado"
+      }
+      links: {
+        hint: "Lista de botones hacia tus destinos."
+        label: "Enlaces"
+      }
+      product: {
+        hint: "Artículos con precio y enlace."
+        label: "Productos"
+      }
+      social: {
+        hint: "Iconos hacia tus perfiles."
+        label: "Redes sociales"
+      }
+      video: {
+        hint: "Un video incrustado por su URL."
+        label: "Video"
+      }
+    }
     brandingPlaceholder: "Hecho con Zapi"
-    addBlock: "Añadir bloque…"
-    moveUp: "Subir bloque"
-    moveDown: "Bajar bloque"
-    removeBlock: "Quitar bloque"
-    removeItem: "Quitar elemento"
-    showBlock: "Mostrar {block}"
-    label: "Etiqueta"
-    text: "Texto"
-    codeOrUrl: "Código o URL"
-    question: "Pregunta"
-    answer: "Respuesta"
-    destination: "Destino"
-    titleRequired: "La página necesita un título."
-    created: "Página creada."
-    updated: "Página actualizada."
-    slugTaken: "Esa dirección ya está en uso."
-    saveFailed: "No pudimos guardar la página. Inténtalo de nuevo."
-    deleted: "Página eliminada."
-    deleteFailed: "No pudimos eliminar la página."
+    brandingText: "Texto de marca"
+    buttonStyle: {
+      pill: "Píldora"
+      rounded: "Redondeados"
+      square: "Rectos"
+    }
+    buttons: "Botones"
     cancel: "Cancelar"
+    codeOrUrl: "Código o URL"
+    create: "Nueva página"
+    createTitle: "Nueva página"
+    created: "Página creada."
+    deleteDescription: "La dirección dejará de funcionar y se pierden sus métricas."
+    deleteFailed: "No pudimos eliminar la página."
+    deleteTitle: "¿Eliminar “{title}”?"
+    deleted: "Página eliminada."
+    descriptionField: "Descripción"
+    destination: "Destino"
+    editTitle: "Editar página"
+    emptyDescription: "Crea una página para reunir todos tus enlaces en una sola dirección."
+    emptyFilteredDescription: "Prueba con otro término o estado."
+    emptyTitle: "No hay páginas todavía"
+    filterStatus: "Filtrar por estado"
+    forbiddenDescription: "Tu acceso actual no permite administrar las páginas de enlaces."
+    headline: "Titular"
+    itemLabel: "páginas"
+    label: "Etiqueta"
+    loadFailedDescription: "No pudimos cargar tus páginas de enlaces."
+    loading: "Cargando páginas de enlaces"
     metrics: {
+      clicks: "Clics"
+      clicksDescription: "Clics en tus enlaces"
       pages: "Páginas"
       pagesDescription: "Creadas en este espacio"
       views: "Vistas"
       viewsDescription: "Visitas registradas"
-      clicks: "Clics"
-      clicksDescription: "Clics en tus enlaces"
     }
+    moveDown: "Bajar bloque"
+    moveUp: "Subir bloque"
+    noMatches: "No hay coincidencias"
+    noViews: "Sin visitas todavía"
+    page: "Página"
+    pageDescription: "Una página pública con todos tus enlaces, y sus métricas de visitas y clics."
+    pageTitle: "Link in bio"
+    preview: {
+      descriptionHint: "Añade una descripción"
+      headlineHint: "Añade un titular"
+      itemHint: "Nuevo elemento"
+      titleHint: "Tu página"
+    }
+    previewHint: "El mismo renderer que la página pública."
+    published: "Publicada"
+    publishedHint: "Solo las publicadas son visibles en su dirección."
+    question: "Pregunta"
+    removeBlock: "Quitar bloque"
+    removeItem: "Quitar elemento"
+    saveFailed: "No pudimos guardar la página. Inténtalo de nuevo."
     searchLabel: "Buscar páginas"
     searchPlaceholder: "Buscar páginas..."
-    filterStatus: "Filtrar por estado"
+    sheetDescription: "Los bloques se muestran en el mismo orden en la página pública."
+    showBlock: "Mostrar {block}"
+    slug: "Dirección"
+    slugHint: "Se genera del título si la dejas vacía."
+    slugTaken: "Esa dirección ya está en uso."
     status: "Estado"
     statusLabel: {
-      published: "Publicada"
       draft: "Borrador"
+      published: "Publicada"
     }
-    all: "Todos"
-    page: "Página"
-    noViews: "Sin visitas todavía"
-    noMatches: "No hay coincidencias"
-    emptyTitle: "No hay páginas todavía"
-    emptyDescription: "Crea una página para reunir todos tus enlaces en una sola dirección."
-    emptyFilteredDescription: "Prueba con otro término o estado."
-    preview: {
-      headlineHint: "Añade un titular"
-      descriptionHint: "Añade una descripción"
-      titleHint: "Tu página"
-      itemHint: "Nuevo elemento"
+    tab: {
+      blocks: "Bloques"
+      info: "Info"
+      style: "Estilo"
     }
     template: {
       aurora: {
-        label: "Aurora"
         description: "Degradado nocturno con bloques de vidrio."
-      }
-      "pro-dark": {
-        label: "Pro Dark"
-        description: "Oscuro sobrio para marcas."
-      }
-      spotlight: {
-        label: "Spotlight"
-        description: "Foco violeta sobre fondo profundo."
+        label: "Aurora"
       }
       forest: {
-        label: "Forest"
         description: "Verde bosque con acentos vivos."
-      }
-      sunset: {
-        label: "Sunset"
-        description: "Atardecer cálido en degradado."
-      }
-      studio: {
-        label: "Studio"
-        description: "Azul pizarra profesional."
+        label: "Forest"
       }
       minimal: {
-        label: "Minimal"
         description: "Blanco puro, tipografía primero."
+        label: "Minimal"
       }
       paper: {
-        label: "Paper"
         description: "Tarjetas sobre papel cálido."
+        label: "Paper"
       }
-      soft: {
-        label: "Soft"
-        description: "Beige suave y sereno."
-      }
-      sky: {
-        label: "Sky"
-        description: "Celeste limpio y aireado."
-      }
-      wave: {
-        label: "Wave"
-        description: "Cian fresco con energía."
+      "pro-dark": {
+        description: "Oscuro sobrio para marcas."
+        label: "Pro Dark"
       }
       promo: {
-        label: "Promo"
         description: "Naranja vivo para campañas."
+        label: "Promo"
+      }
+      sky: {
+        description: "Celeste limpio y aireado."
+        label: "Sky"
+      }
+      soft: {
+        description: "Beige suave y sereno."
+        label: "Soft"
+      }
+      spotlight: {
+        description: "Foco violeta sobre fondo profundo."
+        label: "Spotlight"
+      }
+      studio: {
+        description: "Azul pizarra profesional."
+        label: "Studio"
+      }
+      sunset: {
+        description: "Atardecer cálido en degradado."
+        label: "Sunset"
+      }
+      wave: {
+        description: "Cian fresco con energía."
+        label: "Wave"
       }
     }
-    block: {
-      links: {
-        label: "Enlaces"
-        hint: "Lista de botones hacia tus destinos."
-      }
-      header: {
-        label: "Encabezado"
-        hint: "Título y texto de presentación."
-      }
-      social: {
-        label: "Redes sociales"
-        hint: "Iconos hacia tus perfiles."
-      }
-      contact: {
-        label: "Contacto"
-        hint: "Correo, teléfono o dirección."
-      }
-      gallery: {
-        label: "Galería"
-        hint: "Cuadrícula de imágenes."
-      }
-      faq: {
-        label: "Preguntas frecuentes"
-        hint: "Preguntas con su respuesta."
-      }
-      product: {
-        label: "Productos"
-        hint: "Artículos con precio y enlace."
-      }
-      video: {
-        label: "Video"
-        hint: "Un video incrustado por su URL."
-      }
-      embed: {
-        label: "Incrustado"
-        hint: "Contenido externo incrustado."
-      }
-    }
+    templateAria: "Plantilla de la página"
+    templateLabel: "Plantilla"
+    text: "Texto"
+    title: "Título"
+    titleRequired: "La página necesita un título."
+    unavailable: "Link in bio no disponible"
+    unavailableTitle: "Link in bio no disponible"
+    updated: "Página actualizada."
+    videoUrl: "URL del video"
   }
   navigation: {
     portal: {
