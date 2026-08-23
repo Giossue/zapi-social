@@ -1,14 +1,7 @@
 import type { LucideIcon } from "lucide-react"
-import {
-  CalendarDays,
-  FolderOpen,
-  Share2,
-  Sparkles,
-  TrendingDown,
-  TrendingUp,
-} from "lucide-react"
+import { CalendarDays, FolderOpen, Share2, Sparkles } from "lucide-react"
 
-import { Badge } from "@workspace/ui/components/badge"
+import { CardGrid } from "@workspace/ui/components/card-grid"
 import { MetricCard } from "@workspace/ui/components/metric-card"
 
 import type { PortalDashboard } from "@workspace/contracts"
@@ -22,38 +15,23 @@ const metricIcons: Record<DashboardKpi["icon"], LucideIcon> = {
   files: FolderOpen,
 }
 
+function metricDescription(metric: DashboardKpi) {
+  if (!metric.change) return metric.description
+  return `${metric.change.label} ${metric.description}`
+}
+
 export function MetricCards({ metrics }: { metrics: DashboardKpi[] }) {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <CardGrid>
       {metrics.map((metric) => (
         <MetricCard
-          description={
-            <span className="flex flex-wrap items-center gap-1.5">
-              {metric.change ? (
-                <Badge
-                  variant={
-                    metric.change.direction === "down"
-                      ? "destructive"
-                      : "default"
-                  }
-                >
-                  {metric.change.direction === "down" ? (
-                    <TrendingDown className="size-3" />
-                  ) : (
-                    <TrendingUp className="size-3" />
-                  )}
-                  {metric.change.label}
-                </Badge>
-              ) : null}
-              <span>{metric.description}</span>
-            </span>
-          }
+          description={metricDescription(metric)}
           icon={metricIcons[metric.icon]}
           key={metric.label}
           label={metric.label}
           value={metric.value}
         />
       ))}
-    </div>
+    </CardGrid>
   )
 }
