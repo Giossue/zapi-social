@@ -406,7 +406,7 @@ function AnnouncementSheet({
               type="button"
               variant="brand-secondary"
             >
-              <FileText data-icon="inline-start" /> Guardar borrador
+              Guardar borrador
             </Button>
             <Button disabled={!canSubmit || pending} type="submit">
               {pending ? (
