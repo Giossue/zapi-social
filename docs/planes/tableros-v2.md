@@ -234,31 +234,59 @@ Dos matices que aparecieron al construirlo:
   todos crearía una segunda fuente de verdad que se desincroniza al cambiar el
   catálogo.
 
-### Fase 2 — Datos y contrato del tablero de tareas
+### Fase 2 — Datos y contrato del tablero de tareas · terminada
 
-- [ ] Tablas nuevas y migración Drizzle.
-- [ ] Contratos Zod de columnas, tareas, etiquetas, comentarios y adjuntos.
-- [ ] Módulo Nest con listado, creación, edición, movimiento y archivado.
-- [ ] Cliente REST tipado.
+- [x] Seis tablas nuevas y la migración `0039_board_tasks`, aplicada en local y
+      en remoto con su fila de historial.
+- [x] Contratos Zod en `packages/contracts/src/boards.ts`.
+- [x] Módulo Nest con listado, columnas, tareas, movimiento, archivado,
+      comentarios, adjuntos y etiquetas.
+- [x] Cliente REST tipado.
 
-### Fase 3 — Tablero de tareas en el Portal
+### Fase 3 — Tablero de tareas en el Portal · terminada
 
-- [ ] Instalar `@dnd-kit/react` y sus dos paquetes hermanos.
-- [ ] Copiar la composición de la plantilla y conectar datos reales.
-- [ ] Hoja de detalle de tarea: descripción, comentarios, adjuntos, etiquetas.
-- [ ] Entrada en la navegación y textos en `messages/`.
+- [x] `@dnd-kit/react`, `@dnd-kit/helpers` y `@dnd-kit/abstract` instalados.
+- [x] Composición de la plantilla con datos reales y columnas del espacio.
+- [x] Hoja de detalle con descripción, etiquetas, adjuntos y comentarios.
+- [x] Entradas de navegación y textos en `messages/`.
 
-### Fase 4 — Avisos
+### Fase 4 — Avisos · terminada salvo un correo
 
-- [ ] `workspace_notifications` y unión discriminada del feed de la campana.
-- [ ] Dos plantillas de correo nuevas.
-- [ ] Job diario de vencimientos en el worker.
+- [x] `workspace_notifications` con clave y argumentos en vez de prosa.
+- [x] Feed de la campana como unión discriminada de las dos fuentes.
+- [x] Correo de asignación, con su plantilla editable desde Admin.
+- [x] Barrido horario de vencimientos en el worker.
+- [ ] **Correo de vencimiento.** El barrido vive en el worker y la pila de
+      correo —SMTP cifrado, catálogo de plantillas, render— vive en la API.
+      Enviarlo desde el worker obligaría a duplicarla; hacerlo bien es extraer
+      `apps/api/src/email` a un paquete compartido, que es un refactor de la
+      superficie de correo entera y merece su propio cambio. El aviso sí llega
+      por la campana.
 
-### Fase 5 — Tablero de contenido
+### Fase 5 — Tablero de contenido · terminada
 
-- [ ] Endpoint de tablero sobre `publishing_posts`.
-- [ ] Transiciones válidas comprobadas en la API.
-- [ ] Vista de tablero en Publishing, reutilizando los componentes de la fase 3.
+- [x] Endpoint sobre `publishing_posts` agrupado por estado, filtrado por las
+      cuentas que la membresía tiene concedidas.
+- [x] Transiciones comprobadas en la API, no solo en la interfaz.
+- [x] Vista de tablero con las tres columnas finales bloqueadas.
+
+## Lo que cambió al construirlo
+
+- **El barrido de vencimientos es horario, no diario.** Es idempotente —no
+  vuelve a avisar de una tarea que ya tiene su aviso—, así que repetirlo es
+  barato y cubre a quien entra a cualquier hora.
+- **La clase de aviso es un conjunto cerrado en el contrato.** Un `string`
+  libre dejaba pasar un aviso sin texto; con el enum, el tipado obliga a que
+  cada clase tenga su mensaje en los dos idiomas.
+- **Las claves de aviso van anidadas en `messages/`.** `next-intl` trata el
+  punto como separador de ruta, así que una clave literal `board.task_assigned`
+  es inalcanzable.
+- **La fecha límite usa el calendario compartido, no `<input type="date">`.**
+  Lo pide `audit:portal-admin-ui`, y de paso el valor se ancla al mediodía para
+  que el desfase horario no lo corra al día anterior.
+- **`@dnd-kit` obliga a un `eslint-disable` justificado.** Entrega su `ref`
+  como un valor que hay que leer durante el render, y el compilador de React lo
+  cuenta como acceso a una referencia. Es la forma que documenta la librería.
 
 ## Riesgos
 

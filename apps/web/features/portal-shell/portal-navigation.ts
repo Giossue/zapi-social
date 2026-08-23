@@ -5,6 +5,7 @@ import {
   FolderOpen,
   HandCoins,
   Image,
+  KanbanSquare,
   Layers3,
   Link2,
   LayoutDashboard,
@@ -89,6 +90,14 @@ export const portalNavigationGroups: readonly PortalNavigationGroup[] = [
       },
       { labelKey: "linkBio", href: "/portal/link-bio", icon: Link2 },
       { labelKey: "groups", href: "/portal/groups", icon: Layers3 },
+      {
+        labelKey: "boards",
+        icon: KanbanSquare,
+        children: [
+          { labelKey: "boardTasks", href: "/portal/boards/tasks" },
+          { labelKey: "boardContent", href: "/portal/boards/content" },
+        ],
+      },
       { labelKey: "watermarks", href: "/portal/watermarks", icon: Droplets },
     ],
   },
