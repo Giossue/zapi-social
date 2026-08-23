@@ -4,12 +4,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import { useTranslations } from "next-intl"
 
 type SupportCardProps = {
   areaLabel: string
 }
 
 export function SupportCard({ areaLabel }: SupportCardProps) {
+  const t = useTranslations("shell")
+
   return (
     <Card
       size="sm"
@@ -18,7 +21,7 @@ export function SupportCard({ areaLabel }: SupportCardProps) {
       <CardHeader className="min-w-0 px-4">
         <CardTitle className="truncate text-sm">Zapi Social</CardTitle>
         <CardDescription className="line-clamp-3">
-          Gestiona tu actividad desde el área de {areaLabel.toLowerCase()}.
+          {t("supportCardDescription", { area: areaLabel.toLowerCase() })}
         </CardDescription>
       </CardHeader>
     </Card>

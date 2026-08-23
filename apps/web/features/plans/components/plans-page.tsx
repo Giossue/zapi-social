@@ -379,10 +379,7 @@ function PlanEditorSheet({
           <SheetTitle>
             {isEditing ? t("editTitle", { name: plan.name }) : t("create")}
           </SheetTitle>
-          <SheetDescription>
-            Configura el precio, disponibilidad y permisos que recibirá este
-            plan.
-          </SheetDescription>
+          <SheetDescription>{t("sheetDescription")}</SheetDescription>
         </SheetHeader>
         <ScrollArea
           className="min-h-0 flex-1"
@@ -848,10 +845,7 @@ export function PlansPage() {
         <h1 className="text-2xl font-semibold tracking-tight">
           {t("pageTitle")}
         </h1>
-        <p className="text-sm text-muted-foreground">
-          Configura el catálogo, precios, permisos y disponibilidad de cada
-          plan.
-        </p>
+        <p className="text-sm text-muted-foreground">{t("pageDescription")}</p>
       </header>
       {isLoading ? (
         <PageLoading className="min-h-80" />
@@ -1009,7 +1003,7 @@ export function PlansPage() {
                               : t(`billing.${plan.billingType}`)}
                           </span>
                           <span className="text-xs text-muted-foreground">
-                            Orden #{plan.position}
+                            {t("orderPosition", { position: plan.position })}
                           </span>
                         </div>
                       </TableCell>

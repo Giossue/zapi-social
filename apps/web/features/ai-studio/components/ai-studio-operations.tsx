@@ -839,8 +839,7 @@ function AiAutomationSurface({
         <ShieldCheck aria-hidden="true" />
         <AlertTitle>{t("automation.humanApproval")}</AlertTitle>
         <AlertDescription>
-          Ninguna automatización publica directamente. Todos los resultados
-          llegan como borrador.
+          {t("automation.humanApprovalDescription")}
         </AlertDescription>
       </Alert>
 
@@ -860,8 +859,9 @@ function AiAutomationSurface({
           <AlertDialogHeader>
             <AlertDialogTitle>{t("automation.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Se eliminará “{pendingDelete?.name ?? "esta automatización"}”. Los
-              borradores ya creados se conservarán.
+              {t("automation.deleteDescriptionNamed", {
+                name: pendingDelete?.name ?? t("automation.deleteFallbackName"),
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

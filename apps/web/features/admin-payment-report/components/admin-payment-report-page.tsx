@@ -220,7 +220,9 @@ export function AdminPaymentReportPage() {
         <CardHeader>
           <CardTitle className="leading-none">{t("trend")}</CardTitle>
           <CardDescription>
-            Importe neto liquidado · {t(`range.${report.range}`).toLowerCase()}
+            {t("trendDescription", {
+              range: t(`range.${report.range}`).toLowerCase(),
+            })}
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -1049,7 +1049,7 @@ function MembersTable({
                 {t(`role.${member.role}`)}
               </Badge>
               <span>{accountScope(member, t)}</span>
-              <span>Se unió {teamDate(member.joinedAt)}</span>
+              <span>{t("joinedOn", { date: teamDate(member.joinedAt) })}</span>
             </div>
           </div>
         ))}
@@ -1174,7 +1174,9 @@ function InvitationsTable({
                   {invitation.email}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Invitado por {invitation.invitedByName}
+                  {t("invitationInvitedBy", {
+                    name: invitation.invitedByName,
+                  })}
                 </p>
               </div>
               {actions(invitation)}
@@ -1184,7 +1186,9 @@ function InvitationsTable({
                 {t(`role.${invitation.role}`)}
               </Badge>
               <DeliveryBadge status={invitation.deliveryStatus} />
-              <span>Vence {teamDate(invitation.expiresAt)}</span>
+              <span>
+                {t("expiresOn", { date: teamDate(invitation.expiresAt) })}
+              </span>
             </div>
           </div>
         ))}
@@ -1299,7 +1303,7 @@ function ActivityTable({
                   name: event.actorName ?? t("system"),
                 })}
               </span>
-              <span>Persona: {event.subjectName ?? "—"}</span>
+              <span>{t("subject", { name: event.subjectName ?? "—" })}</span>
               <span>{teamDate(event.createdAt)}</span>
             </div>
           </div>
@@ -1427,8 +1431,7 @@ function MemberAccessView({
         <div className="px-4 pb-3">
           <h3 className="font-medium">{t("workspaceMembers")}</h3>
           <p className="text-sm text-muted-foreground">
-            Directorio de solo lectura. Los correos y accesos ajenos son
-            privados.
+            {t("membersDirectoryHint")}
           </p>
         </div>
         <div className="flex flex-col gap-4">

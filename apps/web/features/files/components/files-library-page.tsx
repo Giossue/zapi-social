@@ -282,7 +282,10 @@ function AssetCard({
       <CardHeader>
         <CardTitle className="truncate">{asset.name}</CardTitle>
         <CardDescription className="truncate">
-          Actualizado {asset.updatedAt} por {asset.owner}
+          {t("updatedByOwner", {
+            date: asset.updatedAt,
+            owner: asset.owner,
+          })}
         </CardDescription>
         <CardDescription className="truncate">
           {label} · {asset.size}
@@ -470,7 +473,10 @@ function AssetsTable({
                     <span className="truncate">{folder.name}</span>
                   </Button>
                   <p className="text-xs text-muted-foreground">
-                    {folder.fileCount} archivos · {folder.size}
+                    {t("folderSummary", {
+                      count: folder.fileCount,
+                      size: folder.size,
+                    })}
                   </p>
                 </div>
               </div>

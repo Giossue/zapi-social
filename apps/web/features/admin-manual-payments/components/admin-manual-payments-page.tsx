@@ -224,10 +224,7 @@ function ManualPaymentSheet({
       <SheetContent className="w-full gap-0 p-0 sm:max-w-xl" side="right">
         <SheetHeader className="border-b">
           <SheetTitle>{t("createTitle")}</SheetTitle>
-          <SheetDescription>
-            Queda pendiente hasta que lo apruebes. Al aprobarlo se concede el
-            plan o los créditos y se registra el cobro.
-          </SheetDescription>
+          <SheetDescription>{t("createDescription")}</SheetDescription>
         </SheetHeader>
         <form
           aria-busy={pending}

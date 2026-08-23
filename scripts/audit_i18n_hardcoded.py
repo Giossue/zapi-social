@@ -78,18 +78,22 @@ LABEL_PROPS = (
 PATTERNS = (
     # Prop de rótulo con texto literal.
     re.compile(rf'(?:{LABEL_PROPS})\s*[:=]\s*"([^"]+)"'),
-    # Nodo de texto dentro de JSX. Sin mínimo de longitud: «Tú» es texto de
-    # interfaz igual que una frase, y poner un suelo dejaba fuera justo las
-    # palabras cortas —que son las más frecuentes en botones y distintivos—.
-    re.compile(r">\s*([A-Za-zÁÉÍÓÚÑáéíóúñ¿¡][^<>{}\n]*)\s*<"),
     # Aviso al usuario.
     re.compile(r'toast\.(?:success|error|info)\(\s*"([^"]+)"'),
-    # Nodo de texto en su propia línea. Prettier parte el JSX cuando el botón
-    # lleva un icono condicional, y entonces el rótulo no comparte línea con
-    # `>` ni con `<`: así se quedaron sin migrar «Generar QR» y una veintena
-    # más de botones de acción.
-    re.compile(r"[>}]\n\s*([A-Za-zÁÉÍÓÚÑáéíóúñ¿¡][^<>{}\n]*?)\s*\n\s*<"),
 )
+
+# Nodo de texto de JSX: todo lo que hay entre el cierre de una etiqueta y la
+# siguiente etiqueta de cierre. Se mira el nodo entero en vez de línea a línea
+# porque el texto se reparte de tres formas distintas —en la misma línea que la
+# etiqueta, en una línea propia, o partido en varias— y las tres son texto de
+# interfaz. `(?<!=)` deja fuera el `>` de una función flecha.
+TEXT_NODE = re.compile(r"(?<!=)>([^<>]*?)</")
+
+# Expresión incrustada: `{t("x")}`, `{count}`, `{/* comentario */}`. Se sustituye
+# por un espacio para juzgar solo la parte fija, que es la que hay que traducir.
+# Así se caza «Acceso de {member.name}», que antes pasaba entero por llevar
+# llaves.
+EMBEDDED = re.compile(r"\{[^{}]*\}")
 
 # Plantilla con interpolación: `Acciones de ${name}`. Va aparte porque hay que
 # sustituir los `${...}` antes de juzgar el texto —si no, los paréntesis de
@@ -140,6 +144,34 @@ def is_ui_text(value: str) -> bool:
     return not (ALLOWED.match(value) or CODE_NOISE.search(value))
 
 
+def strip_embedded(text: str) -> str:
+    """Quita las expresiones JSX, incluidas las anidadas, y normaliza espacios."""
+    previous = None
+    while previous != text:
+        previous = text
+        text = EMBEDDED.sub(" ", text)
+    # Una llave suelta significa que la expresión empieza o acaba fuera del
+    # nodo: pasa siempre que el botón lleva un icono condicional, porque el
+    # `{loading ? <Spinner /> : null}` deja su cierre dentro del texto. Ese
+    # trozo es código y el rótulo es lo que viene después.
+    if "}" in text:
+        text = text[text.rindex("}") + 1 :]
+    if "{" in text:
+        text = text[: text.index("{")]
+    return " ".join(text.split())
+
+
+def text_node_hits(source: str) -> list[tuple[int, str]]:
+    hits = []
+    for match in TEXT_NODE.finditer(source):
+        value = strip_embedded(match.group(1))
+        if not re.search(r"[A-Za-zÁÉÍÓÚÑáéíóúñ]{2,}", value):
+            continue
+        if is_ui_text(value):
+            hits.append((source[: match.start()].count("\n") + 1, value))
+    return hits
+
+
 def template_hits(source: str) -> list[tuple[int, str]]:
     hits = []
     for match in TEMPLATE.finditer(source):
@@ -174,7 +206,7 @@ def scan(path: Path) -> list[tuple[int, str]]:
                 continue
             line = source[: match.start()].count("\n") + 1
             found.setdefault(line, value)
-    for line, value in template_hits(source):
+    for line, value in text_node_hits(source) + template_hits(source):
         found.setdefault(line, value)
     return sorted(found.items())
 
@@ -201,8 +233,12 @@ SELF_TEST = (
     ('toast.error("Falló")', "Falló"),
     ('<Badge>{t("you")}</Badge>', None),
     ("<CardTitle>Meta</CardTitle>", None),
-    ("      ) : null}\n      Generar QR\n    </Button>", "Generar QR"),
-    ("      >\n        Guardar cambios\n      </Button>", "Guardar cambios"),
+    ("<Button>\n      {loading ? <Spinner /> : null}\n      Generar QR\n    </Button>", "Generar QR"),
+    ("<SheetTitle>Acceso de {member.name}</SheetTitle>", "Acceso de"),
+    ("<p>\n      El rol y las cuentas se validan\n      otra vez.\n    </p>",
+     "El rol y las cuentas se validan otra vez."),
+    ("<span>{count} publicaciones</span>", "publicaciones"),
+    ("<Button onClick={() => remove(id)}>{t(\"delete\")}</Button>", None),
     ('aria-label={`Acciones de ${name}`}', "Acciones de …"),
     ('aria-label={t("rowActions", { name })}', None),
     ('className={`flex ${size} items-center`}', None),
@@ -223,7 +259,10 @@ def self_test() -> list[str]:
             for pattern in PATTERNS
             for match in pattern.finditer(source)
             if is_ui_text(value := match.group(1).strip())
-        ] + [value for _, value in template_hits(source)]
+        ] + [
+            value
+            for _, value in text_node_hits(source) + template_hits(source)
+        ]
         ok = expected in found if expected else not found
         if not ok:
             failures.append(f"{source} -> {found}")

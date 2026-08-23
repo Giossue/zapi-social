@@ -243,6 +243,7 @@
     "approvedToast": "Payment approved and applied.",
     "cancel": "Cancel",
     "clear": "Clear",
+    "createDescription": "It stays pending until you approve it. Approving grants the plan or credits and records the charge.",
     "createTitle": "Record manual payment",
     "created": "Manual payment recorded.",
     "delete": "Delete",
@@ -562,6 +563,7 @@
     "searchTarget": "Search recipient",
     "searchWorkspace": "Search workspace...",
     "selectTarget": "Select a recipient",
+    "sheetDescription": "Published announcements appear in the Portal bell of their recipients.",
     "status": {
       "draft": "Draft",
       "published": "Published"
@@ -1133,6 +1135,7 @@
     "topWorkspaces": "Top-billing workspaces",
     "topWorkspacesDescription": "The five workspaces that contributed the most in the period.",
     "trend": "Trend",
+    "trendDescription": "Net settled amount · {range}",
     "workspace": "Workspace"
   },
   "adminSettings": {
@@ -1352,6 +1355,7 @@
       "paid": "Paid",
       "pending": "Pending"
     },
+    "commissionRateHint": "{rate}% commission on every attributed conversion.",
     "commissionStatus": {
       "available": "Available",
       "cancelled": "Cancelled",
@@ -1788,6 +1792,7 @@
         "resultTitle": "Variants per channel"
       },
       "resultPlaceholder": "The result will show up here",
+      "resultPlaceholderHint": "Fill in the prompt and generate a first version. You can edit it or create alternatives afterwards.",
       "review": {
         "button": "Analyse content",
         "placeholder": "Paste here the content you want to check before publishing...",
@@ -1825,6 +1830,8 @@
         "create": "New automation",
         "createDescription": "Generates drafts; it never publishes without human review.",
         "createTitle": "New automation",
+        "deleteDescriptionNamed": "“{name}” will be deleted. Drafts already created are kept.",
+        "deleteFallbackName": "this automation",
         "deleteTitle": "Delete this automation?",
         "deleting": "Deleting automation",
         "emptyDescription": "Create a rule to produce drafts automatically.",
@@ -1835,6 +1842,7 @@
         "forbiddenDescription": "Your role can't view or manage this workspace's automations.",
         "frequencyColumn": "Frequency",
         "humanApproval": "Human approval active",
+        "humanApprovalDescription": "No automation publishes directly. Every result arrives as a draft.",
         "needsAccount": "Connect a social account first to pick a target.",
         "nextRunColumn": "Next run",
         "noAccounts": "Connect a social account to create automations.",
@@ -2014,13 +2022,20 @@
         "daily": "One post per day",
         "description": "Turn a goal into a balanced editorial plan ready to produce.",
         "duration": "Duration",
+        "duration1Month": "1 month",
+        "duration1Week": "1 week",
+        "duration2Weeks": "2 weeks",
         "emptyDescription": "Fill in the goal and the frequency.",
         "emptyIdeasDescription": "The plan was generated without ideas. Adjust the goal and try again.",
         "emptyIdeasTitle": "No ideas in the plan",
         "emptyTitle": "Create your first plan",
+        "frequency3": "3 posts per week",
+        "frequency4": "4 posts per week",
+        "generating": "Generating plan · {progress, number}%",
         "goalDescription": "Define the outcome and the desired frequency.",
         "goalPlaceholder": "Example: increase store visits during August...",
         "goalTitle": "Plan goal",
+        "ideaCount": "{count, plural, one {# idea} other {# ideas}}",
         "ideaReady": "Idea ready",
         "missingGoal": "Fill in the plan goal.",
         "queued": "Plan added to the queue.",
@@ -2040,6 +2055,8 @@
         "noMatchesTitle": "No matches",
         "questions": "Audience questions",
         "questionsDescription": "Ideas detected around the topic.",
+        "relevance": "{score, number}% relevance",
+        "scopeNotice": "The search reviews real content from this workspace. It does not query external trends or invent metrics.",
         "summary": "AI summary",
         "title": "Search signals",
         "topicLabel": "Topic to research",
@@ -2092,6 +2109,7 @@
         "sampleCount": "{count, plural, one {# post in the sample} other {# posts in the sample}}",
         "sampleFound": "{count, plural, one {We found # post with useful data.} other {We found # posts with useful data.}}",
         "sampleWarning": "Recommendation based on a sample",
+        "sampleWarningDescription": "Up to 90 days are analysed. Confidence depends on how many posts are found.",
         "title": "Best time to post"
       }
     },
@@ -2478,6 +2496,8 @@
     "date": "Date",
     "delete": "Delete",
     "deleteWebhook": "Delete webhook",
+    "deleteWebhookDescription": "We stop sending events to that URL. You can create it again later.",
+    "deleteWebhookTitle": "Delete “{name}”?",
     "direction": "Direction",
     "directionLabel": {
       "inbound": "Inbound",
@@ -2553,6 +2573,8 @@
     "resetFilters": "Reset filters",
     "result": "Result",
     "revokeKey": "Revoke key",
+    "revokeKeyDescription": "Any tool using this token loses access immediately.",
+    "revokeKeyTitle": "Revoke “{name}”?",
     "saveWebhook": "Save webhook",
     "saved": "I saved it",
     "searchActivity": "Search activity",
@@ -2605,9 +2627,11 @@
     "clear": "Clear",
     "connectAccountFirst": "Connect an account before creating a batch.",
     "createBatch": "Create batch",
+    "createDescription": "Pick a CSV from your library and choose which accounts its posts are created on.",
     "createFailed": "We couldn't create the batch. Check the file and try again.",
     "createTitle": "New batch",
     "created": "Batch created. It will be processed in the background.",
+    "createdCount": "{created, number} of {valid, number} created",
     "detail": "Detail",
     "emptyDescription": "Upload a CSV to the library and create a batch to process it.",
     "emptyFilteredDescription": "Try another term or status.",
@@ -2626,6 +2650,7 @@
     "forbiddenDescription": "Your current access can't view this workspace's bulk posts.",
     "interval": "Interval between posts",
     "intervalHint": "Minutes between each post. They're scheduled in {timezone}.",
+    "invalidAndFailed": "{invalid, number} invalid · {failed, number} failed",
     "invalidForm": "Pick a file, at least one account and an interval between 1 and 10080 minutes.",
     "itemLabel": "batches",
     "loadFailedDescription": "We couldn't load this workspace's batches.",
@@ -2641,6 +2666,7 @@
     "required": "required",
     "resetFilters": "Reset filters",
     "rowColumn": "Row",
+    "rowCount": "{count, plural, one {# row} other {# rows}}",
     "rowStatus": {
       "failed": "Failed",
       "invalid": "Invalid",
@@ -2648,6 +2674,7 @@
       "processed": "Processed",
       "valid": "Valid"
     },
+    "rowsDescription": "Row-by-row status and the validation errors found while processing the file.",
     "rowsFailed": "We couldn't load this batch's rows.",
     "rowsTitle": "Batch rows",
     "searchLabel": "Search batches",
@@ -2750,6 +2777,8 @@
     "connectedHint": "The account is ready to publish.",
     "connecting": "Connecting the selected account",
     "metaDescription": "Authorize Meta to view and connect the eligible resources of your account.",
+    "mockAuthorization": "Simulated {provider} authorization",
+    "mockAuthorizationHint": "In production the provider opens, the return is validated and only eligible resources are shown.",
     "mockConnected": "{channel} connected in the mock.",
     "otherProviderDescription": "Connectors outside Meta stay in reference mode.",
     "pickAccount": "Select an account to continue.",
@@ -3108,6 +3137,7 @@
     "folderCreated": "Folder created",
     "folderNamePlaceholder": "Folder name",
     "folderNameTaken": "A folder with that name already exists here.",
+    "folderSummary": "{count, number} files · {size}",
     "foldersHint": "Organize the files of this workspace.",
     "formats": {
       "archives": "Sheets and archives",
@@ -3214,6 +3244,8 @@
     "unstar": "Remove {name} from favourites",
     "unstarred": "Removed from favourites",
     "updated": "Updated",
+    "updatedByOwner": "Updated {date} by {owner}",
+    "uploadDescription": "It is stored privately and only visible to people with access to this workspace.",
     "uploadFailed": "The file couldn't be uploaded",
     "uploadFromDevice": "Upload from device",
     "uploadTitle": "Upload files",
@@ -3540,6 +3572,7 @@
     "testBeforeSave": "Test this configuration before saving it.",
     "testConfiguration": "Test configuration",
     "testDraft": "Test draft",
+    "testDraftDescription": "The test validates the draft with Meta before encrypting and saving it.",
     "tested": "Tested",
     "testing": "Testing configuration",
     "title": "Integrations",
@@ -3560,7 +3593,9 @@
       "passwordRequired": "The Basic Auth password is required.",
       "saveFailed": "We couldn't save the WhatsApp Status configuration.",
       "saved": "WhatsApp Status configuration saved.",
+      "sheetDescription": "Connect GOWA and control whether the channel is available in the Portal.",
       "sheetTitle": "Configure WhatsApp Status",
+      "testDraftDescription": "The test only queries the GOWA device list with Basic Auth before encrypting and saving the draft.",
       "testFailed": "GOWA couldn't validate the draft. Try again.",
       "testOk": "GOWA validated the draft. You can save it now.",
       "unavailableDescription": "The WhatsApp Status state could not be retrieved."
@@ -3765,7 +3800,8 @@
     "unavailableTitle": "Link in bio unavailable",
     "updated": "Page updated.",
     "videoUrl": "Video URL",
-    "viewPublished": "View published"
+    "viewPublished": "View published",
+    "viewsAndClicks": "{views, number} views · {clicks, number} clicks"
   },
   "metadata": {
     "admin": "Admin - Zapi Social",
@@ -3935,6 +3971,8 @@
     "nameTooShort": "The plan name needs at least 2 characters.",
     "noMatches": "No plans found",
     "noTrial": "No trial",
+    "orderPosition": "Order #{position, number}",
+    "pageDescription": "Set the catalogue, prices, permissions and availability of every plan.",
     "pageTitle": "Plans",
     "permissionRequired": "Select at least one permission for the plan.",
     "permissions": "Permissions",
@@ -3950,6 +3988,7 @@
     "searchPlaceholder": "Search by name or slug...",
     "selectGroupPermissions": "Select every {group} permission",
     "sessionExpired": "Your session expired. Sign in again.",
+    "sheetDescription": "Set the price, availability and permissions this plan grants.",
     "slugPlaceholder": "my-plan",
     "slugTaken": "A plan with this slug already exists.",
     "status": {
@@ -4098,6 +4137,7 @@
       "searchPlaceholder": "Search your storage",
       "selectedBadge": "Media selected",
       "selectedLabel": "Post media",
+      "textOnlyHint": "You can publish text only on Facebook. Instagram and WhatsApp require media.",
       "title": "Pick from your storage"
     },
     "page": {
@@ -4319,6 +4359,7 @@
       "createFailed": "We couldn't create the schedule. Check the details and try again.",
       "creating": "Creating...",
       "description": "Set up how to turn a feed's new articles into posts for your channels.",
+      "feedHint": "Public RSS and Atom feeds are accepted. The next step validates availability before activating it.",
       "feedUrl": "Feed URL",
       "feedUrlHint": "Use the direct RSS URL, not the site's home page.",
       "feedUrlPlaceholder": "https://site.com/feed.xml",
@@ -4380,6 +4421,7 @@
       "placeholder": "Search the navigation…",
       "trigger": "Search"
     },
+    "supportCardDescription": "Manage your activity from the {area} area.",
     "theme": {
       "dark": "Dark",
       "label": "Theme",
@@ -4450,6 +4492,7 @@
   "support": {
     "actionColumn": "Action",
     "addInformation": "Add information",
+    "addInformationDescription": "Share one more detail with the team reviewing your ticket.",
     "all": "All",
     "allCases": "All cases",
     "answer": "Answer",
@@ -4459,6 +4502,7 @@
     "cases": "cases",
     "categoryColumn": "Category",
     "clear": "Clear",
+    "createDescription": "Describe what you need. You can review replies and add information from this same ticket.",
     "createFailed": "We couldn't create the case. Please try again.",
     "createTicket": "Create ticket",
     "createTitle": "New support case",
@@ -4478,6 +4522,7 @@
     "loadFailedTitle": "Support cases couldn't load",
     "loading": "Loading support cases",
     "loadingTicket": "Loading support case",
+    "markResolved": "Mark as resolved",
     "messageRequired": "Write a message before sending it.",
     "metrics": {
       "closed": "Closed",
@@ -4513,6 +4558,8 @@
     "subjectHint": "Use a short sentence so you can recognize the case later.",
     "subjectPlaceholder": "E.g. I can't publish to Instagram",
     "ticket": "Case",
+    "ticketClosedDescription": "If the problem persists, create a new ticket so we can look into it.",
+    "ticketClosedTitle": "This ticket is {status}",
     "ticketLoadFailed": "We couldn't load this support case.",
     "ticketNotFound": "We couldn't find this case",
     "ticketNotFoundDescription": "The case doesn't exist or is no longer available in this workspace.",
@@ -4520,6 +4567,7 @@
     "unavailable": "Support unavailable",
     "unavailableTitle": "Support unavailable",
     "updated": "Updated",
+    "viewTicket": "View ticket",
     "you": "You"
   },
   "systemInformation": {
@@ -4625,6 +4673,7 @@
     "emailPlaceholder": "name@company.com",
     "events": "events",
     "expires": "Expires",
+    "expiresOn": "Expires {date}",
     "filterActivity": "Filter activity",
     "invalidEmail": "Enter a valid email.",
     "invitation": {
@@ -4686,6 +4735,7 @@
     },
     "invitationActions": "Actions for the invitation to {email}",
     "invitationDetail": "Invitation detail",
+    "invitationInvitedBy": "Invited by {name}",
     "invitationOnlyEmail": "Only {email} can accept it before it expires.",
     "invitationResent": "Invitation resent to {email}.",
     "invitationRevoked": "Invitation revoked.",
@@ -4700,6 +4750,7 @@
     "inviteTitle": "Invite to the workspace",
     "invitedBy": "Invited by",
     "joined": "Joined",
+    "joinedOn": "Joined {date}",
     "lastSent": "Last sent",
     "leaveWorkspace": "Leave workspace",
     "loadFailedDescription": "No access was modified. Try loading the section again.",
@@ -4712,6 +4763,7 @@
     "memberActions": "Actions for {name}",
     "memberHint": "Only works with the accounts you assign.",
     "memberRemoved": "{name} was removed.",
+    "membersDirectoryHint": "Read-only directory. Other people's emails and access are private.",
     "membersEmptyFilteredDescription": "Try another search to find someone in the workspace.",
     "membersItemLabel": "members",
     "membersNoMatches": "No members found",
@@ -4758,6 +4810,7 @@
     "searchMembers": "Search members...",
     "sendInvitation": "Send invitation",
     "sending": "Sending...",
+    "subject": "Person: {name}",
     "system": "System",
     "tab": {
       "activity": "Activity",
@@ -4889,6 +4942,7 @@
     "retry": "Retry",
     "retryHint": "Check your connection and try again.",
     "saveChanges": "Save changes",
+    "scopeHint": "The global rule applies to every channel. If you select accounts, the same setup applies only to them.",
     "searchAccounts": "Search an account",
     "searchAccountsAria": "Search accounts",
     "selectedAccounts": "{count, plural, one {# account selected} other {# accounts selected}}",

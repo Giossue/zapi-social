@@ -379,8 +379,7 @@ export function WhatsAppStatusIntegrationCard() {
               <SheetHeader className="border-b">
                 <SheetTitle>{t("whatsapp.sheetTitle")}</SheetTitle>
                 <SheetDescription>
-                  Conecta GOWA y controla si el canal está disponible en el
-                  Portal.
+                  {t("whatsapp.sheetDescription")}
                 </SheetDescription>
               </SheetHeader>
               <div className="flex flex-col gap-6 p-4">
@@ -479,9 +478,7 @@ export function WhatsAppStatusIntegrationCard() {
                           {t("testDraft")}
                         </h3>
                         <p className="mt-1 text-sm text-muted-foreground">
-                          La prueba consulta solo la lista de dispositivos de
-                          GOWA con Basic Auth antes de cifrar y guardar el
-                          borrador.
+                          {t("whatsapp.testDraftDescription")}
                         </p>
                       </div>
                       <Button

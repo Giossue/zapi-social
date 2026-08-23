@@ -195,10 +195,7 @@ function NewBatchSheet({
       <SheetContent className="w-full gap-0 p-0 sm:max-w-lg" side="right">
         <SheetHeader className="border-b">
           <SheetTitle>{t("createTitle")}</SheetTitle>
-          <SheetDescription>
-            Elige un CSV de tu biblioteca y define en qué cuentas se crearán sus
-            publicaciones.
-          </SheetDescription>
+          <SheetDescription>{t("createDescription")}</SheetDescription>
         </SheetHeader>
         <form
           aria-busy={pending}
@@ -355,10 +352,7 @@ function BatchRowsSheet({
           <SheetTitle>
             {detail ? detail.batch.sourceFileName : t("rowsTitle")}
           </SheetTitle>
-          <SheetDescription>
-            Estado por fila y errores de validación detectados al procesar el
-            archivo.
-          </SheetDescription>
+          <SheetDescription>{t("rowsDescription")}</SheetDescription>
         </SheetHeader>
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
           {loading || !detail ? (
@@ -721,16 +715,21 @@ export function BulkPostsPage() {
                         <TableCell className="hidden md:table-cell">
                           <div className="flex flex-col">
                             <span>
-                              {batch.createdPosts} de {batch.validRows} creadas
+                              {t("createdCount", {
+                                created: batch.createdPosts,
+                                valid: batch.validRows,
+                              })}
                             </span>
                             {batch.invalidRows || batch.failedRows ? (
                               <span className="text-sm text-warning">
-                                {batch.invalidRows} inválidas ·{" "}
-                                {batch.failedRows} fallidas
+                                {t("invalidAndFailed", {
+                                  invalid: batch.invalidRows,
+                                  failed: batch.failedRows,
+                                })}
                               </span>
                             ) : (
                               <span className="text-sm text-muted-foreground">
-                                {batch.totalRows} filas
+                                {t("rowCount", { count: batch.totalRows })}
                               </span>
                             )}
                           </div>

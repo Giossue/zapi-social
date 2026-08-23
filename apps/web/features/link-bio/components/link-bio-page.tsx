@@ -1079,7 +1079,10 @@ export function LinkBioPage() {
                       <TableCell className="hidden md:table-cell">
                         <div className="flex flex-col">
                           <span>
-                            {page.views} vistas · {page.clicks} clics
+                            {t("viewsAndClicks", {
+                              views: page.views,
+                              clicks: page.clicks,
+                            })}
                           </span>
                           <span className="text-sm text-muted-foreground">
                             {page.views

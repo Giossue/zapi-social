@@ -1261,8 +1261,7 @@ function CreationWorkspace({ view }: { view: CreationView }) {
                     {t("resultPlaceholder")}
                   </p>
                   <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-                    Completa la instrucción y genera una primera versión.
-                    Después podrás editarla o crear alternativas.
+                    {t("resultPlaceholderHint")}
                   </p>
                 </div>
               </div>
@@ -1362,9 +1361,15 @@ function Planner() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem value="7">1 semana</SelectItem>
-                        <SelectItem value="14">2 semanas</SelectItem>
-                        <SelectItem value="31">1 mes</SelectItem>
+                        <SelectItem value="7">
+                          {t("planner.duration1Week")}
+                        </SelectItem>
+                        <SelectItem value="14">
+                          {t("planner.duration2Weeks")}
+                        </SelectItem>
+                        <SelectItem value="31">
+                          {t("planner.duration1Month")}
+                        </SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>
@@ -1381,10 +1386,10 @@ function Planner() {
                     <SelectContent>
                       <SelectGroup>
                         <SelectItem value="3">
-                          3 publicaciones por semana
+                          {t("planner.frequency3")}
                         </SelectItem>
                         <SelectItem value="4">
-                          4 publicaciones por semana
+                          {t("planner.frequency4")}
                         </SelectItem>
                         <SelectItem value="7">{t("planner.daily")}</SelectItem>
                       </SelectGroup>
@@ -1423,7 +1428,9 @@ function Planner() {
               {t("planner.weeklyPlanDescription")}
             </CardDescription>
             <CardAction>
-              <Badge variant="secondary">{ideas.length} ideas</Badge>
+              <Badge variant="secondary">
+                {t("planner.ideaCount", { count: ideas.length })}
+              </Badge>
             </CardAction>
           </CardHeader>
           <CardContent className="flex flex-col gap-4 px-0">
@@ -1513,7 +1520,7 @@ function Planner() {
               <div className="p-6">
                 <Progress value={request.progress} />
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Generando plan · {request.progress}%
+                  {t("planner.generating", { progress: request.progress })}
                 </p>
               </div>
             ) : (
@@ -1601,8 +1608,7 @@ function Timing() {
         <Clock3 />
         <AlertTitle>{t("timing.sampleWarning")}</AlertTitle>
         <AlertDescription>
-          Se analizan hasta 90 días. La confianza depende de la cantidad de
-          publicaciones encontradas.
+          {t("timing.sampleWarningDescription")}
         </AlertDescription>
       </Alert>
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.25fr)_minmax(20rem,0.75fr)]">
@@ -1793,7 +1799,9 @@ function Research() {
                   </div>
                   {item.score !== null ? (
                     <Badge variant="secondary">
-                      {Math.round(item.score * 100)}% relevancia
+                      {t("research.relevance", {
+                        score: Math.round(item.score * 100),
+                      })}
                     </Badge>
                   ) : null}
                 </div>
@@ -1857,8 +1865,7 @@ function Research() {
             </CardHeader>
             <CardContent>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                La búsqueda revisa contenido real de este espacio. No consulta
-                tendencias externas ni inventa métricas.
+                {t("research.scopeNotice")}
               </p>
             </CardContent>
           </Card>

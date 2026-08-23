@@ -1364,10 +1364,11 @@ export function AutomationPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Revocar “{keyToRevoke?.name}”?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("revokeKeyTitle", { name: keyToRevoke?.name ?? "" })}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Las herramientas que usen este token dejarán de tener acceso de
-              inmediato.
+              {t("revokeKeyDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1396,11 +1397,12 @@ export function AutomationPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              ¿Eliminar “{webhookToDelete?.name}”?
+              {t("deleteWebhookTitle", {
+                name: webhookToDelete?.name ?? "",
+              })}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Dejaremos de enviar eventos a esa URL. Puedes volver a crearlo más
-              tarde.
+              {t("deleteWebhookDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

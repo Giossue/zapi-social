@@ -229,10 +229,7 @@ function AnnouncementSheet({
       <SheetContent className="w-full gap-0 p-0 sm:max-w-xl" side="right">
         <SheetHeader className="border-b">
           <SheetTitle>{editing ? t("editTitle") : t("createTitle")}</SheetTitle>
-          <SheetDescription>
-            Los anuncios publicados aparecen en la campana del Portal de sus
-            destinatarios.
-          </SheetDescription>
+          <SheetDescription>{t("sheetDescription")}</SheetDescription>
         </SheetHeader>
         <form
           aria-busy={pending}

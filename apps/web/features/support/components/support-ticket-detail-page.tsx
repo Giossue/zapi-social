@@ -254,7 +254,7 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
                 size="sm"
                 variant="brand-secondary"
               >
-                {pending ? <Spinner /> : <CheckCircle2 />} Marcar como resuelto
+                {pending ? <Spinner /> : <CheckCircle2 />} {t("markResolved")}
               </Button>
             ) : null}
           </div>
@@ -307,10 +307,7 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
         <Card variant="subtle">
           <CardHeader>
             <CardTitle className="text-base">{t("addInformation")}</CardTitle>
-            <CardDescription>
-              Comparte un detalle adicional con el equipo que está revisando tu
-              caso.
-            </CardDescription>
+            <CardDescription>{t("addInformationDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
             <form
@@ -355,12 +352,12 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
             <CheckCircle2 className="size-5 text-success" />
             <div>
               <p className="text-sm font-medium">
-                Este caso está{" "}
-                {ticket.status === "resolved" ? "resuelto" : "cerrado"}
+                {t("ticketClosedTitle", {
+                  status: t(`status.${ticket.status}`).toLowerCase(),
+                })}
               </p>
               <p className="text-sm text-muted-foreground">
-                Si el problema continúa, crea un caso nuevo para que podamos
-                revisarlo.
+                {t("ticketClosedDescription")}
               </p>
             </div>
           </CardContent>

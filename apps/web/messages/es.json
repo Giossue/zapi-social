@@ -243,6 +243,7 @@
     "approvedToast": "Pago aprobado y aplicado.",
     "cancel": "Cancelar",
     "clear": "Limpiar",
+    "createDescription": "Queda pendiente hasta que lo apruebes. Al aprobarlo se concede el plan o los créditos y se registra el cobro.",
     "createTitle": "Registrar pago manual",
     "created": "Pago manual registrado.",
     "delete": "Eliminar",
@@ -562,6 +563,7 @@
     "searchTarget": "Buscar destinatario",
     "searchWorkspace": "Buscar espacio...",
     "selectTarget": "Selecciona un destinatario",
+    "sheetDescription": "Los anuncios publicados aparecen en la campana del Portal de sus destinatarios.",
     "status": {
       "draft": "Borrador",
       "published": "Publicado"
@@ -1133,6 +1135,7 @@
     "topWorkspaces": "Espacios con mayor facturación",
     "topWorkspacesDescription": "Los cinco espacios de trabajo que más aportaron en el periodo.",
     "trend": "Evolución",
+    "trendDescription": "Importe neto liquidado · {range}",
     "workspace": "Espacio de trabajo"
   },
   "adminSettings": {
@@ -1352,6 +1355,7 @@
       "paid": "Pagadas",
       "pending": "Pendientes"
     },
+    "commissionRateHint": "Comisión del {rate}% sobre cada conversión atribuida.",
     "commissionStatus": {
       "available": "Disponible",
       "cancelled": "Cancelada",
@@ -1788,6 +1792,7 @@
         "resultTitle": "Variantes por canal"
       },
       "resultPlaceholder": "Aquí aparecerá el resultado",
+      "resultPlaceholderHint": "Completa la instrucción y genera una primera versión. Después podrás editarla o crear alternativas.",
       "review": {
         "button": "Analizar contenido",
         "placeholder": "Pega aquí el contenido que quieres validar antes de publicarlo...",
@@ -1825,6 +1830,8 @@
         "create": "Nueva automatización",
         "createDescription": "Genera borradores; nunca publica sin revisión humana.",
         "createTitle": "Nueva automatización",
+        "deleteDescriptionNamed": "Se eliminará «{name}». Los borradores ya creados se conservarán.",
+        "deleteFallbackName": "esta automatización",
         "deleteTitle": "¿Eliminar esta automatización?",
         "deleting": "Eliminando automatización",
         "emptyDescription": "Crea una regla para producir borradores automáticamente.",
@@ -1835,6 +1842,7 @@
         "forbiddenDescription": "Tu rol no permite consultar ni administrar automatizaciones de este espacio.",
         "frequencyColumn": "Frecuencia",
         "humanApproval": "Aprobación humana activa",
+        "humanApprovalDescription": "Ninguna automatización publica directamente. Todos los resultados llegan como borrador.",
         "needsAccount": "Conecta primero una cuenta social para elegir un destino.",
         "nextRunColumn": "Próxima ejecución",
         "noAccounts": "Conecta una cuenta social para crear automatizaciones.",
@@ -2014,13 +2022,20 @@
         "daily": "Una publicación diaria",
         "description": "Convierte un objetivo en un plan editorial equilibrado y listo para producir.",
         "duration": "Duración",
+        "duration1Month": "1 mes",
+        "duration1Week": "1 semana",
+        "duration2Weeks": "2 semanas",
         "emptyDescription": "Completa el objetivo y la frecuencia.",
         "emptyIdeasDescription": "El plan se generó sin ideas. Ajusta el objetivo y vuelve a intentarlo.",
         "emptyIdeasTitle": "Sin ideas en el plan",
         "emptyTitle": "Crea tu primer plan",
+        "frequency3": "3 publicaciones por semana",
+        "frequency4": "4 publicaciones por semana",
+        "generating": "Generando plan · {progress, number}%",
         "goalDescription": "Define el resultado y la frecuencia deseada.",
         "goalPlaceholder": "Ejemplo: aumentar visitas al local durante agosto...",
         "goalTitle": "Objetivo del plan",
+        "ideaCount": "{count, plural, one {# idea} other {# ideas}}",
         "ideaReady": "Idea lista",
         "missingGoal": "Completa el objetivo del plan.",
         "queued": "Plan añadido a la cola.",
@@ -2040,6 +2055,8 @@
         "noMatchesTitle": "Sin coincidencias",
         "questions": "Preguntas de la audiencia",
         "questionsDescription": "Ideas detectadas alrededor del tema.",
+        "relevance": "{score, number}% relevancia",
+        "scopeNotice": "La búsqueda revisa contenido real de este espacio. No consulta tendencias externas ni inventa métricas.",
         "summary": "Resumen IA",
         "title": "Buscar señales",
         "topicLabel": "Tema para investigar",
@@ -2092,6 +2109,7 @@
         "sampleCount": "{count, plural, one {# publicación en la muestra} other {# publicaciones en la muestra}}",
         "sampleFound": "{count, plural, one {Se encontró # publicación con datos útiles.} other {Se encontraron # publicaciones con datos útiles.}}",
         "sampleWarning": "Recomendación basada en una muestra",
+        "sampleWarningDescription": "Se analizan hasta 90 días. La confianza depende de la cantidad de publicaciones encontradas.",
         "title": "Mejor hora para publicar"
       }
     },
@@ -2478,6 +2496,8 @@
     "date": "Fecha",
     "delete": "Eliminar",
     "deleteWebhook": "Eliminar webhook",
+    "deleteWebhookDescription": "Dejaremos de enviar eventos a esa URL. Puedes volver a crearlo más tarde.",
+    "deleteWebhookTitle": "¿Eliminar «{name}»?",
     "direction": "Dirección",
     "directionLabel": {
       "inbound": "Entrante",
@@ -2553,6 +2573,8 @@
     "resetFilters": "Restablecer filtros",
     "result": "Resultado",
     "revokeKey": "Revocar clave",
+    "revokeKeyDescription": "Las herramientas que usen este token dejarán de tener acceso de inmediato.",
+    "revokeKeyTitle": "¿Revocar «{name}»?",
     "saveWebhook": "Guardar webhook",
     "saved": "Ya lo guardé",
     "searchActivity": "Buscar actividad",
@@ -2605,9 +2627,11 @@
     "clear": "Limpiar",
     "connectAccountFirst": "Conecta una cuenta antes de crear un lote.",
     "createBatch": "Crear lote",
+    "createDescription": "Elige un CSV de tu biblioteca y define en qué cuentas se crearán sus publicaciones.",
     "createFailed": "No pudimos crear el lote. Revisa el archivo e inténtalo.",
     "createTitle": "Nuevo lote",
     "created": "Lote creado. Se procesará en segundo plano.",
+    "createdCount": "{created, number} de {valid, number} creadas",
     "detail": "Detalle",
     "emptyDescription": "Sube un CSV a la biblioteca y crea un lote para procesarlo.",
     "emptyFilteredDescription": "Prueba con otro término o estado.",
@@ -2626,6 +2650,7 @@
     "forbiddenDescription": "Tu acceso actual no permite consultar las publicaciones masivas de este espacio de trabajo.",
     "interval": "Intervalo entre publicaciones",
     "intervalHint": "Minutos entre cada publicación. Se programan en {timezone}.",
+    "invalidAndFailed": "{invalid, number} inválidas · {failed, number} fallidas",
     "invalidForm": "Elige un archivo, al menos una cuenta y un intervalo entre 1 y 10080 minutos.",
     "itemLabel": "lotes",
     "loadFailedDescription": "No pudimos cargar los lotes de este espacio de trabajo.",
@@ -2641,6 +2666,7 @@
     "required": "obligatorio",
     "resetFilters": "Restablecer filtros",
     "rowColumn": "Fila",
+    "rowCount": "{count, plural, one {# fila} other {# filas}}",
     "rowStatus": {
       "failed": "Fallida",
       "invalid": "Inválida",
@@ -2648,6 +2674,7 @@
       "processed": "Procesada",
       "valid": "Válida"
     },
+    "rowsDescription": "Estado por fila y errores de validación detectados al procesar el archivo.",
     "rowsFailed": "No pudimos cargar las filas de este lote.",
     "rowsTitle": "Filas del lote",
     "searchLabel": "Buscar lotes",
@@ -2750,6 +2777,8 @@
     "connectedHint": "La cuenta ya está disponible para publicar.",
     "connecting": "Conectando cuenta seleccionada",
     "metaDescription": "Autoriza Meta para ver y conectar los recursos elegibles de tu cuenta.",
+    "mockAuthorization": "Autorización simulada de {provider}",
+    "mockAuthorizationHint": "En producción se abrirá el proveedor, se validará el retorno y se mostrarán solo los recursos elegibles.",
     "mockConnected": "{channel} conectado en el mock.",
     "otherProviderDescription": "Los conectores disponibles fuera de Meta permanecen en modo de referencia.",
     "pickAccount": "Selecciona una cuenta para continuar.",
@@ -3108,6 +3137,7 @@
     "folderCreated": "Carpeta creada",
     "folderNamePlaceholder": "Nombre de carpeta",
     "folderNameTaken": "Ya existe una carpeta con ese nombre en esta ubicación.",
+    "folderSummary": "{count, number} archivos · {size}",
     "foldersHint": "Organiza los archivos de este espacio de trabajo.",
     "formats": {
       "archives": "Hojas y comprimidos",
@@ -3214,6 +3244,8 @@
     "unstar": "Quitar de favoritos {name}",
     "unstarred": "Quitado de favoritos",
     "updated": "Actualizado",
+    "updatedByOwner": "Actualizado {date} por {owner}",
+    "uploadDescription": "Se guardará de forma privada y solo será visible para las personas con acceso a este espacio de trabajo.",
     "uploadFailed": "No se pudo subir el archivo",
     "uploadFromDevice": "Subir desde archivos",
     "uploadTitle": "Subir archivos",
@@ -3540,6 +3572,7 @@
     "testBeforeSave": "Prueba esta configuración antes de guardarla.",
     "testConfiguration": "Probar configuración",
     "testDraft": "Probar borrador",
+    "testDraftDescription": "La prueba valida el borrador con Meta antes de cifrarlo y guardarlo.",
     "tested": "Probado",
     "testing": "Probando configuración",
     "title": "Integraciones",
@@ -3560,7 +3593,9 @@
       "passwordRequired": "La contraseña de Basic Auth es obligatoria.",
       "saveFailed": "No pudimos guardar la configuración de WhatsApp Status.",
       "saved": "Configuración de WhatsApp Status guardada.",
+      "sheetDescription": "Conecta GOWA y controla si el canal está disponible en el Portal.",
       "sheetTitle": "Configurar WhatsApp Status",
+      "testDraftDescription": "La prueba consulta solo la lista de dispositivos de GOWA con Basic Auth antes de cifrar y guardar el borrador.",
       "testFailed": "GOWA no pudo validar el borrador. Inténtalo de nuevo.",
       "testOk": "GOWA validó el borrador. Ya puedes guardarlo.",
       "unavailableDescription": "No fue posible obtener el estado de WhatsApp Status."
@@ -3765,7 +3800,8 @@
     "unavailableTitle": "Link in bio no disponible",
     "updated": "Página actualizada.",
     "videoUrl": "URL del video",
-    "viewPublished": "Ver publicada"
+    "viewPublished": "Ver publicada",
+    "viewsAndClicks": "{views, number} vistas · {clicks, number} clics"
   },
   "metadata": {
     "admin": "Admin - Zapi Social",
@@ -3935,6 +3971,8 @@
     "nameTooShort": "El nombre del plan debe tener al menos 2 caracteres.",
     "noMatches": "No encontramos planes",
     "noTrial": "Sin prueba",
+    "orderPosition": "Orden #{position, number}",
+    "pageDescription": "Configura el catálogo, precios, permisos y disponibilidad de cada plan.",
     "pageTitle": "Planes",
     "permissionRequired": "Selecciona al menos un permiso para el plan.",
     "permissions": "Permisos",
@@ -3950,6 +3988,7 @@
     "searchPlaceholder": "Buscar por nombre o slug...",
     "selectGroupPermissions": "Seleccionar todos los permisos de {group}",
     "sessionExpired": "Tu sesión expiró. Vuelve a iniciar sesión.",
+    "sheetDescription": "Configura el precio, disponibilidad y permisos que recibirá este plan.",
     "slugPlaceholder": "mi-plan",
     "slugTaken": "Ya existe un plan con este slug.",
     "status": {
@@ -4098,6 +4137,7 @@
       "searchPlaceholder": "Buscar en tu almacenamiento",
       "selectedBadge": "Media seleccionada",
       "selectedLabel": "Media de la publicación",
+      "textOnlyHint": "Puedes publicar solo texto en Facebook. Instagram y WhatsApp requieren media.",
       "title": "Selecciona desde tu almacenamiento"
     },
     "page": {
@@ -4319,6 +4359,7 @@
       "createFailed": "No pudimos crear la programación. Comprueba los datos e inténtalo de nuevo.",
       "creating": "Creando...",
       "description": "Configura cómo convertir artículos nuevos de un feed en publicaciones para tus canales.",
+      "feedHint": "Acepta feeds RSS y Atom públicos. En la siguiente etapa validaremos su disponibilidad antes de activarlo.",
       "feedUrl": "URL del feed",
       "feedUrlHint": "Usa la URL directa del RSS, no la página principal del sitio.",
       "feedUrlPlaceholder": "https://sitio.com/feed.xml",
@@ -4380,6 +4421,7 @@
       "placeholder": "Buscar en la navegación…",
       "trigger": "Buscar"
     },
+    "supportCardDescription": "Gestiona tu actividad desde el área de {area}.",
     "theme": {
       "dark": "Oscuro",
       "label": "Tema",
@@ -4450,6 +4492,7 @@
   "support": {
     "actionColumn": "Acción",
     "addInformation": "Añadir información",
+    "addInformationDescription": "Comparte un detalle adicional con el equipo que está revisando tu caso.",
     "all": "Todos",
     "allCases": "Todos los casos",
     "answer": "Respuesta",
@@ -4459,6 +4502,7 @@
     "cases": "casos",
     "categoryColumn": "Categoría",
     "clear": "Limpiar",
+    "createDescription": "Describe lo que necesitas. Podrás revisar las respuestas y añadir información desde este mismo caso.",
     "createFailed": "No pudimos crear el caso. Inténtalo de nuevo.",
     "createTicket": "Crear caso",
     "createTitle": "Nuevo caso de soporte",
@@ -4478,6 +4522,7 @@
     "loadFailedTitle": "No se pudieron cargar los casos de soporte",
     "loading": "Cargando casos de soporte",
     "loadingTicket": "Cargando caso de soporte",
+    "markResolved": "Marcar como resuelto",
     "messageRequired": "Escribe un mensaje antes de enviarlo.",
     "metrics": {
       "closed": "Cerrados",
@@ -4513,6 +4558,8 @@
     "subjectHint": "Usa una frase breve para reconocer el caso después.",
     "subjectPlaceholder": "Ej. No puedo publicar en Instagram",
     "ticket": "Caso",
+    "ticketClosedDescription": "Si el problema continúa, crea un caso nuevo para que podamos revisarlo.",
+    "ticketClosedTitle": "Este caso está {status}",
     "ticketLoadFailed": "No pudimos cargar este caso de soporte.",
     "ticketNotFound": "No encontramos este caso",
     "ticketNotFoundDescription": "El caso no existe o ya no está disponible en este espacio de trabajo.",
@@ -4520,6 +4567,7 @@
     "unavailable": "Soporte no disponible",
     "unavailableTitle": "Soporte no disponible",
     "updated": "Actualizado",
+    "viewTicket": "Ver caso",
     "you": "Tú"
   },
   "systemInformation": {
@@ -4625,6 +4673,7 @@
     "emailPlaceholder": "nombre@empresa.com",
     "events": "eventos",
     "expires": "Vence",
+    "expiresOn": "Vence {date}",
     "filterActivity": "Filtrar actividad",
     "invalidEmail": "Introduce un correo válido.",
     "invitation": {
@@ -4686,6 +4735,7 @@
     },
     "invitationActions": "Acciones para la invitación de {email}",
     "invitationDetail": "Detalle de invitación",
+    "invitationInvitedBy": "Invitado por {name}",
     "invitationOnlyEmail": "Solo {email} puede aceptarla antes de su vencimiento.",
     "invitationResent": "Invitación reenviada a {email}.",
     "invitationRevoked": "Invitación revocada.",
@@ -4700,6 +4750,7 @@
     "inviteTitle": "Invitar al workspace",
     "invitedBy": "Invitado por",
     "joined": "Se unió",
+    "joinedOn": "Se unió {date}",
     "lastSent": "Último envío",
     "leaveWorkspace": "Abandonar workspace",
     "loadFailedDescription": "No se modificó ningún acceso. Intenta cargar la sección nuevamente.",
@@ -4712,6 +4763,7 @@
     "memberActions": "Acciones para {name}",
     "memberHint": "Solo trabaja con las cuentas que le asignes.",
     "memberRemoved": "{name} fue eliminado.",
+    "membersDirectoryHint": "Directorio de solo lectura. Los correos y accesos ajenos son privados.",
     "membersEmptyFilteredDescription": "Prueba otra búsqueda para encontrar a una persona del workspace.",
     "membersItemLabel": "miembros",
     "membersNoMatches": "No encontramos miembros",
@@ -4758,6 +4810,7 @@
     "searchMembers": "Buscar miembros...",
     "sendInvitation": "Enviar invitación",
     "sending": "Enviando...",
+    "subject": "Persona: {name}",
     "system": "Sistema",
     "tab": {
       "activity": "Actividad",
@@ -4889,6 +4942,7 @@
     "retry": "Reintentar",
     "retryHint": "Comprueba tu conexión e inténtalo de nuevo.",
     "saveChanges": "Guardar cambios",
+    "scopeHint": "La regla global se aplica a todos los canales. Si seleccionas cuentas, la misma configuración se aplicará solo a ellas.",
     "searchAccounts": "Buscar una cuenta",
     "searchAccountsAria": "Buscar cuentas",
     "selectedAccounts": "{count, plural, one {# cuenta seleccionada} other {# cuentas seleccionadas}}",

@@ -804,8 +804,7 @@ export function IntegrationsPage() {
                             {t("testDraft")}
                           </h3>
                           <p className="mt-1 text-sm text-muted-foreground">
-                            La prueba valida el borrador con Meta antes de
-                            cifrarlo y guardarlo.
+                            {t("testDraftDescription")}
                           </p>
                         </div>
                         <Button

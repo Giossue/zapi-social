@@ -350,12 +350,12 @@ export function ChannelConnectionDialog({
                     />
                     <div className="grid gap-1">
                       <p className="font-medium">
-                        Autorización simulada de{" "}
-                        {providerLabels[capability.provider]}
+                        {t("mockAuthorization", {
+                          provider: providerLabels[capability.provider],
+                        })}
                       </p>
                       <p className="text-sm leading-relaxed text-muted-foreground">
-                        En producción se abrirá el proveedor, se validará el
-                        retorno y se mostrarán solo los recursos elegibles.
+                        {t("mockAuthorizationHint")}
                       </p>
                     </div>
                   </CardContent>

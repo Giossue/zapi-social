@@ -287,8 +287,7 @@ export function RssScheduleWizard({
                 <Card size="sm" variant="inset">
                   <CardContent>
                     <p className="text-sm text-muted-foreground">
-                      Acepta feeds RSS y Atom públicos. En la siguiente etapa
-                      validaremos su disponibilidad antes de activarlo.
+                      {t("feedHint")}
                     </p>
                   </CardContent>
                 </Card>

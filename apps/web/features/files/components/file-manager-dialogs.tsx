@@ -77,10 +77,7 @@ export function FileUploadDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("uploadTitle")}</DialogTitle>
-          <DialogDescription>
-            Se guardará de forma privada y solo será visible para las personas
-            con acceso a este espacio de trabajo.
-          </DialogDescription>
+          <DialogDescription>{t("uploadDescription")}</DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-3 border-y border-border py-4">
           <p className="text-sm font-medium">{t("allowedFormats")}</p>

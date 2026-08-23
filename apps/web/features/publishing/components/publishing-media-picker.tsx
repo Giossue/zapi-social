@@ -175,10 +175,7 @@ export function PublishingMediaPicker({
         {selectedAssetId ? (
           <Badge variant="success">{t("selectedBadge")}</Badge>
         ) : (
-          <p className="text-sm text-muted-foreground">
-            Puedes publicar solo texto en Facebook. Instagram y WhatsApp
-            requieren media.
-          </p>
+          <p className="text-sm text-muted-foreground">{t("textOnlyHint")}</p>
         )}
       </CardContent>
     </Card>

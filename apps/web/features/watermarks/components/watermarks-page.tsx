@@ -957,11 +957,7 @@ export function WatermarksPage() {
                     }}
                     selectedAccountIds={selectedAccountIds}
                   />
-                  <FieldDescription>
-                    La regla global se aplica a todos los canales. Si
-                    seleccionas cuentas, la misma configuración se aplicará solo
-                    a ellas.
-                  </FieldDescription>
+                  <FieldDescription>{t("scopeHint")}</FieldDescription>
                 </Field>
                 <Tabs
                   onValueChange={(value) =>

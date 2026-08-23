@@ -185,10 +185,7 @@ function NewSupportTicketSheet({
       <SheetContent className="w-full gap-0 p-0 sm:max-w-xl" side="right">
         <SheetHeader className="border-b">
           <SheetTitle>{t("createTitle")}</SheetTitle>
-          <SheetDescription>
-            Describe lo que necesitas. Podrás revisar las respuestas y añadir
-            información desde este mismo caso.
-          </SheetDescription>
+          <SheetDescription>{t("createDescription")}</SheetDescription>
         </SheetHeader>
         <form
           aria-busy={pending}
@@ -578,8 +575,8 @@ export function SupportTicketsPage() {
                         <TableCell className="text-right">
                           <Button asChild size="sm" variant="brand-secondary">
                             <Link href={`/portal/support/${ticket.id}`}>
-                              <MessageSquare data-icon="inline-start" /> Ver
-                              caso
+                              <MessageSquare data-icon="inline-start" />{" "}
+                              {t("viewTicket")}
                             </Link>
                           </Button>
                         </TableCell>

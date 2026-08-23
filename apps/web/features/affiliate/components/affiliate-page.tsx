@@ -461,7 +461,7 @@ export function AffiliatePage() {
                 </Badge>
               </div>
               <span className="text-sm text-muted-foreground">
-                Comisión del {commissionRate}% sobre cada conversión atribuida.
+                {t("commissionRateHint", { rate: commissionRate })}
               </span>
             </div>
             <div className="flex flex-wrap gap-2">
