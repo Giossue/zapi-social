@@ -1,8 +1,12 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 import { adminOperationsApi, ApiError } from "@workspace/api-client"
-import type { AdminOperationActionKey } from "@workspace/contracts"
+import type {
+  AdminOperationActionKey,
+  AdminOperationView,
+} from "@workspace/contracts"
 import type { LucideIcon } from "lucide-react"
 import {
   BadgeDollarSign,
@@ -87,237 +91,183 @@ export type AdminModuleKey =
 type Tone = "success" | "warning" | "neutral" | "destructive"
 type Icon = LucideIcon
 
-type Metric = { label: string; value: string; description: string; icon: Icon }
-type Cell = { primary: string; secondary?: string; mono?: boolean }
-type Action = {
-  key?: AdminOperationActionKey
-  label: string
-  kind?: "destructive" | "success"
-}
-type Row = {
-  id: string
-  cells: Cell[]
-  status: string
-  tone: Tone
-  actions: Action[]
-}
+type Row = AdminOperationView["rows"][number]
+type Cell = Row["cells"][number]
+type Action = Row["actions"][number]
+type Metric = AdminOperationView["metrics"][number] & { icon: Icon }
+/**
+ * El catálogo declara claves e iconos: el texto sale de `messages` y la
+ * estructura sigue siendo estática a nivel de módulo.
+ */
 type Tab = {
   value: string
-  label: string
-  searchPlaceholder: string
-  columns: string[]
+  columnKeys: readonly string[]
+  /** Icono por métrica, indexado con la clave que envía la API. */
   metricIcons: Record<string, Icon>
-  primaryAction?: {
-    label: string
-    icon: Icon
-    dialogTitle: string
-    dialogDescription: string
-    fields: string[]
-  }
+  primaryAction?: { icon: Icon; fieldKeys: readonly string[] }
 }
-type Module = { title: string; description: string; tabs: [Tab, ...Tab[]] }
+type Module = { tabs: [Tab, ...Tab[]] }
 
 const modules: Record<AdminModuleKey, Module> = {
   users: {
-    title: "Usuarios",
-    description: "Administra las cuentas de Portal, su acceso, plan y estado.",
     tabs: [
       {
         value: "users",
-        label: "Usuarios",
-        searchPlaceholder: "Buscar por nombre o correo...",
-        columns: ["Usuario", "Acceso", "Plan", "Espacio", "Registro"],
+        columnKeys: ["user", "access", "plan", "workspace", "signup"],
         metricIcons: {
-          ["Usuarios"]: Users,
-          ["Nuevos"]: UserPlus,
-          ["Con plan"]: WalletCards,
-          ["Por revisar"]: ShieldX,
+          "users.users.total": Users,
+          "users.users.new": UserPlus,
+          "users.users.withPlan": WalletCards,
+          "users.users.review": ShieldX,
         },
         primaryAction: {
-          label: "Crear usuario",
           icon: UserPlus,
-          dialogTitle: "Crear usuario",
-          dialogDescription:
-            "Crea una cuenta de Portal y asigna su acceso inicial.",
-          fields: ["Nombre visible", "Correo electrónico", "Plan"],
+          fieldKeys: ["displayName", "email", "plan"],
         },
       },
     ],
   },
   credits: {
-    title: "Créditos",
-    description:
-      "Controla paquetes, movimientos y consumo de créditos del sistema.",
     tabs: [
       {
         value: "packs",
-        label: "Paquetes",
-        searchPlaceholder: "Buscar paquete...",
-        columns: ["Paquete", "Créditos", "Precio", "Compras", "Orden"],
+        columnKeys: ["pack", "credits", "price", "purchases", "order"],
         metricIcons: {
-          ["Paquetes"]: BadgeDollarSign,
-          ["Activos"]: Check,
-          ["Destacados"]: PackagePlus,
-          ["Ventas"]: ReceiptText,
+          "credits.packs.total": BadgeDollarSign,
+          "credits.packs.active": Check,
+          "credits.packs.featured": PackagePlus,
+          "credits.packs.sales": ReceiptText,
         },
         primaryAction: {
-          label: "Añadir paquete",
           icon: PackagePlus,
-          dialogTitle: "Nuevo paquete de créditos",
-          dialogDescription:
-            "Define una oferta de recarga disponible para los clientes.",
-          fields: ["Nombre", "Créditos", "Precio"],
+          fieldKeys: ["name", "credits", "price"],
         },
       },
       {
         value: "ledger",
-        label: "Movimientos",
-        searchPlaceholder: "Buscar usuario, paquete o movimiento...",
-        columns: ["Usuario", "Tipo", "Paquete", "Créditos", "Saldo", "Fecha"],
+        columnKeys: ["user", "type", "pack", "credits", "balance", "date"],
         metricIcons: {
-          ["Movimientos"]: ReceiptText,
-          ["Compras"]: CircleDollarSign,
-          ["Otorgados"]: BadgeDollarSign,
-          ["Disponibles"]: WalletCards,
+          "credits.ledger.total": ReceiptText,
+          "credits.ledger.purchases": CircleDollarSign,
+          "credits.ledger.granted": BadgeDollarSign,
+          "credits.ledger.available": WalletCards,
         },
       },
       {
         value: "usage",
-        label: "Uso",
-        searchPlaceholder: "Buscar usuario, acción o función...",
-        columns: [
-          "Usuario",
-          "Acción",
-          "Función",
-          "Créditos",
-          "Cantidad",
-          "Fecha",
+        columnKeys: [
+          "user",
+          "action",
+          "feature",
+          "credits",
+          "quantity",
+          "date",
         ],
         metricIcons: {
-          ["Registros"]: ReceiptText,
-          ["Consumidos"]: BadgeDollarSign,
-          ["Usuarios"]: Users,
-          ["Acciones"]: RotateCcw,
+          "credits.usage.total": ReceiptText,
+          "credits.usage.consumed": BadgeDollarSign,
+          "credits.usage.users": Users,
+          "credits.usage.actions": RotateCcw,
         },
       },
     ],
   },
   affiliate: {
-    title: "Afiliados",
-    description: "Revisa referidos, comisiones y solicitudes de retiro.",
     tabs: [
       {
         value: "overview",
-        label: "Afiliados",
-        searchPlaceholder: "Buscar afiliado o código...",
-        columns: ["Afiliado", "Código", "Clics", "Conversiones", "Saldo"],
+        columnKeys: ["affiliate", "code", "clicks", "conversions", "balance"],
         metricIcons: {
-          ["Afiliados"]: HandCoins,
-          ["Clics"]: Eye,
-          ["Conversiones"]: Check,
-          ["Aprobado"]: CircleDollarSign,
+          "affiliate.overview.total": HandCoins,
+          "affiliate.overview.clicks": Eye,
+          "affiliate.overview.conversions": Check,
+          "affiliate.overview.approved": CircleDollarSign,
         },
       },
       {
         value: "commissions",
-        label: "Comisiones",
-        searchPlaceholder: "Buscar afiliado, referido o pago...",
-        columns: ["Afiliado", "Referido", "Pago", "Comisión", "Creada"],
+        columnKeys: [
+          "affiliate",
+          "referred",
+          "payment",
+          "commission",
+          "created",
+        ],
         metricIcons: {
-          ["Comisiones"]: ReceiptText,
-          ["Pendientes"]: RotateCcw,
-          ["Disponibles"]: CircleDollarSign,
-          ["Rechazadas"]: X,
+          "affiliate.commissions.total": ReceiptText,
+          "affiliate.commissions.pending": RotateCcw,
+          "affiliate.commissions.available": CircleDollarSign,
+          "affiliate.commissions.rejected": X,
         },
       },
       {
         value: "withdrawals",
-        label: "Retiros",
-        searchPlaceholder: "Buscar afiliado, retiro o método...",
-        columns: ["Afiliado", "Solicitud", "Método", "Importe", "Solicitada"],
+        columnKeys: ["affiliate", "request", "method", "amount", "requested"],
         metricIcons: {
-          ["Solicitudes"]: ReceiptText,
-          ["Pendientes"]: RotateCcw,
-          ["Aprobados"]: Check,
-          ["Pagados"]: CircleDollarSign,
+          "affiliate.withdrawals.total": ReceiptText,
+          "affiliate.withdrawals.pending": RotateCcw,
+          "affiliate.withdrawals.approved": Check,
+          "affiliate.withdrawals.paid": CircleDollarSign,
         },
       },
     ],
   },
   coupons: {
-    title: "Cupones",
-    description: "Administra descuentos, vigencia, límites y planes elegibles.",
     tabs: [
       {
         value: "coupons",
-        label: "Cupones",
-        searchPlaceholder: "Buscar nombre, código o descuento...",
-        columns: ["Cupón", "Descuento", "Uso", "Planes", "Vigencia"],
+        columnKeys: ["coupon", "discount", "usage", "plans", "validity"],
         metricIcons: {
-          ["Cupones"]: Tags,
-          ["Activos"]: Check,
-          ["Canjes"]: ReceiptText,
-          ["Sin límite"]: RotateCcw,
+          "coupons.coupons.total": Tags,
+          "coupons.coupons.active": Check,
+          "coupons.coupons.redemptions": ReceiptText,
+          "coupons.coupons.unlimited": RotateCcw,
         },
         primaryAction: {
-          label: "Crear cupón",
           icon: Plus,
-          dialogTitle: "Crear cupón",
-          dialogDescription:
-            "Configura el descuento que Polar aplicará durante el checkout.",
-          fields: ["Nombre", "Código", "Valor del descuento"],
+          fieldKeys: ["name", "code", "discountValue"],
         },
       },
     ],
   },
   payments: {
-    title: "Pagos",
-    description:
-      "Consulta transacciones procesadas únicamente mediante Polar.sh.",
     tabs: [
       {
         value: "payments",
-        label: "Pagos",
-        searchPlaceholder: "Buscar factura, usuario o transacción...",
-        columns: [
-          "Factura",
-          "Usuario",
-          "Producto",
-          "Transacción",
-          "Importe",
-          "Fecha",
+        columnKeys: [
+          "invoice",
+          "user",
+          "product",
+          "transaction",
+          "amount",
+          "date",
         ],
         metricIcons: {
-          ["Transacciones"]: ReceiptText,
-          ["Completadas"]: Check,
-          ["Reembolsadas"]: RotateCcw,
-          ["Volumen"]: CircleDollarSign,
+          "payments.payments.total": ReceiptText,
+          "payments.payments.completed": Check,
+          "payments.payments.refunded": RotateCcw,
+          "payments.payments.volume": CircleDollarSign,
         },
       },
     ],
   },
   subscriptions: {
-    title: "Suscripciones",
-    description:
-      "Supervisa renovaciones, cobros fallidos y cancelaciones en Polar.sh.",
     tabs: [
       {
         value: "subscriptions",
-        label: "Suscripciones",
-        searchPlaceholder: "Buscar suscripción, cliente o plan...",
-        columns: [
-          "Suscripción",
-          "Cliente",
-          "Plan",
-          "Importe",
-          "Renovación",
-          "Actualizada",
+        columnKeys: [
+          "subscription",
+          "customer",
+          "plan",
+          "amount",
+          "renewal",
+          "updated",
         ],
         metricIcons: {
-          ["Suscripciones"]: ReceiptText,
-          ["Activas"]: Check,
-          ["En mora"]: RotateCcw,
-          ["MRR"]: CircleDollarSign,
+          "subscriptions.subscriptions.total": ReceiptText,
+          "subscriptions.subscriptions.active": Check,
+          "subscriptions.subscriptions.pastDue": RotateCcw,
+          "subscriptions.subscriptions.mrr": CircleDollarSign,
         },
       },
     ],
@@ -342,6 +292,18 @@ function StatusBadge({ label, tone }: { label: string; tone: Tone }) {
       </Badge>
     )
   return <Badge variant="neutral">{label}</Badge>
+}
+
+/**
+ * Una celda trae dato literal o clave de clasificación, nunca ambos. La clave
+ * llega de la API, así que el tipado no puede validarla: se pide el traductor
+ * con una firma llana.
+ */
+type Translate = (key: string, values?: Record<string, string>) => string
+
+function cellText(t: Translate, cell: Cell) {
+  if (!cell.primaryKey) return cell.primary
+  return t(cell.primaryKey, cell.primaryArgs)
 }
 
 function RequiredLabel({ children }: { children: React.ReactNode }) {
@@ -405,6 +367,9 @@ export function AdminModulePreview({
 }: {
   moduleKey: AdminModuleKey
 }) {
+  const translate = useTranslations("adminOperations")
+  /** Las claves dinámicas de la API no las puede comprobar el tipado. */
+  const t = translate as unknown as Translate
   const moduleConfig = modules[moduleKey]
   const firstTab = moduleConfig.tabs[0]
   const [activeTab, setActiveTab] = React.useState(firstTab.value)
@@ -425,7 +390,7 @@ export function AdminModulePreview({
   const [refreshKey, setRefreshKey] = React.useState(0)
   const [saving, setSaving] = React.useState(false)
   const [pendingDestructive, setPendingDestructive] = React.useState<{
-    action: string
+    actionKeyLabel: string
     actionKey: AdminOperationActionKey
     id: string
     resource: string
@@ -442,12 +407,12 @@ export function AdminModulePreview({
   const total = remote?.pagination.total ?? 0
   const metrics: Metric[] = (remote?.metrics ?? []).map((metric) => ({
     ...metric,
-    icon: active.metricIcons[metric.label] ?? CircleAlert,
+    icon: active.metricIcons[metric.key] ?? CircleAlert,
   }))
   const primaryAction = active.primaryAction
   const PrimaryIcon = primaryAction?.icon
   const formComplete =
-    primaryAction?.fields.every((_, index) =>
+    primaryAction?.fieldKeys.every((_, index) =>
       Boolean(formValues[index]?.trim())
     ) ?? true
 
@@ -496,9 +461,9 @@ export function AdminModulePreview({
             onClick={() => setRefreshKey((current) => current + 1)}
           />
         }
-        description={`No fue posible cargar ${moduleConfig.title.toLowerCase()}.`}
+        description={t("loadFailed")}
         icon={CircleAlert}
-        title="No pudimos cargar esta sección"
+        title={t("loadFailedTitle")}
       />
     )
   }
@@ -506,9 +471,9 @@ export function AdminModulePreview({
   if (requestState === "forbidden") {
     return (
       <EmptyState
-        description="Tu cuenta no tiene permisos para administrar esta sección de la plataforma."
+        description={t("forbiddenDescription")}
         icon={ShieldX}
-        title="Acceso restringido"
+        title={t("forbiddenTitle")}
       />
     )
   }
@@ -518,7 +483,7 @@ export function AdminModulePreview({
   }
 
   function openCreateSheet() {
-    setFormValues(primaryAction?.fields.map(() => "") ?? [])
+    setFormValues(primaryAction?.fieldKeys.map(() => "") ?? [])
     setEditingRowId(null)
     setDialogOpen(true)
   }
@@ -537,19 +502,19 @@ export function AdminModulePreview({
     <div className="flex flex-col gap-4">
       <header className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold tracking-tight">
-          {moduleConfig.title}
+          {t(`module.${moduleKey}.title`)}
         </h1>
         <p className="text-sm text-muted-foreground">
-          {moduleConfig.description}
+          {t(`module.${moduleKey}.description`)}
         </p>
       </header>
 
       {moduleConfig.tabs.length > 1 ? (
         <Tabs onValueChange={changeTab} value={activeTab}>
-          <TabsList aria-label={`Secciones de ${moduleConfig.title}`}>
+          <TabsList aria-label={t(`module.${moduleKey}.tabsLabel`)}>
             {moduleConfig.tabs.map((tab) => (
               <TabsTrigger key={tab.value} value={tab.value}>
-                {tab.label}
+                {t(`tab.${tab.value}`)}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -558,7 +523,13 @@ export function AdminModulePreview({
 
       <CardGrid>
         {metrics.map((metric) => (
-          <MetricCard key={metric.label} {...metric} />
+          <MetricCard
+            description={t(`metric.${metric.key}.description`)}
+            icon={metric.icon}
+            key={metric.key}
+            label={t(`metric.${metric.key}.label`)}
+            value={metric.value}
+          />
         ))}
       </CardGrid>
 
@@ -573,32 +544,37 @@ export function AdminModulePreview({
                 size="sm"
               >
                 <PrimaryIcon aria-hidden="true" data-icon="inline-start" />
-                {primaryAction.label}
+                {t(`create.${moduleKey}.label`)}
               </Button>
             ) : undefined
           }
           search={{
-            ariaLabel: `Buscar en ${active.label}`,
+            ariaLabel: t("searchAriaLabel", {
+              section: t(`tab.${active.value}`),
+            }),
             onChange: (value) => {
               setSearch(value)
               setPageIndex(0)
             },
-            placeholder: active.searchPlaceholder,
+            placeholder: t(`search.${active.value}`),
             value: search,
           }}
         />
         <CardContent className="flex flex-col gap-4 px-0">
           <DataTableToolbar>
             <DataTableFilter
-              ariaLabel="Filtrar por estado"
-              label="Estado"
+              ariaLabel={t("filterStatus")}
+              label={t("statusColumn")}
               onValueChange={(value) => {
                 setStatus(value)
                 setPageIndex(0)
               }}
               options={[
-                { label: "Todos los estados", value: "all" },
-                ...statuses.map((item) => ({ label: item, value: item })),
+                { label: t("allStatuses"), value: "all" },
+                ...statuses.map((item) => ({
+                  label: t(`status.${item}`),
+                  value: item,
+                })),
               ]}
               value={status}
             />
@@ -606,16 +582,18 @@ export function AdminModulePreview({
           <Table>
             <TableHeader>
               <TableRow>
-                {active.columns.map((column, index) => (
+                {active.columnKeys.map((column, index) => (
                   <TableHead
                     className={responsiveColumnClass(index)}
                     key={column}
                   >
-                    {column}
+                    {t(`column.${column}`)}
                   </TableHead>
                 ))}
-                <TableHead>Estado</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
+                <TableHead>{t("statusColumn")}</TableHead>
+                <TableHead className="text-right">
+                  {t("actionsColumn")}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -624,7 +602,7 @@ export function AdminModulePreview({
                   {row.cells.map((cell, index) => (
                     <TableCell
                       className={responsiveColumnClass(index)}
-                      key={`${row.id}-${active.columns[index] ?? index}`}
+                      key={`${row.id}-${active.columnKeys[index] ?? index}`}
                     >
                       <div className="grid gap-0.5">
                         <span
@@ -632,7 +610,7 @@ export function AdminModulePreview({
                             cell.mono ? "font-mono text-xs" : "font-medium"
                           }
                         >
-                          {cell.primary}
+                          {cellText(t, cell)}
                         </span>
                         {cell.secondary ? (
                           <span className="text-xs text-muted-foreground">
@@ -643,13 +621,18 @@ export function AdminModulePreview({
                     </TableCell>
                   ))}
                   <TableCell>
-                    <StatusBadge label={row.status} tone={row.tone} />
+                    <StatusBadge
+                      label={t(`status.${row.statusKey}`)}
+                      tone={row.tone}
+                    />
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
-                          aria-label={`Acciones para ${row.cells[0]?.primary ?? row.id}`}
+                          aria-label={t("rowActions", {
+                            row: row.cells[0]?.primary || row.id,
+                          })}
                           size="icon-sm"
                           variant="brand-secondary"
                         >
@@ -658,7 +641,7 @@ export function AdminModulePreview({
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         {row.actions.map((action, index) => (
-                          <React.Fragment key={action.label}>
+                          <React.Fragment key={action.labelKey}>
                             {action.kind === "destructive" && index > 0 ? (
                               <DropdownMenuSeparator />
                             ) : null}
@@ -674,7 +657,7 @@ export function AdminModulePreview({
                                   if (!action.key) return
                                   if (action.kind === "destructive") {
                                     setPendingDestructive({
-                                      action: action.label,
+                                      actionKeyLabel: action.labelKey,
                                       actionKey: action.key,
                                       id: row.id,
                                       resource: row.cells[0]?.primary ?? row.id,
@@ -684,7 +667,7 @@ export function AdminModulePreview({
                                   if (action.key === "view") {
                                     if (
                                       moduleKey === "affiliate" &&
-                                      action.label === "Ver comisiones"
+                                      action.labelKey === "viewCommissions"
                                     ) {
                                       setActiveTab("commissions")
                                       setSearch(row.cells[0]?.primary ?? "")
@@ -700,7 +683,7 @@ export function AdminModulePreview({
                                       editValuesFor(
                                         moduleKey,
                                         row,
-                                        primaryAction.fields.length
+                                        primaryAction.fieldKeys.length
                                       )
                                     )
                                     setDialogOpen(true)
@@ -715,19 +698,17 @@ export function AdminModulePreview({
                                       action.key
                                     )
                                     .then((result) => {
-                                      toast.success(result.message)
+                                      toast.success(
+                                        t(`message.${result.messageKey}`)
+                                      )
                                       setRefreshKey((current) => current + 1)
                                     })
-                                    .catch(() =>
-                                      toast.error(
-                                        "No se pudo aplicar la acción."
-                                      )
-                                    )
+                                    .catch(() => toast.error(t("actionFailed")))
                                     .finally(() => setSaving(false))
                                 }}
                               >
                                 <RowActionIcon action={action} index={index} />
-                                {action.label}
+                                {t(`rowAction.${action.labelKey}`)}
                               </DropdownMenuItem>
                             </DropdownMenuGroup>
                           </React.Fragment>
@@ -739,16 +720,16 @@ export function AdminModulePreview({
               ))}
               {rows.length === 0 ? (
                 <TableEmptyRow
-                  colSpan={active.columns.length + 2}
+                  colSpan={active.columnKeys.length + 2}
                   description={
                     search || status !== "all"
-                      ? "Prueba con otro término o restablece los filtros."
-                      : `Todavía no hay ${active.label.toLowerCase()} en esta sección.`
+                      ? t("emptyFilteredDescription")
+                      : t(`empty.${active.value}.description`)
                   }
                   title={
                     search || status !== "all"
-                      ? `No encontramos ${active.label.toLowerCase()}`
-                      : `Aún no hay ${active.label.toLowerCase()}`
+                      ? t(`empty.${active.value}.noMatches`)
+                      : t(`empty.${active.value}.title`)
                   }
                 />
               ) : null}
@@ -757,7 +738,7 @@ export function AdminModulePreview({
           <TablePagination
             canGoNext={currentPageIndex < pageCount - 1}
             canGoPrevious={currentPageIndex > 0}
-            itemLabel={active.label.toLowerCase()}
+            itemLabel={t(`itemLabel.${active.value}`)}
             onNextPage={() =>
               setPageIndex((current) => Math.min(current + 1, pageCount - 1))
             }
@@ -775,7 +756,7 @@ export function AdminModulePreview({
         <FloatingActionButton
           disabled={saving}
           icon={<PrimaryIcon aria-hidden="true" className="size-6" />}
-          label={primaryAction.label}
+          label={t(`create.${moduleKey}.label`)}
           onClick={openCreateSheet}
         />
       ) : null}
@@ -794,7 +775,7 @@ export function AdminModulePreview({
               onSubmit={(event) => {
                 event.preventDefault()
                 if (!formComplete) {
-                  toast.error("Completa todos los campos obligatorios.")
+                  toast.error(t("missingFields"))
                   return
                 }
                 setSaving(true)
@@ -811,26 +792,30 @@ export function AdminModulePreview({
                   .then((result) => {
                     setDialogOpen(false)
                     setEditingRowId(null)
-                    toast.success(result.message)
+                    toast.success(t(`message.${result.messageKey}`))
                     setRefreshKey((current) => current + 1)
                   })
-                  .catch(() =>
-                    toast.error("No se pudieron guardar los cambios.")
-                  )
+                  .catch(() => toast.error(t("saveFailed")))
                   .finally(() => setSaving(false))
               }}
             >
               <SheetHeader className="border-b pr-12">
-                <SheetTitle>{primaryAction.dialogTitle}</SheetTitle>
+                <SheetTitle>
+                  {t(
+                    editingRowId
+                      ? `create.${moduleKey}.editTitle`
+                      : `create.${moduleKey}.dialogTitle`
+                  )}
+                </SheetTitle>
                 <SheetDescription>
-                  {primaryAction.dialogDescription}
+                  {t(`create.${moduleKey}.dialogDescription`)}
                 </SheetDescription>
               </SheetHeader>
               <div className="min-h-0 flex-1 overflow-y-auto p-4">
                 <FieldGroup>
-                  {primaryAction.fields.map((field, index) => (
+                  {primaryAction.fieldKeys.map((field, index) => (
                     <Field key={field}>
-                      <RequiredLabel>{field}</RequiredLabel>
+                      <RequiredLabel>{t(`field.${field}`)}</RequiredLabel>
                       <Input
                         aria-required="true"
                         name={`field-${index}`}
@@ -841,7 +826,7 @@ export function AdminModulePreview({
                             )
                           )
                         }
-                        placeholder={field}
+                        placeholder={t(`field.${field}`)}
                         value={formValues[index] ?? ""}
                       />
                     </Field>
@@ -855,7 +840,7 @@ export function AdminModulePreview({
                   type="button"
                   variant="brand-secondary"
                 >
-                  Cancelar
+                  {t("cancel")}
                 </Button>
                 <Button disabled={!formComplete || saving} type="submit">
                   {saving ? (
@@ -863,7 +848,7 @@ export function AdminModulePreview({
                   ) : (
                     <Plus aria-hidden="true" data-icon="inline-start" />
                   )}
-                  {saving ? "Guardando..." : "Guardar"}
+                  {saving ? t("saving") : t("save")}
                 </Button>
               </SheetFooter>
             </form>
@@ -877,19 +862,24 @@ export function AdminModulePreview({
       >
         <SheetContent className="w-full gap-0 p-0 sm:max-w-xl">
           <SheetHeader className="border-b pr-12">
-            <SheetTitle>{detailRow?.cells[0]?.primary ?? "Detalle"}</SheetTitle>
-            <SheetDescription>
-              Información registrada en esta sección administrativa.
-            </SheetDescription>
+            <SheetTitle>
+              {detailRow?.cells[0]?.primary || t("detail")}
+            </SheetTitle>
+            <SheetDescription>{t("detailDescription")}</SheetDescription>
           </SheetHeader>
           <div className="grid min-h-0 flex-1 gap-3 overflow-y-auto p-4">
             {detailRow?.cells.map((cell, index) => (
-              <div className="grid gap-0.5" key={`${cell.primary}-${index}`}>
+              <div
+                className="grid gap-0.5"
+                key={`${cell.primaryKey ?? cell.primary}-${index}`}
+              >
                 <span className="text-xs text-muted-foreground">
-                  {active.columns[index] ?? `Campo ${index + 1}`}
+                  {active.columnKeys[index]
+                    ? t(`column.${active.columnKeys[index]}`)
+                    : t("fieldNumber", { index: String(index + 1) })}
                 </span>
                 <span className={cell.mono ? "font-mono text-sm" : "text-sm"}>
-                  {cell.primary}
+                  {cellText(t, cell)}
                 </span>
                 {cell.secondary ? (
                   <span className="text-xs text-muted-foreground">
@@ -904,7 +894,7 @@ export function AdminModulePreview({
               onClick={() => setDetailRow(null)}
               variant="brand-secondary"
             >
-              Cerrar
+              {t("close")}
             </Button>
           </SheetFooter>
         </SheetContent>
@@ -918,16 +908,19 @@ export function AdminModulePreview({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar acción</AlertDialogTitle>
+            <AlertDialogTitle>{t("confirmTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
               {pendingDestructive
-                ? `${pendingDestructive.action} sobre ${pendingDestructive.resource}. Esta acción quedará registrada en auditoría.`
-                : "Confirma la acción seleccionada."}
+                ? t("confirmDescription", {
+                    action: t(`rowAction.${pendingDestructive.actionKeyLabel}`),
+                    resource: pendingDestructive.resource,
+                  })
+                : t("confirmFallback")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={saving} variant="brand-secondary">
-              Cancelar
+              {t("cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               disabled={saving}
@@ -939,11 +932,11 @@ export function AdminModulePreview({
                 void adminOperationsApi
                   .action(moduleKey, activeTab, pending.id, pending.actionKey)
                   .then((result) => {
-                    toast.success(result.message)
+                    toast.success(t(`message.${result.messageKey}`))
                     setRefreshKey((current) => current + 1)
                     setPendingDestructive(null)
                   })
-                  .catch(() => toast.error("No se pudo aplicar la acción."))
+                  .catch(() => toast.error(t("actionFailed")))
                   .finally(() => setSaving(false))
               }}
               variant="destructive"
@@ -953,7 +946,7 @@ export function AdminModulePreview({
               ) : (
                 <Trash2 data-icon="inline-start" />
               )}
-              {saving ? "Aplicando..." : "Confirmar"}
+              {saving ? t("applying") : t("confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

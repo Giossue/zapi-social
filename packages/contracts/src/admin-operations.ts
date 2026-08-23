@@ -44,29 +44,35 @@ export const adminOperationActionKeySchema = z.enum([
 ])
 
 export const adminOperationCellSchema = z.object({
+  /** Dato literal. Queda vacío cuando la celda se resuelve por clave. */
   primary: z.string(),
+  /** Clasificación o texto fijo: la interfaz lo traduce en vez de `primary`. */
+  primaryKey: z.string().optional(),
+  primaryArgs: z.record(z.string(), z.string()).optional(),
   secondary: z.string().optional(),
   mono: z.boolean().optional(),
 })
 
 export const adminOperationActionSchema = z.object({
   key: adminOperationActionKeySchema,
-  label: z.string(),
+  /** Clave del rótulo: varias acciones comparten `key` con textos distintos. */
+  labelKey: z.string(),
   kind: z.enum(["destructive", "success"]).optional(),
 })
 
 export const adminOperationRowSchema = z.object({
   id: z.uuid(),
   cells: z.array(adminOperationCellSchema),
-  status: z.string(),
+  /** Clave del estado; también es el valor con el que la cola filtra. */
+  statusKey: z.string(),
   tone: adminOperationToneSchema,
   actions: z.array(adminOperationActionSchema),
 })
 
 export const adminOperationMetricSchema = z.object({
-  label: z.string(),
+  /** Clave `<módulo>.<pestaña>.<métrica>`; la interfaz pone rótulo y detalle. */
+  key: z.string(),
   value: z.string(),
-  description: z.string(),
 })
 
 export const adminOperationViewSchema = z.object({
@@ -96,7 +102,7 @@ export const runAdminOperationActionSchema = z
 
 export const adminOperationMutationResultSchema = z.object({
   success: z.literal(true),
-  message: z.string(),
+  messageKey: z.string(),
 })
 
 export const polarEnvironmentSchema = z.enum(["sandbox", "live"])
@@ -159,7 +165,7 @@ export const updatePolarIntegrationSchema = polarConfigurationDraftSchema
       context.addIssue({
         code: "custom",
         path: ["monthlyProductId"],
-        message: "Configura los productos recurrentes.",
+        message: "RECURRING_PRODUCTS_REQUIRED",
       })
     }
   })

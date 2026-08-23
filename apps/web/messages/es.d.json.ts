@@ -188,6 +188,506 @@ declare const messages: {
     deleteDescription: "Se elimina «{title}» y su historial de lecturas. Esta acción no se puede deshacer."
     cancel: "Cancelar"
   }
+  adminOperations: {
+    actionFailed: "No se pudo aplicar la acción."
+    actionsColumn: "Acciones"
+    allPayments: "Todos los pagos"
+    allStatuses: "Todos los estados"
+    applying: "Aplicando..."
+    cancel: "Cancelar"
+    close: "Cerrar"
+    column: {
+      access: "Acceso"
+      action: "Acción"
+      affiliate: "Afiliado"
+      amount: "Importe"
+      balance: "Saldo"
+      clicks: "Clics"
+      code: "Código"
+      commission: "Comisión"
+      conversions: "Conversiones"
+      coupon: "Cupón"
+      created: "Creada"
+      credits: "Créditos"
+      customer: "Cliente"
+      date: "Fecha"
+      discount: "Descuento"
+      feature: "Función"
+      invoice: "Factura"
+      method: "Método"
+      order: "Orden"
+      pack: "Paquete"
+      payment: "Pago"
+      plan: "Plan"
+      plans: "Planes"
+      price: "Precio"
+      product: "Producto"
+      purchases: "Compras"
+      quantity: "Cantidad"
+      referred: "Referido"
+      renewal: "Renovación"
+      request: "Solicitud"
+      requested: "Solicitada"
+      signup: "Registro"
+      subscription: "Suscripción"
+      transaction: "Transacción"
+      type: "Tipo"
+      updated: "Actualizada"
+      usage: "Uso"
+      user: "Usuario"
+      validity: "Vigencia"
+      workspace: "Espacio"
+    }
+    confirm: "Confirmar"
+    confirmDescription: "{action} sobre {resource}. Esta acción quedará registrada en auditoría."
+    confirmFallback: "Confirma la acción seleccionada."
+    confirmTitle: "Confirmar acción"
+    create: {
+      coupons: {
+        dialogDescription: "Configura el descuento que Polar aplicará durante el checkout."
+        dialogTitle: "Crear cupón"
+        editTitle: "Editar cupón"
+        label: "Crear cupón"
+      }
+      credits: {
+        dialogDescription: "Define una oferta de recarga disponible para los clientes."
+        dialogTitle: "Nuevo paquete de créditos"
+        editTitle: "Editar paquete"
+        label: "Añadir paquete"
+      }
+      users: {
+        dialogDescription: "Crea una cuenta de Portal y asigna su acceso inicial."
+        dialogTitle: "Crear usuario"
+        editTitle: "Editar usuario"
+        label: "Crear usuario"
+      }
+    }
+    detail: "Detalle"
+    detailDescription: "Información registrada en esta sección administrativa."
+    eligiblePlans: "{count, plural, one {# plan} other {# planes}}"
+    empty: {
+      commissions: {
+        description: "Todavía no hay comisiones en esta sección."
+        noMatches: "No encontramos comisiones"
+        title: "Aún no hay comisiones"
+      }
+      coupons: {
+        description: "Todavía no hay cupones en esta sección."
+        noMatches: "No encontramos cupones"
+        title: "Aún no hay cupones"
+      }
+      ledger: {
+        description: "Todavía no hay movimientos en esta sección."
+        noMatches: "No encontramos movimientos"
+        title: "Aún no hay movimientos"
+      }
+      overview: {
+        description: "Todavía no hay afiliados en esta sección."
+        noMatches: "No encontramos afiliados"
+        title: "Aún no hay afiliados"
+      }
+      packs: {
+        description: "Todavía no hay paquetes en esta sección."
+        noMatches: "No encontramos paquetes"
+        title: "Aún no hay paquetes"
+      }
+      payments: {
+        description: "Todavía no hay pagos en esta sección."
+        noMatches: "No encontramos pagos"
+        title: "Aún no hay pagos"
+      }
+      subscriptions: {
+        description: "Todavía no hay suscripciones en esta sección."
+        noMatches: "No encontramos suscripciones"
+        title: "Aún no hay suscripciones"
+      }
+      usage: {
+        description: "Todavía no hay consumo registrado en esta sección."
+        noMatches: "No encontramos registros de uso"
+        title: "Aún no hay registros de uso"
+      }
+      users: {
+        description: "Todavía no hay usuarios en esta sección."
+        noMatches: "No encontramos usuarios"
+        title: "Aún no hay usuarios"
+      }
+      withdrawals: {
+        description: "Todavía no hay retiros en esta sección."
+        noMatches: "No encontramos retiros"
+        title: "Aún no hay retiros"
+      }
+    }
+    emptyFilteredDescription: "Prueba con otro término o restablece los filtros."
+    field: {
+      code: "Código"
+      credits: "Créditos"
+      discountValue: "Valor del descuento"
+      displayName: "Nombre visible"
+      email: "Correo electrónico"
+      name: "Nombre"
+      plan: "Plan"
+      price: "Precio"
+    }
+    fieldNumber: "Campo {index}"
+    filterStatus: "Filtrar por estado"
+    forbiddenDescription: "Tu cuenta no tiene permisos para administrar esta sección de la plataforma."
+    forbiddenTitle: "Acceso restringido"
+    itemLabel: {
+      commissions: "comisiones"
+      coupons: "cupones"
+      ledger: "movimientos"
+      overview: "afiliados"
+      packs: "paquetes"
+      payments: "pagos"
+      subscriptions: "suscripciones"
+      usage: "registros"
+      users: "usuarios"
+      withdrawals: "retiros"
+    }
+    ledgerType: {
+      adjustment: "Ajuste"
+      purchase: "Compra"
+      reversal: "Reverso"
+      spend: "Consumo"
+    }
+    loadFailed: "No fue posible cargar la información de esta sección."
+    loadFailedTitle: "No pudimos cargar esta sección"
+    message: {
+      actionApplied: "Acción aplicada."
+      changesSaved: "Cambios guardados."
+      detailInRow: "Detalle disponible en la fila."
+    }
+    metric: {
+      affiliate: {
+        commissions: {
+          available: {
+            description: "Listas para retirar"
+            label: "Disponibles"
+          }
+          pending: {
+            description: "En período de espera"
+            label: "Pendientes"
+          }
+          rejected: {
+            description: "No elegibles"
+            label: "Rechazadas"
+          }
+          total: {
+            description: "Registros totales"
+            label: "Comisiones"
+          }
+        }
+        overview: {
+          approved: {
+            description: "Ganancia disponible"
+            label: "Aprobado"
+          }
+          clicks: {
+            description: "Visitas referidas"
+            label: "Clics"
+          }
+          conversions: {
+            description: "Pagos atribuidos"
+            label: "Conversiones"
+          }
+          total: {
+            description: "Perfiles activos"
+            label: "Afiliados"
+          }
+        }
+        withdrawals: {
+          approved: {
+            description: "Listos para pagar"
+            label: "Aprobados"
+          }
+          paid: {
+            description: "Acumulado enviado"
+            label: "Pagados"
+          }
+          pending: {
+            description: "Esperan revisión"
+            label: "Pendientes"
+          }
+          total: {
+            description: "Retiros históricos"
+            label: "Solicitudes"
+          }
+        }
+      }
+      coupons: {
+        coupons: {
+          active: {
+            description: "Disponibles hoy"
+            label: "Activos"
+          }
+          redemptions: {
+            description: "Usos acumulados"
+            label: "Canjes"
+          }
+          total: {
+            description: "Códigos creados"
+            label: "Cupones"
+          }
+          unlimited: {
+            description: "Uso ilimitado"
+            label: "Sin límite"
+          }
+        }
+      }
+      credits: {
+        ledger: {
+          available: {
+            description: "Saldo abierto"
+            label: "Disponibles"
+          }
+          granted: {
+            description: "Compras y ajustes"
+            label: "Otorgados"
+          }
+          purchases: {
+            description: "Recargas pagadas"
+            label: "Compras"
+          }
+          total: {
+            description: "Filas del libro"
+            label: "Movimientos"
+          }
+        }
+        packs: {
+          active: {
+            description: "Disponibles en Portal"
+            label: "Activos"
+          }
+          featured: {
+            description: "Oferta principal"
+            label: "Destacados"
+          }
+          sales: {
+            description: "Compras históricas"
+            label: "Ventas"
+          }
+          total: {
+            description: "Ofertas configuradas"
+            label: "Paquetes"
+          }
+        }
+        usage: {
+          actions: {
+            description: "Claves de consumo"
+            label: "Acciones"
+          }
+          consumed: {
+            description: "Créditos gastados"
+            label: "Consumidos"
+          }
+          total: {
+            description: "Usos medidos"
+            label: "Registros"
+          }
+          users: {
+            description: "Consumidores únicos"
+            label: "Usuarios"
+          }
+        }
+      }
+      payments: {
+        payments: {
+          completed: {
+            description: "Pagos confirmados"
+            label: "Completadas"
+          }
+          refunded: {
+            description: "Total o parcial"
+            label: "Reembolsadas"
+          }
+          total: {
+            description: "Registros de Polar"
+            label: "Transacciones"
+          }
+          volume: {
+            description: "Importe completado"
+            label: "Volumen"
+          }
+        }
+      }
+      subscriptions: {
+        subscriptions: {
+          active: {
+            description: "Renovación vigente"
+            label: "Activas"
+          }
+          mrr: {
+            description: "Valor mensual activo"
+            label: "MRR"
+          }
+          pastDue: {
+            description: "Polar reintentando"
+            label: "En mora"
+          }
+          total: {
+            description: "Registros de Polar"
+            label: "Suscripciones"
+          }
+        }
+      }
+      users: {
+        users: {
+          new: {
+            description: "Últimos 7 días"
+            label: "Nuevos"
+          }
+          review: {
+            description: "Acceso incompleto"
+            label: "Por revisar"
+          }
+          total: {
+            description: "Cuentas visibles"
+            label: "Usuarios"
+          }
+          withPlan: {
+            description: "Cobertura de plan"
+            label: "Con plan"
+          }
+        }
+      }
+    }
+    missingFields: "Completa todos los campos obligatorios."
+    module: {
+      affiliate: {
+        description: "Revisa referidos, comisiones y solicitudes de retiro."
+        tabsLabel: "Secciones de Afiliados"
+        title: "Afiliados"
+      }
+      coupons: {
+        description: "Administra descuentos, vigencia, límites y planes elegibles."
+        tabsLabel: "Secciones de Cupones"
+        title: "Cupones"
+      }
+      credits: {
+        description: "Controla paquetes, movimientos y consumo de créditos del sistema."
+        tabsLabel: "Secciones de Créditos"
+        title: "Créditos"
+      }
+      payments: {
+        description: "Consulta transacciones procesadas únicamente mediante Polar.sh."
+        tabsLabel: "Secciones de Pagos"
+        title: "Pagos"
+      }
+      subscriptions: {
+        description: "Supervisa renovaciones, cobros fallidos y cancelaciones en Polar.sh."
+        tabsLabel: "Secciones de Suscripciones"
+        title: "Suscripciones"
+      }
+      users: {
+        description: "Administra las cuentas de Portal, su acceso, plan y estado."
+        tabsLabel: "Secciones de Usuarios"
+        title: "Usuarios"
+      }
+    }
+    noExpiry: "Sin vencimiento"
+    noPlan: "Sin plan"
+    noReferredUser: "Sin usuario"
+    noWorkspace: "Sin espacio"
+    referencePending: "Por definir"
+    referenceSet: "Referencia registrada"
+    role: {
+      admin: "Administración"
+      member: "Miembro"
+      none: "Sin acceso"
+      owner: "Propietaria"
+    }
+    rowAction: {
+      activate: "Activar"
+      approve: "Aprobar"
+      cancelAtPeriodEnd: "Cancelar al final"
+      deactivate: "Desactivar"
+      duplicate: "Duplicar"
+      editCoupon: "Editar cupón"
+      editPack: "Editar paquete"
+      editUser: "Editar usuario"
+      markPaid: "Marcar pagado"
+      reactivate: "Reactivar"
+      refund: "Reembolsar"
+      reject: "Rechazar"
+      remove: "Eliminar"
+      revoke: "Revocar ahora"
+      sync: "Sincronizar"
+      uncancel: "Reactivar"
+      viewAffiliate: "Ver afiliado"
+      viewCommissions: "Ver comisiones"
+      viewDetail: "Ver detalle"
+      viewLedgerEntry: "Ver movimiento"
+      viewReceipt: "Ver recibo"
+      viewRefund: "Ver reembolso"
+      viewSubscription: "Ver suscripción"
+      viewUser: "Ver usuario"
+    }
+    rowActions: "Acciones para {row}"
+    save: "Guardar"
+    saveFailed: "No se pudieron guardar los cambios."
+    saving: "Guardando..."
+    search: {
+      commissions: "Buscar afiliado, referido o pago..."
+      coupons: "Buscar nombre, código o descuento..."
+      ledger: "Buscar usuario, paquete o movimiento..."
+      overview: "Buscar afiliado o código..."
+      packs: "Buscar paquete..."
+      payments: "Buscar factura, usuario o transacción..."
+      subscriptions: "Buscar suscripción, cliente o plan..."
+      usage: "Buscar usuario, acción o función..."
+      users: "Buscar por nombre o correo..."
+      withdrawals: "Buscar afiliado, retiro o método..."
+    }
+    searchAriaLabel: "Buscar en {section}"
+    status: {
+      active: "Activo"
+      applied: "Aplicado"
+      cancelsAtPeriodEnd: "Cancela al final"
+      charged: "Cobrado"
+      commissionAvailable: "Disponible"
+      commissionPaid: "Pagada"
+      commissionPending: "Pendiente"
+      commissionRejected: "Rechazada"
+      deactivated: "Desactivado"
+      expired: "Vencido"
+      hidden: "Oculto"
+      inactive: "Inactivo"
+      manual: "Manual"
+      paused: "Pausado"
+      paymentCompleted: "Completado"
+      paymentFailed: "Fallido"
+      paymentPartiallyRefunded: "Reembolso parcial"
+      paymentPending: "Pendiente"
+      paymentRefunded: "Reembolsado"
+      reverted: "Revertido"
+      subscriptionActive: "Activa"
+      subscriptionCanceled: "Cancelada"
+      subscriptionIncomplete: "Incompleta"
+      subscriptionPastDue: "En mora"
+      subscriptionPaused: "Pausada"
+      subscriptionTrialing: "Prueba"
+      subscriptionUnpaid: "Impaga"
+      withdrawalApproved: "Aprobado"
+      withdrawalPaid: "Pagado"
+      withdrawalRejected: "Rechazado"
+      withdrawalRequested: "Pendiente"
+    }
+    statusColumn: "Estado"
+    system: "Sistema"
+    tab: {
+      commissions: "Comisiones"
+      coupons: "Cupones"
+      ledger: "Movimientos"
+      overview: "Afiliados"
+      packs: "Paquetes"
+      payments: "Pagos"
+      subscriptions: "Suscripciones"
+      usage: "Uso"
+      users: "Usuarios"
+      withdrawals: "Retiros"
+    }
+    untilDate: "Hasta {date}"
+  }
   adminPaymentReport: {
     pageTitle: "Reporte de pagos"
     pageDescription: "Cobros liquidados, reembolsos y facturación por producto en el periodo seleccionado."

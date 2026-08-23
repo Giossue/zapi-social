@@ -43,6 +43,7 @@ import { PasswordResetService } from '../identity/password-reset.service';
 import { BillingPolarService } from './billing-polar.service';
 
 type Row = AdminOperationView['rows'][number];
+type Cell = Row['cells'][number];
 type Metric = AdminOperationView['metrics'][number];
 
 @Injectable()
@@ -87,7 +88,7 @@ export class AdminOperationsService {
       await this.createCreditPackage(session, values);
     else if (module === 'coupons') await this.createCoupon(session, values);
     else throw new BadRequestException('Resource cannot be created here');
-    return { success: true as const, message: 'Cambios guardados.' };
+    return { success: true as const, messageKey: 'changesSaved' };
   }
 
   async action(
@@ -106,10 +107,7 @@ export class AdminOperationsService {
     const action = parsed.data.action;
 
     if (action === 'view') {
-      return {
-        success: true as const,
-        message: 'Detalle disponible en la fila.',
-      };
+      return { success: true as const, messageKey: 'detailInRow' };
     }
     if (module === 'users')
       await this.userAction(session, id, action, parsed.data.values);
@@ -123,7 +121,7 @@ export class AdminOperationsService {
       await this.paymentAction(session, id, action);
     else if (module === 'subscriptions')
       await this.subscriptionAction(session, id, action);
-    return { success: true as const, message: 'Acción aplicada.' };
+    return { success: true as const, messageKey: 'actionApplied' };
   }
 
   private async usersView(query: AdminOperationQuery) {
@@ -156,47 +154,49 @@ export class AdminOperationsService {
       cells: [
         { primary: record.name, secondary: record.email },
         {
-          primary: this.role(record.role),
+          primary: '',
+          primaryKey: `role.${this.role(record.role)}`,
           secondary: record.workspaceName ?? undefined,
         },
-        { primary: record.planName ?? 'Sin plan' },
-        { primary: record.workspaceName ?? 'Sin espacio' },
+        record.planName
+          ? { primary: record.planName }
+          : { primary: '', primaryKey: 'noPlan' },
+        record.workspaceName
+          ? { primary: record.workspaceName }
+          : { primary: '', primaryKey: 'noWorkspace' },
         { primary: this.date(record.createdAt) },
       ],
-      status: record.status === 'active' ? 'Activo' : 'Desactivado',
+      statusKey: record.status === 'active' ? 'active' : 'deactivated',
       tone: record.status === 'active' ? 'success' : 'neutral',
       actions:
         record.status === 'active'
           ? [
-              this.actionItem('view', 'Ver usuario'),
-              this.actionItem('edit', 'Editar usuario'),
-              this.actionItem('deactivate', 'Desactivar', 'destructive'),
+              this.actionItem('view', 'viewUser'),
+              this.actionItem('edit', 'editUser'),
+              this.actionItem('deactivate', 'deactivate', 'destructive'),
             ]
           : [
-              this.actionItem('view', 'Ver usuario'),
-              this.actionItem('reactivate', 'Reactivar', 'success'),
+              this.actionItem('view', 'viewUser'),
+              this.actionItem('reactivate', 'reactivate', 'success'),
             ],
     }));
     const now = Date.now();
     const metrics: Metric[] = [
-      this.metric('Usuarios', unique.length, 'Cuentas visibles'),
+      this.metric('users.users.total', unique.length),
       this.metric(
-        'Nuevos',
+        'users.users.new',
         unique.filter((row) => now - row.createdAt.getTime() <= 604_800_000)
           .length,
-        'Últimos 7 días',
       ),
       this.metric(
-        'Con plan',
+        'users.users.withPlan',
         unique.length
           ? `${Math.round((unique.filter((row) => row.planName).length / unique.length) * 100)}%`
           : '0%',
-        'Cobertura de plan',
       ),
       this.metric(
-        'Por revisar',
+        'users.users.review',
         unique.filter((row) => !row.workspaceName || !row.planName).length,
-        'Acceso incompleto',
       ),
     ];
     return this.paginate(metrics, rows, query);
@@ -238,31 +238,29 @@ export class AdminOperationsService {
           { primary: this.integer(record.purchases) },
           { primary: String(record.position) },
         ],
-        status: record.status === 'active' ? 'Activo' : 'Oculto',
+        statusKey: record.status === 'active' ? 'active' : 'hidden',
         tone: record.status === 'active' ? 'success' : 'neutral',
         actions: [
-          this.actionItem('edit', 'Editar paquete'),
+          this.actionItem('edit', 'editPack'),
           record.status === 'active'
-            ? this.actionItem('duplicate', 'Duplicar')
-            : this.actionItem('reactivate', 'Activar', 'success'),
-          this.actionItem('remove', 'Eliminar', 'destructive'),
+            ? this.actionItem('duplicate', 'duplicate')
+            : this.actionItem('reactivate', 'activate', 'success'),
+          this.actionItem('remove', 'remove', 'destructive'),
         ],
       }));
       const sales = records.reduce((total, item) => total + item.purchases, 0);
       return this.paginate(
         [
-          this.metric('Paquetes', records.length, 'Ofertas configuradas'),
+          this.metric('credits.packs.total', records.length),
           this.metric(
-            'Activos',
+            'credits.packs.active',
             records.filter((item) => item.status === 'active').length,
-            'Disponibles en Portal',
           ),
           this.metric(
-            'Destacados',
+            'credits.packs.featured',
             records.filter((item) => item.featured).length,
-            'Oferta principal',
           ),
-          this.metric('Ventas', sales, 'Compras históricas'),
+          this.metric('credits.packs.sales', sales),
         ],
         rows,
         query,
@@ -287,11 +285,13 @@ export class AdminOperationsService {
       const rows: Row[] = ledger.map((record) => ({
         id: record.id,
         cells: [
+          record.name
+            ? { primary: record.name, secondary: record.email ?? undefined }
+            : { primary: '', primaryKey: 'system' },
           {
-            primary: record.name ?? 'Sistema',
-            secondary: record.email ?? undefined,
+            primary: '',
+            primaryKey: `ledgerType.${this.ledgerType(record.type)}`,
           },
-          { primary: this.ledgerType(record.type) },
           {
             primary: this.metadataString(record.metadata, 'packageName') ?? '—',
           },
@@ -301,36 +301,33 @@ export class AdminOperationsService {
           { primary: '—' },
           { primary: this.date(record.createdAt) },
         ],
-        status: record.type === 'adjustment' ? 'Manual' : 'Aplicado',
+        statusKey: record.type === 'adjustment' ? 'manual' : 'applied',
         tone: record.type === 'adjustment' ? 'warning' : 'success',
-        actions: [this.actionItem('view', 'Ver movimiento')],
+        actions: [this.actionItem('view', 'viewLedgerEntry')],
       }));
       const credits = await this.database.db
         .select()
         .from(workspaceCreditAccounts);
       return this.paginate(
         [
-          this.metric('Movimientos', ledger.length, 'Filas del libro'),
+          this.metric('credits.ledger.total', ledger.length),
           this.metric(
-            'Compras',
+            'credits.ledger.purchases',
             ledger.filter((item) => item.action === 'credits.purchase').length,
-            'Recargas pagadas',
           ),
           this.metric(
-            'Otorgados',
+            'credits.ledger.granted',
             this.integer(
               ledger
                 .filter((item) => item.units > 0)
                 .reduce((sum, item) => sum + item.units, 0),
             ),
-            'Compras y ajustes',
           ),
           this.metric(
-            'Disponibles',
+            'credits.ledger.available',
             this.integer(
               credits.reduce((sum, item) => sum + item.balanceUnits, 0),
             ),
-            'Saldo abierto',
           ),
         ],
         rows,
@@ -343,10 +340,9 @@ export class AdminOperationsService {
     const rows: Row[] = usage.map((record) => ({
       id: record.id,
       cells: [
-        {
-          primary: record.name ?? 'Sistema',
-          secondary: record.email ?? undefined,
-        },
+        record.name
+          ? { primary: record.name, secondary: record.email ?? undefined }
+          : { primary: '', primaryKey: 'system' },
         { primary: record.action, mono: true },
         {
           primary:
@@ -357,31 +353,28 @@ export class AdminOperationsService {
         { primary: '1' },
         { primary: this.date(record.createdAt) },
       ],
-      status: record.type === 'refund' ? 'Revertido' : 'Cobrado',
+      statusKey: record.type === 'refund' ? 'reverted' : 'charged',
       tone: record.type === 'refund' ? 'neutral' : 'success',
-      actions: [this.actionItem('view', 'Ver detalle')],
+      actions: [this.actionItem('view', 'viewDetail')],
     }));
     return this.paginate(
       [
-        this.metric('Registros', usage.length, 'Usos medidos'),
+        this.metric('credits.usage.total', usage.length),
         this.metric(
-          'Consumidos',
+          'credits.usage.consumed',
           this.integer(
             usage
               .filter((item) => item.units < 0)
               .reduce((sum, item) => sum + Math.abs(item.units), 0),
           ),
-          'Créditos gastados',
         ),
         this.metric(
-          'Usuarios',
+          'credits.usage.users',
           new Set(usage.map((item) => item.email).filter(Boolean)).size,
-          'Consumidores únicos',
         ),
         this.metric(
-          'Acciones',
+          'credits.usage.actions',
           new Set(usage.map((item) => item.action)).size,
-          'Claves de consumo',
         ),
       ],
       rows,
@@ -435,45 +428,41 @@ export class AdminOperationsService {
           { primary: this.integer(record.conversions) },
           { primary: this.money(record.balance, record.currency) },
         ],
-        status: record.status === 'active' ? 'Activo' : 'Pausado',
+        statusKey: record.status === 'active' ? 'active' : 'paused',
         tone: record.status === 'active' ? 'success' : 'neutral',
         actions:
           record.status === 'active'
             ? [
-                this.actionItem('view', 'Ver afiliado'),
-                this.actionItem('view', 'Ver comisiones'),
+                this.actionItem('view', 'viewAffiliate'),
+                this.actionItem('view', 'viewCommissions'),
               ]
             : [
-                this.actionItem('view', 'Ver afiliado'),
-                this.actionItem('reactivate', 'Reactivar', 'success'),
+                this.actionItem('view', 'viewAffiliate'),
+                this.actionItem('reactivate', 'reactivate', 'success'),
               ],
       }));
       return this.paginate(
         [
           this.metric(
-            'Afiliados',
+            'affiliate.overview.total',
             profiles.filter((item) => item.status === 'active').length,
-            'Perfiles activos',
           ),
           this.metric(
-            'Clics',
+            'affiliate.overview.clicks',
             this.integer(profiles.reduce((sum, item) => sum + item.clicks, 0)),
-            'Visitas referidas',
           ),
           this.metric(
-            'Conversiones',
+            'affiliate.overview.conversions',
             this.integer(
               profiles.reduce((sum, item) => sum + item.conversions, 0),
             ),
-            'Pagos atribuidos',
           ),
           this.metric(
-            'Aprobado',
+            'affiliate.overview.approved',
             this.money(
               profiles.reduce((sum, item) => sum + item.balance, 0),
               'USD',
             ),
-            'Ganancia disponible',
           ),
         ],
         rows,
@@ -514,15 +503,17 @@ export class AdminOperationsService {
         id: record.id,
         cells: [
           { primary: record.affiliateName },
-          {
-            primary: record.referredName ?? 'Sin usuario',
-            secondary: record.referredEmail ?? undefined,
-          },
+          record.referredName
+            ? {
+                primary: record.referredName,
+                secondary: record.referredEmail ?? undefined,
+              }
+            : { primary: '', primaryKey: 'noReferredUser' },
           { primary: record.reference ?? '—', mono: true },
           { primary: this.money(record.amount, record.currency) },
           { primary: this.date(record.createdAt) },
         ],
-        status: this.commissionStatus(record.status),
+        statusKey: this.commissionStatus(record.status),
         tone:
           record.status === 'pending'
             ? 'warning'
@@ -532,33 +523,30 @@ export class AdminOperationsService {
         actions:
           record.status === 'pending'
             ? [
-                this.actionItem('approve', 'Aprobar', 'success'),
-                this.actionItem('reject', 'Rechazar', 'destructive'),
+                this.actionItem('approve', 'approve', 'success'),
+                this.actionItem('reject', 'reject', 'destructive'),
               ]
-            : [this.actionItem('view', 'Ver detalle')],
+            : [this.actionItem('view', 'viewDetail')],
       }));
       return this.paginate(
         [
-          this.metric('Comisiones', records.length, 'Registros totales'),
+          this.metric('affiliate.commissions.total', records.length),
           this.metric(
-            'Pendientes',
+            'affiliate.commissions.pending',
             records.filter((item) => item.status === 'pending').length,
-            'En período de espera',
           ),
           this.metric(
-            'Disponibles',
+            'affiliate.commissions.available',
             this.money(
               records
                 .filter((item) => item.status === 'available')
                 .reduce((sum, item) => sum + item.amount, 0),
               'USD',
             ),
-            'Listas para retirar',
           ),
           this.metric(
-            'Rechazadas',
+            'affiliate.commissions.rejected',
             records.filter((item) => item.status === 'cancelled').length,
-            'No elegibles',
           ),
         ],
         rows,
@@ -589,11 +577,14 @@ export class AdminOperationsService {
       cells: [
         { primary: record.name, secondary: record.email },
         { primary: `WD-${record.id.slice(0, 8).toUpperCase()}`, mono: true },
-        { primary: record.reference ? 'Referencia registrada' : 'Por definir' },
+        {
+          primary: '',
+          primaryKey: record.reference ? 'referenceSet' : 'referencePending',
+        },
         { primary: this.money(record.amount, record.currency) },
         { primary: this.date(record.createdAt) },
       ],
-      status: this.withdrawalStatus(record.status),
+      statusKey: this.withdrawalStatus(record.status),
       tone:
         record.status === 'requested'
           ? 'warning'
@@ -603,43 +594,40 @@ export class AdminOperationsService {
       actions:
         record.status === 'requested'
           ? [
-              this.actionItem('approve', 'Aprobar', 'success'),
-              this.actionItem('reject', 'Rechazar', 'destructive'),
+              this.actionItem('approve', 'approve', 'success'),
+              this.actionItem('reject', 'reject', 'destructive'),
             ]
           : record.status === 'approved'
             ? [
-                this.actionItem('mark_paid', 'Marcar pagado', 'success'),
-                this.actionItem('view', 'Ver detalle'),
+                this.actionItem('mark_paid', 'markPaid', 'success'),
+                this.actionItem('view', 'viewDetail'),
               ]
-            : [this.actionItem('view', 'Ver detalle')],
+            : [this.actionItem('view', 'viewDetail')],
     }));
     return this.paginate(
       [
-        this.metric('Solicitudes', records.length, 'Retiros históricos'),
+        this.metric('affiliate.withdrawals.total', records.length),
         this.metric(
-          'Pendientes',
+          'affiliate.withdrawals.pending',
           records.filter((item) => item.status === 'requested').length,
-          'Esperan revisión',
         ),
         this.metric(
-          'Aprobados',
+          'affiliate.withdrawals.approved',
           this.money(
             records
               .filter((item) => item.status === 'approved')
               .reduce((sum, item) => sum + item.amount, 0),
             'USD',
           ),
-          'Listos para pagar',
         ),
         this.metric(
-          'Pagados',
+          'affiliate.withdrawals.paid',
           this.money(
             records
               .filter((item) => item.status === 'paid')
               .reduce((sum, item) => sum + item.amount, 0),
             'USD',
           ),
-          'Acumulado enviado',
         ),
       ],
       rows,
@@ -656,64 +644,66 @@ export class AdminOperationsService {
     const now = new Date();
     const rows: Row[] = records.map((record) => {
       const expired = Boolean(record.endsAt && record.endsAt < now);
-      const status = expired
-        ? 'Vencido'
+      const statusKey = expired
+        ? 'expired'
         : record.status === 'active'
-          ? 'Activo'
-          : 'Inactivo';
+          ? 'active'
+          : 'inactive';
+      const cells: Cell[] = [
+        { primary: record.name, secondary: record.code, mono: true },
+        {
+          primary:
+            record.type === 'percentage'
+              ? `${record.value / 100}%`
+              : this.money(record.value, record.currency ?? 'USD'),
+        },
+        {
+          primary: `${this.integer(record.redemptionCount)} / ${record.maxRedemptions ? this.integer(record.maxRedemptions) : '∞'}`,
+        },
+        record.eligiblePlanIds.length
+          ? {
+              primary: '',
+              primaryKey: 'eligiblePlans',
+              primaryArgs: { count: String(record.eligiblePlanIds.length) },
+            }
+          : { primary: '', primaryKey: 'allPayments' },
+        record.endsAt
+          ? {
+              primary: '',
+              primaryKey: 'untilDate',
+              primaryArgs: { date: this.date(record.endsAt) },
+            }
+          : { primary: '', primaryKey: 'noExpiry' },
+      ];
       return {
         id: record.id,
-        cells: [
-          { primary: record.name, secondary: record.code, mono: true },
-          {
-            primary:
-              record.type === 'percentage'
-                ? `${record.value / 100}%`
-                : this.money(record.value, record.currency ?? 'USD'),
-          },
-          {
-            primary: `${this.integer(record.redemptionCount)} / ${record.maxRedemptions ? this.integer(record.maxRedemptions) : '∞'}`,
-          },
-          {
-            primary: record.eligiblePlanIds.length
-              ? `${record.eligiblePlanIds.length} planes`
-              : 'Todos los pagos',
-          },
-          {
-            primary: record.endsAt
-              ? `Hasta ${this.date(record.endsAt)}`
-              : 'Sin vencimiento',
-          },
-        ],
-        status,
-        tone: status === 'Activo' ? 'success' : 'neutral',
+        cells,
+        statusKey,
+        tone: statusKey === 'active' ? 'success' : 'neutral',
         actions: [
-          this.actionItem('edit', 'Editar cupón'),
-          this.actionItem('duplicate', 'Duplicar'),
-          this.actionItem('remove', 'Eliminar', 'destructive'),
+          this.actionItem('edit', 'editCoupon'),
+          this.actionItem('duplicate', 'duplicate'),
+          this.actionItem('remove', 'remove', 'destructive'),
         ],
       } satisfies Row;
     });
     return this.paginate(
       [
-        this.metric('Cupones', records.length, 'Códigos creados'),
+        this.metric('coupons.coupons.total', records.length),
         this.metric(
-          'Activos',
+          'coupons.coupons.active',
           records.filter(
             (item) =>
               item.status === 'active' && (!item.endsAt || item.endsAt > now),
           ).length,
-          'Disponibles hoy',
         ),
         this.metric(
-          'Canjes',
+          'coupons.coupons.redemptions',
           records.reduce((sum, item) => sum + item.redemptionCount, 0),
-          'Usos acumulados',
         ),
         this.metric(
-          'Sin límite',
+          'coupons.coupons.unlimited',
           records.filter((item) => item.maxRedemptions === null).length,
-          'Uso ilimitado',
         ),
       ],
       rows,
@@ -753,7 +743,7 @@ export class AdminOperationsService {
         { primary: this.money(record.amount, record.currency) },
         { primary: this.date(record.createdAt) },
       ],
-      status: this.paymentStatus(record.status),
+      statusKey: this.paymentStatus(record.status),
       tone:
         record.status === 'paid'
           ? 'success'
@@ -763,41 +753,38 @@ export class AdminOperationsService {
       actions:
         record.status === 'paid'
           ? [
-              this.actionItem('view', 'Ver recibo'),
-              this.actionItem('refund', 'Reembolsar', 'destructive'),
+              this.actionItem('view', 'viewReceipt'),
+              this.actionItem('refund', 'refund', 'destructive'),
             ]
           : record.status === 'pending'
             ? [
-                this.actionItem('view', 'Ver detalle'),
-                this.actionItem('sync', 'Sincronizar'),
+                this.actionItem('view', 'viewDetail'),
+                this.actionItem('sync', 'sync'),
               ]
             : [
-                this.actionItem('view', 'Ver recibo'),
-                this.actionItem('view', 'Ver reembolso'),
+                this.actionItem('view', 'viewReceipt'),
+                this.actionItem('view', 'viewRefund'),
               ],
     }));
     return this.paginate(
       [
-        this.metric('Transacciones', records.length, 'Registros de Polar'),
+        this.metric('payments.payments.total', records.length),
         this.metric(
-          'Completadas',
+          'payments.payments.completed',
           records.filter((item) => item.status === 'paid').length,
-          'Pagos confirmados',
         ),
         this.metric(
-          'Reembolsadas',
+          'payments.payments.refunded',
           records.filter((item) => item.status.includes('refund')).length,
-          'Total o parcial',
         ),
         this.metric(
-          'Volumen',
+          'payments.payments.volume',
           this.money(
             records
               .filter((item) => item.status === 'paid')
               .reduce((sum, item) => sum + item.amount, 0),
             'USD',
           ),
-          'Importe completado',
         ),
       ],
       rows,
@@ -844,8 +831,8 @@ export class AdminOperationsService {
         { primary: record.renewsAt ? this.date(record.renewsAt) : '—' },
         { primary: this.date(record.updatedAt) },
       ],
-      status: record.cancelAtPeriodEnd
-        ? 'Cancela al final'
+      statusKey: record.cancelAtPeriodEnd
+        ? 'cancelsAtPeriodEnd'
         : this.subscriptionStatus(record.status),
       tone:
         record.status === 'past_due'
@@ -856,13 +843,13 @@ export class AdminOperationsService {
       actions:
         record.status === 'active'
           ? [
-              this.actionItem('view', 'Ver suscripción'),
+              this.actionItem('view', 'viewSubscription'),
               record.cancelAtPeriodEnd
-                ? this.actionItem('uncancel', 'Reactivar', 'success')
-                : this.actionItem('cancel_period_end', 'Cancelar al final'),
-              this.actionItem('revoke', 'Revocar ahora', 'destructive'),
+                ? this.actionItem('uncancel', 'uncancel', 'success')
+                : this.actionItem('cancel_period_end', 'cancelAtPeriodEnd'),
+              this.actionItem('revoke', 'revoke', 'destructive'),
             ]
-          : [this.actionItem('view', 'Ver suscripción')],
+          : [this.actionItem('view', 'viewSubscription')],
     }));
     const mrr = records
       .filter((item) => item.status === 'active')
@@ -876,18 +863,16 @@ export class AdminOperationsService {
       );
     return this.paginate(
       [
-        this.metric('Suscripciones', records.length, 'Registros de Polar'),
+        this.metric('subscriptions.subscriptions.total', records.length),
         this.metric(
-          'Activas',
+          'subscriptions.subscriptions.active',
           records.filter((item) => item.status === 'active').length,
-          'Renovación vigente',
         ),
         this.metric(
-          'En mora',
+          'subscriptions.subscriptions.pastDue',
           records.filter((item) => item.status === 'past_due').length,
-          'Polar reintentando',
         ),
-        this.metric('MRR', this.money(mrr, 'USD'), 'Valor mensual activo'),
+        this.metric('subscriptions.subscriptions.mrr', this.money(mrr, 'USD')),
       ],
       rows,
       query,
@@ -1471,7 +1456,9 @@ export class AdminOperationsService {
         );
       return (
         matchesSearch &&
-        (!query.status || query.status === 'all' || row.status === query.status)
+        (!query.status ||
+          query.status === 'all' ||
+          row.statusKey === query.status)
       );
     });
     const pageCount = Math.max(1, Math.ceil(filtered.length / query.pageSize));
@@ -1480,7 +1467,7 @@ export class AdminOperationsService {
     return {
       metrics,
       rows: filtered.slice(start, start + query.pageSize),
-      statusOptions: [...new Set(source.map((row) => row.status))],
+      statusOptions: [...new Set(source.map((row) => row.statusKey))],
       pagination: {
         page,
         pageSize: query.pageSize,
@@ -1504,20 +1491,16 @@ export class AdminOperationsService {
     return parsed.data;
   }
 
-  private metric(
-    label: string,
-    value: string | number,
-    description: string,
-  ): Metric {
-    return { label, value: String(value), description };
+  private metric(key: string, value: string | number): Metric {
+    return { key, value: String(value) };
   }
 
   private actionItem(
     key: AdminOperationActionKey,
-    label: string,
+    labelKey: string,
     kind?: 'destructive' | 'success',
   ) {
-    return { key, label, kind };
+    return { key, labelKey, kind };
   }
 
   private date(value: Date) {
@@ -1546,22 +1529,22 @@ export class AdminOperationsService {
 
   private role(value: string | null) {
     return value === 'owner'
-      ? 'Propietaria'
+      ? 'owner'
       : value === 'admin'
-        ? 'Administración'
+        ? 'admin'
         : value === 'member'
-          ? 'Miembro'
-          : 'Sin acceso';
+          ? 'member'
+          : 'none';
   }
 
   private ledgerType(value: string) {
     return value === 'grant'
-      ? 'Compra'
+      ? 'purchase'
       : value === 'debit'
-        ? 'Consumo'
+        ? 'spend'
         : value === 'refund'
-          ? 'Reverso'
-          : 'Ajuste';
+          ? 'reversal'
+          : 'adjustment';
   }
 
   private actionName(value: string) {
@@ -1577,50 +1560,50 @@ export class AdminOperationsService {
 
   private commissionStatus(value: string) {
     return value === 'pending'
-      ? 'Pendiente'
+      ? 'commissionPending'
       : value === 'available'
-        ? 'Disponible'
+        ? 'commissionAvailable'
         : value === 'paid'
-          ? 'Pagada'
-          : 'Rechazada';
+          ? 'commissionPaid'
+          : 'commissionRejected';
   }
 
   private withdrawalStatus(value: string) {
     return value === 'requested'
-      ? 'Pendiente'
+      ? 'withdrawalRequested'
       : value === 'approved'
-        ? 'Aprobado'
+        ? 'withdrawalApproved'
         : value === 'paid'
-          ? 'Pagado'
-          : 'Rechazado';
+          ? 'withdrawalPaid'
+          : 'withdrawalRejected';
   }
 
   private paymentStatus(value: string) {
     return value === 'paid'
-      ? 'Completado'
+      ? 'paymentCompleted'
       : value === 'pending'
-        ? 'Pendiente'
+        ? 'paymentPending'
         : value === 'refunded'
-          ? 'Reembolsado'
+          ? 'paymentRefunded'
           : value === 'partially_refunded'
-            ? 'Reembolso parcial'
-            : 'Fallido';
+            ? 'paymentPartiallyRefunded'
+            : 'paymentFailed';
   }
 
   private subscriptionStatus(value: string) {
     return value === 'active'
-      ? 'Activa'
+      ? 'subscriptionActive'
       : value === 'trialing'
-        ? 'Prueba'
+        ? 'subscriptionTrialing'
         : value === 'past_due'
-          ? 'En mora'
+          ? 'subscriptionPastDue'
           : value === 'paused'
-            ? 'Pausada'
+            ? 'subscriptionPaused'
             : value === 'canceled'
-              ? 'Cancelada'
+              ? 'subscriptionCanceled'
               : value === 'unpaid'
-                ? 'Impaga'
-                : 'Incompleta';
+                ? 'subscriptionUnpaid'
+                : 'subscriptionIncomplete';
   }
 
   private slug(value: string) {

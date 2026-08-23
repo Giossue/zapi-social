@@ -185,6 +185,506 @@
     "deleteDescription": "“{title}” and its read history will be deleted. This action can't be undone.",
     "cancel": "Cancel"
   },
+  "adminOperations": {
+    "actionFailed": "The action could not be applied.",
+    "actionsColumn": "Actions",
+    "allPayments": "All payments",
+    "allStatuses": "All statuses",
+    "applying": "Applying...",
+    "cancel": "Cancel",
+    "close": "Close",
+    "column": {
+      "access": "Access",
+      "action": "Action",
+      "affiliate": "Affiliate",
+      "amount": "Amount",
+      "balance": "Balance",
+      "clicks": "Clicks",
+      "code": "Code",
+      "commission": "Commission",
+      "conversions": "Conversions",
+      "coupon": "Coupon",
+      "created": "Created",
+      "credits": "Credits",
+      "customer": "Customer",
+      "date": "Date",
+      "discount": "Discount",
+      "feature": "Feature",
+      "invoice": "Invoice",
+      "method": "Method",
+      "order": "Order",
+      "pack": "Pack",
+      "payment": "Payment",
+      "plan": "Plan",
+      "plans": "Plans",
+      "price": "Price",
+      "product": "Product",
+      "purchases": "Purchases",
+      "quantity": "Quantity",
+      "referred": "Referral",
+      "renewal": "Renewal",
+      "request": "Request",
+      "requested": "Requested",
+      "signup": "Signup",
+      "subscription": "Subscription",
+      "transaction": "Transaction",
+      "type": "Type",
+      "updated": "Updated",
+      "usage": "Usage",
+      "user": "User",
+      "validity": "Validity",
+      "workspace": "Workspace"
+    },
+    "confirm": "Confirm",
+    "confirmDescription": "{action} on {resource}. This action will be recorded in the audit log.",
+    "confirmFallback": "Confirm the selected action.",
+    "confirmTitle": "Confirm action",
+    "create": {
+      "coupons": {
+        "dialogDescription": "Configure the discount Polar will apply during checkout.",
+        "dialogTitle": "Create coupon",
+        "editTitle": "Edit coupon",
+        "label": "Create coupon"
+      },
+      "credits": {
+        "dialogDescription": "Define a top-up offer available to customers.",
+        "dialogTitle": "New credit pack",
+        "editTitle": "Edit pack",
+        "label": "Add pack"
+      },
+      "users": {
+        "dialogDescription": "Create a Portal account and assign its initial access.",
+        "dialogTitle": "Create user",
+        "editTitle": "Edit user",
+        "label": "Create user"
+      }
+    },
+    "detail": "Detail",
+    "detailDescription": "Information recorded in this administrative section.",
+    "eligiblePlans": "{count, plural, one {# plan} other {# plans}}",
+    "empty": {
+      "commissions": {
+        "description": "There are no commissions in this section yet.",
+        "noMatches": "We couldn't find any commissions",
+        "title": "No commissions yet"
+      },
+      "coupons": {
+        "description": "There are no coupons in this section yet.",
+        "noMatches": "We couldn't find any coupons",
+        "title": "No coupons yet"
+      },
+      "ledger": {
+        "description": "There are no ledger entries in this section yet.",
+        "noMatches": "We couldn't find any entries",
+        "title": "No entries yet"
+      },
+      "overview": {
+        "description": "There are no affiliates in this section yet.",
+        "noMatches": "We couldn't find any affiliates",
+        "title": "No affiliates yet"
+      },
+      "packs": {
+        "description": "There are no packs in this section yet.",
+        "noMatches": "We couldn't find any packs",
+        "title": "No packs yet"
+      },
+      "payments": {
+        "description": "There are no payments in this section yet.",
+        "noMatches": "We couldn't find any payments",
+        "title": "No payments yet"
+      },
+      "subscriptions": {
+        "description": "There are no subscriptions in this section yet.",
+        "noMatches": "We couldn't find any subscriptions",
+        "title": "No subscriptions yet"
+      },
+      "usage": {
+        "description": "There is no recorded consumption in this section yet.",
+        "noMatches": "We couldn't find any usage records",
+        "title": "No usage records yet"
+      },
+      "users": {
+        "description": "There are no users in this section yet.",
+        "noMatches": "We couldn't find any users",
+        "title": "No users yet"
+      },
+      "withdrawals": {
+        "description": "There are no withdrawals in this section yet.",
+        "noMatches": "We couldn't find any withdrawals",
+        "title": "No withdrawals yet"
+      }
+    },
+    "emptyFilteredDescription": "Try another term or reset the filters.",
+    "field": {
+      "code": "Code",
+      "credits": "Credits",
+      "discountValue": "Discount value",
+      "displayName": "Display name",
+      "email": "Email",
+      "name": "Name",
+      "plan": "Plan",
+      "price": "Price"
+    },
+    "fieldNumber": "Field {index}",
+    "filterStatus": "Filter by status",
+    "forbiddenDescription": "Your account doesn't have permission to manage this section of the platform.",
+    "forbiddenTitle": "Restricted access",
+    "itemLabel": {
+      "commissions": "commissions",
+      "coupons": "coupons",
+      "ledger": "entries",
+      "overview": "affiliates",
+      "packs": "packs",
+      "payments": "payments",
+      "subscriptions": "subscriptions",
+      "usage": "records",
+      "users": "users",
+      "withdrawals": "withdrawals"
+    },
+    "ledgerType": {
+      "adjustment": "Adjustment",
+      "purchase": "Purchase",
+      "reversal": "Reversal",
+      "spend": "Spend"
+    },
+    "loadFailed": "The information for this section could not be loaded.",
+    "loadFailedTitle": "We couldn't load this section",
+    "message": {
+      "actionApplied": "Action applied.",
+      "changesSaved": "Changes saved.",
+      "detailInRow": "Detail available in the row."
+    },
+    "metric": {
+      "affiliate": {
+        "commissions": {
+          "available": {
+            "description": "Ready to withdraw",
+            "label": "Available"
+          },
+          "pending": {
+            "description": "In holding period",
+            "label": "Pending"
+          },
+          "rejected": {
+            "description": "Not eligible",
+            "label": "Rejected"
+          },
+          "total": {
+            "description": "Total records",
+            "label": "Commissions"
+          }
+        },
+        "overview": {
+          "approved": {
+            "description": "Available earnings",
+            "label": "Approved"
+          },
+          "clicks": {
+            "description": "Referred visits",
+            "label": "Clicks"
+          },
+          "conversions": {
+            "description": "Attributed payments",
+            "label": "Conversions"
+          },
+          "total": {
+            "description": "Active profiles",
+            "label": "Affiliates"
+          }
+        },
+        "withdrawals": {
+          "approved": {
+            "description": "Ready to pay",
+            "label": "Approved"
+          },
+          "paid": {
+            "description": "Total sent",
+            "label": "Paid"
+          },
+          "pending": {
+            "description": "Awaiting review",
+            "label": "Pending"
+          },
+          "total": {
+            "description": "Historical withdrawals",
+            "label": "Requests"
+          }
+        }
+      },
+      "coupons": {
+        "coupons": {
+          "active": {
+            "description": "Available today",
+            "label": "Active"
+          },
+          "redemptions": {
+            "description": "Accumulated uses",
+            "label": "Redemptions"
+          },
+          "total": {
+            "description": "Codes created",
+            "label": "Coupons"
+          },
+          "unlimited": {
+            "description": "Unlimited use",
+            "label": "No limit"
+          }
+        }
+      },
+      "credits": {
+        "ledger": {
+          "available": {
+            "description": "Open balance",
+            "label": "Available"
+          },
+          "granted": {
+            "description": "Purchases and adjustments",
+            "label": "Granted"
+          },
+          "purchases": {
+            "description": "Paid top-ups",
+            "label": "Purchases"
+          },
+          "total": {
+            "description": "Ledger rows",
+            "label": "Entries"
+          }
+        },
+        "packs": {
+          "active": {
+            "description": "Available in Portal",
+            "label": "Active"
+          },
+          "featured": {
+            "description": "Highlighted offer",
+            "label": "Featured"
+          },
+          "sales": {
+            "description": "Historical purchases",
+            "label": "Sales"
+          },
+          "total": {
+            "description": "Configured offers",
+            "label": "Packs"
+          }
+        },
+        "usage": {
+          "actions": {
+            "description": "Consumption keys",
+            "label": "Actions"
+          },
+          "consumed": {
+            "description": "Credits spent",
+            "label": "Consumed"
+          },
+          "total": {
+            "description": "Measured uses",
+            "label": "Records"
+          },
+          "users": {
+            "description": "Unique consumers",
+            "label": "Users"
+          }
+        }
+      },
+      "payments": {
+        "payments": {
+          "completed": {
+            "description": "Confirmed payments",
+            "label": "Completed"
+          },
+          "refunded": {
+            "description": "Full or partial",
+            "label": "Refunded"
+          },
+          "total": {
+            "description": "Polar records",
+            "label": "Transactions"
+          },
+          "volume": {
+            "description": "Completed amount",
+            "label": "Volume"
+          }
+        }
+      },
+      "subscriptions": {
+        "subscriptions": {
+          "active": {
+            "description": "Renewal in effect",
+            "label": "Active"
+          },
+          "mrr": {
+            "description": "Active monthly value",
+            "label": "MRR"
+          },
+          "pastDue": {
+            "description": "Polar retrying",
+            "label": "Past due"
+          },
+          "total": {
+            "description": "Polar records",
+            "label": "Subscriptions"
+          }
+        }
+      },
+      "users": {
+        "users": {
+          "new": {
+            "description": "Last 7 days",
+            "label": "New"
+          },
+          "review": {
+            "description": "Incomplete access",
+            "label": "To review"
+          },
+          "total": {
+            "description": "Visible accounts",
+            "label": "Users"
+          },
+          "withPlan": {
+            "description": "Plan coverage",
+            "label": "With plan"
+          }
+        }
+      }
+    },
+    "missingFields": "Fill in every required field.",
+    "module": {
+      "affiliate": {
+        "description": "Review referrals, commissions and withdrawal requests.",
+        "tabsLabel": "Affiliates sections",
+        "title": "Affiliates"
+      },
+      "coupons": {
+        "description": "Manage discounts, validity, limits and eligible plans.",
+        "tabsLabel": "Coupons sections",
+        "title": "Coupons"
+      },
+      "credits": {
+        "description": "Control packs, ledger entries and system credit consumption.",
+        "tabsLabel": "Credits sections",
+        "title": "Credits"
+      },
+      "payments": {
+        "description": "Review transactions processed through Polar.sh only.",
+        "tabsLabel": "Payments sections",
+        "title": "Payments"
+      },
+      "subscriptions": {
+        "description": "Track renewals, failed charges and cancellations in Polar.sh.",
+        "tabsLabel": "Subscriptions sections",
+        "title": "Subscriptions"
+      },
+      "users": {
+        "description": "Manage Portal accounts, their access, plan and status.",
+        "tabsLabel": "Users sections",
+        "title": "Users"
+      }
+    },
+    "noExpiry": "No expiry",
+    "noPlan": "No plan",
+    "noReferredUser": "No user",
+    "noWorkspace": "No workspace",
+    "referencePending": "To be defined",
+    "referenceSet": "Reference recorded",
+    "role": {
+      "admin": "Admin",
+      "member": "Member",
+      "none": "No access",
+      "owner": "Owner"
+    },
+    "rowAction": {
+      "activate": "Activate",
+      "approve": "Approve",
+      "cancelAtPeriodEnd": "Cancel at period end",
+      "deactivate": "Deactivate",
+      "duplicate": "Duplicate",
+      "editCoupon": "Edit coupon",
+      "editPack": "Edit pack",
+      "editUser": "Edit user",
+      "markPaid": "Mark paid",
+      "reactivate": "Reactivate",
+      "refund": "Refund",
+      "reject": "Reject",
+      "remove": "Delete",
+      "revoke": "Revoke now",
+      "sync": "Sync",
+      "uncancel": "Reactivate",
+      "viewAffiliate": "View affiliate",
+      "viewCommissions": "View commissions",
+      "viewDetail": "View detail",
+      "viewLedgerEntry": "View entry",
+      "viewReceipt": "View receipt",
+      "viewRefund": "View refund",
+      "viewSubscription": "View subscription",
+      "viewUser": "View user"
+    },
+    "rowActions": "Actions for {row}",
+    "save": "Save",
+    "saveFailed": "The changes could not be saved.",
+    "saving": "Saving...",
+    "search": {
+      "commissions": "Search affiliate, referral or payment...",
+      "coupons": "Search name, code or discount...",
+      "ledger": "Search user, pack or entry...",
+      "overview": "Search affiliate or code...",
+      "packs": "Search pack...",
+      "payments": "Search invoice, user or transaction...",
+      "subscriptions": "Search subscription, customer or plan...",
+      "usage": "Search user, action or feature...",
+      "users": "Search by name or email...",
+      "withdrawals": "Search affiliate, withdrawal or method..."
+    },
+    "searchAriaLabel": "Search in {section}",
+    "status": {
+      "active": "Active",
+      "applied": "Applied",
+      "cancelsAtPeriodEnd": "Cancels at period end",
+      "charged": "Charged",
+      "commissionAvailable": "Available",
+      "commissionPaid": "Paid",
+      "commissionPending": "Pending",
+      "commissionRejected": "Rejected",
+      "deactivated": "Deactivated",
+      "expired": "Expired",
+      "hidden": "Hidden",
+      "inactive": "Inactive",
+      "manual": "Manual",
+      "paused": "Paused",
+      "paymentCompleted": "Completed",
+      "paymentFailed": "Failed",
+      "paymentPartiallyRefunded": "Partially refunded",
+      "paymentPending": "Pending",
+      "paymentRefunded": "Refunded",
+      "reverted": "Reverted",
+      "subscriptionActive": "Active",
+      "subscriptionCanceled": "Canceled",
+      "subscriptionIncomplete": "Incomplete",
+      "subscriptionPastDue": "Past due",
+      "subscriptionPaused": "Paused",
+      "subscriptionTrialing": "Trialing",
+      "subscriptionUnpaid": "Unpaid",
+      "withdrawalApproved": "Approved",
+      "withdrawalPaid": "Paid",
+      "withdrawalRejected": "Rejected",
+      "withdrawalRequested": "Pending"
+    },
+    "statusColumn": "Status",
+    "system": "System",
+    "tab": {
+      "commissions": "Commissions",
+      "coupons": "Coupons",
+      "ledger": "Ledger",
+      "overview": "Affiliates",
+      "packs": "Packs",
+      "payments": "Payments",
+      "subscriptions": "Subscriptions",
+      "usage": "Usage",
+      "users": "Users",
+      "withdrawals": "Withdrawals"
+    },
+    "untilDate": "Until {date}"
+  },
   "adminPaymentReport": {
     "pageTitle": "Payment report",
     "pageDescription": "Settled charges, refunds and billing per product in the selected period.",
