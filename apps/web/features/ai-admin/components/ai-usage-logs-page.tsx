@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { useFormatter, useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import { CircleAlert, ShieldCheck, X } from "lucide-react"
 
@@ -34,26 +35,6 @@ type RequestLog = AdminAiRequestsResponse["requests"][number]
 
 const pageSize = 25
 
-const kindLabels: Record<RequestLog["kind"], string> = {
-  content: "Crear contenido",
-  image: "Crear imagen",
-  video: "Crear video",
-  repurpose: "Reutilizar contenido",
-  planner: "Planificador",
-  review: "Revisión",
-  timing: "Mejor horario",
-  search: "Búsqueda inteligente",
-  ai_publishing: "Publicación AI",
-}
-
-const statusLabels: Record<RequestLog["status"], string> = {
-  queued: "En cola",
-  processing: "Procesando",
-  succeeded: "Correcta",
-  failed: "Fallida",
-  cancelled: "Cancelada",
-}
-
 const statusVariants: Record<
   RequestLog["status"],
   "info" | "warning" | "success" | "destructive" | "neutral"
@@ -65,23 +46,10 @@ const statusVariants: Record<
   cancelled: "neutral",
 }
 
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("es-EC", {
-    dateStyle: "short",
-    timeStyle: "short",
-  }).format(new Date(value))
-}
-
-function money(microusd: number) {
-  return new Intl.NumberFormat("es-EC", {
-    currency: "USD",
-    maximumFractionDigits: 4,
-    style: "currency",
-  }).format(microusd / 1_000_000)
-}
-
 export function AiUsageLogsPage() {
   const router = useRouter()
+  const t = useTranslations("aiUsageLogs")
+  const format = useFormatter()
   const [data, setData] = useState<AdminAiRequestsResponse | null>(null)
   const [query, setQuery] = useState("")
   const [provider, setProvider] = useState("all")
@@ -133,9 +101,9 @@ export function AiUsageLogsPage() {
       <Card variant="subtle">
         <CardContent>
           <EmptyState
-            description="Solicita a un administrador el permiso necesario para revisar el consumo de IA."
+            description={t("forbiddenDescription")}
             icon={ShieldCheck}
-            title="Registro no disponible"
+            title={t("unavailable")}
           />
         </CardContent>
       </Card>
@@ -143,7 +111,7 @@ export function AiUsageLogsPage() {
   }
 
   if (isLoading && !data && !loadError) {
-    return <PageLoading aria-label="Cargando registro de IA" />
+    return <PageLoading aria-label={t("loading")} />
   }
 
   if (loadError || !data) {
@@ -157,9 +125,9 @@ export function AiUsageLogsPage() {
                 variant="brand-secondary"
               />
             }
-            description="No pudimos cargar el registro de peticiones de IA."
+            description={t("loadFailed")}
             icon={CircleAlert}
-            title="Registro no disponible"
+            title={t("unavailable")}
           />
         </CardContent>
       </Card>
@@ -181,19 +149,16 @@ export function AiUsageLogsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <CollectionHeader
-        description="Cada generación de IA con su origen, proveedor, consumo y resultado."
-        title="Registro de uso de IA"
-      />
+      <CollectionHeader description={t("description")} title={t("title")} />
       <Card variant="subtle">
         <DataTableHeader
           search={{
-            ariaLabel: "Buscar por usuario o espacio de trabajo",
+            ariaLabel: t("searchAriaLabel"),
             onChange: (value) => {
               setQuery(value)
               setPage(1)
             },
-            placeholder: "Buscar por usuario o espacio...",
+            placeholder: t("searchPlaceholder"),
             value: query,
           }}
         />
@@ -207,20 +172,20 @@ export function AiUsageLogsPage() {
                   type="button"
                   variant="outline"
                 >
-                  <X /> Limpiar
+                  <X /> {t("clear")}
                 </Button>
               ) : undefined
             }
           >
             <DataTableFilter
-              ariaLabel="Filtrar por proveedor"
-              label="Proveedor"
+              ariaLabel={t("filterProvider")}
+              label={t("provider")}
               onValueChange={(value) => {
                 setProvider(value)
                 setPage(1)
               }}
               options={[
-                { label: "Todos", value: "all" },
+                { label: t("all"), value: "all" },
                 ...data.providers.map((item) => ({
                   label: item,
                   value: item,
@@ -229,19 +194,19 @@ export function AiUsageLogsPage() {
               value={provider}
             />
             <DataTableFilter
-              ariaLabel="Filtrar por estado"
-              label="Estado"
+              ariaLabel={t("filterStatus")}
+              label={t("statusColumn")}
               onValueChange={(value) => {
                 setStatus(value)
                 setPage(1)
               }}
               options={[
-                { label: "Todos", value: "all" },
-                { label: "Correctas", value: "succeeded" },
-                { label: "Fallidas", value: "failed" },
-                { label: "En cola", value: "queued" },
-                { label: "Procesando", value: "processing" },
-                { label: "Canceladas", value: "cancelled" },
+                { label: t("all"), value: "all" },
+                { label: t("filter.succeeded"), value: "succeeded" },
+                { label: t("filter.failed"), value: "failed" },
+                { label: t("filter.queued"), value: "queued" },
+                { label: t("filter.processing"), value: "processing" },
+                { label: t("filter.cancelled"), value: "cancelled" },
               ]}
               value={status}
             />
@@ -249,11 +214,13 @@ export function AiUsageLogsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Solicitud</TableHead>
-                <TableHead>Usuario</TableHead>
-                <TableHead className="hidden lg:table-cell">Modelo</TableHead>
-                <TableHead>Consumo</TableHead>
-                <TableHead>Estado</TableHead>
+                <TableHead>{t("requestColumn")}</TableHead>
+                <TableHead>{t("userColumn")}</TableHead>
+                <TableHead className="hidden lg:table-cell">
+                  {t("modelColumn")}
+                </TableHead>
+                <TableHead>{t("usageColumn")}</TableHead>
+                <TableHead>{t("statusColumn")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -263,10 +230,13 @@ export function AiUsageLogsPage() {
                     <TableCell>
                       <div className="flex min-w-40 flex-col">
                         <span className="font-medium">
-                          {kindLabels[item.kind]}
+                          {t(`kind.${item.kind}`)}
                         </span>
                         <span className="text-sm text-muted-foreground">
-                          {formatDateTime(item.createdAt)}
+                          {format.dateTime(
+                            new Date(item.createdAt),
+                            "dateTime"
+                          )}
                         </span>
                       </div>
                     </TableCell>
@@ -282,25 +252,36 @@ export function AiUsageLogsPage() {
                       <div className="flex flex-col">
                         <span>{item.model ?? "—"}</span>
                         <span className="text-sm text-muted-foreground">
-                          {item.provider ?? "interno"}
+                          {item.provider ?? t("internalProvider")}
                         </span>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col">
                         <span>
-                          {item.inputTokens + item.outputTokens} tokens
+                          {t("tokens", {
+                            count: item.inputTokens + item.outputTokens,
+                          })}
                         </span>
                         <span className="text-sm text-muted-foreground">
-                          {money(item.estimatedCostMicrousd)}
-                          {item.latencyMs ? ` · ${item.latencyMs} ms` : ""}
+                          {format.number(
+                            item.estimatedCostMicrousd / 1_000_000,
+                            {
+                              currency: "USD",
+                              maximumFractionDigits: 4,
+                              style: "currency",
+                            }
+                          )}
+                          {item.latencyMs
+                            ? ` · ${t("latency", { ms: item.latencyMs })}`
+                            : ""}
                         </span>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1">
                         <Badge variant={statusVariants[item.status]}>
-                          {statusLabels[item.status]}
+                          {t(`status.${item.status}`)}
                         </Badge>
                         {item.errorCode ? (
                           <span className="font-mono text-xs text-destructive">
@@ -316,21 +297,17 @@ export function AiUsageLogsPage() {
                   action={
                     hasFilters ? (
                       <Button onClick={clearFilters} variant="outline">
-                        Restablecer filtros
+                        {t("resetFilters")}
                       </Button>
                     ) : undefined
                   }
                   colSpan={5}
                   description={
                     hasFilters
-                      ? "Prueba con otro término, proveedor o estado."
-                      : "Aquí aparecerá cada generación en cuanto se registre."
+                      ? t("emptyFilteredDescription")
+                      : t("emptyDescription")
                   }
-                  title={
-                    hasFilters
-                      ? "No hay coincidencias"
-                      : "Aún no hay generaciones"
-                  }
+                  title={hasFilters ? t("noMatches") : t("emptyTitle")}
                 />
               )}
             </TableBody>
@@ -338,7 +315,7 @@ export function AiUsageLogsPage() {
           <TablePagination
             canGoNext={safePage < pageCount}
             canGoPrevious={safePage > 1}
-            itemLabel="generaciones"
+            itemLabel={t("itemLabel")}
             onNextPage={() =>
               setPage((current) => Math.min(current + 1, pageCount))
             }

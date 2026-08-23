@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { useFormatter, useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import {
   Activity,
@@ -47,28 +48,18 @@ import {
 } from "@workspace/ui/components/tabs"
 import { loginPath } from "@/features/identity/login-redirect"
 
-function money(microusd: number) {
-  return new Intl.NumberFormat("es-EC", {
+type Formatter = ReturnType<typeof useFormatter>
+
+function money(format: Formatter, microusd: number) {
+  return format.number(microusd / 1_000_000, {
     currency: "USD",
     maximumFractionDigits: 4,
     style: "currency",
-  }).format(microusd / 1_000_000)
-}
-
-function number(value: number) {
-  return new Intl.NumberFormat("es-EC").format(value)
+  })
 }
 
 function toDateKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
-}
-
-function longDate(value: string) {
-  return new Intl.DateTimeFormat("es-EC", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(new Date(`${value}T12:00:00.000Z`))
 }
 
 function DateField({
@@ -82,6 +73,8 @@ function DateField({
   onChange: (next: string) => void
   value: string
 }) {
+  const t = useTranslations("aiReport")
+  const format = useFormatter()
   return (
     <Field orientation="horizontal">
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
@@ -95,7 +88,13 @@ function DateField({
             variant="surface"
           >
             <CalendarRange data-icon="inline-start" />
-            {value ? longDate(value) : "Elegir fecha"}
+            {value
+              ? format.dateTime(new Date(`${value}T12:00:00.000Z`), {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })
+              : t("pickDate")}
           </Button>
         </PopoverTrigger>
         <PopoverContent align="start" className="w-auto p-0">
@@ -110,15 +109,10 @@ function DateField({
   )
 }
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("es-EC", {
-    day: "numeric",
-    month: "short",
-  }).format(new Date(`${value}T12:00:00.000Z`))
-}
-
 export function AiReportPage() {
   const router = useRouter()
+  const t = useTranslations("aiReport")
+  const format = useFormatter()
   const [report, setReport] = useState<AdminAiReport | null>(null)
   const [from, setFrom] = useState("")
   const [to, setTo] = useState("")
@@ -168,9 +162,9 @@ export function AiReportPage() {
       <Card variant="subtle">
         <CardContent>
           <EmptyState
-            description="Solicita a un administrador el permiso necesario para ver el informe de IA."
+            description={t("forbiddenDescription")}
             icon={ShieldCheck}
-            title="Informe no disponible"
+            title={t("unavailable")}
           />
         </CardContent>
       </Card>
@@ -178,7 +172,7 @@ export function AiReportPage() {
   }
 
   if (isLoading && !report) {
-    return <PageLoading aria-label="Cargando informe de IA" />
+    return <PageLoading aria-label={t("loading")} />
   }
 
   if (loadError || !report) {
@@ -192,9 +186,9 @@ export function AiReportPage() {
                 variant="brand-secondary"
               />
             }
-            description="No pudimos calcular el informe de consumo de IA."
+            description={t("loadFailed")}
             icon={CircleAlert}
-            title="Informe no disponible"
+            title={t("unavailable")}
           />
         </CardContent>
       </Card>
@@ -205,10 +199,7 @@ export function AiReportPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <CollectionHeader
-        description="Consumo de IA por día y por proveedor dentro del rango elegido."
-        title="Informe de IA"
-      />
+      <CollectionHeader description={t("description")} title={t("title")} />
 
       <Card variant="subtle">
         <CardContent className="py-4">
@@ -219,19 +210,19 @@ export function AiReportPage() {
                 onClick={() => void load({ from, to })}
                 size="sm"
               >
-                <CalendarRange data-icon="inline-start" /> Aplicar
+                <CalendarRange data-icon="inline-start" /> {t("apply")}
               </Button>
             }
           >
             <DateField
               id="report-from"
-              label="Desde"
+              label={t("from")}
               onChange={setFrom}
               value={from}
             />
             <DateField
               id="report-to"
-              label="Hasta"
+              label={t("to")}
               onChange={setTo}
               value={to}
             />
@@ -241,47 +232,47 @@ export function AiReportPage() {
 
       <CardGrid layout="md-3">
         <MetricCard
-          description="Generaciones en el rango"
+          description={t("metric.requests.description")}
           icon={Activity}
-          label="Solicitudes"
-          value={number(report.totals.requests)}
+          label={t("metric.requests.label")}
+          value={format.number(report.totals.requests)}
         />
         <MetricCard
-          description="Terminadas correctamente"
+          description={t("metric.successRate.description")}
           icon={CheckCircle2}
-          label="Tasa de éxito"
-          value={`${report.totals.successRate}%`}
+          label={t("metric.successRate.label")}
+          value={t("percent", { value: report.totals.successRate })}
         />
         <MetricCard
-          description="Entrada más salida"
+          description={t("metric.tokens.description")}
           icon={Activity}
-          label="Tokens"
-          value={number(report.totals.tokens)}
+          label={t("metric.tokens.label")}
+          value={format.number(report.totals.tokens)}
         />
         <MetricCard
-          description="Consumo calculado"
+          description={t("metric.cost.description")}
           icon={CircleDollarSign}
-          label="Costo estimado"
-          value={money(report.totals.estimatedCostMicrousd)}
+          label={t("metric.cost.label")}
+          value={money(format, report.totals.estimatedCostMicrousd)}
         />
         <MetricCard
-          description="Promedio por solicitud"
+          description={t("metric.latency.description")}
           icon={Timer}
-          label="Latencia media"
-          value={`${number(report.totals.averageLatencyMs)} ms`}
+          label={t("metric.latency.label")}
+          value={t("milliseconds", { value: report.totals.averageLatencyMs })}
         />
         <MetricCard
-          description="Terminadas con error"
+          description={t("metric.failed.description")}
           icon={CircleAlert}
-          label="Fallidas"
-          value={number(report.totals.failed)}
+          label={t("metric.failed.label")}
+          value={format.number(report.totals.failed)}
         />
       </CardGrid>
 
       <Tabs defaultValue="daily">
         <TabsList className="flex h-auto flex-wrap">
-          <TabsTrigger value="daily">Por día</TabsTrigger>
-          <TabsTrigger value="providers">Por proveedor</TabsTrigger>
+          <TabsTrigger value="daily">{t("tab.daily")}</TabsTrigger>
+          <TabsTrigger value="providers">{t("tab.providers")}</TabsTrigger>
         </TabsList>
 
         <TabsContent className="pt-3" value="daily">
@@ -290,15 +281,15 @@ export function AiReportPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Día</TableHead>
-                    <TableHead>Solicitudes</TableHead>
-                    <TableHead>Tokens</TableHead>
-                    <TableHead>Costo</TableHead>
+                    <TableHead>{t("dayColumn")}</TableHead>
+                    <TableHead>{t("requestsColumn")}</TableHead>
+                    <TableHead>{t("tokensColumn")}</TableHead>
+                    <TableHead>{t("costColumn")}</TableHead>
                     <TableHead className="hidden lg:table-cell">
-                      Éxito
+                      {t("successColumn")}
                     </TableHead>
                     <TableHead className="hidden lg:table-cell">
-                      Latencia
+                      {t("latencyColumn")}
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -307,26 +298,29 @@ export function AiReportPage() {
                     report.daily.map((day) => (
                       <TableRow key={day.date}>
                         <TableCell className="font-medium">
-                          {formatDate(day.date)}
+                          {format.dateTime(
+                            new Date(`${day.date}T12:00:00.000Z`),
+                            { day: "numeric", month: "short" }
+                          )}
                         </TableCell>
-                        <TableCell>{number(day.requests)}</TableCell>
-                        <TableCell>{number(day.tokens)}</TableCell>
+                        <TableCell>{format.number(day.requests)}</TableCell>
+                        <TableCell>{format.number(day.tokens)}</TableCell>
                         <TableCell>
-                          {money(day.estimatedCostMicrousd)}
+                          {money(format, day.estimatedCostMicrousd)}
                         </TableCell>
                         <TableCell className="hidden lg:table-cell">
-                          {day.successRate}%
+                          {t("percent", { value: day.successRate })}
                         </TableCell>
                         <TableCell className="hidden lg:table-cell">
-                          {number(day.averageLatencyMs)} ms
+                          {t("milliseconds", { value: day.averageLatencyMs })}
                         </TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableEmptyRow
                       colSpan={6}
-                      description="No hay generaciones registradas en este rango."
-                      title="Sin actividad"
+                      description={t("emptyDescription")}
+                      title={t("emptyTitle")}
                     />
                   )}
                 </TableBody>
@@ -341,12 +335,12 @@ export function AiReportPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Proveedor</TableHead>
-                    <TableHead>Solicitudes</TableHead>
-                    <TableHead>Tokens</TableHead>
-                    <TableHead>Costo</TableHead>
+                    <TableHead>{t("providerColumn")}</TableHead>
+                    <TableHead>{t("requestsColumn")}</TableHead>
+                    <TableHead>{t("tokensColumn")}</TableHead>
+                    <TableHead>{t("costColumn")}</TableHead>
                     <TableHead className="hidden lg:table-cell">
-                      Éxito
+                      {t("successColumn")}
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -357,21 +351,21 @@ export function AiReportPage() {
                         <TableCell className="font-medium">
                           {item.provider}
                         </TableCell>
-                        <TableCell>{number(item.requests)}</TableCell>
-                        <TableCell>{number(item.tokens)}</TableCell>
+                        <TableCell>{format.number(item.requests)}</TableCell>
+                        <TableCell>{format.number(item.tokens)}</TableCell>
                         <TableCell>
-                          {money(item.estimatedCostMicrousd)}
+                          {money(format, item.estimatedCostMicrousd)}
                         </TableCell>
                         <TableCell className="hidden lg:table-cell">
-                          {item.successRate}%
+                          {t("percent", { value: item.successRate })}
                         </TableCell>
                       </TableRow>
                     ))
                   ) : (
                     <TableEmptyRow
                       colSpan={5}
-                      description="No hay generaciones registradas en este rango."
-                      title="Sin actividad"
+                      description={t("emptyDescription")}
+                      title={t("emptyTitle")}
                     />
                   )}
                 </TableBody>

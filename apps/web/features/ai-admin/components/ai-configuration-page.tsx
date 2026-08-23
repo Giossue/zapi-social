@@ -1,5 +1,7 @@
 "use client"
 
+import { useFormatter, useLocale, useTranslations } from "next-intl"
+
 import { adminAiApi, ApiError } from "@workspace/api-client"
 import type {
   AdminAiConfiguration,
@@ -10,6 +12,7 @@ import type {
   AiRequestKind,
   AiReasoningEffort,
 } from "@workspace/contracts"
+import { useApiErrorMessage } from "@/lib/api-error-message"
 import { Badge } from "@workspace/ui/components/badge"
 import { CardGrid } from "@workspace/ui/components/card-grid"
 import { Button } from "@workspace/ui/components/button"
@@ -85,27 +88,6 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 
 const TABLE_PAGE_SIZE = 10
 
-const kindLabels: Record<AiRequestKind, string> = {
-  content: "Crear contenido",
-  image: "Crear imagen",
-  video: "Crear video",
-  repurpose: "Reutilizar contenido",
-  planner: "Planificador",
-  review: "Revisión",
-  timing: "Mejor horario",
-  search: "Búsqueda inteligente",
-  ai_publishing: "Publicación AI",
-}
-
-const reasoningLabels: Record<AiReasoningEffort, string> = {
-  none: "Ninguno",
-  low: "Bajo",
-  medium: "Medio",
-  high: "Alto",
-  xhigh: "Muy alto",
-  max: "Máximo",
-}
-
 type RouteShape = {
   capability: "text" | "image" | "video"
   internal: boolean
@@ -128,37 +110,13 @@ function routeShape(kind: AiRequestKind): RouteShape {
   }
 }
 
-const capabilityLabels = {
-  text: "Texto",
-  image: "Imagen",
-  video: "Video",
-} as const
-
-const tierLabels = {
-  quality: "Máxima calidad",
-  balanced: "Equilibrado",
-  economy: "Económico",
-  specialized: "Especializado",
-} as const
-
+/** Solo icono y variante: el rótulo sale de `readiness.<clave>`. */
 const readinessCopy = {
-  ready: { icon: CheckCircle2, label: "Listo", variant: "success" as const },
-  disabled: {
-    icon: Circle,
-    label: "Deshabilitado",
-    variant: "neutral" as const,
-  },
-  incomplete: {
-    icon: CircleAlert,
-    label: "Incompleto",
-    variant: "warning" as const,
-  },
-  untested: {
-    icon: CircleAlert,
-    label: "Sin probar",
-    variant: "warning" as const,
-  },
-  error: { icon: CircleX, label: "Error", variant: "destructive" as const },
+  ready: { icon: CheckCircle2, variant: "success" as const },
+  disabled: { icon: Circle, variant: "neutral" as const },
+  incomplete: { icon: CircleAlert, variant: "warning" as const },
+  untested: { icon: CircleAlert, variant: "warning" as const },
+  error: { icon: CircleX, variant: "destructive" as const },
 }
 
 type ProviderDraft = {
@@ -172,31 +130,21 @@ const emptyProviderDrafts: Record<AdminAiProviderKey, ProviderDraft> = {
   atlascloud: { apiKey: "", enabled: false, tested: false },
 }
 
-function errorMessage(error: unknown) {
-  if (error instanceof ApiError) {
-    if (error.code === "AI_PROVIDER_CONFIGURATION_INVALID") {
-      return "La clave no es válida o todavía no fue probada."
-    }
-    if (error.code === "AI_MODEL_ROUTE_INVALID") {
-      return "La ruta usa un modelo incompatible, deshabilitado o obsoleto."
-    }
-  }
-  return "No pudimos completar la operación."
-}
+type Formatter = ReturnType<typeof useFormatter>
 
-function money(microusd: number) {
-  return new Intl.NumberFormat("es-EC", {
+function money(format: Formatter, microusd: number) {
+  return format.number(microusd / 1_000_000, {
     style: "currency",
     currency: "USD",
     minimumFractionDigits: 4,
-  }).format(microusd / 1_000_000)
-}
-
-function number(value: number) {
-  return new Intl.NumberFormat("es-EC").format(value)
+  })
 }
 
 export function AiConfigurationPage() {
+  const t = useTranslations("aiConfiguration")
+  const format = useFormatter()
+  const locale = useLocale()
+  const apiErrorMessage = useApiErrorMessage()
   const [configuration, setConfiguration] =
     useState<AdminAiConfiguration | null>(null)
   const [usage, setUsage] = useState<AdminAiUsage | null>(null)
@@ -224,7 +172,7 @@ export function AiConfigurationPage() {
     modelEnabledFilter !== "all"
   )
   const filteredModels = useMemo(() => {
-    const normalized = modelQuery.trim().toLocaleLowerCase("es")
+    const normalized = modelQuery.trim().toLocaleLowerCase(locale)
     return (configuration?.models ?? []).filter((model) => {
       if (
         modelProviderFilter !== "all" &&
@@ -247,7 +195,7 @@ export function AiConfigurationPage() {
         model.modelId,
         model.providerKey,
         model.capability,
-      ].some((value) => value.toLocaleLowerCase("es").includes(normalized))
+      ].some((value) => value.toLocaleLowerCase(locale).includes(normalized))
     })
   }, [
     configuration?.models,
@@ -255,6 +203,7 @@ export function AiConfigurationPage() {
     modelEnabledFilter,
     modelProviderFilter,
     modelQuery,
+    locale,
   ])
   const modelPageCount = Math.max(
     1,
@@ -278,7 +227,7 @@ export function AiConfigurationPage() {
     routeStatusFilter !== "all"
   )
   const filteredRoutes = useMemo(() => {
-    const normalized = routeQuery.trim().toLocaleLowerCase("es")
+    const normalized = routeQuery.trim().toLocaleLowerCase(locale)
     return (configuration?.routes ?? []).filter((route) => {
       if (
         routeCapabilityFilter !== "all" &&
@@ -291,13 +240,17 @@ export function AiConfigurationPage() {
       )
         return false
       if (!normalized) return true
-      return kindLabels[route.kind].toLocaleLowerCase("es").includes(normalized)
+      return t(`kind.${route.kind}`)
+        .toLocaleLowerCase(locale)
+        .includes(normalized)
     })
   }, [
     configuration?.routes,
+    locale,
     routeCapabilityFilter,
     routeQuery,
     routeStatusFilter,
+    t,
   ])
   const routePageCount = Math.max(
     1,
@@ -380,14 +333,16 @@ export function AiConfigurationPage() {
         ...current,
         [providerKey]: { ...current[providerKey], tested: true },
       }))
-      toast.success(`Conexión con ${provider?.label} correcta.`)
+      toast.success(t("testOk", { provider: provider?.label ?? "" }))
       await load()
     } catch (error) {
       setProviderDrafts((current) => ({
         ...current,
         [providerKey]: { ...current[providerKey], tested: false },
       }))
-      toast.error(errorMessage(error))
+      toast.error(
+        apiErrorMessage(error instanceof ApiError ? error.code : undefined)
+      )
     } finally {
       setPending(null)
     }
@@ -400,11 +355,11 @@ export function AiConfigurationPage() {
     )
     const draft = providerDrafts[providerKey]
     if (!provider?.apiKeyConfigured && draft.apiKey.trim().length < 20) {
-      toast.error("Ingresa y prueba la clave antes de guardar.")
+      toast.error(t("keyRequired"))
       return
     }
     if (draft.enabled && !draft.tested && provider?.readiness !== "ready") {
-      toast.error(`Prueba la conexión antes de habilitar ${provider?.label}.`)
+      toast.error(t("testBeforeEnable", { provider: provider?.label ?? "" }))
       return
     }
     setPending(`provider-save-${providerKey}`)
@@ -422,9 +377,11 @@ export function AiConfigurationPage() {
           tested: false,
         },
       }))
-      toast.success(`Configuración de ${provider?.label} guardada.`)
+      toast.success(t("providerSaved", { provider: provider?.label ?? "" }))
     } catch (error) {
-      toast.error(errorMessage(error))
+      toast.error(
+        apiErrorMessage(error instanceof ApiError ? error.code : undefined)
+      )
     } finally {
       setPending(null)
     }
@@ -445,10 +402,14 @@ export function AiConfigurationPage() {
           : current
       )
       toast.success(
-        `${model.label} ${enabled ? "habilitado" : "deshabilitado"}.`
+        enabled
+          ? t("modelEnabled", { model: model.label })
+          : t("modelDisabled", { model: model.label })
       )
     } catch (error) {
-      toast.error(errorMessage(error))
+      toast.error(
+        apiErrorMessage(error instanceof ApiError ? error.code : undefined)
+      )
     } finally {
       setPending(null)
     }
@@ -476,10 +437,12 @@ export function AiConfigurationPage() {
             }
           : current
       )
-      toast.success(`Ruta de ${kindLabels[route.kind]} guardada.`)
+      toast.success(t("routeSaved", { tool: t(`kind.${route.kind}`) }))
       return true
     } catch (error) {
-      toast.error(errorMessage(error))
+      toast.error(
+        apiErrorMessage(error instanceof ApiError ? error.code : undefined)
+      )
       return false
     } finally {
       setPending(null)
@@ -515,26 +478,17 @@ export function AiConfigurationPage() {
   }
 
   if (!configuration) {
-    if (!loadError)
-      return <PageLoading aria-label="Cargando configuración AI" />
+    if (!loadError) return <PageLoading aria-label={t("loading")} />
     return (
       <Card variant="subtle">
         <EmptyState
           icon={forbidden ? ShieldCheck : Activity}
-          title={
-            forbidden
-              ? "No tienes acceso a configuración AI"
-              : "Configuración AI no disponible"
-          }
-          description={
-            forbidden
-              ? "Solicita a un administrador el permiso necesario."
-              : "No pudimos cargar los proveedores y modelos."
-          }
+          title={forbidden ? t("forbiddenTitle") : t("unavailable")}
+          description={forbidden ? t("forbiddenDescription") : t("loadFailed")}
           action={
             !forbidden ? (
               <Button onClick={() => void load()} variant="brand-secondary">
-                <RefreshCw data-icon="inline-start" /> Reintentar
+                <RefreshCw data-icon="inline-start" /> {t("retry")}
               </Button>
             ) : undefined
           }
@@ -561,25 +515,25 @@ export function AiConfigurationPage() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
-            Configuración AI
+            {t("title")}
           </h1>
-          <p className="text-sm text-muted-foreground">
-            Define la conexión, los modelos y qué usa cada herramienta del
-            Portal.
-          </p>
+          <p className="text-sm text-muted-foreground">{t("description")}</p>
         </div>
         <Badge variant={status.variant}>
-          <status.icon aria-hidden="true" /> {readyProviders}/
-          {configuration.providers.length} listos
+          <status.icon aria-hidden="true" />{" "}
+          {t("readyProviders", {
+            ready: readyProviders,
+            total: configuration.providers.length,
+          })}
         </Badge>
       </div>
 
       <Tabs defaultValue="provider">
         <TabsList className="flex h-auto flex-wrap">
-          <TabsTrigger value="provider">Proveedor</TabsTrigger>
-          <TabsTrigger value="models">Modelos</TabsTrigger>
-          <TabsTrigger value="routing">Rutas</TabsTrigger>
-          <TabsTrigger value="usage">Uso</TabsTrigger>
+          <TabsTrigger value="provider">{t("tab.provider")}</TabsTrigger>
+          <TabsTrigger value="models">{t("tab.models")}</TabsTrigger>
+          <TabsTrigger value="routing">{t("tab.routing")}</TabsTrigger>
+          <TabsTrigger value="usage">{t("tab.usage")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="provider" className="flex flex-col gap-4 pt-3">
@@ -603,23 +557,24 @@ export function AiConfigurationPage() {
                     <KeyRound /> {provider.label}
                     <Badge variant={providerStatus.variant}>
                       <providerStatus.icon aria-hidden="true" />
-                      {providerStatus.label}
+                      {t(`readiness.${provider.readiness}`)}
                     </Badge>
                   </CardTitle>
                   <CardDescription>
-                    Gestiona{" "}
-                    {provider.capabilities
-                      .map((capability) =>
-                        capabilityLabels[capability].toLowerCase()
-                      )
-                      .join(" y ")}
-                    . La clave se cifra y no vuelve a mostrarse.
+                    {t("providerDescription", {
+                      capabilities: format.list(
+                        provider.capabilities.map((capability) =>
+                          t(`capabilityLower.${capability}`)
+                        ),
+                        { type: "conjunction" }
+                      ),
+                    })}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-5">
                   <Field>
                     <FieldLabel htmlFor={`${provider.providerKey}-key`}>
-                      Clave API
+                      {t("apiKey")}
                       {!provider.apiKeyConfigured ? (
                         <span aria-hidden="true" className="text-destructive">
                           *
@@ -644,7 +599,7 @@ export function AiConfigurationPage() {
                       }
                       placeholder={
                         provider.apiKeyConfigured
-                          ? "Clave configurada; escribe otra para reemplazarla"
+                          ? t("apiKeyPlaceholder")
                           : provider.providerKey === "atlascloud"
                             ? "apikey-..."
                             : "sk-..."
@@ -657,14 +612,16 @@ export function AiConfigurationPage() {
                     <CardContent className="flex items-center justify-between gap-4">
                       <div>
                         <p className="font-medium">
-                          Habilitar {provider.label}
+                          {t("enableProvider", { provider: provider.label })}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Activa únicamente las capacidades indicadas arriba.
+                          {t("enableProviderHint")}
                         </p>
                       </div>
                       <Switch
-                        aria-label={`Habilitar ${provider.label}`}
+                        aria-label={t("enableProvider", {
+                          provider: provider.label,
+                        })}
                         checked={draft.enabled}
                         onCheckedChange={(enabled) =>
                           setProviderDrafts((current) => ({
@@ -689,7 +646,7 @@ export function AiConfigurationPage() {
                       ) : (
                         <ShieldCheck data-icon="inline-start" />
                       )}
-                      Probar conexión
+                      {t("testConnection")}
                     </Button>
                     <Button
                       disabled={
@@ -702,7 +659,7 @@ export function AiConfigurationPage() {
                       ) : (
                         <Save data-icon="inline-start" />
                       )}
-                      Guardar proveedor
+                      {t("saveProvider")}
                     </Button>
                   </div>
                 </CardContent>
@@ -714,12 +671,12 @@ export function AiConfigurationPage() {
           <Card variant="subtle">
             <DataTableHeader
               search={{
-                ariaLabel: "Buscar modelos AI",
+                ariaLabel: t("searchModelsAria"),
                 onChange: (value) => {
                   setModelQuery(value)
                   setModelPage(1)
                 },
-                placeholder: "Buscar modelos...",
+                placeholder: t("searchModels"),
                 value: modelQuery,
               }}
             />
@@ -733,20 +690,20 @@ export function AiConfigurationPage() {
                       type="button"
                       variant="outline"
                     >
-                      <X /> Limpiar
+                      <X /> {t("clear")}
                     </Button>
                   ) : undefined
                 }
               >
                 <DataTableFilter
-                  ariaLabel="Filtrar por proveedor"
-                  label="Proveedor"
+                  ariaLabel={t("filterProvider")}
+                  label={t("provider")}
                   onValueChange={(value) => {
                     setModelProviderFilter(value)
                     setModelPage(1)
                   }}
                   options={[
-                    { label: "Todos", value: "all" },
+                    { label: t("all"), value: "all" },
                     ...configuration.providers.map((provider) => ({
                       label: provider.label,
                       value: provider.providerKey,
@@ -755,31 +712,31 @@ export function AiConfigurationPage() {
                   value={modelProviderFilter}
                 />
                 <DataTableFilter
-                  ariaLabel="Filtrar por capacidad"
-                  label="Capacidad"
+                  ariaLabel={t("filterCapability")}
+                  label={t("capability")}
                   onValueChange={(value) => {
                     setModelCapabilityFilter(value)
                     setModelPage(1)
                   }}
                   options={[
-                    { label: "Todas", value: "all" },
-                    { label: "Texto", value: "text" },
-                    { label: "Imagen", value: "image" },
-                    { label: "Video", value: "video" },
+                    { label: t("allFeminine"), value: "all" },
+                    { label: t("capabilityLabel.text"), value: "text" },
+                    { label: t("capabilityLabel.image"), value: "image" },
+                    { label: t("capabilityLabel.video"), value: "video" },
                   ]}
                   value={modelCapabilityFilter}
                 />
                 <DataTableFilter
-                  ariaLabel="Filtrar por habilitado"
-                  label="Habilitado"
+                  ariaLabel={t("filterEnabled")}
+                  label={t("enabledColumn")}
                   onValueChange={(value) => {
                     setModelEnabledFilter(value)
                     setModelPage(1)
                   }}
                   options={[
-                    { label: "Todos", value: "all" },
-                    { label: "Habilitados", value: "enabled" },
-                    { label: "Deshabilitados", value: "disabled" },
+                    { label: t("all"), value: "all" },
+                    { label: t("filter.enabled"), value: "enabled" },
+                    { label: t("filter.disabled"), value: "disabled" },
                   ]}
                   value={modelEnabledFilter}
                 />
@@ -787,18 +744,20 @@ export function AiConfigurationPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Modelo</TableHead>
+                    <TableHead>{t("modelColumn")}</TableHead>
                     <TableHead className="hidden md:table-cell">
-                      Proveedor
+                      {t("provider")}
                     </TableHead>
                     <TableHead className="hidden md:table-cell">
-                      Capacidad
+                      {t("capability")}
                     </TableHead>
                     <TableHead className="hidden lg:table-cell">
-                      Perfil
+                      {t("tierColumn")}
                     </TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead className="text-right">Habilitado</TableHead>
+                    <TableHead>{t("statusColumn")}</TableHead>
+                    <TableHead className="text-right">
+                      {t("enabledColumn")}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -817,16 +776,16 @@ export function AiConfigurationPage() {
                         )?.label ?? model.providerKey}
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
-                        {capabilityLabels[model.capability]}
+                        {t(`capabilityLabel.${model.capability}`)}
                       </TableCell>
                       <TableCell className="hidden lg:table-cell">
-                        {tierLabels[model.tier]}
+                        {t(`tier.${model.tier}`)}
                       </TableCell>
                       <TableCell>
                         <Badge
                           variant={model.deprecated ? "warning" : "success"}
                         >
-                          {model.deprecated ? "Obsoleto" : "Disponible"}
+                          {model.deprecated ? t("deprecated") : t("available")}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -838,7 +797,7 @@ export function AiConfigurationPage() {
                           onCheckedChange={(checked) =>
                             void toggleModel(model, checked)
                           }
-                          aria-label={`Habilitar ${model.label}`}
+                          aria-label={t("enableModel", { model: model.label })}
                         />
                       </TableCell>
                     </TableRow>
@@ -848,20 +807,20 @@ export function AiConfigurationPage() {
                       action={
                         hasModelFilters ? (
                           <Button onClick={clearModelFilters} variant="outline">
-                            Limpiar filtros
+                            {t("clearFilters")}
                           </Button>
                         ) : null
                       }
                       colSpan={6}
                       description={
                         hasModelFilters
-                          ? "Prueba con otro término, proveedor o capacidad."
-                          : "Configura un modelo para habilitar las rutas de generación."
+                          ? t("models.emptyFilteredDescription")
+                          : t("models.emptyDescription")
                       }
                       title={
                         hasModelFilters
-                          ? "No encontramos modelos"
-                          : "Aún no hay modelos"
+                          ? t("models.noMatches")
+                          : t("models.emptyTitle")
                       }
                     />
                   ) : null}
@@ -870,7 +829,7 @@ export function AiConfigurationPage() {
               <TablePagination
                 canGoNext={safeModelPage < modelPageCount}
                 canGoPrevious={safeModelPage > 1}
-                itemLabel="modelos"
+                itemLabel={t("itemLabel.models")}
                 onNextPage={() =>
                   setModelPage((current) =>
                     Math.min(current + 1, modelPageCount)
@@ -891,12 +850,12 @@ export function AiConfigurationPage() {
           <Card variant="subtle">
             <DataTableHeader
               search={{
-                ariaLabel: "Buscar rutas AI",
+                ariaLabel: t("searchRoutesAria"),
                 onChange: (value) => {
                   setRouteQuery(value)
                   setRoutePage(1)
                 },
-                placeholder: "Buscar rutas...",
+                placeholder: t("searchRoutes"),
                 value: routeQuery,
               }}
             />
@@ -910,37 +869,37 @@ export function AiConfigurationPage() {
                       type="button"
                       variant="outline"
                     >
-                      <X /> Limpiar
+                      <X /> {t("clear")}
                     </Button>
                   ) : undefined
                 }
               >
                 <DataTableFilter
-                  ariaLabel="Filtrar por capacidad"
-                  label="Capacidad"
+                  ariaLabel={t("filterCapability")}
+                  label={t("capability")}
                   onValueChange={(value) => {
                     setRouteCapabilityFilter(value)
                     setRoutePage(1)
                   }}
                   options={[
-                    { label: "Todas", value: "all" },
-                    { label: "Texto", value: "text" },
-                    { label: "Imagen", value: "image" },
-                    { label: "Video", value: "video" },
+                    { label: t("allFeminine"), value: "all" },
+                    { label: t("capabilityLabel.text"), value: "text" },
+                    { label: t("capabilityLabel.image"), value: "image" },
+                    { label: t("capabilityLabel.video"), value: "video" },
                   ]}
                   value={routeCapabilityFilter}
                 />
                 <DataTableFilter
-                  ariaLabel="Filtrar por estado"
-                  label="Estado"
+                  ariaLabel={t("filterStatus")}
+                  label={t("statusColumn")}
                   onValueChange={(value) => {
                     setRouteStatusFilter(value)
                     setRoutePage(1)
                   }}
                   options={[
-                    { label: "Todas", value: "all" },
-                    { label: "Habilitadas", value: "enabled" },
-                    { label: "Deshabilitadas", value: "disabled" },
+                    { label: t("allFeminine"), value: "all" },
+                    { label: t("filter.enabledFeminine"), value: "enabled" },
+                    { label: t("filter.disabledFeminine"), value: "disabled" },
                   ]}
                   value={routeStatusFilter}
                 />
@@ -948,21 +907,23 @@ export function AiConfigurationPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Herramienta</TableHead>
+                    <TableHead>{t("toolColumn")}</TableHead>
                     <TableHead className="hidden md:table-cell">
-                      Modelo principal
+                      {t("primaryModelColumn")}
                     </TableHead>
                     <TableHead className="hidden lg:table-cell">
-                      Respaldo
+                      {t("fallbackColumn")}
                     </TableHead>
                     <TableHead className="hidden lg:table-cell">
-                      Razonamiento
+                      {t("reasoningColumn")}
                     </TableHead>
                     <TableHead className="hidden md:table-cell">
-                      Costo
+                      {t("costColumn")}
                     </TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
+                    <TableHead>{t("statusColumn")}</TableHead>
+                    <TableHead className="text-right">
+                      {t("actionsColumn")}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -972,12 +933,12 @@ export function AiConfigurationPage() {
                       <TableRow key={route.kind}>
                         <TableCell>
                           <p className="font-medium">
-                            {kindLabels[route.kind]}
+                            {t(`kind.${route.kind}`)}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             {shape.internal
-                              ? "Se resuelve dentro de Zapi"
-                              : capabilityLabels[shape.capability]}
+                              ? t("internalRoute")
+                              : t(`capabilityLabel.${shape.capability}`)}
                           </p>
                         </TableCell>
                         <TableCell className="hidden md:table-cell">
@@ -999,7 +960,7 @@ export function AiConfigurationPage() {
                         <TableCell className="hidden lg:table-cell">
                           {shape.internal || shape.media
                             ? "—"
-                            : reasoningLabels[route.reasoningEffort]}
+                            : t(`reasoning.${route.reasoningEffort}`)}
                         </TableCell>
                         <TableCell className="hidden md:table-cell">
                           {route.costUnits}
@@ -1008,7 +969,9 @@ export function AiConfigurationPage() {
                           <Badge
                             variant={route.enabled ? "success" : "neutral"}
                           >
-                            {route.enabled ? "Habilitada" : "Deshabilitada"}
+                            {route.enabled
+                              ? t("routeEnabled")
+                              : t("routeDisabled")}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
@@ -1018,7 +981,7 @@ export function AiConfigurationPage() {
                             variant="brand-secondary"
                           >
                             <Settings2 data-icon="inline-start" />
-                            Configurar
+                            {t("configure")}
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -1029,20 +992,20 @@ export function AiConfigurationPage() {
                       action={
                         hasRouteFilters ? (
                           <Button onClick={clearRouteFilters} variant="outline">
-                            Limpiar filtros
+                            {t("clearFilters")}
                           </Button>
                         ) : null
                       }
                       colSpan={7}
                       description={
                         hasRouteFilters
-                          ? "Prueba con otro término, capacidad o estado."
-                          : "Configura un proveedor y sus modelos para enrutar las herramientas del Portal."
+                          ? t("routes.emptyFilteredDescription")
+                          : t("routes.emptyDescription")
                       }
                       title={
                         hasRouteFilters
-                          ? "No encontramos rutas"
-                          : "Aún no hay rutas"
+                          ? t("routes.noMatches")
+                          : t("routes.emptyTitle")
                       }
                     />
                   ) : null}
@@ -1051,7 +1014,7 @@ export function AiConfigurationPage() {
               <TablePagination
                 canGoNext={safeRoutePage < routePageCount}
                 canGoPrevious={safeRoutePage > 1}
-                itemLabel="rutas"
+                itemLabel={t("itemLabel.routes")}
                 onNextPage={() =>
                   setRoutePage((current) =>
                     Math.min(current + 1, routePageCount)
@@ -1095,13 +1058,6 @@ export function AiConfigurationPage() {
   )
 }
 
-function modelLabel(models: AdminAiModel[], id: string | null) {
-  if (!id) return "Sin modelo"
-  return (
-    models.find((model) => model.id === id)?.label ?? "Modelo no disponible"
-  )
-}
-
 function RouteModelCell({
   models,
   primaryId,
@@ -1113,14 +1069,21 @@ function RouteModelCell({
   referenceId: string | null
   shape: RouteShape
 }) {
+  const t = useTranslations("aiConfiguration")
+
+  function modelLabel(id: string | null) {
+    if (!id) return t("noModel")
+    return models.find((model) => model.id === id)?.label ?? t("modelMissing")
+  }
+
   if (shape.internal) return <>—</>
-  if (!shape.media) return <>{modelLabel(models, primaryId)}</>
+  if (!shape.media) return <>{modelLabel(primaryId)}</>
 
   return (
     <div className="flex flex-col">
-      <span>{modelLabel(models, primaryId)}</span>
+      <span>{modelLabel(primaryId)}</span>
       <span className="text-xs text-muted-foreground">
-        Con referencias: {modelLabel(models, referenceId)}
+        {t("withReferences", { model: modelLabel(referenceId) })}
       </span>
     </div>
   )
@@ -1141,6 +1104,7 @@ function RouteSheet({
   onOpenChange: (open: boolean) => void
   onSave: () => void
 }) {
+  const t = useTranslations("aiConfiguration")
   const { capability, internal, media, primaryModes, referenceModes } =
     routeShape(route.kind)
   const options = models.filter(
@@ -1165,14 +1129,16 @@ function RouteSheet({
       <SheetContent className="w-full gap-0 p-0 sm:max-w-2xl" side="right">
         <SheetHeader className="border-b">
           <SheetTitle className="flex items-center gap-2">
-            <Route className="size-4" /> {kindLabels[route.kind]}
+            <Route className="size-4" /> {t(`kind.${route.kind}`)}
           </SheetTitle>
           <SheetDescription>
             {internal
-              ? "Esta herramienta se resuelve dentro de Zapi y no consume un modelo externo."
+              ? t("sheet.internal")
               : media
-                ? "Separa la generación desde texto de la generación con archivos de referencia."
-                : `Elige el modelo principal y el respaldo para ${capabilityLabels[capability].toLowerCase()}.`}
+                ? t("sheet.media")
+                : t("sheet.text", {
+                    capability: t(`capabilityLower.${capability}`),
+                  })}
           </SheetDescription>
         </SheetHeader>
         <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
@@ -1181,7 +1147,7 @@ function RouteSheet({
               <>
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium">
-                    {media ? "Principal · sin referencias" : "Modelo principal"}
+                    {media ? t("primaryWithoutReferences") : t("primaryModel")}
                     {route.enabled ? (
                       <span aria-hidden="true" className="text-destructive">
                         *
@@ -1200,11 +1166,11 @@ function RouteSheet({
                       aria-required={route.enabled ? "true" : undefined}
                       className="w-full"
                     >
-                      <SelectValue placeholder="Selecciona" />
+                      <SelectValue placeholder={t("select")} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem value="none">Sin modelo</SelectItem>
+                        <SelectItem value="none">{t("noModel")}</SelectItem>
                         {options.map((model) => (
                           <SelectItem key={model.id} value={model.id}>
                             {model.label}
@@ -1217,8 +1183,8 @@ function RouteSheet({
                 <div className="flex flex-col gap-2">
                   <label className="text-sm font-medium">
                     {media
-                      ? "Respaldo · sin referencias"
-                      : "Modelo de respaldo"}
+                      ? t("fallbackWithoutReferences")
+                      : t("fallbackModel")}
                   </label>
                   <Select
                     value={route.fallbackModelId ?? "none"}
@@ -1229,11 +1195,11 @@ function RouteSheet({
                     }
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selecciona" />
+                      <SelectValue placeholder={t("select")} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem value="none">Sin respaldo</SelectItem>
+                        <SelectItem value="none">{t("noFallback")}</SelectItem>
                         {options
                           .filter((model) => model.id !== route.primaryModelId)
                           .map((model) => (
@@ -1249,7 +1215,7 @@ function RouteSheet({
                   <>
                     <div className="flex flex-col gap-2">
                       <label className="text-sm font-medium">
-                        Principal · con referencias
+                        {t("primaryWithReferences")}
                         {route.enabled ? (
                           <span aria-hidden="true" className="text-destructive">
                             *
@@ -1268,11 +1234,11 @@ function RouteSheet({
                           aria-required={route.enabled ? "true" : undefined}
                           className="w-full"
                         >
-                          <SelectValue placeholder="Selecciona" />
+                          <SelectValue placeholder={t("select")} />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem value="none">Sin modelo</SelectItem>
+                            <SelectItem value="none">{t("noModel")}</SelectItem>
                             {referenceOptions.map((model) => (
                               <SelectItem key={model.id} value={model.id}>
                                 {model.label}
@@ -1284,7 +1250,7 @@ function RouteSheet({
                     </div>
                     <div className="flex flex-col gap-2">
                       <label className="text-sm font-medium">
-                        Respaldo · con referencias
+                        {t("fallbackWithReferences")}
                       </label>
                       <Select
                         value={route.referenceFallbackModelId ?? "none"}
@@ -1296,11 +1262,13 @@ function RouteSheet({
                         }
                       >
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Selecciona" />
+                          <SelectValue placeholder={t("select")} />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
-                            <SelectItem value="none">Sin respaldo</SelectItem>
+                            <SelectItem value="none">
+                              {t("noFallback")}
+                            </SelectItem>
                             {referenceOptions
                               .filter(
                                 (model) => model.id !== route.referenceModelId
@@ -1318,7 +1286,9 @@ function RouteSheet({
                 ) : null}
                 {!media ? (
                   <div className="flex flex-col gap-2">
-                    <label className="text-sm font-medium">Razonamiento</label>
+                    <label className="text-sm font-medium">
+                      {t("reasoningColumn")}
+                    </label>
                     <Select
                       value={route.reasoningEffort}
                       onValueChange={(value) =>
@@ -1332,10 +1302,18 @@ function RouteSheet({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
-                          <SelectItem value="none">Ninguno</SelectItem>
-                          <SelectItem value="low">Bajo</SelectItem>
-                          <SelectItem value="medium">Medio</SelectItem>
-                          <SelectItem value="high">Alto</SelectItem>
+                          <SelectItem value="none">
+                            {t("reasoning.none")}
+                          </SelectItem>
+                          <SelectItem value="low">
+                            {t("reasoning.low")}
+                          </SelectItem>
+                          <SelectItem value="medium">
+                            {t("reasoning.medium")}
+                          </SelectItem>
+                          <SelectItem value="high">
+                            {t("reasoning.high")}
+                          </SelectItem>
                         </SelectGroup>
                       </SelectContent>
                     </Select>
@@ -1344,7 +1322,7 @@ function RouteSheet({
               </>
             ) : null}
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">Costo en créditos</label>
+              <label className="text-sm font-medium">{t("costUnits")}</label>
               <Input
                 type="number"
                 min={0}
@@ -1362,9 +1340,9 @@ function RouteSheet({
             <Switch
               checked={route.enabled}
               onCheckedChange={(enabled) => onChange({ enabled })}
-              aria-label={`Habilitar ${kindLabels[route.kind]}`}
+              aria-label={t("enableTool", { tool: t(`kind.${route.kind}`) })}
             />
-            <span className="text-sm">Herramienta habilitada</span>
+            <span className="text-sm">{t("toolEnabled")}</span>
           </div>
         </div>
         <SheetFooter className="flex-row justify-end border-t">
@@ -1374,7 +1352,7 @@ function RouteSheet({
             type="button"
             variant="brand-secondary"
           >
-            Cancelar
+            {t("cancel")}
           </Button>
           <Button
             onClick={onSave}
@@ -1389,7 +1367,7 @@ function RouteSheet({
             ) : (
               <Save data-icon="inline-start" />
             )}
-            Guardar ruta
+            {t("saveRoute")}
           </Button>
         </SheetFooter>
       </SheetContent>
@@ -1406,15 +1384,18 @@ function UsagePanel({
   onRetry: () => void
   usage: AdminAiUsage | null
 }) {
+  const t = useTranslations("aiConfiguration")
+  const format = useFormatter()
+  const locale = useLocale()
   const [query, setQuery] = useState("")
   const [page, setPage] = useState(1)
   const filteredItems = useMemo(() => {
-    const normalized = query.trim().toLocaleLowerCase("es")
+    const normalized = query.trim().toLocaleLowerCase(locale)
     if (!normalized) return usage?.byModel ?? []
     return (usage?.byModel ?? []).filter((item) =>
-      item.model.toLocaleLowerCase("es").includes(normalized)
+      item.model.toLocaleLowerCase(locale).includes(normalized)
     )
-  }, [query, usage?.byModel])
+  }, [locale, query, usage?.byModel])
   const pageCount = Math.max(
     1,
     Math.ceil(filteredItems.length / TABLE_PAGE_SIZE)
@@ -1437,47 +1418,49 @@ function UsagePanel({
         <EmptyState
           action={
             <Button onClick={onRetry} variant="brand-secondary">
-              <RefreshCw data-icon="inline-start" /> Reintentar
+              <RefreshCw data-icon="inline-start" /> {t("retry")}
             </Button>
           }
-          description="La configuración sigue disponible; solo falló el resumen de consumo."
+          description={t("usage.loadFailedDescription")}
           icon={Activity}
-          title="No se pudo cargar el uso AI"
+          title={t("usage.loadFailedTitle")}
         />
       </Card>
     )
   }
-  if (!usage) return <PageLoading aria-label="Cargando uso AI" />
+  if (!usage) return <PageLoading aria-label={t("usage.loading")} />
   const metrics = [
     {
-      description: `Últimos ${usage.periodDays} días`,
+      description: t("usage.metric.requests.description", {
+        days: usage.periodDays,
+      }),
       icon: Activity,
-      label: "Solicitudes",
-      value: number(usage.requests),
+      label: t("usage.metric.requests.label"),
+      value: format.number(usage.requests),
     },
     {
-      description: "Finalizadas correctamente",
+      description: t("usage.metric.succeeded.description"),
       icon: CheckCircle2,
-      label: "Correctas",
-      value: number(usage.succeeded),
+      label: t("usage.metric.succeeded.label"),
+      value: format.number(usage.succeeded),
     },
     {
-      description: "Solicitudes con error",
+      description: t("usage.metric.failed.description"),
       icon: CircleX,
-      label: "Fallidas",
-      value: number(usage.failed),
+      label: t("usage.metric.failed.label"),
+      value: format.number(usage.failed),
     },
     {
-      description: "Consumo calculado",
+      description: t("usage.metric.cost.description"),
       icon: CircleDollarSign,
-      label: "Costo estimado",
-      value: money(usage.estimatedCostMicrousd),
+      label: t("usage.metric.cost.label"),
+      value: money(format, usage.estimatedCostMicrousd),
     },
     {
-      description: "Promedio por solicitud",
+      description: t("usage.metric.latency.description"),
       icon: Timer,
-      label: "Latencia media",
-      value: `${number(usage.averageLatencyMs)} ms`,
+      label: t("usage.metric.latency.label"),
+      value: t("milliseconds", { value: usage.averageLatencyMs }),
     },
   ]
   return (
@@ -1490,12 +1473,12 @@ function UsagePanel({
       <Card variant="subtle">
         <DataTableHeader
           search={{
-            ariaLabel: "Buscar consumo por modelo",
+            ariaLabel: t("usage.searchAria"),
             onChange: (value) => {
               setQuery(value)
               setPage(1)
             },
-            placeholder: "Buscar modelo...",
+            placeholder: t("usage.searchPlaceholder"),
             value: query,
           }}
         />
@@ -1503,15 +1486,15 @@ function UsagePanel({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Modelo</TableHead>
-                <TableHead>Solicitudes</TableHead>
+                <TableHead>{t("modelColumn")}</TableHead>
+                <TableHead>{t("requestsColumn")}</TableHead>
                 <TableHead className="hidden md:table-cell">
-                  Tokens entrada
+                  {t("inputTokensColumn")}
                 </TableHead>
                 <TableHead className="hidden md:table-cell">
-                  Tokens salida
+                  {t("outputTokensColumn")}
                 </TableHead>
-                <TableHead>Costo estimado</TableHead>
+                <TableHead>{t("estimatedCostColumn")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -1521,14 +1504,16 @@ function UsagePanel({
                     <TableCell className="font-mono text-xs">
                       {item.model}
                     </TableCell>
-                    <TableCell>{number(item.requests)}</TableCell>
+                    <TableCell>{format.number(item.requests)}</TableCell>
                     <TableCell className="hidden md:table-cell">
-                      {number(item.inputTokens)}
+                      {format.number(item.inputTokens)}
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
-                      {number(item.outputTokens)}
+                      {format.number(item.outputTokens)}
                     </TableCell>
-                    <TableCell>{money(item.estimatedCostMicrousd)}</TableCell>
+                    <TableCell>
+                      {money(format, item.estimatedCostMicrousd)}
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
@@ -1542,20 +1527,18 @@ function UsagePanel({
                         }}
                         variant="outline"
                       >
-                        Limpiar filtros
+                        {t("clearFilters")}
                       </Button>
                     ) : null
                   }
                   colSpan={5}
                   description={
                     query.trim()
-                      ? "Prueba con otro término de búsqueda."
-                      : "El consumo aparecerá aquí en cuanto se registren generaciones."
+                      ? t("usage.emptyFilteredDescription")
+                      : t("usage.emptyDescription")
                   }
                   title={
-                    query.trim()
-                      ? "No encontramos consumo"
-                      : "Aún no hay consumo AI"
+                    query.trim() ? t("usage.noMatches") : t("usage.emptyTitle")
                   }
                 />
               )}
@@ -1564,7 +1547,7 @@ function UsagePanel({
           <TablePagination
             canGoNext={safePage < pageCount}
             canGoPrevious={safePage > 1}
-            itemLabel="modelos"
+            itemLabel={t("itemLabel.models")}
             onNextPage={() =>
               setPage((current) => Math.min(current + 1, pageCount))
             }

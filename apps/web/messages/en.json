@@ -1011,6 +1011,244 @@
     "withdrawalsEmptyTitle": "No withdrawals",
     "withdrawalsEmptyDescription": "Your withdrawal requests will appear in this history."
   },
+  "aiConfiguration": {
+    "actionsColumn": "Actions",
+    "all": "All",
+    "allFeminine": "All",
+    "apiKey": "API key",
+    "apiKeyPlaceholder": "Key configured; type another one to replace it",
+    "available": "Available",
+    "cancel": "Cancel",
+    "capability": "Capability",
+    "capabilityLabel": {
+      "image": "Image",
+      "text": "Text",
+      "video": "Video"
+    },
+    "capabilityLower": {
+      "image": "image",
+      "text": "text",
+      "video": "video"
+    },
+    "clear": "Clear",
+    "clearFilters": "Clear filters",
+    "configure": "Configure",
+    "costColumn": "Cost",
+    "costUnits": "Cost in credits",
+    "deprecated": "Deprecated",
+    "description": "Set the connection, the models and what each Portal tool uses.",
+    "enableModel": "Enable {model}",
+    "enableProvider": "Enable {provider}",
+    "enableProviderHint": "Only the capabilities listed above get enabled.",
+    "enableTool": "Enable {tool}",
+    "enabledColumn": "Enabled",
+    "estimatedCostColumn": "Estimated cost",
+    "fallbackColumn": "Fallback",
+    "fallbackModel": "Fallback model",
+    "fallbackWithReferences": "Fallback · with references",
+    "fallbackWithoutReferences": "Fallback · without references",
+    "filter": {
+      "disabled": "Disabled",
+      "disabledFeminine": "Disabled",
+      "enabled": "Enabled",
+      "enabledFeminine": "Enabled"
+    },
+    "filterCapability": "Filter by capability",
+    "filterEnabled": "Filter by enabled",
+    "filterProvider": "Filter by provider",
+    "filterStatus": "Filter by status",
+    "forbiddenDescription": "Ask an administrator for the permission you need.",
+    "forbiddenTitle": "You don't have access to AI configuration",
+    "inputTokensColumn": "Input tokens",
+    "internalRoute": "Resolved inside Zapi",
+    "itemLabel": {
+      "models": "models",
+      "routes": "routes"
+    },
+    "keyRequired": "Enter and test the key before saving.",
+    "kind": {
+      "ai_publishing": "AI publishing",
+      "content": "Create content",
+      "image": "Create image",
+      "planner": "Planner",
+      "repurpose": "Repurpose content",
+      "review": "Review",
+      "search": "Smart search",
+      "timing": "Best timing",
+      "video": "Create video"
+    },
+    "loadFailed": "We couldn't load the providers and models.",
+    "loading": "Loading AI configuration",
+    "milliseconds": "{value, number} ms",
+    "modelColumn": "Model",
+    "modelDisabled": "{model} disabled.",
+    "modelEnabled": "{model} enabled.",
+    "modelMissing": "Model unavailable",
+    "models": {
+      "emptyDescription": "Configure a model to enable the generation routes.",
+      "emptyFilteredDescription": "Try another term, provider or capability.",
+      "emptyTitle": "No models yet",
+      "noMatches": "We couldn't find any models"
+    },
+    "noFallback": "No fallback",
+    "noModel": "No model",
+    "outputTokensColumn": "Output tokens",
+    "primaryModel": "Primary model",
+    "primaryModelColumn": "Primary model",
+    "primaryWithReferences": "Primary · with references",
+    "primaryWithoutReferences": "Primary · without references",
+    "provider": "Provider",
+    "providerDescription": "Handles {capabilities}. The key is encrypted and never shown again.",
+    "providerSaved": "{provider} configuration saved.",
+    "readiness": {
+      "disabled": "Disabled",
+      "error": "Error",
+      "incomplete": "Incomplete",
+      "ready": "Ready",
+      "untested": "Untested"
+    },
+    "readyProviders": "{ready, number}/{total, number} ready",
+    "reasoning": {
+      "high": "High",
+      "low": "Low",
+      "max": "Maximum",
+      "medium": "Medium",
+      "none": "None",
+      "xhigh": "Very high"
+    },
+    "reasoningColumn": "Reasoning",
+    "requestsColumn": "Requests",
+    "retry": "Retry",
+    "routeDisabled": "Disabled",
+    "routeEnabled": "Enabled",
+    "routeSaved": "{tool} route saved.",
+    "routes": {
+      "emptyDescription": "Configure a provider and its models to route the Portal tools.",
+      "emptyFilteredDescription": "Try another term, capability or status.",
+      "emptyTitle": "No routes yet",
+      "noMatches": "We couldn't find any routes"
+    },
+    "saveProvider": "Save provider",
+    "saveRoute": "Save route",
+    "searchModels": "Search models...",
+    "searchModelsAria": "Search AI models",
+    "searchRoutes": "Search routes...",
+    "searchRoutesAria": "Search AI routes",
+    "select": "Select",
+    "sheet": {
+      "internal": "This tool is resolved inside Zapi and doesn't consume an external model.",
+      "media": "Separate generation from text from generation with reference files.",
+      "text": "Choose the primary model and the fallback for {capability}."
+    },
+    "statusColumn": "Status",
+    "tab": {
+      "models": "Models",
+      "provider": "Provider",
+      "routing": "Routes",
+      "usage": "Usage"
+    },
+    "testBeforeEnable": "Test the connection before enabling {provider}.",
+    "testConnection": "Test connection",
+    "testOk": "Connection to {provider} is working.",
+    "tier": {
+      "balanced": "Balanced",
+      "economy": "Economy",
+      "quality": "Top quality",
+      "specialized": "Specialized"
+    },
+    "tierColumn": "Profile",
+    "title": "AI configuration",
+    "toolColumn": "Tool",
+    "toolEnabled": "Tool enabled",
+    "unavailable": "AI configuration unavailable",
+    "usage": {
+      "emptyDescription": "Consumption will show up here as soon as generations are recorded.",
+      "emptyFilteredDescription": "Try another search term.",
+      "emptyTitle": "No AI consumption yet",
+      "loadFailedDescription": "The configuration is still available; only the consumption summary failed.",
+      "loadFailedTitle": "AI usage could not be loaded",
+      "loading": "Loading AI usage",
+      "metric": {
+        "cost": {
+          "description": "Computed consumption",
+          "label": "Estimated cost"
+        },
+        "failed": {
+          "description": "Requests with an error",
+          "label": "Failed"
+        },
+        "latency": {
+          "description": "Average per request",
+          "label": "Average latency"
+        },
+        "requests": {
+          "description": "Last {days, number} days",
+          "label": "Requests"
+        },
+        "succeeded": {
+          "description": "Finished successfully",
+          "label": "Successful"
+        }
+      },
+      "noMatches": "We couldn't find any consumption",
+      "searchAria": "Search consumption by model",
+      "searchPlaceholder": "Search model..."
+    },
+    "withReferences": "With references: {model}"
+  },
+  "aiReport": {
+    "apply": "Apply",
+    "costColumn": "Cost",
+    "dayColumn": "Day",
+    "description": "AI consumption per day and per provider within the selected range.",
+    "emptyDescription": "There are no generations recorded in this range.",
+    "emptyTitle": "No activity",
+    "forbiddenDescription": "Ask an administrator for the permission needed to view the AI report.",
+    "from": "From",
+    "latencyColumn": "Latency",
+    "loadFailed": "We couldn't compute the AI consumption report.",
+    "loading": "Loading AI report",
+    "metric": {
+      "cost": {
+        "description": "Computed consumption",
+        "label": "Estimated cost"
+      },
+      "failed": {
+        "description": "Finished with an error",
+        "label": "Failed"
+      },
+      "latency": {
+        "description": "Average per request",
+        "label": "Average latency"
+      },
+      "requests": {
+        "description": "Generations in the range",
+        "label": "Requests"
+      },
+      "successRate": {
+        "description": "Finished successfully",
+        "label": "Success rate"
+      },
+      "tokens": {
+        "description": "Input plus output",
+        "label": "Tokens"
+      }
+    },
+    "milliseconds": "{value, number} ms",
+    "percent": "{value, number}%",
+    "pickDate": "Pick a date",
+    "providerColumn": "Provider",
+    "requestsColumn": "Requests",
+    "successColumn": "Success",
+    "tab": {
+      "daily": "By day",
+      "providers": "By provider"
+    },
+    "title": "AI report",
+    "to": "To",
+    "tokensColumn": "Tokens",
+    "unavailable": "Report unavailable"
+  },
   "aiStudio": {
     "chat": {
       "loading": "Loading AI Studio",
@@ -1547,6 +1785,60 @@
         "noDate": "No date"
       }
     }
+  },
+  "aiUsageLogs": {
+    "all": "All",
+    "clear": "Clear",
+    "description": "Every AI generation with its origin, provider, consumption and result.",
+    "emptyDescription": "Every generation will show up here as soon as it is recorded.",
+    "emptyFilteredDescription": "Try another term, provider or status.",
+    "emptyTitle": "No generations yet",
+    "filter": {
+      "cancelled": "Cancelled",
+      "failed": "Failed",
+      "processing": "Processing",
+      "queued": "Queued",
+      "succeeded": "Successful"
+    },
+    "filterProvider": "Filter by provider",
+    "filterStatus": "Filter by status",
+    "forbiddenDescription": "Ask an administrator for the permission needed to review AI consumption.",
+    "internalProvider": "internal",
+    "itemLabel": "generations",
+    "kind": {
+      "ai_publishing": "AI publishing",
+      "content": "Create content",
+      "image": "Create image",
+      "planner": "Planner",
+      "repurpose": "Repurpose content",
+      "review": "Review",
+      "search": "Smart search",
+      "timing": "Best timing",
+      "video": "Create video"
+    },
+    "latency": "{ms, number} ms",
+    "loadFailed": "We couldn't load the AI request log.",
+    "loading": "Loading AI log",
+    "modelColumn": "Model",
+    "noMatches": "No matches",
+    "provider": "Provider",
+    "requestColumn": "Request",
+    "resetFilters": "Reset filters",
+    "searchAriaLabel": "Search by user or workspace",
+    "searchPlaceholder": "Search by user or workspace...",
+    "status": {
+      "cancelled": "Cancelled",
+      "failed": "Failed",
+      "processing": "Processing",
+      "queued": "Queued",
+      "succeeded": "Successful"
+    },
+    "statusColumn": "Status",
+    "title": "AI usage log",
+    "tokens": "{count, number} tokens",
+    "unavailable": "Log unavailable",
+    "usageColumn": "Usage",
+    "userColumn": "User"
   },
   "audit": {
     "accountColumn": "Account",
@@ -2143,26 +2435,28 @@
     }
   },
   "errors": {
-    "generic": "We couldn't complete the request. Please try again.",
-    "AUTH_EMAIL_ALREADY_REGISTERED": "An account with this email already exists.",
-    "AUTH_INVALID_CREDENTIALS": "Incorrect email or password.",
+    "ACCOUNT_GRANT_NOT_ALLOWED": "You can't assign one or more of the selected accounts.",
+    "AI_CREDITS_INSUFFICIENT": "There aren't enough credits to start this generation.",
+    "AI_MODEL_ROUTE_INVALID": "The route uses an incompatible, disabled or deprecated model.",
+    "AI_PROVIDER_CONFIGURATION_INVALID": "The key is invalid or hasn't been tested yet.",
+    "AI_PROVIDER_NOT_READY": "The administrator hasn't enabled a model for this tool yet.",
+    "AI_REQUEST_RATE_LIMITED": "Too many requests. Wait a moment and try again.",
     "AUTH_CAPTCHA_INVALID": "Complete the security check and try again.",
     "AUTH_CAPTCHA_UNAVAILABLE": "We couldn't verify security. Please try again.",
+    "AUTH_EMAIL_ALREADY_REGISTERED": "An account with this email already exists.",
+    "AUTH_INVALID_CREDENTIALS": "Incorrect email or password.",
     "AUTH_PASSWORD_POLICY_NOT_MET": "The password doesn't meet the security requirements.",
     "AUTH_SESSION_EXPIRED": "Your session ended. Sign in again.",
     "AUTH_WORKSPACE_UNAVAILABLE": "We couldn't access your account.",
-    "VALIDATION_FAILED": "Check the details and try again.",
-    "AI_PROVIDER_NOT_READY": "The administrator hasn't enabled a model for this tool yet.",
-    "AI_CREDITS_INSUFFICIENT": "There aren't enough credits to start this generation.",
-    "AI_REQUEST_RATE_LIMITED": "Too many requests. Wait a moment and try again.",
-    "ACCOUNT_GRANT_NOT_ALLOWED": "You can't assign one or more of the selected accounts.",
     "INVITATION_ALREADY_PENDING": "There's already a pending invitation for that email.",
     "INVITATION_RESEND_NOT_ALLOWED": "This invitation can't be resent anymore.",
     "LAST_OWNER_PROTECTED": "Transfer ownership before leaving the workspace.",
     "MEMBER_LIMIT_REACHED": "There are no seats left in this workspace.",
     "ROLE_CHANGE_NOT_ALLOWED": "Your role can't complete this change.",
     "TEAM_ACCESS_DENIED": "You don't have permission to complete this action.",
-    "TEAM_MEMBER_ALREADY_EXISTS": "That email already belongs to the workspace."
+    "TEAM_MEMBER_ALREADY_EXISTS": "That email already belongs to the workspace.",
+    "VALIDATION_FAILED": "Check the details and try again.",
+    "generic": "We couldn't complete the request. Please try again."
   },
   "files": {
     "name": "Name",
