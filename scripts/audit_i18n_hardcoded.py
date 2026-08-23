@@ -7,10 +7,15 @@ están sincronizados y el auditor pasa. Este hueco fue real —el plan dio el
 Portal por terminado con Marca de agua e Integraciones sin migrar— y esto lo
 cierra.
 
-Heurística: una cadena es texto de interfaz cuando aparece en una posición de
-presentación (nodo JSX, prop de rótulo, `toast.*`) y contiene una palabra
-funcional española o una letra acentuada. Los datos de ejemplo de `fixtures/`
-quedan fuera a propósito: son contenido del mock, no interfaz.
+Regla: en una posición de presentación (nodo JSX, prop de rótulo, `toast.*`)
+no debe haber ningún literal, sea del idioma que sea. Buscar marcas del
+español no basta: «Guardar perfil» o «canales» no llevan acento ni palabra
+funcional, así que una heurística por idioma los deja pasar —y así se
+escaparon hasta que el usuario los vio en pantalla—.
+
+Lo único permitido son nombres propios y valores técnicos, en `ALLOWED`. Los
+datos de ejemplo de `fixtures/` quedan fuera a propósito: son contenido del
+mock, no interfaz.
 """
 
 from __future__ import annotations
@@ -28,28 +33,30 @@ WEB = ROOT / "apps/web"
 EXCLUDED_PARTS = ("node_modules", "/fixtures/", "/messages/")
 EXCLUDED_SUFFIXES = (".d.json.ts",)
 
-SPANISH_WORDS = re.compile(
-    r"\b(el|la|los|las|un|una|de|del|para|con|sin|que|por|más|está|este|esta"
-    r"|cada|todo|todos|todas|no|se|su|sus|al|y|o|en)\b",
-    re.IGNORECASE,
+# Nombres propios, marcas y valores técnicos que no se traducen.
+ALLOWED = re.compile(
+    r"^(Meta|Instagram|Facebook|LinkedIn|WhatsApp[\w ]*|Polar\.sh|Google Drive"
+    r"|PostgreSQL|Redis|Node\.js|Sandbox|Webhook|Timeout|Reply-to|Slug|MRR|API"
+    r"|OAuth Client ID|Organization Access Token|Prompt|Zapi Social|drive\.file"
+    r"|Promise|[\W\d]+)$"
 )
-ACCENTED = re.compile(r"[áéíóúñ¿¡]")
+
+# Fragmentos de código que las expresiones capturan por error.
+CODE_NOISE = re.compile(r"^\w+\)|\bcopy\.|=>|\bconst\b")
 
 LABEL_PROPS = (
-    "placeholder|aria-label|ariaLabel|label|title|description|helper"
+    "placeholder|aria-label|ariaLabel|label|title|description|helper|alt"
     "|itemLabel|successMessage|emptyTitle|emptyDescription|createLabel"
     "|searchPlaceholder|formDescription|sheetDescription"
 )
 
 PATTERNS = (
     # Prop de rótulo con texto literal.
-    re.compile(rf'(?:{LABEL_PROPS})\s*[:=]\s*"([^"]{{3,}})"'),
+    re.compile(rf'(?:{LABEL_PROPS})\s*[:=]\s*"([^"]{{2,}})"'),
     # Nodo de texto dentro de JSX.
-    re.compile(r">\s*([A-ZÁÉÍÓÚÑ¿][^<>{}\n]{3,})\s*<"),
+    re.compile(r">\s*([A-Za-zÁÉÍÓÚÑáéíóúñ¿¡][^<>{}\n]{2,})\s*<"),
     # Aviso al usuario.
     re.compile(r'toast\.(?:success|error|info)\(\s*"([^"]+)"'),
-    # Cadena suelta que empieza como una frase.
-    re.compile(r'(?<![\w.])"([A-ZÁÉÍÓÚÑ¿][^"]{4,})"'),
 )
 
 
@@ -60,7 +67,7 @@ def is_ui_text(value: str) -> bool:
     # Códigos de error y constantes técnicas.
     if re.fullmatch(r"[A-Z_0-9]+", value):
         return False
-    return bool(ACCENTED.search(value) or SPANISH_WORDS.search(value))
+    return not (ALLOWED.match(value) or CODE_NOISE.search(value))
 
 
 def scan(path: Path) -> list[tuple[int, str]]:

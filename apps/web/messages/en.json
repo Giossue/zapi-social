@@ -2662,6 +2662,7 @@
     "filtering": "Filtering channels",
     "forbiddenDescription": "Ask a workspace administrator for access.",
     "forbiddenTitle": "You don't have access to channels",
+    "itemLabel": "channels",
     "loadFailed": "We couldn't load your channels. Try again.",
     "loadFailedDescription": "Check your connection and try again.",
     "loadFailedTitle": "We couldn't load the channels",
@@ -3772,6 +3773,7 @@
     "personalTitle": "Personal information",
     "preferredLanguage": "Preferred language",
     "saveFailed": "We couldn't save the changes. Please try again.",
+    "saveProfile": "Save profile",
     "settingsLabel": "Account settings",
     "tab": {
       "profile": "Profile",

@@ -105,7 +105,7 @@ export function ChannelsUsers({
                 size="sm"
                 onClick={onConnect}
               >
-                <Plus /> Conectar canal
+                <Plus /> {t("connect")}
               </Button>
             ) : undefined
           }

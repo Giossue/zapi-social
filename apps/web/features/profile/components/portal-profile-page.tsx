@@ -395,7 +395,7 @@ export function PortalProfilePage() {
               {!savingPreferences ? (
                 <Save aria-hidden="true" data-icon="inline-start" />
               ) : null}
-              Guardar perfil
+              {t("saveProfile")}
             </Button>
           </div>
         </form>

@@ -2662,6 +2662,7 @@
     "filtering": "Filtrando canales",
     "forbiddenDescription": "Pide acceso a un administrador del espacio de trabajo.",
     "forbiddenTitle": "No tienes acceso a los canales",
+    "itemLabel": "canales",
     "loadFailed": "No pudimos cargar tus canales. Inténtalo de nuevo.",
     "loadFailedDescription": "Comprueba tu conexión e inténtalo de nuevo.",
     "loadFailedTitle": "No pudimos cargar los canales",
@@ -3772,6 +3773,7 @@
     "personalTitle": "Información personal",
     "preferredLanguage": "Idioma preferido",
     "saveFailed": "No pudimos guardar los cambios. Inténtalo de nuevo.",
+    "saveProfile": "Guardar perfil",
     "settingsLabel": "Configuración de la cuenta",
     "tab": {
       "profile": "Perfil",

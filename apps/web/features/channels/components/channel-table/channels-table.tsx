@@ -2,6 +2,7 @@
 "use no memo"
 
 import type { ReactNode } from "react"
+import { useTranslations } from "next-intl"
 
 import { flexRender, type Table as TableType } from "@tanstack/react-table"
 
@@ -43,6 +44,8 @@ export function ChannelsTable({
   rangeStart,
   total,
 }: ChannelsTableProps) {
+  const t = useTranslations("channels")
+
   return (
     <div className="flex flex-1 flex-col gap-4">
       <div>
@@ -114,7 +117,7 @@ export function ChannelsTable({
       <TablePagination
         canGoNext={canGoNext}
         canGoPrevious={canGoPrevious}
-        itemLabel="canales"
+        itemLabel={t("itemLabel")}
         onNextPage={onNextPage}
         onPreviousPage={onPreviousPage}
         rangeEnd={rangeEnd}
