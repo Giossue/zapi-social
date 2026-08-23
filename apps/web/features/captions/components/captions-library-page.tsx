@@ -101,6 +101,9 @@ import type {
 } from "@/features/captions/types/captions"
 
 declare module "@tanstack/react-table" {
+  /* TypeScript exige que una augmentación repita los parámetros con el
+     mismo nombre, aunque esta no los use. */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData extends RowData, TValue> {
     className?: string
   }
@@ -328,6 +331,9 @@ function CaptionsTable({
     pageSize: 10,
   })
   const tableData = useMemo(() => [...captions], [captions])
+  /* TanStack Table guarda estado mutable fuera de React; el compilador no
+     puede razonar sobre él y no es algo que se arregle desde aquí. */
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: tableData,
     columns: createCaptionColumns({ format, onEdit, onRemove, t }),

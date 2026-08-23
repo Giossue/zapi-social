@@ -10,10 +10,14 @@ export default async function PublicLinkBioRoute({
   params,
 }: PublicLinkBioRouteProps) {
   const { slug } = await params
+  // Solo la llamada puede fallar: construir el JSX dentro del `try` haría que
+  // un error de render acabara en `notFound()` en vez de en el límite de error.
+  let page
   try {
-    const page = await linkBioApi.publicPage(slug)
-    return <PublicLinkBio page={page} />
+    page = await linkBioApi.publicPage(slug)
   } catch {
     notFound()
   }
+
+  return <PublicLinkBio page={page} />
 }

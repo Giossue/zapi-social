@@ -89,6 +89,7 @@ export function LinkBioRenderer({
     >
       {page.coverUrl ? (
         <div className="relative h-36 w-full overflow-hidden">
+          // eslint-disable-next-line @next/next/no-img-element -- la portada y el avatar los sube el usuario y salen de la API, no de un dominio fijo.
           <img
             alt=""
             className={cn(
@@ -117,6 +118,7 @@ export function LinkBioRenderer({
       >
         <header className="flex flex-col items-center gap-3">
           {page.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element -- la portada y el avatar los sube el usuario y salen de la API, no de un dominio fijo.
             <img
               alt={page.title}
               className={cn(
@@ -204,6 +206,7 @@ export function LinkBioRenderer({
                 <div className="grid grid-cols-2 gap-2">
                   {block.items.map((item, itemIndex) =>
                     item.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element -- la galería la sube el usuario y sale de la API, no de un dominio fijo.
                       <img
                         alt={item.label}
                         className="aspect-square w-full rounded-lg object-cover"

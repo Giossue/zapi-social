@@ -58,9 +58,12 @@ export function SettingsFormPage<TValues extends Record<string, unknown>>({
 
   /** `load` y `save` llegan como funciones nuevas en cada render del consumidor. */
   const loadRef = useRef(load)
-  loadRef.current = load
   const saveRef = useRef(save)
-  saveRef.current = save
+
+  useEffect(() => {
+    loadRef.current = load
+    saveRef.current = save
+  })
 
   const handleError = useCallback(
     (error: unknown) => {

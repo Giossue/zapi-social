@@ -58,6 +58,7 @@ function CandidateAvatar({ candidate }: { candidate: ChannelCandidate }) {
     <span className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent text-xs font-semibold text-accent-foreground">
       <span aria-hidden="true">{candidateInitials(candidate.label)}</span>
       {candidate.avatarUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element -- el avatar lo sirve el proveedor con un dominio que no está en `remotePatterns`.
         <img
           alt={`Avatar de ${candidate.label}`}
           className="absolute inset-0 size-full object-cover"

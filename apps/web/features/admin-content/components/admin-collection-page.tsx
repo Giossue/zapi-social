@@ -196,7 +196,12 @@ function CollectionSheet({
    * copia al abrir la hoja.
    */
   const initialValuesRef = useRef(initialValues)
-  initialValuesRef.current = initialValues
+
+  // Escribir una ref durante el render rompe con render concurrente: se
+  // sincroniza en un efecto, declarado antes del que la lee.
+  useEffect(() => {
+    initialValuesRef.current = initialValues
+  })
 
   useEffect(() => {
     if (open) setValues(initialValuesRef.current)
@@ -437,7 +442,10 @@ export function AdminCollectionPage<TRow, TResponse>({
    * como dependencia: haría que el efecto de carga se repitiera sin fin.
    */
   const configRef = useRef(config)
-  configRef.current = config
+
+  useEffect(() => {
+    configRef.current = config
+  })
 
   const handleError = useCallback(
     (error: unknown) => {

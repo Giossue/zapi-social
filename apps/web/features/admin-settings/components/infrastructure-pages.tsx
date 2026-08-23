@@ -37,7 +37,10 @@ function useAdminResource<T>(load: () => Promise<T>, label: string) {
   const [forbidden, setForbidden] = useState(false)
   /** El consumidor pasa una función nueva por render; no puede ser dependencia. */
   const loadRef = useRef(load)
-  loadRef.current = load
+
+  useEffect(() => {
+    loadRef.current = load
+  })
 
   const refresh = useCallback(async () => {
     setIsLoading(true)

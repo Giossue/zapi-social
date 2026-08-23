@@ -202,6 +202,7 @@ export function WhatsAppStatusConnection({
     return (
       <Card variant="inset">
         <CardContent className="grid justify-items-center gap-4 py-5 text-center">
+          {/* eslint-disable-next-line @next/next/no-img-element -- el QR llega como data URL del conector, sin dominio que optimizar. */}
           <img
             alt={t("qrAlt")}
             className="size-52 rounded-lg border border-border bg-card object-contain p-2"

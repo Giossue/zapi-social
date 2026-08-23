@@ -227,6 +227,7 @@ export function FilePreviewDialog({
         </DialogHeader>
         <div className="flex min-h-64 items-center justify-center overflow-hidden rounded-lg bg-muted/50">
           {item?.kind === "image" ? (
+            // eslint-disable-next-line @next/next/no-img-element -- la biblioteca sirve las imágenes desde la API, fuera del optimizador de Next.
             <img
               alt={item.name}
               className="max-h-[60dvh] max-w-full object-contain"

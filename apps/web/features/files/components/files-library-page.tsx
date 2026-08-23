@@ -171,7 +171,7 @@ function AssetThumbnail({
           ? "preview"
           : "unavailable"
     )
-  }, [asset.id, asset.thumbnailStatus])
+  }, [asset.id, asset.kind, asset.thumbnailStatus])
 
   if (
     (asset.kind !== "image" && asset.kind !== "video") ||
@@ -180,6 +180,7 @@ function AssetThumbnail({
     return <AssetIcon aria-hidden="true" className={fallbackClassName} />
 
   return (
+    // eslint-disable-next-line @next/next/no-img-element -- la miniatura la sirve la API de Files, fuera del optimizador de Next.
     <img
       alt=""
       className={imageClassName}

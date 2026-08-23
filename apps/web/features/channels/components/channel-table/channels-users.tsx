@@ -82,6 +82,9 @@ export function ChannelsUsers({
   const t = useTranslations("channels")
   const labels = useChannelLabels()
   const format = useFormatter()
+  /* TanStack Table guarda estado mutable fuera de React; el compilador no
+     puede razonar sobre él y no es algo que se arregle desde aquí. */
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: accounts,
     columns: createChannelsColumns({ ...tableActions, format, labels, t }),

@@ -19,6 +19,20 @@ export const config = [
     },
     rules: {
       "turbo/no-undeclared-env-vars": "warn",
+      /**
+       * El guion bajo es la marca convencional de «existe por la firma, no se
+       * usa»: parámetros que se descartan al desestructurar y parámetros de
+       * tipo exigidos por una augmentación de módulo.
+       */
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+          destructuredArrayIgnorePattern: "^_",
+        },
+      ],
     },
   },
   {

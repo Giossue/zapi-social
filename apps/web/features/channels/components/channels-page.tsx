@@ -363,10 +363,12 @@ export function LiveChannelsPage() {
       toast.error(t("loadFailed"))
       setHasError(true)
     } finally {
-      if (requestId !== requestSequence.current) return
-      hasLoadedChannels.current = true
-      setIsLoading(false)
-      setIsFiltering(false)
+      // Sin `return`: salir de un `finally` se traga la excepción en curso.
+      if (requestId === requestSequence.current) {
+        hasLoadedChannels.current = true
+        setIsLoading(false)
+        setIsFiltering(false)
+      }
     }
   }, [
     capabilityFilter,

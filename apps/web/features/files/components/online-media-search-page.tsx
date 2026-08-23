@@ -232,6 +232,7 @@ export function OnlineMediaSearchPage() {
                       aria-hidden="true"
                       className="size-8 text-muted-foreground"
                     />
+                    {/* eslint-disable-next-line @next/next/no-img-element -- la vista previa viene del proveedor externo buscado, con dominio arbitrario. */}
                     <img
                       alt={result.title}
                       className="absolute inset-0 size-full object-cover"
