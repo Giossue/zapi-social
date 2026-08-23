@@ -40,26 +40,13 @@ import { DatabaseService } from '../database/database.service';
 import { Aes256GcmService } from '../platform/crypto/aes-256-gcm.service';
 import { AppException } from '../platform/errors/app-exception';
 
+/** Solo claves: el rótulo y la descripción los pone la interfaz. */
 const metaCapabilities = [
-  {
-    key: 'facebook_page' as const,
-    label: 'Página de Facebook',
-    description: 'Lectura y publicación en páginas administradas.',
-  },
-  {
-    key: 'instagram_profile' as const,
-    label: 'Perfil de Instagram',
-    description: 'Conexión de perfiles Business y Creator.',
-  },
+  { key: 'facebook_page' as const },
+  { key: 'instagram_profile' as const },
 ];
 
-const whatsappStatusCapabilities = [
-  {
-    key: 'whatsapp_status' as const,
-    label: 'Estados de WhatsApp',
-    description: 'Conexión de dispositivos mediante el conector GOWA.',
-  },
-];
+const whatsappStatusCapabilities = [{ key: 'whatsapp_status' as const }];
 
 export type OAuthProviderConfiguration = {
   clientId: string;
@@ -652,8 +639,6 @@ export class IntegrationsService {
     return {
       providerKey: googleDriveIntegrationProviderKey,
       label: 'Google Drive',
-      description:
-        'Importación de imágenes y videos mediante el selector oficial de Google.',
       enabled,
       readiness,
       oauthClientId: configuration?.oauthClientId ?? null,
@@ -751,8 +736,6 @@ export class IntegrationsService {
     return {
       providerKey: whatsappStatusIntegrationProviderKey,
       label: 'WhatsApp Status',
-      description:
-        'Conector GOWA compartido para publicar estados de WhatsApp.',
       enabled,
       readiness: this.readiness(enabled, Boolean(configuration), tested),
       capabilities: whatsappStatusCapabilities.map((capability) => ({
@@ -798,8 +781,6 @@ export class IntegrationsService {
     return {
       providerKey: metaIntegrationProviderKey,
       label: 'Meta',
-      description:
-        'Configuración compartida de Graph para páginas de Facebook y perfiles de Instagram.',
       enabled,
       readiness: this.readiness(enabled, Boolean(configuration), tested),
       capabilities: metaCapabilities.map((capability) => ({

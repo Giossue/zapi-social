@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState, type FormEvent } from "react"
+import { useTranslations } from "next-intl"
 
 import { BrandGoogleDrive } from "@/components/brand-icons"
 import { ApiError, integrationsApi } from "@workspace/api-client"
@@ -58,11 +59,11 @@ function RequiredMark() {
   )
 }
 
-const statusCopy = {
-  ready: { label: "Listo", variant: "success" as const },
-  incomplete: { label: "Incompleto", variant: "warning" as const },
-  untested: { label: "Sin probar", variant: "warning" as const },
-  disabled: { label: "Deshabilitado", variant: "neutral" as const },
+const statusVariants = {
+  ready: "success" as const,
+  incomplete: "warning" as const,
+  untested: "warning" as const,
+  disabled: "neutral" as const,
 }
 
 function draftFrom(integration: GoogleDriveIntegration): Draft {
@@ -91,6 +92,7 @@ function complete(draft: Draft) {
 }
 
 export function GoogleDriveIntegrationCard() {
+  const t = useTranslations("integrations")
   const [integration, setIntegration] = useState<GoogleDriveIntegration | null>(
     null
   )
@@ -143,12 +145,10 @@ export function GoogleDriveIntegrationCard() {
         selection: picked.files[0]!,
       })
       setTestState("passed")
-      toast.success(
-        "Selector validado. Guarda la configuración para aplicarla."
-      )
+      toast.success(t("googleDrive.testOk"))
     } catch {
       setTestState("failed")
-      toast.error("No pudimos validar el selector de Google Drive.")
+      toast.error(t("googleDrive.testFailed"))
     } finally {
       setSheetOpen(true)
     }
@@ -168,9 +168,9 @@ export function GoogleDriveIntegrationCard() {
       setSheetOpen(false)
       setDraft(null)
       setTestState("not-tested")
-      toast.success("Configuración Google Drive guardada.")
+      toast.success(t("googleDrive.saved"))
     } catch {
-      toast.error("No pudimos guardar la configuración Google Drive.")
+      toast.error(t("googleDrive.saveFailed"))
     } finally {
       setSaving(false)
     }
@@ -191,12 +191,10 @@ export function GoogleDriveIntegrationCard() {
               )
             }
             description={
-              forbidden
-                ? "Tu cuenta no puede administrar esta integración."
-                : "No fue posible cargar la configuración de Google Drive."
+              forbidden ? t("cardForbidden") : t("googleDrive.loadFailed")
             }
             icon={forbidden ? LockKeyhole : HardDriveDownload}
-            title="Google Drive no disponible"
+            title={t("googleDrive.unavailable")}
           />
         </CardContent>
       </Card>
@@ -206,11 +204,10 @@ export function GoogleDriveIntegrationCard() {
   const dirty = draft
     ? JSON.stringify(draft) !== JSON.stringify(draftFrom(integration))
     : false
-  let saveLabel = "Guardar configuración"
-  if (saving) saveLabel = "Guardando"
+  let saveLabel = t("saveConfiguration")
+  if (saving) saveLabel = t("saving")
   else if (draft?.enabled && !integration.enabled)
-    saveLabel = "Guardar y habilitar"
-  const status = statusCopy[integration.readiness]
+    saveLabel = t("saveAndEnable")
   const StatusIcon =
     integration.readiness === "ready"
       ? CheckCircle2
@@ -227,12 +224,12 @@ export function GoogleDriveIntegrationCard() {
               <div className="flex flex-wrap items-center gap-2">
                 <BrandGoogleDrive className="size-5 shrink-0" />
                 <CardTitle>{integration.label}</CardTitle>
-                <Badge variant={status.variant}>
+                <Badge variant={statusVariants[integration.readiness]}>
                   <StatusIcon aria-hidden="true" />
-                  {status.label}
+                  {t(`readiness.${integration.readiness}`)}
                 </Badge>
               </div>
-              <CardDescription>{integration.description}</CardDescription>
+              <CardDescription>{t("googleDrive.description")}</CardDescription>
             </div>
             <Button
               onClick={() => {
@@ -243,7 +240,7 @@ export function GoogleDriveIntegrationCard() {
               variant="brand-secondary"
             >
               <Settings2 data-icon="inline-start" />
-              Ver y configurar
+              {t("viewAndConfigure")}
             </Button>
           </div>
         </CardHeader>
@@ -255,11 +252,13 @@ export function GoogleDriveIntegrationCard() {
                 className="size-4 text-muted-foreground"
               />
               <p className="text-xs font-medium text-muted-foreground">
-                Estado
+                {t("statusLabel")}
               </p>
             </div>
             <p className="mt-1 text-sm">
-              {integration.enabled ? "Disponible en Portal" : "Deshabilitada"}
+              {integration.enabled
+                ? t("availableInPortal")
+                : t("readiness.disabled")}
             </p>
           </IntegrationInsetCard>
           <IntegrationInsetCard>
@@ -269,7 +268,7 @@ export function GoogleDriveIntegrationCard() {
                 className="size-4 text-muted-foreground"
               />
               <p className="text-xs font-medium text-muted-foreground">
-                Permiso OAuth
+                {t("googleDrive.oauthScope")}
               </p>
             </div>
             <p className="mt-1 text-sm">drive.file</p>
@@ -281,11 +280,11 @@ export function GoogleDriveIntegrationCard() {
                 className="size-4 text-muted-foreground"
               />
               <p className="text-xs font-medium text-muted-foreground">
-                Selector
+                {t("googleDrive.picker")}
               </p>
             </div>
             <p className="mt-1 text-sm">
-              {integration.lastTestedAt ? "Probado" : "Sin probar"}
+              {integration.lastTestedAt ? t("tested") : t("readiness.untested")}
             </p>
           </IntegrationInsetCard>
         </CardContent>
@@ -308,26 +307,26 @@ export function GoogleDriveIntegrationCard() {
               onSubmit={save}
             >
               <SheetHeader className="border-b">
-                <SheetTitle>Configurar Google Drive</SheetTitle>
+                <SheetTitle>{t("googleDrive.sheetTitle")}</SheetTitle>
                 <SheetDescription>
-                  Define el proyecto que abrirá el selector oficial de Google.
+                  {t("googleDrive.sheetDescription")}
                 </SheetDescription>
               </SheetHeader>
               <div className="flex flex-col gap-6 p-4">
                 <IntegrationAvailabilityCard
-                  ariaLabel="Habilitar Google Drive"
+                  ariaLabel={t("googleDrive.enableAria")}
                   checked={draft.enabled}
-                  description="Permite importar imágenes y videos en Files y Publishing."
+                  description={t("googleDrive.availabilityHint")}
                   onCheckedChange={(enabled) =>
                     setDraft((current) =>
                       current ? { ...current, enabled } : current
                     )
                   }
-                  title="Disponibilidad del proveedor"
+                  title={t("availability")}
                 />
                 <section className="flex flex-col gap-4 border-t border-border pt-5">
                   <h3 className="text-sm font-semibold">
-                    Configuración de Google Cloud
+                    {t("googleDrive.cloudConfiguration")}
                   </h3>
                   <FieldGroup>
                     <Field>
@@ -374,10 +373,10 @@ export function GoogleDriveIntegrationCard() {
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <h3 className="text-sm font-semibold">
-                          Probar selector
+                          {t("googleDrive.testPicker")}
                         </h3>
                         <p className="mt-1 text-sm text-muted-foreground">
-                          Elige una imagen o video; la prueba no lo importa.
+                          {t("googleDrive.testPickerHint")}
                         </p>
                       </div>
                       <Button
@@ -399,10 +398,10 @@ export function GoogleDriveIntegrationCard() {
                           <ShieldCheck data-icon="inline-start" />
                         )}
                         {testState === "testing"
-                          ? "Abriendo Google"
+                          ? t("googleDrive.opening")
                           : testState === "passed"
-                            ? "Selector validado"
-                            : "Probar selector"}
+                            ? t("googleDrive.pickerValidated")
+                            : t("googleDrive.testPicker")}
                       </Button>
                     </div>
                   </section>
@@ -418,7 +417,7 @@ export function GoogleDriveIntegrationCard() {
                   type="button"
                   variant="brand-secondary"
                 >
-                  Cancelar
+                  {t("cancel")}
                 </Button>
                 <Button
                   disabled={

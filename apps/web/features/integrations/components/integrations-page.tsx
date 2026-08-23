@@ -67,63 +67,30 @@ import {
   type FormEvent,
 } from "react"
 
+import { useTranslations } from "next-intl"
+
 import { BrandMeta } from "@/components/brand-icons"
 
 type CapabilityKey = MetaIntegration["capabilities"][number]["key"]
 type MetaScope = MetaIntegration["capabilityScopes"][CapabilityKey][number]
-type ScopeOption = { label: string; required: boolean; scope: MetaScope }
+/** El rótulo de cada permiso sale de `scope.<clave>` en `messages`. */
+type ScopeOption = { required: boolean; scope: MetaScope }
 
 const capabilityScopeOptions = {
   facebook_page: [
-    {
-      label: "Información básica del perfil",
-      required: true,
-      scope: "public_profile",
-    },
-    { label: "Ver páginas", required: true, scope: "pages_show_list" },
-    {
-      label: "Leer actividad de páginas",
-      required: true,
-      scope: "pages_read_engagement",
-    },
-    {
-      label: "Publicar en páginas",
-      required: true,
-      scope: "pages_manage_posts",
-    },
-    {
-      label: "Administrar negocios",
-      required: false,
-      scope: "business_management",
-    },
+    { required: true, scope: "public_profile" },
+    { required: true, scope: "pages_show_list" },
+    { required: true, scope: "pages_read_engagement" },
+    { required: true, scope: "pages_manage_posts" },
+    { required: false, scope: "business_management" },
   ],
   instagram_profile: [
-    {
-      label: "Información básica del perfil",
-      required: true,
-      scope: "public_profile",
-    },
-    { label: "Ver páginas", required: true, scope: "pages_show_list" },
-    {
-      label: "Leer actividad de páginas",
-      required: true,
-      scope: "pages_read_engagement",
-    },
-    {
-      label: "Leer perfiles de Instagram",
-      required: true,
-      scope: "instagram_basic",
-    },
-    {
-      label: "Publicar en Instagram",
-      required: true,
-      scope: "instagram_content_publish",
-    },
-    {
-      label: "Administrar negocios",
-      required: false,
-      scope: "business_management",
-    },
+    { required: true, scope: "public_profile" },
+    { required: true, scope: "pages_show_list" },
+    { required: true, scope: "pages_read_engagement" },
+    { required: true, scope: "instagram_basic" },
+    { required: true, scope: "instagram_content_publish" },
+    { required: false, scope: "business_management" },
   ],
 } satisfies Record<CapabilityKey, readonly ScopeOption[]>
 
@@ -138,11 +105,11 @@ type Draft = {
 type TestState = "not-tested" | "testing" | "passed" | "failed"
 type ProviderTab = "meta" | "whatsapp" | "email" | "polar" | "google-drive"
 
-const statusCopy = {
-  ready: { label: "Listo", variant: "success" as const },
-  incomplete: { label: "Incompleto", variant: "warning" as const },
-  untested: { label: "Sin probar", variant: "warning" as const },
-  disabled: { label: "Deshabilitado", variant: "neutral" as const },
+const statusVariants = {
+  ready: "success" as const,
+  incomplete: "warning" as const,
+  untested: "warning" as const,
+  disabled: "neutral" as const,
 }
 
 function ProviderStatus({
@@ -150,7 +117,7 @@ function ProviderStatus({
 }: {
   readiness: MetaIntegration["readiness"]
 }) {
-  const status = statusCopy[readiness]
+  const t = useTranslations("integrations")
   const Icon =
     readiness === "ready"
       ? CheckCircle2
@@ -159,9 +126,9 @@ function ProviderStatus({
         : CircleAlert
 
   return (
-    <Badge variant={status.variant}>
+    <Badge variant={statusVariants[readiness]}>
       <Icon aria-hidden="true" />
-      {status.label}
+      {t(`readiness.${readiness}`)}
     </Badge>
   )
 }
@@ -209,6 +176,7 @@ function isDirty(draft: Draft, integration: MetaIntegration) {
 }
 
 export function IntegrationsPage() {
+  const t = useTranslations("integrations")
   const [integration, setIntegration] = useState<MetaIntegration | null>(null)
   const [draft, setDraft] = useState<Draft | null>(null)
   const [testState, setTestState] = useState<TestState>("not-tested")
@@ -226,18 +194,18 @@ export function IntegrationsPage() {
       setIntegration(await integrationsApi.getMeta())
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
-        toast.error("Tu sesión expiró. Vuelve a iniciar sesión.")
+        toast.error(t("sessionExpired"))
       } else if (error instanceof ApiError && error.status === 403) {
         setForbidden(true)
-        toast.error("No tienes permiso para administrar integraciones.")
+        toast.error(t("forbidden"))
       } else {
-        toast.error("No pudimos cargar la integración Meta.")
+        toast.error(t("meta.loadFailed"))
       }
       setLoadError(true)
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     void load()
@@ -300,26 +268,26 @@ export function IntegrationsPage() {
 
   async function copyCallbackUrl(label: string, value: string) {
     if (!navigator.clipboard) {
-      toast.error("Tu navegador no permite copiar esta URL.")
+      toast.error(t("copyUnsupported"))
       return
     }
 
     try {
       await navigator.clipboard.writeText(value)
-      toast.success(`${label} copiada.`)
+      toast.success(t("copied", { label }))
     } catch {
-      toast.error("No pudimos copiar la URL. Inténtalo de nuevo.")
+      toast.error(t("copyFailed"))
     }
   }
 
   async function testConfiguration() {
     if (!draft) return
     if (!draft.clientId.trim()) {
-      toast.error("El ID de la aplicación es obligatorio.")
+      toast.error(t("meta.clientIdRequired"))
       return
     }
     if (!draft.clientSecret.trim() && !integration?.secretConfigured) {
-      toast.error("El secreto de la aplicación es obligatorio.")
+      toast.error(t("meta.clientSecretRequired"))
       return
     }
 
@@ -333,13 +301,13 @@ export function IntegrationsPage() {
         },
       })
       setTestState("passed")
-      toast.success("Meta validó el borrador. Ya puedes guardarlo.")
+      toast.success(t("meta.testOk"))
     } catch (error) {
       setTestState("failed")
       if (error instanceof ApiError && error.status === 400) {
-        toast.error("Revisa el ID y el secreto de la aplicación.")
+        toast.error(t("meta.checkCredentials"))
       } else {
-        toast.error("Meta no pudo validar el borrador. Inténtalo de nuevo.")
+        toast.error(t("meta.testFailed"))
       }
     }
   }
@@ -349,7 +317,7 @@ export function IntegrationsPage() {
     if (!draft || !integration) return
 
     if (draft.enabled && testState !== "passed") {
-      toast.error("Prueba esta configuración antes de guardarla.")
+      toast.error(t("testBeforeSave"))
       return
     }
 
@@ -382,14 +350,12 @@ export function IntegrationsPage() {
       setIntegration(saved)
       setDraft(null)
       setTestState("not-tested")
-      toast.success("Configuración Meta guardada.")
+      toast.success(t("meta.saved"))
     } catch (error) {
       if (error instanceof ApiError && error.status === 400) {
-        toast.error(
-          "El borrador probado ya no coincide con la configuración a guardar."
-        )
+        toast.error(t("draftMismatch"))
       } else {
-        toast.error("No pudimos guardar la configuración Meta.")
+        toast.error(t("meta.saveFailed"))
       }
     } finally {
       setSaving(false)
@@ -399,21 +365,18 @@ export function IntegrationsPage() {
   if (activeProvider === "meta" && loading) {
     return (
       <div className="flex flex-col gap-6">
-        <CollectionHeader
-          description="Configura las credenciales y el alcance de los proveedores externos que usa el Portal."
-          title="Integraciones"
-        />
+        <CollectionHeader description={t("description")} title={t("title")} />
         <Tabs
           onValueChange={(value) => setActiveProvider(value as ProviderTab)}
           value={activeProvider}
         >
           <TabsList
-            aria-label="Proveedor de integración"
+            aria-label={t("providerTabs")}
             className="flex h-auto flex-wrap"
           >
             <TabsTrigger value="meta">Meta</TabsTrigger>
             <TabsTrigger value="whatsapp">WhatsApp Status</TabsTrigger>
-            <TabsTrigger value="email">Correo SMTP</TabsTrigger>
+            <TabsTrigger value="email">{t("tab.email")}</TabsTrigger>
             <TabsTrigger value="polar">Polar.sh</TabsTrigger>
             <TabsTrigger value="google-drive">Google Drive</TabsTrigger>
           </TabsList>
@@ -426,21 +389,18 @@ export function IntegrationsPage() {
   if (activeProvider === "meta" && (loadError || !integration)) {
     return (
       <div className="flex flex-col gap-6">
-        <CollectionHeader
-          description="Configura las credenciales y el alcance de los proveedores externos que usa el Portal."
-          title="Integraciones"
-        />
+        <CollectionHeader description={t("description")} title={t("title")} />
         <Tabs
           onValueChange={(value) => setActiveProvider(value as ProviderTab)}
           value={activeProvider}
         >
           <TabsList
-            aria-label="Proveedor de integración"
+            aria-label={t("providerTabs")}
             className="flex h-auto flex-wrap"
           >
             <TabsTrigger value="meta">Meta</TabsTrigger>
             <TabsTrigger value="whatsapp">WhatsApp Status</TabsTrigger>
-            <TabsTrigger value="email">Correo SMTP</TabsTrigger>
+            <TabsTrigger value="email">{t("tab.email")}</TabsTrigger>
             <TabsTrigger value="polar">Polar.sh</TabsTrigger>
             <TabsTrigger value="google-drive">Google Drive</TabsTrigger>
           </TabsList>
@@ -458,14 +418,14 @@ export function IntegrationsPage() {
               }
               description={
                 forbidden
-                  ? "Tu cuenta no tiene permiso para administrar Meta. Los otros proveedores siguen disponibles."
-                  : "No fue posible obtener el estado de Meta. Los otros proveedores siguen disponibles."
+                  ? t("meta.forbiddenDescription")
+                  : t("meta.unavailableDescription")
               }
               icon={forbidden ? LockKeyhole : PlugZap}
               title={
                 forbidden
-                  ? "Meta no está disponible para tu cuenta"
-                  : "Integración Meta no disponible"
+                  ? t("meta.forbiddenTitle")
+                  : t("meta.unavailableTitle")
               }
             />
           </CardContent>
@@ -476,21 +436,18 @@ export function IntegrationsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <CollectionHeader
-        description="Configura las credenciales y el alcance de los proveedores externos que usa el Portal."
-        title="Integraciones"
-      />
+      <CollectionHeader description={t("description")} title={t("title")} />
       <Tabs
         onValueChange={(value) => setActiveProvider(value as ProviderTab)}
         value={activeProvider}
       >
         <TabsList
-          aria-label="Proveedor de integración"
+          aria-label={t("providerTabs")}
           className="flex h-auto flex-wrap"
         >
           <TabsTrigger value="meta">Meta</TabsTrigger>
           <TabsTrigger value="whatsapp">WhatsApp Status</TabsTrigger>
-          <TabsTrigger value="email">Correo SMTP</TabsTrigger>
+          <TabsTrigger value="email">{t("tab.email")}</TabsTrigger>
           <TabsTrigger value="polar">Polar.sh</TabsTrigger>
           <TabsTrigger value="google-drive">Google Drive</TabsTrigger>
         </TabsList>
@@ -507,11 +464,11 @@ export function IntegrationsPage() {
                     <CardTitle>{integration.label}</CardTitle>
                     <ProviderStatus readiness={integration.readiness} />
                   </div>
-                  <CardDescription>{integration.description}</CardDescription>
+                  <CardDescription>{t("meta.description")}</CardDescription>
                 </div>
                 <Button onClick={openConfiguration} variant="brand-secondary">
                   <Settings2 data-icon="inline-start" />
-                  Ver y configurar
+                  {t("viewAndConfigure")}
                 </Button>
               </div>
             </CardHeader>
@@ -526,7 +483,7 @@ export function IntegrationsPage() {
                     className="size-4 text-muted-foreground"
                   />
                   <h2 id="capabilities-title" className="text-sm font-semibold">
-                    Tipos de canal
+                    {t("channelTypes")}
                   </h2>
                 </div>
                 <div className="grid gap-3 md:grid-cols-2">
@@ -534,7 +491,7 @@ export function IntegrationsPage() {
                     <IntegrationInsetCard key={capability.key}>
                       <div className="flex items-center justify-between gap-3">
                         <p className="text-sm font-medium">
-                          {capability.label}
+                          {t(`capability.${capability.key}.label`)}
                         </p>
                         <Badge
                           variant={capability.enabled ? "success" : "neutral"}
@@ -543,7 +500,7 @@ export function IntegrationsPage() {
                         </Badge>
                       </div>
                       <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                        {capability.description}
+                        {t(`capability.${capability.key}.description`)}
                       </p>
                     </IntegrationInsetCard>
                   ))}
@@ -563,26 +520,26 @@ export function IntegrationsPage() {
                     id="configuration-title"
                     className="text-sm font-semibold"
                   >
-                    Resumen de configuración
+                    {t("configurationSummary")}
                   </h2>
                 </div>
                 <CardGrid layout="2">
                   <IntegrationInsetCard>
                     <p className="text-xs font-medium text-muted-foreground">
-                      ID de la aplicación
+                      {t("meta.clientId")}
                     </p>
                     <p className="mt-1 text-sm break-all">
-                      {integration.clientId ?? "Sin configurar"}
+                      {integration.clientId ?? t("notConfigured")}
                     </p>
                   </IntegrationInsetCard>
                   <IntegrationInsetCard>
                     <p className="text-xs font-medium text-muted-foreground">
-                      Secreto de la aplicación
+                      {t("meta.clientSecret")}
                     </p>
                     <p className="mt-1 text-sm">
                       {integration.secretConfigured
-                        ? "Configurado"
-                        : "Sin configurar"}
+                        ? t("configured")
+                        : t("notConfigured")}
                     </p>
                   </IntegrationInsetCard>
                 </CardGrid>
@@ -599,18 +556,19 @@ export function IntegrationsPage() {
                   />
                   <div>
                     <h2 id="callbacks-title" className="text-sm font-semibold">
-                      URLs de retorno OAuth
+                      {t("callbackUrls")}
                     </h2>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      Son datos de solo lectura generados por la API.
-                      Regístralos en Meta.
+                      {t("callbackUrlsHint")}
                     </p>
                   </div>
                 </div>
                 <div className="grid gap-3 pl-6">
                   {integration.capabilities.map((capability) => (
                     <div className="grid gap-1.5" key={capability.key}>
-                      <p className="text-sm font-medium">{capability.label}</p>
+                      <p className="text-sm font-medium">
+                        {t(`capability.${capability.key}.label`)}
+                      </p>
                       <div className="flex items-center gap-2">
                         <Input
                           className="font-mono text-xs"
@@ -618,10 +576,10 @@ export function IntegrationsPage() {
                           value={capability.callbackUrl}
                         />
                         <Button
-                          aria-label={`Copiar URL de retorno de ${capability.label}`}
+                          aria-label={`Copiar URL de retorno de ${t(`capability.${capability.key}.label`)}`}
                           onClick={() =>
                             void copyCallbackUrl(
-                              capability.label,
+                              t(`capability.${capability.key}.label`),
                               capability.callbackUrl
                             )
                           }
@@ -665,23 +623,20 @@ export function IntegrationsPage() {
                 onSubmit={saveConfiguration}
               >
                 <SheetHeader className="border-b">
-                  <SheetTitle>Configurar Meta</SheetTitle>
+                  <SheetTitle>{t("meta.sheetTitle")}</SheetTitle>
                   <SheetDescription>
-                    Define credenciales, canales y permisos disponibles en el
-                    Portal.
+                    {t("meta.sheetDescription")}
                   </SheetDescription>
                 </SheetHeader>
                 <div className="flex flex-col gap-6 p-4">
                   <IntegrationAvailabilityCard
-                    ariaLabel="Habilitar Meta"
+                    ariaLabel={t("meta.enableAria")}
                     checked={draft.enabled}
                     description={
-                      draft.enabled
-                        ? "Puede ofrecer tipos de canal cuando la configuración esté probada."
-                        : "Sus tipos de canal no estarán disponibles en el portal."
+                      draft.enabled ? t("availabilityOn") : t("availabilityOff")
                     }
                     onCheckedChange={(enabled) => updateDraft({ enabled })}
-                    title="Disponibilidad del proveedor"
+                    title={t("availability")}
                   />
 
                   <section
@@ -692,7 +647,7 @@ export function IntegrationsPage() {
                       className="text-sm font-semibold"
                       id="meta-capabilities-title"
                     >
-                      Tipos de canal
+                      {t("channelTypes")}
                     </h3>
                     <div className="grid gap-3">
                       {integration.capabilities.map((capability) => {
@@ -707,14 +662,16 @@ export function IntegrationsPage() {
                             <div className="flex items-start justify-between gap-4">
                               <div className="min-w-0">
                                 <p className="text-sm font-medium">
-                                  {capability.label}
+                                  {t(`capability.${capability.key}.label`)}
                                 </p>
                                 <p className="mt-1 text-xs text-muted-foreground">
-                                  {capability.description}
+                                  {t(
+                                    `capability.${capability.key}.description`
+                                  )}
                                 </p>
                               </div>
                               <Switch
-                                aria-label={`Habilitar ${capability.label}`}
+                                aria-label={`Habilitar ${t(`capability.${capability.key}.label`)}`}
                                 checked={enabled}
                                 onCheckedChange={(next) =>
                                   toggleCapability(capability.key, next)
@@ -723,7 +680,7 @@ export function IntegrationsPage() {
                             </div>
                             <FieldSet>
                               <FieldLegend variant="label">
-                                Permisos de Meta
+                                {t("meta.permissions")}
                               </FieldLegend>
                               <FieldGroup data-slot="checkbox-group">
                                 {capabilityScopeOptions[capability.key].map(
@@ -759,7 +716,7 @@ export function IntegrationsPage() {
                                         >
                                           <FieldContent className="min-w-0">
                                             <FieldTitle>
-                                              {option.label}
+                                              {t(`scope.${option.scope}`)}
                                               {option.required ? (
                                                 <span
                                                   aria-hidden="true"
@@ -791,12 +748,12 @@ export function IntegrationsPage() {
                       className="text-sm font-semibold"
                       id="meta-credentials-title"
                     >
-                      Credenciales
+                      {t("credentials")}
                     </h3>
                     <FieldGroup>
                       <Field>
                         <FieldLabel>
-                          ID de la aplicación
+                          {t("meta.clientId")}
                           <span aria-hidden="true" className="text-destructive">
                             *
                           </span>
@@ -811,7 +768,7 @@ export function IntegrationsPage() {
                       </Field>
                       <Field>
                         <FieldLabel>
-                          Secreto de la aplicación
+                          {t("meta.clientSecret")}
                           <span aria-hidden="true" className="text-destructive">
                             *
                           </span>
@@ -871,16 +828,16 @@ export function IntegrationsPage() {
                             <ShieldCheck data-icon="inline-start" />
                           )}
                           {testState === "testing"
-                            ? "Probando configuración"
+                            ? t("testing")
                             : testState === "passed"
-                              ? "Borrador validado"
-                              : "Probar configuración"}
+                              ? t("draftValidated")
+                              : t("testConfiguration")}
                         </Button>
                       </div>
                       {testState === "failed" ? (
                         <p className="flex items-center gap-2 text-sm text-destructive">
                           <XCircle aria-hidden="true" className="size-4" />
-                          No se pudo validar el borrador.
+                          {t("draftInvalid")}
                         </p>
                       ) : null}
                     </section>
@@ -893,7 +850,7 @@ export function IntegrationsPage() {
                     type="button"
                     variant="brand-secondary"
                   >
-                    Cancelar
+                    {t("cancel")}
                   </Button>
                   <Button
                     disabled={
@@ -911,7 +868,7 @@ export function IntegrationsPage() {
                     ) : (
                       <Save data-icon="inline-start" />
                     )}
-                    {saving ? "Guardando" : "Guardar configuración"}
+                    {saving ? t("saving") : t("saveConfiguration")}
                   </Button>
                 </SheetFooter>
               </form>

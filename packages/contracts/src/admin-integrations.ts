@@ -126,10 +126,9 @@ export const metaIntegrationReadinessSchema = z.enum([
   "disabled",
 ])
 
+/** Rótulo y descripción los pone la interfaz a partir de `key`. */
 export const metaIntegrationCapabilitySchema = z.object({
   key: metaCapabilityKeySchema,
-  label: z.string().min(1).max(120),
-  description: z.string().min(1).max(500),
   enabled: z.boolean(),
   callbackUrl: z.url().max(2048),
 })
@@ -137,7 +136,6 @@ export const metaIntegrationCapabilitySchema = z.object({
 export const metaIntegrationSchema = z.object({
   providerKey: z.literal(metaIntegrationProviderKey),
   label: z.literal("Meta"),
-  description: z.string().min(1).max(500),
   enabled: z.boolean(),
   readiness: metaIntegrationReadinessSchema,
   capabilities: z.array(metaIntegrationCapabilitySchema).length(2),
@@ -218,15 +216,12 @@ const whatsappStatusConfigurationDraftSchema = z
 
 export const whatsappStatusIntegrationCapabilitySchema = z.object({
   key: whatsappStatusCapabilityKeySchema,
-  label: z.string().min(1).max(120),
-  description: z.string().min(1).max(500),
   enabled: z.boolean(),
 })
 
 export const whatsappStatusIntegrationSchema = z.object({
   providerKey: z.literal(whatsappStatusIntegrationProviderKey),
   label: z.literal("WhatsApp Status"),
-  description: z.string().min(1).max(500),
   enabled: z.boolean(),
   readiness: metaIntegrationReadinessSchema,
   capabilities: z.array(whatsappStatusIntegrationCapabilitySchema).length(1),

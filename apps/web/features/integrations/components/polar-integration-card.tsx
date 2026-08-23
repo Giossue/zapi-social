@@ -58,6 +58,7 @@ import {
 
 import { BrandPolar } from "@/components/brand-icons"
 import * as React from "react"
+import { useTranslations } from "next-intl"
 import { IntegrationAvailabilityCard } from "./integration-availability-card"
 import { IntegrationCardLoading } from "./integration-card-loading"
 import { IntegrationInsetCard } from "./integration-inset-card"
@@ -90,11 +91,11 @@ const requiredEvents = [
   "subscription.revoked",
 ]
 
-const statusCopy = {
-  ready: { label: "Listo", variant: "success" as const },
-  incomplete: { label: "Incompleto", variant: "warning" as const },
-  untested: { label: "Sin probar", variant: "warning" as const },
-  disabled: { label: "Deshabilitado", variant: "neutral" as const },
+const statusVariants = {
+  ready: "success" as const,
+  incomplete: "warning" as const,
+  untested: "warning" as const,
+  disabled: "neutral" as const,
 }
 
 function draftFrom(integration: PolarIntegration): PolarDraft {
@@ -150,6 +151,7 @@ function RequiredLabel({ children }: { children: React.ReactNode }) {
 }
 
 export function PolarIntegrationPreview() {
+  const t = useTranslations("integrations")
   const [integration, setIntegration] = React.useState<PolarIntegration | null>(
     null
   )
@@ -166,11 +168,11 @@ export function PolarIntegrationPreview() {
       setIntegration(await polarApi.get())
     } catch {
       setLoadError(true)
-      toast.error("No se pudo cargar la configuración Polar.")
+      toast.error(t("polar.loadFailed"))
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   React.useEffect(() => {
     void load()
@@ -189,9 +191,9 @@ export function PolarIntegrationPreview() {
   async function copy(value: string) {
     try {
       await navigator.clipboard.writeText(value)
-      toast.success("URL copiada.")
+      toast.success(t("polar.urlCopied"))
     } catch {
-      toast.error("No se pudo copiar la URL.")
+      toast.error(t("copyFailed"))
     }
   }
 
@@ -224,18 +226,16 @@ export function PolarIntegrationPreview() {
           lastTestedAt: result.testedAt,
           readiness: draft.enabled ? "ready" : "disabled",
         })
-        toast.success("Configuración Polar comprobada.")
+        toast.success(t("polar.checked"))
       } else {
-        toast.success("Polar validó el borrador. Ya puedes guardarlo.")
+        toast.success(t("polar.testOk"))
       }
     } catch (error) {
       setTestState("failed")
       if (error instanceof ApiError && error.status === 400) {
         toast.error("Completa las credenciales y productos obligatorios.")
       } else {
-        toast.error(
-          "Polar no pudo validar las credenciales o productos configurados."
-        )
+        toast.error(t("polar.testFailed"))
       }
     }
   }
@@ -249,7 +249,7 @@ export function PolarIntegrationPreview() {
       return
     }
     if (draft.enabled && testState !== "passed") {
-      toast.error("Prueba esta configuración antes de guardarla.")
+      toast.error(t("testBeforeSave"))
       return
     }
 
@@ -269,14 +269,12 @@ export function PolarIntegrationPreview() {
       })
       setIntegration(saved)
       closeConfiguration()
-      toast.success("Configuración Polar guardada.")
+      toast.success(t("polar.saved"))
     } catch (error) {
       if (error instanceof ApiError && error.status === 400) {
-        toast.error(
-          "El borrador cambió o no coincide con la última prueba. Pruébalo nuevamente."
-        )
+        toast.error(t("polar.draftMismatch"))
       } else {
-        toast.error("No se pudo guardar la configuración Polar.")
+        toast.error(t("polar.saveFailed"))
       }
     } finally {
       setSaving(false)
@@ -289,16 +287,15 @@ export function PolarIntegrationPreview() {
     return (
       <EmptyState
         action={<RetryButton onClick={() => void load()} />}
-        description="No fue posible obtener el estado de Polar.sh."
+        description={t("polar.unavailableDescription")}
         icon={PlugZap}
-        title="Integración no disponible"
+        title={t("unavailableTitle")}
       />
     )
   }
 
   const complete = Boolean(draft && canComplete(draft, integration))
   const dirty = Boolean(draft && isDirty(draft, integration))
-  const status = statusCopy[integration.readiness]
   const StatusIcon =
     integration.readiness === "ready"
       ? CheckCircle2
@@ -306,9 +303,9 @@ export function PolarIntegrationPreview() {
         ? Circle
         : CircleAlert
   const endpoints = [
-    ["Webhook", integration.webhookUrl],
-    ["Retorno exitoso", integration.successUrl],
-    ["Retorno cancelado", integration.cancelUrl],
+    ["webhook", integration.webhookUrl],
+    ["success", integration.successUrl],
+    ["cancel", integration.cancelUrl],
   ] as const
 
   return (
@@ -320,15 +317,12 @@ export function PolarIntegrationPreview() {
               <div className="flex flex-wrap items-center gap-2">
                 <BrandPolar className="size-5 shrink-0" />
                 <CardTitle>Polar.sh</CardTitle>
-                <Badge variant={status.variant}>
+                <Badge variant={statusVariants[integration.readiness]}>
                   <StatusIcon aria-hidden="true" />
-                  {status.label}
+                  {t(`readiness.${integration.readiness}`)}
                 </Badge>
               </div>
-              <CardDescription>
-                Checkout, suscripciones e impuestos administrados por Polar como
-                Merchant of Record.
-              </CardDescription>
+              <CardDescription>{t("polar.description")}</CardDescription>
             </div>
             <Button
               onClick={() => {
@@ -338,7 +332,7 @@ export function PolarIntegrationPreview() {
               variant="brand-secondary"
             >
               <Settings2 data-icon="inline-start" />
-              Ver y configurar
+              {t("viewAndConfigure")}
             </Button>
           </div>
         </CardHeader>
@@ -351,11 +345,11 @@ export function PolarIntegrationPreview() {
                   className="size-4 text-muted-foreground"
                 />
                 <p className="text-xs font-medium text-muted-foreground">
-                  Estado
+                  {t("statusLabel")}
                 </p>
               </div>
               <p className="mt-1 text-sm">
-                {integration.enabled ? "Disponible" : "Deshabilitada"}
+                {integration.enabled ? t("available") : t("disabled")}
               </p>
             </IntegrationInsetCard>
             <IntegrationInsetCard>
@@ -365,11 +359,13 @@ export function PolarIntegrationPreview() {
                   className="size-4 text-muted-foreground"
                 />
                 <p className="text-xs font-medium text-muted-foreground">
-                  Ambiente
+                  {t("polar.environment")}
                 </p>
               </div>
               <p className="mt-1 text-sm">
-                {integration.environment === "live" ? "Producción" : "Sandbox"}
+                {integration.environment === "live"
+                  ? t("polar.live")
+                  : "Sandbox"}
               </p>
             </IntegrationInsetCard>
             <IntegrationInsetCard>
@@ -379,11 +375,13 @@ export function PolarIntegrationPreview() {
                   className="size-4 text-muted-foreground"
                 />
                 <p className="text-xs font-medium text-muted-foreground">
-                  Productos recurrentes
+                  {t("polar.recurringProducts")}
                 </p>
               </div>
               <p className="mt-1 text-sm">
-                {integration.recurring ? "Mensual y anual" : "Desactivados"}
+                {integration.recurring
+                  ? t("polar.monthlyAndYearly")
+                  : t("polar.recurringOff")}
               </p>
             </IntegrationInsetCard>
           </div>
@@ -399,18 +397,17 @@ export function PolarIntegrationPreview() {
               />
               <div>
                 <h2 className="text-sm font-semibold" id="polar-webhooks-title">
-                  Webhooks y retornos
+                  {t("polar.webhooks")}
                 </h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Registra estas URLs en Polar. La API las genera y aquí son de
-                  solo lectura.
+                  {t("polar.webhooksHint")}
                 </p>
               </div>
             </div>
             <FieldGroup>
               {endpoints.map(([label, value]) => (
                 <Field key={label}>
-                  <FieldLabel>{label}</FieldLabel>
+                  <FieldLabel>{t(`polar.endpoint.${label}`)}</FieldLabel>
                   <div className="flex gap-2">
                     <Input
                       className="font-mono text-xs"
@@ -418,7 +415,9 @@ export function PolarIntegrationPreview() {
                       value={value}
                     />
                     <Button
-                      aria-label={`Copiar ${label}`}
+                      aria-label={t("copyEndpoint", {
+                        endpoint: t(`polar.endpoint.${label}`),
+                      })}
                       onClick={() => void copy(value)}
                       size="icon"
                       type="button"
@@ -442,7 +441,7 @@ export function PolarIntegrationPreview() {
                 className="size-4 text-muted-foreground"
               />
               <h2 className="text-sm font-semibold" id="polar-required-events">
-                Eventos requeridos
+                {t("polar.requiredEvents")}
               </h2>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -471,19 +470,19 @@ export function PolarIntegrationPreview() {
               onSubmit={saveConfiguration}
             >
               <SheetHeader className="border-b">
-                <SheetTitle>Configurar Polar.sh</SheetTitle>
+                <SheetTitle>{t("polar.sheetTitle")}</SheetTitle>
                 <SheetDescription>
-                  Administra la única pasarela de pagos de la plataforma.
+                  {t("polar.sheetDescription")}
                 </SheetDescription>
               </SheetHeader>
 
               <div className="flex flex-col gap-6 p-4">
                 <IntegrationAvailabilityCard
-                  ariaLabel="Habilitar Polar.sh"
+                  ariaLabel={t("polar.enableAria")}
                   checked={draft.enabled}
-                  description="Al habilitarla, Polar procesa checkouts y suscripciones."
+                  description={t("polar.availabilityHint")}
                   onCheckedChange={(enabled) => updateDraft({ enabled })}
-                  title="Disponibilidad del proveedor"
+                  title={t("availability")}
                 />
 
                 <section
@@ -491,11 +490,11 @@ export function PolarIntegrationPreview() {
                   className="flex flex-col gap-4"
                 >
                   <h3 className="text-sm font-semibold" id="polar-credentials">
-                    Credenciales
+                    {t("credentials")}
                   </h3>
                   <FieldGroup>
                     <Field>
-                      <RequiredLabel>Ambiente</RequiredLabel>
+                      <RequiredLabel>{t("polar.environment")}</RequiredLabel>
                       <Select
                         onValueChange={(environment) =>
                           updateDraft({
@@ -511,12 +510,14 @@ export function PolarIntegrationPreview() {
                         <SelectContent>
                           <SelectGroup>
                             <SelectItem value="sandbox">Sandbox</SelectItem>
-                            <SelectItem value="live">Producción</SelectItem>
+                            <SelectItem value="live">
+                              {t("polar.live")}
+                            </SelectItem>
                           </SelectGroup>
                         </SelectContent>
                       </Select>
                       <FieldDescription>
-                        Cada ambiente usa credenciales y productos distintos.
+                        {t("polar.environmentHint")}
                       </FieldDescription>
                     </Field>
                     <Field>
@@ -529,7 +530,7 @@ export function PolarIntegrationPreview() {
                         }
                         placeholder={
                           integration.hasAccessToken
-                            ? "Token configurado · escribe para reemplazar"
+                            ? t("polar.tokenConfigured")
                             : "polar_oat_…"
                         }
                         type="password"
@@ -537,7 +538,7 @@ export function PolarIntegrationPreview() {
                       />
                     </Field>
                     <Field>
-                      <RequiredLabel>Secreto de webhook</RequiredLabel>
+                      <RequiredLabel>{t("polar.webhookSecret")}</RequiredLabel>
                       <Input
                         aria-required="true"
                         autoComplete="new-password"
@@ -546,14 +547,14 @@ export function PolarIntegrationPreview() {
                         }
                         placeholder={
                           integration.hasWebhookSecret
-                            ? "Secreto configurado · escribe para reemplazar"
+                            ? t("polar.secretConfigured")
                             : "polar_whs_…"
                         }
                         type="password"
                         value={draft.webhookSecret}
                       />
                       <FieldDescription>
-                        Verifica pagos, reembolsos y cambios de suscripción.
+                        {t("polar.webhookSecretHint")}
                       </FieldDescription>
                     </Field>
                   </FieldGroup>
@@ -564,18 +565,20 @@ export function PolarIntegrationPreview() {
                   className="flex flex-col gap-4 border-t border-border pt-5"
                 >
                   <h3 className="text-sm font-semibold" id="polar-products">
-                    Productos y checkout
+                    {t("polar.products")}
                   </h3>
                   <FieldGroup>
                     <IntegrationInsetCard className="flex items-center justify-between gap-4">
                       <div>
-                        <p className="text-sm font-medium">Suscripciones</p>
+                        <p className="text-sm font-medium">
+                          {t("polar.subscriptions")}
+                        </p>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          Renovaciones mensuales y anuales.
+                          {t("polar.subscriptionsHint")}
                         </p>
                       </div>
                       <Switch
-                        aria-label="Habilitar suscripciones"
+                        aria-label={t("polar.enableSubscriptions")}
                         checked={draft.recurring}
                         onCheckedChange={(recurring) =>
                           updateDraft({ recurring })
@@ -583,7 +586,7 @@ export function PolarIntegrationPreview() {
                       />
                     </IntegrationInsetCard>
                     <Field>
-                      <RequiredLabel>Producto mensual</RequiredLabel>
+                      <RequiredLabel>{t("polar.monthlyProduct")}</RequiredLabel>
                       <Input
                         aria-required="true"
                         disabled={!draft.recurring}
@@ -594,7 +597,7 @@ export function PolarIntegrationPreview() {
                       />
                     </Field>
                     <Field>
-                      <RequiredLabel>Producto anual</RequiredLabel>
+                      <RequiredLabel>{t("polar.yearlyProduct")}</RequiredLabel>
                       <Input
                         aria-required="true"
                         disabled={!draft.recurring}
@@ -605,7 +608,7 @@ export function PolarIntegrationPreview() {
                       />
                     </Field>
                     <Field>
-                      <FieldLabel>Producto de pago único</FieldLabel>
+                      <FieldLabel>{t("polar.oneTimeProduct")}</FieldLabel>
                       <Input
                         onChange={(event) =>
                           updateDraft({ oneTimeProductId: event.target.value })
@@ -613,21 +616,20 @@ export function PolarIntegrationPreview() {
                         value={draft.oneTimeProductId}
                       />
                       <FieldDescription>
-                        Se usa para paquetes de créditos y compras no
-                        recurrentes.
+                        {t("polar.oneTimeProductHint")}
                       </FieldDescription>
                     </Field>
                     <IntegrationInsetCard className="flex items-center justify-between gap-4">
                       <div>
                         <p className="text-sm font-medium">
-                          Códigos de descuento
+                          {t("polar.discountCodes")}
                         </p>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          Combina Polar con las reglas de cupones de Zapi.
+                          {t("polar.discountCodesHint")}
                         </p>
                       </div>
                       <Switch
-                        aria-label="Permitir códigos de descuento"
+                        aria-label={t("polar.allowDiscountCodes")}
                         checked={draft.discountCodes}
                         onCheckedChange={(discountCodes) =>
                           updateDraft({ discountCodes })
@@ -637,14 +639,14 @@ export function PolarIntegrationPreview() {
                     <IntegrationInsetCard className="flex items-center justify-between gap-4">
                       <div>
                         <p className="text-sm font-medium">
-                          Dirección de facturación
+                          {t("polar.billingAddress")}
                         </p>
                         <p className="mt-1 text-xs text-muted-foreground">
-                          Solicitarla durante el checkout.
+                          {t("polar.billingAddressHint")}
                         </p>
                       </div>
                       <Switch
-                        aria-label="Solicitar dirección de facturación"
+                        aria-label={t("polar.requestBillingAddress")}
                         checked={draft.billingAddress}
                         onCheckedChange={(billingAddress) =>
                           updateDraft({ billingAddress })
@@ -652,8 +654,7 @@ export function PolarIntegrationPreview() {
                       />
                     </IntegrationInsetCard>
                     <p className="text-sm text-muted-foreground">
-                      El total después del descuento debe ser de al menos USD
-                      0.50.
+                      {t("polar.minimumTotal")}
                     </p>
                   </FieldGroup>
                 </section>
@@ -666,11 +667,10 @@ export function PolarIntegrationPreview() {
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <h3 className="text-sm font-semibold" id="polar-test">
-                          Probar borrador
+                          {t("polar.testDraft")}
                         </h3>
                         <p className="mt-1 text-sm text-muted-foreground">
-                          Comprueba credenciales, ambiente y productos con Polar
-                          antes de guardar.
+                          {t("polar.testDraftHint")}
                         </p>
                       </div>
                       <Button
@@ -691,16 +691,16 @@ export function PolarIntegrationPreview() {
                           <ShieldCheck data-icon="inline-start" />
                         )}
                         {testState === "testing"
-                          ? "Comprobando"
+                          ? t("polar.checking")
                           : testState === "passed"
-                            ? "Borrador validado"
-                            : "Probar configuración"}
+                            ? t("draftValidated")
+                            : t("testConfiguration")}
                       </Button>
                     </div>
                     {testState === "failed" ? (
                       <p className="flex items-center gap-2 text-sm text-destructive">
                         <XCircle aria-hidden="true" className="size-4" />
-                        No se pudo validar el borrador.
+                        {t("draftInvalid")}
                       </p>
                     ) : null}
                   </section>
@@ -714,7 +714,7 @@ export function PolarIntegrationPreview() {
                   type="button"
                   variant="brand-secondary"
                 >
-                  Cancelar
+                  {t("cancel")}
                 </Button>
                 <Button
                   disabled={
@@ -731,7 +731,7 @@ export function PolarIntegrationPreview() {
                   ) : (
                     <Save aria-hidden="true" data-icon="inline-start" />
                   )}
-                  {saving ? "Guardando" : "Guardar configuración"}
+                  {saving ? t("saving") : t("saveConfiguration")}
                 </Button>
               </SheetFooter>
             </form>

@@ -23,7 +23,6 @@ export const googleDriveIntegrationReadinessSchema = z.enum([
 export const googleDriveIntegrationSchema = z.object({
   providerKey: z.literal(googleDriveIntegrationProviderKey),
   label: z.literal("Google Drive"),
-  description: z.string().min(1).max(500),
   enabled: z.boolean(),
   readiness: googleDriveIntegrationReadinessSchema,
   oauthClientId: z.string().nullable(),

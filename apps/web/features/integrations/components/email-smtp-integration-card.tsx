@@ -45,6 +45,7 @@ import {
   useState,
   type FormEvent,
 } from "react"
+import { useTranslations } from "next-intl"
 import { IntegrationCardLoading } from "./integration-card-loading"
 import { IntegrationAvailabilityCard } from "./integration-availability-card"
 import { IntegrationInsetCard } from "./integration-inset-card"
@@ -62,11 +63,11 @@ type Draft = {
 
 type TestState = "not-tested" | "testing" | "passed" | "failed"
 
-const statusCopy = {
-  ready: { label: "Listo", variant: "success" as const },
-  incomplete: { label: "Incompleto", variant: "warning" as const },
-  untested: { label: "Sin probar", variant: "warning" as const },
-  disabled: { label: "Deshabilitado", variant: "neutral" as const },
+const statusVariants = {
+  ready: "success" as const,
+  incomplete: "warning" as const,
+  untested: "warning" as const,
+  disabled: "neutral" as const,
 }
 
 function draftFrom(integration: EmailSmtpIntegration): Draft {
@@ -96,6 +97,7 @@ function isDirty(draft: Draft, integration: EmailSmtpIntegration) {
 }
 
 export function EmailSmtpIntegrationCard() {
+  const t = useTranslations("integrations")
   const [integration, setIntegration] = useState<EmailSmtpIntegration | null>(
     null
   )
@@ -113,14 +115,14 @@ export function EmailSmtpIntegrationCard() {
     } catch (error) {
       setLoadError(true)
       if (error instanceof ApiError && error.status === 403) {
-        toast.error("No tienes permiso para administrar integraciones.")
+        toast.error(t("forbidden"))
       } else {
-        toast.error("No pudimos cargar la integración SMTP.")
+        toast.error(t("smtp.loadFailed"))
       }
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     void load()
@@ -159,15 +161,15 @@ export function EmailSmtpIntegrationCard() {
       !draft.fromEmail.trim() ||
       !draft.fromName.trim()
     ) {
-      toast.error("Completa host, usuario y remitente antes de continuar.")
+      toast.error(t("smtp.fieldsRequired"))
       return null
     }
     if (!Number.isInteger(port) || port < 1 || port > 65535) {
-      toast.error("El puerto debe estar entre 1 y 65535.")
+      toast.error(t("smtp.portRange"))
       return null
     }
     if (!draft.password && !integration?.passwordConfigured) {
-      toast.error("La contraseña SMTP es obligatoria la primera vez.")
+      toast.error(t("smtp.passwordRequired"))
       return null
     }
     return {
@@ -188,12 +190,10 @@ export function EmailSmtpIntegrationCard() {
     try {
       await integrationsApi.testEmailSmtp({ configuration: values })
       setTestState("passed")
-      toast.success("SMTP validó el borrador. Ya puedes guardarlo.")
+      toast.success(t("smtp.testOk"))
     } catch {
       setTestState("failed")
-      toast.error(
-        "No pudimos validar SMTP. Revisa host, puerto y credenciales."
-      )
+      toast.error(t("smtp.testFailed"))
     }
   }
 
@@ -203,7 +203,7 @@ export function EmailSmtpIntegrationCard() {
     const values = configuration()
     if (!values) return
     if (draft.enabled && testState !== "passed") {
-      toast.error("Prueba esta configuración antes de habilitarla.")
+      toast.error(t("testBeforeEnable"))
       return
     }
 
@@ -216,14 +216,12 @@ export function EmailSmtpIntegrationCard() {
       setIntegration(saved)
       setDraft(null)
       setTestState("not-tested")
-      toast.success("Configuración SMTP guardada.")
+      toast.success(t("smtp.saved"))
     } catch (error) {
       if (error instanceof ApiError && error.status === 400) {
-        toast.error(
-          "El borrador probado ya no coincide con lo que intentas guardar."
-        )
+        toast.error(t("draftMismatch"))
       } else {
-        toast.error("No pudimos guardar la configuración SMTP.")
+        toast.error(t("smtp.saveFailed"))
       }
     } finally {
       setSaving(false)
@@ -235,14 +233,13 @@ export function EmailSmtpIntegrationCard() {
     return (
       <EmptyState
         action={<RetryButton onClick={() => void load()} />}
-        description="No fue posible obtener el estado de SMTP."
+        description={t("smtp.unavailableDescription")}
         icon={Mail}
-        title="Integración no disponible"
+        title={t("unavailableTitle")}
       />
     )
   }
 
-  const status = statusCopy[integration.readiness]
   const StatusIcon =
     integration.readiness === "ready"
       ? CheckCircle2
@@ -258,12 +255,12 @@ export function EmailSmtpIntegrationCard() {
             <div className="flex min-w-0 flex-col gap-2">
               <div className="flex flex-wrap items-center gap-2">
                 <CardTitle>{integration.label}</CardTitle>
-                <Badge variant={status.variant}>
+                <Badge variant={statusVariants[integration.readiness]}>
                   <StatusIcon aria-hidden="true" />
-                  {status.label}
+                  {t(`readiness.${integration.readiness}`)}
                 </Badge>
               </div>
-              <CardDescription>{integration.description}</CardDescription>
+              <CardDescription>{t("smtp.description")}</CardDescription>
             </div>
             <Button
               onClick={() => {
@@ -273,7 +270,7 @@ export function EmailSmtpIntegrationCard() {
               variant="brand-secondary"
             >
               <Settings2 data-icon="inline-start" />
-              Ver y configurar
+              {t("viewAndConfigure")}
             </Button>
           </div>
         </CardHeader>
@@ -285,11 +282,11 @@ export function EmailSmtpIntegrationCard() {
                 className="size-4 text-muted-foreground"
               />
               <p className="text-xs font-medium text-muted-foreground">
-                Servidor
+                {t("smtp.server")}
               </p>
             </div>
             <p className="mt-1 text-sm break-all">
-              {integration.host ?? "Sin configurar"}
+              {integration.host ?? t("notConfigured")}
             </p>
           </IntegrationInsetCard>
           <IntegrationInsetCard>
@@ -299,13 +296,13 @@ export function EmailSmtpIntegrationCard() {
                 className="size-4 text-muted-foreground"
               />
               <p className="text-xs font-medium text-muted-foreground">
-                Puerto y seguridad
+                {t("smtp.portAndSecurity")}
               </p>
             </div>
             <p className="mt-1 text-sm">
               {integration.port
-                ? `${integration.port} · ${integration.secure ? "TLS directo" : "STARTTLS / sin TLS directo"}`
-                : "Sin configurar"}
+                ? `${integration.port} · ${integration.secure ? t("smtp.directTls") : t("smtp.startTls")}`
+                : t("notConfigured")}
             </p>
           </IntegrationInsetCard>
           <IntegrationInsetCard>
@@ -315,11 +312,11 @@ export function EmailSmtpIntegrationCard() {
                 className="size-4 text-muted-foreground"
               />
               <p className="text-xs font-medium text-muted-foreground">
-                Remitente
+                {t("smtp.sender")}
               </p>
             </div>
             <p className="mt-1 text-sm break-all">
-              {integration.fromEmail ?? "Sin configurar"}
+              {integration.fromEmail ?? t("notConfigured")}
             </p>
           </IntegrationInsetCard>
         </CardContent>
@@ -340,18 +337,18 @@ export function EmailSmtpIntegrationCard() {
               onSubmit={saveConfiguration}
             >
               <SheetHeader className="border-b">
-                <SheetTitle>Configurar SMTP general</SheetTitle>
+                <SheetTitle>{t("smtp.sheetTitle")}</SheetTitle>
                 <SheetDescription>
-                  Define el servidor que entrega los correos transaccionales.
+                  {t("smtp.sheetDescription")}
                 </SheetDescription>
               </SheetHeader>
               <div className="flex flex-col gap-6 p-4">
                 <IntegrationAvailabilityCard
-                  ariaLabel="Habilitar SMTP"
+                  ariaLabel={t("smtp.enableAria")}
                   checked={draft.enabled}
-                  description="Al habilitarlo, los flujos de autenticación entregarán correo por este servidor."
+                  description={t("smtp.availabilityHint")}
                   onCheckedChange={(enabled) => updateDraft({ enabled })}
-                  title="Disponibilidad del proveedor"
+                  title={t("availability")}
                 />
 
                 <section
@@ -362,7 +359,7 @@ export function EmailSmtpIntegrationCard() {
                     className="text-sm font-semibold"
                     id="smtp-credentials-title"
                   >
-                    Servidor y remitente
+                    {t("smtp.serverAndSender")}
                   </h3>
                   <FieldGroup className="grid gap-4 sm:grid-cols-2">
                     <Field>
@@ -384,7 +381,7 @@ export function EmailSmtpIntegrationCard() {
                     </Field>
                     <Field>
                       <FieldLabel>
-                        Puerto
+                        {t("smtp.port")}
                         <span aria-hidden="true" className="text-destructive">
                           *
                         </span>
@@ -403,7 +400,7 @@ export function EmailSmtpIntegrationCard() {
                     </Field>
                     <Field>
                       <FieldLabel>
-                        Usuario SMTP
+                        {t("smtp.username")}
                         <span aria-hidden="true" className="text-destructive">
                           *
                         </span>
@@ -419,7 +416,7 @@ export function EmailSmtpIntegrationCard() {
                     </Field>
                     <Field>
                       <FieldLabel>
-                        Contraseña SMTP
+                        {t("smtp.password")}
                         <span aria-hidden="true" className="text-destructive">
                           *
                         </span>
@@ -441,7 +438,7 @@ export function EmailSmtpIntegrationCard() {
                     </Field>
                     <Field>
                       <FieldLabel>
-                        Nombre del remitente
+                        {t("smtp.fromName")}
                         <span aria-hidden="true" className="text-destructive">
                           *
                         </span>
@@ -456,7 +453,7 @@ export function EmailSmtpIntegrationCard() {
                     </Field>
                     <Field>
                       <FieldLabel>
-                        Correo remitente
+                        {t("smtp.fromEmail")}
                         <span aria-hidden="true" className="text-destructive">
                           *
                         </span>
@@ -474,14 +471,15 @@ export function EmailSmtpIntegrationCard() {
                   </FieldGroup>
                   <IntegrationInsetCard className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="text-sm font-medium">Usar TLS directo</p>
+                      <p className="text-sm font-medium">
+                        {t("smtp.useDirectTls")}
+                      </p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        Actívalo para puertos como 465. Para 587, usa STARTTLS
-                        del servidor.
+                        {t("smtp.useDirectTlsHint")}
                       </p>
                     </div>
                     <Switch
-                      aria-label="Usar TLS directo"
+                      aria-label={t("smtp.useDirectTls")}
                       checked={draft.secure}
                       onCheckedChange={(secure) => updateDraft({ secure })}
                     />
@@ -496,28 +494,21 @@ export function EmailSmtpIntegrationCard() {
                     className="text-sm font-semibold"
                     id="smtp-additional-title"
                   >
-                    Opciones adicionales
+                    {t("smtp.additionalOptions")}
                   </h3>
                   <IntegrationInsetCard>
                     <FieldGroup className="grid gap-4 sm:grid-cols-2">
                       <Field data-disabled>
                         <FieldLabel>Reply-to</FieldLabel>
-                        <Input
-                          disabled
-                          placeholder="No compatible con la API actual"
-                        />
+                        <Input disabled placeholder={t("smtp.unsupported")} />
                       </Field>
                       <Field data-disabled>
                         <FieldLabel>Timeout</FieldLabel>
-                        <Input
-                          disabled
-                          placeholder="No compatible con la API actual"
-                        />
+                        <Input disabled placeholder={t("smtp.unsupported")} />
                       </Field>
                     </FieldGroup>
                     <p className="mt-4 text-xs text-muted-foreground">
-                      Estos valores requieren soporte adicional de API para
-                      poder guardarse de forma segura.
+                      {t("smtp.unsupportedHint")}
                     </p>
                   </IntegrationInsetCard>
                 </section>
@@ -532,11 +523,10 @@ export function EmailSmtpIntegrationCard() {
                           className="text-sm font-semibold"
                           id="smtp-test-title"
                         >
-                          Probar borrador
+                          {t("smtp.testDraft")}
                         </h3>
                         <p className="mt-1 text-sm text-muted-foreground">
-                          La prueba abre una conexión SMTP con el borrador antes
-                          de guardarlo.
+                          {t("smtp.testDraftHint")}
                         </p>
                       </div>
                       <Button
@@ -558,16 +548,16 @@ export function EmailSmtpIntegrationCard() {
                           <ShieldCheck data-icon="inline-start" />
                         )}
                         {testState === "testing"
-                          ? "Probando"
+                          ? t("smtp.testingShort")
                           : testState === "passed"
-                            ? "Borrador validado"
-                            : "Probar configuración"}
+                            ? t("draftValidated")
+                            : t("testConfiguration")}
                       </Button>
                     </div>
                     {testState === "failed" ? (
                       <p className="flex items-center gap-2 text-sm text-destructive">
                         <XCircle aria-hidden="true" />
-                        No se pudo validar el borrador.
+                        {t("draftInvalid")}
                       </p>
                     ) : null}
                   </section>
@@ -580,7 +570,7 @@ export function EmailSmtpIntegrationCard() {
                   type="button"
                   variant="brand-secondary"
                 >
-                  Cancelar
+                  {t("cancel")}
                 </Button>
                 <Button
                   disabled={
@@ -596,7 +586,7 @@ export function EmailSmtpIntegrationCard() {
                   ) : (
                     <Save data-icon="inline-start" />
                   )}
-                  {saving ? "Guardando" : "Guardar configuración"}
+                  {saving ? t("saving") : t("saveConfiguration")}
                 </Button>
               </SheetFooter>
             </form>

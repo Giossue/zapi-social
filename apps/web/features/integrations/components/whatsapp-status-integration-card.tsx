@@ -47,6 +47,7 @@ import {
   useState,
   type FormEvent,
 } from "react"
+import { useTranslations } from "next-intl"
 
 import { BrandWhatsApp } from "@/components/brand-icons"
 
@@ -59,11 +60,11 @@ type Draft = {
 
 type TestState = "not-tested" | "testing" | "passed" | "failed"
 
-const statusCopy = {
-  ready: { label: "Listo", variant: "success" as const },
-  incomplete: { label: "Incompleto", variant: "warning" as const },
-  untested: { label: "Sin probar", variant: "warning" as const },
-  disabled: { label: "Deshabilitado", variant: "neutral" as const },
+const statusVariants = {
+  ready: "success" as const,
+  incomplete: "warning" as const,
+  untested: "warning" as const,
+  disabled: "neutral" as const,
 }
 
 function ProviderStatus({
@@ -71,7 +72,7 @@ function ProviderStatus({
 }: {
   readiness: WhatsAppStatusIntegration["readiness"]
 }) {
-  const status = statusCopy[readiness]
+  const t = useTranslations("integrations")
   const Icon =
     readiness === "ready"
       ? CheckCircle2
@@ -80,9 +81,9 @@ function ProviderStatus({
         : CircleAlert
 
   return (
-    <Badge variant={status.variant}>
+    <Badge variant={statusVariants[readiness]}>
       <Icon aria-hidden="true" />
-      {status.label}
+      {t(`readiness.${readiness}`)}
     </Badge>
   )
 }
@@ -106,6 +107,7 @@ function isDirty(draft: Draft, integration: WhatsAppStatusIntegration) {
 }
 
 export function WhatsAppStatusIntegrationCard() {
+  const t = useTranslations("integrations")
   const [integration, setIntegration] =
     useState<WhatsAppStatusIntegration | null>(null)
   const [draft, setDraft] = useState<Draft | null>(null)
@@ -121,17 +123,17 @@ export function WhatsAppStatusIntegrationCard() {
       setIntegration(await integrationsApi.getWhatsAppStatus())
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
-        toast.error("Tu sesión expiró. Vuelve a iniciar sesión.")
+        toast.error(t("sessionExpired"))
       } else if (error instanceof ApiError && error.status === 403) {
-        toast.error("No tienes permiso para administrar integraciones.")
+        toast.error(t("forbidden"))
       } else {
-        toast.error("No pudimos cargar la integración WhatsApp Status.")
+        toast.error(t("whatsapp.loadFailed"))
       }
       setLoadError(true)
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     void load()
@@ -161,14 +163,14 @@ export function WhatsAppStatusIntegrationCard() {
   async function testConfiguration() {
     if (!draft) return
     if (!draft.baseUrl.trim() || !draft.basicAuthUsername.trim()) {
-      toast.error("La URL base y el usuario de Basic Auth son obligatorios.")
+      toast.error(t("whatsapp.baseUrlRequired"))
       return
     }
     if (
       !draft.basicAuthPassword.trim() &&
       !integration?.basicAuthPasswordConfigured
     ) {
-      toast.error("La contraseña de Basic Auth es obligatoria.")
+      toast.error(t("whatsapp.passwordRequired"))
       return
     }
 
@@ -184,13 +186,13 @@ export function WhatsAppStatusIntegrationCard() {
         },
       })
       setTestState("passed")
-      toast.success("GOWA validó el borrador. Ya puedes guardarlo.")
+      toast.success(t("whatsapp.testOk"))
     } catch (error) {
       setTestState("failed")
       if (error instanceof ApiError && error.status === 400) {
-        toast.error("Revisa la URL y las credenciales de Basic Auth.")
+        toast.error(t("whatsapp.checkCredentials"))
       } else {
-        toast.error("GOWA no pudo validar el borrador. Inténtalo de nuevo.")
+        toast.error(t("whatsapp.testFailed"))
       }
     }
   }
@@ -200,7 +202,7 @@ export function WhatsAppStatusIntegrationCard() {
     if (!draft || !integration) return
 
     if (draft.enabled && testState !== "passed") {
-      toast.error("Prueba esta configuración antes de guardarla.")
+      toast.error(t("testBeforeSave"))
       return
     }
 
@@ -225,14 +227,12 @@ export function WhatsAppStatusIntegrationCard() {
       setIntegration(saved)
       setDraft(null)
       setTestState("not-tested")
-      toast.success("Configuración de WhatsApp Status guardada.")
+      toast.success(t("whatsapp.saved"))
     } catch (error) {
       if (error instanceof ApiError && error.status === 400) {
-        toast.error(
-          "El borrador probado ya no coincide con la configuración a guardar."
-        )
+        toast.error(t("draftMismatch"))
       } else {
-        toast.error("No pudimos guardar la configuración de WhatsApp Status.")
+        toast.error(t("whatsapp.saveFailed"))
       }
     } finally {
       setSaving(false)
@@ -245,9 +245,9 @@ export function WhatsAppStatusIntegrationCard() {
     return (
       <EmptyState
         action={<RetryButton onClick={() => void load()} />}
-        description="No fue posible obtener el estado de WhatsApp Status."
+        description={t("whatsapp.unavailableDescription")}
         icon={PlugZap}
-        title="Integración no disponible"
+        title={t("unavailableTitle")}
       />
     )
   }
@@ -263,7 +263,7 @@ export function WhatsAppStatusIntegrationCard() {
                 <CardTitle>{integration.label}</CardTitle>
                 <ProviderStatus readiness={integration.readiness} />
               </div>
-              <CardDescription>{integration.description}</CardDescription>
+              <CardDescription>{t("whatsapp.description")}</CardDescription>
             </div>
             <Button
               onClick={() => {
@@ -273,7 +273,7 @@ export function WhatsAppStatusIntegrationCard() {
               variant="brand-secondary"
             >
               <Settings2 data-icon="inline-start" />
-              Ver y configurar
+              {t("viewAndConfigure")}
             </Button>
           </div>
         </CardHeader>
@@ -291,19 +291,21 @@ export function WhatsAppStatusIntegrationCard() {
                 id="whatsapp-capability-title"
                 className="text-sm font-semibold"
               >
-                Tipo de canal
+                {t("channelType")}
               </h2>
             </div>
             {integration.capabilities.map((capability) => (
               <IntegrationInsetCard key={capability.key}>
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-sm font-medium">{capability.label}</p>
+                  <p className="text-sm font-medium">
+                    {t(`capability.${capability.key}.label`)}
+                  </p>
                   <Badge variant={capability.enabled ? "success" : "neutral"}>
-                    {capability.enabled ? "Activa" : "Desactivada"}
+                    {capability.enabled ? t("enabled") : t("disabled")}
                   </Badge>
                 </div>
                 <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                  {capability.description}
+                  {t(`capability.${capability.key}.description`)}
                 </p>
               </IntegrationInsetCard>
             ))}
@@ -322,34 +324,34 @@ export function WhatsAppStatusIntegrationCard() {
                 id="whatsapp-configuration-title"
                 className="text-sm font-semibold"
               >
-                Resumen de configuración
+                {t("configurationSummary")}
               </h2>
             </div>
             <div className="grid gap-3 sm:grid-cols-3">
               <IntegrationInsetCard>
                 <p className="text-xs font-medium text-muted-foreground">
-                  URL base
+                  {t("whatsapp.baseUrl")}
                 </p>
                 <p className="mt-1 text-sm break-all">
-                  {integration.baseUrl ?? "Sin configurar"}
+                  {integration.baseUrl ?? t("notConfigured")}
                 </p>
               </IntegrationInsetCard>
               <IntegrationInsetCard>
                 <p className="text-xs font-medium text-muted-foreground">
-                  Usuario Basic Auth
+                  {t("whatsapp.basicAuthUsername")}
                 </p>
                 <p className="mt-1 text-sm break-all">
-                  {integration.basicAuthUsername ?? "Sin configurar"}
+                  {integration.basicAuthUsername ?? t("notConfigured")}
                 </p>
               </IntegrationInsetCard>
               <IntegrationInsetCard>
                 <p className="text-xs font-medium text-muted-foreground">
-                  Contraseña Basic Auth
+                  {t("whatsapp.basicAuthPassword")}
                 </p>
                 <p className="mt-1 text-sm">
                   {integration.basicAuthPasswordConfigured
-                    ? "Configurada"
-                    : "Sin configurar"}
+                    ? t("configuredFeminine")
+                    : t("notConfigured")}
                 </p>
               </IntegrationInsetCard>
             </div>
@@ -380,15 +382,15 @@ export function WhatsAppStatusIntegrationCard() {
               </SheetHeader>
               <div className="flex flex-col gap-6 p-4">
                 <IntegrationAvailabilityCard
-                  ariaLabel="Habilitar WhatsApp Status"
+                  ariaLabel={t("whatsapp.enableAria")}
                   checked={draft.enabled}
                   description={
                     draft.enabled
-                      ? "Puede ofrecer WhatsApp Status cuando el conector esté probado."
-                      : "WhatsApp Status no estará disponible en el portal."
+                      ? t("whatsapp.availabilityOn")
+                      : t("whatsapp.availabilityOff")
                   }
                   onCheckedChange={(enabled) => updateDraft({ enabled })}
-                  title="Disponibilidad del proveedor"
+                  title={t("availability")}
                 />
 
                 <section
@@ -399,12 +401,12 @@ export function WhatsAppStatusIntegrationCard() {
                     className="text-sm font-semibold"
                     id="whatsapp-credentials-title"
                   >
-                    Credenciales
+                    {t("credentials")}
                   </h3>
                   <FieldGroup>
                     <Field>
                       <FieldLabel>
-                        URL base del conector GOWA
+                        {t("whatsapp.baseUrlField")}
                         <span aria-hidden="true" className="text-destructive">
                           *
                         </span>
@@ -421,7 +423,7 @@ export function WhatsAppStatusIntegrationCard() {
                     </Field>
                     <Field>
                       <FieldLabel>
-                        Usuario Basic Auth
+                        {t("whatsapp.basicAuthUsername")}
                         <span aria-hidden="true" className="text-destructive">
                           *
                         </span>
@@ -437,7 +439,7 @@ export function WhatsAppStatusIntegrationCard() {
                     </Field>
                     <Field>
                       <FieldLabel>
-                        Contraseña Basic Auth
+                        {t("whatsapp.basicAuthPassword")}
                         <span aria-hidden="true" className="text-destructive">
                           *
                         </span>
@@ -498,16 +500,16 @@ export function WhatsAppStatusIntegrationCard() {
                           <ShieldCheck data-icon="inline-start" />
                         )}
                         {testState === "testing"
-                          ? "Probando configuración"
+                          ? t("testing")
                           : testState === "passed"
-                            ? "Borrador validado"
-                            : "Probar configuración"}
+                            ? t("draftValidated")
+                            : t("testConfiguration")}
                       </Button>
                     </div>
                     {testState === "failed" ? (
                       <p className="flex items-center gap-2 text-sm text-destructive">
                         <XCircle aria-hidden="true" className="size-4" />
-                        No se pudo validar el borrador.
+                        {t("draftInvalid")}
                       </p>
                     ) : null}
                   </section>
@@ -536,7 +538,7 @@ export function WhatsAppStatusIntegrationCard() {
                   ) : (
                     <Save data-icon="inline-start" />
                   )}
-                  {saving ? "Guardando" : "Guardar configuración"}
+                  {saving ? t("saving") : t("saveConfiguration")}
                 </Button>
               </SheetFooter>
             </form>
