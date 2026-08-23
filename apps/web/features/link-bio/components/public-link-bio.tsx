@@ -6,15 +6,7 @@ import { linkBioApi } from "@workspace/api-client"
 import type { PublicLinkBioPage } from "@workspace/contracts"
 import { cn } from "@workspace/ui/lib/utils"
 
-const templateShell: Record<PublicLinkBioPage["templateKey"], string> = {
-  aurora:
-    "bg-[radial-gradient(circle_at_top,var(--color-primary)/15,transparent_60%)] bg-background",
-  minimal: "bg-background",
-  spotlight: "bg-muted",
-  paper: "bg-muted",
-  "pro-dark": "bg-background",
-  soft: "bg-muted",
-}
+import { linkBioTemplate } from "../link-bio-templates"
 
 const buttonShape = {
   rounded: "rounded-lg",
@@ -64,7 +56,8 @@ export function PublicLinkBio({ page }: { page: PublicLinkBioPage }) {
 
   return (
     <main
-      className={cn("min-h-svh px-4 py-10", templateShell[page.templateKey])}
+      className="min-h-svh px-4 py-10 [background:var(--bio-bg)] [color:var(--bio-fg)]"
+      style={linkBioTemplate(page.templateKey).theme}
     >
       <div className={cn("mx-auto flex w-full max-w-md flex-col gap-6", align)}>
         <header className="flex flex-col items-center gap-3">
@@ -72,7 +65,7 @@ export function PublicLinkBio({ page }: { page: PublicLinkBioPage }) {
             <img
               alt={page.title}
               className={cn(
-                "size-24 border border-border object-cover",
+                "size-24 border object-cover [border-color:var(--bio-border)]",
                 avatarShape[page.appearance.avatarStyle]
               )}
               src={page.avatarUrl}
@@ -83,10 +76,10 @@ export function PublicLinkBio({ page }: { page: PublicLinkBioPage }) {
               {page.title}
             </h1>
             {page.headline ? (
-              <p className="text-sm text-muted-foreground">{page.headline}</p>
+              <p className="text-sm [color:var(--bio-muted)]">{page.headline}</p>
             ) : null}
             {page.description ? (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm [color:var(--bio-muted)]">
                 {page.description}
               </p>
             ) : null}
@@ -96,7 +89,7 @@ export function PublicLinkBio({ page }: { page: PublicLinkBioPage }) {
         {page.blocks.map((block, blockIndex) => (
           <section className="flex flex-col gap-3" key={blockIndex}>
             {block.title ? (
-              <h2 className="text-sm font-medium tracking-wide text-muted-foreground uppercase">
+              <h2 className="text-sm font-medium tracking-wide uppercase [color:var(--bio-muted)]">
                 {block.title}
               </h2>
             ) : null}
@@ -107,7 +100,7 @@ export function PublicLinkBio({ page }: { page: PublicLinkBioPage }) {
 
             {block.type === "video" && block.url ? (
               <a
-                className="text-sm text-primary underline underline-offset-4"
+                className="text-sm underline underline-offset-4 [color:var(--bio-accent)]"
                 href={block.url}
                 rel="noreferrer"
                 target="_blank"
@@ -121,7 +114,7 @@ export function PublicLinkBio({ page }: { page: PublicLinkBioPage }) {
                 {block.items.map((item, itemIndex) => (
                   <div className="flex flex-col gap-1" key={itemIndex}>
                     <span className="text-sm font-medium">{item.label}</span>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-sm [color:var(--bio-muted)]">
                       {item.answer}
                     </span>
                   </div>
@@ -148,7 +141,7 @@ export function PublicLinkBio({ page }: { page: PublicLinkBioPage }) {
               ? block.items.map((item, itemIndex) => (
                   <a
                     className={cn(
-                      "flex items-center justify-between gap-3 border border-border bg-card px-4 py-3 text-sm font-medium transition-colors hover:bg-muted",
+                      "flex items-center justify-between gap-3 border px-4 py-3 text-sm font-medium transition-colors [background:var(--bio-card)] [border-color:var(--bio-border)] [color:var(--bio-card-fg)] hover:[background:var(--bio-hover)]",
                       buttonShape[page.appearance.buttonStyle]
                     )}
                     href={item.url || "#"}
@@ -162,13 +155,13 @@ export function PublicLinkBio({ page }: { page: PublicLinkBioPage }) {
                     <span className="flex min-w-0 flex-col text-left">
                       <span className="truncate">{item.label}</span>
                       {item.note ? (
-                        <span className="truncate text-xs font-normal text-muted-foreground">
+                        <span className="truncate text-xs font-normal [color:var(--bio-muted)]">
                           {item.note}
                         </span>
                       ) : null}
                     </span>
                     {item.price ? (
-                      <span className="shrink-0 text-sm">{item.price}</span>
+                      <span className="shrink-0 text-sm [color:var(--bio-accent)]">{item.price}</span>
                     ) : null}
                   </a>
                 ))
@@ -177,7 +170,7 @@ export function PublicLinkBio({ page }: { page: PublicLinkBioPage }) {
         ))}
 
         {page.appearance.brandingText ? (
-          <p className="pt-4 text-center text-xs text-muted-foreground">
+          <p className="pt-4 text-center text-xs [color:var(--bio-muted)]">
             {page.appearance.brandingText}
           </p>
         ) : null}

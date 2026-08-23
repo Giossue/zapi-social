@@ -74,6 +74,12 @@ export const linkBioTemplateKeySchema = z.enum([
   "paper",
   "pro-dark",
   "soft",
+  "studio",
+  "wave",
+  "sunset",
+  "sky",
+  "forest",
+  "promo",
 ])
 
 export const linkBioPageStatusSchema = z.enum(["draft", "published"])

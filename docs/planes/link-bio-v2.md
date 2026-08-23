@@ -58,9 +58,12 @@ cuántas páginas puede tener el workspace, con `-1` como ilimitado y `1` por de
 
 - **Ownership por workspace, no por usuario.** Laravel guarda `owner_user_id` y un
   `team_id` opcional. V2 usa `workspace_id` como todo el resto del producto.
-- **Las 34 plantillas no se portan como filas de datos.** Su tema es una paleta de colores
-  crudos; V2 expone un conjunto reducido construido con tokens del sistema, porque una
-  plantilla con `#0f172a` incrustado no respeta claro/oscuro.
+- **Plantillas propias en TypeScript, no portadas del addon.** El catálogo
+  (`features/link-bio/link-bio-templates.ts`) define 12 plantillas en tres categorías
+  (Oscuras, Claras, Color); cada una es solo un tema de variables CSS (`--bio-*`) que el
+  renderer público y las miniaturas del selector consumen. Los colores por plantilla son
+  legítimos aquí: la página pública se tematiza por diseño, fuera del sistema de tokens del
+  producto, que sigue aplicando al constructor y al resto del Portal.
 - **El hash de IP se conserva**, pero el user agent se guarda recortado y solo para
   distinguir tráfico, nunca para perfilar.
 - **Sin ajustes de plataforma en esta fase.** El addon expone `admin/settings/link-bio`; en
@@ -106,3 +109,16 @@ y `link_bio_events`.
 Ownership por workspace en cada consulta; crear, editar y borrar exigen rol `owner` o
 `admin`. El avatar y la portada se validan contra `file_assets` del mismo workspace antes de
 guardarse.
+
+## Plantillas con tema — 23 de agosto de 2026
+
+- Sustituido el `Select` de plantillas por una galería visual en el constructor: miniaturas
+  generadas desde el propio tema (fondo + tarjeta de muestra), selección con `ring`
+  semántico y descripción de la plantilla elegida.
+- `linkBioTemplateKeySchema` crece de 6 a 12 claves (se añaden `studio`, `wave`, `sunset`,
+  `sky`, `forest`, `promo`); cambio aditivo sin migración.
+- El renderer público aplica el tema completo por variables: fondo, texto, atenuados,
+  tarjetas con hover, bordes y color de acento para enlaces y precios. Antes solo cambiaba
+  la clase de fondo.
+- Validación: typecheck, lint sin avisos nuevos, `audit:portal-admin-ui` sin hallazgos y
+  build Web correctos. Aprobación visual pendiente del usuario.

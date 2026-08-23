@@ -98,6 +98,7 @@ import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
+import { cn } from "@workspace/ui/lib/utils"
 
 import {
   blockHints,
@@ -106,8 +107,8 @@ import {
   emptyBlock,
   emptyItem,
   itemBlockTypes,
-  templates,
 } from "./link-bio-blocks"
+import { linkBioTemplates } from "../link-bio-templates"
 import { loginPath } from "@/features/identity/login-redirect"
 
 const pageSize = 10
@@ -499,32 +500,55 @@ function PageSheet({
                   />
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor="page-template">Plantilla</FieldLabel>
-                  <Select
-                    onValueChange={(value) =>
-                      setDraft({
-                        ...draft,
-                        templateKey: value as Draft["templateKey"],
-                      })
-                    }
-                    value={draft.templateKey}
+                  <FieldLabel>Plantilla</FieldLabel>
+                  <div
+                    aria-label="Plantilla de la página"
+                    className="grid grid-cols-3 gap-2"
+                    role="radiogroup"
                   >
-                    <SelectTrigger className="w-full" id="page-template">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {templates.map((template) => (
-                          <SelectItem key={template.key} value={template.key}>
+                    {linkBioTemplates.map((template) => {
+                      const selected = template.key === draft.templateKey
+
+                      return (
+                        <button
+                          aria-checked={selected}
+                          className={cn(
+                            "flex flex-col gap-1.5 rounded-lg border border-border p-1.5 text-left transition-colors hover:bg-muted/50 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none",
+                            selected && "border-primary ring-1 ring-primary"
+                          )}
+                          key={template.key}
+                          onClick={() =>
+                            setDraft({ ...draft, templateKey: template.key })
+                          }
+                          role="radio"
+                          type="button"
+                        >
+                          <span
+                            aria-hidden="true"
+                            className="flex h-14 w-full items-end rounded-md border border-border p-1.5"
+                            style={{
+                              background: template.theme["--bio-bg"],
+                            }}
+                          >
+                            <span
+                              className="block h-2.5 w-3/4 rounded-sm border"
+                              style={{
+                                background: template.theme["--bio-card"],
+                                borderColor: template.theme["--bio-border"],
+                              }}
+                            />
+                          </span>
+                          <span className="truncate text-xs font-medium">
                             {template.label}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
                   <FieldDescription>
-                    {templates.find((item) => item.key === draft.templateKey)
-                      ?.description ?? ""}
+                    {linkBioTemplates.find(
+                      (item) => item.key === draft.templateKey
+                    )?.description ?? ""}
                   </FieldDescription>
                 </Field>
                 <Field>

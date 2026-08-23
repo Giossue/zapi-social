@@ -64,32 +64,3 @@ export function emptyBlock(type: LinkBioBlockType): LinkBioBlock {
     url: "",
   }
 }
-
-export const templates = [
-  {
-    description: "Degradado oscuro con bloques de vidrio.",
-    key: "aurora",
-    label: "Aurora",
-  },
-  {
-    description: "Fondo claro, tipografía grande.",
-    key: "minimal",
-    label: "Minimal",
-  },
-  {
-    description: "Foco en una sola llamada a la acción.",
-    key: "spotlight",
-    label: "Spotlight",
-  },
-  {
-    description: "Tarjetas apiladas sobre papel.",
-    key: "paper",
-    label: "Paper",
-  },
-  {
-    description: "Oscuro sobrio para marcas.",
-    key: "pro-dark",
-    label: "Pro dark",
-  },
-  { description: "Tonos cálidos y bordes suaves.", key: "soft", label: "Soft" },
-] as const
