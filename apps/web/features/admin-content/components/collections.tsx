@@ -1,6 +1,6 @@
 "use client"
 
-import {} from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { adminContentApi } from "@workspace/api-client"
 import type {
@@ -25,19 +25,24 @@ import {
   type CollectionValues,
 } from "./admin-collection-page"
 
-const activeFilter = {
-  label: "Estado",
-  options: [
-    { label: "Todos", value: "all" },
-    { label: "Activos", value: "active" },
-    { label: "Inactivos", value: "inactive" },
-  ],
-} as const
+/** Traductor del espacio `adminContent`; se pasa a las fábricas de config. */
+type Translate = ReturnType<typeof useTranslations<"adminContent">>
 
-function activeBadge(isActive: boolean) {
+function activeFilter(t: Translate) {
+  return {
+    label: t("statusColumn"),
+    options: [
+      { label: t("filter.all"), value: "all" },
+      { label: t("filter.active"), value: "active" },
+      { label: t("filter.inactive"), value: "inactive" },
+    ],
+  }
+}
+
+function ActiveBadge({ isActive, t }: { isActive: boolean; t: Translate }) {
   return (
     <Badge variant={isActive ? "success" : "neutral"}>
-      {isActive ? "Activo" : "Inactivo"}
+      {isActive ? t("active") : t("inactive")}
     </Badge>
   )
 }
@@ -55,6 +60,7 @@ function primary(title: string, detail?: string | null) {
 
 function taxonomyConfig(
   resource: typeof adminContentApi.blogCategories,
+  t: Translate,
   copy: {
     createLabel: string
     description: string
@@ -68,19 +74,19 @@ function taxonomyConfig(
     columns: [
       {
         key: "name",
-        label: "Nombre",
+        label: t("field.name"),
         render: (row) => primary(row.name, row.description || row.slug),
       },
       {
         key: "order",
-        label: "Orden",
+        label: t("field.order"),
         hideBelow: "lg",
         render: (row) => row.sortOrder,
       },
       {
         key: "status",
-        label: "Estado",
-        render: (row) => activeBadge(row.isActive),
+        label: t("statusColumn"),
+        render: (row) => <ActiveBadge isActive={row.isActive} t={t} />,
       },
     ],
     createLabel: copy.createLabel,
@@ -88,24 +94,23 @@ function taxonomyConfig(
     emptyDescription: copy.emptyDescription,
     emptyTitle: copy.emptyTitle,
     fields: () => [
-      { kind: "text", label: "Nombre", name: "name", required: true },
+      { kind: "text", label: t("field.name"), name: "name", required: true },
       {
         kind: "textarea",
-        label: "Descripción",
+        label: t("field.description"),
         name: "description",
-        placeholder: "Para qué sirve esta clasificación.",
+        placeholder: t("taxonomy.descriptionPlaceholder"),
       },
       {
         kind: "number",
-        label: "Orden",
+        label: t("field.order"),
         name: "sortOrder",
-        description: "Menor número aparece primero.",
+        description: t("field.orderHint"),
       },
-      { kind: "switch", label: "Activa", name: "isActive" },
+      { kind: "switch", label: t("field.activeFeminine"), name: "isActive" },
     ],
-    filter: activeFilter,
-    formDescription:
-      "El identificador se genera a partir del nombre si no existe uno previo.",
+    filter: activeFilter(t),
+    formDescription: t("taxonomy.formDescription"),
     itemLabel: copy.itemLabel,
     load: (query) => resource.list(query),
     remove: (row) => resource.remove(row.id),
@@ -117,7 +122,7 @@ function taxonomyConfig(
       if (id) await resource.update(id, input)
       else await resource.create(input)
     },
-    searchPlaceholder: `Buscar ${copy.itemLabel}...`,
+    searchPlaceholder: t("searchItems", { items: copy.itemLabel }),
     title: copy.title,
     toValues: (row) => ({
       description: row?.description ?? "",
@@ -139,78 +144,75 @@ function taxonomyInput(values: CollectionValues) {
 }
 
 export function LanguagesCollection() {
+  const t = useTranslations("adminContent")
   const config: AdminCollectionConfig<AdminLanguage, AdminLanguagesResponse> = {
     columns: [
       {
         key: "name",
-        label: "Idioma",
+        label: t("languages.column"),
         render: (row) => primary(row.name, `${row.nativeName} · ${row.code}`),
       },
       {
         key: "direction",
-        label: "Escritura",
+        label: t("languages.directionColumn"),
         hideBelow: "lg",
         render: (row) =>
-          row.direction === "rtl"
-            ? "Derecha a izquierda"
-            : "Izquierda a derecha",
+          row.direction === "rtl" ? t("languages.rtl") : t("languages.ltr"),
       },
       {
         key: "status",
-        label: "Estado",
+        label: t("statusColumn"),
         render: (row) => (
           <div className="flex flex-wrap gap-1">
-            {activeBadge(row.isActive)}
+            <ActiveBadge isActive={row.isActive} t={t} />
             {row.isDefault ? (
-              <Badge variant="info">Predeterminado</Badge>
+              <Badge variant="info">{t("languages.default")}</Badge>
             ) : null}
           </div>
         ),
       },
     ],
-    createLabel: "Nuevo idioma",
-    description:
-      "Idiomas disponibles para la interfaz y el contenido de la plataforma.",
-    emptyDescription: "Añade el primer idioma para publicar contenido.",
-    emptyTitle: "No hay idiomas",
+    createLabel: t("languages.create"),
+    description: t("languages.description"),
+    emptyDescription: t("languages.emptyDescription"),
+    emptyTitle: t("languages.emptyTitle"),
     fields: () => [
-      { kind: "text", label: "Nombre", name: "name", required: true },
+      { kind: "text", label: t("field.name"), name: "name", required: true },
       {
         kind: "text",
-        label: "Nombre nativo",
+        label: t("languages.nativeName"),
         name: "nativeName",
         placeholder: "Español",
         required: true,
       },
       {
         kind: "text",
-        label: "Código",
+        label: t("languages.code"),
         name: "code",
-        description: "Código ISO, por ejemplo es o en-US.",
+        description: t("languages.codeHint"),
         required: true,
       },
       {
         kind: "select",
-        label: "Dirección de escritura",
+        label: t("languages.direction"),
         name: "direction",
         options: [
-          { label: "Izquierda a derecha", value: "ltr" },
-          { label: "Derecha a izquierda", value: "rtl" },
+          { label: t("languages.ltr"), value: "ltr" },
+          { label: t("languages.rtl"), value: "rtl" },
         ],
       },
-      { kind: "number", label: "Orden", name: "sortOrder" },
-      { kind: "switch", label: "Activo", name: "isActive" },
+      { kind: "number", label: t("field.order"), name: "sortOrder" },
+      { kind: "switch", label: t("field.active"), name: "isActive" },
       {
         kind: "switch",
-        label: "Predeterminado",
+        label: t("languages.default"),
         name: "isDefault",
-        description: "Solo un idioma puede serlo; el anterior deja de serlo.",
+        description: t("languages.defaultHint"),
       },
     ],
-    filter: activeFilter,
-    formDescription:
-      "El idioma predeterminado se usa cuando el contenido no está traducido.",
-    itemLabel: "idiomas",
+    filter: activeFilter(t),
+    formDescription: t("languages.formDescription"),
+    itemLabel: t("languages.itemLabel"),
     load: (query) => adminContentApi.languages.list(query),
     remove: (row) => adminContentApi.languages.remove(row.id),
     rowId: (row) => row.id,
@@ -230,8 +232,8 @@ export function LanguagesCollection() {
       if (id) await adminContentApi.languages.update(id, input)
       else await adminContentApi.languages.create(input)
     },
-    searchPlaceholder: "Buscar idiomas...",
-    title: "Idiomas",
+    searchPlaceholder: t("languages.searchPlaceholder"),
+    title: t("languages.title"),
     toValues: (row) => ({
       code: row?.code ?? "",
       direction: row?.direction ?? "ltr",
@@ -248,53 +250,56 @@ export function LanguagesCollection() {
 }
 
 export function BlogCategoriesCollection() {
+  const t = useTranslations("adminContent")
   return (
     <AdminCollectionPage
-      config={taxonomyConfig(adminContentApi.blogCategories, {
-        createLabel: "Nueva categoría",
-        description: "Clasificaciones que agrupan las entradas del blog.",
-        emptyDescription: "Crea una categoría para ordenar las entradas.",
-        emptyTitle: "No hay categorías",
-        itemLabel: "categorías",
-        title: "Categorías del blog",
+      config={taxonomyConfig(adminContentApi.blogCategories, t, {
+        createLabel: t("blogCategories.create"),
+        description: t("blogCategories.description"),
+        emptyDescription: t("blogCategories.emptyDescription"),
+        emptyTitle: t("blogCategories.emptyTitle"),
+        itemLabel: t("blogCategories.itemLabel"),
+        title: t("blogCategories.title"),
       })}
     />
   )
 }
 
 export function AiTemplateCategoriesCollection() {
+  const t = useTranslations("adminContent")
   return (
     <AdminCollectionPage
-      config={taxonomyConfig(adminContentApi.aiTemplateCategories, {
-        createLabel: "Nueva categoría",
-        description: "Agrupa las plantillas de IA por caso de uso.",
-        emptyDescription: "Crea una categoría para ordenar las plantillas.",
-        emptyTitle: "No hay categorías",
-        itemLabel: "categorías",
-        title: "Categorías de plantillas",
+      config={taxonomyConfig(adminContentApi.aiTemplateCategories, t, {
+        createLabel: t("aiTemplateCategories.create"),
+        description: t("aiTemplateCategories.description"),
+        emptyDescription: t("aiTemplateCategories.emptyDescription"),
+        emptyTitle: t("aiTemplateCategories.emptyTitle"),
+        itemLabel: t("aiTemplateCategories.itemLabel"),
+        title: t("aiTemplateCategories.title"),
       })}
     />
   )
 }
 
 export function BlogTagsCollection() {
+  const t = useTranslations("adminContent")
   const config: AdminCollectionConfig<AdminBlogTag, AdminBlogTagsResponse> = {
     columns: [
       {
         key: "name",
-        label: "Etiqueta",
+        label: t("blogTags.column"),
         render: (row) => primary(row.name, row.slug),
       },
     ],
-    createLabel: "Nueva etiqueta",
-    description: "Etiquetas transversales para relacionar entradas del blog.",
-    emptyDescription: "Crea una etiqueta para agrupar entradas por tema.",
-    emptyTitle: "No hay etiquetas",
+    createLabel: t("blogTags.create"),
+    description: t("blogTags.description"),
+    emptyDescription: t("blogTags.emptyDescription"),
+    emptyTitle: t("blogTags.emptyTitle"),
     fields: () => [
-      { kind: "text", label: "Nombre", name: "name", required: true },
+      { kind: "text", label: t("field.name"), name: "name", required: true },
     ],
-    formDescription: "El identificador se genera a partir del nombre.",
-    itemLabel: "etiquetas",
+    formDescription: t("blogTags.formDescription"),
+    itemLabel: t("blogTags.itemLabel"),
     load: (query) => adminContentApi.blogTags.list(query),
     remove: (row) => adminContentApi.blogTags.remove(row.id),
     rowId: (row) => row.id,
@@ -305,8 +310,8 @@ export function BlogTagsCollection() {
       if (id) await adminContentApi.blogTags.update(id, input)
       else await adminContentApi.blogTags.create(input)
     },
-    searchPlaceholder: "Buscar etiquetas...",
-    title: "Etiquetas del blog",
+    searchPlaceholder: t("blogTags.searchPlaceholder"),
+    title: t("blogTags.title"),
     toValues: (row) => ({ name: row?.name ?? "" }),
     total: (response) => response.total,
   }
@@ -315,54 +320,62 @@ export function BlogTagsCollection() {
 }
 
 export function BlogPostsCollection() {
+  const t = useTranslations("adminContent")
   const config: AdminCollectionConfig<AdminBlogPost, AdminBlogPostsResponse> = {
     columns: [
       {
         key: "title",
-        label: "Entrada",
+        label: t("blogPosts.column"),
         render: (row) => primary(row.title, row.excerpt || row.slug),
       },
       {
         key: "category",
-        label: "Categoría",
+        label: t("categoryColumn"),
         hideBelow: "md",
-        render: (row) => row.categoryName ?? "Sin categoría",
+        render: (row) => row.categoryName ?? t("noCategory"),
       },
       {
         key: "status",
-        label: "Estado",
+        label: t("statusColumn"),
         render: (row) => (
           <Badge variant={row.status === "published" ? "success" : "neutral"}>
-            {row.status === "published" ? "Publicada" : "Borrador"}
+            {row.status === "published"
+              ? t("blogPosts.published")
+              : t("blogPosts.draft")}
           </Badge>
         ),
       },
     ],
-    createLabel: "Nueva entrada",
-    description: "Entradas del blog público, sus categorías y etiquetas.",
-    emptyDescription: "Publica tu primera entrada para el blog.",
-    emptyTitle: "No hay entradas",
+    createLabel: t("blogPosts.create"),
+    description: t("blogPosts.description"),
+    emptyDescription: t("blogPosts.emptyDescription"),
+    emptyTitle: t("blogPosts.emptyTitle"),
     fields: (response) => [
-      { kind: "text", label: "Título", name: "title", required: true },
+      {
+        kind: "text",
+        label: t("blogPosts.titleField"),
+        name: "title",
+        required: true,
+      },
       {
         kind: "textarea",
-        label: "Resumen",
+        label: t("blogPosts.excerpt"),
         name: "excerpt",
-        placeholder: "Una o dos frases que resuman la entrada.",
+        placeholder: t("blogPosts.excerptPlaceholder"),
       },
-      { kind: "textarea", label: "Contenido", name: "content" },
+      { kind: "textarea", label: t("blogPosts.content"), name: "content" },
       {
         kind: "select",
-        label: "Estado",
+        label: t("statusColumn"),
         name: "status",
         options: [
-          { label: "Borrador", value: "draft" },
-          { label: "Publicada", value: "published" },
+          { label: t("blogPosts.draft"), value: "draft" },
+          { label: t("blogPosts.published"), value: "published" },
         ],
       },
       {
         kind: "select",
-        label: "Categoría",
+        label: t("categoryColumn"),
         name: "categoryId",
         options: (response?.categories ?? []).map((category) => ({
           label: category.name,
@@ -371,7 +384,7 @@ export function BlogPostsCollection() {
       },
       {
         kind: "checkboxes",
-        label: "Etiquetas",
+        label: t("blogPosts.tags"),
         name: "tagIds",
         options: (response?.tags ?? []).map((tag) => ({
           label: tag.name,
@@ -380,16 +393,15 @@ export function BlogPostsCollection() {
       },
     ],
     filter: {
-      label: "Estado",
+      label: t("statusColumn"),
       options: [
-        { label: "Todos", value: "all" },
-        { label: "Publicadas", value: "published" },
-        { label: "Borradores", value: "draft" },
+        { label: t("filter.all"), value: "all" },
+        { label: t("blogPosts.publishedPlural"), value: "published" },
+        { label: t("blogPosts.draftPlural"), value: "draft" },
       ],
     },
-    formDescription:
-      "Al publicar se registra la fecha; volver a borrador la retira.",
-    itemLabel: "entradas",
+    formDescription: t("blogPosts.formDescription"),
+    itemLabel: t("blogPosts.itemLabel"),
     load: (query) => adminContentApi.blogPosts.list(query),
     remove: (row) => adminContentApi.blogPosts.remove(row.id),
     rowId: (row) => row.id,
@@ -408,8 +420,8 @@ export function BlogPostsCollection() {
       if (id) await adminContentApi.blogPosts.update(id, input)
       else await adminContentApi.blogPosts.create(input)
     },
-    searchPlaceholder: "Buscar entradas...",
-    title: "Blog",
+    searchPlaceholder: t("blogPosts.searchPlaceholder"),
+    title: t("blogPosts.title"),
     toValues: (row) => ({
       categoryId: row?.categoryId ?? "",
       content: row?.content ?? "",
@@ -425,43 +437,49 @@ export function BlogPostsCollection() {
 }
 
 export function FaqsCollection() {
+  const t = useTranslations("adminContent")
   const config: AdminCollectionConfig<AdminFaq, AdminFaqsResponse> = {
     columns: [
       {
         key: "question",
-        label: "Pregunta",
+        label: t("faqs.question"),
         render: (row) => primary(row.question, row.answer.slice(0, 120)),
       },
       {
         key: "order",
-        label: "Orden",
+        label: t("field.order"),
         hideBelow: "lg",
         render: (row) => row.sortOrder,
       },
       {
         key: "status",
-        label: "Estado",
-        render: (row) => activeBadge(row.isActive),
+        label: t("statusColumn"),
+        render: (row) => <ActiveBadge isActive={row.isActive} t={t} />,
       },
     ],
-    createLabel: "Nueva pregunta",
-    description: "Preguntas frecuentes visibles para los clientes.",
-    emptyDescription: "Añade la primera pregunta frecuente.",
-    emptyTitle: "No hay preguntas",
+    createLabel: t("faqs.create"),
+    description: t("faqs.description"),
+    emptyDescription: t("faqs.emptyDescription"),
+    emptyTitle: t("faqs.emptyTitle"),
     fields: () => [
-      { kind: "text", label: "Pregunta", name: "question", required: true },
+      {
+        kind: "text",
+        label: t("faqs.question"),
+        name: "question",
+        required: true,
+      },
       {
         kind: "textarea",
-        label: "Respuesta",
+        label: t("faqs.answer"),
         name: "answer",
         required: true,
       },
-      { kind: "number", label: "Orden", name: "sortOrder" },
-      { kind: "switch", label: "Visible", name: "isActive" },
+      { kind: "number", label: t("field.order"), name: "sortOrder" },
+      { kind: "switch", label: t("faqs.visible"), name: "isActive" },
     ],
-    filter: activeFilter,
-    formDescription: "Se muestran ordenadas de menor a mayor.",
-    itemLabel: "preguntas",
+    filter: activeFilter(t),
+    formDescription: t("faqs.formDescription"),
+    itemLabel: t("faqs.itemLabel"),
     load: (query) => adminContentApi.faqs.list(query),
     remove: (row) => adminContentApi.faqs.remove(row.id),
     rowId: (row) => row.id,
@@ -477,8 +495,8 @@ export function FaqsCollection() {
       if (id) await adminContentApi.faqs.update(id, input)
       else await adminContentApi.faqs.create(input)
     },
-    searchPlaceholder: "Buscar preguntas...",
-    title: "Preguntas frecuentes",
+    searchPlaceholder: t("faqs.searchPlaceholder"),
+    title: t("faqs.title"),
     toValues: (row) => ({
       answer: row?.answer ?? "",
       isActive: row?.isActive ?? true,
@@ -492,6 +510,7 @@ export function FaqsCollection() {
 }
 
 export function AiTemplatesCollection() {
+  const t = useTranslations("adminContent")
   const config: AdminCollectionConfig<
     AdminAiTemplate,
     AdminAiTemplatesResponse
@@ -499,51 +518,50 @@ export function AiTemplatesCollection() {
     columns: [
       {
         key: "name",
-        label: "Plantilla",
+        label: t("aiTemplates.column"),
         render: (row) => primary(row.name, row.description || row.slug),
       },
       {
         key: "category",
-        label: "Categoría",
+        label: t("categoryColumn"),
         hideBelow: "md",
-        render: (row) => row.categoryName ?? "Sin categoría",
+        render: (row) => row.categoryName ?? t("noCategory"),
       },
       {
         key: "status",
-        label: "Estado",
-        render: (row) => activeBadge(row.isActive),
+        label: t("statusColumn"),
+        render: (row) => <ActiveBadge isActive={row.isActive} t={t} />,
       },
     ],
-    createLabel: "Nueva plantilla",
-    description:
-      "Prompts reutilizables que el Portal ofrece dentro de AI Studio.",
-    emptyDescription: "Crea una plantilla para acelerar las generaciones.",
-    emptyTitle: "No hay plantillas",
+    createLabel: t("aiTemplates.create"),
+    description: t("aiTemplates.description"),
+    emptyDescription: t("aiTemplates.emptyDescription"),
+    emptyTitle: t("aiTemplates.emptyTitle"),
     fields: (response) => [
-      { kind: "text", label: "Nombre", name: "name", required: true },
-      { kind: "textarea", label: "Descripción", name: "description" },
+      { kind: "text", label: t("field.name"), name: "name", required: true },
+      { kind: "textarea", label: t("field.description"), name: "description" },
       {
         kind: "textarea",
-        label: "Prompt",
+        label: t("aiTemplates.prompt"),
         name: "prompt",
-        placeholder: "Instrucción que recibirá el modelo.",
+        placeholder: t("aiTemplates.promptPlaceholder"),
         required: true,
       },
       {
         kind: "select",
-        label: "Categoría",
+        label: t("categoryColumn"),
         name: "categoryId",
         options: (response?.categories ?? []).map((category) => ({
           label: category.name,
           value: category.id,
         })),
       },
-      { kind: "number", label: "Orden", name: "sortOrder" },
-      { kind: "switch", label: "Activa", name: "isActive" },
+      { kind: "number", label: t("field.order"), name: "sortOrder" },
+      { kind: "switch", label: t("field.activeFeminine"), name: "isActive" },
     ],
-    filter: activeFilter,
-    formDescription: "Las plantillas activas aparecen en el Portal.",
-    itemLabel: "plantillas",
+    filter: activeFilter(t),
+    formDescription: t("aiTemplates.formDescription"),
+    itemLabel: t("aiTemplates.itemLabel"),
     load: (query) => adminContentApi.aiTemplates.list(query),
     remove: (row) => adminContentApi.aiTemplates.remove(row.id),
     rowId: (row) => row.id,
@@ -561,8 +579,8 @@ export function AiTemplatesCollection() {
       if (id) await adminContentApi.aiTemplates.update(id, input)
       else await adminContentApi.aiTemplates.create(input)
     },
-    searchPlaceholder: "Buscar plantillas...",
-    title: "Plantillas de IA",
+    searchPlaceholder: t("aiTemplates.searchPlaceholder"),
+    title: t("aiTemplates.title"),
     toValues: (row) => ({
       categoryId: row?.categoryId ?? "",
       description: row?.description ?? "",

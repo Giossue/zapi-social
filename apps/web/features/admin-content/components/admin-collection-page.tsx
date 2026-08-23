@@ -8,6 +8,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react"
+import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import {
   CircleAlert,
@@ -186,6 +187,7 @@ function CollectionSheet({
   title: string
   values: CollectionValues
 }) {
+  const t = useTranslations("adminContent")
   const [values, setValues] = useState<CollectionValues>(initialValues)
 
   /**
@@ -308,9 +310,7 @@ function CollectionSheet({
                           })}
                         </FieldGroup>
                       ) : (
-                        <FieldDescription>
-                          No hay opciones disponibles todavía.
-                        </FieldDescription>
+                        <FieldDescription>{t("noOptions")}</FieldDescription>
                       )}
                     </FieldSet>
                   )
@@ -341,7 +341,7 @@ function CollectionSheet({
                           className="w-full"
                           id={controlId}
                         >
-                          <SelectValue placeholder="Selecciona una opción" />
+                          <SelectValue placeholder={t("selectOption")} />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
@@ -396,7 +396,7 @@ function CollectionSheet({
               type="button"
               variant="brand-secondary"
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button disabled={!canSubmit || pending} type="submit">
               {pending ? (
@@ -404,7 +404,7 @@ function CollectionSheet({
               ) : (
                 <Plus data-icon="inline-start" />
               )}
-              Guardar
+              {t("save")}
             </Button>
           </SheetFooter>
         </form>
@@ -418,6 +418,7 @@ export function AdminCollectionPage<TRow, TResponse>({
 }: {
   config: AdminCollectionConfig<TRow, TResponse>
 }) {
+  const t = useTranslations("adminContent")
   const router = useRouter()
   const [response, setResponse] = useState<TResponse | null>(null)
   const [query, setQuery] = useState("")
@@ -486,12 +487,12 @@ export function AdminCollectionPage<TRow, TResponse>({
     try {
       await config.save(editing ? config.rowId(editing) : null, values)
       await load()
-      toast.success(editing ? "Cambios guardados." : "Registro creado.")
+      toast.success(editing ? t("saved") : t("recordCreated"))
       return true
     } catch (error) {
       if (handleError(error)) return false
       console.error(`${config.title} save failed`, error)
-      toast.error("No pudimos guardar. Revisa los datos e inténtalo de nuevo.")
+      toast.error(t("saveFailed"))
       return false
     } finally {
       setPending(false)
@@ -504,11 +505,11 @@ export function AdminCollectionPage<TRow, TResponse>({
       await config.remove(row)
       setToDelete(null)
       await load()
-      toast.success("Registro eliminado.")
+      toast.success(t("recordDeleted"))
     } catch (error) {
       if (handleError(error)) return
       console.error(`${config.title} deletion failed`, error)
-      toast.error("No pudimos eliminar el registro. Inténtalo de nuevo.")
+      toast.error(t("deleteFailed"))
     } finally {
       setPending(false)
     }
@@ -519,9 +520,9 @@ export function AdminCollectionPage<TRow, TResponse>({
       <Card variant="subtle">
         <CardContent>
           <EmptyState
-            description="Solicita a un administrador el permiso necesario para gestionar este contenido."
+            description={t("forbiddenDescription")}
             icon={ShieldCheck}
-            title={`${config.title} no disponible`}
+            title={t("unavailable", { section: config.title })}
           />
         </CardContent>
       </Card>
@@ -529,7 +530,9 @@ export function AdminCollectionPage<TRow, TResponse>({
   }
 
   if (isLoading && !response && !loadError) {
-    return <PageLoading aria-label={`Cargando ${config.itemLabel}`} />
+    return (
+      <PageLoading aria-label={t("loading", { items: config.itemLabel })} />
+    )
   }
 
   if (loadError || !response) {
@@ -543,9 +546,9 @@ export function AdminCollectionPage<TRow, TResponse>({
                 variant="brand-secondary"
               />
             }
-            description={`No pudimos cargar ${config.itemLabel}.`}
+            description={t("loadFailed", { items: config.itemLabel })}
             icon={CircleAlert}
-            title={`${config.title} no disponible`}
+            title={t("unavailable", { section: config.title })}
           />
         </CardContent>
       </Card>
@@ -591,7 +594,7 @@ export function AdminCollectionPage<TRow, TResponse>({
               </Button>
             }
             search={{
-              ariaLabel: `Buscar ${config.itemLabel}`,
+              ariaLabel: t("searchItems", { items: config.itemLabel }),
               onChange: (value) => {
                 setQuery(value)
                 setPage(1)
@@ -611,13 +614,13 @@ export function AdminCollectionPage<TRow, TResponse>({
                       type="button"
                       variant="outline"
                     >
-                      <X /> Limpiar
+                      <X /> {t("clear")}
                     </Button>
                   ) : undefined
                 }
               >
                 <DataTableFilter
-                  ariaLabel={`Filtrar por ${config.filter.label.toLowerCase()}`}
+                  ariaLabel={t("filterBy", { field: config.filter.label })}
                   label={config.filter.label}
                   onValueChange={(value) => {
                     setStatus(value)
@@ -645,7 +648,7 @@ export function AdminCollectionPage<TRow, TResponse>({
                       {column.label}
                     </TableHead>
                   ))}
-                  <TableHead className="text-right">Acciones</TableHead>
+                  <TableHead className="text-right">{t("actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -670,7 +673,9 @@ export function AdminCollectionPage<TRow, TResponse>({
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
-                              aria-label={`Abrir acciones para ${config.rowName(row)}`}
+                              aria-label={t("openActions", {
+                                name: config.rowName(row),
+                              })}
                               className="size-8 rounded-md text-muted-foreground hover:bg-muted/50"
                               size="icon-sm"
                               variant="brand-secondary"
@@ -687,7 +692,7 @@ export function AdminCollectionPage<TRow, TResponse>({
                               size="compact"
                             >
                               <Pencil />
-                              Editar
+                              {t("edit")}
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
@@ -696,7 +701,7 @@ export function AdminCollectionPage<TRow, TResponse>({
                               variant="destructive"
                             >
                               <Trash2 />
-                              Eliminar
+                              {t("delete")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -708,19 +713,17 @@ export function AdminCollectionPage<TRow, TResponse>({
                     action={
                       hasFilters ? (
                         <Button onClick={clearFilters} variant="outline">
-                          Restablecer filtros
+                          {t("resetFilters")}
                         </Button>
                       ) : null
                     }
                     colSpan={config.columns.length + 1}
                     description={
                       hasFilters
-                        ? "Prueba con otro término o restablece los filtros."
+                        ? t("emptyFilteredDescription")
                         : config.emptyDescription
                     }
-                    title={
-                      hasFilters ? "No hay coincidencias" : config.emptyTitle
-                    }
+                    title={hasFilters ? t("noMatches") : config.emptyTitle}
                   />
                 )}
               </TableBody>
@@ -753,7 +756,9 @@ export function AdminCollectionPage<TRow, TResponse>({
         open={isSheetOpen}
         pending={pending}
         title={
-          editing ? `Editar ${config.rowName(editing)}` : config.createLabel
+          editing
+            ? t("editRecord", { name: config.rowName(editing) })
+            : config.createLabel
         }
         values={config.toValues(editing, response)}
       />
@@ -765,14 +770,18 @@ export function AdminCollectionPage<TRow, TResponse>({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              ¿Eliminar “{toDelete ? config.rowName(toDelete) : ""}”?
+              {t("deleteTitle", {
+                name: toDelete ? config.rowName(toDelete) : "",
+              })}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer.
+              {t("deleteDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={pending}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={pending}>
+              {t("cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               disabled={pending}
               onClick={(event) => {
@@ -782,7 +791,7 @@ export function AdminCollectionPage<TRow, TResponse>({
               variant="destructive"
             >
               {pending ? <Spinner data-icon="inline-start" /> : null}
-              Eliminar
+              {t("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

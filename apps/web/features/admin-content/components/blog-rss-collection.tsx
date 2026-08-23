@@ -1,5 +1,7 @@
 "use client"
 
+import { useLocale, useTranslations } from "next-intl"
+
 import { Badge } from "@workspace/ui/components/badge"
 
 import {
@@ -108,8 +110,7 @@ let feedSequence = initialFeeds.length
 
 function categoryName(categoryId: string | null) {
   return (
-    rssCategories.find((category) => category.id === categoryId)?.name ??
-    "Sin categoría"
+    rssCategories.find((category) => category.id === categoryId)?.name ?? null
   )
 }
 
@@ -142,6 +143,8 @@ function feedInput(values: CollectionValues) {
 }
 
 export function BlogRssCollection() {
+  const t = useTranslations("adminContent")
+  const locale = useLocale()
   const config: AdminCollectionConfig<
     AdminBlogRssFeed,
     AdminBlogRssFeedsResponse
@@ -149,62 +152,64 @@ export function BlogRssCollection() {
     columns: [
       {
         key: "source",
-        label: "Fuente",
+        label: t("rss.sourceColumn"),
         render: (row) => cell(row.name, row.feedUrl),
       },
       {
         key: "category",
-        label: "Categoría",
+        label: t("categoryColumn"),
         hideBelow: "md",
-        render: (row) => categoryName(row.categoryId),
+        render: (row) => categoryName(row.categoryId) ?? t("noCategory"),
       },
       {
         key: "sync",
-        label: "Sincronización",
+        label: t("rss.syncColumn"),
         hideBelow: "lg",
         render: (row) =>
-          `Cada ${row.syncIntervalMinutes} min · hasta ${row.maxItemsPerRun}`,
+          t("rss.syncSummary", {
+            minutes: row.syncIntervalMinutes,
+            max: row.maxItemsPerRun,
+          }),
       },
       {
         key: "imports",
-        label: "Última importación",
+        label: t("rss.lastImportColumn"),
         hideBelow: "lg",
         render: (row) =>
           cell(
-            row.lastImportedAt ?? "Sin importaciones",
-            `${row.importCount} entradas`
+            row.lastImportedAt ?? t("rss.noImports"),
+            t("rss.importCount", { count: row.importCount })
           ),
       },
       {
         key: "status",
-        label: "Estado",
+        label: t("statusColumn"),
         render: (row) => (
           <Badge variant={row.isActive ? "success" : "neutral"}>
-            {row.isActive ? "Activa" : "Pausada"}
+            {row.isActive ? t("rss.active") : t("rss.paused")}
           </Badge>
         ),
       },
     ],
-    createLabel: "Nueva fuente RSS",
-    description:
-      "Feeds RSS que alimentan el blog con importaciones programadas.",
-    emptyDescription: "Conecta un feed para importar entradas automáticamente.",
-    emptyTitle: "No hay fuentes RSS",
+    createLabel: t("rss.create"),
+    description: t("rss.description"),
+    emptyDescription: t("rss.emptyDescription"),
+    emptyTitle: t("rss.emptyTitle"),
     fields: (response) => [
-      { kind: "text", label: "Nombre", name: "name", required: true },
+      { kind: "text", label: t("field.name"), name: "name", required: true },
       {
         kind: "text",
-        label: "URL del feed",
+        label: t("rss.feedUrl"),
         name: "feedUrl",
         placeholder: "https://ejemplo.com/feed.xml",
         required: true,
       },
       {
         kind: "select",
-        label: "Categoría destino",
+        label: t("rss.targetCategory"),
         name: "categoryId",
         options: [
-          { label: "Sin categoría", value: "none" },
+          { label: t("noCategory"), value: "none" },
           ...(response?.categories ?? []).map((category) => ({
             label: category.name,
             value: category.id,
@@ -213,7 +218,7 @@ export function BlogRssCollection() {
       },
       {
         kind: "checkboxes",
-        label: "Etiquetas",
+        label: t("blogPosts.tags"),
         name: "tagIds",
         options: (response?.tags ?? []).map((tag) => ({
           label: tag.name,
@@ -222,62 +227,61 @@ export function BlogRssCollection() {
       },
       {
         kind: "number",
-        label: "Frecuencia en minutos",
+        label: t("rss.frequency"),
         name: "syncIntervalMinutes",
-        description: "Entre 5 y 10080 minutos.",
+        description: t("rss.frequencyHint"),
         required: true,
       },
       {
         kind: "number",
-        label: "Entradas por ejecución",
+        label: t("rss.maxItems"),
         name: "maxItemsPerRun",
-        description: "Entre 1 y 50 entradas por sincronización.",
+        description: t("rss.maxItemsHint"),
         required: true,
       },
       {
         kind: "textarea",
-        label: "Instrucción para la IA",
+        label: t("rss.aiPrompt"),
         name: "aiPrompt",
-        placeholder: "Cómo debe reescribirse el contenido importado.",
+        placeholder: t("rss.aiPromptPlaceholder"),
       },
-      { kind: "switch", label: "Activa", name: "isActive" },
+      { kind: "switch", label: t("field.activeFeminine"), name: "isActive" },
       {
         kind: "switch",
-        label: "Publicación automática",
+        label: t("rss.autoPublish"),
         name: "autoPublish",
-        description: "Publica cada entrada importada sin revisión manual.",
+        description: t("rss.autoPublishHint"),
       },
       {
         kind: "switch",
-        label: "Mejorar contenido con IA",
+        label: t("rss.aiImprove"),
         name: "aiImprove",
-        description: "Reescribe el artículo importado antes de guardarlo.",
+        description: t("rss.aiImproveHint"),
       },
       {
         kind: "switch",
-        label: "Traducción automática",
+        label: t("rss.aiAutoTranslate"),
         name: "aiAutoTranslate",
-        description: "Genera las traducciones activas al importar.",
+        description: t("rss.aiAutoTranslateHint"),
       },
     ],
     filter: {
-      label: "Estado",
+      label: t("statusColumn"),
       options: [
-        { label: "Todos", value: "all" },
-        { label: "Activas", value: "active" },
-        { label: "Pausadas", value: "inactive" },
+        { label: t("filter.all"), value: "all" },
+        { label: t("rss.activePlural"), value: "active" },
+        { label: t("rss.pausedPlural"), value: "inactive" },
       ],
     },
-    formDescription:
-      "La importación respeta la frecuencia y el máximo de entradas configurados.",
-    itemLabel: "fuentes RSS",
+    formDescription: t("rss.formDescription"),
+    itemLabel: t("rss.itemLabel"),
     load: (query) => {
-      const term = query.q?.trim().toLocaleLowerCase("es") ?? ""
+      const term = query.q?.trim().toLocaleLowerCase(locale) ?? ""
       const filtered = feedsStore.filter((feed) => {
         const matchesTerm =
           !term ||
-          [feed.name, feed.feedUrl, categoryName(feed.categoryId)].some(
-            (value) => value.toLocaleLowerCase("es").includes(term)
+          [feed.name, feed.feedUrl, categoryName(feed.categoryId) ?? ""].some(
+            (value) => value.toLocaleLowerCase(locale).includes(term)
           )
         const matchesStatus =
           !query.status ||
@@ -322,8 +326,8 @@ export function BlogRssCollection() {
       }
       return Promise.resolve()
     },
-    searchPlaceholder: "Buscar fuentes RSS...",
-    title: "RSS del blog",
+    searchPlaceholder: t("rss.searchPlaceholder"),
+    title: t("rss.title"),
     toValues: (row) => ({
       aiAutoTranslate: row?.aiAutoTranslate ?? false,
       aiImprove: row?.aiImprove ?? false,
