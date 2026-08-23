@@ -163,7 +163,13 @@ function AssetThumbnail({
         : "unavailable"
   )
 
-  useEffect(() => {
+  const sourceKey = `${asset.id}:${asset.kind}:${asset.thumbnailStatus}`
+  const [lastSourceKey, setLastSourceKey] = useState(sourceKey)
+
+  // Ajustar el estado durante el render en vez de en un efecto: evita el
+  // segundo render que encadena `setState` dentro de `useEffect`.
+  if (sourceKey !== lastSourceKey) {
+    setLastSourceKey(sourceKey)
     setImageSource(
       asset.thumbnailStatus === "ready"
         ? "thumbnail"
@@ -171,7 +177,7 @@ function AssetThumbnail({
           ? "preview"
           : "unavailable"
     )
-  }, [asset.id, asset.kind, asset.thumbnailStatus])
+  }
 
   if (
     (asset.kind !== "image" && asset.kind !== "video") ||

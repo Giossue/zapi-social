@@ -182,7 +182,10 @@ export function RssSchedulesPage() {
     let isCurrent = true
     const trimmedQuery = deferredQuery.trim()
 
-    setListState({ status: "loading" })
+    // El temporizador saca el primer `setState` del cuerpo del efecto.
+    const timer = setTimeout(() => {
+      setListState({ status: "loading" })
+    }, 0)
     void rssSchedulesApi
       .list({
         limit: pageSize,
@@ -199,6 +202,7 @@ export function RssSchedulesPage() {
 
     return () => {
       isCurrent = false
+      clearTimeout(timer)
     }
   }, [deferredQuery, page, reloadToken, status])
 

@@ -152,9 +152,9 @@ export function AuthForm({
   const [turnstileResetKey, setTurnstileResetKey] = useState(0)
   const isLogin = initialMode === "login"
 
-  useEffect(() => {
-    if (!isLogin && !timezone) setTimezone(browserTimeZone())
-  }, [isLogin, timezone])
+  // Ajustar el estado durante el render en vez de en un efecto: evita el
+  // segundo render que encadena `setState` dentro de `useEffect`.
+  if (!isLogin && !timezone) setTimezone(browserTimeZone())
 
   useEffect(() => {
     let active = true

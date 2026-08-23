@@ -124,9 +124,15 @@ function TemplateSheet({
    * Cada idioma se edita por separado: al cambiar de pestaña se recargan sus
    * textos, no los del anterior.
    */
-  useEffect(() => {
+  const formKey = open && template ? `${template.key}:${locale}` : null
+  const [lastFormKey, setLastFormKey] = useState(formKey)
+
+  // Ajustar el estado durante el render en vez de en un efecto: evita el
+  // segundo render que encadena `setState` dentro de `useEffect`.
+  if (formKey !== lastFormKey) {
+    setLastFormKey(formKey)
     if (open && template) setValues(toForm(copyFor(template, locale)))
-  }, [locale, open, template])
+  }
 
   const canSubmit = Boolean(
     values.subject.trim() && values.title.trim() && values.body.trim()
