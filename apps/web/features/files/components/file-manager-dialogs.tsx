@@ -83,7 +83,7 @@ export function FileUploadDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-3 border-y border-border py-4">
-          <p className="text-sm font-medium">Formatos permitidos</p>
+          <p className="text-sm font-medium">{t("allowedFormats")}</p>
           <dl className="grid gap-3 text-sm sm:grid-cols-2">
             {[
               [t("formats.images"), "JPG, PNG, WebP, GIF, AVIF"],
@@ -492,7 +492,7 @@ export function FileMoveDialog({
               {t("cancel")}
             </Button>
             <Button type="submit">
-              <FolderInput data-icon="inline-start" /> Mover
+              <FolderInput data-icon="inline-start" /> {t("move")}
             </Button>
           </DialogFooter>
         </form>

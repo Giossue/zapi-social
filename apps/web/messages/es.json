@@ -210,7 +210,7 @@
     "pageDescription": "Asunto y textos de los correos transaccionales que envía Zapi.",
     "pageTitle": "Plantillas de correo",
     "required": "obligatorio",
-    "reset": "Plantilla restablecida.",
+    "reset": "Restablecer",
     "resetAria": "Restablecer {name}",
     "resetDescription": "«{name}» vuelve al texto por defecto del sistema y se pierde la personalización guardada.",
     "resetFailed": "No pudimos restablecer la plantilla.",
@@ -348,6 +348,8 @@
     },
     "actions": "Acciones",
     "allStatuses": "Todos los estados",
+    "cancel": "Cancelar",
+    "close": "Cerrar",
     "column": {
       "members": "Miembros",
       "owner": "Propietario",
@@ -360,11 +362,13 @@
       "user": "Usuario",
       "users": "Usuarios"
     },
+    "delete": "Eliminar",
     "deleteDescription": "Se eliminará “{name}” del mockup.",
     "deleteFallback": "Confirma la eliminación del registro.",
     "deleteTitle": "Eliminar registro",
     "detail": "Detalle",
     "detailDescription": "Información registrada en esta sección administrativa.",
+    "edit": "Editar",
     "emptyDescription": "Los nuevos registros aparecerán en esta tabla.",
     "emptyTitle": "Aún no hay registros",
     "field": {
@@ -481,7 +485,8 @@
       "withoutOwner": "Sin propietario"
     },
     "statusColumn": "Estado",
-    "thisRecord": "este registro"
+    "thisRecord": "este registro",
+    "view": "Ver"
   },
   "adminNotifications": {
     "actions": "Acciones",
@@ -502,6 +507,7 @@
     "cancel": "Cancelar",
     "clear": "Limpiar",
     "createTitle": "Nuevo anuncio",
+    "createdColumn": "Creado",
     "delete": "Eliminar",
     "deleteDescription": "Se elimina «{title}» y su historial de lecturas. Esta acción no se puede deshacer.",
     "deleteFailed": "No pudimos eliminar el anuncio.",
@@ -520,6 +526,7 @@
     "filterStatus": "Filtrar por estado",
     "forbiddenDescription": "Tu cuenta no tiene permisos para administrar los anuncios de la plataforma.",
     "forbiddenTitle": "Acceso restringido",
+    "itemLabel": "anuncios",
     "link": "Enlace",
     "linkHint": "Opcional. Si lo indicas, el anuncio se vuelve accionable.",
     "loadFailedDescription": "No fue posible cargar los anuncios.",
@@ -1351,6 +1358,7 @@
     "description": "Comparte tu código, consulta comisiones y solicita retiros del saldo disponible.",
     "emptyFilteredDescription": "Prueba con otro término o estado.",
     "filterStatus": "Filtrar por estado",
+    "generated": "Generada",
     "invalidAmount": "El monto debe ser mayor a cero y no superar tu saldo.",
     "joinDescription": "Al activarlo recibirás un código propio para atribuir referidos y acumular comisiones.",
     "joinTitle": "Aún no participas en el programa",
@@ -1658,6 +1666,7 @@
       "cancelled": "La generación se canceló.",
       "clipboardUnsupported": "Tu navegador no permite copiar el resultado.",
       "copied": "Resultado copiado.",
+      "copy": "Copiar",
       "copyFailed": "No pudimos copiar el resultado.",
       "emptyDescription": "Elige una herramienta, ajusta sus opciones y describe lo que necesitas.",
       "emptyHistory": "Aún no tienes generaciones. Escribe abajo para empezar.",
@@ -1709,6 +1718,7 @@
         "resultDescription": "Tres variantes adaptadas al canal seleccionado.",
         "resultTitle": "Borradores generados"
       },
+      "copy": "Copiar",
       "cost": "{count, plural, one {# crédito} other {# créditos}}",
       "dimension": {
         "brandVoice": "Voz de marca",
@@ -1717,6 +1727,7 @@
         "safety": "Seguridad"
       },
       "download": "Descargar",
+      "downloadVideo": "Descargar video",
       "format": "Formato",
       "generating": "Generando",
       "generatingResult": "Generando resultado",
@@ -1724,6 +1735,9 @@
       "goal": {
         "engagement": "Generar interacción"
       },
+      "goalAdapt": "Adaptar a canales",
+      "goalLabel": "Objetivo",
+      "goalSales": "Impulsar ventas",
       "image": {
         "button": "Generar imágenes",
         "placeholder": "Ejemplo: hamburguesa artesanal sobre mesa oscura, luz cálida, estilo editorial...",
@@ -1743,6 +1757,9 @@
         "review": "Contenido para analizar"
       },
       "providerFailed": "El proveedor no pudo completar el trabajo.",
+      "ratioHorizontal": "Horizontal · 16:9",
+      "ratioSquare": "Cuadrado · 1:1",
+      "ratioVertical": "Vertical · 9:16",
       "recentActivity": "Actividad reciente",
       "referenceAdded": "Referencia añadida.",
       "referenceFailed": "No pudimos subir la referencia.",
@@ -1787,6 +1804,7 @@
     },
     "operations": {
       "actions": "Acciones",
+      "activeAlerts": "Alertas activas",
       "automation": {
         "create": "Nueva automatización",
         "createDescription": "Genera borradores; nunca publica sin revisión humana.",
@@ -1829,6 +1847,7 @@
         "draft": "Borrador",
         "paused": "Pausada"
       },
+      "balanceFormats": "Equilibrar formatos",
       "cancel": "Cancelar",
       "channel": "Canal",
       "clearFilters": "Limpiar filtros",
@@ -1876,6 +1895,7 @@
         "used": "Consumidos",
         "usedHint": "en el ciclo"
       },
+      "currentCycle": "ciclo actual",
       "date": "Fecha",
       "delete": "Eliminar",
       "deleting": "Eliminando...",
@@ -1915,6 +1935,8 @@
         "queued": "En cola",
         "succeeded": "Completado"
       },
+      "ideaColumn": "Idea",
+      "ideasLabel": "ideas",
       "kind": {
         "ai_publishing": "Publicación AI",
         "all": "Todas las herramientas",
@@ -1934,15 +1956,20 @@
       "processing": "Procesando acción",
       "records": "registros",
       "retry": "Reintentar",
+      "runNow": "Ejecutar ahora",
       "saving": "Guardando...",
       "spend": "Consumo",
       "status": "Estado",
+      "timeColumn": "Hora",
       "tool": "Herramienta",
-      "type": "Tipo"
+      "type": "Tipo",
+      "viewHistory": "Ver historial"
     },
     "pages": {
       "actionColumn": "Acción",
+      "analyzing": "Analizando",
       "createContent": "Crear contenido",
+      "filter": "Filtrar",
       "operational": {
         "automationCreated": "Automatización creada.",
         "automationDeleted": "Automatización eliminada.",
@@ -1998,6 +2025,7 @@
         "topicPlaceholder": "Tema, palabra clave o competidor...",
         "untitled": "Sin título"
       },
+      "researchAction": "Investigar",
       "settings": {
         "brandDescription": "Descripción",
         "brandIdentity": "Identidad de la marca",
@@ -2129,6 +2157,7 @@
         "es": "Español",
         "pt": "Portugués"
       },
+      "personality": "Personalidad",
       "planner": {
         "description": "Calendario de contenidos por días y frecuencia.",
         "label": "Planificador",
@@ -2461,7 +2490,9 @@
     },
     "keysEmptyDescription": "Crea una clave para que tus herramientas consulten o publiquen por API.",
     "keysEmptyTitle": "No hay claves API",
+    "keysItemLabel": "claves",
     "lastRunColumn": "Último envío",
+    "lastUsedColumn": "Último uso",
     "loadFailedDescription": "No pudimos cargar las claves y webhooks de este espacio de trabajo.",
     "loading": "Cargando automatización",
     "logFilter": {
@@ -2496,6 +2527,7 @@
     "required": "obligatorio",
     "resetFilters": "Restablecer filtros",
     "result": "Resultado",
+    "revokeKey": "Revocar clave",
     "saveWebhook": "Guardar webhook",
     "saved": "Ya lo guardé",
     "searchActivity": "Buscar actividad",
@@ -2531,7 +2563,8 @@
     "webhookToggleFailed": "No pudimos cambiar el estado del webhook.",
     "webhookUpdated": "Webhook actualizado.",
     "webhooksEmptyDescription": "Recibe un aviso en tu sistema cuando una publicación se cree, se envíe o falle.",
-    "webhooksEmptyTitle": "No hay webhooks"
+    "webhooksEmptyTitle": "No hay webhooks",
+    "webhooksItemLabel": "webhooks"
   },
   "bulkPosts": {
     "accounts": "Cuentas destino",
@@ -2580,6 +2613,7 @@
     "progress": "Progreso",
     "required": "obligatorio",
     "resetFilters": "Restablecer filtros",
+    "rowColumn": "Fila",
     "rowStatus": {
       "failed": "Fallida",
       "invalid": "Inválida",
@@ -2602,7 +2636,8 @@
     },
     "targets": "Destinos",
     "unavailable": "Publicaciones masivas no disponibles",
-    "unavailableTitle": "Publicaciones masivas no disponibles"
+    "unavailableTitle": "Publicaciones masivas no disponibles",
+    "viewRows": "Ver filas"
   },
   "captions": {
     "actions": "Acciones",
@@ -2632,6 +2667,7 @@
     "filterStatus": "Filtrar por estado",
     "forbiddenDescription": "Pide acceso a un administrador del espacio de trabajo.",
     "forbiddenTitle": "No tienes acceso a los captions",
+    "itemLabel": "captions",
     "loadFailedDescription": "No pudimos cargar la biblioteca en este momento. Inténtalo de nuevo.",
     "loadFailedTitle": "No pudimos cargar los captions",
     "missingFields": "Completa todos los campos obligatorios.",
@@ -2664,11 +2700,13 @@
     },
     "tags": "Etiquetas",
     "tagsLimit": "Usa hasta 20 etiquetas de 64 caracteres como máximo.",
+    "tagsPlaceholder": "lanzamiento, producto",
     "updated": "Actualizado",
     "updatedRecently": "Actualizado recientemente"
   },
   "channelConnection": {
     "authStartFailed": "No pudimos iniciar la autorización con Meta. Inténtalo de nuevo.",
+    "availableAccount": "Cuenta disponible",
     "cancel": "Cancelar",
     "cancelFailed": "No pudimos cancelar la conexión con Meta. Inténtalo de nuevo.",
     "cancelled": "La conexión con Meta fue cancelada.",
@@ -2677,6 +2715,7 @@
     "connectFailed": "No pudimos conectar la cuenta seleccionada. Inténtalo de nuevo.",
     "connected": "{channel} conectado",
     "connectedHint": "La cuenta ya está disponible para publicar.",
+    "connecting": "Conectando cuenta seleccionada",
     "metaDescription": "Autoriza Meta para ver y conectar los recursos elegibles de tu cuenta.",
     "mockConnected": "{channel} conectado en el mock.",
     "otherProviderDescription": "Los conectores disponibles fuera de Meta permanecen en modo de referencia.",
@@ -2743,6 +2782,7 @@
         "ready": "Disponible"
       },
       "comingSoon": "Estamos preparando esta conexión.",
+      "connect": "Conectar",
       "planLocked": "Este canal no está incluido en tu plan actual.",
       "typesLabel": "Tipos de canal"
     },
@@ -2750,6 +2790,7 @@
     "profileSyncFailed": "No pudimos programar la actualización del perfil.",
     "profileSyncQueued": "Actualización de perfil programada. Puede tardar unos minutos.",
     "provider": "Proveedor",
+    "reconnect": "Reconectar",
     "reconnectFailed": "No pudimos iniciar la reconexión del canal. Inténtalo de nuevo.",
     "refresh": "Actualizar",
     "renameHint": "Este cambio solo actualiza el nombre visible en Zapi.",
@@ -2973,6 +3014,7 @@
     "actionColumn": "Acción",
     "addToLibrary": "Añadir a la biblioteca",
     "all": "Todos",
+    "allowedFormats": "Formatos permitidos",
     "cancel": "Cancelar",
     "chooseFolder": "Elige la carpeta de destino.",
     "clearFilters": "Limpiar filtros",
@@ -3040,6 +3082,7 @@
     "loadMoreFailed": "No pudimos cargar más archivos.",
     "loadingMore": "Cargando más archivos",
     "modifiedColumn": "Fecha de modificación",
+    "move": "Mover",
     "moveFailed": "No se pudo mover el elemento",
     "moveManyFailed": "No se pudieron mover los elementos",
     "moveNoneFailed": "No se pudo mover ningún elemento",
@@ -3053,6 +3096,7 @@
     "noMatches": "No encontramos archivos",
     "online": {
       "available": "Disponible",
+      "backToFiles": "Volver a archivos",
       "emptyDescription": "Escribe qué necesitas y buscaremos en los proveedores conectados.",
       "emptyTitle": "Busca un medio para empezar",
       "import": "Importar",
@@ -3114,6 +3158,7 @@
     "unstarred": "Quitado de favoritos",
     "updated": "Actualizado",
     "uploadFailed": "No se pudo subir el archivo",
+    "uploadFromDevice": "Subir desde archivos",
     "uploadTitle": "Subir archivos",
     "uploaded": "Archivo subido",
     "viewLabel": "Vista de archivos"
@@ -3458,6 +3503,7 @@
       "passwordRequired": "La contraseña de Basic Auth es obligatoria.",
       "saveFailed": "No pudimos guardar la configuración de WhatsApp Status.",
       "saved": "Configuración de WhatsApp Status guardada.",
+      "sheetTitle": "Configurar WhatsApp Status",
       "testFailed": "GOWA no pudo validar el borrador. Inténtalo de nuevo.",
       "testOk": "GOWA validó el borrador. Ya puedes guardarlo.",
       "unavailableDescription": "No fue posible obtener el estado de WhatsApp Status."
@@ -3565,11 +3611,14 @@
     "page": "Página",
     "pageDescription": "Una página pública con todos tus enlaces, y sus métricas de visitas y clics.",
     "pageTitle": "Link in bio",
+    "performance": "Rendimiento",
     "preview": {
       "descriptionHint": "Añade una descripción",
       "headlineHint": "Añade un titular",
       "itemHint": "Nuevo elemento",
-      "titleHint": "Tu página"
+      "title": "Vista previa",
+      "titleHint": "Tu página",
+      "watchVideo": "Ver video"
     },
     "previewHint": "El mismo renderer que la página pública.",
     "published": "Publicada",
@@ -3585,6 +3634,7 @@
     "showBlock": "Mostrar {block}",
     "slug": "Dirección",
     "slugHint": "Se genera del título si la dejas vacía.",
+    "slugPlaceholder": "mi-marca",
     "slugTaken": "Esa dirección ya está en uso.",
     "status": "Estado",
     "statusLabel": {
@@ -3654,11 +3704,14 @@
     "unavailable": "Link in bio no disponible",
     "unavailableTitle": "Link in bio no disponible",
     "updated": "Página actualizada.",
-    "videoUrl": "URL del video"
+    "videoUrl": "URL del video",
+    "viewPublished": "Ver publicada"
   },
   "metadata": {
+    "admin": "Admin - Zapi Social",
     "description": "Planifica, publica y mide tu contenido social.",
-    "invite": "Invitación - Zapi Social"
+    "invite": "Invitación - Zapi Social",
+    "portal": "Portal - Zapi Social"
   },
   "navigation": {
     "admin": {
@@ -3771,6 +3824,7 @@
     "deleting": "Eliminando...",
     "description": "Descripción",
     "descriptionPlaceholder": "Describe para quién es este plan.",
+    "editPlan": "Editar plan",
     "editTitle": "Editar {name}",
     "emptyDescription": "Aún no hay planes configurados. Crea el primero para comenzar.",
     "emptyFilteredDescription": "No hay planes que coincidan con los filtros actuales.",
@@ -3800,6 +3854,7 @@
     "invalidNumbers": "Los días de prueba y la posición deben ser números válidos.",
     "invalidPrice": "Indica un precio válido de cero o mayor.",
     "invalidSlug": "El slug usa minúsculas, números y guiones, sin espacios.",
+    "itemLabel": "planes",
     "loadFailed": "No pudimos cargar los planes. Inténtalo de nuevo.",
     "loadFailedDescription": "No pudimos consultar la configuración de planes.",
     "loadFailedTitle": "No se pudieron cargar los planes",
@@ -3830,6 +3885,7 @@
     "searchLabel": "Buscar planes",
     "searchPlaceholder": "Buscar por nombre o slug...",
     "sessionExpired": "Tu sesión expiró. Vuelve a iniciar sesión.",
+    "slugPlaceholder": "mi-plan",
     "slugTaken": "Ya existe un plan con este slug.",
     "status": {
       "active": "Activo",
@@ -4063,6 +4119,7 @@
       },
       "filterProviderLabel": "Filtrar por red",
       "filterStatusLabel": "Filtrar por estado",
+      "itemLabel": "publicaciones",
       "now": "Ahora",
       "post": "Publicación",
       "provider": "Red",
@@ -4087,6 +4144,7 @@
       "loading": "Cargando administración",
       "title": "No se pudo cargar la administración"
     },
+    "adminTitle": "Admin - Zapi Social",
     "aiConfiguration": {
       "description": "Reintenta para cargar el proveedor y los modelos.",
       "loading": "Cargando configuración AI",
@@ -4096,6 +4154,7 @@
       "description": "Ningún prompt fue enviado ni se consumieron créditos. Vuelve a intentarlo para recuperar el mock.",
       "title": "No se pudo cargar AI Content"
     },
+    "aiStudioLoading": "Cargando AI Studio",
     "channels": {
       "description": "No se modificó ninguna conexión. Intenta cargar la sección de nuevo.",
       "title": "No se pudieron cargar los canales"
@@ -4113,6 +4172,7 @@
       "description": "No se modificó ningún dato. Inténtalo de nuevo.",
       "title": "No se pudo cargar el portal"
     },
+    "portalTitle": "Portal - Zapi Social",
     "publishing": {
       "description": "Ninguna publicación fue modificada. Intenta cargar la sección de nuevo.",
       "title": "No se pudo cargar Publishing"
@@ -4143,6 +4203,7 @@
     },
     "filterStatus": "Filtrar por estado",
     "forbiddenDescription": "Tu acceso actual no permite consultar las programaciones RSS de este espacio de trabajo.",
+    "itemLabel": "programaciones",
     "loadFailedDescription": "Ninguna programación fue modificada. Vuelve a intentarlo para recuperar el contenido.",
     "loadFailedTitle": "No se pudieron cargar las programaciones RSS",
     "moreTargets": "{count, plural, one {+# destino} other {+# destinos}}",
@@ -4161,6 +4222,7 @@
     "resume": "Reactivar",
     "resumed": "La programación se reactivó.",
     "retry": "Reintentar",
+    "run": "Ejecutar",
     "runFailed": "No pudimos iniciar la ejecución.",
     "runQueued": "La ejecución se añadió a la cola.",
     "searchLabel": "Buscar programaciones RSS",
@@ -4318,6 +4380,7 @@
     "all": "Todos",
     "allCases": "Todos los casos",
     "answer": "Respuesta",
+    "backToSupport": "Volver a soporte",
     "bodyPlaceholder": "Qué estabas haciendo, qué esperabas que ocurriera y qué ocurrió en su lugar.",
     "cancel": "Cancelar",
     "cases": "casos",
@@ -4452,6 +4515,7 @@
     "adminHint": "Accede a todas las cuentas y puede administrar miembros, excepto otros administradores.",
     "allAccounts": "Todas las cuentas",
     "assignedAccounts": "Cuentas asignadas",
+    "availableAccounts": "Cuentas disponibles",
     "availableAccountsDescription": "Solo puedes trabajar con estas cuentas activas.",
     "cancel": "Cancelar",
     "clearFilters": "Limpiar filtros",
@@ -4495,6 +4559,7 @@
       "alreadyMember": "Ya formas parte del espacio",
       "availableUntil": "Disponible hasta {date}",
       "backHome": "Volver al inicio",
+      "backToTeams": "Volver a Teams",
       "invitedDescription": "Confirma tu cuenta para unirte. La invitación solo funciona con {email}.",
       "invitedTitle": "Te invitaron a un espacio de trabajo",
       "notNow": "Ahora no",
@@ -4539,6 +4604,7 @@
       "signUpToContinue": "Crear cuenta para continuar",
       "unavailableDescription": "Ningún cambio adicional fue realizado en tu cuenta.",
       "unavailableTitle": "Invitación no disponible",
+      "useAnotherAccount": "Usar otra cuenta",
       "workspace": "Espacio de trabajo"
     },
     "invitationActions": "Acciones para la invitación de {email}",
@@ -4548,6 +4614,7 @@
     "invitationsEmptyDescription": "Las nuevas invitaciones aparecerán aquí hasta que se acepten, venzan o revoquen.",
     "invitationsEmptyFilteredDescription": "Prueba otra búsqueda para encontrar una invitación.",
     "invitationsEmptyTitle": "Sin invitaciones pendientes",
+    "invitationsItemLabel": "invitaciones",
     "invitationsNoMatches": "No encontramos invitaciones",
     "inviteDescription": "La invitación es privada, se vincula a este correo y caduca en siete días.",
     "inviteMember": "Invitar miembro",
@@ -4558,10 +4625,12 @@
     "leaveWorkspace": "Abandonar workspace",
     "loadFailedDescription": "No se modificó ningún acceso. Intenta cargar la sección nuevamente.",
     "loadFailedTitle": "No se pudo cargar el equipo",
+    "manageAccess": "Gestionar acceso",
     "manageDescription": "Administra personas, cuentas asignadas e invitaciones del workspace.",
     "member": "Miembro",
     "memberHint": "Solo trabaja con las cuentas que le asignes.",
     "membersEmptyFilteredDescription": "Prueba otra búsqueda para encontrar a una persona del workspace.",
+    "membersItemLabel": "miembros",
     "membersNoMatches": "No encontramos miembros",
     "myAccessTitle": "Mi acceso",
     "noActiveAccounts": "No hay cuentas activas para asignar.",
@@ -4570,10 +4639,12 @@
     "notSentYet": "Aún no enviado",
     "ownershipTransferred": "Propiedad transferida.",
     "pageTitle": "Equipo",
+    "pendingInvitations": "Invitaciones pendientes",
     "performedBy": "Realizada por",
     "performedByName": "Realizada por {name}",
     "person": "Persona",
     "processing": "Procesando...",
+    "removeMember": "Eliminar miembro",
     "resendInvitation": "Reenviar invitación",
     "resending": "Reenviando invitación",
     "retry": "Reintentar",
@@ -4598,10 +4669,12 @@
       "invitations": "Invitaciones",
       "members": "Miembros"
     },
+    "transferOwnership": "Transferir propiedad",
     "viewDescription": "Consulta tu rol, las cuentas disponibles y quién forma parte del workspace.",
     "viewDetails": "Ver detalles",
     "viewsLabel": "Vistas del equipo",
     "workspaceMembers": "Miembros del workspace",
+    "yourRole": "Tu rol",
     "yourRoleDescription": "Define las acciones disponibles en este workspace."
   },
   "turnstile": {

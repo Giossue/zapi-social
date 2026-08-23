@@ -664,11 +664,11 @@ function CollectionMockup({
                       <DropdownMenuContent align="end">
                         <DropdownMenuGroup>
                           <DropdownMenuItem onSelect={() => setDetailRow(row)}>
-                            <Eye aria-hidden="true" /> Ver
+                            <Eye aria-hidden="true" /> {t("view")}
                           </DropdownMenuItem>
                           {supportsEdit ? (
                             <DropdownMenuItem onSelect={() => openSheet(row)}>
-                              <Pencil aria-hidden="true" /> Editar
+                              <Pencil aria-hidden="true" /> {t("edit")}
                             </DropdownMenuItem>
                           ) : null}
                         </DropdownMenuGroup>
@@ -680,7 +680,7 @@ function CollectionMockup({
                                 variant="destructive"
                                 onSelect={() => setPendingDelete(row)}
                               >
-                                <Trash2 aria-hidden="true" /> Eliminar
+                                <Trash2 aria-hidden="true" /> {t("delete")}
                               </DropdownMenuItem>
                             </DropdownMenuGroup>
                           </>
@@ -789,7 +789,7 @@ function CollectionMockup({
                   type="button"
                   variant="brand-secondary"
                 >
-                  Cancelar
+                  {t("cancel")}
                 </Button>
                 <Button
                   disabled={
@@ -861,7 +861,7 @@ function CollectionMockup({
               onClick={() => setDetailRow(null)}
               variant="brand-secondary"
             >
-              Cerrar
+              {t("close")}
             </Button>
           </SheetFooter>
         </SheetContent>
@@ -884,7 +884,7 @@ function CollectionMockup({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel variant="brand-secondary">
-              Cancelar
+              {t("cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               disabled={saving}

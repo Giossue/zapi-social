@@ -636,7 +636,7 @@ function Overview() {
             action={
               <Button asChild size="sm" variant="brand-secondary">
                 <Link href="/portal/ai-studio/history">
-                  Ver historial <ArrowRight data-icon="inline-end" />
+                  {tOps("viewHistory")} <ArrowRight data-icon="inline-end" />
                 </Link>
               </Button>
             }
@@ -790,7 +790,7 @@ function VideoResult({ request }: { request: PortalAiRequest }) {
       {result.fileAssetId ? (
         <Button asChild variant="brand-secondary">
           <a href={filesApi.downloadUrl(result.fileAssetId)}>
-            <Download data-icon="inline-start" /> Descargar video
+            <Download data-icon="inline-start" /> {t("downloadVideo")}
           </a>
         </Button>
       ) : null}
@@ -837,7 +837,7 @@ function RepurposeResult({ request }: { request: PortalAiRequest }) {
               variant="brand-secondary"
             >
               <Copy data-icon="inline-start" />
-              Copiar
+              {t("copy")}
             </Button>
           </div>
           <Separator className="my-4" />
@@ -1090,7 +1090,7 @@ function CreationWorkspace({ view }: { view: CreationView }) {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <Field>
                       <FieldLabel>
-                        Objetivo <RequiredMark />
+                        {t("goalLabel")} <RequiredMark />
                       </FieldLabel>
                       <Select value={objective} onValueChange={setObjective}>
                         <SelectTrigger className="w-full">
@@ -1102,13 +1102,13 @@ function CreationWorkspace({ view }: { view: CreationView }) {
                               {t("goal.engagement")}
                             </SelectItem>
                             <SelectItem value="sales">
-                              Impulsar ventas
+                              {t("goalSales")}
                             </SelectItem>
                             <SelectItem value="inform">
                               {t("objective.inform")}
                             </SelectItem>
                             <SelectItem value="adaptar">
-                              Adaptar a canales
+                              {t("goalAdapt")}
                             </SelectItem>
                           </SelectGroup>
                         </SelectContent>
@@ -1127,13 +1127,13 @@ function CreationWorkspace({ view }: { view: CreationView }) {
                             {isMedia ? (
                               <>
                                 <SelectItem value="1:1">
-                                  Cuadrado · 1:1
+                                  {t("ratioSquare")}
                                 </SelectItem>
                                 <SelectItem value="9:16">
-                                  Vertical · 9:16
+                                  {t("ratioVertical")}
                                 </SelectItem>
                                 <SelectItem value="16:9">
-                                  Horizontal · 16:9
+                                  {t("ratioHorizontal")}
                                 </SelectItem>
                               </>
                             ) : (
@@ -1390,7 +1390,7 @@ function Planner() {
                 </Field>
                 <Field orientation="horizontal">
                   <FieldLabel htmlFor="balance-formats">
-                    Equilibrar formatos
+                    {tOps("balanceFormats")}
                   </FieldLabel>
                   <Switch defaultChecked id="balance-formats" />
                 </Field>
@@ -1430,7 +1430,7 @@ function Planner() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>{t("planner.suggestedDate")}</TableHead>
-                      <TableHead>Idea</TableHead>
+                      <TableHead>{tOps("ideaColumn")}</TableHead>
                       <TableHead className="hidden md:table-cell">
                         {tOps("channel")}
                       </TableHead>
@@ -1489,7 +1489,7 @@ function Planner() {
                 <TablePagination
                   canGoNext={currentPage < pageCount}
                   canGoPrevious={currentPage > 1}
-                  itemLabel="ideas"
+                  itemLabel={tOps("ideasLabel")}
                   onNextPage={() => setPage(currentPage + 1)}
                   onPreviousPage={() => setPage(currentPage - 1)}
                   rangeEnd={Math.min(
@@ -1583,7 +1583,7 @@ function Timing() {
             variant="brand-secondary"
           >
             {pending ? (
-              <Spinner aria-label="Analizando" data-icon="inline-start" />
+              <Spinner aria-label={t("analyzing")} data-icon="inline-start" />
             ) : (
               <RefreshCw data-icon="inline-start" />
             )}
@@ -1757,7 +1757,7 @@ function Research() {
               onClick={() => void research()}
             >
               <FileSearch data-icon="inline-start" />
-              Investigar
+              {t("researchAction")}
             </Button>
           </div>
         </CardContent>
@@ -1772,7 +1772,7 @@ function Research() {
             <CardAction>
               <Button size="sm" variant="brand-secondary">
                 <ListFilter data-icon="inline-start" />
-                Filtrar
+                {t("filter")}
               </Button>
             </CardAction>
           </CardHeader>
@@ -1955,7 +1955,7 @@ function FunctionalSettings() {
                   </Field>
                   <Field>
                     <FieldLabel>
-                      Personalidad <RequiredMark />
+                      {tt("personality")} <RequiredMark />
                     </FieldLabel>
                     <Input
                       value={settings.brandPersonality}

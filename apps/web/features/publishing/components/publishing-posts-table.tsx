@@ -399,7 +399,7 @@ export function PublishingPostsTable({
         <TablePagination
           canGoNext={currentPage < pageCount}
           canGoPrevious={currentPage > 1}
-          itemLabel="publicaciones"
+          itemLabel={t("itemLabel")}
           onNextPage={() => setPage((value) => value + 1)}
           onPreviousPage={() => setPage((value) => value - 1)}
           rangeEnd={pageRangeEnd}

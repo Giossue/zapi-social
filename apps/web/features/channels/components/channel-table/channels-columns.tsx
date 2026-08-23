@@ -259,7 +259,7 @@ export function createChannelsColumns({
                     size="compact"
                   >
                     <RefreshCw />
-                    Reconectar
+                    {t("reconnect")}
                   </DropdownMenuItem>
                 ) : null}
                 <DropdownMenuSeparator />

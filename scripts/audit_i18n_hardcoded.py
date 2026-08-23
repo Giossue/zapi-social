@@ -38,6 +38,10 @@ ALLOWED = re.compile(
     r"^(Meta|Instagram|Facebook|LinkedIn|WhatsApp[\w ]*|Polar\.sh|Google Drive"
     r"|PostgreSQL|Redis|Node\.js|Sandbox|Webhook|Timeout|Reply-to|Slug|MRR|API"
     r"|OAuth Client ID|Organization Access Token|Prompt|Zapi Social|drive\.file"
+    # Nombres de campo de proveedores externos y ejemplos técnicos: se
+    # muestran igual en cualquier idioma.
+    r"|Browser API Key|App ID|Cloudflare Turnstile|Runtime|Web|Worker"
+    r"|G-X+|smtp\.example\.com|Host SMTP"
     r"|Promise|[\W\d]+)$"
 )
 

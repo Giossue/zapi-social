@@ -210,7 +210,7 @@
     "pageDescription": "Subject and copy of the transactional emails Zapi sends.",
     "pageTitle": "Email templates",
     "required": "required",
-    "reset": "Template reset.",
+    "reset": "Reset",
     "resetAria": "Reset {name}",
     "resetDescription": "“{name}” returns to the system default text and the saved customisation is lost.",
     "resetFailed": "We couldn't reset the template.",
@@ -348,6 +348,8 @@
     },
     "actions": "Actions",
     "allStatuses": "All statuses",
+    "cancel": "Cancel",
+    "close": "Close",
     "column": {
       "members": "Members",
       "owner": "Owner",
@@ -360,11 +362,13 @@
       "user": "User",
       "users": "Users"
     },
+    "delete": "Delete",
     "deleteDescription": "“{name}” will be removed from the mockup.",
     "deleteFallback": "Confirm the deletion of the record.",
     "deleteTitle": "Delete record",
     "detail": "Detail",
     "detailDescription": "Information recorded in this administrative section.",
+    "edit": "Edit",
     "emptyDescription": "New records will show up in this table.",
     "emptyTitle": "No records yet",
     "field": {
@@ -481,7 +485,8 @@
       "withoutOwner": "Without owner"
     },
     "statusColumn": "Status",
-    "thisRecord": "this record"
+    "thisRecord": "this record",
+    "view": "View"
   },
   "adminNotifications": {
     "actions": "Actions",
@@ -502,6 +507,7 @@
     "cancel": "Cancel",
     "clear": "Clear",
     "createTitle": "New announcement",
+    "createdColumn": "Created",
     "delete": "Delete",
     "deleteDescription": "“{title}” and its read history will be deleted. This action can't be undone.",
     "deleteFailed": "We couldn't delete the announcement.",
@@ -520,6 +526,7 @@
     "filterStatus": "Filter by status",
     "forbiddenDescription": "Your account can't manage platform announcements.",
     "forbiddenTitle": "Restricted access",
+    "itemLabel": "announcements",
     "link": "Link",
     "linkHint": "Optional. If you set it, the announcement becomes actionable.",
     "loadFailedDescription": "The announcements couldn't be loaded.",
@@ -1351,6 +1358,7 @@
     "description": "Share your code, check commissions and request withdrawals from the available balance.",
     "emptyFilteredDescription": "Try another term or status.",
     "filterStatus": "Filter by status",
+    "generated": "Generated",
     "invalidAmount": "The amount must be greater than zero and no more than your balance.",
     "joinDescription": "Once activated you'll get your own code to attribute referrals and earn commissions.",
     "joinTitle": "You're not in the programme yet",
@@ -1658,6 +1666,7 @@
       "cancelled": "The generation was cancelled.",
       "clipboardUnsupported": "Your browser can't copy the result.",
       "copied": "Result copied.",
+      "copy": "Copy",
       "copyFailed": "We couldn't copy the result.",
       "emptyDescription": "Pick a tool, adjust its options and describe what you need.",
       "emptyHistory": "You don't have generations yet. Type below to start.",
@@ -1709,6 +1718,7 @@
         "resultDescription": "Three variants adapted to the selected channel.",
         "resultTitle": "Generated drafts"
       },
+      "copy": "Copy",
       "cost": "{count, plural, one {# credit} other {# credits}}",
       "dimension": {
         "brandVoice": "Brand voice",
@@ -1717,6 +1727,7 @@
         "safety": "Safety"
       },
       "download": "Download",
+      "downloadVideo": "Download video",
       "format": "Format",
       "generating": "Generating",
       "generatingResult": "Generating result",
@@ -1724,6 +1735,9 @@
       "goal": {
         "engagement": "Drive engagement"
       },
+      "goalAdapt": "Adapt to channels",
+      "goalLabel": "Goal",
+      "goalSales": "Drive sales",
       "image": {
         "button": "Generate images",
         "placeholder": "Example: artisan burger on a dark table, warm light, editorial style...",
@@ -1743,6 +1757,9 @@
         "review": "Content to analyse"
       },
       "providerFailed": "The provider couldn't complete the job.",
+      "ratioHorizontal": "Horizontal · 16:9",
+      "ratioSquare": "Square · 1:1",
+      "ratioVertical": "Vertical · 9:16",
       "recentActivity": "Recent activity",
       "referenceAdded": "Reference added.",
       "referenceFailed": "We couldn't upload the reference.",
@@ -1787,6 +1804,7 @@
     },
     "operations": {
       "actions": "Actions",
+      "activeAlerts": "Active alerts",
       "automation": {
         "create": "New automation",
         "createDescription": "Generates drafts; it never publishes without human review.",
@@ -1829,6 +1847,7 @@
         "draft": "Draft",
         "paused": "Paused"
       },
+      "balanceFormats": "Balance formats",
       "cancel": "Cancel",
       "channel": "Channel",
       "clearFilters": "Clear filters",
@@ -1876,6 +1895,7 @@
         "used": "Used",
         "usedHint": "in the cycle"
       },
+      "currentCycle": "current cycle",
       "date": "Date",
       "delete": "Delete",
       "deleting": "Deleting...",
@@ -1915,6 +1935,8 @@
         "queued": "Queued",
         "succeeded": "Completed"
       },
+      "ideaColumn": "Idea",
+      "ideasLabel": "ideas",
       "kind": {
         "ai_publishing": "AI Publishing",
         "all": "All tools",
@@ -1934,15 +1956,20 @@
       "processing": "Processing action",
       "records": "records",
       "retry": "Retry",
+      "runNow": "Run now",
       "saving": "Saving...",
       "spend": "Spend",
       "status": "Status",
+      "timeColumn": "Time",
       "tool": "Tool",
-      "type": "Type"
+      "type": "Type",
+      "viewHistory": "View history"
     },
     "pages": {
       "actionColumn": "Action",
+      "analyzing": "Analyzing",
       "createContent": "Create content",
+      "filter": "Filter",
       "operational": {
         "automationCreated": "Automation created.",
         "automationDeleted": "Automation deleted.",
@@ -1998,6 +2025,7 @@
         "topicPlaceholder": "Topic, keyword or competitor...",
         "untitled": "Untitled"
       },
+      "researchAction": "Research",
       "settings": {
         "brandDescription": "Description",
         "brandIdentity": "Brand identity",
@@ -2129,6 +2157,7 @@
         "es": "Spanish",
         "pt": "Portuguese"
       },
+      "personality": "Personality",
       "planner": {
         "description": "Content calendar by days and frequency.",
         "label": "Planner",
@@ -2461,7 +2490,9 @@
     },
     "keysEmptyDescription": "Create a key so your tools can read or publish through the API.",
     "keysEmptyTitle": "No API keys",
+    "keysItemLabel": "keys",
     "lastRunColumn": "Last run",
+    "lastUsedColumn": "Last used",
     "loadFailedDescription": "We couldn't load this workspace's keys and webhooks.",
     "loading": "Loading automation",
     "logFilter": {
@@ -2496,6 +2527,7 @@
     "required": "required",
     "resetFilters": "Reset filters",
     "result": "Result",
+    "revokeKey": "Revoke key",
     "saveWebhook": "Save webhook",
     "saved": "I saved it",
     "searchActivity": "Search activity",
@@ -2531,7 +2563,8 @@
     "webhookToggleFailed": "We couldn't change the webhook status.",
     "webhookUpdated": "Webhook updated.",
     "webhooksEmptyDescription": "Get a notice in your system when a post is created, delivered or fails.",
-    "webhooksEmptyTitle": "No webhooks"
+    "webhooksEmptyTitle": "No webhooks",
+    "webhooksItemLabel": "webhooks"
   },
   "bulkPosts": {
     "accounts": "Target accounts",
@@ -2580,6 +2613,7 @@
     "progress": "Progress",
     "required": "required",
     "resetFilters": "Reset filters",
+    "rowColumn": "Row",
     "rowStatus": {
       "failed": "Failed",
       "invalid": "Invalid",
@@ -2602,7 +2636,8 @@
     },
     "targets": "Targets",
     "unavailable": "Bulk posts unavailable",
-    "unavailableTitle": "Bulk posts unavailable"
+    "unavailableTitle": "Bulk posts unavailable",
+    "viewRows": "View rows"
   },
   "captions": {
     "actions": "Actions",
@@ -2632,6 +2667,7 @@
     "filterStatus": "Filter by status",
     "forbiddenDescription": "Ask a workspace administrator for access.",
     "forbiddenTitle": "You don't have access to captions",
+    "itemLabel": "captions",
     "loadFailedDescription": "We couldn't load the library right now. Please try again.",
     "loadFailedTitle": "We couldn't load the captions",
     "missingFields": "Fill in every required field.",
@@ -2664,11 +2700,13 @@
     },
     "tags": "Tags",
     "tagsLimit": "Use up to 20 tags of 64 characters each.",
+    "tagsPlaceholder": "launch, product",
     "updated": "Updated",
     "updatedRecently": "Updated recently"
   },
   "channelConnection": {
     "authStartFailed": "We couldn't start the Meta authorization. Try again.",
+    "availableAccount": "Available account",
     "cancel": "Cancel",
     "cancelFailed": "We couldn't cancel the Meta connection. Try again.",
     "cancelled": "The Meta connection was cancelled.",
@@ -2677,6 +2715,7 @@
     "connectFailed": "We couldn't connect the selected account. Try again.",
     "connected": "{channel} connected",
     "connectedHint": "The account is ready to publish.",
+    "connecting": "Connecting the selected account",
     "metaDescription": "Authorize Meta to view and connect the eligible resources of your account.",
     "mockConnected": "{channel} connected in the mock.",
     "otherProviderDescription": "Connectors outside Meta stay in reference mode.",
@@ -2743,6 +2782,7 @@
         "ready": "Available"
       },
       "comingSoon": "We're preparing this connection.",
+      "connect": "Connect",
       "planLocked": "This channel isn't included in your current plan.",
       "typesLabel": "Channel types"
     },
@@ -2750,6 +2790,7 @@
     "profileSyncFailed": "We couldn't schedule the profile update.",
     "profileSyncQueued": "Profile update scheduled. It may take a few minutes.",
     "provider": "Provider",
+    "reconnect": "Reconnect",
     "reconnectFailed": "We couldn't start the channel reconnection. Please try again.",
     "refresh": "Refresh",
     "renameHint": "This change only updates the display name in Zapi.",
@@ -2973,6 +3014,7 @@
     "actionColumn": "Action",
     "addToLibrary": "Add to library",
     "all": "All",
+    "allowedFormats": "Allowed formats",
     "cancel": "Cancel",
     "chooseFolder": "Choose the destination folder.",
     "clearFilters": "Clear filters",
@@ -3040,6 +3082,7 @@
     "loadMoreFailed": "We couldn't load more files.",
     "loadingMore": "Loading more files",
     "modifiedColumn": "Modified date",
+    "move": "Move",
     "moveFailed": "The item couldn't be moved",
     "moveManyFailed": "The items couldn't be moved",
     "moveNoneFailed": "No item could be moved",
@@ -3053,6 +3096,7 @@
     "noMatches": "No files found",
     "online": {
       "available": "Available",
+      "backToFiles": "Back to files",
       "emptyDescription": "Type what you need and we'll search the connected providers.",
       "emptyTitle": "Search for media to get started",
       "import": "Import",
@@ -3114,6 +3158,7 @@
     "unstarred": "Removed from favourites",
     "updated": "Updated",
     "uploadFailed": "The file couldn't be uploaded",
+    "uploadFromDevice": "Upload from device",
     "uploadTitle": "Upload files",
     "uploaded": "File uploaded",
     "viewLabel": "File view"
@@ -3458,6 +3503,7 @@
       "passwordRequired": "The Basic Auth password is required.",
       "saveFailed": "We couldn't save the WhatsApp Status configuration.",
       "saved": "WhatsApp Status configuration saved.",
+      "sheetTitle": "Configure WhatsApp Status",
       "testFailed": "GOWA couldn't validate the draft. Try again.",
       "testOk": "GOWA validated the draft. You can save it now.",
       "unavailableDescription": "The WhatsApp Status state could not be retrieved."
@@ -3565,11 +3611,14 @@
     "page": "Page",
     "pageDescription": "A public page with all your links, plus its view and click metrics.",
     "pageTitle": "Link in bio",
+    "performance": "Performance",
     "preview": {
       "descriptionHint": "Add a description",
       "headlineHint": "Add a headline",
       "itemHint": "New item",
-      "titleHint": "Your page"
+      "title": "Preview",
+      "titleHint": "Your page",
+      "watchVideo": "Watch video"
     },
     "previewHint": "The same renderer as the public page.",
     "published": "Published",
@@ -3585,6 +3634,7 @@
     "showBlock": "Show {block}",
     "slug": "Address",
     "slugHint": "Generated from the title if you leave it empty.",
+    "slugPlaceholder": "my-brand",
     "slugTaken": "That address is already taken.",
     "status": "Status",
     "statusLabel": {
@@ -3654,11 +3704,14 @@
     "unavailable": "Link in bio unavailable",
     "unavailableTitle": "Link in bio unavailable",
     "updated": "Page updated.",
-    "videoUrl": "Video URL"
+    "videoUrl": "Video URL",
+    "viewPublished": "View published"
   },
   "metadata": {
+    "admin": "Admin - Zapi Social",
     "description": "Plan, publish and measure your social content.",
-    "invite": "Invitation - Zapi Social"
+    "invite": "Invitation - Zapi Social",
+    "portal": "Portal - Zapi Social"
   },
   "navigation": {
     "admin": {
@@ -3771,6 +3824,7 @@
     "deleting": "Deleting...",
     "description": "Description",
     "descriptionPlaceholder": "Describe who this plan is for.",
+    "editPlan": "Edit plan",
     "editTitle": "Edit {name}",
     "emptyDescription": "There are no plans configured yet. Create the first one to get started.",
     "emptyFilteredDescription": "No plans match the current filters.",
@@ -3800,6 +3854,7 @@
     "invalidNumbers": "Trial days and position must be valid numbers.",
     "invalidPrice": "Enter a valid price of zero or more.",
     "invalidSlug": "The slug uses lowercase letters, numbers and hyphens, no spaces.",
+    "itemLabel": "plans",
     "loadFailed": "We couldn't load the plans. Please try again.",
     "loadFailedDescription": "We couldn't retrieve the plan configuration.",
     "loadFailedTitle": "The plans couldn't load",
@@ -3830,6 +3885,7 @@
     "searchLabel": "Search plans",
     "searchPlaceholder": "Search by name or slug...",
     "sessionExpired": "Your session expired. Sign in again.",
+    "slugPlaceholder": "my-plan",
     "slugTaken": "A plan with this slug already exists.",
     "status": {
       "active": "Active",
@@ -4063,6 +4119,7 @@
       },
       "filterProviderLabel": "Filter by network",
       "filterStatusLabel": "Filter by status",
+      "itemLabel": "posts",
       "now": "Now",
       "post": "Post",
       "provider": "Network",
@@ -4087,6 +4144,7 @@
       "loading": "Loading admin area",
       "title": "The admin area could not be loaded"
     },
+    "adminTitle": "Admin - Zapi Social",
     "aiConfiguration": {
       "description": "Retry to load the provider and the models.",
       "loading": "Loading AI configuration",
@@ -4096,6 +4154,7 @@
       "description": "No prompt was sent and no credits were consumed. Try again to recover the mock.",
       "title": "AI Content could not be loaded"
     },
+    "aiStudioLoading": "Loading AI Studio",
     "channels": {
       "description": "No connection was changed. Try loading the section again.",
       "title": "The channels could not be loaded"
@@ -4113,6 +4172,7 @@
       "description": "No data was changed. Try again.",
       "title": "The portal could not be loaded"
     },
+    "portalTitle": "Portal - Zapi Social",
     "publishing": {
       "description": "No post was changed. Try loading the section again.",
       "title": "Publishing could not be loaded"
@@ -4143,6 +4203,7 @@
     },
     "filterStatus": "Filter by status",
     "forbiddenDescription": "Your current access can't view this workspace's RSS schedules.",
+    "itemLabel": "schedules",
     "loadFailedDescription": "No schedule was modified. Try again to recover the content.",
     "loadFailedTitle": "RSS schedules couldn't load",
     "moreTargets": "{count, plural, one {+# target} other {+# targets}}",
@@ -4161,6 +4222,7 @@
     "resume": "Resume",
     "resumed": "The schedule was resumed.",
     "retry": "Retry",
+    "run": "Run",
     "runFailed": "We couldn't start the run.",
     "runQueued": "The run was added to the queue.",
     "searchLabel": "Search RSS schedules",
@@ -4318,6 +4380,7 @@
     "all": "All",
     "allCases": "All cases",
     "answer": "Answer",
+    "backToSupport": "Back to support",
     "bodyPlaceholder": "What you were doing, what you expected to happen and what happened instead.",
     "cancel": "Cancel",
     "cases": "cases",
@@ -4452,6 +4515,7 @@
     "adminHint": "Accesses every account and can manage members, except other administrators.",
     "allAccounts": "All accounts",
     "assignedAccounts": "Assigned accounts",
+    "availableAccounts": "Available accounts",
     "availableAccountsDescription": "You can only work with these active accounts.",
     "cancel": "Cancel",
     "clearFilters": "Clear filters",
@@ -4495,6 +4559,7 @@
       "alreadyMember": "You're already part of the workspace",
       "availableUntil": "Available until {date}",
       "backHome": "Back home",
+      "backToTeams": "Back to Teams",
       "invitedDescription": "Confirm your account to join. The invitation only works with {email}.",
       "invitedTitle": "You've been invited to a workspace",
       "notNow": "Not now",
@@ -4539,6 +4604,7 @@
       "signUpToContinue": "Create an account to continue",
       "unavailableDescription": "No further change was made to your account.",
       "unavailableTitle": "Invitation unavailable",
+      "useAnotherAccount": "Use another account",
       "workspace": "Workspace"
     },
     "invitationActions": "Actions for the invitation to {email}",
@@ -4548,6 +4614,7 @@
     "invitationsEmptyDescription": "New invitations show up here until they're accepted, expire or are revoked.",
     "invitationsEmptyFilteredDescription": "Try another search to find an invitation.",
     "invitationsEmptyTitle": "No pending invitations",
+    "invitationsItemLabel": "invitations",
     "invitationsNoMatches": "No invitations found",
     "inviteDescription": "The invitation is private, tied to this email and expires in seven days.",
     "inviteMember": "Invite member",
@@ -4558,10 +4625,12 @@
     "leaveWorkspace": "Leave workspace",
     "loadFailedDescription": "No access was modified. Try loading the section again.",
     "loadFailedTitle": "The team couldn't load",
+    "manageAccess": "Manage access",
     "manageDescription": "Manage people, assigned accounts and workspace invitations.",
     "member": "Member",
     "memberHint": "Only works with the accounts you assign.",
     "membersEmptyFilteredDescription": "Try another search to find someone in the workspace.",
+    "membersItemLabel": "members",
     "membersNoMatches": "No members found",
     "myAccessTitle": "My access",
     "noActiveAccounts": "There are no active accounts to assign.",
@@ -4570,10 +4639,12 @@
     "notSentYet": "Not sent yet",
     "ownershipTransferred": "Ownership transferred.",
     "pageTitle": "Team",
+    "pendingInvitations": "Pending invitations",
     "performedBy": "Performed by",
     "performedByName": "Performed by {name}",
     "person": "Person",
     "processing": "Processing...",
+    "removeMember": "Remove member",
     "resendInvitation": "Resend invitation",
     "resending": "Resending invitation",
     "retry": "Retry",
@@ -4598,10 +4669,12 @@
       "invitations": "Invitations",
       "members": "Members"
     },
+    "transferOwnership": "Transfer ownership",
     "viewDescription": "Check your role, the available accounts and who's part of the workspace.",
     "viewDetails": "View details",
     "viewsLabel": "Team views",
     "workspaceMembers": "Workspace members",
+    "yourRole": "Your role",
     "yourRoleDescription": "Defines the actions available in this workspace."
   },
   "turnstile": {

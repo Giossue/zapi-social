@@ -515,7 +515,7 @@ function RssSchedules({
                                       onSelect={() => void runNow(row.id)}
                                     >
                                       <Play />
-                                      Ejecutar
+                                      {t("run")}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                       disabled={!canManage || isPending}
@@ -574,7 +574,7 @@ function RssSchedules({
               <TablePagination
                 canGoNext={page * pageSize < total}
                 canGoPrevious={page > 1}
-                itemLabel="programaciones"
+                itemLabel={t("itemLabel")}
                 onNextPage={() => onPageChange(page + 1)}
                 onPreviousPage={() => onPageChange(page - 1)}
                 rangeEnd={rangeEnd}

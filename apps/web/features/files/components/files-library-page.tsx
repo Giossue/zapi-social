@@ -313,7 +313,7 @@ function AssetCard({
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => onMove(asset)}>
                   <FolderInput />
-                  Mover
+                  {t("move")}
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
@@ -383,7 +383,7 @@ function FolderCard({
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => onMove(folder)}>
                   <FolderInput />
-                  Mover
+                  {t("move")}
                 </DropdownMenuItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
@@ -492,7 +492,7 @@ function AssetsTable({
                   </DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => onMoveFolder(folder)}>
                     <FolderInput />
-                    Mover
+                    {t("move")}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
@@ -565,7 +565,7 @@ function AssetsTable({
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => onMove(asset)}>
                       <FolderInput />
-                      Mover
+                      {t("move")}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
@@ -1337,7 +1337,7 @@ export function FilesLibraryPage() {
                   variant="brand-secondary"
                 >
                   <FolderInput data-icon="inline-start" />
-                  Mover
+                  {t("move")}
                 </Button>
                 <Button
                   className="leading-none"
@@ -1503,7 +1503,7 @@ export function FilesLibraryPage() {
             ) : null}
             <DropdownMenuItem onSelect={() => setUploadDialogOpen(true)}>
               <Upload aria-hidden="true" />
-              Subir desde archivos
+              {t("uploadFromDevice")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         }

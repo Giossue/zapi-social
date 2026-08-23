@@ -150,7 +150,7 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
             action={
               <Button asChild variant="brand-secondary">
                 <Link href="/portal/support">
-                  <ArrowLeft data-icon="inline-start" /> Volver a soporte
+                  <ArrowLeft data-icon="inline-start" /> {t("backToSupport")}
                 </Link>
               </Button>
             }

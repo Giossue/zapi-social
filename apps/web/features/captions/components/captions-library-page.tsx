@@ -396,7 +396,7 @@ function CaptionsTable({
       <TablePagination
         canGoNext={table.getCanNextPage()}
         canGoPrevious={table.getCanPreviousPage()}
-        itemLabel="captions"
+        itemLabel={t("itemLabel")}
         onNextPage={() => table.nextPage()}
         onPreviousPage={() => table.previousPage()}
         rangeEnd={rangeEnd}
@@ -875,7 +875,7 @@ function CaptionEditor({
                   id="caption-tags"
                   maxLength={1299}
                   onChange={(event) => updateValue("tags", event.target.value)}
-                  placeholder="lanzamiento, producto"
+                  placeholder={t("tagsPlaceholder")}
                   value={values.tags}
                 />
               </Field>

@@ -707,7 +707,7 @@ export function AiChatPage() {
                     size="sm"
                     variant="brand-secondary"
                   >
-                    <Copy data-icon="inline-start" /> Copiar
+                    <Copy data-icon="inline-start" /> {t("copy")}
                   </Button>
                   {selected.status === "failed" ? (
                     <Button

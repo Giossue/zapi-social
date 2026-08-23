@@ -362,7 +362,7 @@ function BatchRowsSheet({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Fila</TableHead>
+                  <TableHead>{t("rowColumn")}</TableHead>
                   <TableHead>{t("status")}</TableHead>
                   <TableHead>{t("detail")}</TableHead>
                 </TableRow>
@@ -750,7 +750,7 @@ export function BulkPostsPage() {
                                 size="compact"
                               >
                                 <ListChecks />
-                                Ver filas
+                                {t("viewRows")}
                               </DropdownMenuItem>
                               {cancellable ? (
                                 <>

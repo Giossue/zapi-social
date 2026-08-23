@@ -1,9 +1,11 @@
 import type { Metadata } from "next"
+import { getTranslations } from "next-intl/server"
 
 import { PortalAreaLayout } from "@/components/portal-area-layout"
 
-export const metadata: Metadata = {
-  title: "Portal - Zapi Social",
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metadata")
+  return { title: t("portal") }
 }
 
 export default function PortalLayout({

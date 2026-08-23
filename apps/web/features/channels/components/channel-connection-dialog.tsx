@@ -357,7 +357,7 @@ export function ChannelConnectionDialog({
               >
                 <Field>
                   <FieldLabel id="channel-candidate-label">
-                    Cuenta disponible
+                    {t("availableAccount")}
                     <span aria-hidden="true" className="text-destructive">
                       *
                     </span>
@@ -411,7 +411,7 @@ export function ChannelConnectionDialog({
                   <Button disabled={!candidate || isSelecting} type="submit">
                     {isSelecting ? (
                       <Spinner
-                        aria-label="Conectando cuenta seleccionada"
+                        aria-label={t("connecting")}
                         data-icon="inline-start"
                       />
                     ) : (

@@ -169,7 +169,7 @@ export function OnlineMediaSearchPage() {
         <Button asChild variant="brand-secondary">
           <Link href="/portal/files">
             <ArrowLeft data-icon="inline-start" />
-            Volver a archivos
+            {t("backToFiles")}
           </Link>
         </Button>
       </div>

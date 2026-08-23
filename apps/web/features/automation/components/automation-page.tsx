@@ -814,7 +814,7 @@ export function AutomationPage() {
                       <TableHead>{t("key")}</TableHead>
                       <TableHead>{t("permissions")}</TableHead>
                       <TableHead className="hidden lg:table-cell">
-                        Último uso
+                        {t("lastUsedColumn")}
                       </TableHead>
                       <TableHead>{t("status")}</TableHead>
                       {data.canManage ? (
@@ -890,7 +890,7 @@ export function AutomationPage() {
                                       variant="destructive"
                                     >
                                       <Trash2 />
-                                      Revocar clave
+                                      {t("revokeKey")}
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
@@ -927,7 +927,7 @@ export function AutomationPage() {
                 <TablePagination
                   canGoNext={keysPagination.safePage < keysPagination.pageCount}
                   canGoPrevious={keysPagination.safePage > 1}
-                  itemLabel="claves"
+                  itemLabel={t("keysItemLabel")}
                   onNextPage={() =>
                     setKeysPage((current) =>
                       Math.min(current + 1, keysPagination.pageCount)
@@ -1139,7 +1139,7 @@ export function AutomationPage() {
                     webhooksPagination.safePage < webhooksPagination.pageCount
                   }
                   canGoPrevious={webhooksPagination.safePage > 1}
-                  itemLabel="webhooks"
+                  itemLabel={t("webhooksItemLabel")}
                   onNextPage={() =>
                     setWebhooksPage((current) =>
                       Math.min(current + 1, webhooksPagination.pageCount)

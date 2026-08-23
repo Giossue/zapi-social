@@ -427,7 +427,7 @@ function PageSheet({
                 <TabsTrigger value="blocks">{t("tab.blocks")}</TabsTrigger>
                 <TabsTrigger value="style">{t("tab.style")}</TabsTrigger>
                 <TabsTrigger className="lg:hidden" value="preview">
-                  Vista previa
+                  {t("preview.title")}
                 </TabsTrigger>
               </TabsList>
 
@@ -528,7 +528,7 @@ function PageSheet({
                       onChange={(event) =>
                         setDraft({ ...draft, slug: event.target.value })
                       }
-                      placeholder="mi-marca"
+                      placeholder={t("slugPlaceholder")}
                       value={draft.slug ?? ""}
                     />
                     <FieldDescription>{t("slugHint")}</FieldDescription>
@@ -769,7 +769,7 @@ function PageSheet({
             <div className="hidden min-h-0 flex-col bg-muted lg:flex">
               <div className="border-b border-border bg-background px-4 py-3">
                 <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                  Vista previa
+                  {t("preview.title")}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {t("previewHint")}
@@ -1049,7 +1049,7 @@ export function LinkBioPage() {
                 <TableRow>
                   <TableHead>{t("page")}</TableHead>
                   <TableHead className="hidden md:table-cell">
-                    Rendimiento
+                    {t("performance")}
                   </TableHead>
                   <TableHead>{t("status")}</TableHead>
                   {data.canManage ? (
@@ -1124,7 +1124,7 @@ export function LinkBioPage() {
                                     target="_blank"
                                   >
                                     <ExternalLink />
-                                    Ver publicada
+                                    {t("viewPublished")}
                                   </a>
                                 </DropdownMenuItem>
                               ) : null}

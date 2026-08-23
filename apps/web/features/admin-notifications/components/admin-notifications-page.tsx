@@ -633,7 +633,7 @@ export function AdminNotificationsPage() {
                       {t("reads")}
                     </TableHead>
                     <TableHead className="hidden lg:table-cell">
-                      Creado
+                      {t("createdColumn")}
                     </TableHead>
                     <TableHead className="text-right">{t("actions")}</TableHead>
                   </TableRow>
@@ -729,7 +729,7 @@ export function AdminNotificationsPage() {
             <TablePagination
               canGoNext={safePage < pageCount}
               canGoPrevious={safePage > 1}
-              itemLabel="anuncios"
+              itemLabel={t("itemLabel")}
               onNextPage={() =>
                 setPage((current) => Math.min(current + 1, pageCount))
               }

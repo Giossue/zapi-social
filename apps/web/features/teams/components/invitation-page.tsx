@@ -242,14 +242,14 @@ export function InvitationPage() {
     } else if (state === "mismatch") {
       problemAction = (
         <Button className="flex-1" onClick={() => void switchAccount()}>
-          <UserRoundCog data-icon="inline-start" /> Usar otra cuenta
+          <UserRoundCog data-icon="inline-start" /> {t("useAnotherAccount")}
         </Button>
       )
     } else if (state === "full" && session?.area === "portal") {
       problemAction = (
         <Button asChild className="flex-1">
           <Link href="/portal/teams">
-            <Users data-icon="inline-start" /> Volver a Teams
+            <Users data-icon="inline-start" /> {t("backToTeams")}
           </Link>
         </Button>
       )

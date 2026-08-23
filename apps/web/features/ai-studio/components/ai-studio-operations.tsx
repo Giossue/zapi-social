@@ -607,7 +607,7 @@ function AiAutomationSurface({
                   </Field>
                   <Field>
                     <FieldLabel htmlFor="automation-time">
-                      Hora <RequiredMark />
+                      {t("timeColumn")} <RequiredMark />
                     </FieldLabel>
                     <TimePicker
                       aria-required={true}
@@ -777,7 +777,7 @@ function AiAutomationSurface({
                               <DropdownMenuGroup>
                                 <DropdownMenuItem onSelect={() => onRun(row)}>
                                   <Play aria-hidden="true" />
-                                  Ejecutar ahora
+                                  {t("runNow")}
                                 </DropdownMenuItem>
                               </DropdownMenuGroup>
                               <DropdownMenuSeparator />
@@ -979,7 +979,7 @@ function AiCreditsSurface({
                 value: consumed,
               },
               {
-                description: "ciclo actual",
+                description: t("currentCycle"),
                 icon: Clock3,
                 label: t("credits.nextRenewal"),
                 value: renewal,
@@ -1140,7 +1140,7 @@ function AiCreditsSurface({
                         orientation="horizontal"
                       >
                         <FieldLabel htmlFor="ai-budget-alerts">
-                          Alertas activas
+                          {t("activeAlerts")}
                         </FieldLabel>
                         <Switch
                           checked={alertsEnabled}

@@ -652,7 +652,7 @@ export function AdminEmailTemplatesPage() {
                   .finally(() => setPending(false))
               }}
             >
-              <RotateCcw data-icon="inline-start" /> Restablecer
+              <RotateCcw data-icon="inline-start" /> {t("reset")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

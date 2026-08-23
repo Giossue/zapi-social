@@ -374,7 +374,7 @@ export function WhatsAppStatusIntegrationCard() {
               onSubmit={saveConfiguration}
             >
               <SheetHeader className="border-b">
-                <SheetTitle>Configurar WhatsApp Status</SheetTitle>
+                <SheetTitle>{t("whatsapp.sheetTitle")}</SheetTitle>
                 <SheetDescription>
                   Conecta GOWA y controla si el canal está disponible en el
                   Portal.

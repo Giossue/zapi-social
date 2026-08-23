@@ -189,6 +189,7 @@ function MemberActions({
   onTransfer: (member: PortalTeamMember) => void
   pending: boolean
 }) {
+  const t = useTranslations("teams")
   const manageable =
     member.id !== currentUserId &&
     ((actorRole === "owner" && member.role !== "owner") ||
@@ -213,13 +214,13 @@ function MemberActions({
           {manageable ? (
             <DropdownMenuItem onSelect={() => onManage(member)}>
               <UserCog />
-              Gestionar acceso
+              {t("manageAccess")}
             </DropdownMenuItem>
           ) : null}
           {transferable ? (
             <DropdownMenuItem onSelect={() => onTransfer(member)}>
               <KeyRound />
-              Transferir propiedad
+              {t("transferOwnership")}
             </DropdownMenuItem>
           ) : null}
         </DropdownMenuGroup>
@@ -232,7 +233,7 @@ function MemberActions({
                 variant="destructive"
               >
                 <Trash2 />
-                Eliminar miembro
+                {t("removeMember")}
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </>
@@ -762,7 +763,7 @@ export function TeamsPage() {
           <TabsList aria-label={t("viewsLabel")}>
             <TabsTrigger value="members">{t("tab.members")}</TabsTrigger>
             <TabsTrigger value="invitations">
-              Invitaciones pendientes
+              {t("pendingInvitations")}
             </TabsTrigger>
             <TabsTrigger value="activity">{t("tab.activity")}</TabsTrigger>
           </TabsList>
@@ -1052,7 +1053,7 @@ function MembersTable({
       <TablePagination
         canGoNext={page < pageCount}
         canGoPrevious={page > 1}
-        itemLabel="miembros"
+        itemLabel={t("membersItemLabel")}
         onNextPage={() => onPageChange(page + 1)}
         onPreviousPage={() => onPageChange(page - 1)}
         rangeEnd={Math.min(page * pageSize, total)}
@@ -1187,7 +1188,7 @@ function InvitationsTable({
       <TablePagination
         canGoNext={page < pageCount}
         canGoPrevious={page > 1}
-        itemLabel="invitaciones"
+        itemLabel={t("invitationsItemLabel")}
         onNextPage={() => onPageChange(page + 1)}
         onPreviousPage={() => onPageChange(page - 1)}
         rangeEnd={Math.min(page * pageSize, total)}
@@ -1381,7 +1382,7 @@ function MemberAccessView({
       <div className="grid gap-4 px-4 md:grid-cols-2">
         <Card variant="inset">
           <CardHeader>
-            <CardTitle className="text-base">Tu rol</CardTitle>
+            <CardTitle className="text-base">{t("yourRole")}</CardTitle>
             <CardDescription>{t("yourRoleDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
@@ -1392,7 +1393,9 @@ function MemberAccessView({
         </Card>
         <Card variant="inset">
           <CardHeader>
-            <CardTitle className="text-base">Cuentas disponibles</CardTitle>
+            <CardTitle className="text-base">
+              {t("availableAccounts")}
+            </CardTitle>
             <CardDescription>
               {t("availableAccountsDescription")}
             </CardDescription>
@@ -1492,7 +1495,7 @@ function MemberAccessView({
           <TablePagination
             canGoNext={page < pageCount}
             canGoPrevious={page > 1}
-            itemLabel="miembros"
+            itemLabel={t("membersItemLabel")}
             onNextPage={() => onPageChange(page + 1)}
             onPreviousPage={() => onPageChange(page - 1)}
             rangeEnd={Math.min(page * pageSize, total)}

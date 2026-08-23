@@ -64,7 +64,7 @@ function ChannelCapabilityCard({
         {isAvailable ? (
           <Button className="w-full" onClick={onSelect} size="sm" type="button">
             <Plus data-icon="inline-start" />
-            Conectar
+            {t("connect")}
           </Button>
         ) : (
           <Badge className="leading-none" variant="neutral">

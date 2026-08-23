@@ -583,7 +583,7 @@ export function AffiliatePage() {
                       <TableHead>{t("commission")}</TableHead>
                       <TableHead>{t("statusColumn")}</TableHead>
                       <TableHead className="hidden lg:table-cell">
-                        Generada
+                        {t("generated")}
                       </TableHead>
                     </TableRow>
                   </TableHeader>

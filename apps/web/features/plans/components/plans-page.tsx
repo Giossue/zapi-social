@@ -419,7 +419,7 @@ function PlanEditorSheet({
                   maxLength={80}
                   name="slug"
                   onChange={(event) => setSlug(event.target.value)}
-                  placeholder="mi-plan"
+                  placeholder={t("slugPlaceholder")}
                   value={slug}
                 />
               </Field>
@@ -1049,7 +1049,7 @@ export function PlansPage() {
                                 size="compact"
                               >
                                 <Pencil />
-                                Editar plan
+                                {t("editPlan")}
                               </DropdownMenuItem>
                             </DropdownMenuGroup>
                             <DropdownMenuSeparator />
@@ -1096,7 +1096,7 @@ export function PlansPage() {
               <TablePagination
                 canGoNext={currentPageIndex < pageCount - 1}
                 canGoPrevious={currentPageIndex > 0}
-                itemLabel="planes"
+                itemLabel={t("itemLabel")}
                 onNextPage={() =>
                   setPageIndex((current) =>
                     Math.min(current + 1, pageCount - 1)

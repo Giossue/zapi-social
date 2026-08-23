@@ -183,7 +183,7 @@ export function LinkBioRenderer({
                   rel="noreferrer"
                   target="_blank"
                 >
-                  Ver video
+                  {t("watchVideo")}
                 </a>
               ) : null}
 
