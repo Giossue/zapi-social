@@ -67,8 +67,8 @@ import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import {
   DataTableFilter,
   DataTableHeader,
-  DataTableToolbar,
 } from "@workspace/ui/components/data-table-controls"
+import { DataTableToolbar } from "@/components/data-table-toolbar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -91,7 +91,7 @@ import {
 } from "@workspace/ui/components/input-group"
 import { Progress } from "@workspace/ui/components/progress"
 import { EmptyState } from "@workspace/ui/components/empty-state"
-import { PageLoading } from "@workspace/ui/components/page-loading"
+import { PageLoading } from "@/components/page-loading"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
   Select,
@@ -111,7 +111,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { TablePagination } from "@workspace/ui/components/table-pagination"
+import { TablePagination } from "@/components/table-pagination"
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import {
   Tabs,

@@ -18,13 +18,13 @@ import { toast } from "@workspace/ui/components/toast"
 import {
   DataTableFilter,
   DataTableHeader,
-  DataTableToolbar,
 } from "@workspace/ui/components/data-table-controls"
+import { DataTableToolbar } from "@/components/data-table-toolbar"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import { MetricCard } from "@workspace/ui/components/metric-card"
-import { PageLoading } from "@workspace/ui/components/page-loading"
-import { TablePagination } from "@workspace/ui/components/table-pagination"
+import { PageLoading } from "@/components/page-loading"
+import { TablePagination } from "@/components/table-pagination"
 import {
   AlertDialog,
   AlertDialogAction,

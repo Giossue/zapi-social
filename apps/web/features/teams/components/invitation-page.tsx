@@ -21,7 +21,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import { Separator } from "@workspace/ui/components/separator"
-import { PageLoading } from "@workspace/ui/components/page-loading"
+import { PageLoading } from "@/components/page-loading"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
   AlertCircle,

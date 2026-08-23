@@ -21,15 +21,15 @@ import {
 import {
   DataTableFilter,
   DataTableHeader,
-  DataTableToolbar,
 } from "@workspace/ui/components/data-table-controls"
+import { DataTableToolbar } from "@/components/data-table-toolbar"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import { CardGrid } from "@workspace/ui/components/card-grid"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import { MetricCard } from "@workspace/ui/components/metric-card"
-import { PageLoading } from "@workspace/ui/components/page-loading"
-import { TablePagination } from "@workspace/ui/components/table-pagination"
+import { PageLoading } from "@/components/page-loading"
+import { TablePagination } from "@/components/table-pagination"
 import {
   Alert,
   AlertDescription,
@@ -554,6 +554,7 @@ function AiAutomationSurface({
   total,
 }: AiAutomationSurfaceProps) {
   const t = useTranslations("aiStudio.operations")
+  const tCommon = useTranslations("common")
   const canSubmit = Boolean(name.trim() && prompt.trim() && time && accountId)
   let emptyDescription = t("automation.needsAccount")
 
@@ -610,6 +611,8 @@ function AiAutomationSurface({
                       {t("timeColumn")} <RequiredMark />
                     </FieldLabel>
                     <TimePicker
+                      hourLabel={tCommon("hour")}
+                      minuteLabel={tCommon("minute")}
                       aria-required={true}
                       id="automation-time"
                       onValueChange={onTimeChange}

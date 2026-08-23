@@ -2823,13 +2823,20 @@
     }
   },
   "common": {
+    "filters": "Filters",
+    "hour": "Hour",
     "language": {
       "en": "English",
       "es": "Español",
       "retry": "Retry",
       "short": "ENG"
     },
-    "loading": "Loading…"
+    "loading": "Loading…",
+    "minute": "Minute",
+    "pagination": {
+      "empty": "0 {items}",
+      "range": "{from, number}-{to, number} of {total, number}"
+    }
   },
   "dashboard": {
     "admin": {
@@ -4087,6 +4094,10 @@
       "share": "Share",
       "statusNow": "Status · Now",
       "title": "Preview"
+    },
+    "schedule": {
+      "date": "Date",
+      "time": "Time"
     },
     "table": {
       "account": "Account",

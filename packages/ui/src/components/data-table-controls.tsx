@@ -43,6 +43,8 @@ type DataTableHeaderProps = {
 }
 
 type DataTableToolbarProps = {
+  /** Rótulo del plegado móvil; lo traduce quien consume el primitive. */
+  filtersLabel: string
   actions?: ReactNode
   children?: ReactNode
   className?: string
@@ -132,6 +134,7 @@ function DataTableToolbar({
   actions,
   children,
   className,
+  filtersLabel,
 }: DataTableToolbarProps) {
   const [filtersOpen, setFiltersOpen] = useState(false)
   const filtersId = useId()
@@ -152,7 +155,7 @@ function DataTableToolbar({
         type="button"
         variant="outline"
       >
-        <ListFilter data-icon="inline-start" /> Filtros
+        <ListFilter data-icon="inline-start" /> {filtersLabel}
         <ChevronDown
           className={cn("transition-transform", filtersOpen && "rotate-180")}
           data-icon="inline-end"

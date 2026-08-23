@@ -19,8 +19,8 @@ import {
 import {
   DataTableFilter,
   DataTableHeader,
-  DataTableToolbar,
 } from "@workspace/ui/components/data-table-controls"
+import { DataTableToolbar } from "@/components/data-table-toolbar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,7 +56,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
-import { TablePagination } from "@workspace/ui/components/table-pagination"
+import { TablePagination } from "@/components/table-pagination"
 import { toast } from "@workspace/ui/components/toast"
 import { useTranslations } from "next-intl"
 

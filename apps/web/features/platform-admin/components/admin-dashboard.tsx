@@ -30,7 +30,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import { EmptyState } from "@workspace/ui/components/empty-state"
-import { PageLoading } from "@workspace/ui/components/page-loading"
+import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import { Separator } from "@workspace/ui/components/separator"
 import { loginPath } from "@/features/identity/login-redirect"

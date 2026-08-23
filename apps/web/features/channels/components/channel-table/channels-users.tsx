@@ -12,8 +12,8 @@ import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import {
   DataTableFilter,
   DataTableHeader,
-  DataTableToolbar,
 } from "@workspace/ui/components/data-table-controls"
+import { DataTableToolbar } from "@/components/data-table-toolbar"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 
 import type { PortalChannelAccount } from "../../types/channels"

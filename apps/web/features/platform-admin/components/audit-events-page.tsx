@@ -8,13 +8,13 @@ import type { AdminAuditEvent } from "@workspace/contracts"
 import {
   DataTableFilter,
   DataTableHeader,
-  DataTableToolbar,
 } from "@workspace/ui/components/data-table-controls"
+import { DataTableToolbar } from "@/components/data-table-toolbar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { EmptyState } from "@workspace/ui/components/empty-state"
-import { PageLoading } from "@workspace/ui/components/page-loading"
+import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
@@ -26,7 +26,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
-import { TablePagination } from "@workspace/ui/components/table-pagination"
+import { TablePagination } from "@/components/table-pagination"
 
 const sourceLabels = { web: "Web", api: "API", worker: "Worker" } as const
 const severityVariant = {

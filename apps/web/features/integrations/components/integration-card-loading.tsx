@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@workspace/ui/components/card"
-import { PageLoading } from "@workspace/ui/components/page-loading"
+import { PageLoading } from "@/components/page-loading"
 
 export function IntegrationCardLoading() {
   return (

@@ -10,14 +10,12 @@ import {
 } from "@workspace/ui/components/pagination"
 import { Separator } from "@workspace/ui/components/separator"
 
-type TablePaginationBaseProps = {
-  itemLabel: string
-  rangeEnd: number
-  rangeStart: number
-  total: number
-}
-
-type TablePaginationProps = TablePaginationBaseProps & {
+type TablePaginationProps = {
+  /**
+   * Rango ya formateado por quien consume el primitive. `packages/ui` no
+   * traduce: no conoce el idioma activo ni debe depender de él.
+   */
+  rangeLabel: string
   canGoNext: boolean
   canGoPrevious: boolean
   onNextPage: () => void
@@ -28,17 +26,8 @@ function preventPaginationNavigation(event: MouseEvent<HTMLAnchorElement>) {
   event.preventDefault()
 }
 
-function rangeLabel({
-  itemLabel,
-  rangeEnd,
-  rangeStart,
-  total,
-}: TablePaginationBaseProps) {
-  return total > 0 ? `${rangeStart}-${rangeEnd} de ${total}` : `0 ${itemLabel}`
-}
-
 function TablePagination(props: TablePaginationProps) {
-  const range = rangeLabel(props)
+  const range = props.rangeLabel
 
   return (
     <>

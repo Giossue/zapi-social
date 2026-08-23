@@ -1,6 +1,7 @@
 "use client"
 
 import { CalendarDays } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Button } from "@workspace/ui/components/button"
 import { Calendar } from "@workspace/ui/components/calendar"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
@@ -34,13 +35,15 @@ export function PublishingSchedulePicker({
   onTimeChange,
   time,
 }: PublishingSchedulePickerProps) {
+  const t = useTranslations("publishing.schedule")
+  const tCommon = useTranslations("common")
   const selectedDate = new Date(`${date}T12:00:00`)
 
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       <Field>
         <FieldLabel>
-          Fecha{" "}
+          {t("date")}{" "}
           {isRequired ? (
             <span aria-hidden="true" className="text-destructive">
               *
@@ -77,7 +80,7 @@ export function PublishingSchedulePicker({
       </Field>
       <Field>
         <FieldLabel htmlFor="publishing-scheduled-time">
-          Hora{" "}
+          {t("time")}{" "}
           {isRequired ? (
             <span aria-hidden="true" className="text-destructive">
               *
@@ -85,6 +88,8 @@ export function PublishingSchedulePicker({
           ) : null}
         </FieldLabel>
         <TimePicker
+          hourLabel={tCommon("hour")}
+          minuteLabel={tCommon("minute")}
           aria-required={isRequired}
           id="publishing-scheduled-time"
           onValueChange={onTimeChange}

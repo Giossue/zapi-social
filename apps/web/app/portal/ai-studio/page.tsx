@@ -1,7 +1,7 @@
 import { Suspense } from "react"
 import { useTranslations } from "next-intl"
 
-import { PageLoading } from "@workspace/ui/components/page-loading"
+import { PageLoading } from "@/components/page-loading"
 
 import { AiChatPage } from "@/features/ai-studio/components/ai-chat-page"
 

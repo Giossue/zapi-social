@@ -19,8 +19,8 @@ import { Button } from "@workspace/ui/components/button"
 import {
   DataTableFilter,
   DataTableHeader,
-  DataTableToolbar,
 } from "@workspace/ui/components/data-table-controls"
+import { DataTableToolbar } from "@/components/data-table-toolbar"
 import {
   Card,
   CardContent,
@@ -32,7 +32,7 @@ import { EmptyState } from "@workspace/ui/components/empty-state"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { MetricCard } from "@workspace/ui/components/metric-card"
-import { PageLoading } from "@workspace/ui/components/page-loading"
+import { PageLoading } from "@/components/page-loading"
 import {
   Select,
   SelectContent,
@@ -60,7 +60,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
-import { TablePagination } from "@workspace/ui/components/table-pagination"
+import { TablePagination } from "@/components/table-pagination"
 import {
   Tabs,
   TabsContent,

@@ -19,7 +19,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { CardGrid } from "@workspace/ui/components/card-grid"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
-import { DataTableToolbar } from "@workspace/ui/components/data-table-controls"
+import { DataTableToolbar } from "@/components/data-table-toolbar"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { Calendar } from "@workspace/ui/components/calendar"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
@@ -29,7 +29,7 @@ import {
   PopoverTrigger,
 } from "@workspace/ui/components/popover"
 import { MetricCard } from "@workspace/ui/components/metric-card"
-import { PageLoading } from "@workspace/ui/components/page-loading"
+import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import {
   Table,

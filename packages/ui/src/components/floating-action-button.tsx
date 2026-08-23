@@ -111,7 +111,9 @@ function FloatingActionButton({
 
   return (
     <>
-      {withSpacer ? <div aria-hidden="true" className="h-24 sm:hidden" /> : null}
+      {withSpacer ? (
+        <div aria-hidden="true" className="h-24 sm:hidden" />
+      ) : null}
       {menu ? (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>{button}</DropdownMenuTrigger>

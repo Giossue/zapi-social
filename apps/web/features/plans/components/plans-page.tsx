@@ -36,8 +36,8 @@ import { Button } from "@workspace/ui/components/button"
 import {
   DataTableFilter,
   DataTableHeader,
-  DataTableToolbar,
 } from "@workspace/ui/components/data-table-controls"
+import { DataTableToolbar } from "@/components/data-table-toolbar"
 import {
   Card,
   CardAction,
@@ -74,7 +74,7 @@ import {
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { MetricCard } from "@workspace/ui/components/metric-card"
-import { PageLoading } from "@workspace/ui/components/page-loading"
+import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import {
   Select,
@@ -96,7 +96,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { TablePagination } from "@workspace/ui/components/table-pagination"
+import { TablePagination } from "@/components/table-pagination"
 import { toast } from "@workspace/ui/components/toast"
 import { useFormatter, useTranslations } from "next-intl"
 

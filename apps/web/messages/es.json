@@ -2823,13 +2823,20 @@
     }
   },
   "common": {
+    "filters": "Filtros",
+    "hour": "Hora",
     "language": {
       "en": "English",
       "es": "Español",
       "retry": "Reintentar",
       "short": "ESP"
     },
-    "loading": "Cargando…"
+    "loading": "Cargando…",
+    "minute": "Minuto",
+    "pagination": {
+      "empty": "0 {items}",
+      "range": "{from, number}-{to, number} de {total, number}"
+    }
   },
   "dashboard": {
     "admin": {
@@ -4087,6 +4094,10 @@
       "share": "Compartir",
       "statusNow": "Estado · Ahora",
       "title": "Vista previa"
+    },
+    "schedule": {
+      "date": "Fecha",
+      "time": "Hora"
     },
     "table": {
       "account": "Cuenta",

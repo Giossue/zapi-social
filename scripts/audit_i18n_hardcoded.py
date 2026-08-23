@@ -27,7 +27,11 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-WEB = ROOT / "apps/web"
+
+# `packages/ui` también pinta texto en pantalla. Dejarlo fuera escondió el
+# rango de la paginación —«1-1 de 1»— hasta que se vio en el navegador: los
+# primitives no traducen, así que cualquier literal suyo es un error de diseño.
+SCANNED = (ROOT / "apps/web", ROOT / "packages/ui/src")
 
 # Rutas cuyo texto no es interfaz traducible.
 EXCLUDED_PARTS = ("node_modules", "/fixtures/", "/messages/")
@@ -44,6 +48,16 @@ ALLOWED = re.compile(
     r"|G-X+|smtp\.example\.com|Host SMTP"
     r"|Promise|[\W\d]+)$"
 )
+
+# Rótulos accesibles que shadcn/ui trae en su código y que se copian literal
+# por la regla source-first. No los pone este repositorio; cambiarlos aquí
+# haría divergir los primitives de su fuente en cada actualización.
+SHADCN_DEFAULTS = frozenset({
+    "Close", "Loading", "More", "More pages", "Toggle Sidebar", "Sidebar",
+    "Displays the mobile sidebar.", "Previous slide", "Next slide", "slide",
+    "carousel", "breadcrumb", "pagination", "Go to previous page",
+    "Go to next page", "Command Palette", "Search for a command to run...",
+})
 
 # Fragmentos de código que las expresiones capturan por error: genéricos de
 # TypeScript (`Promise<...>`), cuerpos de flecha y condicionales sueltos caen
@@ -79,6 +93,13 @@ def is_ui_text(value: str) -> bool:
     # Códigos de error y constantes técnicas.
     if re.fullmatch(r"[A-Z_0-9]+", value):
         return False
+    if value in SHADCN_DEFAULTS:
+        return False
+    # Clases de Tailwind en objetos de configuración.
+    if re.fullmatch(r"[\w!/:\[\]-]+(?:\s+[\w!/:\[\]-]+)*", value) and re.search(
+        r"^(text|bg|border|group|flex|grid|p|m|w|h)-", value
+    ):
+        return False
     return not (ALLOWED.match(value) or CODE_NOISE.search(value))
 
 
@@ -98,7 +119,8 @@ def scan(path: Path) -> list[tuple[int, str]]:
 def files() -> list[Path]:
     return sorted(
         path
-        for path in WEB.rglob("*.ts*")
+        for root in SCANNED
+        for path in root.rglob("*.ts*")
         if not any(part in str(path) for part in EXCLUDED_PARTS)
         and not path.name.endswith(EXCLUDED_SUFFIXES)
     )

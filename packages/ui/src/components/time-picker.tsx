@@ -19,6 +19,9 @@ const minutes = ["00", "15", "30", "45"]
 type TimePickerProps = {
   "aria-invalid"?: boolean
   "aria-required"?: boolean
+  /** Rótulos accesibles de hora y minuto; los traduce quien lo consume. */
+  hourLabel: string
+  minuteLabel: string
   id?: string
   onValueChange: (value: string) => void
   value: string
@@ -27,6 +30,8 @@ type TimePickerProps = {
 function TimePicker({
   "aria-invalid": ariaInvalid,
   "aria-required": ariaRequired,
+  hourLabel,
+  minuteLabel,
   id,
   onValueChange,
   value,
@@ -41,7 +46,7 @@ function TimePicker({
       >
         <SelectTrigger
           aria-invalid={ariaInvalid}
-          aria-label="Hora"
+          aria-label={hourLabel}
           aria-required={ariaRequired}
           id={id}
         >
@@ -64,7 +69,7 @@ function TimePicker({
       >
         <SelectTrigger
           aria-invalid={ariaInvalid}
-          aria-label="Minuto"
+          aria-label={minuteLabel}
           aria-required={ariaRequired}
           id={id ? `${id}-minute` : undefined}
         >

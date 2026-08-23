@@ -28,8 +28,8 @@ import { Button } from "@workspace/ui/components/button"
 import {
   DataTableFilter,
   DataTableHeader,
-  DataTableToolbar,
 } from "@workspace/ui/components/data-table-controls"
+import { DataTableToolbar } from "@/components/data-table-toolbar"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { MetricCard } from "@workspace/ui/components/metric-card"
 import {
@@ -44,7 +44,7 @@ import {
   TABLE_EMPTY_ICON,
   TableEmptyRow,
 } from "@workspace/ui/components/table-empty-row"
-import { TablePagination } from "@workspace/ui/components/table-pagination"
+import { TablePagination } from "@/components/table-pagination"
 import { Spinner } from "@workspace/ui/components/spinner"
 import type {
   PublishingPost,

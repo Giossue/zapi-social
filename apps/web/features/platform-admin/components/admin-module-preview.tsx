@@ -47,8 +47,8 @@ import { Button } from "@workspace/ui/components/button"
 import {
   DataTableFilter,
   DataTableHeader,
-  DataTableToolbar,
 } from "@workspace/ui/components/data-table-controls"
+import { DataTableToolbar } from "@/components/data-table-toolbar"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import {
   Sheet,
@@ -72,7 +72,7 @@ import { FloatingActionButton } from "@workspace/ui/components/floating-action-b
 import { MetricCard } from "@workspace/ui/components/metric-card"
 import { Field, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
-import { PageLoading } from "@workspace/ui/components/page-loading"
+import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
@@ -83,7 +83,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { TablePagination } from "@workspace/ui/components/table-pagination"
+import { TablePagination } from "@/components/table-pagination"
 import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 
 export type AdminModuleKey =

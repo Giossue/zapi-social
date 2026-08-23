@@ -10,7 +10,9 @@ function ScrollArea({
   children,
   scrollbarClassName,
   ...props
-}: React.ComponentProps<typeof ScrollAreaPrimitive.Root> & { scrollbarClassName?: string }) {
+}: React.ComponentProps<typeof ScrollAreaPrimitive.Root> & {
+  scrollbarClassName?: string
+}) {
   return (
     <ScrollAreaPrimitive.Root
       data-slot="scroll-area"

@@ -71,7 +71,19 @@ Este inventario refleja los módulos reales de `packages/ui/src/components/`. No
 | `Separator`                                                | `@workspace/ui/components/separator`           | Separación semántica entre bloques o acciones.                                                                                                                                                      |
 | `Table`                                                    | `@workspace/ui/components/table`               | Datos tabulares y listados operativos; incorpora la densidad de Channels, encabezado `muted` de peso normal, padding uniforme y borde/hover compartidos.                                            |
 | `DataTableHeader` / `DataTableToolbar` / `DataTableFilter` | `@workspace/ui/components/data-table-controls` | Composición canónica de tablas operativas: contexto opcional, búsqueda/acción y filtros adaptables; sin contexto, búsqueda queda a la izquierda y acción al extremo derecho; nunca muestra conteos. Bajo `md`, `DataTableToolbar` pliega sus filtros tras un botón «Filtros» con estado expandido accesible. |
-| `TablePagination`                                          | `@workspace/ui/components/table-pagination`    | Único lugar para el total de resultados y único footer de tablas: rango a la izquierda y navegación anterior/siguiente a la derecha.                                                                |
+| `TablePagination`                                          | `@workspace/ui/components/table-pagination`    | Único lugar para el total de resultados y único footer de tablas: rango a la izquierda y navegación anterior/siguiente a la derecha. Recibe `rangeLabel` ya formateado: los primitives no traducen. |
+
+## Texto en los primitives
+
+`packages/ui` no depende de `next-intl` ni conoce el idioma activo: cualquier
+rótulo visible llega por props desde `apps/web`. Los primitives que mostraban
+texto propio —`TablePagination`, `PageLoading`, `TimePicker` y el plegado de
+filtros de `DataTableToolbar`— lo reciben ahora de fuera, y las rutas importan
+sus envoltorios de `@/components/` en vez del primitive.
+
+Los rótulos accesibles que shadcn/ui trae en su código (`Close`, `Toggle
+Sidebar`, `Go to next page`) se conservan literales por la regla source-first;
+`audit:i18n-hardcoded` los tiene declarados para no marcarlos.
 
 ## Feedback, overlays y utilidades de interfaz
 

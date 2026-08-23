@@ -81,7 +81,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import { PageLoading } from "@workspace/ui/components/page-loading"
+import { PageLoading } from "@/components/page-loading"
 import {
   TABLE_EMPTY_ICON,
   TableEmptyRow,

@@ -30,8 +30,12 @@ SOURCE_LOCALE = "es"
 ICU_ARGUMENT = re.compile(r"\{(\w+)\s*[,}]")
 ICU_KIND = re.compile(r"\{\w+\s*,\s*(\w+)")
 
-NAMESPACE = re.compile(r'useTranslations(?:<[^>]*>)?\("([^"]+)"\)')
-DYNAMIC_KEY = re.compile(r"\bt\(`([^`]*)`")
+# La variable importa: un archivo puede declarar `t`, `tOps` y `tCommon` a la
+# vez, y quedarse con el último espacio declarado resuelve mal las claves.
+NAMESPACE = re.compile(
+    r'const (\w+) = useTranslations(?:<[^>]*>)?\("([^"]+)"\)'
+)
+DYNAMIC_KEY = re.compile(r"\b(\w+)\(`([^`]*)`")
 
 
 def flatten(node: dict, prefix: str = "") -> set[str]:
@@ -99,13 +103,14 @@ def dynamic_prefix_findings(catalog: dict) -> list[str]:
     for path in sorted(WEB.rglob("*.ts*")):
         if "node_modules" in str(path) or "/messages/" in str(path):
             continue
-        namespace = None
+        bindings: dict[str, str] = {}
         for number, line in enumerate(path.read_text("utf-8").split("\n"), 1):
             match = NAMESPACE.search(line)
             if match:
-                namespace = match.group(1)
+                bindings[match.group(1)] = match.group(2)
             for key in DYNAMIC_KEY.finditer(line):
-                value = key.group(1)
+                variable, value = key.group(1), key.group(2)
+                namespace = bindings.get(variable)
                 if "${" not in value or not namespace:
                     continue
                 prefix = value.split("${")[0].rstrip(".")

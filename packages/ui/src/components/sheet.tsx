@@ -62,7 +62,7 @@ function SheetContent({
         data-slot="sheet-content"
         data-side={side}
         className={cn(
-          "fixed z-50 flex w-full flex-col gap-4 bg-popover bg-clip-padding text-sm text-popover-foreground shadow-lg data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0 data-[side=bottom]:h-auto data-[side=bottom]:border-t data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-full data-[side=left]:sm:w-3/4 data-[side=left]:sm:border-r data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-full data-[side=right]:sm:w-3/4 data-[side=right]:sm:border-l data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=top]:h-auto data-[side=top]:border-b sm:max-w-sm data-[side=bottom]:max-w-none data-[side=top]:max-w-none data-[side=bottom]:[--sheet-slide-y:2.5rem] data-[side=left]:[--sheet-slide-x:-2.5rem] data-[side=right]:[--sheet-slide-x:2.5rem] data-[side=top]:[--sheet-slide-y:-2.5rem] data-open:animate-[sheet-slide-in_200ms_ease-out] data-closed:animate-[sheet-slide-out_200ms_ease-in]",
+          "fixed z-50 flex w-full flex-col gap-4 bg-popover bg-clip-padding text-sm text-popover-foreground shadow-lg data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0 data-[side=bottom]:h-auto data-[side=bottom]:max-w-none data-[side=bottom]:border-t data-[side=bottom]:[--sheet-slide-y:2.5rem] data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-full data-[side=left]:[--sheet-slide-x:-2.5rem] data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-full data-[side=right]:[--sheet-slide-x:2.5rem] data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=top]:h-auto data-[side=top]:max-w-none data-[side=top]:border-b data-[side=top]:[--sheet-slide-y:-2.5rem] sm:max-w-sm data-[side=left]:sm:w-3/4 data-[side=left]:sm:border-r data-[side=right]:sm:w-3/4 data-[side=right]:sm:border-l data-open:animate-[sheet-slide-in_200ms_ease-out] data-closed:animate-[sheet-slide-out_200ms_ease-in]",
           className
         )}
         {...props}
@@ -75,8 +75,7 @@ function SheetContent({
               className="absolute top-3 right-3"
               size="icon-sm"
             >
-              <XIcon
-              />
+              <XIcon />
               <span className="sr-only">Close</span>
             </Button>
           </SheetPrimitive.Close>

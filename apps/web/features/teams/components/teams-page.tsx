@@ -30,8 +30,8 @@ import { Button } from "@workspace/ui/components/button"
 import {
   DataTableFilter,
   DataTableHeader,
-  DataTableToolbar,
 } from "@workspace/ui/components/data-table-controls"
+import { DataTableToolbar } from "@/components/data-table-toolbar"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import {
   Card,
@@ -50,7 +50,7 @@ import {
 } from "@workspace/ui/components/dropdown-menu"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
-import { PageLoading } from "@workspace/ui/components/page-loading"
+import { PageLoading } from "@/components/page-loading"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
   Table,
@@ -64,7 +64,7 @@ import {
   TABLE_EMPTY_ICON,
   TableEmptyRow,
 } from "@workspace/ui/components/table-empty-row"
-import { TablePagination } from "@workspace/ui/components/table-pagination"
+import { TablePagination } from "@/components/table-pagination"
 import {
   Tabs,
   TabsContent,

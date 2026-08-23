@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl"
 import { flexRender, type Table as TableType } from "@tanstack/react-table"
 
 import { Spinner } from "@workspace/ui/components/spinner"
-import { TablePagination } from "@workspace/ui/components/table-pagination"
+import { TablePagination } from "@/components/table-pagination"
 import {
   Table,
   TableBody,

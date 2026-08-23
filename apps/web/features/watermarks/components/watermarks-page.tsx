@@ -55,7 +55,7 @@ import {
 } from "@workspace/ui/components/card"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import { EmptyState } from "@workspace/ui/components/empty-state"
-import { PageLoading } from "@workspace/ui/components/page-loading"
+import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import { toast } from "@workspace/ui/components/toast"
 import {
