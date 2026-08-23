@@ -68,7 +68,10 @@ export function AreaAccessGate({ area, children }: AreaAccessGateProps) {
   }, [area, redirect, t])
 
   useEffect(() => {
-    void validateSession()
+    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
+    // la carga anterior cuando el efecto se repite.
+    const timer = setTimeout(() => void validateSession(), 0)
+    return () => clearTimeout(timer)
   }, [validateSession])
 
   if (state.status === "loading") return <AccessLoading />

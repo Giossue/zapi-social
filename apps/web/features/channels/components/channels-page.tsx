@@ -381,7 +381,10 @@ export function LiveChannelsPage() {
   ])
 
   useEffect(() => {
-    void loadChannels()
+    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
+    // la carga anterior cuando el efecto se repite.
+    const timer = setTimeout(() => void loadChannels(), 0)
+    return () => clearTimeout(timer)
   }, [loadChannels])
 
   useEffect(() => {

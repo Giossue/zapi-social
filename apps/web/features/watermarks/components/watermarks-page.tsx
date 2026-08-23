@@ -503,7 +503,10 @@ function useLibraryImages() {
   }, [folderId, starredOnly, trimmedQuery])
 
   useEffect(() => {
-    void load()
+    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
+    // la carga anterior cuando el efecto se repite.
+    const timer = setTimeout(() => void load(), 0)
+    return () => clearTimeout(timer)
   }, [load])
 
   return {
@@ -767,7 +770,10 @@ export function WatermarksPage() {
   }, [])
 
   useEffect(() => {
-    void loadRules()
+    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
+    // la carga anterior cuando el efecto se repite.
+    const timer = setTimeout(() => void loadRules(), 0)
+    return () => clearTimeout(timer)
   }, [loadRules])
 
   const targetAccountIds = isGlobalScope ? [null] : selectedAccountIds

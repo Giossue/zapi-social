@@ -736,7 +736,10 @@ export function PlansPage() {
   }, [billingFilter, featuredFilter, query, statusFilter, t])
 
   useEffect(() => {
-    void loadPlans()
+    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
+    // la carga anterior cuando el efecto se repite.
+    const timer = setTimeout(() => void loadPlans(), 0)
+    return () => clearTimeout(timer)
   }, [loadPlans])
 
   function resetFilters() {

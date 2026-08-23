@@ -65,7 +65,10 @@ function useAdminResource<T>(load: () => Promise<T>, label: string) {
   }, [label, router])
 
   useEffect(() => {
-    void refresh()
+    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
+    // la carga anterior cuando el efecto se repite.
+    const timer = setTimeout(() => void refresh(), 0)
+    return () => clearTimeout(timer)
   }, [refresh])
 
   return { data, forbidden, isLoading, loadError, refresh, setData }

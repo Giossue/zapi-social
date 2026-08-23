@@ -89,7 +89,9 @@ export function LinkBioRenderer({
     >
       {page.coverUrl ? (
         <div className="relative h-36 w-full overflow-hidden">
-          // eslint-disable-next-line @next/next/no-img-element -- la portada y el avatar los sube el usuario y salen de la API, no de un dominio fijo.
+          // eslint-disable-next-line @next/next/no-img-element -- la portada y
+          el avatar los sube el usuario y salen de la API, no de un dominio
+          fijo.
           <img
             alt=""
             className={cn(

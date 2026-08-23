@@ -308,7 +308,10 @@ export function AiConfigurationPage() {
   }, [])
 
   useEffect(() => {
-    void load()
+    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
+    // la carga anterior cuando el efecto se repite.
+    const timer = setTimeout(() => void load(), 0)
+    return () => clearTimeout(timer)
   }, [load])
 
   async function testProvider(providerKey: AdminAiProviderKey) {

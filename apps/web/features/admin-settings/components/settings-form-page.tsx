@@ -96,7 +96,10 @@ export function SettingsFormPage<TValues extends Record<string, unknown>>({
   }, [handleError, title])
 
   useEffect(() => {
-    void refresh()
+    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
+    // la carga anterior cuando el efecto se repite.
+    const timer = setTimeout(() => void refresh(), 0)
+    return () => clearTimeout(timer)
   }, [refresh])
 
   async function submit(event: FormEvent<HTMLFormElement>) {

@@ -103,7 +103,10 @@ export function WhatsAppStatusConnection({
   }, [reconnectAccountId, t])
 
   useEffect(() => {
-    void start()
+    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
+    // la carga anterior cuando el efecto se repite.
+    const timer = setTimeout(() => void start(), 0)
+    return () => clearTimeout(timer)
   }, [start])
 
   const connectionId = connection?.connection.id
