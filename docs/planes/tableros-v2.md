@@ -2,6 +2,15 @@
 
 ## Estado
 
+**Cerrado el 23 de agosto de 2026**, salvo el correo de vencimiento, que queda
+anotado en la fase 4 con su motivo. Portal tiene dos tableros: uno de tareas
+con columnas configurables y otro de contenido sobre `publishing_posts`.
+
+Evidencia: `bun run typecheck` 8/8, `bun run build` 6/6, `bun run lint` sin
+avisos, los tres auditores sin hallazgos y 5 pruebas de integración del tablero
+ejecutadas contra `zapi_v2_local`. La migración `0039_board_tasks` está
+aplicada en local y en remoto.
+
 **Abierto el 23 de agosto de 2026.** Funcionalidad nueva: no existe en
 ZapiSocial, así que no hay equivalencia Laravel que auditar. La referencia
 visual es
