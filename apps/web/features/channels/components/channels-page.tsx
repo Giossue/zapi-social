@@ -18,19 +18,19 @@ import {
 } from "@workspace/ui/components/alert-dialog"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@workspace/ui/components/dialog"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { TABLE_EMPTY_ICON } from "@workspace/ui/components/table-empty-row"
 import { Field, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { RetryButton } from "@workspace/ui/components/retry-button"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@workspace/ui/components/sheet"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
 import { LockKeyhole, Save, Trash2, TriangleAlert } from "lucide-react"
@@ -141,7 +141,7 @@ function readMetaOAuthSession(): MetaOAuthSession | null {
   }
 }
 
-function EditChannelDialog({
+function EditChannelSheet({
   account,
   onOpenChange,
   onSave,
@@ -166,32 +166,40 @@ function EditChannelDialog({
   }
 
   return (
-    <Dialog onOpenChange={onOpenChange} open={account !== null}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t("editTitle")}</DialogTitle>
-          <DialogDescription>{t("renameHint")}</DialogDescription>
-        </DialogHeader>
-        <form className="flex flex-col gap-4" noValidate onSubmit={submit}>
-          <FieldGroup className="gap-4">
-            <Field className="gap-1.5">
-              <FieldLabel htmlFor="channel-display-name">
-                {t("displayName")}
-                <span aria-hidden="true" className="text-destructive">
-                  *
-                </span>
-              </FieldLabel>
-              <Input
-                aria-required="true"
-                id="channel-display-name"
-                maxLength={255}
-                name="displayName"
-                onChange={(event) => setDisplayName(event.target.value)}
-                value={displayName}
-              />
-            </Field>
-          </FieldGroup>
-          <DialogFooter>
+    <Sheet onOpenChange={onOpenChange} open={account !== null}>
+      <SheetContent className="w-full gap-0 p-0 sm:max-w-lg" side="right">
+        <SheetHeader className="border-b">
+          <SheetTitle>{t("editTitle")}</SheetTitle>
+          <SheetDescription>{t("renameHint")}</SheetDescription>
+        </SheetHeader>
+        <form
+          aria-busy={pending}
+          className="flex min-h-0 flex-1 flex-col"
+          noValidate
+          onSubmit={submit}
+        >
+          <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4">
+            <FieldGroup className="gap-4">
+              <Field className="gap-1.5">
+                <FieldLabel htmlFor="channel-display-name">
+                  {t("displayName")}
+                  <span aria-hidden="true" className="text-destructive">
+                    *
+                  </span>
+                </FieldLabel>
+                <Input
+                  aria-required="true"
+                  disabled={pending}
+                  id="channel-display-name"
+                  maxLength={255}
+                  name="displayName"
+                  onChange={(event) => setDisplayName(event.target.value)}
+                  value={displayName}
+                />
+              </Field>
+            </FieldGroup>
+          </div>
+          <SheetFooter className="flex-row justify-end border-t">
             <Button
               disabled={pending}
               onClick={() => onOpenChange(false)}
@@ -211,10 +219,10 @@ function EditChannelDialog({
               )}
               {t("saveChanges")}
             </Button>
-          </DialogFooter>
+          </SheetFooter>
         </form>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   )
 }
 
@@ -669,7 +677,7 @@ export function LiveChannelsPage() {
         tableActions={tableActions}
         total={summary.total}
       />
-      <EditChannelDialog
+      <EditChannelSheet
         account={editingAccount}
         key={editingAccount?.id ?? "closed"}
         onOpenChange={(open) => !open && setEditingAccount(null)}
