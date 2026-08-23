@@ -58,6 +58,7 @@ import {
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { toast } from "@workspace/ui/components/toast"
+import { useTranslations } from "next-intl"
 
 /**
  * Catálogo breve de soporte (categorías, etiquetas y tipos del módulo Laravel
@@ -103,6 +104,7 @@ function CatalogSheet({
   onSave: (values: { name: string; isActive: boolean }) => void
   open: boolean
 }) {
+  const t = useTranslations("adminSupport")
   const [name, setName] = useState(editing?.name ?? "")
   const [isActive, setIsActive] = useState(editing?.isActive ?? true)
   const complete = Boolean(name.trim())
@@ -110,7 +112,7 @@ function CatalogSheet({
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!complete) {
-      toast.error("Completa todos los campos obligatorios.")
+      toast.error(t("missingFields"))
       return
     }
     onSave({ name: name.trim(), isActive })
@@ -122,7 +124,7 @@ function CatalogSheet({
       <SheetContent className="w-full gap-0 p-0 sm:max-w-lg" side="right">
         <SheetHeader className="border-b">
           <SheetTitle>
-            {editing ? `Editar ${editing.name}` : copy.createLabel}
+            {editing ? t("edit", { name: editing.name }) : copy.createLabel}
           </SheetTitle>
           <SheetDescription>{copy.sheetDescription}</SheetDescription>
         </SheetHeader>
@@ -135,7 +137,7 @@ function CatalogSheet({
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="catalog-name">
-                  Nombre <RequiredMark />
+                  {t("name")} <RequiredMark />
                 </FieldLabel>
                 <Input
                   aria-required="true"
@@ -152,9 +154,9 @@ function CatalogSheet({
                 />
                 <FieldLabel htmlFor="catalog-active">
                   <FieldContent>
-                    <FieldTitle>Activa</FieldTitle>
+                    <FieldTitle>{t("active")}</FieldTitle>
                     <FieldDescription>
-                      Solo los registros activos se ofrecen al clasificar casos.
+                      {t("activeDescription")}
                     </FieldDescription>
                   </FieldContent>
                 </FieldLabel>
@@ -167,10 +169,10 @@ function CatalogSheet({
               type="button"
               variant="brand-secondary"
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button disabled={!complete} type="submit">
-              <Plus data-icon="inline-start" /> Guardar
+              <Plus data-icon="inline-start" /> {t("save")}
             </Button>
           </SheetFooter>
         </form>
@@ -188,6 +190,7 @@ export function SupportCatalogPanel({
   items: readonly SupportCatalogItem[]
   onChange: (items: SupportCatalogItem[]) => void
 }) {
+  const t = useTranslations("adminSupport")
   const [query, setQuery] = useState("")
   const [status, setStatus] = useState("all")
   const [page, setPage] = useState(1)
@@ -228,7 +231,7 @@ export function SupportCatalogPanel({
           item.id === editing.id ? { ...item, ...values } : item
         )
       )
-      toast.success("Cambios guardados.")
+      toast.success(t("saved"))
       return
     }
     onChange([
@@ -236,13 +239,13 @@ export function SupportCatalogPanel({
       ...items,
     ])
     setPage(1)
-    toast.success("Registro creado.")
+    toast.success(t("recordCreated"))
   }
 
   function remove(item: SupportCatalogItem) {
     onChange(items.filter((current) => current.id !== item.id))
     setToDelete(null)
-    toast.success("Registro eliminado.")
+    toast.success(t("recordDeleted"))
   }
 
   return (
@@ -260,7 +263,7 @@ export function SupportCatalogPanel({
             </Button>
           }
           search={{
-            ariaLabel: `Buscar ${copy.itemLabel}`,
+            ariaLabel: t("searchCatalog", { items: copy.itemLabel }),
             onChange: (value) => {
               setQuery(value)
               setPage(1)
@@ -279,22 +282,22 @@ export function SupportCatalogPanel({
                   type="button"
                   variant="outline"
                 >
-                  <X /> Limpiar
+                  <X /> {t("clear")}
                 </Button>
               ) : undefined
             }
           >
             <DataTableFilter
-              ariaLabel="Filtrar por estado"
-              label="Estado"
+              ariaLabel={t("filterStatus")}
+              label={t("statusColumn")}
               onValueChange={(value) => {
                 setStatus(value)
                 setPage(1)
               }}
               options={[
-                { label: "Todos", value: "all" },
-                { label: "Activos", value: "active" },
-                { label: "Inactivos", value: "inactive" },
+                { label: t("all"), value: "all" },
+                { label: t("filter.active"), value: "active" },
+                { label: t("filter.inactive"), value: "inactive" },
               ]}
               value={status}
             />
@@ -302,9 +305,9 @@ export function SupportCatalogPanel({
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nombre</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
+                <TableHead>{t("name")}</TableHead>
+                <TableHead>{t("statusColumn")}</TableHead>
+                <TableHead className="text-right">{t("actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -314,14 +317,16 @@ export function SupportCatalogPanel({
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell>
                       <Badge variant={item.isActive ? "success" : "neutral"}>
-                        {item.isActive ? "Activo" : "Inactivo"}
+                        {item.isActive
+                          ? t("catalogStatus.active")
+                          : t("catalogStatus.inactive")}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
-                            aria-label={`Abrir acciones para ${item.name}`}
+                            aria-label={t("openActions", { name: item.name })}
                             className="size-8 rounded-md text-muted-foreground hover:bg-muted/50"
                             size="icon-sm"
                             variant="brand-secondary"
@@ -338,7 +343,7 @@ export function SupportCatalogPanel({
                             size="compact"
                           >
                             <Pencil />
-                            Editar
+                            {t("editAction")}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
@@ -347,7 +352,7 @@ export function SupportCatalogPanel({
                             variant="destructive"
                           >
                             <Trash2 />
-                            Eliminar
+                            {t("delete")}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -359,17 +364,17 @@ export function SupportCatalogPanel({
                   action={
                     hasFilters ? (
                       <Button onClick={clearFilters} variant="outline">
-                        Restablecer filtros
+                        {t("resetFilters")}
                       </Button>
                     ) : null
                   }
                   colSpan={3}
                   description={
                     hasFilters
-                      ? "Prueba con otro término o restablece los filtros."
+                      ? t("emptyFilteredDescription")
                       : copy.emptyDescription
                   }
-                  title={hasFilters ? "No hay coincidencias" : copy.emptyTitle}
+                  title={hasFilters ? t("noMatches") : copy.emptyTitle}
                 />
               )}
             </TableBody>
@@ -410,14 +415,14 @@ export function SupportCatalogPanel({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              ¿Eliminar “{toDelete?.name ?? ""}”?
+              {t("deleteTitle", { name: toDelete?.name ?? "" })}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer.
+              {t("deleteDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={(event) => {
                 event.preventDefault()
@@ -425,7 +430,7 @@ export function SupportCatalogPanel({
               }}
               variant="destructive"
             >
-              Eliminar
+              {t("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

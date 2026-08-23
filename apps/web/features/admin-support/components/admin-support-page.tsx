@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
+import { useFormatter, useTranslations } from "next-intl"
 import {
   CircleCheck,
   CircleDot,
@@ -65,12 +66,6 @@ import {
   type SupportCatalogItem,
 } from "./support-catalog-panel"
 
-const statusLabel: Record<AdminSupportTicketStatus, string> = {
-  open: "Abierto",
-  resolved: "Resuelto",
-  closed: "Cerrado",
-}
-
 const statusVariant: Record<
   AdminSupportTicketStatus,
   "info" | "success" | "secondary"
@@ -131,50 +126,30 @@ const initialTypes: readonly SupportCatalogItem[] = [
   { id: "type-4", name: "Mejora", isActive: false },
 ]
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("es-EC", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(value))
-}
-
 function isLocalTicket(ticket: AdminSupportTicket) {
   return ticket.id.startsWith("local-")
 }
 
+const metricCards = [
+  { icon: CircleDot, key: "open" },
+  { icon: Timer, key: "awaitingReply" },
+  { icon: CircleCheck, key: "resolved" },
+  { icon: CircleX, key: "closed" },
+] as const
+
 function SupportMetrics({ metrics }: { metrics: AdminSupportMetrics }) {
-  const items = [
-    {
-      description: "Casos en curso",
-      icon: CircleDot,
-      label: "Abiertos",
-      value: metrics.open,
-    },
-    {
-      description: "Esperan respuesta del equipo",
-      icon: Timer,
-      label: "Sin responder",
-      value: metrics.awaitingReply,
-    },
-    {
-      description: "Atendidos en el historial",
-      icon: CircleCheck,
-      label: "Resueltos",
-      value: metrics.resolved,
-    },
-    {
-      description: "Sin acciones pendientes",
-      icon: CircleX,
-      label: "Cerrados",
-      value: metrics.closed,
-    },
-  ]
+  const t = useTranslations("adminSupport")
 
   return (
     <CardGrid>
-      {items.map((item) => (
-        <MetricCard key={item.label} {...item} />
+      {metricCards.map((card) => (
+        <MetricCard
+          description={t(`metric.${card.key}.description`)}
+          icon={card.icon}
+          key={card.key}
+          label={t(`metric.${card.key}.label`)}
+          value={metrics[card.key]}
+        />
       ))}
     </CardGrid>
   )
@@ -182,6 +157,8 @@ function SupportMetrics({ metrics }: { metrics: AdminSupportMetrics }) {
 
 export function AdminSupportPage() {
   const router = useRouter()
+  const t = useTranslations("adminSupport")
+  const format = useFormatter()
   const [tickets, setTickets] = useState<AdminSupportTicket[]>([])
   const [categories, setCategories] = useState<AdminSupportCategory[]>([])
   const [metrics, setMetrics] = useState<AdminSupportMetrics>(emptyMetrics)
@@ -296,7 +273,7 @@ export function AdminSupportPage() {
         status: "open",
         category: {
           id: category?.id ?? "local-category",
-          name: category?.name ?? "Sin categoría",
+          name: category?.name ?? t("noCategory"),
           slug: "local",
           description: "",
           status: "active",
@@ -319,24 +296,24 @@ export function AdminSupportPage() {
   if (forbidden) {
     return (
       <EmptyState
-        description="Tu cuenta no tiene permisos para administrar el soporte de la plataforma."
+        description={t("forbiddenDescription")}
         icon={ShieldX}
-        title="Acceso restringido"
+        title={t("forbiddenTitle")}
       />
     )
   }
 
   if (isLoading && !tickets.length && !loadError) {
-    return <PageLoading aria-label="Cargando casos de soporte" />
+    return <PageLoading aria-label={t("loadingCases")} />
   }
 
   if (loadError) {
     return (
       <EmptyState
         action={<RetryButton onClick={() => void load()} />}
-        description="No fue posible cargar los casos de soporte."
+        description={t("loadFailedDescription")}
         icon={LifeBuoy}
-        title="No pudimos cargar esta sección"
+        title={t("loadFailedTitle")}
       />
     )
   }
@@ -344,19 +321,16 @@ export function AdminSupportPage() {
   return (
     <>
       <div className="flex flex-col gap-4">
-        <CollectionHeader
-          description="Cola de casos de todos los espacios de trabajo y catálogos que clasifican la atención."
-          title="Soporte"
-        />
+        <CollectionHeader description={t("description")} title={t("title")} />
         <Tabs defaultValue="cases">
           <TabsList
-            aria-label="Secciones de soporte"
+            aria-label={t("tabsLabel")}
             className="flex h-auto flex-wrap"
           >
-            <TabsTrigger value="cases">Casos</TabsTrigger>
-            <TabsTrigger value="categories">Categorías</TabsTrigger>
-            <TabsTrigger value="labels">Etiquetas</TabsTrigger>
-            <TabsTrigger value="types">Tipos</TabsTrigger>
+            <TabsTrigger value="cases">{t("tab.cases")}</TabsTrigger>
+            <TabsTrigger value="categories">{t("tab.categories")}</TabsTrigger>
+            <TabsTrigger value="labels">{t("tab.labels")}</TabsTrigger>
+            <TabsTrigger value="types">{t("tab.types")}</TabsTrigger>
           </TabsList>
           <TabsContent className="flex flex-col gap-4" value="cases">
             <SupportMetrics metrics={displayMetrics} />
@@ -369,16 +343,16 @@ export function AdminSupportPage() {
                     size="sm"
                     type="button"
                   >
-                    <Plus data-icon="inline-start" /> Nuevo caso
+                    <Plus data-icon="inline-start" /> {t("newCase")}
                   </Button>
                 }
                 search={{
-                  ariaLabel: "Buscar casos de soporte",
+                  ariaLabel: t("searchAriaLabel"),
                   onChange: (value) => {
                     setQuery(value)
                     setPage(1)
                   },
-                  placeholder: "Buscar por asunto, cliente o espacio...",
+                  placeholder: t("searchPlaceholder"),
                   value: query,
                 }}
               />
@@ -392,48 +366,48 @@ export function AdminSupportPage() {
                         type="button"
                         variant="outline"
                       >
-                        <X /> Limpiar
+                        <X /> {t("clear")}
                       </Button>
                     ) : undefined
                   }
                 >
                   <DataTableFilter
-                    ariaLabel="Filtrar por cola"
-                    label="Cola"
+                    ariaLabel={t("filterQueue")}
+                    label={t("queueColumn")}
                     onValueChange={(value) => {
                       setQueue(value as "all" | "awaiting")
                       setPage(1)
                     }}
                     options={[
-                      { label: "Todos", value: "all" },
-                      { label: "Sin responder", value: "awaiting" },
+                      { label: t("all"), value: "all" },
+                      { label: t("unanswered"), value: "awaiting" },
                     ]}
                     value={queue}
                   />
                   <DataTableFilter
-                    ariaLabel="Filtrar por estado"
-                    label="Estado"
+                    ariaLabel={t("filterStatus")}
+                    label={t("statusColumn")}
                     onValueChange={(value) => {
                       setStatus(value as AdminSupportTicketStatus | "all")
                       setPage(1)
                     }}
                     options={[
-                      { label: "Todos", value: "all" },
-                      { label: "Abiertos", value: "open" },
-                      { label: "Resueltos", value: "resolved" },
-                      { label: "Cerrados", value: "closed" },
+                      { label: t("all"), value: "all" },
+                      { label: t("status.open"), value: "open" },
+                      { label: t("status.resolved"), value: "resolved" },
+                      { label: t("status.closed"), value: "closed" },
                     ]}
                     value={status}
                   />
                   <DataTableFilter
-                    ariaLabel="Filtrar por categoría"
-                    label="Categoría"
+                    ariaLabel={t("filterCategory")}
+                    label={t("category")}
                     onValueChange={(value) => {
                       setCategoryId(value)
                       setPage(1)
                     }}
                     options={[
-                      { label: "Todas", value: "all" },
+                      { label: t("allFeminine"), value: "all" },
                       ...categories.map((category) => ({
                         label: category.name,
                         value: category.id,
@@ -446,18 +420,20 @@ export function AdminSupportPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Caso</TableHead>
+                        <TableHead>{t("caseColumn")}</TableHead>
                         <TableHead className="hidden lg:table-cell">
-                          Espacio
+                          {t("workspaceColumn")}
                         </TableHead>
                         <TableHead className="hidden md:table-cell">
-                          Categoría
+                          {t("category")}
                         </TableHead>
-                        <TableHead>Estado</TableHead>
+                        <TableHead>{t("statusColumn")}</TableHead>
                         <TableHead className="hidden lg:table-cell">
-                          Actividad
+                          {t("activityColumn")}
                         </TableHead>
-                        <TableHead className="text-right">Acción</TableHead>
+                        <TableHead className="text-right">
+                          {t("actionColumn")}
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -484,15 +460,20 @@ export function AdminSupportPage() {
                             <TableCell>
                               <div className="flex flex-wrap items-center gap-1.5">
                                 <Badge variant={statusVariant[ticket.status]}>
-                                  {statusLabel[ticket.status]}
+                                  {t(`status.${ticket.status}`)}
                                 </Badge>
                                 {ticket.awaitingReply ? (
-                                  <Badge variant="warning">Sin responder</Badge>
+                                  <Badge variant="warning">
+                                    {t("unanswered")}
+                                  </Badge>
                                 ) : null}
                               </div>
                             </TableCell>
                             <TableCell className="hidden text-muted-foreground lg:table-cell">
-                              {formatDate(ticket.lastActivityAt)}
+                              {format.dateTime(
+                                new Date(ticket.lastActivityAt),
+                                "date"
+                              )}
                             </TableCell>
                             <TableCell className="text-right">
                               {isLocalTicket(ticket) ? (
@@ -503,8 +484,8 @@ export function AdminSupportPage() {
                                   size="sm"
                                   variant="brand-secondary"
                                 >
-                                  <MessageSquare data-icon="inline-start" /> Ver
-                                  caso
+                                  <MessageSquare data-icon="inline-start" />{" "}
+                                  {t("viewCase")}
                                 </Button>
                               ) : (
                                 <Button
@@ -514,7 +495,7 @@ export function AdminSupportPage() {
                                 >
                                   <Link href={`/admin/support/${ticket.id}`}>
                                     <MessageSquare data-icon="inline-start" />{" "}
-                                    Ver caso
+                                    {t("viewCase")}
                                   </Link>
                                 </Button>
                               )}
@@ -526,21 +507,17 @@ export function AdminSupportPage() {
                           action={
                             hasFilters ? (
                               <Button onClick={clearFilters} variant="outline">
-                                Restablecer filtros
+                                {t("resetFilters")}
                               </Button>
                             ) : null
                           }
                           colSpan={6}
                           description={
                             hasFilters
-                              ? "Prueba con otro término, estado o categoría."
-                              : "Cuando un cliente abra un caso aparecerá en esta cola."
+                              ? t("emptyFilteredCases")
+                              : t("emptyDescription")
                           }
-                          title={
-                            hasFilters
-                              ? "No hay coincidencias"
-                              : "Todavía no hay casos de soporte"
-                          }
+                          title={hasFilters ? t("noMatches") : t("emptyTitle")}
                         />
                       )}
                     </TableBody>
@@ -549,7 +526,7 @@ export function AdminSupportPage() {
                 <TablePagination
                   canGoNext={safePage < pageCount}
                   canGoPrevious={safePage > 1}
-                  itemLabel="casos"
+                  itemLabel={t("itemLabel")}
                   onNextPage={() =>
                     setPage((current) => Math.min(current + 1, pageCount))
                   }
@@ -563,21 +540,19 @@ export function AdminSupportPage() {
               </CardContent>
             </Card>
             <FloatingActionButton
-              label="Nuevo caso"
+              label={t("newCase")}
               onClick={() => setCreateOpen(true)}
             />
           </TabsContent>
           <TabsContent className="flex flex-col gap-4" value="categories">
             <SupportCatalogPanel
               copy={{
-                createLabel: "Nueva categoría",
-                emptyDescription:
-                  "Crea una categoría para organizar los casos.",
-                emptyTitle: "No hay categorías",
-                itemLabel: "categorías",
-                searchPlaceholder: "Buscar categorías...",
-                sheetDescription:
-                  "Las categorías organizan los casos por área de producto.",
+                createLabel: t("categories.create"),
+                emptyDescription: t("categories.emptyDescription"),
+                emptyTitle: t("categories.emptyTitle"),
+                itemLabel: t("categories.itemLabel"),
+                searchPlaceholder: t("categories.searchPlaceholder"),
+                sheetDescription: t("categories.sheetDescription"),
               }}
               items={categoriesCatalog ?? []}
               onChange={setCategoriesCatalog}
@@ -586,14 +561,12 @@ export function AdminSupportPage() {
           <TabsContent className="flex flex-col gap-4" value="labels">
             <SupportCatalogPanel
               copy={{
-                createLabel: "Nueva etiqueta",
-                emptyDescription:
-                  "Crea una etiqueta para priorizar y clasificar los casos.",
-                emptyTitle: "No hay etiquetas",
-                itemLabel: "etiquetas",
-                searchPlaceholder: "Buscar etiquetas...",
-                sheetDescription:
-                  "Las etiquetas ayudan al triaje y a la priorización de casos.",
+                createLabel: t("labelsCatalog.create"),
+                emptyDescription: t("labelsCatalog.emptyDescription"),
+                emptyTitle: t("labelsCatalog.emptyTitle"),
+                itemLabel: t("labelsCatalog.itemLabel"),
+                searchPlaceholder: t("labelsCatalog.searchPlaceholder"),
+                sheetDescription: t("labelsCatalog.sheetDescription"),
               }}
               items={labelsCatalog}
               onChange={setLabelsCatalog}
@@ -602,14 +575,12 @@ export function AdminSupportPage() {
           <TabsContent className="flex flex-col gap-4" value="types">
             <SupportCatalogPanel
               copy={{
-                createLabel: "Nuevo tipo",
-                emptyDescription:
-                  "Crea un tipo para distinguir incidencias y solicitudes.",
-                emptyTitle: "No hay tipos",
-                itemLabel: "tipos",
-                searchPlaceholder: "Buscar tipos...",
-                sheetDescription:
-                  "Los tipos describen la naturaleza del caso dentro del flujo de soporte.",
+                createLabel: t("types.create"),
+                emptyDescription: t("types.emptyDescription"),
+                emptyTitle: t("types.emptyTitle"),
+                itemLabel: t("types.itemLabel"),
+                searchPlaceholder: t("types.searchPlaceholder"),
+                sheetDescription: t("types.sheetDescription"),
               }}
               items={typesCatalog}
               onChange={setTypesCatalog}

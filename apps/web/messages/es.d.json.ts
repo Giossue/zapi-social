@@ -2,2607 +2,2763 @@
 // See: https://next-intl.dev/docs/workflows/typescript#messages-arguments
 
 declare const messages: {
-  "common": {
-    "loading": "Cargando…",
-    "language": {
-      "es": "Español",
-      "en": "English",
-      "short": "ESP"
+  adminEmailTemplates: {
+    pageTitle: "Plantillas de correo"
+    pageDescription: "Asunto y textos de los correos transaccionales que envía Zapi."
+    loading: "Cargando plantillas de correo"
+    forbiddenTitle: "Acceso restringido"
+    forbiddenDescription: "Tu cuenta no tiene permisos para editar las plantillas de correo."
+    loadFailedTitle: "No pudimos cargar esta sección"
+    loadFailedDescription: "No fue posible cargar las plantillas de correo."
+    template: "Plantilla"
+    sheetDescription: "{description}. La maquetación, el botón y los datos calculados del correo no cambian."
+    buttonUrlHint: "El destino del botón lo calcula el sistema."
+    notice: "Aviso final"
+    missingFields: "Completa todos los campos obligatorios."
+    email: "Correo"
+    statusColumn: "Estado"
+    all: "Todos"
+    status: {
+      customized: "Personalizada"
+      default: "Texto por defecto"
     }
-  },
-  "errors": {
-    "generic": "No pudimos completar la solicitud. Inténtalo de nuevo.",
-    "AUTH_EMAIL_ALREADY_REGISTERED": "Ya existe una cuenta con este correo.",
-    "AUTH_INVALID_CREDENTIALS": "Correo o contraseña incorrectos.",
-    "AUTH_CAPTCHA_INVALID": "Completa la verificación de seguridad e inténtalo de nuevo.",
-    "AUTH_CAPTCHA_UNAVAILABLE": "No pudimos verificar la seguridad. Inténtalo nuevamente.",
-    "AUTH_PASSWORD_POLICY_NOT_MET": "La contraseña no cumple los requisitos de seguridad.",
-    "AUTH_SESSION_EXPIRED": "Tu sesión terminó. Inicia sesión de nuevo.",
-    "AUTH_WORKSPACE_UNAVAILABLE": "No fue posible acceder a tu cuenta.",
-    "VALIDATION_FAILED": "Revisa los datos e inténtalo de nuevo.",
-    "AI_PROVIDER_NOT_READY": "El administrador todavía no habilitó un modelo para esta herramienta.",
-    "AI_CREDITS_INSUFFICIENT": "No hay créditos suficientes para iniciar esta generación.",
-    "AI_REQUEST_RATE_LIMITED": "Hay demasiadas solicitudes. Espera un momento e inténtalo otra vez.",
-    "ACCOUNT_GRANT_NOT_ALLOWED": "No puedes asignar una o más de las cuentas seleccionadas.",
-    "INVITATION_ALREADY_PENDING": "Ya existe una invitación pendiente para ese correo.",
-    "INVITATION_RESEND_NOT_ALLOWED": "Esta invitación ya no se puede reenviar.",
-    "LAST_OWNER_PROTECTED": "Transfiere la propiedad antes de abandonar el workspace.",
-    "MEMBER_LIMIT_REACHED": "No quedan cupos disponibles en este workspace.",
-    "ROLE_CHANGE_NOT_ALLOWED": "Tu rol no permite completar este cambio.",
-    "TEAM_ACCESS_DENIED": "No tienes permiso para completar esta acción.",
-    "TEAM_MEMBER_ALREADY_EXISTS": "Ese correo ya pertenece al workspace."
-  },
-  "auth": {
-    "metadata": {
-      "login": "Iniciar sesión - Zapi Social",
-      "register": "Crear cuenta - Zapi Social",
-      "forgotPassword": "Recuperar contraseña - Zapi Social",
-      "resetPassword": "Restablecer contraseña - Zapi Social"
-    },
-    "page": {
-      "loginTitle": "Inicia sesión en tu cuenta",
-      "registerTitle": "Crea tu cuenta",
-      "loginDescription": "Ingresa tus datos para continuar.",
-      "registerDescription": "Ingresa tus datos para comenzar.",
-      "noAccount": "¿No tienes una cuenta?",
-      "hasAccount": "¿Ya tienes una cuenta?",
-      "copyright": "© {year} Zapi Social"
-    },
-    "form": {
-      "name": "Nombre",
-      "namePlaceholder": "Tu nombre",
-      "email": "Correo electrónico",
-      "emailPlaceholder": "tu@correo.com",
-      "password": "Contraseña",
-      "passwordConfirmation": "Confirmar contraseña",
-      "timezone": "Zona horaria",
-      "timezonePlaceholder": "Selecciona tu zona horaria",
-      "remember": "Recordarme",
-      "forgotPassword": "¿Olvidaste tu contraseña?",
-      "showPassword": "Mostrar contraseña",
-      "hidePassword": "Ocultar contraseña",
-      "showPasswordConfirmation": "Mostrar confirmación de contraseña",
-      "hidePasswordConfirmation": "Ocultar confirmación de contraseña",
-      "submitLogin": "Iniciar sesión",
-      "submitRegister": "Crear cuenta",
-      "submitting": "Comprobando…",
-      "submittingLabel": "Comprobando"
-    },
-    "passwordPolicy": {
-      "length": "8 caracteres o más",
-      "uppercase": "Una letra mayúscula",
-      "lowercase": "Una letra minúscula",
-      "number": "Un número",
-      "special": "Un carácter especial",
-      "match": "Las contraseñas coinciden"
-    },
-    "validation": {
-      "email": "Ingresa un correo electrónico válido.",
-      "password": "Ingresa tu contraseña.",
-      "captcha": "Completa la verificación de seguridad.",
-      "name": "Ingresa tu nombre.",
-      "timezone": "Selecciona tu zona horaria.",
-      "passwordPolicy": "La contraseña debe tener 8 caracteres, mayúscula, minúscula, número y símbolo.",
-      "passwordMismatch": "Las contraseñas no coinciden.",
-      "captchaUnavailable": "No pudimos cargar la verificación de seguridad.",
-      "missingArea": "Tu sesión no incluye el área de acceso requerida. Vuelve a iniciar sesión."
-    },
-    "recovery": {
-      "requestTitle": "Recupera tu acceso",
-      "requestDescription": "Te enviaremos instrucciones si existe una cuenta asociada al correo.",
-      "sentNotice": "Si el correo existe, recibirás un enlace de recuperación en unos minutos.",
-      "backToLogin": "Volver a iniciar sesión",
-      "submitRequest": "Enviar instrucciones",
-      "sending": "Enviando",
-      "requestFailed": "No pudimos procesar la solicitud. Inténtalo de nuevo.",
-      "invalidLinkTitle": "Enlace no válido",
-      "invalidLinkDescription": "Solicita un enlace nuevo para continuar.",
-      "requestNewLink": "Solicitar recuperación",
-      "completedTitle": "Contraseña actualizada",
-      "completedDescription": "Ya puedes iniciar sesión con tu nueva contraseña.",
-      "login": "Iniciar sesión",
-      "resetTitle": "Crea una nueva contraseña",
-      "resetDescription": "Elige una contraseña nueva. El enlace solo se puede usar una vez.",
-      "newPassword": "Nueva contraseña",
-      "confirmPassword": "Confirmar contraseña",
-      "policyHint": "Usa 8 o más caracteres, con mayúscula, minúscula, número y carácter especial.",
-      "submitReset": "Restablecer contraseña",
-      "updating": "Actualizando",
-      "invalidToken": "El enlace de recuperación no es válido.",
-      "checkPassword": "Revisa la contraseña y su confirmación.",
-      "resetSuccess": "Contraseña actualizada. Inicia sesión con la nueva contraseña.",
-      "expiredToken": "Este enlace ya no es válido. Solicita uno nuevo.",
-      "resetPolicyFailed": "La contraseña debe incluir mayúscula, minúscula, número y carácter especial.",
-      "resetFailed": "No pudimos restablecer la contraseña. Inténtalo de nuevo."
-    },
-    "access": {
-      "accessCheckTitle": "No pudimos verificar tu acceso",
-      "accessCheckFailed": "No pudimos validar tu acceso. Comprueba tu conexión e inténtalo de nuevo."
+    searchLabel: "Buscar plantillas"
+    searchPlaceholder: "Buscar plantillas..."
+    filterStatus: "Filtrar por estado"
+    noMatches: "No hay coincidencias"
+    emptyTitle: "No hay plantillas de correo"
+    emptyDescription: "Las plantillas del sistema aparecerán aquí."
+    emptyFilteredDescription: "Prueba con otro término o estado."
+    updated: "Plantilla actualizada."
+    saveFailed: "No pudimos guardar la plantilla."
+    resetTitle: "Restablecer plantilla"
+    resetDescription: "«{name}» vuelve al texto por defecto del sistema y se pierde la personalización guardada."
+    reset: "Plantilla restablecida."
+    resetFailed: "No pudimos restablecer la plantilla."
+    cancel: "Cancelar"
+  }
+  adminManualPayments: {
+    pageTitle: "Pagos manuales"
+    pageDescription: "Cobros fuera de Polar: transferencias, depósitos y efectivo registrados por el equipo."
+    loading: "Cargando pagos manuales"
+    forbiddenTitle: "Acceso restringido"
+    forbiddenDescription: "Tu cuenta no tiene permisos para administrar los pagos manuales."
+    loadFailedTitle: "No pudimos cargar esta sección"
+    loadFailedDescription: "No fue posible cargar los pagos manuales."
+    sectionsLabel: "Secciones de pagos manuales"
+    tab: {
+      payments: "Pagos"
+      settings: "Configuración"
     }
-  },
-  "navigation": {
-    "portal": {
-      "affiliate": "Afiliados",
-      "aiAutomation": "Automatizaciones",
-      "aiChat": "Chat",
-      "aiCredits": "Créditos",
-      "aiSettings": "Ajustes AI",
-      "aiStudio": "AI Studio",
-      "apps": "Aplicaciones",
-      "automation": "API de automatización",
-      "bulkPosts": "Publicaciones masivas",
-      "calendar": "Calendario",
-      "captions": "Captions",
-      "channels": "Canales",
-      "contentTools": "Herramientas de contenido",
-      "drafts": "Borradores",
-      "files": "Archivos",
-      "general": "General",
-      "groups": "Grupos",
-      "help": "Ayuda",
-      "library": "Biblioteca",
-      "linkBio": "Link in bio",
-      "onlineMedia": "Buscar medios online",
-      "overview": "Resumen",
-      "publishing": "Publicación",
-      "queue": "Cola",
-      "rssSchedules": "Programaciones RSS",
-      "support": "Soporte",
-      "teams": "Equipos",
-      "watermarks": "Marca de agua",
-      "workspace": "Espacio de trabajo"
-    },
-    "admin": {
-      "accounts": "Cuentas",
-      "affiliate": "Afiliados",
-      "ai": "AI",
-      "aiConfiguration": "Configuración AI",
-      "aiObservability": "Observabilidad AI",
-      "aiReport": "Reporte",
-      "aiTemplateCategories": "Categorías",
-      "aiTemplates": "Plantillas AI",
-      "aiUsage": "Uso",
-      "analytics": "Analítica",
-      "announcements": "Anuncios",
-      "audit": "Auditoría",
-      "auth": "Autenticación",
-      "billing": "Facturación",
-      "blog": "Blog",
-      "blogPosts": "Entradas",
-      "blogRss": "RSS Feeds",
-      "cache": "Cache",
-      "captcha": "Captcha",
-      "cases": "Casos",
-      "categories": "Categorías",
-      "content": "Contenido",
-      "coupons": "Cupones",
-      "credits": "Créditos",
-      "crons": "Tareas programadas",
-      "emailTemplates": "Plantillas de correo",
-      "faqs": "Preguntas frecuentes",
-      "general": "General",
-      "integrations": "Integraciones",
-      "languages": "Idiomas",
-      "manualPayments": "Pagos manuales",
-      "operations": "Operación",
-      "overview": "Resumen",
-      "paymentReport": "Reporte de pagos",
-      "payments": "Pagos",
-      "plans": "Planes",
-      "platform": "Plataforma",
-      "report": "Reporte",
-      "roles": "Roles",
-      "settings": "Ajustes",
-      "settingsGeneral": "General",
-      "staticPages": "Páginas estáticas",
-      "subscriptions": "Suscripciones",
-      "support": "Soporte",
-      "system": "Sistema",
-      "systemInformation": "Sistema",
-      "tags": "Etiquetas",
-      "teams": "Equipos",
-      "templates": "Plantillas",
-      "users": "Usuarios"
+    createTitle: "Registrar pago manual"
+    registerPayment: "Registrar pago"
+    searchWorkspace: "Buscar espacio de trabajo"
+    searchWorkspacePlaceholder: "Buscar espacio..."
+    selectWorkspace: "Selecciona un espacio"
+    ownerHint: "El pago se atribuye al propietario del espacio."
+    product: "Producto"
+    required: "obligatorio"
+    productType: {
+      plan: "Plan"
+      creditsPack: "Paquete de créditos"
+      pack: "Paquete"
     }
-  },
-  "shell": {
-    "portalNavigationLabel": "Navegación principal del portal",
-    "adminNavigationLabel": "Navegación principal de la plataforma",
-    "profile": "Perfil",
-    "promptHistory": "Historial de prompts",
-    "account": {
-      "profile": "Mi perfil",
-      "logout": "Cerrar sesión",
-      "logoutFailed": "No pudimos cerrar tu sesión. Inténtalo de nuevo."
-    },
-    "theme": {
-      "label": "Tema",
-      "light": "Claro",
-      "dark": "Oscuro",
-      "system": "Sistema"
-    },
-    "workspaces": {
-      "title": "Espacios de trabajo",
-      "switching": "Cambiando espacio",
-      "activationFailed": "No pudimos cambiar el espacio de trabajo.",
-      "role": {
-        "owner": "Propietario",
-        "admin": "Administrador",
-        "member": "Miembro"
-      }
-    },
-    "search": {
-      "trigger": "Buscar",
-      "placeholder": "Buscar en la navegación…",
-      "empty": "No se encontraron resultados."
-    },
-    "notifications": {
-      "title": "Notificaciones",
-      "unreadLabel": "Notificaciones, {unread, number} sin leer",
-      "markAllRead": "Marcar todo como leído",
-      "archiveAll": "Archivar todo",
-      "loading": "Cargando",
-      "empty": "No tienes notificaciones."
+    selectOffer: "Selecciona una oferta"
+    reference: "Referencia"
+    referencePlaceholder: "PAY-000123"
+    referenceHint: "Identificador del comprobante. No puede repetirse."
+    paymentInfo: "Datos del pago"
+    paymentInfoPlaceholder: "Banco, número de operación, fecha del depósito..."
+    note: "Nota interna"
+    notePlaceholder: "Contexto para el equipo."
+    missingFields: "Completa todos los campos obligatorios."
+    referenceTaken: "Esa referencia ya está registrada."
+    actionFailed: "No pudimos completar la acción. Inténtalo de nuevo."
+    created: "Pago manual registrado."
+    approvedToast: "Pago aprobado y aplicado."
+    rejectedToast: "Pago rechazado."
+    applied: "Aplicado"
+    metrics: {
+      pending: "Pendientes"
+      pendingDescription: "Esperan revisión"
+      approved: "Aprobados"
+      approvedDescription: "Concedieron plan o créditos"
+      rejected: "Rechazados"
+      rejectedDescription: "Descartados por el equipo"
+      amount: "Importe aprobado"
+      amountDescription: "Total cobrado fuera de Polar"
     }
-  },
-  "dashboard": {
-    "labels": {
-      "noChannel": "Sin canal",
-      "aiKind": {
-        "ai_publishing": "AI Publishing",
-        "content": "Contenido",
-        "image": "Imagen",
-        "planner": "Planner",
-        "repurpose": "Repurpose",
-        "review": "Revisión",
-        "search": "Búsqueda",
-        "timing": "Timing",
-        "video": "Vídeo"
-      }
-    },
-    "portal": {
-      "loadFailedToast": "No pudimos cargar tu dashboard. Inténtalo de nuevo.",
-      "loadFailedTitle": "No pudimos cargar el dashboard",
-      "loadFailedDescription": "Comprueba tu conexión e inténtalo de nuevo.",
-      "metrics": {
-        "publishedPosts": "Publicaciones",
-        "activeChannels": "Canales activos",
-        "aiCredits": "Créditos AI usados",
-        "newFiles": "Archivos nuevos",
-        "previousWeeks": "frente a las 4 semanas previas",
-        "connectedRecently": "conectados en las últimas 4 semanas",
-        "noRecentConnections": "sin conexiones nuevas en 4 semanas"
-      },
-      "activity": {
-        "title": "Actividad de publicación",
-        "description": "Publicaciones por día frente al periodo anterior.",
-        "currentPeriod": "Últimas 4 semanas",
-        "previousPeriod": "Periodo anterior",
-        "tooltip": "Publicaciones",
-        "week": "Semana {number, number}"
-      },
-      "aiUsage": {
-        "title": "Uso de AI",
-        "description": "Solicitudes por día en las últimas 4 semanas.",
-        "series": "Solicitudes",
-        "creditsUsed": "créditos usados",
-        "empty": "Sin solicitudes AI en las últimas 4 semanas."
-      },
-      "breakdown": {
-        "title": "Distribución de publicaciones",
-        "description": "Últimas 4 semanas por canal y herramienta.",
-        "series": "Publicaciones",
-        "channels": "Canales",
-        "aiTools": "Herramientas AI",
-        "empty": "Sin datos en las últimas 4 semanas."
-      },
-      "upcoming": {
-        "title": "Próximas publicaciones",
-        "description": "Lo siguiente en tu calendario de contenido.",
-        "channel": "Canal",
-        "status": {
-          "draft": "Borrador",
-          "scheduled": "Programada"
-        },
-        "date": "Fecha",
-        "noContent": "Sin contenido",
-        "emptyTitle": "Sin publicaciones próximas",
-        "emptyDescription": "Programa una publicación para verla aquí.",
-        "statusColumn": "Estado"
-      }
-    },
-    "admin": {
-      "loading": "Cargando estado de la plataforma",
-      "unavailableTitle": "Panel no disponible",
-      "forbiddenDescription": "Solicita a un administrador el permiso necesario para ver el estado de la plataforma.",
-      "loadFailedDescription": "No pudimos consultar el estado de la plataforma.",
-      "smtpProvider": "Correo SMTP",
-      "statusSection": "Estado de la plataforma",
-      "growthSection": "Crecimiento y distribución",
-      "billingSection": "Facturación y actividad",
-      "operationsSection": "Operación de plataforma",
-      "attentionTitle": "Atención operativa",
-      "attentionDescription": "Proveedores que aún no están disponibles para los workspaces.",
-      "allReadyTitle": "Sin configuraciones pendientes",
-      "allReadyDescription": "Todos los proveedores configurados superaron su prueba de conexión.",
-      "allReadyBadge": "Correcto",
-      "integrationsTitle": "Integraciones",
-      "integrationsDescription": "Gestiona los proveedores que habilitan los canales para todos los clientes.",
-      "integrationsHint": "Revisa las configuraciones incompletas antes de habilitarlas para los workspaces.",
-      "integrationsAction": "Administrar integraciones",
-      "readiness": {
-        "ready": {
-          "label": "Listo",
-          "detail": "Disponible para los workspaces."
-        },
-        "incomplete": {
-          "label": "Incompleto",
-          "detail": "Faltan credenciales por completar."
-        },
-        "untested": {
-          "label": "Sin probar",
-          "detail": "Configurado, pero sin una prueba de conexión correcta."
-        },
-        "disabled": {
-          "label": "Deshabilitado",
-          "detail": "No se ofrece a los workspaces."
-        }
-      },
-      "metrics": {
-        "users": "Usuarios",
-        "workspaces": "Workspaces",
-        "subscriptions": "Suscripciones activas",
-        "revenue": "Ingresos",
-        "usersPreviousWeeks": "registros frente a las 4 semanas previas",
-        "workspacesPreviousWeeks": "creación frente a las 4 semanas previas",
-        "activeOrTrial": "activas o en periodo de prueba",
-        "chargedRecently": "cobrado en las últimas 4 semanas"
-      },
-      "growth": {
-        "title": "Crecimiento de usuarios",
-        "description": "Registros por día frente al periodo anterior.",
-        "currentPeriod": "Últimas 4 semanas",
-        "previousPeriod": "Periodo anterior",
-        "tooltip": "Registros",
-        "week": "Semana {number, number}"
-      },
-      "aiActivity": {
-        "title": "Actividad AI",
-        "description": "Solicitudes por día en las últimas 4 semanas.",
-        "series": "Solicitudes",
-        "requests": "solicitudes",
-        "empty": "Sin solicitudes AI en las últimas 4 semanas."
-      },
-      "breakdown": {
-        "title": "Distribución de la plataforma",
-        "description": "Suscripciones por plan y uso AI por herramienta.",
-        "series": "Total",
-        "plans": "Planes",
-        "aiTools": "Herramientas AI",
-        "empty": "Sin datos en las últimas 4 semanas."
-      },
-      "payments": {
-        "title": "Últimos pagos",
-        "description": "Cobros recientes de planes y créditos.",
-        "workspace": "Workspace",
-        "status": {
-          "failed": "Fallido",
-          "paid": "Pagado",
-          "partially_refunded": "Reembolso parcial",
-          "pending": "Pendiente",
-          "refunded": "Reembolsado"
-        },
-        "amount": "Importe",
-        "date": "Fecha",
-        "emptyTitle": "Sin pagos registrados",
-        "emptyDescription": "Los cobros de planes y créditos aparecerán aquí.",
-        "statusColumn": "Estado"
-      }
+    searchLabel: "Buscar pagos manuales"
+    searchPlaceholder: "Buscar por referencia, cliente o espacio..."
+    filterStatus: "Filtrar por estado"
+    statusColumn: "Estado"
+    all: "Todos"
+    status: {
+      pending: "Pendiente"
+      approved: "Aprobado"
+      rejected: "Rechazado"
     }
-  },
-  "publishing": {
-    "loader": {
-      "loadFailedTitle": "No se pudo cargar Publishing",
-      "loadFailedDescription": "No pudimos recuperar el calendario. Ninguna publicación fue modificada."
-    },
-    "accountPicker": {
-      "placeholder": "Seleccionar cuentas destino",
-      "selectedCount": "{count, plural, one {# cuenta seleccionada} other {# cuentas seleccionadas}}",
-      "searchLabel": "Buscar cuentas destino",
-      "searchPlaceholder": "Buscar por cuenta o nombre asignado",
-      "filterLabel": "Filtrar cuentas por red",
-      "allNetworks": "Todas",
-      "noResults": "No encontramos cuentas con esos filtros.",
-      "selectedLabel": "Cuentas seleccionadas",
-      "remove": "Quitar {account}"
-    },
-    "mediaPicker": {
-      "title": "Selecciona desde tu almacenamiento",
-      "searchLabel": "Buscar media en el almacenamiento",
-      "searchPlaceholder": "Buscar en tu almacenamiento",
-      "filterLabel": "Filtrar media por tipo",
-      "filter": {
-        "all": "Todo",
-        "image": "Imágenes",
-        "video": "Videos"
-      },
-      "kind": {
-        "image": "Imagen",
-        "video": "Video"
-      },
-      "driveImport": "Importar desde Google Drive",
-      "driveOpening": "Abriendo Google",
-      "driveImportingTitle": "Importando desde Google Drive",
-      "driveImportingDescription": "El archivo se guardará en Files y se seleccionará al terminar.",
-      "driveFailedTitle": "No se pudo importar desde Google Drive",
-      "driveFailedDescription": "Elige otro archivo para intentarlo de nuevo.",
-      "selectedLabel": "Media de la publicación",
-      "selectedBadge": "Media seleccionada"
-    },
-    "preview": {
-      "title": "Vista previa",
-      "description": "Basada en la cuenta seleccionada, el texto y la media actual.",
-      "emptyTitle": "Sin vista previa",
-      "emptyDescription": "Selecciona una cuenta y añade contenido para revisar el formato antes de publicar.",
-      "contentPlaceholder": "Empieza a escribir para ver cómo se leerá tu publicación.",
-      "mediaSelected": "Imagen o video seleccionado",
-      "now": "Ahora",
-      "nowPublic": "Ahora · Público",
-      "statusNow": "Estado · Ahora",
-      "like": "Me gusta",
-      "comment": "Comentar",
-      "share": "Compartir"
-    },
-    "calendar": {
-      "searchLabel": "Buscar publicaciones",
-      "searchPlaceholder": "Buscar publicaciones...",
-      "previousPeriod": "Periodo anterior",
-      "nextPeriod": "Periodo siguiente",
-      "filterChannel": "Filtrar por canal",
-      "options": "Opciones del calendario",
-      "viewLabel": "Vista del calendario",
-      "view": {
-        "month": "Mes",
-        "week": "Semana",
-        "day": "Día"
-      },
-      "current": {
-        "month": "Este mes",
-        "week": "Esta semana",
-        "day": "Hoy"
-      },
-      "create": "Nueva publicación",
-      "untitled": "Publicación sin texto"
-    },
-    "table": {
-      "create": "Nueva publicación",
-      "searchLabel": "Buscar publicaciones",
-      "clearFilters": "Limpiar",
-      "provider": "Red",
-      "status": "Estado",
-      "filterProviderLabel": "Filtrar por red",
-      "filterStatusLabel": "Filtrar por estado",
-      "allProviders": "Todas las redes",
-      "allStatuses": "Todos los estados",
-      "statusLabel": {
-        "draft": "Borrador",
-        "failed": "Fallida",
-        "processing": "En proceso",
-        "published": "Publicada",
-        "scheduled": "Programada"
-      },
-      "post": "Publicación",
-      "account": "Cuenta",
-      "date": "Fecha",
-      "actions": "Acciones",
-      "withMedia": "Con archivo",
-      "textOnly": "Solo texto",
-      "edit": "Editar",
-      "retry": "Reintentar",
-      "cancel": "Cancelar",
-      "deleteLabel": "Eliminar {title}",
-      "deleteTitle": "¿Eliminar borrador?",
-      "deleteDescription": "El borrador «{title}» se eliminará definitivamente. Esta acción no se puede deshacer.",
-      "deleteAction": "Eliminar borrador",
-      "deleting": "Eliminando...",
-      "empty": {
-        "filtered": {
-          "title": "No encontramos publicaciones",
-          "description": "Prueba otros filtros o limpia la búsqueda para ver las publicaciones disponibles."
-        },
-        "drafts": {
-          "title": "Todavía no hay borradores",
-          "description": "Guarda una publicación como borrador para continuarla después."
-        },
-        "queue": {
-          "title": "La cola está vacía",
-          "description": "Cuando programes o publiques una pieza, su progreso aparecerá aquí por cada destino."
-        }
-      },
-      "untitled": "Publicación sin texto",
-      "now": "Ahora"
-    },
-    "composer": {
-      "createTitle": "Nueva publicación",
-      "editTitle": "Editar publicación",
-      "composerDescription": "Valida cada destino antes de guardar, programar o publicar.",
-      "accounts": "Cuentas destino",
-      "content": "Texto",
-      "contentPlaceholder": "Escribe el contenido de tu publicación",
-      "media": "Media",
-      "when": "Cuándo publicar",
-      "mode": {
-        "draft": "Borrador",
-        "now": "Ahora",
-        "schedule": "Programar"
-      },
-      "cancel": "Cancelar",
-      "submit": {
-        "draft": "Guardar borrador",
-        "now": "Publicar ahora",
-        "schedule": "Programar"
-      },
-      "pending": {
-        "draft": "Guardando...",
-        "now": "Publicando...",
-        "schedule": "Programando..."
-      },
-      "driveImportFailed": "No pudimos importar el archivo desde Google Drive.",
-      "driveImportSuccess": "Archivo de Google Drive importado y seleccionado.",
-      "driveSelectFailed": "El archivo se importó, pero no pudimos seleccionarlo.",
-      "driveUnavailable": "Google Drive no está disponible en este momento.",
-      "driveStartFailed": "No pudimos iniciar la importación desde Google Drive."
-    },
-    "page": {
-      "pageTitle": "Publicación",
-      "pageDescription": "Planifica el calendario, sigue la cola de envíos y retoma los borradores de tus canales.",
-      "noAccessTitle": "No tienes acceso a Publishing",
-      "noAccessDescription": "Pide acceso a un administrador del espacio de trabajo para gestionar publicaciones.",
-      "sectionsLabel": "Secciones de Publishing",
-      "section": {
-        "calendar": "Calendario",
-        "queue": "Cola",
-        "drafts": "Borradores"
-      },
-      "calendarLabel": "Calendario de publicaciones",
-      "queueLabel": "Cola de publicaciones",
-      "draftsLabel": "Borradores",
-      "createTitle": "Nueva publicación",
-      "saved": "Los cambios se guardaron.",
-      "draftSaved": "El borrador se guardó.",
-      "publishStarted": "{count, plural, one {Iniciamos la operación para # destino.} other {Iniciamos la operación para # destinos.}}",
-      "scheduled": "{count, plural, one {Programamos # publicación.} other {Programamos # publicaciones.}}",
-      "validationFailed": "Revisa las cuentas, media y fecha antes de continuar.",
-      "saveFailed": "No pudimos guardar la publicación. Inténtalo de nuevo.",
-      "retryQueued": "El reintento se añadió a la cola.",
-      "retryFailed": "No pudimos reintentar la publicación.",
-      "draftDeleted": "El borrador se eliminó.",
-      "draftDeleteFailed": "No pudimos eliminar el borrador.",
-      "metrics": {
-        "scheduled": "Programadas",
-        "scheduledDescription": "Pendientes de publicarse",
-        "processing": "En proceso",
-        "processingDescription": "Enviando al proveedor",
-        "failed": "Fallidas",
-        "failedDescription": "Requieren atención",
-        "drafts": "Total",
-        "draftsDescription": "Borradores guardados",
-        "withMedia": "Con archivo",
-        "withMediaDescription": "Con imagen o video",
-        "ready": "Listos para programar",
-        "readyDescription": "Tienen contenido listo"
-      }
+    filter: {
+      pending: "Pendientes"
+      approved: "Aprobados"
+      rejected: "Rechazados"
     }
-  },
-  "aiStudio": {
-    "chat": {
-      "loading": "Cargando AI Studio",
-      "loadFailedTitle": "AI Studio no disponible",
-      "loadFailedDescription": "No pudimos cargar tus generaciones.",
-      "searchLabel": "Buscar generaciones",
-      "searchPlaceholder": "Buscar…",
-      "newConversation": "Nueva conversación",
-      "backToConversations": "Volver a las conversaciones",
-      "settings": "Ajustes AI",
-      "showOptions": "Mostrar opciones",
-      "hideOptions": "Ocultar opciones",
-      "emptyTitle": "Empieza una conversación",
-      "emptyDescription": "Elige una herramienta, ajusta sus opciones y describe lo que necesitas.",
-      "send": "Enviar",
-      "emptyPrompt": "Escribe qué necesitas antes de enviar.",
-      "sendFailed": "No pudimos enviar la solicitud. Revisa las opciones.",
-      "retrySuccess": "Generación reintentada.",
-      "retryFailed": "No pudimos reintentar la generación.",
-      "archived": "Conversación archivada.",
-      "archiveFailed": "No pudimos archivar la conversación.",
-      "clipboardUnsupported": "Tu navegador no permite copiar el resultado.",
-      "copied": "Resultado copiado.",
-      "copyFailed": "No pudimos copiar el resultado.",
-      "generationFailed": "No pudimos completar la generación.",
-      "generationFailedWithCode": "No pudimos completar la generación ({code}).",
-      "cancelled": "La generación se canceló.",
-      "thinking": "Pensando",
-      "generatingMedia": "Generando media",
-      "workDone": "Trabajo terminado",
-      "generatingImage": "Generando imagen",
-      "generatingVideo": "Generando video",
-      "trace": {
-        "received": "Solicitud recibida",
-        "reserving": "Reservando créditos",
-        "generating": "Generando con el modelo"
-      },
-      "status": {
-        "queued": "En cola",
-        "processing": "Generando",
-        "succeeded": "Listo",
-        "failed": "Falló",
-        "cancelled": "Cancelada"
-      },
-      "toolOptions": "Opciones de {tool}"
-    },
-    "tools": {
-      "field": {
-        "objective": "Objetivo",
-        "tone": "Tono",
-        "language": "Idioma",
-        "platforms": "Plataformas",
-        "targetPlatforms": "Plataformas destino",
-        "variantCount": "Variantes",
-        "includeHashtags": "Incluir hashtags",
-        "callToAction": "Llamada a la acción",
-        "optional": "Opcional",
-        "aspectRatio": "Proporción",
-        "quality": "Calidad",
-        "duration": "Duración",
-        "durationDays": "Días",
-        "frequencyPerWeek": "Publicaciones por semana",
-        "startDate": "Fecha inicial",
-        "timezone": "Zona horaria",
-        "historyDays": "Días de histórico",
-        "searchIn": "Dónde buscar",
-        "limit": "Resultados"
-      },
-      "platform": {
-        "instagram": "Instagram",
-        "facebook": "Facebook",
-        "linkedin": "LinkedIn",
-        "tiktok": "TikTok",
-        "x": "X",
-        "youtube": "YouTube",
-        "email": "Correo"
-      },
-      "language": {
-        "es": "Español",
-        "en": "Inglés",
-        "pt": "Portugués"
-      },
-      "tone": {
-        "cercano": "Cercano",
-        "profesional": "Profesional",
-        "divertido": "Divertido",
-        "inspirador": "Inspirador",
-        "directo": "Directo"
-      },
-      "ratio": {
-        "square": "Cuadrada 1:1",
-        "vertical": "Vertical 9:16",
-        "horizontal": "Horizontal 16:9"
-      },
-      "quality": {
-        "low": "Baja",
-        "medium": "Media",
-        "high": "Alta"
-      },
-      "duration": {
-        "4": "4 segundos",
-        "8": "8 segundos",
-        "12": "12 segundos"
-      },
-      "searchType": {
-        "caption": "Captions",
-        "publishing_post": "Publicaciones",
-        "ai_request": "Generaciones"
-      },
-      "content": {
-        "label": "Contenido",
-        "description": "Publicaciones, anuncios y textos por canal.",
-        "placeholder": "Describe la publicación que necesitas…",
-        "promptLabel": "Brief"
-      },
-      "image": {
-        "label": "Imagen",
-        "description": "Imágenes generadas o editadas desde una referencia.",
-        "placeholder": "Describe la imagen que quieres generar…",
-        "promptLabel": "Prompt"
-      },
-      "video": {
-        "label": "Video",
-        "description": "Video corto desde texto o desde una referencia.",
-        "placeholder": "Describe el video que quieres generar…",
-        "promptLabel": "Prompt"
-      },
-      "repurpose": {
-        "label": "Reutilizar",
-        "description": "Adapta contenido existente a otros canales.",
-        "placeholder": "Pega el contenido original que quieres adaptar…",
-        "promptLabel": "Contenido original"
-      },
-      "review": {
-        "label": "Revisión",
-        "description": "Analiza un texto y propone correcciones.",
-        "placeholder": "Pega el contenido que quieres analizar…",
-        "promptLabel": "Contenido para analizar"
-      },
-      "planner": {
-        "label": "Planificador",
-        "description": "Calendario de contenidos por días y frecuencia.",
-        "placeholder": "Describe la campaña que quieres planificar…",
-        "promptLabel": "Brief de campaña"
-      },
-      "timing": {
-        "label": "Mejor horario",
-        "description": "Mejores horarios según tu histórico de publicación.",
-        "placeholder": "Indica qué cuentas o campaña quieres analizar…",
-        "promptLabel": "Contexto"
-      },
-      "search": {
-        "label": "Investigación",
-        "description": "Busca dentro de tu contenido y generaciones previas.",
-        "placeholder": "¿Qué quieres encontrar?",
-        "promptLabel": "Consulta"
-      }
-    },
-    "operations": {
-      "loadingRecords": "Cargando registros",
-      "loadFailedTitle": "No pudimos cargar esta información",
-      "forbiddenTitle": "No tienes permiso para ver esta información",
-      "retry": "Reintentar",
-      "records": "registros",
-      "status": "Estado",
-      "tool": "Herramienta",
-      "type": "Tipo",
-      "date": "Fecha",
-      "noResults": "Sin resultados",
-      "saving": "Guardando...",
-      "deleting": "Eliminando...",
-      "delete": "Eliminar",
-      "processing": "Procesando acción",
-      "historyStatus": {
-        "all": "Todos los estados",
-        "queued": "En cola",
-        "processing": "Procesando",
-        "succeeded": "Completados",
-        "failed": "Fallidos",
-        "cancelled": "Cancelados"
-      },
-      "historyStatusBadge": {
-        "queued": "En cola",
-        "processing": "Procesando",
-        "succeeded": "Completado",
-        "failed": "Falló",
-        "cancelled": "Cancelado"
-      },
-      "kind": {
-        "all": "Todas las herramientas",
-        "content": "Contenido",
-        "image": "Imagen",
-        "video": "Video",
-        "repurpose": "Reutilizar",
-        "planner": "Planificador",
-        "review": "Revisión",
-        "timing": "Mejor hora",
-        "search": "Investigación",
-        "ai_publishing": "Publicación AI"
-      },
-      "automationStatus": {
-        "all": "Todos los estados",
-        "active": "Activas",
-        "paused": "Pausadas",
-        "draft": "Borradores"
-      },
-      "automationStatusBadge": {
-        "active": "Activa",
-        "paused": "Pausada",
-        "draft": "Borrador"
-      },
-      "creditType": {
-        "all": "Todos los movimientos",
-        "grant": "Asignaciones",
-        "debit": "Consumos",
-        "refund": "Reembolsos",
-        "adjustment": "Ajustes"
-      },
-      "creditTypeBadge": {
-        "grant": "Asignación",
-        "debit": "Consumo",
-        "refund": "Reembolso",
-        "adjustment": "Ajuste"
-      },
-      "history": {
-        "pageTitle": "Historial de IA",
-        "pageDescription": "Encuentra, reutiliza y descarga cualquier generación anterior.",
-        "title": "Generaciones",
-        "description": "Resultados creados dentro de este espacio de trabajo.",
-        "searchLabel": "Buscar generaciones",
-        "searchPlaceholder": "Buscar generaciones...",
-        "filterStatusLabel": "Filtrar historial por estado",
-        "filterKindLabel": "Filtrar historial por herramienta",
-        "errorDescription": "El historial no respondió. Puedes volver a intentarlo sin perder tus filtros.",
-        "forbiddenDescription": "Tu rol no permite consultar el historial de IA de este espacio.",
-        "generation": "Generación",
-        "emptyTitle": "Aún no hay generaciones",
-        "emptyDescription": "Las nuevas generaciones aparecerán aquí cuando uses AI Studio.",
-        "emptyFilteredDescription": "Ajusta la búsqueda, el estado o la herramienta seleccionada."
-      },
-      "automation": {
-        "pageTitle": "Automatizaciones",
-        "pageDescription": "Crea reglas que generan borradores listos para revisión humana.",
-        "createTitle": "Nueva automatización",
-        "selectAccount": "Selecciona una cuenta",
-        "saving": "Guardando automatización",
-        "save": "Guardar automatización",
-        "rulesTitle": "Reglas",
-        "rulesDescription": "Reglas que crean borradores y conservan la aprobación final en una persona.",
-        "searchLabel": "Buscar automatizaciones",
-        "searchPlaceholder": "Buscar automatizaciones...",
-        "filterStatusLabel": "Filtrar automatizaciones por estado",
-        "errorDescription": "Las automatizaciones no respondieron. Inténtalo de nuevo para recuperar la lista.",
-        "forbiddenDescription": "Tu rol no permite consultar ni administrar automatizaciones de este espacio.",
-        "rule": "Automatización",
-        "emptyTitle": "Aún no hay automatizaciones",
-        "emptyDescription": "Crea una regla para producir borradores automáticamente.",
-        "emptyFilteredDescription": "Ajusta la búsqueda o el filtro de estado.",
-        "needsAccount": "Conecta primero una cuenta social para elegir un destino.",
-        "noneAvailable": "No hay automatizaciones disponibles para consultar.",
-        "humanApproval": "Aprobación humana activa",
-        "deleting": "Eliminando automatización"
-      },
-      "credits": {
-        "pageTitle": "Créditos y consumo",
-        "pageDescription": "Entiende el consumo de IA y controla el presupuesto de tu espacio de trabajo.",
-        "balance": "Saldo disponible",
-        "used": "Consumidos",
-        "nextRenewal": "Próxima renovación",
-        "movements": "Movimientos",
-        "movement": "Movimiento",
-        "movementsDescription": "Asignaciones, consumos, reembolsos y ajustes del espacio.",
-        "searchLabel": "Buscar movimientos de créditos",
-        "searchPlaceholder": "Buscar movimientos...",
-        "filterTypeLabel": "Filtrar movimientos por tipo",
-        "emptyTitle": "Aún no hay movimientos",
-        "emptyDescription": "Los movimientos aparecerán cuando se asignen o consuman créditos.",
-        "emptyFilteredDescription": "Ajusta la búsqueda o el tipo de movimiento.",
-        "budgetTitle": "Presupuesto mensual",
-        "budgetHint": "Vacío significa sin límite monetario.",
-        "budgetReadOnly": "Solo propietarios y administradores pueden cambiar este presupuesto.",
-        "savingBudget": "Guardando presupuesto",
-        "saveBudget": "Guardar presupuesto",
-        "costPerTool": "Costo por herramienta",
-        "errorDescription": "No pudimos recuperar el saldo ni los movimientos de créditos.",
-        "forbiddenDescription": "Tu rol no permite consultar el consumo de IA de este espacio."
-      }
-    },
-    "views": {
-      "automation": {
-        "title": "Automatizaciones",
-        "description": "Crea reglas que investigan, generan y dejan borradores listos para revisión."
-      },
-      "content": {
-        "title": "Contenido con IA",
-        "description": "Genera publicaciones consistentes con tu voz de marca y cada canal."
-      },
-      "credits": {
-        "title": "Créditos y consumo",
-        "description": "Entiende el consumo de IA y controla el presupuesto de tu espacio de trabajo."
-      },
-      "history": {
-        "title": "Historial de IA",
-        "description": "Encuentra, reutiliza y descarga cualquier generación anterior."
-      },
-      "image": {
-        "title": "Generador de imágenes",
-        "description": "Crea piezas visuales desde una idea, una referencia o una campaña."
-      },
-      "overview": {
-        "title": "AI Studio",
-        "description": "Crea, investiga y mejora contenido desde un solo lugar."
-      },
-      "planner": {
-        "title": "Planificador inteligente",
-        "description": "Convierte un objetivo en un plan editorial equilibrado y listo para producir."
-      },
-      "repurpose": {
-        "title": "Reutilizar contenido",
-        "description": "Transforma una pieza existente en variantes nativas para cada red."
-      },
-      "review": {
-        "title": "Revisión inteligente",
-        "description": "Detecta problemas de claridad, marca, cumplimiento y rendimiento antes de publicar."
-      },
-      "search": {
-        "title": "Investigación asistida",
-        "description": "Explora tendencias, preguntas e ideas con señales útiles para crear contenido."
-      },
-      "settings": {
-        "title": "Configuración de IA",
-        "description": "Define la voz, el idioma y las reglas que guían todas las generaciones."
-      },
-      "timing": {
-        "title": "Mejor hora para publicar",
-        "description": "Descubre cuándo publicar según el rendimiento real de tus cuentas."
-      },
-      "video": {
-        "title": "Generador de video",
-        "description": "Diseña el guion, las escenas y el clip final sin salir del flujo de trabajo."
-      }
-    },
-    "studio": {
-      "clear": "Limpiar",
-      "clearFilters": "Limpiar filtros",
-      "all": "Todos",
-      "filterKind": "Filtrar por tipo",
-      "filterStatus": "Filtrar por estado",
-      "usage": "Consumo",
-      "actions": "Acciones",
-      "credits": "{count, plural, one {# crédito} other {# créditos}}",
-      "generations": "generaciones",
-      "noMatches": "No hay coincidencias",
-      "emptyDescription": "Elige una herramienta para crear el primer resultado.",
-      "emptyFilteredDescription": "Prueba con otro término, tipo o estado.",
-      "retryQueued": "La generación volvió a la cola.",
-      "archived": "Generación archivada.",
-      "actionsFor": "Acciones para {title}",
-      "processing": "Procesando acción",
-      "noResultYet": "La generación todavía no tiene resultado.",
-      "preview": "Vista previa",
-      "retry": "Reintentar",
-      "archive": "Archivar",
-      "loading": "Cargando AI Studio",
-      "loadFailedTitle": "AI Studio no disponible",
-      "loadFailedDescription": "No pudimos cargar la actividad del espacio.",
-      "metrics": {
-        "credits": "Créditos disponibles",
-        "unlimited": "Sin límite",
-        "usedInCycle": "{count, plural, one {# usado en el ciclo} other {# usados en el ciclo}}",
-        "succeeded": "Generaciones correctas",
-        "currentCycle": "Durante el ciclo actual",
-        "inProgress": "En proceso",
-        "queued": "{count, plural, one {# en cola} other {# en cola}}",
-        "drafts": "Borradores creados",
-        "readyForReview": "Listos para revisión humana"
-      },
-      "recentActivity": "Actividad reciente"
-    },
-    "creation": {
-      "cost": "{count, plural, one {# crédito} other {# créditos}}",
-      "promptTitle": {
-        "default": "Describe lo que necesitas",
-        "repurpose": "Contenido original",
-        "review": "Contenido para analizar"
-      },
-      "content": {
-        "button": "Generar borradores",
-        "placeholder": "Ejemplo: anuncia el nuevo menú ejecutivo, disponible de lunes a viernes...",
-        "resultTitle": "Borradores generados",
-        "resultDescription": "Tres variantes adaptadas al canal seleccionado."
-      },
-      "image": {
-        "button": "Generar imágenes",
-        "placeholder": "Ejemplo: hamburguesa artesanal sobre mesa oscura, luz cálida, estilo editorial...",
-        "resultTitle": "Propuestas visuales",
-        "resultDescription": "Cuatro composiciones listas para revisar."
-      },
-      "repurpose": {
-        "button": "Crear variantes",
-        "placeholder": "Pega una publicación, artículo, transcripción o idea que ya tengas...",
-        "resultTitle": "Variantes por canal",
-        "resultDescription": "La idea original adaptada sin perder su mensaje."
-      },
-      "review": {
-        "button": "Analizar contenido",
-        "placeholder": "Pega aquí el contenido que quieres validar antes de publicarlo...",
-        "resultTitle": "Informe de revisión",
-        "resultDescription": "Hallazgos priorizados y correcciones sugeridas."
-      },
-      "video": {
-        "button": "Generar video",
-        "placeholder": "Ejemplo: video vertical de 15 segundos mostrando la preparación del producto...",
-        "resultTitle": "Proyecto de video",
-        "resultDescription": "Guion, escenas y render dentro del mismo trabajo."
-      },
-      "recentActivity": "Actividad reciente",
-      "textCopied": "Texto copiado",
-      "variantCopied": "Variante copiada",
-      "download": "Descargar",
-      "videoRender": "Render del video",
-      "dimension": {
-        "clarity": "Claridad",
-        "brandVoice": "Voz de marca",
-        "callToAction": "Llamada a la acción",
-        "safety": "Seguridad"
-      },
-      "missingPrompt": "Completa la instrucción para continuar.",
-      "jobQueued": "Trabajo añadido a la cola.",
-      "invalidReference": "Usa imágenes JPG, PNG o WEBP de máximo 30 MB.",
-      "referenceAdded": "Referencia añadida.",
-      "referenceFailed": "No pudimos subir la referencia.",
-      "objective": {
-        "inform": "Informar"
-      },
-      "format": "Formato",
-      "tone": "Tono",
-      "tones": {
-        "cercano": "Cercano",
-        "experto": "Experto",
-        "directo": "Directo"
-      },
-      "referenceHintVideo": "Hasta 9 imágenes para animación, personaje, estilo o escena.",
-      "referenceHintImage": "Hasta 10 imágenes para orientar estilo, composición o edición.",
-      "select": "Seleccionar",
-      "generationFailed": "La generación falló",
-      "providerFailed": "El proveedor no pudo completar el trabajo.",
-      "waiting": "Esperando turno",
-      "generatingResult": "Generando resultado",
-      "preview": "Vista previa"
-    },
-    "pages": {
-      "planner": {
-        "missingGoal": "Completa el objetivo del plan.",
-        "queued": "Plan añadido a la cola.",
-        "goalTitle": "Objetivo del plan",
-        "goalPlaceholder": "Ejemplo: aumentar visitas al local durante agosto...",
-        "weeklyPlan": "Plan semanal",
-        "suggestedDate": "Fecha sugerida",
-        "ideaReady": "Idea lista",
-        "emptyIdeasTitle": "Sin ideas en el plan",
-        "emptyIdeasDescription": "El plan se generó sin ideas. Ajusta el objetivo y vuelve a intentarlo.",
-        "emptyTitle": "Crea tu primer plan",
-        "emptyDescription": "Completa el objetivo y la frecuencia."
-      },
-      "timing": {
-        "prompt": "Analiza el historial de rendimiento y recomienda las mejores horas para publicar.",
-        "queued": "Análisis añadido a la cola.",
-        "sampleWarning": "Recomendación basada en una muestra",
-        "mapTitle": "Mapa de oportunidades",
-        "lowOpportunity": "Menor oportunidad",
-        "highOpportunity": "Mayor oportunidad",
-        "perAccount": "Recomendaciones por cuenta",
-        "sampleCount": "{count, plural, one {# publicación en la muestra} other {# publicaciones en la muestra}}",
-        "confidence": {
-          "high": "Alta",
-          "medium": "Media",
-          "low": "Baja"
-        },
-        "emptyTitle": "Aún no hay análisis",
-        "emptyDescription": "Pulsa Actualizar análisis para calcular horarios.",
-        "insufficientSample": "Muestra insuficiente",
-        "sampleFound": "{count, plural, one {Se encontró # publicación con datos útiles.} other {Se encontraron # publicaciones con datos útiles.}}"
-      },
-      "research": {
-        "title": "Buscar señales",
-        "topicLabel": "Tema para investigar",
-        "topicPlaceholder": "Tema, palabra clave o competidor...",
-        "findings": "Hallazgos destacados",
-        "untitled": "Sin título",
-        "emptyTitle": "Busca dentro de tu contenido",
-        "emptyDescription": "Encuentra captions, borradores y generaciones anteriores.",
-        "noMatchesTitle": "Sin coincidencias",
-        "noMatchesDescription": "Prueba con otras palabras.",
-        "questions": "Preguntas de la audiencia",
-        "summary": "Resumen IA"
-      },
-      "settings": {
-        "loading": "Cargando configuración de IA",
-        "requireHumanReview": "Revisión antes de publicar",
-        "warnSensitiveClaims": "Advertir afirmaciones sensibles",
-        "redactPersonalData": "Ocultar datos personales",
-        "missingFields": "Completa los campos obligatorios.",
-        "saved": "Configuración de IA guardada.",
-        "brandVoice": "Voz de marca",
-        "preferences": "Preferencias",
-        "safety": "Seguridad",
-        "brandIdentity": "Identidad de la marca",
-        "wordsUse": "Palabras que sí usamos",
-        "wordsAvoid": "Palabras que evitamos",
-        "defaults": "Valores predeterminados",
-        "language": "Idioma",
-        "defaultTone": "Tono predeterminado",
-        "safetyControls": "Controles de seguridad"
-      },
-      "operational": {
-        "noPrompt": "Sin instrucción",
-        "nothingToExport": "No hay filas para exportar.",
-        "export": "Exportar",
-        "download": "Descargar",
-        "frequency": {
-          "daily": "Diario",
-          "weekly": "Semanal"
-        },
-        "missingFields": "Completa todos los campos obligatorios.",
-        "automationCreated": "Automatización creada.",
-        "runQueued": "Ejecución añadida a la cola.",
-        "automationDeleted": "Automatización eliminada.",
-        "invalidBudget": "Revisa el presupuesto y el porcentaje de alerta.",
-        "budgetSaved": "Presupuesto guardado.",
-        "budgetForbidden": "Tu rol no permite cambiar el presupuesto de este espacio.",
-        "noMovements": "No hay movimientos para exportar.",
-        "unlimited": "Sin límite",
-        "noDate": "Sin fecha"
-      }
+    amount: "Importe"
+    noMatches: "No hay coincidencias"
+    emptyTitle: "Todavía no hay pagos manuales"
+    emptyDescription: "Registra un cobro recibido fuera de Polar para aplicarlo al espacio del cliente."
+    emptyFilteredDescription: "Prueba con otro término o estado."
+    acceptManual: "Aceptar pagos manuales"
+    acceptManualHint: "Muestra las instrucciones de pago fuera de línea a los clientes."
+    referencePrefix: "Prefijo de referencia"
+    referencePrefixPlaceholder: "PAY-"
+    referencePrefixHint: "Se propone al registrar un pago nuevo."
+    instructions: "Instrucciones de pago"
+    instructionsPlaceholder: "Banco, titular, número de cuenta y qué enviar como comprobante."
+    settingsSaved: "Configuración guardada."
+    deleteTitle: "Eliminar pago manual"
+    deleteDescription: "Se elimina el registro «{reference}». Esta acción no se puede deshacer."
+    deleted: "Pago manual eliminado."
+    cancel: "Cancelar"
+  }
+  adminNotifications: {
+    pageTitle: "Anuncios"
+    pageDescription: "Avisos manuales que aparecen en la campana del Portal de los clientes."
+    loading: "Cargando anuncios"
+    forbiddenTitle: "Acceso restringido"
+    forbiddenDescription: "Tu cuenta no tiene permisos para administrar los anuncios de la plataforma."
+    loadFailedTitle: "No pudimos cargar esta sección"
+    loadFailedDescription: "No fue posible cargar los anuncios."
+    createTitle: "Nuevo anuncio"
+    editTitle: "Editar anuncio"
+    titlePlaceholder: "Ej. Mantenimiento programado el domingo"
+    bodyPlaceholder: "Qué ocurre, a quién afecta y qué debe hacer la persona."
+    link: "Enlace"
+    linkHint: "Opcional. Si lo indicas, el anuncio se vuelve accionable."
+    audienceLabel: "Audiencia"
+    audience: {
+      all: "Todos"
+      workspace: "Espacio"
+      user: "Persona"
     }
-  },
-  "groups": {
-    "pageTitle": "Grupos",
-    "pageDescription": "Organiza cuentas relacionadas para encontrarlas y seleccionarlas más rápido.",
-    "loading": "Cargando grupos",
-    "forbiddenDescription": "Tu acceso actual no permite consultar los grupos de este espacio de trabajo.",
-    "loadFailedDescription": "No pudimos cargar los grupos de este espacio de trabajo.",
-    "createTitle": "Nuevo grupo",
-    "editTitle": "Editar grupo",
-    "namePlaceholder": "Ej. Retail Ecuador",
-    "description": "Descripción",
-    "descriptionPlaceholder": "Explica cuándo usar este grupo.",
-    "colorHint": "Identifica el grupo en listas y selectores.",
-    "color": {
-      "label": "Color",
-      "blue": "Azul",
-      "green": "Verde",
-      "amber": "Ámbar",
-      "red": "Rojo",
-      "violet": "Violeta",
-      "gray": "Gris"
-    },
-    "status": "Estado",
-    "statusLabel": {
-      "active": "Activo",
-      "inactive": "Inactivo"
-    },
-    "accounts": "Cuentas",
-    "noAccounts": "No hay cuentas conectadas para agrupar.",
-    "cancel": "Cancelar",
-    "save": "Guardar grupo",
-    "create": "Crear grupo",
-    "nameRequired": "El grupo necesita un nombre.",
-    "created": "Grupo creado.",
-    "updated": "Actualizado",
-    "saveFailed": "No pudimos guardar el grupo. Inténtalo de nuevo.",
-    "deleted": "Grupo eliminado.",
-    "deleteFailed": "No pudimos eliminar el grupo. Inténtalo de nuevo.",
-    "metrics": {
-      "totalDescription": "Creados en este espacio",
-      "active": "Activos",
-      "activeDescription": "Listos para usar",
-      "reached": "Cuentas alcanzadas",
-      "reachedDescription": "Incluidas en algún grupo"
-    },
-    "searchLabel": "Buscar grupos",
-    "searchPlaceholder": "Buscar grupos...",
-    "filterStatus": "Filtrar por estado",
-    "filter": {
-      "all": "Todos",
-      "active": "Activos",
-      "inactive": "Inactivos"
-    },
-    "group": "Grupo",
-    "actions": "Acciones",
-    "accountCount": "{count, plural, one {# cuenta} other {# cuentas}}",
-    "andMore": " y {count, number} más",
-    "openActions": "Abrir acciones para {name}",
-    "edit": "Editar",
-    "delete": "Eliminar",
-    "clearFilters": "Restablecer filtros",
-    "noMatches": "No hay coincidencias",
-    "emptyTitle": "No hay grupos",
-    "emptyDescription": "Crea un grupo para ordenar tus cuentas conectadas.",
-    "emptyFilteredDescription": "Prueba con otro término o estado.",
-    "itemLabel": "grupos",
-    "deleteTitle": "¿Eliminar «{name}»?",
-    "deleteDescription": "Las cuentas seguirán conectadas; solo se pierde esta clasificación.",
-    "deleteAction": "Eliminar grupo",
-    "groupUpdated": "Grupo actualizado."
-  },
-  "bulkPosts": {
-    "pageTitle": "Publicaciones masivas",
-    "pageDescription": "Importa un CSV, valida cada fila y crea publicaciones por cuenta.",
-    "unavailableTitle": "Publicaciones masivas no disponibles",
-    "forbiddenDescription": "Tu acceso actual no permite consultar las publicaciones masivas de este espacio de trabajo.",
-    "loadFailedDescription": "No pudimos cargar los lotes de este espacio de trabajo.",
-    "loading": "Cargando lotes",
-    "createTitle": "Nuevo lote",
-    "selectFile": "Selecciona un archivo",
-    "noFiles": "Sube un archivo .csv o .txt a la biblioteca para crear un lote.",
-    "interval": "Intervalo entre publicaciones",
-    "required": "obligatorio",
-    "intervalHint": "Minutos entre cada publicación. Se programan en {timezone}.",
-    "accounts": "Cuentas destino",
-    "invalidForm": "Elige un archivo, al menos una cuenta y un intervalo entre 1 y 10080 minutos.",
-    "created": "Lote creado. Se procesará en segundo plano.",
-    "createFailed": "No pudimos crear el lote. Revisa el archivo e inténtalo.",
-    "cancelled": "Lote cancelado.",
-    "cancelFailed": "No pudimos cancelar el lote. Inténtalo de nuevo.",
-    "rowsTitle": "Filas del lote",
-    "loadingRows": "Cargando filas del lote",
-    "rowsFailed": "No pudimos cargar las filas de este lote.",
-    "detail": "Detalle",
-    "noNotes": "Sin observaciones",
-    "emptyRowsTitle": "Sin filas",
-    "emptyRowsDescription": "Este lote todavía no registra filas procesadas.",
-    "status": "Estado",
-    "statusLabel": {
-      "queued": "En cola",
-      "processing": "Procesando",
-      "completed": "Completado",
-      "failed": "Fallido",
-      "cancelled": "Cancelado"
-    },
-    "rowStatus": {
-      "pending": "Pendiente",
-      "valid": "Válida",
-      "invalid": "Inválida",
-      "processed": "Procesada",
-      "failed": "Fallida"
-    },
-    "searchLabel": "Buscar lotes",
-    "searchPlaceholder": "Buscar lotes...",
-    "filterStatus": "Filtrar por estado",
-    "filter": {
-      "all": "Todos",
-      "queued": "En cola",
-      "processing": "Procesando",
-      "completed": "Completados",
-      "failed": "Fallidos",
-      "cancelled": "Cancelados"
-    },
-    "batch": "Lote",
-    "targets": "Destinos",
-    "progress": "Progreso",
-    "actions": "Acciones",
-    "noMatches": "No hay coincidencias",
-    "emptyTitle": "No hay lotes todavía",
-    "emptyDescription": "Sube un CSV a la biblioteca y crea un lote para procesarlo.",
-    "emptyFilteredDescription": "Prueba con otro término o estado.",
-    "itemLabel": "lotes",
-    "cancelTitle": "¿Cancelar este lote?",
-    "cancelDescription": "Las publicaciones ya creadas se conservan; las filas pendientes dejan de procesarse.",
-    "back": "Volver",
-    "cancelAction": "Cancelar lote"
-  },
-  "rssSchedules": {
-    "pageTitle": "Programaciones RSS",
-    "pageDescription": "Gestiona los feeds que convierten artículos nuevos en publicaciones programadas.",
-    "unavailableTitle": "Programaciones RSS no disponibles",
-    "forbiddenDescription": "Tu acceso actual no permite consultar las programaciones RSS de este espacio de trabajo.",
-    "loadFailedTitle": "No se pudieron cargar las programaciones RSS",
-    "loadFailedDescription": "Ninguna programación fue modificada. Vuelve a intentarlo para recuperar el contenido.",
-    "retry": "Reintentar",
-    "connected": "Conectada",
-    "created": "La programación RSS se creó.",
-    "resumed": "La programación se reactivó.",
-    "paused": "La programación quedó en pausa.",
-    "updateFailed": "No pudimos actualizar la programación.",
-    "deleted": "La programación RSS se eliminó.",
-    "deleteFailed": "No pudimos eliminar la programación.",
-    "runQueued": "La ejecución se añadió a la cola.",
-    "runFailed": "No pudimos iniciar la ejecución.",
-    "validationFailed": "Revisa las cuentas y los datos de la programación.",
-    "searchLabel": "Buscar programaciones RSS",
-    "searchPlaceholder": "Buscar programaciones...",
-    "filterStatus": "Filtrar por estado",
-    "filter": {
-      "all": "Todos",
-      "active": "Activas",
-      "paused": "En pausa"
-    },
-    "status": "Estado",
-    "statusLabel": {
-      "active": "Activa",
-      "paused": "En pausa"
-    },
-    "feed": "Feed",
-    "noTargets": "Sin destinos",
-    "moreTargets": "{count, plural, one {+# destino} other {+# destinos}}",
-    "oneChannel": "1 canal conectado",
-    "pendingFirstRun": "Pendiente de la primera ejecución",
-    "neverRun": "Aún no se ejecuta",
-    "noDrafts": "Sin borradores generados",
-    "pause": "Pausar",
-    "resume": "Reactivar",
-    "noMatches": "No hay coincidencias",
-    "emptyTitle": "Aún no tienes programaciones RSS",
-    "emptyDescription": "Añade un feed y elige cuándo publicarlo en tus canales.",
-    "emptyFilteredDescription": "Prueba con otro término o restablece los filtros.",
-    "create": "Crear programación",
-    "wizard": {
-      "title": "Nueva programación RSS",
-      "description": "Configura cómo convertir artículos nuevos de un feed en publicaciones para tus canales.",
-      "stepsLabel": "Pasos de la programación RSS",
-      "step": {
-        "feed": "Feed",
-        "targets": "Destinos",
-        "content": "Contenido",
-        "review": "Revisar"
-      },
-      "frequency": {
-        "daily": "Una vez al día",
-        "weekdays": "De lunes a viernes",
-        "weekly": "Una vez por semana"
-      },
-      "continue": "Continuar",
-      "create": "Crear programación",
-      "creating": "Creando...",
-      "validating": "Validando...",
-      "cancel": "Cancelar",
-      "previous": "Anterior",
-      "missingFields": "Completa todos los campos obligatorios.",
-      "invalidUrl": "Usa una URL válida que comience con http:// o https://.",
-      "validationFailed": "No pudimos validar este feed. Comprueba que sea público y esté disponible.",
-      "createFailed": "No pudimos crear la programación. Comprueba los datos e inténtalo de nuevo.",
-      "feedUrl": "URL del feed",
-      "feedUrlPlaceholder": "https://sitio.com/feed.xml",
-      "feedUrlHint": "Usa la URL directa del RSS, no la página principal del sitio.",
-      "name": "Nombre de la programación",
-      "namePlaceholder": "Ej. Noticias del blog",
-      "nameHint": "Solo lo verá tu equipo al administrar esta automatización.",
-      "publishTo": "Publicar en",
-      "publishToHint": "Elige las cuentas que recibirán cada artículo nuevo.",
-      "noAccounts": "Conecta al menos un canal antes de crear una programación.",
-      "frequencyLabel": "Frecuencia",
-      "preferredTime": "Hora preferida",
-      "avoidRepeats": "Evitar artículos repetidos",
-      "avoidRepeatsHint": "La programación nunca volverá a enviar el mismo artículo a la misma cuenta.",
-      "includeSummary": "Incluir resumen del artículo",
-      "includeSummaryHint": "Se usará como base del texto de la publicación.",
-      "template": "Texto que acompaña cada publicación",
-      "templateHint": "Variables disponibles: título, resumen y enlace del artículo.",
-      "reviewSchedule": "Programación",
-      "reviewPublishing": "Publicación",
-      "atTime": "a las {time}"
+    audienceOption: {
+      all: "Todos los clientes"
+      workspace: "Un espacio de trabajo"
+      user: "Una persona"
     }
-  },
-  "captions": {
-    "pageTitle": "Biblioteca de captions",
-    "pageDescription": "Gestiona textos reutilizables para mantener una voz consistente en tus publicaciones.",
-    "forbiddenTitle": "No tienes acceso a los captions",
-    "forbiddenDescription": "Pide acceso a un administrador del espacio de trabajo.",
-    "loadFailedTitle": "No pudimos cargar los captions",
-    "loadFailedDescription": "No pudimos cargar la biblioteca en este momento. Inténtalo de nuevo.",
-    "caption": "Caption",
-    "source": "Origen",
-    "status": "Estado",
-    "tags": "Etiquetas",
-    "updated": "Actualizado",
-    "updatedRecently": "Actualizado recientemente",
-    "actions": "Acciones",
-    "all": "Todos",
-    "sourceLabel": {
-      "manual": "Manual",
-      "ai": "Generado por IA"
-    },
-    "statusLabel": {
-      "active": "Activo",
-      "draft": "Borrador",
-      "archived": "Archivado"
-    },
-    "searchLabel": "Buscar captions",
-    "searchPlaceholder": "Buscar captions...",
-    "filterSource": "Filtrar por origen",
-    "filterStatus": "Filtrar por estado",
-    "noMatches": "No encontramos captions",
-    "emptyTitle": "Aún no hay captions",
-    "emptyDescription": "Crea un caption para empezar a construir tu biblioteca.",
-    "emptyFilteredDescription": "Prueba con otro término de búsqueda.",
-    "createTitle": "Nuevo caption",
-    "editTitle": "Editar caption",
-    "createDescription": "Guarda un caption que puedas encontrar y adaptar en futuras publicaciones.",
-    "editDescription": "Actualiza el contenido y los metadatos que tu equipo necesita para reutilizarlo.",
-    "namePlaceholder": "Ej. Lanzamiento de colección",
-    "contentPlaceholder": "Escribe el caption que quieres guardar",
-    "notes": "Notas internas",
-    "notesPlaceholder": "Contexto, aprobaciones o instrucciones para el equipo",
-    "requiredFields": "Nombre y contenido son obligatorios.",
-    "tagsLimit": "Usa hasta 20 etiquetas de 64 caracteres como máximo.",
-    "missingFields": "Completa todos los campos obligatorios.",
-    "saving": "Guardando",
-    "save": "Guardar caption",
-    "saveChanges": "Guardar cambios",
-    "saved": "Cambios guardados.",
-    "created": "Caption creado.",
-    "saveFailed": "No pudimos guardar los cambios. Revisa los datos e inténtalo de nuevo.",
-    "saveFailedToast": "No se pudo guardar el caption.",
-    "deleted": "Caption eliminado.",
-    "deleteFailed": "No se pudo eliminar el caption.",
-    "deleteWarning": "Esta acción no se puede deshacer.",
-    "deleting": "Eliminando",
-    "cancel": "Cancelar"
-  },
-  "channels": {
-    "pageTitle": "Canales",
-    "pageDescription": "Gestiona las cuentas conectadas y su acceso para publicar.",
-    "forbiddenTitle": "No tienes acceso a los canales",
-    "forbiddenDescription": "Pide acceso a un administrador del espacio de trabajo.",
-    "loadFailedTitle": "No pudimos cargar los canales",
-    "loadFailedDescription": "Comprueba tu conexión e inténtalo de nuevo.",
-    "account": "Cuenta",
-    "channelType": "Tipo de canal",
-    "provider": "Proveedor",
-    "type": "Tipo",
-    "statusColumn": "Estado",
-    "connectedAt": "Conectado el",
-    "actions": "Acciones",
-    "all": "Todos",
-    "status": {
-      "connected": "Conectado",
-      "disconnected": "Desconectado"
-    },
-    "filter": {
-      "connected": "Conectados",
-      "disconnected": "Desconectados"
-    },
-    "filterProvider": "Filtrar por proveedor",
-    "filterType": "Filtrar por tipo",
-    "filterStatus": "Filtrar por estado",
-    "searchLabel": "Buscar canales",
-    "searchPlaceholder": "Buscar canales...",
-    "filtering": "Filtrando canales",
-    "connect": "Conectar canal",
-    "noMatches": "No encontramos canales",
-    "emptyTitle": "Aún no hay canales",
-    "emptyDescription": "Conecta un tipo de canal para empezar.",
-    "emptyFilteredDescription": "Prueba con otro término de búsqueda.",
-    "editTitle": "Editar canal",
-    "nameRequired": "Introduce un nombre visible para el canal.",
-    "savingName": "Guardando nombre del canal",
-    "nameUpdated": "Nombre del canal actualizado.",
-    "updateFailed": "No pudimos actualizar el canal. Inténtalo de nuevo.",
-    "deleteTitle": "Eliminar canal",
-    "deleting": "Eliminando canal",
-    "deleted": "Canal eliminado.",
-    "deleteFailed": "No pudimos eliminar el canal. Inténtalo de nuevo.",
-    "cancel": "Cancelar",
-    "metaCancelled": "La autorización con Meta fue cancelada.",
-    "metaFailed": "No pudimos completar la autorización con Meta.",
-    "metaAccountsFailed": "No pudimos recuperar las cuentas de Meta autorizadas. Inténtalo de nuevo.",
-    "reconnectFailed": "No pudimos iniciar la reconexión del canal. Inténtalo de nuevo.",
-    "profileSyncQueued": "Actualización de perfil programada. Puede tardar unos minutos.",
-    "profileSyncCooldown": "Ya solicitaste una actualización. Inténtalo de nuevo en 15 minutos.",
-    "profileSyncFailed": "No pudimos programar la actualización del perfil.",
-    "capability": {
-      "facebook_page": "Página de Facebook",
-      "instagram_profile": "Perfil de Instagram",
-      "linkedin_page": "Página de LinkedIn",
-      "linkedin_profile": "Perfil de LinkedIn",
-      "x_profile": "Perfil de X",
-      "tiktok_profile": "Perfil de TikTok",
-      "whatsapp_status": "Historias de WhatsApp"
-    },
-    "picker": {
-      "typesLabel": "Tipos de canal",
-      "planLocked": "Este canal no está incluido en tu plan actual.",
-      "comingSoon": "Estamos preparando esta conexión.",
-      "availability": {
-        "ready": "Disponible",
-        "coming_soon": "Próximamente",
-        "plan_locked": "Plan requerido"
-      }
-    },
-    "whatsapp": {
-      "generating": "Generando código QR",
-      "refreshing": "Actualizando QR…",
-      "qrAlt": "Código QR para conectar Estados de WhatsApp",
-      "refreshFailed": "No pudimos actualizar el código QR. Inténtalo de nuevo.",
-      "generateFailed": "No pudimos generar el código QR. Inténtalo de nuevo.",
-      "connected": "Estados de WhatsApp conectados.",
-      "connectFailed": "No pudimos completar la conexión con WhatsApp. Genera un QR nuevo.",
-      "accountMismatch": "El teléfono escaneado no corresponde a este canal",
-      "accountMismatchHint": "Escanea el teléfono original o cierra este diálogo para conectar el otro teléfono como un canal nuevo.",
-      "qrExpired": "El QR expiró o el conector no respondió",
-      "qrExpiredHint": "Genera un QR nuevo para continuar con la conexión.",
-      "prepareQr": "Preparar vínculo por QR"
+    searchTarget: "Buscar destinatario"
+    searchWorkspace: "Buscar espacio..."
+    searchPerson: "Buscar persona o correo..."
+    selectTarget: "Selecciona un destinatario"
+    missingFields: "Completa todos los campos obligatorios."
+    published: "Anuncio publicado."
+    draftSaved: "Borrador guardado."
+    saveFailed: "No pudimos guardar el anuncio. Inténtalo de nuevo."
+    deleted: "Anuncio eliminado."
+    deleteFailed: "No pudimos eliminar el anuncio."
+    metrics: {
+      published: "Publicados"
+      publishedDescription: "Visibles en el Portal"
+      drafts: "Borradores"
+      draftsDescription: "Sin publicar todavía"
+      targeted: "Segmentados"
+      targetedDescription: "Dirigidos a un espacio o persona"
+      reads: "Lecturas"
+      readsDescription: "Anuncios abiertos por clientes"
     }
-  },
-  "automation": {
-    "pageTitle": "Automatización",
-    "pageDescription": "Conecta Zapi con tus propias herramientas mediante claves de API y webhooks firmados.",
-    "loading": "Cargando automatización",
-    "unavailableTitle": "Automatización no disponible",
-    "forbiddenDescription": "Tu acceso actual no permite administrar la automatización de este espacio de trabajo.",
-    "loadFailedDescription": "No pudimos cargar las claves y webhooks de este espacio de trabajo.",
-    "tab": {
-      "keys": "Claves API",
-      "webhooks": "Webhooks",
-      "logs": "Actividad"
-    },
-    "all": "Todos",
-    "never": "Nunca",
-    "cancel": "Cancelar",
-    "noMatches": "No hay coincidencias",
-    "emptyFilteredDescription": "Prueba con otro término o estado.",
-    "copy": "Copiar {label}",
-    "copied": "{label} copiado.",
-    "copyFailed": "No pudimos copiar el valor. Inténtalo de nuevo.",
-    "clipboardUnsupported": "Tu navegador no permite copiar este valor.",
-    "saved": "Ya lo guardé",
-    "tokenLabel": "Token de la clave",
-    "tokenDescription": "Guárdalo ahora: no volveremos a mostrarlo. Si lo pierdes, crea una clave nueva.",
-    "secretLabel": "Secreto de firma",
-    "secretDescription": "Úsalo para verificar la firma de cada envío. No volveremos a mostrarlo.",
-    "permission": {
-      "accounts:read": "Leer cuentas",
-      "posts:read": "Leer publicaciones",
-      "posts:write": "Crear publicaciones"
-    },
-    "event": {
-      "post.created": "Publicación creada",
-      "post.published": "Publicación enviada",
-      "post.failed": "Publicación fallida"
-    },
-    "newKey": "Nueva clave",
-    "newKeyTitle": "Nueva clave API",
-    "newKeyDescription": "El token se muestra una sola vez al crearla. Después solo verás su prefijo.",
-    "keyNamePlaceholder": "Ej. Integración con n8n",
-    "keyRequired": "La clave necesita un nombre y al menos un permiso.",
-    "keyCreateFailed": "No pudimos crear la clave. Inténtalo de nuevo.",
-    "keyRevoked": "Clave revocada.",
-    "keyRevokeFailed": "No pudimos revocar la clave. Inténtalo de nuevo.",
-    "key": "Clave",
-    "permissions": "Permisos",
-    "keyStatus": {
-      "active": "Activa",
-      "revoked": "Revocada"
-    },
-    "keyFilter": {
-      "active": "Activas",
-      "revoked": "Revocadas"
-    },
-    "searchKeys": "Buscar claves API",
-    "searchKeysPlaceholder": "Buscar claves...",
-    "keysEmptyTitle": "No hay claves API",
-    "keysEmptyDescription": "Crea una clave para que tus herramientas consulten o publiquen por API.",
-    "newWebhook": "Nuevo webhook",
-    "newWebhookTitle": "Nuevo webhook",
-    "editWebhookTitle": "Editar webhook",
-    "webhookDescription": "Zapi enviará un POST firmado a esta URL cuando ocurra alguno de los eventos elegidos.",
-    "webhookNamePlaceholder": "Ej. Notificar a Slack",
-    "webhookRequired": "El webhook necesita nombre, URL y al menos un evento.",
-    "saveWebhook": "Guardar webhook",
-    "createWebhook": "Crear webhook",
-    "webhookCreated": "Webhook creado.",
-    "webhookUpdated": "Webhook actualizado.",
-    "webhookSaveFailed": "No pudimos guardar el webhook. Inténtalo de nuevo.",
-    "webhookToggleFailed": "No pudimos cambiar el estado del webhook.",
-    "webhookDeleted": "Webhook eliminado.",
-    "webhookDeleteFailed": "No pudimos eliminar el webhook. Inténtalo de nuevo.",
-    "webhook": "Webhook",
-    "events": "Eventos",
-    "enabled": "Habilitado",
-    "webhookFilter": {
-      "enabled": "Habilitados",
-      "disabled": "Deshabilitados"
-    },
-    "searchWebhooks": "Buscar webhooks",
-    "searchWebhooksPlaceholder": "Buscar webhooks...",
-    "webhooksEmptyTitle": "No hay webhooks",
-    "webhooksEmptyDescription": "Recibe un aviso en tu sistema cuando una publicación se cree, se envíe o falle.",
-    "searchActivity": "Buscar actividad",
-    "searchActivityPlaceholder": "Buscar actividad...",
-    "filterResult": "Filtrar por resultado",
-    "result": "Resultado",
-    "direction": "Dirección",
-    "directionLabel": {
-      "inbound": "Entrante",
-      "outbound": "Saliente"
-    },
-    "logStatus": {
-      "failed": "Fallido",
-      "succeeded": "Correcto",
-      "accepted": "Aceptado"
-    },
-    "logFilter": {
-      "accepted": "Aceptados",
-      "succeeded": "Correctos",
-      "failed": "Fallidos"
-    },
-    "logsEmptyTitle": "Sin actividad todavía",
-    "logsEmptyDescription": "Aquí aparecerán las llamadas por API y los envíos de webhook.",
-    "logsEmptyFilteredDescription": "Prueba con otro término o resultado.",
-    "eventColumn": "Evento"
-  },
-  "linkBio": {
-    "pageTitle": "Link in bio",
-    "pageDescription": "Una página pública con todos tus enlaces, y sus métricas de visitas y clics.",
-    "loading": "Cargando páginas de enlaces",
-    "unavailableTitle": "Link in bio no disponible",
-    "forbiddenDescription": "Tu acceso actual no permite administrar las páginas de enlaces.",
-    "loadFailedDescription": "No pudimos cargar tus páginas de enlaces.",
-    "createTitle": "Nueva página",
-    "editTitle": "Editar página",
-    "tab": {
-      "info": "Info",
-      "blocks": "Bloques",
-      "style": "Estilo"
-    },
-    "title": "Título",
-    "slug": "Dirección",
-    "headline": "Titular",
-    "align": "Alineación",
-    "alignCenter": "Centrado",
-    "published": "Publicada",
-    "templateLabel": "Plantilla",
-    "templateAria": "Plantilla de la página",
-    "buttons": "Botones",
-    "buttonStyle": {
-      "rounded": "Redondeados",
-      "pill": "Píldora",
-      "square": "Rectos"
-    },
-    "avatar": "Avatar",
-    "avatarStyle": {
-      "circle": "Círculo",
-      "rounded": "Redondeado",
-      "square": "Recto"
-    },
-    "brandingPlaceholder": "Hecho con Zapi",
-    "addBlock": "Añadir bloque…",
-    "moveUp": "Subir bloque",
-    "moveDown": "Bajar bloque",
-    "removeBlock": "Quitar bloque",
-    "removeItem": "Quitar elemento",
-    "showBlock": "Mostrar {block}",
-    "label": "Etiqueta",
-    "text": "Texto",
-    "codeOrUrl": "Código o URL",
-    "question": "Pregunta",
-    "answer": "Respuesta",
-    "destination": "Destino",
-    "titleRequired": "La página necesita un título.",
-    "created": "Página creada.",
-    "updated": "Página actualizada.",
-    "slugTaken": "Esa dirección ya está en uso.",
-    "saveFailed": "No pudimos guardar la página. Inténtalo de nuevo.",
-    "deleted": "Página eliminada.",
-    "deleteFailed": "No pudimos eliminar la página.",
-    "cancel": "Cancelar",
-    "metrics": {
-      "pages": "Páginas",
-      "pagesDescription": "Creadas en este espacio",
-      "views": "Vistas",
-      "viewsDescription": "Visitas registradas",
-      "clicks": "Clics",
-      "clicksDescription": "Clics en tus enlaces"
-    },
-    "searchLabel": "Buscar páginas",
-    "searchPlaceholder": "Buscar páginas...",
-    "filterStatus": "Filtrar por estado",
-    "status": "Estado",
-    "statusLabel": {
-      "published": "Publicada",
-      "draft": "Borrador"
-    },
-    "all": "Todos",
-    "page": "Página",
-    "noViews": "Sin visitas todavía",
-    "noMatches": "No hay coincidencias",
-    "emptyTitle": "No hay páginas todavía",
-    "emptyDescription": "Crea una página para reunir todos tus enlaces en una sola dirección.",
-    "emptyFilteredDescription": "Prueba con otro término o estado.",
-    "preview": {
-      "headlineHint": "Añade un titular",
-      "descriptionHint": "Añade una descripción",
-      "titleHint": "Tu página",
-      "itemHint": "Nuevo elemento"
-    },
-    "template": {
-      "aurora": {
-        "label": "Aurora",
-        "description": "Degradado nocturno con bloques de vidrio."
-      },
-      "pro-dark": {
-        "label": "Pro Dark",
-        "description": "Oscuro sobrio para marcas."
-      },
-      "spotlight": {
-        "label": "Spotlight",
-        "description": "Foco violeta sobre fondo profundo."
-      },
-      "forest": {
-        "label": "Forest",
-        "description": "Verde bosque con acentos vivos."
-      },
-      "sunset": {
-        "label": "Sunset",
-        "description": "Atardecer cálido en degradado."
-      },
-      "studio": {
-        "label": "Studio",
-        "description": "Azul pizarra profesional."
-      },
-      "minimal": {
-        "label": "Minimal",
-        "description": "Blanco puro, tipografía primero."
-      },
-      "paper": {
-        "label": "Paper",
-        "description": "Tarjetas sobre papel cálido."
-      },
-      "soft": {
-        "label": "Soft",
-        "description": "Beige suave y sereno."
-      },
-      "sky": {
-        "label": "Sky",
-        "description": "Celeste limpio y aireado."
-      },
-      "wave": {
-        "label": "Wave",
-        "description": "Cian fresco con energía."
-      },
-      "promo": {
-        "label": "Promo",
-        "description": "Naranja vivo para campañas."
-      }
-    },
-    "block": {
-      "links": {
-        "label": "Enlaces",
-        "hint": "Lista de botones hacia tus destinos."
-      },
-      "header": {
-        "label": "Encabezado",
-        "hint": "Título y texto de presentación."
-      },
-      "social": {
-        "label": "Redes sociales",
-        "hint": "Iconos hacia tus perfiles."
-      },
-      "contact": {
-        "label": "Contacto",
-        "hint": "Correo, teléfono o dirección."
-      },
-      "gallery": {
-        "label": "Galería",
-        "hint": "Cuadrícula de imágenes."
-      },
-      "faq": {
-        "label": "Preguntas frecuentes",
-        "hint": "Preguntas con su respuesta."
-      },
-      "product": {
-        "label": "Productos",
-        "hint": "Artículos con precio y enlace."
-      },
-      "video": {
-        "label": "Video",
-        "hint": "Un video incrustado por su URL."
-      },
-      "embed": {
-        "label": "Incrustado",
-        "hint": "Contenido externo incrustado."
-      }
+    searchLabel: "Buscar anuncios"
+    searchPlaceholder: "Buscar por título o mensaje..."
+    filterStatus: "Filtrar por estado"
+    statusColumn: "Estado"
+    all: "Todos"
+    filter: {
+      published: "Publicados"
+      draft: "Borradores"
     }
-  },
-  "files": {
-    "name": "Nombre",
-    "type": "Tipo",
-    "all": "Todos",
-    "rootFolder": "Archivos",
-    "unavailable": "No disponible",
-    "kind": {
-      "image": "Imagen",
-      "video": "Vídeo",
-      "document": "Documento"
-    },
-    "filter": {
-      "image": "Imágenes",
-      "video": "Videos",
-      "document": "Documentos",
-      "folder": "Carpetas"
-    },
-    "sort": {
-      "modifiedAt": "Fecha de modificación",
-      "name": "Nombre"
-    },
-    "sortBy": "Ordenar por",
-    "order": "Orden",
-    "sortAZ": "De A a Z",
-    "sortZA": "De Z a A",
-    "sortNewest": "De nueva a antigua",
-    "sortOldest": "De antigua a nueva",
-    "viewLabel": "Vista de archivos",
-    "gridView": "Vista de cuadrícula",
-    "listView": "Vista de lista",
-    "searchLabel": "Buscar archivos y carpetas",
-    "filterType": "Filtrar archivos por tipo",
-    "previousFolders": "Carpetas anteriores",
-    "loadingMore": "Cargando más archivos",
-    "loadMoreFailed": "No pudimos cargar más archivos.",
-    "addToLibrary": "Añadir a la biblioteca",
-    "openingDrive": "Abriendo Google",
-    "star": "Añadir a favoritos {name}",
-    "unstar": "Quitar de favoritos {name}",
-    "starred": "Añadido a favoritos",
-    "unstarred": "Quitado de favoritos",
-    "starFailed": "No se pudo actualizar favoritos",
-    "uploaded": "Archivo subido",
-    "uploadFailed": "No se pudo subir el archivo",
-    "folderCreated": "Carpeta creada",
-    "folderCreateFailed": "No se pudo crear la carpeta",
-    "folderNameTaken": "Ya existe una carpeta con ese nombre en esta ubicación.",
-    "renamed": "Nombre actualizado",
-    "renameFailed": "No se pudo cambiar el nombre",
-    "moved": "Elemento movido",
-    "moveFailed": "No se pudo mover el elemento",
-    "movedCount": "{count, plural, one {Elemento movido} other {Elementos movidos}}",
-    "moveNoneFailed": "No se pudo mover ningún elemento",
-    "moveSomeFailed": "Algunos elementos no se pudieron mover",
-    "moveManyFailed": "No se pudieron mover los elementos",
-    "deleted": "Elemento eliminado permanentemente",
-    "deletedMany": "Elementos eliminados permanentemente",
-    "deleteFailed": "No se pudo eliminar el elemento",
-    "deleteNoneFailed": "No se pudo eliminar ningún elemento",
-    "deleteSomeFailed": "Algunos elementos no se pudieron eliminar",
-    "deleteManyFailed": "No se pudieron eliminar los elementos",
-    "inUseByPublishing": "Este archivo se usa en Publishing y no puede eliminarse.",
-    "driveImportDone": "Importación desde Google Drive completada.",
-    "driveImportPartial": "Algunos archivos de Google Drive no se pudieron importar.",
-    "driveImportFailed": "No pudimos completar la importación desde Google Drive.",
-    "driveImportRunning": "La importación sigue en curso. Actualiza para ver el avance.",
-    "driveUnavailable": "Google Drive no está disponible en este momento.",
-    "driveOpenFailed": "No pudimos abrir o iniciar la importación de Google Drive.",
-    "noMatches": "No encontramos archivos",
-    "emptyRootTitle": "Aún no tienes archivos",
-    "emptyFolderTitle": "Esta carpeta está vacía",
-    "emptyRootDescription": "Sube un archivo o crea una carpeta para comenzar a organizar tu biblioteca.",
-    "emptyFolderDescription": "Crea una subcarpeta o sube un archivo para organizar este espacio.",
-    "emptyFilteredDescription": "Prueba con otro término o restablece los filtros para consultar todos los archivos disponibles.",
-    "uploadTitle": "Subir archivos",
-    "formats": {
-      "images": "Imágenes",
-      "media": "Vídeo y audio",
-      "documents": "Documentos",
-      "archives": "Hojas y comprimidos"
-    },
-    "newFolderTitle": "Nueva carpeta",
-    "folderNamePlaceholder": "Nombre de carpeta",
-    "creating": "Creando...",
-    "createFolder": "Crear carpeta",
-    "previewDescription": "Vista privada del archivo.",
-    "infoTitle": "Información del archivo",
-    "info": {
-      "type": "Tipo",
-      "format": "Formato",
-      "size": "Tamaño",
-      "updatedAt": "Última actualización",
-      "updatedBy": "Actualizado por"
-    },
-    "renameTitle": "Renombrar",
-    "moveSelected": "Mover archivos seleccionados",
-    "chooseFolder": "Elige la carpeta de destino.",
-    "deleteSelected": "Eliminar los elementos seleccionados",
-    "deletePermanently": "Eliminar permanentemente",
-    "online": {
-      "searchLabel": "Buscar medios online",
-      "searchPlaceholder": "Busca fotos, ilustraciones o videos",
-      "searching": "Buscando medios online",
-      "notConfiguredTitle": "Búsqueda online no configurada",
-      "notConfiguredDescription": "Ningún proveedor de medios está configurado para esta plataforma. Un administrador debe conectarlo antes de buscar.",
-      "searchFailedTitle": "Búsqueda no disponible",
-      "searchFailedDescription": "No pudimos completar la búsqueda.",
-      "emptyTitle": "Busca un medio para empezar",
-      "emptyDescription": "Escribe qué necesitas y buscaremos en los proveedores conectados.",
-      "noResultsTitle": "No encontramos medios",
-      "noResultsDescription": "Intenta una búsqueda más amplia o con otras palabras.",
-      "type": {
-        "image": "Imagen",
-        "video": "Video"
-      },
-      "inLibrary": "En tu biblioteca",
-      "available": "Disponible",
-      "imported": "Importado",
-      "import": "Importar",
-      "importFailed": "No pudimos importar este medio. Inténtalo de nuevo."
+    status: {
+      published: "Publicado"
+      draft: "Borrador"
     }
-  },
-  "profile": {
-    "loading": "Cargando perfil",
-    "loadFailed": "No pudimos cargar tu perfil.",
-    "unavailableTitle": "No pudimos mostrar tu perfil",
-    "notFound": "No encontramos tu perfil.",
-    "settingsLabel": "Configuración de la cuenta",
-    "tab": {
-      "profile": "Perfil",
-      "security": "Seguridad"
-    },
-    "personalTitle": "Información personal",
-    "personalDescription": "Administra cómo apareces y tus preferencias del Portal.",
-    "verified": "Verificado",
-    "unverified": "Sin verificar",
-    "memberSince": "Miembro desde",
-    "displayName": "Nombre visible",
-    "preferredLanguage": "Idioma preferido",
-    "usePortalLanguage": "Usar idioma del Portal",
-    "timezone": "Zona horaria",
-    "timezonePlaceholder": "Selecciona zona horaria",
-    "nameRequired": "Completa el nombre visible.",
-    "timezoneRequired": "Selecciona tu zona horaria.",
-    "updated": "Perfil actualizado.",
-    "passwordTitle": "Cambiar contraseña",
-    "passwordDescription": "Confirma tu contraseña actual antes de definir una nueva.",
-    "currentPassword": "Contraseña actual",
-    "newPassword": "Nueva contraseña",
-    "confirmPassword": "Confirmar nueva contraseña",
-    "passwordHint": "Mínimo 8 caracteres, con mayúscula, minúscula, número y carácter especial.",
-    "updatePassword": "Actualizar contraseña",
-    "allFieldsRequired": "Completa todos los campos.",
-    "passwordMismatch": "Las contraseñas nuevas no coinciden.",
-    "passwordUpdated": "Contraseña actualizada. Inicia sesión de nuevo para continuar.",
-    "saveFailed": "No pudimos guardar los cambios. Inténtalo de nuevo.",
-    "currentPasswordInvalid": "La contraseña actual no es correcta.",
-    "passwordPolicy": "La nueva contraseña no cumple los requisitos.",
-    "validationFailed": "Revisa nombre, idioma y zona horaria."
-  },
-  "support": {
-    "pageTitle": "Soporte",
-    "pageDescription": "Revisa tus casos abiertos y habla con el equipo de Zapi desde un único lugar.",
-    "unavailableTitle": "Soporte no disponible",
-    "forbiddenDescription": "Tu acceso actual no permite consultar los casos de soporte de este espacio de trabajo.",
-    "loadFailedTitle": "No se pudieron cargar los casos de soporte",
-    "loadFailedDescription": "Ningún caso fue modificado. Vuelve a intentarlo para recuperar la información.",
-    "retry": "Reintentar",
-    "loading": "Cargando casos de soporte",
-    "status": {
-      "open": "Abierto",
-      "resolved": "Resuelto",
-      "closed": "Cerrado"
-    },
-    "filter": {
-      "open": "Abiertos",
-      "resolved": "Resueltos",
-      "closed": "Cerrados"
-    },
-    "all": "Todos",
-    "statusColumn": "Estado",
-    "ticket": "Caso",
-    "metrics": {
-      "open": "Abiertos",
-      "openDescription": "En espera de atención",
-      "resolved": "Resueltos",
-      "resolvedDescription": "Resueltos en el historial",
-      "closed": "Cerrados",
-      "closedDescription": "Sin acciones pendientes"
-    },
-    "searchLabel": "Buscar casos de soporte",
-    "searchPlaceholder": "Buscar casos...",
-    "filterStatus": "Filtrar por estado",
-    "newTicket": "Nuevo caso",
-    "createTitle": "Nuevo caso de soporte",
-    "selectCategory": "Selecciona una categoría",
-    "subjectPlaceholder": "Ej. No puedo publicar en Instagram",
-    "bodyPlaceholder": "Qué estabas haciendo, qué esperabas que ocurriera y qué ocurrió en su lugar.",
-    "missingFields": "Completa todos los campos obligatorios.",
-    "created": "Caso de soporte creado.",
-    "createFailed": "No pudimos crear el caso. Inténtalo de nuevo.",
-    "noMatches": "No hay coincidencias",
-    "emptyTitle": "Aún no tienes casos de soporte",
-    "emptyDescription": "Cuando necesites ayuda, abre un caso y tendrás toda la conversación aquí.",
-    "emptyFilteredDescription": "Prueba con otro término o estado.",
-    "loadingTicket": "Cargando caso de soporte",
-    "ticketUnavailable": "Caso no disponible",
-    "ticketLoadFailed": "No pudimos cargar este caso de soporte.",
-    "ticketNotFound": "No encontramos este caso",
-    "ticketNotFoundDescription": "El caso no existe o ya no está disponible en este espacio de trabajo.",
-    "createdUpdated": "Creado {created} · actualizado {updated}",
-    "messageRequired": "Escribe un mensaje antes de enviarlo.",
-    "replyPlaceholder": "Escribe tu respuesta...",
-    "replySent": "Respuesta enviada.",
-    "replyFailed": "No pudimos enviar tu respuesta. Inténtalo de nuevo.",
-    "resolved": "Caso marcado como resuelto.",
-    "resolveFailed": "No pudimos marcar el caso como resuelto."
-  },
-  "teams": {
-    "pageTitle": "Equipo",
-    "myAccessTitle": "Mi acceso",
-    "manageDescription": "Administra personas, cuentas asignadas e invitaciones del workspace.",
-    "viewDescription": "Consulta tu rol, las cuentas disponibles y quién forma parte del workspace.",
-    "loadFailedTitle": "No se pudo cargar el equipo",
-    "loadFailedDescription": "No se modificó ningún acceso. Intenta cargar la sección nuevamente.",
-    "viewsLabel": "Vistas del equipo",
-    "tab": {
-      "members": "Miembros",
-      "invitations": "Invitaciones",
-      "activity": "Actividad"
-    },
-    "role": {
-      "owner": "Propietario",
-      "admin": "Administración",
-      "member": "Miembro"
-    },
-    "roleColumn": "Rol",
-    "delivery": {
-      "label": "Entrega",
-      "pending": "Enviando",
-      "sent": "Enviada",
-      "failed": "Falló el envío"
-    },
-    "member": "Miembro",
-    "scope": "Alcance",
-    "joined": "Se unió",
-    "email": "Correo",
-    "invitedBy": "Invitado por",
-    "lastSent": "Último envío",
-    "expires": "Vence",
-    "notSentYet": "Aún no enviado",
-    "activity": "Actividad",
-    "performedBy": "Realizada por",
-    "person": "Persona",
-    "date": "Fecha",
-    "performedByName": "Realizada por {name}",
-    "system": "Sistema",
-    "allAccounts": "Todas las cuentas",
-    "accountCount": "{count, plural, one {# cuenta} other {# cuentas}}",
-    "assignedAccounts": "Cuentas asignadas",
-    "adminAllAccounts": "Administración accede a todas las cuentas activas del workspace.",
-    "adminHint": "Accede a todas las cuentas y puede administrar miembros, excepto otros administradores.",
-    "memberHint": "Solo trabaja con las cuentas que le asignes.",
-    "inviteTitle": "Invitar al workspace",
-    "inviteDescription": "La invitación es privada, se vincula a este correo y caduca en siete días.",
-    "emailPlaceholder": "nombre@empresa.com",
-    "invalidEmail": "Introduce un correo válido.",
-    "sending": "Enviando...",
-    "sendInvitation": "Enviar invitación",
-    "saving": "Guardando...",
-    "saveAccess": "Guardar acceso",
-    "cancel": "Cancelar",
-    "close": "Cerrar",
-    "processing": "Procesando...",
-    "invitationDetail": "Detalle de invitación",
-    "invitationOnlyEmail": "Solo {email} puede aceptarla antes de su vencimiento.",
-    "inviteMember": "Invitar miembro",
-    "noSeats": "No quedan cupos disponibles",
-    "searchMembers": "Buscar miembros...",
-    "searchInvitations": "Buscar invitaciones...",
-    "searchActivity": "Buscar actividad...",
-    "filterActivity": "Filtrar actividad",
-    "accessUpdated": "Acceso actualizado.",
-    "invitationRevoked": "Invitación revocada.",
-    "ownershipTransferred": "Propiedad transferida.",
-    "actionFailed": "No se pudo completar la acción",
-    "dismissError": "Cerrar error",
-    "resending": "Reenviando invitación",
-    "membersNoMatches": "No encontramos miembros",
-    "membersEmptyFilteredDescription": "Prueba otra búsqueda para encontrar a una persona del workspace.",
-    "invitationsNoMatches": "No encontramos invitaciones",
-    "invitationsEmptyTitle": "Sin invitaciones pendientes",
-    "invitationsEmptyDescription": "Las nuevas invitaciones aparecerán aquí hasta que se acepten, venzan o revoquen.",
-    "invitationsEmptyFilteredDescription": "Prueba otra búsqueda para encontrar una invitación.",
-    "activityUnavailable": "Actividad no disponible",
-    "activityFailedDescription": "No se pudo consultar la actividad del workspace.",
-    "activityNoMatches": "Sin actividad para este filtro",
-    "activityEmptyTitle": "Sin actividad",
-    "activityEmptyDescription": "Los cambios de invitaciones, roles, cuentas y propiedad aparecerán aquí.",
-    "activityEmptyFilteredDescription": "Prueba otra búsqueda o elimina el filtro de categoría.",
-    "activityFilter": {
-      "all": "Toda la actividad",
-      "invitations": "Invitaciones",
-      "members": "Miembros",
-      "access": "Acceso",
-      "ownership": "Propiedad"
-    },
-    "activityLabel": {
-      "team.invitation_created": "Invitación creada",
-      "team.invitation_resent": "Invitación reenviada",
-      "team.invitation_revoked": "Invitación revocada",
-      "team.invitation_expired": "Invitación vencida",
-      "team.invitation_accepted": "Invitación aceptada",
-      "team.member_role_updated": "Rol actualizado",
-      "team.member_access_updated": "Acceso actualizado",
-      "team.member_account_grants_replaced": "Cuentas asignadas",
-      "team.member_revoked": "Miembro eliminado",
-      "team.member_left": "Miembro salió del workspace",
-      "team.ownership_transferred": "Propiedad transferida"
-    },
-    "confirm": {
-      "removeTitle": "¿Eliminar miembro?",
-      "removeDescription": "{name} perderá el acceso al workspace y sus sesiones activas se cerrarán.",
-      "removeAction": "Eliminar miembro",
-      "revokeTitle": "¿Revocar invitación?",
-      "revokeDescription": "La invitación para {email} dejará de ser válida.",
-      "revokeAction": "Revocar invitación",
-      "transferTitle": "¿Transferir la propiedad?",
-      "transferDescription": "{name} será el nuevo propietario. Tu rol cambiará a Administración.",
-      "transferAction": "Transferir propiedad",
-      "leaveTitle": "¿Abandonar el workspace?",
-      "leaveDescription": "Perderás el acceso a sus cuentas y se cerrarán tus sesiones activas.",
-      "leaveAction": "Abandonar workspace"
-    },
-    "invitation": {
-      "unavailableTitle": "Invitación no disponible",
-      "unavailableDescription": "Ningún cambio adicional fue realizado en tu cuenta.",
-      "backHome": "Volver al inicio",
-      "signIn": "Iniciar sesión",
-      "retry": "Reintentar",
-      "signInToContinue": "Iniciar sesión para continuar",
-      "signUpToContinue": "Crear cuenta para continuar",
-      "accept": "Aceptar invitación",
-      "accepting": "Aceptando…",
-      "notNow": "Ahora no",
-      "invitedTitle": "Te invitaron a un espacio de trabajo",
-      "invitedDescription": "Confirma tu cuenta para unirte. La invitación solo funciona con {email}.",
-      "workspace": "Espacio de trabajo",
-      "role": {
-        "admin": "Administrador",
-        "member": "Miembro"
-      },
-      "availableUntil": "Disponible hasta {date}",
-      "activatingTitle": "Activando acceso",
-      "activatingDescription": "Estamos preparando el espacio de trabajo.",
-      "problem": {
-        "missing": {
-          "title": "Falta el enlace de invitación",
-          "description": "Abre nuevamente el enlace completo que recibiste por correo."
-        },
-        "invalid": {
-          "title": "Esta invitación no es válida",
-          "description": "El enlace puede estar incompleto o haber sido reemplazado por una invitación más reciente."
-        },
-        "expired": {
-          "title": "Esta invitación venció",
-          "description": "Pide a un administrador del espacio de trabajo que te envíe una nueva invitación."
-        },
-        "used": {
-          "title": "Esta invitación ya fue utilizada",
-          "description": "Inicia sesión para abrir tus espacios de trabajo disponibles."
-        },
-        "full": {
-          "title": "El espacio alcanzó su límite",
-          "description": "La invitación sigue pendiente, pero un administrador debe liberar un cupo antes de que puedas entrar."
-        },
-        "mismatch": {
-          "title": "La invitación pertenece a otro correo",
-          "description": "Cierra esta sesión e inicia con la cuenta que recibió la invitación."
-        },
-        "error": {
-          "title": "No pudimos comprobar la invitación",
-          "description": "Revisa tu conexión e inténtalo nuevamente."
-        }
-      }
-    },
-    "created": "Creada"
-  },
-  "plans": {
-    "pageTitle": "Planes",
-    "create": "Crear plan",
-    "saveChanges": "Guardar cambios",
-    "editTitle": "Editar {name}",
-    "saving": "Guardando...",
-    "deleting": "Eliminando...",
-    "deleteAction": "Eliminar plan",
-    "deleteDescription": "El plan se eliminará de la configuración. Esta acción no se puede deshacer.",
-    "description": "Descripción",
-    "descriptionPlaceholder": "Describe para quién es este plan.",
-    "freePlan": "Plan gratuito",
-    "featured": "Destacado",
-    "default": "Predeterminado",
-    "defaultHint": "Se asigna al registrarse.",
-    "free": "Gratis",
-    "noTrial": "Sin prueba",
-    "plan": "Plan",
-    "price": "Precio",
-    "statusColumn": "Estado",
-    "billingColumn": "Cobro",
-    "visibility": "Visibilidad",
-    "status": {
-      "active": "Activo",
-      "inactive": "Inactivo"
-    },
-    "billing": {
-      "monthly": "Mensual",
-      "yearly": "Anual"
-    },
-    "filter": {
-      "allStatuses": "Todos los estados",
-      "active": "Activos",
-      "inactive": "Inactivos",
-      "allBilling": "Todo cobro",
-      "allPlans": "Todos los planes",
-      "featured": "Destacados",
-      "standard": "No destacados"
-    },
-    "filterStatus": "Filtrar por estado",
-    "filterBilling": "Filtrar por cobro",
-    "filterFeatured": "Filtrar por destacado",
-    "searchLabel": "Buscar planes",
-    "searchPlaceholder": "Buscar por nombre o slug...",
-    "metrics": {
-      "plans": "Planes",
-      "plansDescription": "Opciones visibles",
-      "active": "Activos",
-      "activeDescription": "Disponibles hoy",
-      "subscribers": "Suscriptores",
-      "subscribersDescription": "Cuentas en esta vista",
-      "featured": "Destacados",
-      "featuredDescription": "Ofertas principales"
-    },
-    "nameTooShort": "El nombre del plan debe tener al menos 2 caracteres.",
-    "invalidSlug": "El slug usa minúsculas, números y guiones, sin espacios.",
-    "slugTaken": "Ya existe un plan con este slug.",
-    "invalidPrice": "Indica un precio válido de cero o mayor.",
-    "invalidNumbers": "Los días de prueba y la posición deben ser números válidos.",
-    "permissionRequired": "Selecciona al menos un permiso para el plan.",
-    "defaultPlanRules": "El plan predeterminado debe estar activo y ser gratuito.",
-    "sessionExpired": "Tu sesión expiró. Vuelve a iniciar sesión.",
-    "loadFailed": "No pudimos cargar los planes. Inténtalo de nuevo.",
-    "updated": "Plan actualizado.",
-    "created": "Plan creado.",
-    "conflict": "El nombre, slug o plan predeterminado ya existe.",
-    "validationFailed": "Revisa los datos del plan antes de guardarlo.",
-    "saveFailed": "No pudimos guardar el plan. Inténtalo de nuevo.",
-    "deleted": "Plan eliminado.",
-    "hasSubscribers": "Este plan todavía tiene suscriptores. Muévelos a otro plan antes de eliminarlo.",
-    "deleteFailed": "No pudimos eliminar el plan. Inténtalo de nuevo.",
-    "forbiddenTitle": "Acceso restringido",
-    "forbiddenDescription": "Tu cuenta no tiene acceso para administrar planes.",
-    "loadFailedTitle": "No se pudieron cargar los planes",
-    "loadFailedDescription": "No pudimos consultar la configuración de planes.",
-    "noMatches": "No encontramos planes",
-    "emptyTitle": "No hay planes",
-    "emptyDescription": "Aún no hay planes configurados. Crea el primero para comenzar.",
-    "emptyFilteredDescription": "No hay planes que coincidan con los filtros actuales."
-  },
-  "affiliate": {
-    "pageTitle": "Afiliados",
-    "loading": "Cargando afiliados",
-    "unavailableTitle": "Afiliados no disponible",
-    "loadFailedDescription": "No pudimos cargar tu programa de afiliados.",
-    "joinTitle": "Aún no participas en el programa",
-    "joinDescription": "Al activarlo recibirás un código propio para atribuir referidos y acumular comisiones.",
-    "activated": "Programa de afiliados activado.",
-    "activateFailed": "No pudimos activar el programa. Inténtalo de nuevo.",
-    "profileStatus": {
-      "active": "Activo",
-      "suspended": "Suspendido"
-    },
-    "requestWithdrawal": "Solicitar retiro",
-    "withdrawalDescription": "El monto se reserva de tu saldo disponible hasta que se procese la solicitud.",
-    "amount": "Monto",
-    "required": "obligatorio",
-    "availableAmount": "Disponible: {amount}",
-    "invalidAmount": "El monto debe ser mayor a cero y no superar tu saldo.",
-    "withdrawalRequested": "Solicitud de retiro registrada.",
-    "withdrawalFailed": "No pudimos registrar el retiro. Inténtalo de nuevo.",
-    "clipboardUnsupported": "Tu navegador no permite copiar el código.",
-    "codeCopied": "Código copiado.",
-    "copyFailed": "No pudimos copiar el código. Inténtalo de nuevo.",
-    "metrics": {
-      "clicks": "Clics",
-      "clicksDescription": "Visitas atribuidas a tu código",
-      "referrals": "Referidos",
-      "referralsDescription": "Personas registradas",
-      "conversions": "Conversiones",
-      "conversionsDescription": "Referidos que compraron",
-      "available": "Disponible",
-      "availableDescription": "Lista para retiro",
-      "pending": "Pendiente",
-      "pendingDescription": "Aún en validación",
-      "paid": "Pagado",
-      "paidDescription": "Retirado históricamente"
-    },
-    "tab": {
-      "commissions": "Comisiones",
-      "withdrawals": "Retiros"
-    },
-    "all": "Todos",
-    "statusColumn": "Estado",
-    "commission": "Comisión",
-    "filterStatus": "Filtrar por estado",
-    "searchCommissions": "Buscar comisiones",
-    "searchWithdrawals": "Buscar retiros",
-    "searchByAmount": "Buscar por monto...",
-    "commissionStatus": {
-      "pending": "Pendiente",
-      "available": "Disponible",
-      "paid": "Pagada",
-      "cancelled": "Cancelada"
-    },
-    "commissionFilter": {
-      "pending": "Pendientes",
-      "available": "Disponibles",
-      "paid": "Pagadas",
-      "cancelled": "Canceladas"
-    },
-    "withdrawalStatus": {
-      "requested": "Solicitado",
-      "approved": "Aprobado",
-      "paid": "Pagado",
-      "rejected": "Rechazado"
-    },
-    "withdrawalFilter": {
-      "requested": "Solicitados",
-      "approved": "Aprobados",
-      "paid": "Pagados",
-      "rejected": "Rechazados"
-    },
-    "noMatches": "No hay coincidencias",
-    "emptyFilteredDescription": "Prueba con otro término o estado.",
-    "commissionsEmptyTitle": "Aún no hay comisiones",
-    "commissionsEmptyDescription": "Cuando alguien compre usando tu código verás aquí su comisión.",
-    "withdrawalsEmptyTitle": "No hay retiros",
-    "withdrawalsEmptyDescription": "Tus solicitudes de retiro aparecerán en este historial."
-  },
-  "adminEmailTemplates": {
-    "pageTitle": "Plantillas de correo",
-    "pageDescription": "Asunto y textos de los correos transaccionales que envía Zapi.",
-    "loading": "Cargando plantillas de correo",
-    "forbiddenTitle": "Acceso restringido",
-    "forbiddenDescription": "Tu cuenta no tiene permisos para editar las plantillas de correo.",
-    "loadFailedTitle": "No pudimos cargar esta sección",
-    "loadFailedDescription": "No fue posible cargar las plantillas de correo.",
-    "template": "Plantilla",
-    "sheetDescription": "{description}. La maquetación, el botón y los datos calculados del correo no cambian.",
-    "buttonUrlHint": "El destino del botón lo calcula el sistema.",
-    "notice": "Aviso final",
-    "missingFields": "Completa todos los campos obligatorios.",
-    "email": "Correo",
-    "statusColumn": "Estado",
-    "all": "Todos",
-    "status": {
-      "customized": "Personalizada",
-      "default": "Texto por defecto"
-    },
-    "searchLabel": "Buscar plantillas",
-    "searchPlaceholder": "Buscar plantillas...",
-    "filterStatus": "Filtrar por estado",
-    "noMatches": "No hay coincidencias",
-    "emptyTitle": "No hay plantillas de correo",
-    "emptyDescription": "Las plantillas del sistema aparecerán aquí.",
-    "emptyFilteredDescription": "Prueba con otro término o estado.",
-    "updated": "Plantilla actualizada.",
-    "saveFailed": "No pudimos guardar la plantilla.",
-    "resetTitle": "Restablecer plantilla",
-    "resetDescription": "«{name}» vuelve al texto por defecto del sistema y se pierde la personalización guardada.",
-    "reset": "Plantilla restablecida.",
-    "resetFailed": "No pudimos restablecer la plantilla.",
-    "cancel": "Cancelar"
-  },
-  "adminPaymentReport": {
-    "pageTitle": "Reporte de pagos",
-    "pageDescription": "Cobros liquidados, reembolsos y facturación por producto en el periodo seleccionado.",
-    "loading": "Cargando reporte de pagos",
-    "forbiddenTitle": "Acceso restringido",
-    "forbiddenDescription": "Tu cuenta no tiene permisos para consultar el reporte de pagos.",
-    "loadFailedTitle": "No pudimos cargar esta sección",
-    "loadFailedDescription": "No fue posible calcular el reporte de pagos.",
-    "range": {
-      "30d": "Últimos 30 días",
-      "90d": "Últimos 90 días",
+    announcement: "Anuncio"
+    noMatches: "No hay coincidencias"
+    emptyTitle: "Todavía no hay anuncios"
+    emptyDescription: "Publica un aviso para que tus clientes lo vean en el Portal."
+    emptyFilteredDescription: "Prueba con otro término o estado."
+    deleteTitle: "Eliminar anuncio"
+    deleteDescription: "Se elimina «{title}» y su historial de lecturas. Esta acción no se puede deshacer."
+    cancel: "Cancelar"
+  }
+  adminPaymentReport: {
+    pageTitle: "Reporte de pagos"
+    pageDescription: "Cobros liquidados, reembolsos y facturación por producto en el periodo seleccionado."
+    loading: "Cargando reporte de pagos"
+    forbiddenTitle: "Acceso restringido"
+    forbiddenDescription: "Tu cuenta no tiene permisos para consultar el reporte de pagos."
+    loadFailedTitle: "No pudimos cargar esta sección"
+    loadFailedDescription: "No fue posible calcular el reporte de pagos."
+    range: {
+      "30d": "Últimos 30 días"
+      "90d": "Últimos 90 días"
       "12m": "Últimos 12 meses"
-    },
-    "rangeColumn": "Rango",
-    "selectRange": "Seleccionar rango",
-    "product": "Producto",
-    "filterProduct": "Filtrar por producto",
-    "all": "Todos",
-    "productType": {
-      "plan": "Plan",
-      "credits": "Créditos"
-    },
-    "statusColumn": "Estado",
-    "workspace": "Espacio de trabajo",
-    "status": {
-      "paid": "Pagado",
-      "pending": "Pendiente",
-      "partially_refunded": "Reembolso parcial",
-      "refunded": "Reembolsado",
-      "failed": "Fallido"
-    },
-    "metrics": {
-      "gross": "Bruto",
-      "grossDescription": "Cobros liquidados",
-      "net": "Neto",
-      "netDescription": "Bruto menos reembolsos",
-      "refunded": "Reembolsado",
-      "refundedDescription": "{count, plural, one {# pago con devolución} other {# pagos con devolución}}",
-      "ticket": "Ticket medio",
-      "ticketDescription": "{paid, number} pagados · {pending, number} pendientes · {failed, number} fallidos"
-    },
-    "currencyNote": "Moneda {currency}",
-    "moreCurrencies": " · {count, plural, one {# moneda más sin agregar} other {# monedas más sin agregar}}",
-    "noMovements": "Sin movimientos",
-    "noSettledDescription": "No hay cobros liquidados en el periodo seleccionado.",
-    "noData": "Sin datos",
-    "noSettledPeriod": "Sin cobros liquidados en este periodo.",
-    "noPaymentsPeriod": "Sin pagos registrados en este periodo."
-  },
-  "adminNotifications": {
-    "pageTitle": "Anuncios",
-    "pageDescription": "Avisos manuales que aparecen en la campana del Portal de los clientes.",
-    "loading": "Cargando anuncios",
-    "forbiddenTitle": "Acceso restringido",
-    "forbiddenDescription": "Tu cuenta no tiene permisos para administrar los anuncios de la plataforma.",
-    "loadFailedTitle": "No pudimos cargar esta sección",
-    "loadFailedDescription": "No fue posible cargar los anuncios.",
-    "createTitle": "Nuevo anuncio",
-    "editTitle": "Editar anuncio",
-    "titlePlaceholder": "Ej. Mantenimiento programado el domingo",
-    "bodyPlaceholder": "Qué ocurre, a quién afecta y qué debe hacer la persona.",
-    "link": "Enlace",
-    "linkHint": "Opcional. Si lo indicas, el anuncio se vuelve accionable.",
-    "audienceLabel": "Audiencia",
-    "audience": {
-      "all": "Todos",
-      "workspace": "Espacio",
-      "user": "Persona"
-    },
-    "audienceOption": {
-      "all": "Todos los clientes",
-      "workspace": "Un espacio de trabajo",
-      "user": "Una persona"
-    },
-    "searchTarget": "Buscar destinatario",
-    "searchWorkspace": "Buscar espacio...",
-    "searchPerson": "Buscar persona o correo...",
-    "selectTarget": "Selecciona un destinatario",
-    "missingFields": "Completa todos los campos obligatorios.",
-    "published": "Anuncio publicado.",
-    "draftSaved": "Borrador guardado.",
-    "saveFailed": "No pudimos guardar el anuncio. Inténtalo de nuevo.",
-    "deleted": "Anuncio eliminado.",
-    "deleteFailed": "No pudimos eliminar el anuncio.",
-    "metrics": {
-      "published": "Publicados",
-      "publishedDescription": "Visibles en el Portal",
-      "drafts": "Borradores",
-      "draftsDescription": "Sin publicar todavía",
-      "targeted": "Segmentados",
-      "targetedDescription": "Dirigidos a un espacio o persona",
-      "reads": "Lecturas",
-      "readsDescription": "Anuncios abiertos por clientes"
-    },
-    "searchLabel": "Buscar anuncios",
-    "searchPlaceholder": "Buscar por título o mensaje...",
-    "filterStatus": "Filtrar por estado",
-    "statusColumn": "Estado",
-    "all": "Todos",
-    "filter": {
-      "published": "Publicados",
-      "draft": "Borradores"
-    },
-    "status": {
-      "published": "Publicado",
-      "draft": "Borrador"
-    },
-    "announcement": "Anuncio",
-    "noMatches": "No hay coincidencias",
-    "emptyTitle": "Todavía no hay anuncios",
-    "emptyDescription": "Publica un aviso para que tus clientes lo vean en el Portal.",
-    "emptyFilteredDescription": "Prueba con otro término o estado.",
-    "deleteTitle": "Eliminar anuncio",
-    "deleteDescription": "Se elimina «{title}» y su historial de lecturas. Esta acción no se puede deshacer.",
-    "cancel": "Cancelar"
-  },
-  "adminManualPayments": {
-    "pageTitle": "Pagos manuales",
-    "pageDescription": "Cobros fuera de Polar: transferencias, depósitos y efectivo registrados por el equipo.",
-    "loading": "Cargando pagos manuales",
-    "forbiddenTitle": "Acceso restringido",
-    "forbiddenDescription": "Tu cuenta no tiene permisos para administrar los pagos manuales.",
-    "loadFailedTitle": "No pudimos cargar esta sección",
-    "loadFailedDescription": "No fue posible cargar los pagos manuales.",
-    "sectionsLabel": "Secciones de pagos manuales",
-    "tab": {
-      "payments": "Pagos",
-      "settings": "Configuración"
-    },
-    "createTitle": "Registrar pago manual",
-    "registerPayment": "Registrar pago",
-    "searchWorkspace": "Buscar espacio de trabajo",
-    "searchWorkspacePlaceholder": "Buscar espacio...",
-    "selectWorkspace": "Selecciona un espacio",
-    "ownerHint": "El pago se atribuye al propietario del espacio.",
-    "product": "Producto",
-    "required": "obligatorio",
-    "productType": {
-      "plan": "Plan",
-      "creditsPack": "Paquete de créditos",
-      "pack": "Paquete"
-    },
-    "selectOffer": "Selecciona una oferta",
-    "reference": "Referencia",
-    "referencePlaceholder": "PAY-000123",
-    "referenceHint": "Identificador del comprobante. No puede repetirse.",
-    "paymentInfo": "Datos del pago",
-    "paymentInfoPlaceholder": "Banco, número de operación, fecha del depósito...",
-    "note": "Nota interna",
-    "notePlaceholder": "Contexto para el equipo.",
-    "missingFields": "Completa todos los campos obligatorios.",
-    "referenceTaken": "Esa referencia ya está registrada.",
-    "actionFailed": "No pudimos completar la acción. Inténtalo de nuevo.",
-    "created": "Pago manual registrado.",
-    "approvedToast": "Pago aprobado y aplicado.",
-    "rejectedToast": "Pago rechazado.",
-    "applied": "Aplicado",
-    "metrics": {
-      "pending": "Pendientes",
-      "pendingDescription": "Esperan revisión",
-      "approved": "Aprobados",
-      "approvedDescription": "Concedieron plan o créditos",
-      "rejected": "Rechazados",
-      "rejectedDescription": "Descartados por el equipo",
-      "amount": "Importe aprobado",
-      "amountDescription": "Total cobrado fuera de Polar"
-    },
-    "searchLabel": "Buscar pagos manuales",
-    "searchPlaceholder": "Buscar por referencia, cliente o espacio...",
-    "filterStatus": "Filtrar por estado",
-    "statusColumn": "Estado",
-    "all": "Todos",
-    "status": {
-      "pending": "Pendiente",
-      "approved": "Aprobado",
-      "rejected": "Rechazado"
-    },
-    "filter": {
-      "pending": "Pendientes",
-      "approved": "Aprobados",
-      "rejected": "Rechazados"
-    },
-    "amount": "Importe",
-    "noMatches": "No hay coincidencias",
-    "emptyTitle": "Todavía no hay pagos manuales",
-    "emptyDescription": "Registra un cobro recibido fuera de Polar para aplicarlo al espacio del cliente.",
-    "emptyFilteredDescription": "Prueba con otro término o estado.",
-    "acceptManual": "Aceptar pagos manuales",
-    "acceptManualHint": "Muestra las instrucciones de pago fuera de línea a los clientes.",
-    "referencePrefix": "Prefijo de referencia",
-    "referencePrefixPlaceholder": "PAY-",
-    "referencePrefixHint": "Se propone al registrar un pago nuevo.",
-    "instructions": "Instrucciones de pago",
-    "instructionsPlaceholder": "Banco, titular, número de cuenta y qué enviar como comprobante.",
-    "settingsSaved": "Configuración guardada.",
-    "deleteTitle": "Eliminar pago manual",
-    "deleteDescription": "Se elimina el registro «{reference}». Esta acción no se puede deshacer.",
-    "deleted": "Pago manual eliminado.",
-    "cancel": "Cancelar"
-  },
-  "adminSettings": {
-    "saved": "Ajustes guardados.",
-    "saveFailed": "No pudimos guardar los ajustes. Inténtalo de nuevo.",
-    "forbiddenDescription": "Solicita a un administrador el permiso necesario para cambiar estos ajustes.",
-    "loadFailedDescription": "No pudimos cargar estos ajustes.",
-    "unavailable": "{title} no disponible",
-    "loading": "Cargando {title}",
-    "general": {
-      "title": "Ajustes generales",
-      "description": "Identidad pública de la plataforma y datos de contacto.",
-      "siteName": "Nombre del sitio",
-      "siteDescription": "Descripción",
-      "siteDescriptionHint": "Se usa en metadatos y en la portada pública.",
-      "companyName": "Empresa",
-      "contactEmail": "Correo de contacto",
-      "contactPhone": "Teléfono",
-      "supportHours": "Horario de atención",
-      "dateFormat": "Formato de fecha",
-      "dateFormatHint": "Por ejemplo d MMM yyyy.",
-      "timezone": "Zona horaria",
-      "timezoneHint": "Zona IANA, por ejemplo America/Guayaquil."
-    },
-    "auth": {
-      "title": "Acceso y registro",
-      "description": "Reglas de registro, verificación y sesión para las cuentas del Portal.",
-      "registrationEnabled": "Permitir registro",
-      "registrationHint": "Si se desactiva, solo se entra por invitación.",
-      "requireEmailVerification": "Exigir verificación de correo",
-      "passwordMinLength": "Longitud mínima de contraseña",
-      "sessionLifetimeHours": "Duración de sesión (horas)",
-      "maxLoginAttempts": "Intentos de acceso permitidos"
-    },
-    "analytics": {
-      "title": "Analíticas",
-      "description": "Medición de uso con Google Analytics.",
-      "enabled": "Activar Google Analytics",
-      "measurementId": "ID de medición",
-      "trackGuests": "Medir visitas públicas",
-      "trackPortal": "Medir uso dentro del Portal"
+    }
+    rangeColumn: "Rango"
+    selectRange: "Seleccionar rango"
+    product: "Producto"
+    filterProduct: "Filtrar por producto"
+    all: "Todos"
+    productType: {
+      plan: "Plan"
+      credits: "Créditos"
+    }
+    statusColumn: "Estado"
+    workspace: "Espacio de trabajo"
+    status: {
+      paid: "Pagado"
+      pending: "Pendiente"
+      partially_refunded: "Reembolso parcial"
+      refunded: "Reembolsado"
+      failed: "Fallido"
+    }
+    metrics: {
+      gross: "Bruto"
+      grossDescription: "Cobros liquidados"
+      net: "Neto"
+      netDescription: "Bruto menos reembolsos"
+      refunded: "Reembolsado"
+      refundedDescription: "{count, plural, one {# pago con devolución} other {# pagos con devolución}}"
+      ticket: "Ticket medio"
+      ticketDescription: "{paid, number} pagados · {pending, number} pendientes · {failed, number} fallidos"
+    }
+    currencyNote: "Moneda {currency}"
+    moreCurrencies: " · {count, plural, one {# moneda más sin agregar} other {# monedas más sin agregar}}"
+    noMovements: "Sin movimientos"
+    noSettledDescription: "No hay cobros liquidados en el periodo seleccionado."
+    noData: "Sin datos"
+    noSettledPeriod: "Sin cobros liquidados en este periodo."
+    noPaymentsPeriod: "Sin pagos registrados en este periodo."
+  }
+  adminSettings: {
+    saved: "Ajustes guardados."
+    saveFailed: "No pudimos guardar los ajustes. Inténtalo de nuevo."
+    forbiddenDescription: "Solicita a un administrador el permiso necesario para cambiar estos ajustes."
+    loadFailedDescription: "No pudimos cargar estos ajustes."
+    unavailable: "{title} no disponible"
+    loading: "Cargando {title}"
+    general: {
+      title: "Ajustes generales"
+      description: "Identidad pública de la plataforma y datos de contacto."
+      siteName: "Nombre del sitio"
+      siteDescription: "Descripción"
+      siteDescriptionHint: "Se usa en metadatos y en la portada pública."
+      companyName: "Empresa"
+      contactEmail: "Correo de contacto"
+      contactPhone: "Teléfono"
+      supportHours: "Horario de atención"
+      dateFormat: "Formato de fecha"
+      dateFormatHint: "Por ejemplo d MMM yyyy."
+      timezone: "Zona horaria"
+      timezoneHint: "Zona IANA, por ejemplo America/Guayaquil."
+    }
+    auth: {
+      title: "Acceso y registro"
+      description: "Reglas de registro, verificación y sesión para las cuentas del Portal."
+      registrationEnabled: "Permitir registro"
+      registrationHint: "Si se desactiva, solo se entra por invitación."
+      requireEmailVerification: "Exigir verificación de correo"
+      passwordMinLength: "Longitud mínima de contraseña"
+      sessionLifetimeHours: "Duración de sesión (horas)"
+      maxLoginAttempts: "Intentos de acceso permitidos"
+    }
+    analytics: {
+      title: "Analíticas"
+      description: "Medición de uso con Google Analytics."
+      enabled: "Activar Google Analytics"
+      measurementId: "ID de medición"
+      trackGuests: "Medir visitas públicas"
+      trackPortal: "Medir uso dentro del Portal"
     }
   }
-};
-export default messages;
+  adminSupport: {
+    actionColumn: "Acción"
+    actions: "Acciones"
+    active: "Activa"
+    activeDescription: "Solo los registros activos se ofrecen al clasificar casos."
+    activityColumn: "Actividad"
+    all: "Todos"
+    allCases: "Todos los casos"
+    allFeminine: "Todas"
+    backToQueue: "Volver a la cola"
+    cancel: "Cancelar"
+    caseColumn: "Caso"
+    caseCreated: "Caso creado."
+    catalogStatus: {
+      active: "Activo"
+      inactive: "Inactivo"
+    }
+    categories: {
+      create: "Nueva categoría"
+      emptyTitle: "No hay categorías"
+      emptyDescription: "Crea una categoría para organizar los casos."
+      itemLabel: "categorías"
+      searchPlaceholder: "Buscar categorías..."
+      sheetDescription: "Las categorías organizan los casos por área de producto."
+    }
+    category: "Categoría"
+    clear: "Limpiar"
+    close: "Cerrar"
+    closedDescription: "Reábrelo para volver a escribir al cliente."
+    closedTitle: "Este caso está cerrado"
+    createCase: "Crear caso"
+    createdAndActivity: "Creado {created} · última actividad {activity}"
+    delete: "Eliminar"
+    deleteDescription: "Esta acción no se puede deshacer."
+    deleteTitle: "¿Eliminar “{name}”?"
+    description: "Cola de casos de todos los espacios de trabajo y catálogos que clasifican la atención."
+    edit: "Editar {name}"
+    editAction: "Editar"
+    emptyDescription: "Cuando un cliente abra un caso aparecerá en esta cola."
+    emptyFilteredCases: "Prueba con otro término, estado o categoría."
+    emptyFilteredDescription: "Prueba con otro término o restablece los filtros."
+    emptyTitle: "Todavía no hay casos de soporte"
+    filter: {
+      active: "Activos"
+      inactive: "Inactivos"
+    }
+    filterCategory: "Filtrar por categoría"
+    filterQueue: "Filtrar por cola"
+    filterStatus: "Filtrar por estado"
+    forbiddenDescription: "Tu cuenta no tiene permisos para administrar el soporte de la plataforma."
+    forbiddenTitle: "Acceso restringido"
+    itemLabel: "casos"
+    labels: "Etiquetas"
+    labelsCatalog: {
+      create: "Nueva etiqueta"
+      emptyTitle: "No hay etiquetas"
+      emptyDescription: "Crea una etiqueta para priorizar y clasificar los casos."
+      itemLabel: "etiquetas"
+      searchPlaceholder: "Buscar etiquetas..."
+      sheetDescription: "Las etiquetas ayudan al triaje y a la priorización de casos."
+    }
+    loadFailedDescription: "No fue posible cargar los casos de soporte."
+    loadFailedTitle: "No pudimos cargar esta sección"
+    loadingCases: "Cargando casos de soporte"
+    loadingTicket: "Cargando caso de soporte"
+    markResolved: "Marcar resuelto"
+    message: "Mensaje"
+    metric: {
+      open: {
+        label: "Abiertos"
+        description: "Casos en curso"
+      }
+      awaitingReply: {
+        label: "Sin responder"
+        description: "Esperan respuesta del equipo"
+      }
+      resolved: {
+        label: "Resueltos"
+        description: "Atendidos en el historial"
+      }
+      closed: {
+        label: "Cerrados"
+        description: "Sin acciones pendientes"
+      }
+    }
+    missingFields: "Completa todos los campos obligatorios."
+    name: "Nombre"
+    newCase: "Nuevo caso"
+    newCaseDescription: "Abre un caso en nombre de un cliente y clasifícalo para el equipo."
+    noActiveLabels: "No hay etiquetas activas todavía."
+    noCategory: "Sin categoría"
+    noMatches: "No hay coincidencias"
+    noType: "Sin tipo"
+    openActions: "Abrir acciones para {name}"
+    queueColumn: "Cola"
+    recordCreated: "Registro creado."
+    recordDeleted: "Registro eliminado."
+    reopen: "Reabrir"
+    replyDescription: "La respuesta aparece en el caso del Portal y marca el hilo como atendido."
+    replyFailed: "No pudimos enviar la respuesta. Inténtalo de nuevo."
+    replyLabel: "Respuesta"
+    replyPlaceholder: "Escribe la respuesta del equipo..."
+    replyRequired: "Escribe una respuesta antes de enviarla."
+    replySent: "Respuesta enviada al cliente."
+    replyTitle: "Responder al cliente"
+    required: "obligatorio"
+    resetFilters: "Restablecer filtros"
+    save: "Guardar"
+    saved: "Cambios guardados."
+    searchAriaLabel: "Buscar casos de soporte"
+    searchCatalog: "Buscar {items}"
+    searchPlaceholder: "Buscar por asunto, cliente o espacio..."
+    selectCategory: "Selecciona una categoría"
+    selectPerson: "Selecciona una persona"
+    selectType: "Selecciona un tipo"
+    sendReply: "Enviar respuesta"
+    status: {
+      open: "Abierto"
+      resolved: "Resuelto"
+      closed: "Cerrado"
+    }
+    statusChanged: {
+      open: "Caso marcado como abierto."
+      resolved: "Caso marcado como resuelto."
+      closed: "Caso marcado como cerrado."
+    }
+    statusColumn: "Estado"
+    statusFailed: "No pudimos actualizar el estado del caso."
+    subject: "Asunto"
+    tab: {
+      cases: "Casos"
+      categories: "Categorías"
+      labels: "Etiquetas"
+      types: "Tipos"
+    }
+    tabsLabel: "Secciones de soporte"
+    targetUser: "Usuario destino"
+    targetUserHelp: "El caso queda visible para esa persona en su Portal."
+    ticketLoadFailed: "No fue posible cargar este caso de soporte."
+    ticketLoadFailedTitle: "No pudimos cargar el caso"
+    ticketNotFound: "No encontramos este caso"
+    ticketNotFoundDescription: "El caso no existe o fue eliminado."
+    title: "Soporte"
+    type: "Tipo"
+    types: {
+      create: "Nuevo tipo"
+      emptyTitle: "No hay tipos"
+      emptyDescription: "Crea un tipo para distinguir incidencias y solicitudes."
+      itemLabel: "tipos"
+      searchPlaceholder: "Buscar tipos..."
+      sheetDescription: "Los tipos describen la naturaleza del caso dentro del flujo de soporte."
+    }
+    unanswered: "Sin responder"
+    viewCase: "Ver caso"
+    workspaceColumn: "Espacio"
+  }
+  affiliate: {
+    pageTitle: "Afiliados"
+    loading: "Cargando afiliados"
+    unavailableTitle: "Afiliados no disponible"
+    loadFailedDescription: "No pudimos cargar tu programa de afiliados."
+    joinTitle: "Aún no participas en el programa"
+    joinDescription: "Al activarlo recibirás un código propio para atribuir referidos y acumular comisiones."
+    activated: "Programa de afiliados activado."
+    activateFailed: "No pudimos activar el programa. Inténtalo de nuevo."
+    profileStatus: {
+      active: "Activo"
+      suspended: "Suspendido"
+    }
+    requestWithdrawal: "Solicitar retiro"
+    withdrawalDescription: "El monto se reserva de tu saldo disponible hasta que se procese la solicitud."
+    amount: "Monto"
+    required: "obligatorio"
+    availableAmount: "Disponible: {amount}"
+    invalidAmount: "El monto debe ser mayor a cero y no superar tu saldo."
+    withdrawalRequested: "Solicitud de retiro registrada."
+    withdrawalFailed: "No pudimos registrar el retiro. Inténtalo de nuevo."
+    clipboardUnsupported: "Tu navegador no permite copiar el código."
+    codeCopied: "Código copiado."
+    copyFailed: "No pudimos copiar el código. Inténtalo de nuevo."
+    metrics: {
+      clicks: "Clics"
+      clicksDescription: "Visitas atribuidas a tu código"
+      referrals: "Referidos"
+      referralsDescription: "Personas registradas"
+      conversions: "Conversiones"
+      conversionsDescription: "Referidos que compraron"
+      available: "Disponible"
+      availableDescription: "Lista para retiro"
+      pending: "Pendiente"
+      pendingDescription: "Aún en validación"
+      paid: "Pagado"
+      paidDescription: "Retirado históricamente"
+    }
+    tab: {
+      commissions: "Comisiones"
+      withdrawals: "Retiros"
+    }
+    all: "Todos"
+    statusColumn: "Estado"
+    commission: "Comisión"
+    filterStatus: "Filtrar por estado"
+    searchCommissions: "Buscar comisiones"
+    searchWithdrawals: "Buscar retiros"
+    searchByAmount: "Buscar por monto..."
+    commissionStatus: {
+      pending: "Pendiente"
+      available: "Disponible"
+      paid: "Pagada"
+      cancelled: "Cancelada"
+    }
+    commissionFilter: {
+      pending: "Pendientes"
+      available: "Disponibles"
+      paid: "Pagadas"
+      cancelled: "Canceladas"
+    }
+    withdrawalStatus: {
+      requested: "Solicitado"
+      approved: "Aprobado"
+      paid: "Pagado"
+      rejected: "Rechazado"
+    }
+    withdrawalFilter: {
+      requested: "Solicitados"
+      approved: "Aprobados"
+      paid: "Pagados"
+      rejected: "Rechazados"
+    }
+    noMatches: "No hay coincidencias"
+    emptyFilteredDescription: "Prueba con otro término o estado."
+    commissionsEmptyTitle: "Aún no hay comisiones"
+    commissionsEmptyDescription: "Cuando alguien compre usando tu código verás aquí su comisión."
+    withdrawalsEmptyTitle: "No hay retiros"
+    withdrawalsEmptyDescription: "Tus solicitudes de retiro aparecerán en este historial."
+  }
+  aiStudio: {
+    chat: {
+      loading: "Cargando AI Studio"
+      loadFailedTitle: "AI Studio no disponible"
+      loadFailedDescription: "No pudimos cargar tus generaciones."
+      searchLabel: "Buscar generaciones"
+      searchPlaceholder: "Buscar…"
+      newConversation: "Nueva conversación"
+      backToConversations: "Volver a las conversaciones"
+      settings: "Ajustes AI"
+      showOptions: "Mostrar opciones"
+      hideOptions: "Ocultar opciones"
+      emptyTitle: "Empieza una conversación"
+      emptyDescription: "Elige una herramienta, ajusta sus opciones y describe lo que necesitas."
+      send: "Enviar"
+      emptyPrompt: "Escribe qué necesitas antes de enviar."
+      sendFailed: "No pudimos enviar la solicitud. Revisa las opciones."
+      retrySuccess: "Generación reintentada."
+      retryFailed: "No pudimos reintentar la generación."
+      archived: "Conversación archivada."
+      archiveFailed: "No pudimos archivar la conversación."
+      clipboardUnsupported: "Tu navegador no permite copiar el resultado."
+      copied: "Resultado copiado."
+      copyFailed: "No pudimos copiar el resultado."
+      generationFailed: "No pudimos completar la generación."
+      generationFailedWithCode: "No pudimos completar la generación ({code})."
+      cancelled: "La generación se canceló."
+      thinking: "Pensando"
+      generatingMedia: "Generando media"
+      workDone: "Trabajo terminado"
+      generatingImage: "Generando imagen"
+      generatingVideo: "Generando video"
+      trace: {
+        received: "Solicitud recibida"
+        reserving: "Reservando créditos"
+        generating: "Generando con el modelo"
+      }
+      status: {
+        queued: "En cola"
+        processing: "Generando"
+        succeeded: "Listo"
+        failed: "Falló"
+        cancelled: "Cancelada"
+      }
+      toolOptions: "Opciones de {tool}"
+    }
+    tools: {
+      field: {
+        objective: "Objetivo"
+        tone: "Tono"
+        language: "Idioma"
+        platforms: "Plataformas"
+        targetPlatforms: "Plataformas destino"
+        variantCount: "Variantes"
+        includeHashtags: "Incluir hashtags"
+        callToAction: "Llamada a la acción"
+        optional: "Opcional"
+        aspectRatio: "Proporción"
+        quality: "Calidad"
+        duration: "Duración"
+        durationDays: "Días"
+        frequencyPerWeek: "Publicaciones por semana"
+        startDate: "Fecha inicial"
+        timezone: "Zona horaria"
+        historyDays: "Días de histórico"
+        searchIn: "Dónde buscar"
+        limit: "Resultados"
+      }
+      platform: {
+        instagram: "Instagram"
+        facebook: "Facebook"
+        linkedin: "LinkedIn"
+        tiktok: "TikTok"
+        x: "X"
+        youtube: "YouTube"
+        email: "Correo"
+      }
+      language: {
+        es: "Español"
+        en: "Inglés"
+        pt: "Portugués"
+      }
+      tone: {
+        cercano: "Cercano"
+        profesional: "Profesional"
+        divertido: "Divertido"
+        inspirador: "Inspirador"
+        directo: "Directo"
+      }
+      ratio: {
+        square: "Cuadrada 1:1"
+        vertical: "Vertical 9:16"
+        horizontal: "Horizontal 16:9"
+      }
+      quality: {
+        low: "Baja"
+        medium: "Media"
+        high: "Alta"
+      }
+      duration: {
+        "4": "4 segundos"
+        "8": "8 segundos"
+        "12": "12 segundos"
+      }
+      searchType: {
+        caption: "Captions"
+        publishing_post: "Publicaciones"
+        ai_request: "Generaciones"
+      }
+      content: {
+        label: "Contenido"
+        description: "Publicaciones, anuncios y textos por canal."
+        placeholder: "Describe la publicación que necesitas…"
+        promptLabel: "Brief"
+      }
+      image: {
+        label: "Imagen"
+        description: "Imágenes generadas o editadas desde una referencia."
+        placeholder: "Describe la imagen que quieres generar…"
+        promptLabel: "Prompt"
+      }
+      video: {
+        label: "Video"
+        description: "Video corto desde texto o desde una referencia."
+        placeholder: "Describe el video que quieres generar…"
+        promptLabel: "Prompt"
+      }
+      repurpose: {
+        label: "Reutilizar"
+        description: "Adapta contenido existente a otros canales."
+        placeholder: "Pega el contenido original que quieres adaptar…"
+        promptLabel: "Contenido original"
+      }
+      review: {
+        label: "Revisión"
+        description: "Analiza un texto y propone correcciones."
+        placeholder: "Pega el contenido que quieres analizar…"
+        promptLabel: "Contenido para analizar"
+      }
+      planner: {
+        label: "Planificador"
+        description: "Calendario de contenidos por días y frecuencia."
+        placeholder: "Describe la campaña que quieres planificar…"
+        promptLabel: "Brief de campaña"
+      }
+      timing: {
+        label: "Mejor horario"
+        description: "Mejores horarios según tu histórico de publicación."
+        placeholder: "Indica qué cuentas o campaña quieres analizar…"
+        promptLabel: "Contexto"
+      }
+      search: {
+        label: "Investigación"
+        description: "Busca dentro de tu contenido y generaciones previas."
+        placeholder: "¿Qué quieres encontrar?"
+        promptLabel: "Consulta"
+      }
+    }
+    operations: {
+      loadingRecords: "Cargando registros"
+      loadFailedTitle: "No pudimos cargar esta información"
+      forbiddenTitle: "No tienes permiso para ver esta información"
+      retry: "Reintentar"
+      records: "registros"
+      status: "Estado"
+      tool: "Herramienta"
+      type: "Tipo"
+      date: "Fecha"
+      noResults: "Sin resultados"
+      saving: "Guardando..."
+      deleting: "Eliminando..."
+      delete: "Eliminar"
+      processing: "Procesando acción"
+      historyStatus: {
+        all: "Todos los estados"
+        queued: "En cola"
+        processing: "Procesando"
+        succeeded: "Completados"
+        failed: "Fallidos"
+        cancelled: "Cancelados"
+      }
+      historyStatusBadge: {
+        queued: "En cola"
+        processing: "Procesando"
+        succeeded: "Completado"
+        failed: "Falló"
+        cancelled: "Cancelado"
+      }
+      kind: {
+        all: "Todas las herramientas"
+        content: "Contenido"
+        image: "Imagen"
+        video: "Video"
+        repurpose: "Reutilizar"
+        planner: "Planificador"
+        review: "Revisión"
+        timing: "Mejor hora"
+        search: "Investigación"
+        ai_publishing: "Publicación AI"
+      }
+      automationStatus: {
+        all: "Todos los estados"
+        active: "Activas"
+        paused: "Pausadas"
+        draft: "Borradores"
+      }
+      automationStatusBadge: {
+        active: "Activa"
+        paused: "Pausada"
+        draft: "Borrador"
+      }
+      creditType: {
+        all: "Todos los movimientos"
+        grant: "Asignaciones"
+        debit: "Consumos"
+        refund: "Reembolsos"
+        adjustment: "Ajustes"
+      }
+      creditTypeBadge: {
+        grant: "Asignación"
+        debit: "Consumo"
+        refund: "Reembolso"
+        adjustment: "Ajuste"
+      }
+      history: {
+        pageTitle: "Historial de IA"
+        pageDescription: "Encuentra, reutiliza y descarga cualquier generación anterior."
+        title: "Generaciones"
+        description: "Resultados creados dentro de este espacio de trabajo."
+        searchLabel: "Buscar generaciones"
+        searchPlaceholder: "Buscar generaciones..."
+        filterStatusLabel: "Filtrar historial por estado"
+        filterKindLabel: "Filtrar historial por herramienta"
+        errorDescription: "El historial no respondió. Puedes volver a intentarlo sin perder tus filtros."
+        forbiddenDescription: "Tu rol no permite consultar el historial de IA de este espacio."
+        generation: "Generación"
+        emptyTitle: "Aún no hay generaciones"
+        emptyDescription: "Las nuevas generaciones aparecerán aquí cuando uses AI Studio."
+        emptyFilteredDescription: "Ajusta la búsqueda, el estado o la herramienta seleccionada."
+      }
+      automation: {
+        pageTitle: "Automatizaciones"
+        pageDescription: "Crea reglas que generan borradores listos para revisión humana."
+        createTitle: "Nueva automatización"
+        selectAccount: "Selecciona una cuenta"
+        saving: "Guardando automatización"
+        save: "Guardar automatización"
+        rulesTitle: "Reglas"
+        rulesDescription: "Reglas que crean borradores y conservan la aprobación final en una persona."
+        searchLabel: "Buscar automatizaciones"
+        searchPlaceholder: "Buscar automatizaciones..."
+        filterStatusLabel: "Filtrar automatizaciones por estado"
+        errorDescription: "Las automatizaciones no respondieron. Inténtalo de nuevo para recuperar la lista."
+        forbiddenDescription: "Tu rol no permite consultar ni administrar automatizaciones de este espacio."
+        rule: "Automatización"
+        emptyTitle: "Aún no hay automatizaciones"
+        emptyDescription: "Crea una regla para producir borradores automáticamente."
+        emptyFilteredDescription: "Ajusta la búsqueda o el filtro de estado."
+        needsAccount: "Conecta primero una cuenta social para elegir un destino."
+        noneAvailable: "No hay automatizaciones disponibles para consultar."
+        humanApproval: "Aprobación humana activa"
+        deleting: "Eliminando automatización"
+      }
+      credits: {
+        pageTitle: "Créditos y consumo"
+        pageDescription: "Entiende el consumo de IA y controla el presupuesto de tu espacio de trabajo."
+        balance: "Saldo disponible"
+        used: "Consumidos"
+        nextRenewal: "Próxima renovación"
+        movements: "Movimientos"
+        movement: "Movimiento"
+        movementsDescription: "Asignaciones, consumos, reembolsos y ajustes del espacio."
+        searchLabel: "Buscar movimientos de créditos"
+        searchPlaceholder: "Buscar movimientos..."
+        filterTypeLabel: "Filtrar movimientos por tipo"
+        emptyTitle: "Aún no hay movimientos"
+        emptyDescription: "Los movimientos aparecerán cuando se asignen o consuman créditos."
+        emptyFilteredDescription: "Ajusta la búsqueda o el tipo de movimiento."
+        budgetTitle: "Presupuesto mensual"
+        budgetHint: "Vacío significa sin límite monetario."
+        budgetReadOnly: "Solo propietarios y administradores pueden cambiar este presupuesto."
+        savingBudget: "Guardando presupuesto"
+        saveBudget: "Guardar presupuesto"
+        costPerTool: "Costo por herramienta"
+        errorDescription: "No pudimos recuperar el saldo ni los movimientos de créditos."
+        forbiddenDescription: "Tu rol no permite consultar el consumo de IA de este espacio."
+      }
+    }
+    views: {
+      automation: {
+        title: "Automatizaciones"
+        description: "Crea reglas que investigan, generan y dejan borradores listos para revisión."
+      }
+      content: {
+        title: "Contenido con IA"
+        description: "Genera publicaciones consistentes con tu voz de marca y cada canal."
+      }
+      credits: {
+        title: "Créditos y consumo"
+        description: "Entiende el consumo de IA y controla el presupuesto de tu espacio de trabajo."
+      }
+      history: {
+        title: "Historial de IA"
+        description: "Encuentra, reutiliza y descarga cualquier generación anterior."
+      }
+      image: {
+        title: "Generador de imágenes"
+        description: "Crea piezas visuales desde una idea, una referencia o una campaña."
+      }
+      overview: {
+        title: "AI Studio"
+        description: "Crea, investiga y mejora contenido desde un solo lugar."
+      }
+      planner: {
+        title: "Planificador inteligente"
+        description: "Convierte un objetivo en un plan editorial equilibrado y listo para producir."
+      }
+      repurpose: {
+        title: "Reutilizar contenido"
+        description: "Transforma una pieza existente en variantes nativas para cada red."
+      }
+      review: {
+        title: "Revisión inteligente"
+        description: "Detecta problemas de claridad, marca, cumplimiento y rendimiento antes de publicar."
+      }
+      search: {
+        title: "Investigación asistida"
+        description: "Explora tendencias, preguntas e ideas con señales útiles para crear contenido."
+      }
+      settings: {
+        title: "Configuración de IA"
+        description: "Define la voz, el idioma y las reglas que guían todas las generaciones."
+      }
+      timing: {
+        title: "Mejor hora para publicar"
+        description: "Descubre cuándo publicar según el rendimiento real de tus cuentas."
+      }
+      video: {
+        title: "Generador de video"
+        description: "Diseña el guion, las escenas y el clip final sin salir del flujo de trabajo."
+      }
+    }
+    studio: {
+      clear: "Limpiar"
+      clearFilters: "Limpiar filtros"
+      all: "Todos"
+      filterKind: "Filtrar por tipo"
+      filterStatus: "Filtrar por estado"
+      usage: "Consumo"
+      actions: "Acciones"
+      credits: "{count, plural, one {# crédito} other {# créditos}}"
+      generations: "generaciones"
+      noMatches: "No hay coincidencias"
+      emptyDescription: "Elige una herramienta para crear el primer resultado."
+      emptyFilteredDescription: "Prueba con otro término, tipo o estado."
+      retryQueued: "La generación volvió a la cola."
+      archived: "Generación archivada."
+      actionsFor: "Acciones para {title}"
+      processing: "Procesando acción"
+      noResultYet: "La generación todavía no tiene resultado."
+      preview: "Vista previa"
+      retry: "Reintentar"
+      archive: "Archivar"
+      loading: "Cargando AI Studio"
+      loadFailedTitle: "AI Studio no disponible"
+      loadFailedDescription: "No pudimos cargar la actividad del espacio."
+      metrics: {
+        credits: "Créditos disponibles"
+        unlimited: "Sin límite"
+        usedInCycle: "{count, plural, one {# usado en el ciclo} other {# usados en el ciclo}}"
+        succeeded: "Generaciones correctas"
+        currentCycle: "Durante el ciclo actual"
+        inProgress: "En proceso"
+        queued: "{count, plural, one {# en cola} other {# en cola}}"
+        drafts: "Borradores creados"
+        readyForReview: "Listos para revisión humana"
+      }
+      recentActivity: "Actividad reciente"
+    }
+    creation: {
+      cost: "{count, plural, one {# crédito} other {# créditos}}"
+      promptTitle: {
+        default: "Describe lo que necesitas"
+        repurpose: "Contenido original"
+        review: "Contenido para analizar"
+      }
+      content: {
+        button: "Generar borradores"
+        placeholder: "Ejemplo: anuncia el nuevo menú ejecutivo, disponible de lunes a viernes..."
+        resultTitle: "Borradores generados"
+        resultDescription: "Tres variantes adaptadas al canal seleccionado."
+      }
+      image: {
+        button: "Generar imágenes"
+        placeholder: "Ejemplo: hamburguesa artesanal sobre mesa oscura, luz cálida, estilo editorial..."
+        resultTitle: "Propuestas visuales"
+        resultDescription: "Cuatro composiciones listas para revisar."
+      }
+      repurpose: {
+        button: "Crear variantes"
+        placeholder: "Pega una publicación, artículo, transcripción o idea que ya tengas..."
+        resultTitle: "Variantes por canal"
+        resultDescription: "La idea original adaptada sin perder su mensaje."
+      }
+      review: {
+        button: "Analizar contenido"
+        placeholder: "Pega aquí el contenido que quieres validar antes de publicarlo..."
+        resultTitle: "Informe de revisión"
+        resultDescription: "Hallazgos priorizados y correcciones sugeridas."
+      }
+      video: {
+        button: "Generar video"
+        placeholder: "Ejemplo: video vertical de 15 segundos mostrando la preparación del producto..."
+        resultTitle: "Proyecto de video"
+        resultDescription: "Guion, escenas y render dentro del mismo trabajo."
+      }
+      recentActivity: "Actividad reciente"
+      textCopied: "Texto copiado"
+      variantCopied: "Variante copiada"
+      download: "Descargar"
+      videoRender: "Render del video"
+      dimension: {
+        clarity: "Claridad"
+        brandVoice: "Voz de marca"
+        callToAction: "Llamada a la acción"
+        safety: "Seguridad"
+      }
+      missingPrompt: "Completa la instrucción para continuar."
+      jobQueued: "Trabajo añadido a la cola."
+      invalidReference: "Usa imágenes JPG, PNG o WEBP de máximo 30 MB."
+      referenceAdded: "Referencia añadida."
+      referenceFailed: "No pudimos subir la referencia."
+      objective: {
+        inform: "Informar"
+      }
+      format: "Formato"
+      tone: "Tono"
+      tones: {
+        cercano: "Cercano"
+        experto: "Experto"
+        directo: "Directo"
+      }
+      referenceHintVideo: "Hasta 9 imágenes para animación, personaje, estilo o escena."
+      referenceHintImage: "Hasta 10 imágenes para orientar estilo, composición o edición."
+      select: "Seleccionar"
+      generationFailed: "La generación falló"
+      providerFailed: "El proveedor no pudo completar el trabajo."
+      waiting: "Esperando turno"
+      generatingResult: "Generando resultado"
+      preview: "Vista previa"
+    }
+    pages: {
+      planner: {
+        missingGoal: "Completa el objetivo del plan."
+        queued: "Plan añadido a la cola."
+        goalTitle: "Objetivo del plan"
+        goalPlaceholder: "Ejemplo: aumentar visitas al local durante agosto..."
+        weeklyPlan: "Plan semanal"
+        suggestedDate: "Fecha sugerida"
+        ideaReady: "Idea lista"
+        emptyIdeasTitle: "Sin ideas en el plan"
+        emptyIdeasDescription: "El plan se generó sin ideas. Ajusta el objetivo y vuelve a intentarlo."
+        emptyTitle: "Crea tu primer plan"
+        emptyDescription: "Completa el objetivo y la frecuencia."
+      }
+      timing: {
+        prompt: "Analiza el historial de rendimiento y recomienda las mejores horas para publicar."
+        queued: "Análisis añadido a la cola."
+        sampleWarning: "Recomendación basada en una muestra"
+        mapTitle: "Mapa de oportunidades"
+        lowOpportunity: "Menor oportunidad"
+        highOpportunity: "Mayor oportunidad"
+        perAccount: "Recomendaciones por cuenta"
+        sampleCount: "{count, plural, one {# publicación en la muestra} other {# publicaciones en la muestra}}"
+        confidence: {
+          high: "Alta"
+          medium: "Media"
+          low: "Baja"
+        }
+        emptyTitle: "Aún no hay análisis"
+        emptyDescription: "Pulsa Actualizar análisis para calcular horarios."
+        insufficientSample: "Muestra insuficiente"
+        sampleFound: "{count, plural, one {Se encontró # publicación con datos útiles.} other {Se encontraron # publicaciones con datos útiles.}}"
+      }
+      research: {
+        title: "Buscar señales"
+        topicLabel: "Tema para investigar"
+        topicPlaceholder: "Tema, palabra clave o competidor..."
+        findings: "Hallazgos destacados"
+        untitled: "Sin título"
+        emptyTitle: "Busca dentro de tu contenido"
+        emptyDescription: "Encuentra captions, borradores y generaciones anteriores."
+        noMatchesTitle: "Sin coincidencias"
+        noMatchesDescription: "Prueba con otras palabras."
+        questions: "Preguntas de la audiencia"
+        summary: "Resumen IA"
+      }
+      settings: {
+        loading: "Cargando configuración de IA"
+        requireHumanReview: "Revisión antes de publicar"
+        warnSensitiveClaims: "Advertir afirmaciones sensibles"
+        redactPersonalData: "Ocultar datos personales"
+        missingFields: "Completa los campos obligatorios."
+        saved: "Configuración de IA guardada."
+        brandVoice: "Voz de marca"
+        preferences: "Preferencias"
+        safety: "Seguridad"
+        brandIdentity: "Identidad de la marca"
+        wordsUse: "Palabras que sí usamos"
+        wordsAvoid: "Palabras que evitamos"
+        defaults: "Valores predeterminados"
+        language: "Idioma"
+        defaultTone: "Tono predeterminado"
+        safetyControls: "Controles de seguridad"
+      }
+      operational: {
+        noPrompt: "Sin instrucción"
+        nothingToExport: "No hay filas para exportar."
+        export: "Exportar"
+        download: "Descargar"
+        frequency: {
+          daily: "Diario"
+          weekly: "Semanal"
+        }
+        missingFields: "Completa todos los campos obligatorios."
+        automationCreated: "Automatización creada."
+        runQueued: "Ejecución añadida a la cola."
+        automationDeleted: "Automatización eliminada."
+        invalidBudget: "Revisa el presupuesto y el porcentaje de alerta."
+        budgetSaved: "Presupuesto guardado."
+        budgetForbidden: "Tu rol no permite cambiar el presupuesto de este espacio."
+        noMovements: "No hay movimientos para exportar."
+        unlimited: "Sin límite"
+        noDate: "Sin fecha"
+      }
+    }
+  }
+  auth: {
+    metadata: {
+      login: "Iniciar sesión - Zapi Social"
+      register: "Crear cuenta - Zapi Social"
+      forgotPassword: "Recuperar contraseña - Zapi Social"
+      resetPassword: "Restablecer contraseña - Zapi Social"
+    }
+    page: {
+      loginTitle: "Inicia sesión en tu cuenta"
+      registerTitle: "Crea tu cuenta"
+      loginDescription: "Ingresa tus datos para continuar."
+      registerDescription: "Ingresa tus datos para comenzar."
+      noAccount: "¿No tienes una cuenta?"
+      hasAccount: "¿Ya tienes una cuenta?"
+      copyright: "© {year} Zapi Social"
+    }
+    form: {
+      name: "Nombre"
+      namePlaceholder: "Tu nombre"
+      email: "Correo electrónico"
+      emailPlaceholder: "tu@correo.com"
+      password: "Contraseña"
+      passwordConfirmation: "Confirmar contraseña"
+      timezone: "Zona horaria"
+      timezonePlaceholder: "Selecciona tu zona horaria"
+      remember: "Recordarme"
+      forgotPassword: "¿Olvidaste tu contraseña?"
+      showPassword: "Mostrar contraseña"
+      hidePassword: "Ocultar contraseña"
+      showPasswordConfirmation: "Mostrar confirmación de contraseña"
+      hidePasswordConfirmation: "Ocultar confirmación de contraseña"
+      submitLogin: "Iniciar sesión"
+      submitRegister: "Crear cuenta"
+      submitting: "Comprobando…"
+      submittingLabel: "Comprobando"
+    }
+    passwordPolicy: {
+      length: "8 caracteres o más"
+      uppercase: "Una letra mayúscula"
+      lowercase: "Una letra minúscula"
+      number: "Un número"
+      special: "Un carácter especial"
+      match: "Las contraseñas coinciden"
+    }
+    validation: {
+      email: "Ingresa un correo electrónico válido."
+      password: "Ingresa tu contraseña."
+      captcha: "Completa la verificación de seguridad."
+      name: "Ingresa tu nombre."
+      timezone: "Selecciona tu zona horaria."
+      passwordPolicy: "La contraseña debe tener 8 caracteres, mayúscula, minúscula, número y símbolo."
+      passwordMismatch: "Las contraseñas no coinciden."
+      captchaUnavailable: "No pudimos cargar la verificación de seguridad."
+      missingArea: "Tu sesión no incluye el área de acceso requerida. Vuelve a iniciar sesión."
+    }
+    recovery: {
+      requestTitle: "Recupera tu acceso"
+      requestDescription: "Te enviaremos instrucciones si existe una cuenta asociada al correo."
+      sentNotice: "Si el correo existe, recibirás un enlace de recuperación en unos minutos."
+      backToLogin: "Volver a iniciar sesión"
+      submitRequest: "Enviar instrucciones"
+      sending: "Enviando"
+      requestFailed: "No pudimos procesar la solicitud. Inténtalo de nuevo."
+      invalidLinkTitle: "Enlace no válido"
+      invalidLinkDescription: "Solicita un enlace nuevo para continuar."
+      requestNewLink: "Solicitar recuperación"
+      completedTitle: "Contraseña actualizada"
+      completedDescription: "Ya puedes iniciar sesión con tu nueva contraseña."
+      login: "Iniciar sesión"
+      resetTitle: "Crea una nueva contraseña"
+      resetDescription: "Elige una contraseña nueva. El enlace solo se puede usar una vez."
+      newPassword: "Nueva contraseña"
+      confirmPassword: "Confirmar contraseña"
+      policyHint: "Usa 8 o más caracteres, con mayúscula, minúscula, número y carácter especial."
+      submitReset: "Restablecer contraseña"
+      updating: "Actualizando"
+      invalidToken: "El enlace de recuperación no es válido."
+      checkPassword: "Revisa la contraseña y su confirmación."
+      resetSuccess: "Contraseña actualizada. Inicia sesión con la nueva contraseña."
+      expiredToken: "Este enlace ya no es válido. Solicita uno nuevo."
+      resetPolicyFailed: "La contraseña debe incluir mayúscula, minúscula, número y carácter especial."
+      resetFailed: "No pudimos restablecer la contraseña. Inténtalo de nuevo."
+    }
+    access: {
+      accessCheckTitle: "No pudimos verificar tu acceso"
+      accessCheckFailed: "No pudimos validar tu acceso. Comprueba tu conexión e inténtalo de nuevo."
+    }
+  }
+  automation: {
+    pageTitle: "Automatización"
+    pageDescription: "Conecta Zapi con tus propias herramientas mediante claves de API y webhooks firmados."
+    loading: "Cargando automatización"
+    unavailableTitle: "Automatización no disponible"
+    forbiddenDescription: "Tu acceso actual no permite administrar la automatización de este espacio de trabajo."
+    loadFailedDescription: "No pudimos cargar las claves y webhooks de este espacio de trabajo."
+    tab: {
+      keys: "Claves API"
+      webhooks: "Webhooks"
+      logs: "Actividad"
+    }
+    all: "Todos"
+    never: "Nunca"
+    cancel: "Cancelar"
+    noMatches: "No hay coincidencias"
+    emptyFilteredDescription: "Prueba con otro término o estado."
+    copy: "Copiar {label}"
+    copied: "{label} copiado."
+    copyFailed: "No pudimos copiar el valor. Inténtalo de nuevo."
+    clipboardUnsupported: "Tu navegador no permite copiar este valor."
+    saved: "Ya lo guardé"
+    tokenLabel: "Token de la clave"
+    tokenDescription: "Guárdalo ahora: no volveremos a mostrarlo. Si lo pierdes, crea una clave nueva."
+    secretLabel: "Secreto de firma"
+    secretDescription: "Úsalo para verificar la firma de cada envío. No volveremos a mostrarlo."
+    permission: {
+      "accounts:read": "Leer cuentas"
+      "posts:read": "Leer publicaciones"
+      "posts:write": "Crear publicaciones"
+    }
+    event: {
+      "post.created": "Publicación creada"
+      "post.published": "Publicación enviada"
+      "post.failed": "Publicación fallida"
+    }
+    newKey: "Nueva clave"
+    newKeyTitle: "Nueva clave API"
+    newKeyDescription: "El token se muestra una sola vez al crearla. Después solo verás su prefijo."
+    keyNamePlaceholder: "Ej. Integración con n8n"
+    keyRequired: "La clave necesita un nombre y al menos un permiso."
+    keyCreateFailed: "No pudimos crear la clave. Inténtalo de nuevo."
+    keyRevoked: "Clave revocada."
+    keyRevokeFailed: "No pudimos revocar la clave. Inténtalo de nuevo."
+    key: "Clave"
+    permissions: "Permisos"
+    keyStatus: {
+      active: "Activa"
+      revoked: "Revocada"
+    }
+    keyFilter: {
+      active: "Activas"
+      revoked: "Revocadas"
+    }
+    searchKeys: "Buscar claves API"
+    searchKeysPlaceholder: "Buscar claves..."
+    keysEmptyTitle: "No hay claves API"
+    keysEmptyDescription: "Crea una clave para que tus herramientas consulten o publiquen por API."
+    newWebhook: "Nuevo webhook"
+    newWebhookTitle: "Nuevo webhook"
+    editWebhookTitle: "Editar webhook"
+    webhookDescription: "Zapi enviará un POST firmado a esta URL cuando ocurra alguno de los eventos elegidos."
+    webhookNamePlaceholder: "Ej. Notificar a Slack"
+    webhookRequired: "El webhook necesita nombre, URL y al menos un evento."
+    saveWebhook: "Guardar webhook"
+    createWebhook: "Crear webhook"
+    webhookCreated: "Webhook creado."
+    webhookUpdated: "Webhook actualizado."
+    webhookSaveFailed: "No pudimos guardar el webhook. Inténtalo de nuevo."
+    webhookToggleFailed: "No pudimos cambiar el estado del webhook."
+    webhookDeleted: "Webhook eliminado."
+    webhookDeleteFailed: "No pudimos eliminar el webhook. Inténtalo de nuevo."
+    webhook: "Webhook"
+    events: "Eventos"
+    enabled: "Habilitado"
+    webhookFilter: {
+      enabled: "Habilitados"
+      disabled: "Deshabilitados"
+    }
+    searchWebhooks: "Buscar webhooks"
+    searchWebhooksPlaceholder: "Buscar webhooks..."
+    webhooksEmptyTitle: "No hay webhooks"
+    webhooksEmptyDescription: "Recibe un aviso en tu sistema cuando una publicación se cree, se envíe o falle."
+    searchActivity: "Buscar actividad"
+    searchActivityPlaceholder: "Buscar actividad..."
+    filterResult: "Filtrar por resultado"
+    result: "Resultado"
+    direction: "Dirección"
+    directionLabel: {
+      inbound: "Entrante"
+      outbound: "Saliente"
+    }
+    logStatus: {
+      failed: "Fallido"
+      succeeded: "Correcto"
+      accepted: "Aceptado"
+    }
+    logFilter: {
+      accepted: "Aceptados"
+      succeeded: "Correctos"
+      failed: "Fallidos"
+    }
+    logsEmptyTitle: "Sin actividad todavía"
+    logsEmptyDescription: "Aquí aparecerán las llamadas por API y los envíos de webhook."
+    logsEmptyFilteredDescription: "Prueba con otro término o resultado."
+    eventColumn: "Evento"
+  }
+  bulkPosts: {
+    pageTitle: "Publicaciones masivas"
+    pageDescription: "Importa un CSV, valida cada fila y crea publicaciones por cuenta."
+    unavailableTitle: "Publicaciones masivas no disponibles"
+    forbiddenDescription: "Tu acceso actual no permite consultar las publicaciones masivas de este espacio de trabajo."
+    loadFailedDescription: "No pudimos cargar los lotes de este espacio de trabajo."
+    loading: "Cargando lotes"
+    createTitle: "Nuevo lote"
+    selectFile: "Selecciona un archivo"
+    noFiles: "Sube un archivo .csv o .txt a la biblioteca para crear un lote."
+    interval: "Intervalo entre publicaciones"
+    required: "obligatorio"
+    intervalHint: "Minutos entre cada publicación. Se programan en {timezone}."
+    accounts: "Cuentas destino"
+    invalidForm: "Elige un archivo, al menos una cuenta y un intervalo entre 1 y 10080 minutos."
+    created: "Lote creado. Se procesará en segundo plano."
+    createFailed: "No pudimos crear el lote. Revisa el archivo e inténtalo."
+    cancelled: "Lote cancelado."
+    cancelFailed: "No pudimos cancelar el lote. Inténtalo de nuevo."
+    rowsTitle: "Filas del lote"
+    loadingRows: "Cargando filas del lote"
+    rowsFailed: "No pudimos cargar las filas de este lote."
+    detail: "Detalle"
+    noNotes: "Sin observaciones"
+    emptyRowsTitle: "Sin filas"
+    emptyRowsDescription: "Este lote todavía no registra filas procesadas."
+    status: "Estado"
+    statusLabel: {
+      queued: "En cola"
+      processing: "Procesando"
+      completed: "Completado"
+      failed: "Fallido"
+      cancelled: "Cancelado"
+    }
+    rowStatus: {
+      pending: "Pendiente"
+      valid: "Válida"
+      invalid: "Inválida"
+      processed: "Procesada"
+      failed: "Fallida"
+    }
+    searchLabel: "Buscar lotes"
+    searchPlaceholder: "Buscar lotes..."
+    filterStatus: "Filtrar por estado"
+    filter: {
+      all: "Todos"
+      queued: "En cola"
+      processing: "Procesando"
+      completed: "Completados"
+      failed: "Fallidos"
+      cancelled: "Cancelados"
+    }
+    batch: "Lote"
+    targets: "Destinos"
+    progress: "Progreso"
+    actions: "Acciones"
+    noMatches: "No hay coincidencias"
+    emptyTitle: "No hay lotes todavía"
+    emptyDescription: "Sube un CSV a la biblioteca y crea un lote para procesarlo."
+    emptyFilteredDescription: "Prueba con otro término o estado."
+    itemLabel: "lotes"
+    cancelTitle: "¿Cancelar este lote?"
+    cancelDescription: "Las publicaciones ya creadas se conservan; las filas pendientes dejan de procesarse."
+    back: "Volver"
+    cancelAction: "Cancelar lote"
+  }
+  captions: {
+    pageTitle: "Biblioteca de captions"
+    pageDescription: "Gestiona textos reutilizables para mantener una voz consistente en tus publicaciones."
+    forbiddenTitle: "No tienes acceso a los captions"
+    forbiddenDescription: "Pide acceso a un administrador del espacio de trabajo."
+    loadFailedTitle: "No pudimos cargar los captions"
+    loadFailedDescription: "No pudimos cargar la biblioteca en este momento. Inténtalo de nuevo."
+    caption: "Caption"
+    source: "Origen"
+    status: "Estado"
+    tags: "Etiquetas"
+    updated: "Actualizado"
+    updatedRecently: "Actualizado recientemente"
+    actions: "Acciones"
+    all: "Todos"
+    sourceLabel: {
+      manual: "Manual"
+      ai: "Generado por IA"
+    }
+    statusLabel: {
+      active: "Activo"
+      draft: "Borrador"
+      archived: "Archivado"
+    }
+    searchLabel: "Buscar captions"
+    searchPlaceholder: "Buscar captions..."
+    filterSource: "Filtrar por origen"
+    filterStatus: "Filtrar por estado"
+    noMatches: "No encontramos captions"
+    emptyTitle: "Aún no hay captions"
+    emptyDescription: "Crea un caption para empezar a construir tu biblioteca."
+    emptyFilteredDescription: "Prueba con otro término de búsqueda."
+    createTitle: "Nuevo caption"
+    editTitle: "Editar caption"
+    createDescription: "Guarda un caption que puedas encontrar y adaptar en futuras publicaciones."
+    editDescription: "Actualiza el contenido y los metadatos que tu equipo necesita para reutilizarlo."
+    namePlaceholder: "Ej. Lanzamiento de colección"
+    contentPlaceholder: "Escribe el caption que quieres guardar"
+    notes: "Notas internas"
+    notesPlaceholder: "Contexto, aprobaciones o instrucciones para el equipo"
+    requiredFields: "Nombre y contenido son obligatorios."
+    tagsLimit: "Usa hasta 20 etiquetas de 64 caracteres como máximo."
+    missingFields: "Completa todos los campos obligatorios."
+    saving: "Guardando"
+    save: "Guardar caption"
+    saveChanges: "Guardar cambios"
+    saved: "Cambios guardados."
+    created: "Caption creado."
+    saveFailed: "No pudimos guardar los cambios. Revisa los datos e inténtalo de nuevo."
+    saveFailedToast: "No se pudo guardar el caption."
+    deleted: "Caption eliminado."
+    deleteFailed: "No se pudo eliminar el caption."
+    deleteWarning: "Esta acción no se puede deshacer."
+    deleting: "Eliminando"
+    cancel: "Cancelar"
+  }
+  channels: {
+    pageTitle: "Canales"
+    pageDescription: "Gestiona las cuentas conectadas y su acceso para publicar."
+    forbiddenTitle: "No tienes acceso a los canales"
+    forbiddenDescription: "Pide acceso a un administrador del espacio de trabajo."
+    loadFailedTitle: "No pudimos cargar los canales"
+    loadFailedDescription: "Comprueba tu conexión e inténtalo de nuevo."
+    account: "Cuenta"
+    channelType: "Tipo de canal"
+    provider: "Proveedor"
+    type: "Tipo"
+    statusColumn: "Estado"
+    connectedAt: "Conectado el"
+    actions: "Acciones"
+    all: "Todos"
+    status: {
+      connected: "Conectado"
+      disconnected: "Desconectado"
+    }
+    filter: {
+      connected: "Conectados"
+      disconnected: "Desconectados"
+    }
+    filterProvider: "Filtrar por proveedor"
+    filterType: "Filtrar por tipo"
+    filterStatus: "Filtrar por estado"
+    searchLabel: "Buscar canales"
+    searchPlaceholder: "Buscar canales..."
+    filtering: "Filtrando canales"
+    connect: "Conectar canal"
+    noMatches: "No encontramos canales"
+    emptyTitle: "Aún no hay canales"
+    emptyDescription: "Conecta un tipo de canal para empezar."
+    emptyFilteredDescription: "Prueba con otro término de búsqueda."
+    editTitle: "Editar canal"
+    nameRequired: "Introduce un nombre visible para el canal."
+    savingName: "Guardando nombre del canal"
+    nameUpdated: "Nombre del canal actualizado."
+    updateFailed: "No pudimos actualizar el canal. Inténtalo de nuevo."
+    deleteTitle: "Eliminar canal"
+    deleting: "Eliminando canal"
+    deleted: "Canal eliminado."
+    deleteFailed: "No pudimos eliminar el canal. Inténtalo de nuevo."
+    cancel: "Cancelar"
+    metaCancelled: "La autorización con Meta fue cancelada."
+    metaFailed: "No pudimos completar la autorización con Meta."
+    metaAccountsFailed: "No pudimos recuperar las cuentas de Meta autorizadas. Inténtalo de nuevo."
+    reconnectFailed: "No pudimos iniciar la reconexión del canal. Inténtalo de nuevo."
+    profileSyncQueued: "Actualización de perfil programada. Puede tardar unos minutos."
+    profileSyncCooldown: "Ya solicitaste una actualización. Inténtalo de nuevo en 15 minutos."
+    profileSyncFailed: "No pudimos programar la actualización del perfil."
+    capability: {
+      facebook_page: "Página de Facebook"
+      instagram_profile: "Perfil de Instagram"
+      linkedin_page: "Página de LinkedIn"
+      linkedin_profile: "Perfil de LinkedIn"
+      x_profile: "Perfil de X"
+      tiktok_profile: "Perfil de TikTok"
+      whatsapp_status: "Historias de WhatsApp"
+    }
+    picker: {
+      typesLabel: "Tipos de canal"
+      planLocked: "Este canal no está incluido en tu plan actual."
+      comingSoon: "Estamos preparando esta conexión."
+      availability: {
+        ready: "Disponible"
+        coming_soon: "Próximamente"
+        plan_locked: "Plan requerido"
+      }
+    }
+    whatsapp: {
+      generating: "Generando código QR"
+      refreshing: "Actualizando QR…"
+      qrAlt: "Código QR para conectar Estados de WhatsApp"
+      refreshFailed: "No pudimos actualizar el código QR. Inténtalo de nuevo."
+      generateFailed: "No pudimos generar el código QR. Inténtalo de nuevo."
+      connected: "Estados de WhatsApp conectados."
+      connectFailed: "No pudimos completar la conexión con WhatsApp. Genera un QR nuevo."
+      accountMismatch: "El teléfono escaneado no corresponde a este canal"
+      accountMismatchHint: "Escanea el teléfono original o cierra este diálogo para conectar el otro teléfono como un canal nuevo."
+      qrExpired: "El QR expiró o el conector no respondió"
+      qrExpiredHint: "Genera un QR nuevo para continuar con la conexión."
+      prepareQr: "Preparar vínculo por QR"
+    }
+  }
+  common: {
+    loading: "Cargando…"
+    language: {
+      es: "Español"
+      en: "English"
+      short: "ESP"
+    }
+  }
+  dashboard: {
+    labels: {
+      noChannel: "Sin canal"
+      aiKind: {
+        ai_publishing: "AI Publishing"
+        content: "Contenido"
+        image: "Imagen"
+        planner: "Planner"
+        repurpose: "Repurpose"
+        review: "Revisión"
+        search: "Búsqueda"
+        timing: "Timing"
+        video: "Vídeo"
+      }
+    }
+    portal: {
+      loadFailedToast: "No pudimos cargar tu dashboard. Inténtalo de nuevo."
+      loadFailedTitle: "No pudimos cargar el dashboard"
+      loadFailedDescription: "Comprueba tu conexión e inténtalo de nuevo."
+      metrics: {
+        publishedPosts: "Publicaciones"
+        activeChannels: "Canales activos"
+        aiCredits: "Créditos AI usados"
+        newFiles: "Archivos nuevos"
+        previousWeeks: "frente a las 4 semanas previas"
+        connectedRecently: "conectados en las últimas 4 semanas"
+        noRecentConnections: "sin conexiones nuevas en 4 semanas"
+      }
+      activity: {
+        title: "Actividad de publicación"
+        description: "Publicaciones por día frente al periodo anterior."
+        currentPeriod: "Últimas 4 semanas"
+        previousPeriod: "Periodo anterior"
+        tooltip: "Publicaciones"
+        week: "Semana {number, number}"
+      }
+      aiUsage: {
+        title: "Uso de AI"
+        description: "Solicitudes por día en las últimas 4 semanas."
+        series: "Solicitudes"
+        creditsUsed: "créditos usados"
+        empty: "Sin solicitudes AI en las últimas 4 semanas."
+      }
+      breakdown: {
+        title: "Distribución de publicaciones"
+        description: "Últimas 4 semanas por canal y herramienta."
+        series: "Publicaciones"
+        channels: "Canales"
+        aiTools: "Herramientas AI"
+        empty: "Sin datos en las últimas 4 semanas."
+      }
+      upcoming: {
+        title: "Próximas publicaciones"
+        description: "Lo siguiente en tu calendario de contenido."
+        channel: "Canal"
+        status: {
+          draft: "Borrador"
+          scheduled: "Programada"
+        }
+        date: "Fecha"
+        noContent: "Sin contenido"
+        emptyTitle: "Sin publicaciones próximas"
+        emptyDescription: "Programa una publicación para verla aquí."
+        statusColumn: "Estado"
+      }
+    }
+    admin: {
+      loading: "Cargando estado de la plataforma"
+      unavailableTitle: "Panel no disponible"
+      forbiddenDescription: "Solicita a un administrador el permiso necesario para ver el estado de la plataforma."
+      loadFailedDescription: "No pudimos consultar el estado de la plataforma."
+      smtpProvider: "Correo SMTP"
+      statusSection: "Estado de la plataforma"
+      growthSection: "Crecimiento y distribución"
+      billingSection: "Facturación y actividad"
+      operationsSection: "Operación de plataforma"
+      attentionTitle: "Atención operativa"
+      attentionDescription: "Proveedores que aún no están disponibles para los workspaces."
+      allReadyTitle: "Sin configuraciones pendientes"
+      allReadyDescription: "Todos los proveedores configurados superaron su prueba de conexión."
+      allReadyBadge: "Correcto"
+      integrationsTitle: "Integraciones"
+      integrationsDescription: "Gestiona los proveedores que habilitan los canales para todos los clientes."
+      integrationsHint: "Revisa las configuraciones incompletas antes de habilitarlas para los workspaces."
+      integrationsAction: "Administrar integraciones"
+      readiness: {
+        ready: {
+          label: "Listo"
+          detail: "Disponible para los workspaces."
+        }
+        incomplete: {
+          label: "Incompleto"
+          detail: "Faltan credenciales por completar."
+        }
+        untested: {
+          label: "Sin probar"
+          detail: "Configurado, pero sin una prueba de conexión correcta."
+        }
+        disabled: {
+          label: "Deshabilitado"
+          detail: "No se ofrece a los workspaces."
+        }
+      }
+      metrics: {
+        users: "Usuarios"
+        workspaces: "Workspaces"
+        subscriptions: "Suscripciones activas"
+        revenue: "Ingresos"
+        usersPreviousWeeks: "registros frente a las 4 semanas previas"
+        workspacesPreviousWeeks: "creación frente a las 4 semanas previas"
+        activeOrTrial: "activas o en periodo de prueba"
+        chargedRecently: "cobrado en las últimas 4 semanas"
+      }
+      growth: {
+        title: "Crecimiento de usuarios"
+        description: "Registros por día frente al periodo anterior."
+        currentPeriod: "Últimas 4 semanas"
+        previousPeriod: "Periodo anterior"
+        tooltip: "Registros"
+        week: "Semana {number, number}"
+      }
+      aiActivity: {
+        title: "Actividad AI"
+        description: "Solicitudes por día en las últimas 4 semanas."
+        series: "Solicitudes"
+        requests: "solicitudes"
+        empty: "Sin solicitudes AI en las últimas 4 semanas."
+      }
+      breakdown: {
+        title: "Distribución de la plataforma"
+        description: "Suscripciones por plan y uso AI por herramienta."
+        series: "Total"
+        plans: "Planes"
+        aiTools: "Herramientas AI"
+        empty: "Sin datos en las últimas 4 semanas."
+      }
+      payments: {
+        title: "Últimos pagos"
+        description: "Cobros recientes de planes y créditos."
+        workspace: "Workspace"
+        status: {
+          failed: "Fallido"
+          paid: "Pagado"
+          partially_refunded: "Reembolso parcial"
+          pending: "Pendiente"
+          refunded: "Reembolsado"
+        }
+        amount: "Importe"
+        date: "Fecha"
+        emptyTitle: "Sin pagos registrados"
+        emptyDescription: "Los cobros de planes y créditos aparecerán aquí."
+        statusColumn: "Estado"
+      }
+    }
+  }
+  errors: {
+    generic: "No pudimos completar la solicitud. Inténtalo de nuevo."
+    AUTH_EMAIL_ALREADY_REGISTERED: "Ya existe una cuenta con este correo."
+    AUTH_INVALID_CREDENTIALS: "Correo o contraseña incorrectos."
+    AUTH_CAPTCHA_INVALID: "Completa la verificación de seguridad e inténtalo de nuevo."
+    AUTH_CAPTCHA_UNAVAILABLE: "No pudimos verificar la seguridad. Inténtalo nuevamente."
+    AUTH_PASSWORD_POLICY_NOT_MET: "La contraseña no cumple los requisitos de seguridad."
+    AUTH_SESSION_EXPIRED: "Tu sesión terminó. Inicia sesión de nuevo."
+    AUTH_WORKSPACE_UNAVAILABLE: "No fue posible acceder a tu cuenta."
+    VALIDATION_FAILED: "Revisa los datos e inténtalo de nuevo."
+    AI_PROVIDER_NOT_READY: "El administrador todavía no habilitó un modelo para esta herramienta."
+    AI_CREDITS_INSUFFICIENT: "No hay créditos suficientes para iniciar esta generación."
+    AI_REQUEST_RATE_LIMITED: "Hay demasiadas solicitudes. Espera un momento e inténtalo otra vez."
+    ACCOUNT_GRANT_NOT_ALLOWED: "No puedes asignar una o más de las cuentas seleccionadas."
+    INVITATION_ALREADY_PENDING: "Ya existe una invitación pendiente para ese correo."
+    INVITATION_RESEND_NOT_ALLOWED: "Esta invitación ya no se puede reenviar."
+    LAST_OWNER_PROTECTED: "Transfiere la propiedad antes de abandonar el workspace."
+    MEMBER_LIMIT_REACHED: "No quedan cupos disponibles en este workspace."
+    ROLE_CHANGE_NOT_ALLOWED: "Tu rol no permite completar este cambio."
+    TEAM_ACCESS_DENIED: "No tienes permiso para completar esta acción."
+    TEAM_MEMBER_ALREADY_EXISTS: "Ese correo ya pertenece al workspace."
+  }
+  files: {
+    name: "Nombre"
+    type: "Tipo"
+    all: "Todos"
+    rootFolder: "Archivos"
+    unavailable: "No disponible"
+    kind: {
+      image: "Imagen"
+      video: "Vídeo"
+      document: "Documento"
+    }
+    filter: {
+      image: "Imágenes"
+      video: "Videos"
+      document: "Documentos"
+      folder: "Carpetas"
+    }
+    sort: {
+      modifiedAt: "Fecha de modificación"
+      name: "Nombre"
+    }
+    sortBy: "Ordenar por"
+    order: "Orden"
+    sortAZ: "De A a Z"
+    sortZA: "De Z a A"
+    sortNewest: "De nueva a antigua"
+    sortOldest: "De antigua a nueva"
+    viewLabel: "Vista de archivos"
+    gridView: "Vista de cuadrícula"
+    listView: "Vista de lista"
+    searchLabel: "Buscar archivos y carpetas"
+    filterType: "Filtrar archivos por tipo"
+    previousFolders: "Carpetas anteriores"
+    loadingMore: "Cargando más archivos"
+    loadMoreFailed: "No pudimos cargar más archivos."
+    addToLibrary: "Añadir a la biblioteca"
+    openingDrive: "Abriendo Google"
+    star: "Añadir a favoritos {name}"
+    unstar: "Quitar de favoritos {name}"
+    starred: "Añadido a favoritos"
+    unstarred: "Quitado de favoritos"
+    starFailed: "No se pudo actualizar favoritos"
+    uploaded: "Archivo subido"
+    uploadFailed: "No se pudo subir el archivo"
+    folderCreated: "Carpeta creada"
+    folderCreateFailed: "No se pudo crear la carpeta"
+    folderNameTaken: "Ya existe una carpeta con ese nombre en esta ubicación."
+    renamed: "Nombre actualizado"
+    renameFailed: "No se pudo cambiar el nombre"
+    moved: "Elemento movido"
+    moveFailed: "No se pudo mover el elemento"
+    movedCount: "{count, plural, one {Elemento movido} other {Elementos movidos}}"
+    moveNoneFailed: "No se pudo mover ningún elemento"
+    moveSomeFailed: "Algunos elementos no se pudieron mover"
+    moveManyFailed: "No se pudieron mover los elementos"
+    deleted: "Elemento eliminado permanentemente"
+    deletedMany: "Elementos eliminados permanentemente"
+    deleteFailed: "No se pudo eliminar el elemento"
+    deleteNoneFailed: "No se pudo eliminar ningún elemento"
+    deleteSomeFailed: "Algunos elementos no se pudieron eliminar"
+    deleteManyFailed: "No se pudieron eliminar los elementos"
+    inUseByPublishing: "Este archivo se usa en Publishing y no puede eliminarse."
+    driveImportDone: "Importación desde Google Drive completada."
+    driveImportPartial: "Algunos archivos de Google Drive no se pudieron importar."
+    driveImportFailed: "No pudimos completar la importación desde Google Drive."
+    driveImportRunning: "La importación sigue en curso. Actualiza para ver el avance."
+    driveUnavailable: "Google Drive no está disponible en este momento."
+    driveOpenFailed: "No pudimos abrir o iniciar la importación de Google Drive."
+    noMatches: "No encontramos archivos"
+    emptyRootTitle: "Aún no tienes archivos"
+    emptyFolderTitle: "Esta carpeta está vacía"
+    emptyRootDescription: "Sube un archivo o crea una carpeta para comenzar a organizar tu biblioteca."
+    emptyFolderDescription: "Crea una subcarpeta o sube un archivo para organizar este espacio."
+    emptyFilteredDescription: "Prueba con otro término o restablece los filtros para consultar todos los archivos disponibles."
+    uploadTitle: "Subir archivos"
+    formats: {
+      images: "Imágenes"
+      media: "Vídeo y audio"
+      documents: "Documentos"
+      archives: "Hojas y comprimidos"
+    }
+    newFolderTitle: "Nueva carpeta"
+    folderNamePlaceholder: "Nombre de carpeta"
+    creating: "Creando..."
+    createFolder: "Crear carpeta"
+    previewDescription: "Vista privada del archivo."
+    infoTitle: "Información del archivo"
+    info: {
+      type: "Tipo"
+      format: "Formato"
+      size: "Tamaño"
+      updatedAt: "Última actualización"
+      updatedBy: "Actualizado por"
+    }
+    renameTitle: "Renombrar"
+    moveSelected: "Mover archivos seleccionados"
+    chooseFolder: "Elige la carpeta de destino."
+    deleteSelected: "Eliminar los elementos seleccionados"
+    deletePermanently: "Eliminar permanentemente"
+    online: {
+      searchLabel: "Buscar medios online"
+      searchPlaceholder: "Busca fotos, ilustraciones o videos"
+      searching: "Buscando medios online"
+      notConfiguredTitle: "Búsqueda online no configurada"
+      notConfiguredDescription: "Ningún proveedor de medios está configurado para esta plataforma. Un administrador debe conectarlo antes de buscar."
+      searchFailedTitle: "Búsqueda no disponible"
+      searchFailedDescription: "No pudimos completar la búsqueda."
+      emptyTitle: "Busca un medio para empezar"
+      emptyDescription: "Escribe qué necesitas y buscaremos en los proveedores conectados."
+      noResultsTitle: "No encontramos medios"
+      noResultsDescription: "Intenta una búsqueda más amplia o con otras palabras."
+      type: {
+        image: "Imagen"
+        video: "Video"
+      }
+      inLibrary: "En tu biblioteca"
+      available: "Disponible"
+      imported: "Importado"
+      import: "Importar"
+      importFailed: "No pudimos importar este medio. Inténtalo de nuevo."
+    }
+  }
+  groups: {
+    pageTitle: "Grupos"
+    pageDescription: "Organiza cuentas relacionadas para encontrarlas y seleccionarlas más rápido."
+    loading: "Cargando grupos"
+    forbiddenDescription: "Tu acceso actual no permite consultar los grupos de este espacio de trabajo."
+    loadFailedDescription: "No pudimos cargar los grupos de este espacio de trabajo."
+    createTitle: "Nuevo grupo"
+    editTitle: "Editar grupo"
+    namePlaceholder: "Ej. Retail Ecuador"
+    description: "Descripción"
+    descriptionPlaceholder: "Explica cuándo usar este grupo."
+    colorHint: "Identifica el grupo en listas y selectores."
+    color: {
+      label: "Color"
+      blue: "Azul"
+      green: "Verde"
+      amber: "Ámbar"
+      red: "Rojo"
+      violet: "Violeta"
+      gray: "Gris"
+    }
+    status: "Estado"
+    statusLabel: {
+      active: "Activo"
+      inactive: "Inactivo"
+    }
+    accounts: "Cuentas"
+    noAccounts: "No hay cuentas conectadas para agrupar."
+    cancel: "Cancelar"
+    save: "Guardar grupo"
+    create: "Crear grupo"
+    nameRequired: "El grupo necesita un nombre."
+    created: "Grupo creado."
+    updated: "Actualizado"
+    saveFailed: "No pudimos guardar el grupo. Inténtalo de nuevo."
+    deleted: "Grupo eliminado."
+    deleteFailed: "No pudimos eliminar el grupo. Inténtalo de nuevo."
+    metrics: {
+      totalDescription: "Creados en este espacio"
+      active: "Activos"
+      activeDescription: "Listos para usar"
+      reached: "Cuentas alcanzadas"
+      reachedDescription: "Incluidas en algún grupo"
+    }
+    searchLabel: "Buscar grupos"
+    searchPlaceholder: "Buscar grupos..."
+    filterStatus: "Filtrar por estado"
+    filter: {
+      all: "Todos"
+      active: "Activos"
+      inactive: "Inactivos"
+    }
+    group: "Grupo"
+    actions: "Acciones"
+    accountCount: "{count, plural, one {# cuenta} other {# cuentas}}"
+    andMore: " y {count, number} más"
+    openActions: "Abrir acciones para {name}"
+    edit: "Editar"
+    delete: "Eliminar"
+    clearFilters: "Restablecer filtros"
+    noMatches: "No hay coincidencias"
+    emptyTitle: "No hay grupos"
+    emptyDescription: "Crea un grupo para ordenar tus cuentas conectadas."
+    emptyFilteredDescription: "Prueba con otro término o estado."
+    itemLabel: "grupos"
+    deleteTitle: "¿Eliminar «{name}»?"
+    deleteDescription: "Las cuentas seguirán conectadas; solo se pierde esta clasificación."
+    deleteAction: "Eliminar grupo"
+    groupUpdated: "Grupo actualizado."
+  }
+  linkBio: {
+    pageTitle: "Link in bio"
+    pageDescription: "Una página pública con todos tus enlaces, y sus métricas de visitas y clics."
+    loading: "Cargando páginas de enlaces"
+    unavailableTitle: "Link in bio no disponible"
+    forbiddenDescription: "Tu acceso actual no permite administrar las páginas de enlaces."
+    loadFailedDescription: "No pudimos cargar tus páginas de enlaces."
+    createTitle: "Nueva página"
+    editTitle: "Editar página"
+    tab: {
+      info: "Info"
+      blocks: "Bloques"
+      style: "Estilo"
+    }
+    title: "Título"
+    slug: "Dirección"
+    headline: "Titular"
+    align: "Alineación"
+    alignCenter: "Centrado"
+    published: "Publicada"
+    templateLabel: "Plantilla"
+    templateAria: "Plantilla de la página"
+    buttons: "Botones"
+    buttonStyle: {
+      rounded: "Redondeados"
+      pill: "Píldora"
+      square: "Rectos"
+    }
+    avatar: "Avatar"
+    avatarStyle: {
+      circle: "Círculo"
+      rounded: "Redondeado"
+      square: "Recto"
+    }
+    brandingPlaceholder: "Hecho con Zapi"
+    addBlock: "Añadir bloque…"
+    moveUp: "Subir bloque"
+    moveDown: "Bajar bloque"
+    removeBlock: "Quitar bloque"
+    removeItem: "Quitar elemento"
+    showBlock: "Mostrar {block}"
+    label: "Etiqueta"
+    text: "Texto"
+    codeOrUrl: "Código o URL"
+    question: "Pregunta"
+    answer: "Respuesta"
+    destination: "Destino"
+    titleRequired: "La página necesita un título."
+    created: "Página creada."
+    updated: "Página actualizada."
+    slugTaken: "Esa dirección ya está en uso."
+    saveFailed: "No pudimos guardar la página. Inténtalo de nuevo."
+    deleted: "Página eliminada."
+    deleteFailed: "No pudimos eliminar la página."
+    cancel: "Cancelar"
+    metrics: {
+      pages: "Páginas"
+      pagesDescription: "Creadas en este espacio"
+      views: "Vistas"
+      viewsDescription: "Visitas registradas"
+      clicks: "Clics"
+      clicksDescription: "Clics en tus enlaces"
+    }
+    searchLabel: "Buscar páginas"
+    searchPlaceholder: "Buscar páginas..."
+    filterStatus: "Filtrar por estado"
+    status: "Estado"
+    statusLabel: {
+      published: "Publicada"
+      draft: "Borrador"
+    }
+    all: "Todos"
+    page: "Página"
+    noViews: "Sin visitas todavía"
+    noMatches: "No hay coincidencias"
+    emptyTitle: "No hay páginas todavía"
+    emptyDescription: "Crea una página para reunir todos tus enlaces en una sola dirección."
+    emptyFilteredDescription: "Prueba con otro término o estado."
+    preview: {
+      headlineHint: "Añade un titular"
+      descriptionHint: "Añade una descripción"
+      titleHint: "Tu página"
+      itemHint: "Nuevo elemento"
+    }
+    template: {
+      aurora: {
+        label: "Aurora"
+        description: "Degradado nocturno con bloques de vidrio."
+      }
+      "pro-dark": {
+        label: "Pro Dark"
+        description: "Oscuro sobrio para marcas."
+      }
+      spotlight: {
+        label: "Spotlight"
+        description: "Foco violeta sobre fondo profundo."
+      }
+      forest: {
+        label: "Forest"
+        description: "Verde bosque con acentos vivos."
+      }
+      sunset: {
+        label: "Sunset"
+        description: "Atardecer cálido en degradado."
+      }
+      studio: {
+        label: "Studio"
+        description: "Azul pizarra profesional."
+      }
+      minimal: {
+        label: "Minimal"
+        description: "Blanco puro, tipografía primero."
+      }
+      paper: {
+        label: "Paper"
+        description: "Tarjetas sobre papel cálido."
+      }
+      soft: {
+        label: "Soft"
+        description: "Beige suave y sereno."
+      }
+      sky: {
+        label: "Sky"
+        description: "Celeste limpio y aireado."
+      }
+      wave: {
+        label: "Wave"
+        description: "Cian fresco con energía."
+      }
+      promo: {
+        label: "Promo"
+        description: "Naranja vivo para campañas."
+      }
+    }
+    block: {
+      links: {
+        label: "Enlaces"
+        hint: "Lista de botones hacia tus destinos."
+      }
+      header: {
+        label: "Encabezado"
+        hint: "Título y texto de presentación."
+      }
+      social: {
+        label: "Redes sociales"
+        hint: "Iconos hacia tus perfiles."
+      }
+      contact: {
+        label: "Contacto"
+        hint: "Correo, teléfono o dirección."
+      }
+      gallery: {
+        label: "Galería"
+        hint: "Cuadrícula de imágenes."
+      }
+      faq: {
+        label: "Preguntas frecuentes"
+        hint: "Preguntas con su respuesta."
+      }
+      product: {
+        label: "Productos"
+        hint: "Artículos con precio y enlace."
+      }
+      video: {
+        label: "Video"
+        hint: "Un video incrustado por su URL."
+      }
+      embed: {
+        label: "Incrustado"
+        hint: "Contenido externo incrustado."
+      }
+    }
+  }
+  navigation: {
+    portal: {
+      affiliate: "Afiliados"
+      aiAutomation: "Automatizaciones"
+      aiChat: "Chat"
+      aiCredits: "Créditos"
+      aiSettings: "Ajustes AI"
+      aiStudio: "AI Studio"
+      apps: "Aplicaciones"
+      automation: "API de automatización"
+      bulkPosts: "Publicaciones masivas"
+      calendar: "Calendario"
+      captions: "Captions"
+      channels: "Canales"
+      contentTools: "Herramientas de contenido"
+      drafts: "Borradores"
+      files: "Archivos"
+      general: "General"
+      groups: "Grupos"
+      help: "Ayuda"
+      library: "Biblioteca"
+      linkBio: "Link in bio"
+      onlineMedia: "Buscar medios online"
+      overview: "Resumen"
+      publishing: "Publicación"
+      queue: "Cola"
+      rssSchedules: "Programaciones RSS"
+      support: "Soporte"
+      teams: "Equipos"
+      watermarks: "Marca de agua"
+      workspace: "Espacio de trabajo"
+    }
+    admin: {
+      accounts: "Cuentas"
+      affiliate: "Afiliados"
+      ai: "AI"
+      aiConfiguration: "Configuración AI"
+      aiObservability: "Observabilidad AI"
+      aiReport: "Reporte"
+      aiTemplateCategories: "Categorías"
+      aiTemplates: "Plantillas AI"
+      aiUsage: "Uso"
+      analytics: "Analítica"
+      announcements: "Anuncios"
+      audit: "Auditoría"
+      auth: "Autenticación"
+      billing: "Facturación"
+      blog: "Blog"
+      blogPosts: "Entradas"
+      blogRss: "RSS Feeds"
+      cache: "Cache"
+      captcha: "Captcha"
+      cases: "Casos"
+      categories: "Categorías"
+      content: "Contenido"
+      coupons: "Cupones"
+      credits: "Créditos"
+      crons: "Tareas programadas"
+      emailTemplates: "Plantillas de correo"
+      faqs: "Preguntas frecuentes"
+      general: "General"
+      integrations: "Integraciones"
+      languages: "Idiomas"
+      manualPayments: "Pagos manuales"
+      operations: "Operación"
+      overview: "Resumen"
+      paymentReport: "Reporte de pagos"
+      payments: "Pagos"
+      plans: "Planes"
+      platform: "Plataforma"
+      report: "Reporte"
+      roles: "Roles"
+      settings: "Ajustes"
+      settingsGeneral: "General"
+      staticPages: "Páginas estáticas"
+      subscriptions: "Suscripciones"
+      support: "Soporte"
+      system: "Sistema"
+      systemInformation: "Sistema"
+      tags: "Etiquetas"
+      teams: "Equipos"
+      templates: "Plantillas"
+      users: "Usuarios"
+    }
+  }
+  plans: {
+    pageTitle: "Planes"
+    create: "Crear plan"
+    saveChanges: "Guardar cambios"
+    editTitle: "Editar {name}"
+    saving: "Guardando..."
+    deleting: "Eliminando..."
+    deleteAction: "Eliminar plan"
+    deleteDescription: "El plan se eliminará de la configuración. Esta acción no se puede deshacer."
+    description: "Descripción"
+    descriptionPlaceholder: "Describe para quién es este plan."
+    freePlan: "Plan gratuito"
+    featured: "Destacado"
+    default: "Predeterminado"
+    defaultHint: "Se asigna al registrarse."
+    free: "Gratis"
+    noTrial: "Sin prueba"
+    plan: "Plan"
+    price: "Precio"
+    statusColumn: "Estado"
+    billingColumn: "Cobro"
+    visibility: "Visibilidad"
+    status: {
+      active: "Activo"
+      inactive: "Inactivo"
+    }
+    billing: {
+      monthly: "Mensual"
+      yearly: "Anual"
+    }
+    filter: {
+      allStatuses: "Todos los estados"
+      active: "Activos"
+      inactive: "Inactivos"
+      allBilling: "Todo cobro"
+      allPlans: "Todos los planes"
+      featured: "Destacados"
+      standard: "No destacados"
+    }
+    filterStatus: "Filtrar por estado"
+    filterBilling: "Filtrar por cobro"
+    filterFeatured: "Filtrar por destacado"
+    searchLabel: "Buscar planes"
+    searchPlaceholder: "Buscar por nombre o slug..."
+    metrics: {
+      plans: "Planes"
+      plansDescription: "Opciones visibles"
+      active: "Activos"
+      activeDescription: "Disponibles hoy"
+      subscribers: "Suscriptores"
+      subscribersDescription: "Cuentas en esta vista"
+      featured: "Destacados"
+      featuredDescription: "Ofertas principales"
+    }
+    nameTooShort: "El nombre del plan debe tener al menos 2 caracteres."
+    invalidSlug: "El slug usa minúsculas, números y guiones, sin espacios."
+    slugTaken: "Ya existe un plan con este slug."
+    invalidPrice: "Indica un precio válido de cero o mayor."
+    invalidNumbers: "Los días de prueba y la posición deben ser números válidos."
+    permissionRequired: "Selecciona al menos un permiso para el plan."
+    defaultPlanRules: "El plan predeterminado debe estar activo y ser gratuito."
+    sessionExpired: "Tu sesión expiró. Vuelve a iniciar sesión."
+    loadFailed: "No pudimos cargar los planes. Inténtalo de nuevo."
+    updated: "Plan actualizado."
+    created: "Plan creado."
+    conflict: "El nombre, slug o plan predeterminado ya existe."
+    validationFailed: "Revisa los datos del plan antes de guardarlo."
+    saveFailed: "No pudimos guardar el plan. Inténtalo de nuevo."
+    deleted: "Plan eliminado."
+    hasSubscribers: "Este plan todavía tiene suscriptores. Muévelos a otro plan antes de eliminarlo."
+    deleteFailed: "No pudimos eliminar el plan. Inténtalo de nuevo."
+    forbiddenTitle: "Acceso restringido"
+    forbiddenDescription: "Tu cuenta no tiene acceso para administrar planes."
+    loadFailedTitle: "No se pudieron cargar los planes"
+    loadFailedDescription: "No pudimos consultar la configuración de planes."
+    noMatches: "No encontramos planes"
+    emptyTitle: "No hay planes"
+    emptyDescription: "Aún no hay planes configurados. Crea el primero para comenzar."
+    emptyFilteredDescription: "No hay planes que coincidan con los filtros actuales."
+  }
+  profile: {
+    loading: "Cargando perfil"
+    loadFailed: "No pudimos cargar tu perfil."
+    unavailableTitle: "No pudimos mostrar tu perfil"
+    notFound: "No encontramos tu perfil."
+    settingsLabel: "Configuración de la cuenta"
+    tab: {
+      profile: "Perfil"
+      security: "Seguridad"
+    }
+    personalTitle: "Información personal"
+    personalDescription: "Administra cómo apareces y tus preferencias del Portal."
+    verified: "Verificado"
+    unverified: "Sin verificar"
+    memberSince: "Miembro desde"
+    displayName: "Nombre visible"
+    preferredLanguage: "Idioma preferido"
+    usePortalLanguage: "Usar idioma del Portal"
+    timezone: "Zona horaria"
+    timezonePlaceholder: "Selecciona zona horaria"
+    nameRequired: "Completa el nombre visible."
+    timezoneRequired: "Selecciona tu zona horaria."
+    updated: "Perfil actualizado."
+    passwordTitle: "Cambiar contraseña"
+    passwordDescription: "Confirma tu contraseña actual antes de definir una nueva."
+    currentPassword: "Contraseña actual"
+    newPassword: "Nueva contraseña"
+    confirmPassword: "Confirmar nueva contraseña"
+    passwordHint: "Mínimo 8 caracteres, con mayúscula, minúscula, número y carácter especial."
+    updatePassword: "Actualizar contraseña"
+    allFieldsRequired: "Completa todos los campos."
+    passwordMismatch: "Las contraseñas nuevas no coinciden."
+    passwordUpdated: "Contraseña actualizada. Inicia sesión de nuevo para continuar."
+    saveFailed: "No pudimos guardar los cambios. Inténtalo de nuevo."
+    currentPasswordInvalid: "La contraseña actual no es correcta."
+    passwordPolicy: "La nueva contraseña no cumple los requisitos."
+    validationFailed: "Revisa nombre, idioma y zona horaria."
+  }
+  publishing: {
+    loader: {
+      loadFailedTitle: "No se pudo cargar Publishing"
+      loadFailedDescription: "No pudimos recuperar el calendario. Ninguna publicación fue modificada."
+    }
+    accountPicker: {
+      placeholder: "Seleccionar cuentas destino"
+      selectedCount: "{count, plural, one {# cuenta seleccionada} other {# cuentas seleccionadas}}"
+      searchLabel: "Buscar cuentas destino"
+      searchPlaceholder: "Buscar por cuenta o nombre asignado"
+      filterLabel: "Filtrar cuentas por red"
+      allNetworks: "Todas"
+      noResults: "No encontramos cuentas con esos filtros."
+      selectedLabel: "Cuentas seleccionadas"
+      remove: "Quitar {account}"
+    }
+    mediaPicker: {
+      title: "Selecciona desde tu almacenamiento"
+      searchLabel: "Buscar media en el almacenamiento"
+      searchPlaceholder: "Buscar en tu almacenamiento"
+      filterLabel: "Filtrar media por tipo"
+      filter: {
+        all: "Todo"
+        image: "Imágenes"
+        video: "Videos"
+      }
+      kind: {
+        image: "Imagen"
+        video: "Video"
+      }
+      driveImport: "Importar desde Google Drive"
+      driveOpening: "Abriendo Google"
+      driveImportingTitle: "Importando desde Google Drive"
+      driveImportingDescription: "El archivo se guardará en Files y se seleccionará al terminar."
+      driveFailedTitle: "No se pudo importar desde Google Drive"
+      driveFailedDescription: "Elige otro archivo para intentarlo de nuevo."
+      selectedLabel: "Media de la publicación"
+      selectedBadge: "Media seleccionada"
+    }
+    preview: {
+      title: "Vista previa"
+      description: "Basada en la cuenta seleccionada, el texto y la media actual."
+      emptyTitle: "Sin vista previa"
+      emptyDescription: "Selecciona una cuenta y añade contenido para revisar el formato antes de publicar."
+      contentPlaceholder: "Empieza a escribir para ver cómo se leerá tu publicación."
+      mediaSelected: "Imagen o video seleccionado"
+      now: "Ahora"
+      nowPublic: "Ahora · Público"
+      statusNow: "Estado · Ahora"
+      like: "Me gusta"
+      comment: "Comentar"
+      share: "Compartir"
+    }
+    calendar: {
+      searchLabel: "Buscar publicaciones"
+      searchPlaceholder: "Buscar publicaciones..."
+      previousPeriod: "Periodo anterior"
+      nextPeriod: "Periodo siguiente"
+      filterChannel: "Filtrar por canal"
+      options: "Opciones del calendario"
+      viewLabel: "Vista del calendario"
+      view: {
+        month: "Mes"
+        week: "Semana"
+        day: "Día"
+      }
+      current: {
+        month: "Este mes"
+        week: "Esta semana"
+        day: "Hoy"
+      }
+      create: "Nueva publicación"
+      untitled: "Publicación sin texto"
+    }
+    table: {
+      create: "Nueva publicación"
+      searchLabel: "Buscar publicaciones"
+      clearFilters: "Limpiar"
+      provider: "Red"
+      status: "Estado"
+      filterProviderLabel: "Filtrar por red"
+      filterStatusLabel: "Filtrar por estado"
+      allProviders: "Todas las redes"
+      allStatuses: "Todos los estados"
+      statusLabel: {
+        draft: "Borrador"
+        failed: "Fallida"
+        processing: "En proceso"
+        published: "Publicada"
+        scheduled: "Programada"
+      }
+      post: "Publicación"
+      account: "Cuenta"
+      date: "Fecha"
+      actions: "Acciones"
+      withMedia: "Con archivo"
+      textOnly: "Solo texto"
+      edit: "Editar"
+      retry: "Reintentar"
+      cancel: "Cancelar"
+      deleteLabel: "Eliminar {title}"
+      deleteTitle: "¿Eliminar borrador?"
+      deleteDescription: "El borrador «{title}» se eliminará definitivamente. Esta acción no se puede deshacer."
+      deleteAction: "Eliminar borrador"
+      deleting: "Eliminando..."
+      empty: {
+        filtered: {
+          title: "No encontramos publicaciones"
+          description: "Prueba otros filtros o limpia la búsqueda para ver las publicaciones disponibles."
+        }
+        drafts: {
+          title: "Todavía no hay borradores"
+          description: "Guarda una publicación como borrador para continuarla después."
+        }
+        queue: {
+          title: "La cola está vacía"
+          description: "Cuando programes o publiques una pieza, su progreso aparecerá aquí por cada destino."
+        }
+      }
+      untitled: "Publicación sin texto"
+      now: "Ahora"
+    }
+    composer: {
+      createTitle: "Nueva publicación"
+      editTitle: "Editar publicación"
+      composerDescription: "Valida cada destino antes de guardar, programar o publicar."
+      accounts: "Cuentas destino"
+      content: "Texto"
+      contentPlaceholder: "Escribe el contenido de tu publicación"
+      media: "Media"
+      when: "Cuándo publicar"
+      mode: {
+        draft: "Borrador"
+        now: "Ahora"
+        schedule: "Programar"
+      }
+      cancel: "Cancelar"
+      submit: {
+        draft: "Guardar borrador"
+        now: "Publicar ahora"
+        schedule: "Programar"
+      }
+      pending: {
+        draft: "Guardando..."
+        now: "Publicando..."
+        schedule: "Programando..."
+      }
+      driveImportFailed: "No pudimos importar el archivo desde Google Drive."
+      driveImportSuccess: "Archivo de Google Drive importado y seleccionado."
+      driveSelectFailed: "El archivo se importó, pero no pudimos seleccionarlo."
+      driveUnavailable: "Google Drive no está disponible en este momento."
+      driveStartFailed: "No pudimos iniciar la importación desde Google Drive."
+    }
+    page: {
+      pageTitle: "Publicación"
+      pageDescription: "Planifica el calendario, sigue la cola de envíos y retoma los borradores de tus canales."
+      noAccessTitle: "No tienes acceso a Publishing"
+      noAccessDescription: "Pide acceso a un administrador del espacio de trabajo para gestionar publicaciones."
+      sectionsLabel: "Secciones de Publishing"
+      section: {
+        calendar: "Calendario"
+        queue: "Cola"
+        drafts: "Borradores"
+      }
+      calendarLabel: "Calendario de publicaciones"
+      queueLabel: "Cola de publicaciones"
+      draftsLabel: "Borradores"
+      createTitle: "Nueva publicación"
+      saved: "Los cambios se guardaron."
+      draftSaved: "El borrador se guardó."
+      publishStarted: "{count, plural, one {Iniciamos la operación para # destino.} other {Iniciamos la operación para # destinos.}}"
+      scheduled: "{count, plural, one {Programamos # publicación.} other {Programamos # publicaciones.}}"
+      validationFailed: "Revisa las cuentas, media y fecha antes de continuar."
+      saveFailed: "No pudimos guardar la publicación. Inténtalo de nuevo."
+      retryQueued: "El reintento se añadió a la cola."
+      retryFailed: "No pudimos reintentar la publicación."
+      draftDeleted: "El borrador se eliminó."
+      draftDeleteFailed: "No pudimos eliminar el borrador."
+      metrics: {
+        scheduled: "Programadas"
+        scheduledDescription: "Pendientes de publicarse"
+        processing: "En proceso"
+        processingDescription: "Enviando al proveedor"
+        failed: "Fallidas"
+        failedDescription: "Requieren atención"
+        drafts: "Total"
+        draftsDescription: "Borradores guardados"
+        withMedia: "Con archivo"
+        withMediaDescription: "Con imagen o video"
+        ready: "Listos para programar"
+        readyDescription: "Tienen contenido listo"
+      }
+    }
+  }
+  rssSchedules: {
+    pageTitle: "Programaciones RSS"
+    pageDescription: "Gestiona los feeds que convierten artículos nuevos en publicaciones programadas."
+    unavailableTitle: "Programaciones RSS no disponibles"
+    forbiddenDescription: "Tu acceso actual no permite consultar las programaciones RSS de este espacio de trabajo."
+    loadFailedTitle: "No se pudieron cargar las programaciones RSS"
+    loadFailedDescription: "Ninguna programación fue modificada. Vuelve a intentarlo para recuperar el contenido."
+    retry: "Reintentar"
+    connected: "Conectada"
+    created: "La programación RSS se creó."
+    resumed: "La programación se reactivó."
+    paused: "La programación quedó en pausa."
+    updateFailed: "No pudimos actualizar la programación."
+    deleted: "La programación RSS se eliminó."
+    deleteFailed: "No pudimos eliminar la programación."
+    runQueued: "La ejecución se añadió a la cola."
+    runFailed: "No pudimos iniciar la ejecución."
+    validationFailed: "Revisa las cuentas y los datos de la programación."
+    searchLabel: "Buscar programaciones RSS"
+    searchPlaceholder: "Buscar programaciones..."
+    filterStatus: "Filtrar por estado"
+    filter: {
+      all: "Todos"
+      active: "Activas"
+      paused: "En pausa"
+    }
+    status: "Estado"
+    statusLabel: {
+      active: "Activa"
+      paused: "En pausa"
+    }
+    feed: "Feed"
+    noTargets: "Sin destinos"
+    moreTargets: "{count, plural, one {+# destino} other {+# destinos}}"
+    oneChannel: "1 canal conectado"
+    pendingFirstRun: "Pendiente de la primera ejecución"
+    neverRun: "Aún no se ejecuta"
+    noDrafts: "Sin borradores generados"
+    pause: "Pausar"
+    resume: "Reactivar"
+    noMatches: "No hay coincidencias"
+    emptyTitle: "Aún no tienes programaciones RSS"
+    emptyDescription: "Añade un feed y elige cuándo publicarlo en tus canales."
+    emptyFilteredDescription: "Prueba con otro término o restablece los filtros."
+    create: "Crear programación"
+    wizard: {
+      title: "Nueva programación RSS"
+      description: "Configura cómo convertir artículos nuevos de un feed en publicaciones para tus canales."
+      stepsLabel: "Pasos de la programación RSS"
+      step: {
+        feed: "Feed"
+        targets: "Destinos"
+        content: "Contenido"
+        review: "Revisar"
+      }
+      frequency: {
+        daily: "Una vez al día"
+        weekdays: "De lunes a viernes"
+        weekly: "Una vez por semana"
+      }
+      continue: "Continuar"
+      create: "Crear programación"
+      creating: "Creando..."
+      validating: "Validando..."
+      cancel: "Cancelar"
+      previous: "Anterior"
+      missingFields: "Completa todos los campos obligatorios."
+      invalidUrl: "Usa una URL válida que comience con http:// o https://."
+      validationFailed: "No pudimos validar este feed. Comprueba que sea público y esté disponible."
+      createFailed: "No pudimos crear la programación. Comprueba los datos e inténtalo de nuevo."
+      feedUrl: "URL del feed"
+      feedUrlPlaceholder: "https://sitio.com/feed.xml"
+      feedUrlHint: "Usa la URL directa del RSS, no la página principal del sitio."
+      name: "Nombre de la programación"
+      namePlaceholder: "Ej. Noticias del blog"
+      nameHint: "Solo lo verá tu equipo al administrar esta automatización."
+      publishTo: "Publicar en"
+      publishToHint: "Elige las cuentas que recibirán cada artículo nuevo."
+      noAccounts: "Conecta al menos un canal antes de crear una programación."
+      frequencyLabel: "Frecuencia"
+      preferredTime: "Hora preferida"
+      avoidRepeats: "Evitar artículos repetidos"
+      avoidRepeatsHint: "La programación nunca volverá a enviar el mismo artículo a la misma cuenta."
+      includeSummary: "Incluir resumen del artículo"
+      includeSummaryHint: "Se usará como base del texto de la publicación."
+      template: "Texto que acompaña cada publicación"
+      templateHint: "Variables disponibles: título, resumen y enlace del artículo."
+      reviewSchedule: "Programación"
+      reviewPublishing: "Publicación"
+      atTime: "a las {time}"
+    }
+  }
+  shell: {
+    portalNavigationLabel: "Navegación principal del portal"
+    adminNavigationLabel: "Navegación principal de la plataforma"
+    profile: "Perfil"
+    promptHistory: "Historial de prompts"
+    account: {
+      profile: "Mi perfil"
+      logout: "Cerrar sesión"
+      logoutFailed: "No pudimos cerrar tu sesión. Inténtalo de nuevo."
+    }
+    theme: {
+      label: "Tema"
+      light: "Claro"
+      dark: "Oscuro"
+      system: "Sistema"
+    }
+    workspaces: {
+      title: "Espacios de trabajo"
+      switching: "Cambiando espacio"
+      activationFailed: "No pudimos cambiar el espacio de trabajo."
+      role: {
+        owner: "Propietario"
+        admin: "Administrador"
+        member: "Miembro"
+      }
+    }
+    search: {
+      trigger: "Buscar"
+      placeholder: "Buscar en la navegación…"
+      empty: "No se encontraron resultados."
+    }
+    notifications: {
+      title: "Notificaciones"
+      unreadLabel: "Notificaciones, {unread, number} sin leer"
+      markAllRead: "Marcar todo como leído"
+      archiveAll: "Archivar todo"
+      loading: "Cargando"
+      empty: "No tienes notificaciones."
+    }
+  }
+  support: {
+    pageTitle: "Soporte"
+    pageDescription: "Revisa tus casos abiertos y habla con el equipo de Zapi desde un único lugar."
+    unavailableTitle: "Soporte no disponible"
+    forbiddenDescription: "Tu acceso actual no permite consultar los casos de soporte de este espacio de trabajo."
+    loadFailedTitle: "No se pudieron cargar los casos de soporte"
+    loadFailedDescription: "Ningún caso fue modificado. Vuelve a intentarlo para recuperar la información."
+    retry: "Reintentar"
+    loading: "Cargando casos de soporte"
+    status: {
+      open: "Abierto"
+      resolved: "Resuelto"
+      closed: "Cerrado"
+    }
+    filter: {
+      open: "Abiertos"
+      resolved: "Resueltos"
+      closed: "Cerrados"
+    }
+    all: "Todos"
+    statusColumn: "Estado"
+    ticket: "Caso"
+    metrics: {
+      open: "Abiertos"
+      openDescription: "En espera de atención"
+      resolved: "Resueltos"
+      resolvedDescription: "Resueltos en el historial"
+      closed: "Cerrados"
+      closedDescription: "Sin acciones pendientes"
+    }
+    searchLabel: "Buscar casos de soporte"
+    searchPlaceholder: "Buscar casos..."
+    filterStatus: "Filtrar por estado"
+    newTicket: "Nuevo caso"
+    createTitle: "Nuevo caso de soporte"
+    selectCategory: "Selecciona una categoría"
+    subjectPlaceholder: "Ej. No puedo publicar en Instagram"
+    bodyPlaceholder: "Qué estabas haciendo, qué esperabas que ocurriera y qué ocurrió en su lugar."
+    missingFields: "Completa todos los campos obligatorios."
+    created: "Caso de soporte creado."
+    createFailed: "No pudimos crear el caso. Inténtalo de nuevo."
+    noMatches: "No hay coincidencias"
+    emptyTitle: "Aún no tienes casos de soporte"
+    emptyDescription: "Cuando necesites ayuda, abre un caso y tendrás toda la conversación aquí."
+    emptyFilteredDescription: "Prueba con otro término o estado."
+    loadingTicket: "Cargando caso de soporte"
+    ticketUnavailable: "Caso no disponible"
+    ticketLoadFailed: "No pudimos cargar este caso de soporte."
+    ticketNotFound: "No encontramos este caso"
+    ticketNotFoundDescription: "El caso no existe o ya no está disponible en este espacio de trabajo."
+    createdUpdated: "Creado {created} · actualizado {updated}"
+    messageRequired: "Escribe un mensaje antes de enviarlo."
+    replyPlaceholder: "Escribe tu respuesta..."
+    replySent: "Respuesta enviada."
+    replyFailed: "No pudimos enviar tu respuesta. Inténtalo de nuevo."
+    resolved: "Caso marcado como resuelto."
+    resolveFailed: "No pudimos marcar el caso como resuelto."
+  }
+  teams: {
+    pageTitle: "Equipo"
+    myAccessTitle: "Mi acceso"
+    manageDescription: "Administra personas, cuentas asignadas e invitaciones del workspace."
+    viewDescription: "Consulta tu rol, las cuentas disponibles y quién forma parte del workspace."
+    loadFailedTitle: "No se pudo cargar el equipo"
+    loadFailedDescription: "No se modificó ningún acceso. Intenta cargar la sección nuevamente."
+    viewsLabel: "Vistas del equipo"
+    tab: {
+      members: "Miembros"
+      invitations: "Invitaciones"
+      activity: "Actividad"
+    }
+    role: {
+      owner: "Propietario"
+      admin: "Administración"
+      member: "Miembro"
+    }
+    roleColumn: "Rol"
+    delivery: {
+      label: "Entrega"
+      pending: "Enviando"
+      sent: "Enviada"
+      failed: "Falló el envío"
+    }
+    member: "Miembro"
+    scope: "Alcance"
+    joined: "Se unió"
+    email: "Correo"
+    invitedBy: "Invitado por"
+    lastSent: "Último envío"
+    expires: "Vence"
+    notSentYet: "Aún no enviado"
+    activity: "Actividad"
+    performedBy: "Realizada por"
+    person: "Persona"
+    date: "Fecha"
+    performedByName: "Realizada por {name}"
+    system: "Sistema"
+    allAccounts: "Todas las cuentas"
+    accountCount: "{count, plural, one {# cuenta} other {# cuentas}}"
+    assignedAccounts: "Cuentas asignadas"
+    adminAllAccounts: "Administración accede a todas las cuentas activas del workspace."
+    adminHint: "Accede a todas las cuentas y puede administrar miembros, excepto otros administradores."
+    memberHint: "Solo trabaja con las cuentas que le asignes."
+    inviteTitle: "Invitar al workspace"
+    inviteDescription: "La invitación es privada, se vincula a este correo y caduca en siete días."
+    emailPlaceholder: "nombre@empresa.com"
+    invalidEmail: "Introduce un correo válido."
+    sending: "Enviando..."
+    sendInvitation: "Enviar invitación"
+    saving: "Guardando..."
+    saveAccess: "Guardar acceso"
+    cancel: "Cancelar"
+    close: "Cerrar"
+    processing: "Procesando..."
+    invitationDetail: "Detalle de invitación"
+    invitationOnlyEmail: "Solo {email} puede aceptarla antes de su vencimiento."
+    inviteMember: "Invitar miembro"
+    noSeats: "No quedan cupos disponibles"
+    searchMembers: "Buscar miembros..."
+    searchInvitations: "Buscar invitaciones..."
+    searchActivity: "Buscar actividad..."
+    filterActivity: "Filtrar actividad"
+    accessUpdated: "Acceso actualizado."
+    invitationRevoked: "Invitación revocada."
+    ownershipTransferred: "Propiedad transferida."
+    actionFailed: "No se pudo completar la acción"
+    dismissError: "Cerrar error"
+    resending: "Reenviando invitación"
+    membersNoMatches: "No encontramos miembros"
+    membersEmptyFilteredDescription: "Prueba otra búsqueda para encontrar a una persona del workspace."
+    invitationsNoMatches: "No encontramos invitaciones"
+    invitationsEmptyTitle: "Sin invitaciones pendientes"
+    invitationsEmptyDescription: "Las nuevas invitaciones aparecerán aquí hasta que se acepten, venzan o revoquen."
+    invitationsEmptyFilteredDescription: "Prueba otra búsqueda para encontrar una invitación."
+    activityUnavailable: "Actividad no disponible"
+    activityFailedDescription: "No se pudo consultar la actividad del workspace."
+    activityNoMatches: "Sin actividad para este filtro"
+    activityEmptyTitle: "Sin actividad"
+    activityEmptyDescription: "Los cambios de invitaciones, roles, cuentas y propiedad aparecerán aquí."
+    activityEmptyFilteredDescription: "Prueba otra búsqueda o elimina el filtro de categoría."
+    activityFilter: {
+      all: "Toda la actividad"
+      invitations: "Invitaciones"
+      members: "Miembros"
+      access: "Acceso"
+      ownership: "Propiedad"
+    }
+    activityLabel: {
+      "team.invitation_created": "Invitación creada"
+      "team.invitation_resent": "Invitación reenviada"
+      "team.invitation_revoked": "Invitación revocada"
+      "team.invitation_expired": "Invitación vencida"
+      "team.invitation_accepted": "Invitación aceptada"
+      "team.member_role_updated": "Rol actualizado"
+      "team.member_access_updated": "Acceso actualizado"
+      "team.member_account_grants_replaced": "Cuentas asignadas"
+      "team.member_revoked": "Miembro eliminado"
+      "team.member_left": "Miembro salió del workspace"
+      "team.ownership_transferred": "Propiedad transferida"
+    }
+    confirm: {
+      removeTitle: "¿Eliminar miembro?"
+      removeDescription: "{name} perderá el acceso al workspace y sus sesiones activas se cerrarán."
+      removeAction: "Eliminar miembro"
+      revokeTitle: "¿Revocar invitación?"
+      revokeDescription: "La invitación para {email} dejará de ser válida."
+      revokeAction: "Revocar invitación"
+      transferTitle: "¿Transferir la propiedad?"
+      transferDescription: "{name} será el nuevo propietario. Tu rol cambiará a Administración."
+      transferAction: "Transferir propiedad"
+      leaveTitle: "¿Abandonar el workspace?"
+      leaveDescription: "Perderás el acceso a sus cuentas y se cerrarán tus sesiones activas."
+      leaveAction: "Abandonar workspace"
+    }
+    invitation: {
+      unavailableTitle: "Invitación no disponible"
+      unavailableDescription: "Ningún cambio adicional fue realizado en tu cuenta."
+      backHome: "Volver al inicio"
+      signIn: "Iniciar sesión"
+      retry: "Reintentar"
+      signInToContinue: "Iniciar sesión para continuar"
+      signUpToContinue: "Crear cuenta para continuar"
+      accept: "Aceptar invitación"
+      accepting: "Aceptando…"
+      notNow: "Ahora no"
+      invitedTitle: "Te invitaron a un espacio de trabajo"
+      invitedDescription: "Confirma tu cuenta para unirte. La invitación solo funciona con {email}."
+      workspace: "Espacio de trabajo"
+      role: {
+        admin: "Administrador"
+        member: "Miembro"
+      }
+      availableUntil: "Disponible hasta {date}"
+      activatingTitle: "Activando acceso"
+      activatingDescription: "Estamos preparando el espacio de trabajo."
+      problem: {
+        missing: {
+          title: "Falta el enlace de invitación"
+          description: "Abre nuevamente el enlace completo que recibiste por correo."
+        }
+        invalid: {
+          title: "Esta invitación no es válida"
+          description: "El enlace puede estar incompleto o haber sido reemplazado por una invitación más reciente."
+        }
+        expired: {
+          title: "Esta invitación venció"
+          description: "Pide a un administrador del espacio de trabajo que te envíe una nueva invitación."
+        }
+        used: {
+          title: "Esta invitación ya fue utilizada"
+          description: "Inicia sesión para abrir tus espacios de trabajo disponibles."
+        }
+        full: {
+          title: "El espacio alcanzó su límite"
+          description: "La invitación sigue pendiente, pero un administrador debe liberar un cupo antes de que puedas entrar."
+        }
+        mismatch: {
+          title: "La invitación pertenece a otro correo"
+          description: "Cierra esta sesión e inicia con la cuenta que recibió la invitación."
+        }
+        error: {
+          title: "No pudimos comprobar la invitación"
+          description: "Revisa tu conexión e inténtalo nuevamente."
+        }
+      }
+    }
+    created: "Creada"
+  }
+}
+export default messages

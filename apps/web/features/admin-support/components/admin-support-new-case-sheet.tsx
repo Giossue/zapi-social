@@ -33,6 +33,7 @@ import {
 } from "@workspace/ui/components/sheet"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
+import { useTranslations } from "next-intl"
 
 import type { SupportCatalogItem } from "./support-catalog-panel"
 
@@ -83,6 +84,7 @@ export function AdminSupportNewCaseSheet({
   types: readonly SupportCatalogItem[]
   users: readonly AdminSupportUserFixture[]
 }) {
+  const t = useTranslations("adminSupport")
   const [userId, setUserId] = useState("")
   const [categoryId, setCategoryId] = useState("none")
   const [typeId, setTypeId] = useState("none")
@@ -105,7 +107,7 @@ export function AdminSupportNewCaseSheet({
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!complete) {
-      toast.error("Completa todos los campos obligatorios.")
+      toast.error(t("missingFields"))
       return
     }
     onCreate({
@@ -116,7 +118,7 @@ export function AdminSupportNewCaseSheet({
       subject: subject.trim(),
       message: message.trim(),
     })
-    toast.success("Caso creado.")
+    toast.success(t("caseCreated"))
     close()
   }
 
@@ -127,10 +129,8 @@ export function AdminSupportNewCaseSheet({
     >
       <SheetContent className="w-full gap-0 p-0 sm:max-w-xl" side="right">
         <SheetHeader className="border-b">
-          <SheetTitle>Nuevo caso</SheetTitle>
-          <SheetDescription>
-            Abre un caso en nombre de un cliente y clasifícalo para el equipo.
-          </SheetDescription>
+          <SheetTitle>{t("newCase")}</SheetTitle>
+          <SheetDescription>{t("newCaseDescription")}</SheetDescription>
         </SheetHeader>
         <form
           className="flex min-h-0 flex-1 flex-col"
@@ -141,7 +141,7 @@ export function AdminSupportNewCaseSheet({
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="admin-case-user">
-                  Usuario destino <RequiredMark />
+                  {t("targetUser")} <RequiredMark />
                 </FieldLabel>
                 <Select onValueChange={setUserId} value={userId}>
                   <SelectTrigger
@@ -149,7 +149,7 @@ export function AdminSupportNewCaseSheet({
                     className="w-full"
                     id="admin-case-user"
                   >
-                    <SelectValue placeholder="Selecciona una persona" />
+                    <SelectValue placeholder={t("selectPerson")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -161,19 +161,19 @@ export function AdminSupportNewCaseSheet({
                     </SelectGroup>
                   </SelectContent>
                 </Select>
-                <FieldDescription>
-                  El caso queda visible para esa persona en su Portal.
-                </FieldDescription>
+                <FieldDescription>{t("targetUserHelp")}</FieldDescription>
               </Field>
               <Field>
-                <FieldLabel htmlFor="admin-case-category">Categoría</FieldLabel>
+                <FieldLabel htmlFor="admin-case-category">
+                  {t("category")}
+                </FieldLabel>
                 <Select onValueChange={setCategoryId} value={categoryId}>
                   <SelectTrigger className="w-full" id="admin-case-category">
-                    <SelectValue placeholder="Selecciona una categoría" />
+                    <SelectValue placeholder={t("selectCategory")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="none">Sin categoría</SelectItem>
+                      <SelectItem value="none">{t("noCategory")}</SelectItem>
                       {categories
                         .filter((category) => category.isActive)
                         .map((category) => (
@@ -186,14 +186,14 @@ export function AdminSupportNewCaseSheet({
                 </Select>
               </Field>
               <Field>
-                <FieldLabel htmlFor="admin-case-type">Tipo</FieldLabel>
+                <FieldLabel htmlFor="admin-case-type">{t("type")}</FieldLabel>
                 <Select onValueChange={setTypeId} value={typeId}>
                   <SelectTrigger className="w-full" id="admin-case-type">
-                    <SelectValue placeholder="Selecciona un tipo" />
+                    <SelectValue placeholder={t("selectType")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="none">Sin tipo</SelectItem>
+                      <SelectItem value="none">{t("noType")}</SelectItem>
                       {types
                         .filter((type) => type.isActive)
                         .map((type) => (
@@ -207,7 +207,7 @@ export function AdminSupportNewCaseSheet({
               </Field>
               <FieldSet>
                 <FieldLabel asChild>
-                  <legend>Etiquetas</legend>
+                  <legend>{t("labels")}</legend>
                 </FieldLabel>
                 {activeLabels.length ? (
                   <FieldGroup className="gap-3" data-slot="checkbox-group">
@@ -233,14 +233,12 @@ export function AdminSupportNewCaseSheet({
                     ))}
                   </FieldGroup>
                 ) : (
-                  <FieldDescription>
-                    No hay etiquetas activas todavía.
-                  </FieldDescription>
+                  <FieldDescription>{t("noActiveLabels")}</FieldDescription>
                 )}
               </FieldSet>
               <Field>
                 <FieldLabel htmlFor="admin-case-subject">
-                  Asunto <RequiredMark />
+                  {t("subject")} <RequiredMark />
                 </FieldLabel>
                 <Input
                   aria-required="true"
@@ -251,7 +249,7 @@ export function AdminSupportNewCaseSheet({
               </Field>
               <Field>
                 <FieldLabel htmlFor="admin-case-message">
-                  Mensaje <RequiredMark />
+                  {t("message")} <RequiredMark />
                 </FieldLabel>
                 <Textarea
                   aria-required="true"
@@ -265,10 +263,10 @@ export function AdminSupportNewCaseSheet({
           </div>
           <SheetFooter className="flex-row justify-end border-t">
             <Button onClick={close} type="button" variant="brand-secondary">
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button disabled={!complete} type="submit">
-              <Plus data-icon="inline-start" /> Crear caso
+              <Plus data-icon="inline-start" /> {t("createCase")}
             </Button>
           </SheetFooter>
         </form>

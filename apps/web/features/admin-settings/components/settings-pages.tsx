@@ -26,9 +26,21 @@ export function GeneralSettingsPage() {
           description: t("general.siteDescriptionHint"),
         },
         { kind: "text", label: t("general.companyName"), name: "companyName" },
-        { kind: "text", label: t("general.contactEmail"), name: "contactEmail" },
-        { kind: "text", label: t("general.contactPhone"), name: "contactPhone" },
-        { kind: "text", label: t("general.supportHours"), name: "supportHours" },
+        {
+          kind: "text",
+          label: t("general.contactEmail"),
+          name: "contactEmail",
+        },
+        {
+          kind: "text",
+          label: t("general.contactPhone"),
+          name: "contactPhone",
+        },
+        {
+          kind: "text",
+          label: t("general.supportHours"),
+          name: "supportHours",
+        },
         {
           kind: "text",
           label: t("general.dateFormat"),

@@ -48,24 +48,13 @@ import { RetryButton } from "@workspace/ui/components/retry-button"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
+import { useFormatter, useTranslations } from "next-intl"
 import { loginPath } from "@/features/identity/login-redirect"
 
-const statusLabel: Record<AdminSupportTicketStatus, string> = {
-  open: "Abierto",
-  resolved: "Resuelto",
-  closed: "Cerrado",
-}
 const statusVariant: Record<
   AdminSupportTicketStatus,
   "info" | "success" | "secondary"
 > = { open: "info", resolved: "success", closed: "secondary" }
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("es-EC", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value))
-}
 
 function initials(name: string) {
   return name
@@ -78,6 +67,8 @@ function initials(name: string) {
 }
 
 export function AdminSupportTicketPage({ ticketId }: { ticketId: string }) {
+  const t = useTranslations("adminSupport")
+  const format = useFormatter()
   const router = useRouter()
   const [ticket, setTicket] = useState<AdminSupportTicketDetail | null>(null)
   const [reply, setReply] = useState("")
@@ -128,18 +119,18 @@ export function AdminSupportTicketPage({ ticketId }: { ticketId: string }) {
   async function sendReply(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!reply.trim()) {
-      toast.error("Escribe una respuesta antes de enviarla.")
+      toast.error(t("replyRequired"))
       return
     }
     setPending(true)
     try {
       setTicket(await adminSupportApi.reply(ticketId, { body: reply.trim() }))
       setReply("")
-      toast.success("Respuesta enviada al cliente.")
+      toast.success(t("replySent"))
     } catch (error) {
       if (handleError(error)) return
       console.error("Admin support reply failed", error)
-      toast.error("No pudimos enviar la respuesta. Inténtalo de nuevo.")
+      toast.error(t("replyFailed"))
     } finally {
       setPending(false)
     }
@@ -149,11 +140,11 @@ export function AdminSupportTicketPage({ ticketId }: { ticketId: string }) {
     setPending(true)
     try {
       setTicket(await adminSupportApi.setStatus(ticketId, { status }))
-      toast.success(`Caso marcado como ${statusLabel[status].toLowerCase()}.`)
+      toast.success(t(`statusChanged.${status}`))
     } catch (error) {
       if (handleError(error)) return
       console.error("Admin support status change failed", error)
-      toast.error("No pudimos actualizar el estado del caso.")
+      toast.error(t("statusFailed"))
     } finally {
       setPending(false)
     }
@@ -162,24 +153,24 @@ export function AdminSupportTicketPage({ ticketId }: { ticketId: string }) {
   if (forbidden) {
     return (
       <EmptyState
-        description="Tu cuenta no tiene permisos para administrar el soporte de la plataforma."
+        description={t("forbiddenDescription")}
         icon={ShieldX}
-        title="Acceso restringido"
+        title={t("forbiddenTitle")}
       />
     )
   }
 
   if (isLoading && !ticket) {
-    return <PageLoading aria-label="Cargando caso de soporte" />
+    return <PageLoading aria-label={t("loadingTicket")} />
   }
 
   if (loadError) {
     return (
       <EmptyState
         action={<RetryButton onClick={() => void load()} />}
-        description="No fue posible cargar este caso de soporte."
+        description={t("ticketLoadFailed")}
         icon={LifeBuoy}
-        title="No pudimos cargar el caso"
+        title={t("ticketLoadFailedTitle")}
       />
     )
   }
@@ -190,13 +181,13 @@ export function AdminSupportTicketPage({ ticketId }: { ticketId: string }) {
         action={
           <Button asChild variant="brand-secondary">
             <Link href="/admin/support">
-              <ArrowLeft data-icon="inline-start" /> Volver a la cola
+              <ArrowLeft data-icon="inline-start" /> {t("backToQueue")}
             </Link>
           </Button>
         }
-        description="El caso no existe o fue eliminado."
+        description={t("ticketNotFoundDescription")}
         icon={LifeBuoy}
-        title="No encontramos este caso"
+        title={t("ticketNotFound")}
       />
     )
   }
@@ -216,7 +207,7 @@ export function AdminSupportTicketPage({ ticketId }: { ticketId: string }) {
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-4">
       <Button asChild className="w-fit" size="sm" variant="brand-secondary">
         <Link href="/admin/support">
-          <ArrowLeft data-icon="inline-start" /> Todos los casos
+          <ArrowLeft data-icon="inline-start" /> {t("allCases")}
         </Link>
       </Button>
       <Card variant="subtle">
@@ -225,10 +216,10 @@ export function AdminSupportTicketPage({ ticketId }: { ticketId: string }) {
             <div className="flex min-w-0 flex-col gap-2">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant={statusVariant[ticket.status]}>
-                  {statusLabel[ticket.status]}
+                  {t(`status.${ticket.status}`)}
                 </Badge>
                 {ticket.awaitingReply ? (
-                  <Badge variant="warning">Sin responder</Badge>
+                  <Badge variant="warning">{t("unanswered")}</Badge>
                 ) : null}
                 <span className="text-sm text-muted-foreground">
                   {ticket.category.name}
@@ -242,8 +233,16 @@ export function AdminSupportTicketPage({ ticketId }: { ticketId: string }) {
                 {ticket.workspace.name}
               </CardDescription>
               <CardDescription>
-                Creado {formatDateTime(ticket.createdAt)} · última actividad{" "}
-                {formatDateTime(ticket.lastActivityAt)}
+                {t("createdAndActivity", {
+                  activity: format.dateTime(
+                    new Date(ticket.lastActivityAt),
+                    "dateTime"
+                  ),
+                  created: format.dateTime(
+                    new Date(ticket.createdAt),
+                    "dateTime"
+                  ),
+                })}
               </CardDescription>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -259,7 +258,7 @@ export function AdminSupportTicketPage({ ticketId }: { ticketId: string }) {
                   ) : (
                     <CheckCircle2 data-icon="inline-start" />
                   )}
-                  Marcar resuelto
+                  {t("markResolved")}
                 </Button>
               ) : (
                 <Button
@@ -273,7 +272,7 @@ export function AdminSupportTicketPage({ ticketId }: { ticketId: string }) {
                   ) : (
                     <RotateCcw data-icon="inline-start" />
                   )}
-                  Reabrir
+                  {t("reopen")}
                 </Button>
               )}
               {ticket.status === "closed" ? null : (
@@ -283,7 +282,7 @@ export function AdminSupportTicketPage({ ticketId }: { ticketId: string }) {
                   size="sm"
                   variant="brand-secondary"
                 >
-                  <Lock data-icon="inline-start" /> Cerrar
+                  <Lock data-icon="inline-start" /> {t("close")}
                 </Button>
               )}
             </div>
@@ -320,7 +319,8 @@ export function AdminSupportTicketPage({ ticketId }: { ticketId: string }) {
                       </Bubble>
                     </BubbleGroup>
                     <MessageFooter>
-                      {comment.authorName} · {formatDateTime(comment.createdAt)}
+                      {comment.authorName} ·{" "}
+                      {format.dateTime(new Date(comment.createdAt), "dateTime")}
                     </MessageFooter>
                   </MessageContent>
                 </Message>
@@ -334,9 +334,9 @@ export function AdminSupportTicketPage({ ticketId }: { ticketId: string }) {
           <CardContent className="flex items-center gap-3 py-4">
             <Lock className="size-5 text-muted-foreground" />
             <div>
-              <p className="text-sm font-medium">Este caso está cerrado</p>
+              <p className="text-sm font-medium">{t("closedTitle")}</p>
               <p className="text-sm text-muted-foreground">
-                Reábrelo para volver a escribir al cliente.
+                {t("closedDescription")}
               </p>
             </div>
           </CardContent>
@@ -344,11 +344,8 @@ export function AdminSupportTicketPage({ ticketId }: { ticketId: string }) {
       ) : (
         <Card variant="subtle">
           <CardHeader>
-            <CardTitle className="text-base">Responder al cliente</CardTitle>
-            <CardDescription>
-              La respuesta aparece en el caso del Portal y marca el hilo como
-              atendido.
-            </CardDescription>
+            <CardTitle className="text-base">{t("replyTitle")}</CardTitle>
+            <CardDescription>{t("replyDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
             <form
@@ -359,18 +356,18 @@ export function AdminSupportTicketPage({ ticketId }: { ticketId: string }) {
             >
               <Field>
                 <FieldLabel htmlFor="admin-support-reply">
-                  Respuesta{" "}
+                  {t("replyLabel")}{" "}
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
-                  <span className="sr-only"> obligatorio</span>
+                  <span className="sr-only"> {t("required")}</span>
                 </FieldLabel>
                 <Textarea
                   aria-required="true"
                   id="admin-support-reply"
                   maxLength={5000}
                   onChange={(event) => setReply(event.target.value)}
-                  placeholder="Escribe la respuesta del equipo..."
+                  placeholder={t("replyPlaceholder")}
                   rows={4}
                   value={reply}
                 />
@@ -382,7 +379,7 @@ export function AdminSupportTicketPage({ ticketId }: { ticketId: string }) {
                   ) : (
                     <Send data-icon="inline-start" />
                   )}
-                  Enviar respuesta
+                  {t("sendReply")}
                 </Button>
               </div>
             </form>
