@@ -25,7 +25,11 @@ COPY packages/file-ingestion packages/file-ingestion
 COPY packages/typescript-config packages/typescript-config
 COPY packages/ui packages/ui
 
-RUN bun --filter web build
+# `@workspace/contracts` se compila antes que la web, igual que en la API y en
+# el worker. Sus tipos se resuelven desde `src`, pero un valor —un catálogo, un
+# schema Zod— se importa desde `dist`, y `.dockerignore` no copia `dist`.
+RUN bun --filter @workspace/contracts build \
+  && bun --filter web build
 
 ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0

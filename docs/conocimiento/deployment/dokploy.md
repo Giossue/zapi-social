@@ -59,6 +59,13 @@ Los tres servicios se construyen con contexto raíz porque dependen de workspace
 
 Los Dockerfiles se validaron con Podman. No definir un Start Command manual en Dokploy: debe usar el `CMD` de la imagen.
 
+Los tres compilan `@workspace/contracts` antes que su aplicación. Hace falta
+aunque la web solo importe tipos de ese paquete casi siempre: `exports` resuelve
+los tipos desde `src` pero **los valores desde `dist`**, y `.dockerignore` no
+copia `dist`. La primera importación de un valor —un catálogo, un schema Zod—
+rompe el build con `Module not found`, y solo se ve al desplegar, porque en
+local `dist` ya existe de una compilación anterior.
+
 ## Perfil operativo actual
 
 Los valores sensibles permanecen únicamente en Dokploy. En esta guía, `configurado en Dokploy` significa que el servicio tiene el valor real sin exponerlo en el repositorio.
