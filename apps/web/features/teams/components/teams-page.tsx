@@ -122,6 +122,8 @@ function MemberIdentity({
   current?: boolean
   member: PortalTeamMember
 }) {
+  const t = useTranslations("teams")
+
   return (
     <div className="flex min-w-0 items-center gap-3">
       <Avatar className="size-8">
@@ -130,7 +132,7 @@ function MemberIdentity({
       <div className="min-w-0">
         <div className="flex items-center gap-2">
           <p className="truncate text-sm font-medium">{member.name}</p>
-          {current ? <Badge variant="neutral">Tú</Badge> : null}
+          {current ? <Badge variant="neutral">{t("you")}</Badge> : null}
         </div>
         {member.email ? (
           <p className="truncate text-xs text-muted-foreground">

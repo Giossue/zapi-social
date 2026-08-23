@@ -166,7 +166,7 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
   const conversationMessages: SupportComment[] = [
     {
       id: `ticket-description-${ticket.id}`,
-      authorName: requesterName || "Tú",
+      authorName: requesterName || t("you"),
       authorRole: "requester",
       body: ticket.description,
       createdAt: ticket.createdAt,

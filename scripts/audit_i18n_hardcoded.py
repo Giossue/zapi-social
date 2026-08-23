@@ -63,8 +63,9 @@ LABEL_PROPS = (
 PATTERNS = (
     # Prop de rótulo con texto literal.
     re.compile(rf'(?:{LABEL_PROPS})\s*[:=]\s*"([^"]{{2,}})"'),
-    # Nodo de texto dentro de JSX.
-    re.compile(r">\s*([A-Za-zÁÉÍÓÚÑáéíóúñ¿¡][^<>{}\n]{2,})\s*<"),
+    # Nodo de texto dentro de JSX. Basta un carácter más: «Tú» o «Ver» son
+    # texto de interfaz igual que una frase larga.
+    re.compile(r">\s*([A-Za-zÁÉÍÓÚÑáéíóúñ¿¡][^<>{}\n]{1,})\s*<"),
     # Aviso al usuario.
     re.compile(r'toast\.(?:success|error|info)\(\s*"([^"]+)"'),
 )

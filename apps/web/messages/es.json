@@ -4444,7 +4444,8 @@
     "ticketUnavailable": "Caso no disponible",
     "unavailable": "Soporte no disponible",
     "unavailableTitle": "Soporte no disponible",
-    "updated": "Actualizado"
+    "updated": "Actualizado",
+    "you": "Tú"
   },
   "systemInformation": {
     "available": "Disponible",
@@ -4674,6 +4675,7 @@
     "viewDetails": "Ver detalles",
     "viewsLabel": "Vistas del equipo",
     "workspaceMembers": "Miembros del workspace",
+    "you": "Tú",
     "yourRole": "Tu rol",
     "yourRoleDescription": "Define las acciones disponibles en este workspace."
   },

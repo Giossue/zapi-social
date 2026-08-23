@@ -4448,6 +4448,7 @@ declare const messages: {
     unavailable: "Soporte no disponible"
     unavailableTitle: "Soporte no disponible"
     updated: "Actualizado"
+    you: "Tú"
   }
   systemInformation: {
     available: "Disponible"
@@ -4677,6 +4678,7 @@ declare const messages: {
     viewDetails: "Ver detalles"
     viewsLabel: "Vistas del equipo"
     workspaceMembers: "Miembros del workspace"
+    you: "Tú"
     yourRole: "Tu rol"
     yourRoleDescription: "Define las acciones disponibles en este workspace."
   }
