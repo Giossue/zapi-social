@@ -42,6 +42,7 @@ import {
 import { DatabaseService } from '../database/database.service';
 import { EmailService } from '../email/email.service';
 import { AppException } from '../platform/errors/app-exception';
+import { WorkspacePermissionsService } from './workspace-permissions.service';
 
 const managerRoles = new Set(['owner', 'admin']);
 const invitationLifetimeMilliseconds = 7 * 24 * 60 * 60 * 1000;
@@ -85,6 +86,7 @@ export class TeamsService {
   constructor(
     private readonly database: DatabaseService,
     private readonly email: EmailService,
+    private readonly permissions: WorkspacePermissionsService,
   ) {}
 
   async list(session: PortalAuthSession): Promise<PortalTeamsResponse> {
@@ -229,6 +231,12 @@ export class TeamsService {
               ? (grantsByMembership.get(membership.id) ?? [])
               : allAccountIds
             : [],
+        permissions: [
+          ...this.permissions.effective(
+            membership.role,
+            membership.permissions,
+          ),
+        ],
       })),
       invitations: invitationRows.map(({ invitation, inviter }) =>
         this.serializeInvitation(invitation, inviter.displayName),
@@ -963,6 +971,12 @@ export class TeamsService {
     if (!parsed.success)
       throw new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
     const accountIds = [...new Set(parsed.data.accountIds)];
+    // Un `admin` ya los tiene todos de forma implícita: guardarlos sería una
+    // segunda fuente de verdad que se desincroniza al cambiar el catálogo.
+    const permissions =
+      parsed.data.role === 'member'
+        ? this.permissions.sanitize(parsed.data.permissions)
+        : [];
     const now = new Date();
     await this.database.db.transaction(async (tx) => {
       const [workspace] = await tx
@@ -1035,7 +1049,7 @@ export class TeamsService {
       }
       await tx
         .update(workspaceMemberships)
-        .set({ role: parsed.data.role, updatedAt: now })
+        .set({ role: parsed.data.role, permissions, updatedAt: now })
         .where(eq(workspaceMemberships.id, member.id));
       await tx
         .delete(socialAccountMemberships)
@@ -1062,6 +1076,7 @@ export class TeamsService {
             role: parsed.data.role,
             accountCount:
               parsed.data.role === 'member' ? accountIds.length : null,
+            permissionCount: permissions.length,
           },
         }),
         tx.insert(workspaceMembershipAuditEvents).values({
@@ -1073,6 +1088,7 @@ export class TeamsService {
             role: parsed.data.role,
             accountCount:
               parsed.data.role === 'member' ? accountIds.length : null,
+            permissionCount: permissions.length,
           },
         }),
       ]);

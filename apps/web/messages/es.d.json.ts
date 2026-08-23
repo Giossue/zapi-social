@@ -3058,6 +3058,7 @@ declare const messages: {
     TEAM_ACCESS_DENIED: "No tienes permiso para completar esta acción."
     TEAM_MEMBER_ALREADY_EXISTS: "Ese correo ya pertenece al workspace."
     VALIDATION_FAILED: "Revisa los datos e inténtalo de nuevo."
+    WORKSPACE_PERMISSION_DENIED: "No tienes permiso para esta parte del espacio de trabajo."
     generic: "No pudimos completar la solicitud. Inténtalo de nuevo."
   }
   files: {
@@ -4590,6 +4591,7 @@ declare const messages: {
     activityNoMatches: "Sin actividad para este filtro"
     activityUnavailable: "Actividad no disponible"
     adminAllAccounts: "Administración accede a todas las cuentas activas del workspace."
+    adminAllPermissions: "Un administrador tiene todos los permisos del espacio de trabajo."
     adminHint: "Accede a todas las cuentas y puede administrar miembros, excepto otros administradores."
     allAccounts: "Todas las cuentas"
     assignedAccounts: "Cuentas asignadas"
@@ -4708,6 +4710,8 @@ declare const messages: {
     manageAccess: "Gestionar acceso"
     manageDescription: "Administra personas, cuentas asignadas e invitaciones del workspace."
     member: "Miembro"
+    memberAccessDescription: "El rol, las cuentas y los permisos se comprueban otra vez en la API en cada operación."
+    memberAccessTitle: "Acceso de {name}"
     memberActions: "Acciones para {name}"
     memberHint: "Solo trabaja con las cuentas que le asignes."
     memberRemoved: "{name} fue eliminado."
@@ -4724,6 +4728,18 @@ declare const messages: {
     pendingInvitations: "Invitaciones pendientes"
     performedBy: "Realizada por"
     performedByName: "Realizada por {name}"
+    permission: {
+      boards: {
+        delete_tasks: "Borrar tarjetas"
+        manage_columns: "Configurar las columnas"
+        manage_tasks: "Crear y editar tarjetas"
+        view: "Ver el tablero"
+      }
+    }
+    permissionModule: {
+      boards: "Tableros"
+    }
+    permissions: "Permisos"
     person: "Persona"
     processing: "Procesando..."
     removeMember: "Eliminar miembro"

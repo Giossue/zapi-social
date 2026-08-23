@@ -6,7 +6,9 @@ import type {
   PortalTeamMember,
   PortalTeamRole,
   PortalTeamsResponse,
+  WorkspacePermission,
 } from "@workspace/contracts"
+import { workspacePermissionCatalog } from "@workspace/contracts"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -200,7 +202,11 @@ export function MemberAccessDialog({
   error: string | null
   member: PortalTeamMember | null
   onOpenChange: (open: boolean) => void
-  onSubmit: (input: { accountIds: string[]; role: InvitationRole }) => void
+  onSubmit: (input: {
+    accountIds: string[]
+    permissions: WorkspacePermission[]
+    role: InvitationRole
+  }) => void
   pending: boolean
 }) {
   const t = useTranslations("teams")
@@ -209,6 +215,11 @@ export function MemberAccessDialog({
   )
   const [role, setRole] = useState<InvitationRole>(() =>
     member?.role === "admin" ? "admin" : "member"
+  )
+  // Un `admin` llega con el catálogo completo porque los tiene implícitos. Si
+  // se parte de ahí al bajarlo a `member`, se le concederían todos sin querer.
+  const [permissions, setPermissions] = useState<WorkspacePermission[]>(() =>
+    member?.role === "member" ? [...member.permissions] : []
   )
 
   useEffect(() => {
@@ -225,22 +236,29 @@ export function MemberAccessDialog({
     )
   }
 
+  function togglePermission(permission: WorkspacePermission, checked: boolean) {
+    setPermissions((current) =>
+      checked
+        ? [...new Set([...current, permission])]
+        : current.filter((value) => value !== permission)
+    )
+  }
+
   return (
     <Sheet onOpenChange={onOpenChange} open>
       <SheetContent className="w-full gap-0 p-0 sm:max-w-md" side="right">
         <SheetHeader className="border-b">
-          <SheetTitle>Acceso de {member.name}</SheetTitle>
-          <SheetDescription>
-            El rol y las cuentas se validan nuevamente en API y Worker en cada
-            operación.
-          </SheetDescription>
+          <SheetTitle>
+            {t("memberAccessTitle", { name: member.name })}
+          </SheetTitle>
+          <SheetDescription>{t("memberAccessDescription")}</SheetDescription>
         </SheetHeader>
         <form
           className="flex min-h-0 flex-1 flex-col"
           noValidate
           onSubmit={(event) => {
             event.preventDefault()
-            onSubmit({ accountIds, role })
+            onSubmit({ accountIds, permissions, role })
           }}
         >
           <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4">
@@ -310,6 +328,48 @@ export function MemberAccessDialog({
                   </FieldGroup>
                 ) : (
                   <FieldDescription>{t("noActiveAccounts")}</FieldDescription>
+                )}
+              </FieldSet>
+              <FieldSet data-disabled={role === "admin" || pending}>
+                <FieldLegend variant="label">{t("permissions")}</FieldLegend>
+                {role === "admin" ? (
+                  <FieldDescription>
+                    {t("adminAllPermissions")}
+                  </FieldDescription>
+                ) : (
+                  workspacePermissionCatalog.map((group) => (
+                    <FieldGroup
+                      key={group.module}
+                      className="gap-3"
+                      data-slot="checkbox-group"
+                    >
+                      <FieldDescription>
+                        {t(`permissionModule.${group.module}`)}
+                      </FieldDescription>
+                      {group.permissions.map((permission) => {
+                        const controlId = `team-permission-${permission}`
+                        return (
+                          <Field key={permission} orientation="horizontal">
+                            <Checkbox
+                              checked={permissions.includes(permission)}
+                              disabled={pending}
+                              id={controlId}
+                              onCheckedChange={(value) =>
+                                togglePermission(permission, value === true)
+                              }
+                            />
+                            <FieldLabel htmlFor={controlId}>
+                              <FieldContent>
+                                <FieldTitle>
+                                  {t(`permission.${permission}`)}
+                                </FieldTitle>
+                              </FieldContent>
+                            </FieldLabel>
+                          </Field>
+                        )
+                      })}
+                    </FieldGroup>
+                  ))
                 )}
               </FieldSet>
             </FieldGroup>

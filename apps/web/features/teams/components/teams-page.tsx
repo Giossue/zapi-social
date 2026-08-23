@@ -17,6 +17,7 @@ import type {
   PortalTeamMember,
   PortalTeamRole,
   PortalTeamsResponse,
+  WorkspacePermission,
 } from "@workspace/contracts"
 import {
   Alert,
@@ -590,6 +591,7 @@ export function TeamsPage() {
 
   async function saveMemberAccess(input: {
     accountIds: string[]
+    permissions: WorkspacePermission[]
     role: "admin" | "member"
   }) {
     if (!selectedMember) return

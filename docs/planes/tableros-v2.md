@@ -216,12 +216,23 @@ programado y su estado de negocio vive en `board_tasks.due_date`, no en el job.
 
 ## Fases
 
-### Fase 1 — Permisos de membresía
+### Fase 1 — Permisos de membresía · terminada
 
-- [ ] Catálogo `workspacePermissionSchema` en contratos.
-- [ ] Comprobación en la API, con `owner` y `admin` implícitos.
-- [ ] Bloque de permisos en la hoja de acceso de miembro de Teams.
-- [ ] Pruebas de integración: un `member` sin permiso recibe 403.
+- [x] Catálogo `workspacePermissionSchema` en contratos, agrupado por módulo.
+- [x] `WorkspacePermissionsService` en la API, con `owner` y `admin`
+      implícitos y código público `WORKSPACE_PERMISSION_DENIED`.
+- [x] Bloque de permisos en la hoja de acceso de miembro de Teams.
+- [x] Prueba de integración de equipos ampliada.
+
+Dos matices que aparecieron al construirlo:
+
+- **El contrato rechaza un permiso desconocido; no lo descarta.** Quien llama
+  recibe `VALIDATION_FAILED` en vez de un guardado a medias. El saneador sigue
+  haciendo falta, pero para **leer**: un permiso retirado del catálogo deja de
+  contar sin migrar las filas que aún lo guarden.
+- **Subir a `admin` vacía la lista.** Guardar permisos a quien ya los tiene
+  todos crearía una segunda fuente de verdad que se desincroniza al cambiar el
+  catálogo.
 
 ### Fase 2 — Datos y contrato del tablero de tareas
 

@@ -68,6 +68,7 @@ export const updateAdminTurnstileConfigurationSchema = z
 /** Idiomas con traducción disponible en la interfaz. */
 export { supportedLocaleSchema } from "./locale.js"
 import { supportedLocaleSchema } from "./locale.js"
+import { workspacePermissionSchema } from "./workspace-permissions.js"
 
 export const portalProfileSchema = z.object({
   id: z.uuid(),
@@ -927,6 +928,12 @@ export const portalTeamMemberSchema = z.object({
   role: portalTeamRoleSchema,
   joinedAt: z.string().datetime(),
   accountIds: z.array(z.uuid()),
+  /**
+   * Permisos concedidos a esta membresía. `owner` y `admin` los tienen todos de
+   * forma implícita y llegan con el catálogo completo, para que la interfaz no
+   * tenga que replicar esa regla.
+   */
+  permissions: z.array(workspacePermissionSchema),
 })
 export const portalTeamInvitationSchema = z.object({
   id: z.uuid(),
@@ -983,6 +990,8 @@ export const updatePortalTeamMemberAccessSchema = z
   .object({
     role: portalTeamInvitationRoleSchema,
     accountIds: z.array(z.uuid()).max(500),
+    /** Se ignora cuando el rol es `admin`: ese rol ya los tiene todos. */
+    permissions: z.array(workspacePermissionSchema).default([]),
   })
   .strict()
 export const replacePortalTeamAccountGrantsSchema = z
@@ -1637,6 +1646,8 @@ export * from "./admin-manual-payments.js"
 export * from "./admin-email-templates.js"
 
 export * from "./public-site.js"
+
+export * from "./workspace-permissions.js"
 
 export * from "./portal-core-v2.js"
 

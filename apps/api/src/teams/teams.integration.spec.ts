@@ -15,6 +15,7 @@ import { DatabaseService } from '../database/database.service';
 import { EmailService } from '../email/email.service';
 import { AppException } from '../platform/errors/app-exception';
 import { TeamsService } from './teams.service';
+import { WorkspacePermissionsService } from './workspace-permissions.service';
 
 const databaseUrl = process.env.TEAMS_TEST_DATABASE_URL;
 const isLocalTestDatabase = (() => {
@@ -211,6 +212,7 @@ function serviceFor(database: Database, email = new CapturingEmailService()) {
     service: new TeamsService(
       { db: database } as DatabaseService,
       email as unknown as EmailService,
+      new WorkspacePermissionsService({ db: database } as DatabaseService),
     ),
   };
 }
@@ -643,6 +645,87 @@ describeDatabase('Teams lifecycle', () => {
           ),
         );
       expect(grants).toEqual([{ socialAccountId: scenario.accounts[1].id }]);
+    });
+  });
+
+  it('grants board permissions only to the member who received them', async () => {
+    await inRollbackTransaction(async (database) => {
+      const scenario = await seedTeam(database, 'permissions');
+      const { service } = serviceFor(database);
+      const permissions = new WorkspacePermissionsService({
+        db: database,
+      } as DatabaseService);
+
+      // Sin nada concedido, un `member` no pasa la comprobación.
+      await expect(
+        permissions.allows(scenario.memberSession, 'boards.view'),
+      ).resolves.toBe(false);
+      await expectCode(
+        permissions.require(scenario.memberSession, 'boards.view'),
+        'WORKSPACE_PERMISSION_DENIED',
+      );
+
+      // Un permiso fuera del catálogo no se descarta en silencio: el contrato
+      // lo rechaza y quien llama se entera.
+      await expectCode(
+        service.updateMemberAccess(scenario.ownerSession, scenario.member.id, {
+          role: 'member',
+          accountIds: [],
+          permissions: ['boards.view', 'inventado'],
+        }),
+        'VALIDATION_FAILED',
+      );
+
+      await service.updateMemberAccess(
+        scenario.ownerSession,
+        scenario.member.id,
+        {
+          role: 'member',
+          accountIds: [],
+          // `boards.delete_tasks` no se concede: comprobamos que el permiso es
+          // por clave y no un interruptor de módulo.
+          permissions: ['boards.view', 'boards.manage_tasks'],
+        },
+      );
+
+      await expect(
+        permissions.allows(scenario.memberSession, 'boards.view'),
+      ).resolves.toBe(true);
+      await expect(
+        permissions.allows(scenario.memberSession, 'boards.delete_tasks'),
+      ).resolves.toBe(false);
+
+      const [stored] = await database
+        .select({ permissions: workspaceMemberships.permissions })
+        .from(workspaceMemberships)
+        .where(eq(workspaceMemberships.id, scenario.memberMembership.id));
+      expect(stored?.permissions).toEqual([
+        'boards.view',
+        'boards.manage_tasks',
+      ]);
+
+      // El owner los tiene todos sin que nadie se los conceda.
+      await expect(
+        permissions.allows(scenario.ownerSession, 'boards.delete_tasks'),
+      ).resolves.toBe(true);
+
+      // Un permiso retirado del catálogo deja de contar sin migrar la fila que
+      // todavía lo guarde.
+      expect(
+        permissions.effective('member', ['boards.view', 'boards.retirado']),
+      ).toEqual(['boards.view']);
+
+      // Al subir a `admin` la lista se vacía: ese rol ya los tiene implícitos.
+      await service.updateMemberAccess(
+        scenario.ownerSession,
+        scenario.member.id,
+        { role: 'admin', accountIds: [], permissions: ['boards.view'] },
+      );
+      const [promoted] = await database
+        .select({ permissions: workspaceMemberships.permissions })
+        .from(workspaceMemberships)
+        .where(eq(workspaceMemberships.id, scenario.memberMembership.id));
+      expect(promoted?.permissions).toEqual([]);
     });
   });
 });

@@ -3055,6 +3055,7 @@
     "TEAM_ACCESS_DENIED": "You don't have permission to complete this action.",
     "TEAM_MEMBER_ALREADY_EXISTS": "That email already belongs to the workspace.",
     "VALIDATION_FAILED": "Check the details and try again.",
+    "WORKSPACE_PERMISSION_DENIED": "You do not have permission for this part of the workspace.",
     "generic": "We couldn't complete the request. Please try again."
   },
   "files": {
@@ -4587,6 +4588,7 @@
     "activityNoMatches": "No activity for this filter",
     "activityUnavailable": "Activity unavailable",
     "adminAllAccounts": "Administration can access every active account in the workspace.",
+    "adminAllPermissions": "An admin has every workspace permission.",
     "adminHint": "Accesses every account and can manage members, except other administrators.",
     "allAccounts": "All accounts",
     "assignedAccounts": "Assigned accounts",
@@ -4705,6 +4707,8 @@
     "manageAccess": "Manage access",
     "manageDescription": "Manage people, assigned accounts and workspace invitations.",
     "member": "Member",
+    "memberAccessDescription": "The role, accounts and permissions are checked again by the API on every operation.",
+    "memberAccessTitle": "{name} access",
     "memberActions": "Actions for {name}",
     "memberHint": "Only works with the accounts you assign.",
     "memberRemoved": "{name} was removed.",
@@ -4721,6 +4725,18 @@
     "pendingInvitations": "Pending invitations",
     "performedBy": "Performed by",
     "performedByName": "Performed by {name}",
+    "permission": {
+      "boards": {
+        "delete_tasks": "Delete cards",
+        "manage_columns": "Configure columns",
+        "manage_tasks": "Create and edit cards",
+        "view": "View the board"
+      }
+    },
+    "permissionModule": {
+      "boards": "Boards"
+    },
+    "permissions": "Permissions",
     "person": "Person",
     "processing": "Processing...",
     "removeMember": "Remove member",
