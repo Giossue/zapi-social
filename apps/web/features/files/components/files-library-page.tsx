@@ -299,7 +299,7 @@ function AssetCard({
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => onInfo(asset)}>
                   <Info />
-                  Información
+                  {t("infoAction")}
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <a href={filesApi.downloadUrl(asset.id)}>
@@ -439,7 +439,7 @@ function AssetsTable({
           <TableHead>{t("name")}</TableHead>
           <TableHead className="hidden md:table-cell">Tipo</TableHead>
           <TableHead className="hidden lg:table-cell">Actualizado</TableHead>
-          <TableHead className="text-right">Acción</TableHead>
+          <TableHead className="text-right">{t("actionColumn")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -549,7 +549,7 @@ function AssetsTable({
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => onInfo(asset)}>
                       <Info />
-                      Información
+                      {t("infoAction")}
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
                       <a href={filesApi.downloadUrl(asset.id)}>
@@ -1145,10 +1145,7 @@ export function FilesLibraryPage() {
 
   if (loadError)
     return (
-      <FilesErrorState
-        onRetry={() => void loadLibrary()}
-        section="biblioteca"
-      />
+      <FilesErrorState onRetry={() => void loadLibrary()} section="library" />
     )
   if (library === null) return <PageLoading />
   if (!library.canView) return <FilesPermissionState mode="library" />
@@ -1370,7 +1367,7 @@ export function FilesLibraryPage() {
                     Nombre
                   </DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="modifiedAt">
-                    Fecha de modificación
+                    {t("modifiedColumn")}
                   </DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
                 <DropdownMenuSeparator />

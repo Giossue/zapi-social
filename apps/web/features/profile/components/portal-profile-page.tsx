@@ -339,7 +339,7 @@ export function PortalProfilePage() {
                       <SelectContent>
                         <SelectGroup>
                           <SelectItem value="system">
-                            Usar idioma del Portal
+                            {t("usePortalLanguage")}
                           </SelectItem>
                           <SelectItem value="es">{tCommon("es")}</SelectItem>
                           <SelectItem value="en">{tCommon("en")}</SelectItem>

@@ -170,9 +170,7 @@ function EditChannelDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("editTitle")}</DialogTitle>
-          <DialogDescription>
-            Este cambio solo actualiza el nombre visible en Zapi.
-          </DialogDescription>
+          <DialogDescription>{t("renameHint")}</DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" noValidate onSubmit={submit}>
           <FieldGroup className="gap-4">
@@ -362,7 +360,7 @@ export function LiveChannelsPage() {
         return
       }
       console.error("Channels request failed", error)
-      toast.error("No pudimos cargar tus canales. Inténtalo de nuevo.")
+      toast.error(t("loadFailed"))
       setHasError(true)
     } finally {
       if (requestId !== requestSequence.current) return
@@ -377,6 +375,7 @@ export function LiveChannelsPage() {
     providerFilter,
     router,
     statusFilter,
+    t,
   ])
 
   useEffect(() => {

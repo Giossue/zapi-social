@@ -222,7 +222,7 @@ function TemplateSheet({
               </Field>
               <Field>
                 <FieldLabel htmlFor="template-action">
-                  Texto del botón
+                  {t("buttonText")}
                 </FieldLabel>
                 <Input
                   id="template-action"

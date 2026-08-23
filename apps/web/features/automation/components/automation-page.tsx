@@ -655,7 +655,7 @@ export function AutomationPage() {
           <EmptyState
             description={t("forbiddenDescription")}
             icon={LockKeyhole}
-            title="Automatización no disponible"
+            title={t("unavailable")}
           />
         </CardContent>
       </Card>
@@ -679,7 +679,7 @@ export function AutomationPage() {
             }
             description={t("loadFailedDescription")}
             icon={CircleAlert}
-            title="Automatización no disponible"
+            title={t("unavailable")}
           />
         </CardContent>
       </Card>
@@ -794,7 +794,7 @@ export function AutomationPage() {
                   }
                 >
                   <DataTableFilter
-                    ariaLabel="Filtrar por estado"
+                    ariaLabel={t("filterStatus")}
                     label="Estado"
                     onValueChange={(value) => {
                       setKeysStatus(value as "all" | "active" | "revoked")
@@ -992,7 +992,7 @@ export function AutomationPage() {
                   }
                 >
                   <DataTableFilter
-                    ariaLabel="Filtrar por estado"
+                    ariaLabel={t("filterStatus")}
                     label="Estado"
                     onValueChange={(value) => {
                       setWebhooksStatus(value as "all" | "enabled" | "disabled")
@@ -1012,7 +1012,7 @@ export function AutomationPage() {
                       <TableHead>{t("webhook")}</TableHead>
                       <TableHead>{t("events")}</TableHead>
                       <TableHead className="hidden lg:table-cell">
-                        Último envío
+                        {t("lastRunColumn")}
                       </TableHead>
                       <TableHead>{t("enabled")}</TableHead>
                       {data.canManage ? (

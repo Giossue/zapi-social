@@ -1,6 +1,7 @@
 "use client"
 
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
+import { useTranslations } from "next-intl"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +31,7 @@ type DashboardNavUserProps = {
 }
 
 export function DashboardNavUser({ profile }: DashboardNavUserProps) {
+  const t = useTranslations("navigation.user")
   const { isMobile, setOpenMobile } = useSidebar()
   const logout = useSessionLogout()
 
@@ -99,7 +101,7 @@ export function DashboardNavUser({ profile }: DashboardNavUserProps) {
               onSelect={() => void logout()}
             >
               <LogOut />
-              Cerrar sesión
+              {t("signOut")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

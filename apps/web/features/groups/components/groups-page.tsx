@@ -467,7 +467,7 @@ export function GroupsPage() {
           <EmptyState
             description={t("forbiddenDescription")}
             icon={LockKeyhole}
-            title="Grupos no disponibles"
+            title={t("unavailable")}
           />
         </CardContent>
       </Card>
@@ -491,7 +491,7 @@ export function GroupsPage() {
             }
             description={t("loadFailedDescription")}
             icon={CircleAlert}
-            title="Grupos no disponibles"
+            title={t("unavailable")}
           />
         </CardContent>
       </Card>

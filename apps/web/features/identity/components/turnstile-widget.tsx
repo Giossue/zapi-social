@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef } from "react"
+import { useTranslations } from "next-intl"
 import Script from "next/script"
 
 import { Field, FieldLabel } from "@workspace/ui/components/field"
@@ -49,6 +50,7 @@ export function TurnstileWidget({
   onError: () => void
   onTokenChange: (token: string) => void
 }) {
+  const t = useTranslations("auth.turnstile")
   const containerRef = useRef<HTMLDivElement | null>(null)
   const widgetRef = useRef<{ id: string | null }>({ id: null })
   const previousResetKeyRef = useRef(resetKey)
@@ -96,7 +98,7 @@ export function TurnstileWidget({
   return (
     <Field className="gap-1.5">
       <FieldLabel>
-        Verificación de seguridad <RequiredMark />
+        {t("securityCheck")} <RequiredMark />
       </FieldLabel>
       <Script
         id="cloudflare-turnstile"

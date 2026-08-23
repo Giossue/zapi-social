@@ -9,5 +9,5 @@ type OnlineMediaSearchErrorRouteProps = {
 export default function OnlineMediaSearchErrorRoute({
   reset,
 }: OnlineMediaSearchErrorRouteProps) {
-  return <FilesErrorState onRetry={reset} section="búsqueda" />
+  return <FilesErrorState onRetry={reset} section="search" />
 }

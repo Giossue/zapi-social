@@ -365,7 +365,7 @@ function RssSchedules({
                   size="sm"
                 >
                   <Plus />
-                  Crear programación
+                  {t("create")}
                 </Button>
               ) : undefined
             }
@@ -403,7 +403,7 @@ function RssSchedules({
                         Destinos
                       </TableHead>
                       <TableHead className="hidden md:table-cell">
-                        Próxima ejecución
+                        {t("nextRunColumn")}
                       </TableHead>
                       <TableHead className="hidden lg:table-cell">
                         Actividad

@@ -301,7 +301,7 @@ function NewBatchSheet({
                   </FieldGroup>
                 ) : (
                   <FieldDescription>
-                    Conecta una cuenta antes de crear un lote.
+                    {t("connectAccountFirst")}
                   </FieldDescription>
                 )}
               </FieldSet>
@@ -581,7 +581,7 @@ export function BulkPostsPage() {
             }
             description={t("loadFailedDescription")}
             icon={CircleAlert}
-            title="Publicaciones masivas no disponibles"
+            title={t("unavailable")}
           />
         </CardContent>
       </Card>

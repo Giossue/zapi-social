@@ -215,7 +215,7 @@ export function AdminPaymentReportPage() {
 
       <Card variant="subtle">
         <CardHeader>
-          <CardTitle className="leading-none">Evolución</CardTitle>
+          <CardTitle className="leading-none">{t("trend")}</CardTitle>
           <CardDescription>
             Importe neto liquidado · {t(`range.${report.range}`).toLowerCase()}
           </CardDescription>
@@ -279,10 +279,8 @@ export function AdminPaymentReportPage() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card variant="subtle">
           <CardHeader>
-            <CardTitle className="text-base">Por producto</CardTitle>
-            <CardDescription>
-              Productos con mayor facturación del periodo.
-            </CardDescription>
+            <CardTitle className="text-base">{t("byProduct")}</CardTitle>
+            <CardDescription>{t("byProductDescription")}</CardDescription>
           </CardHeader>
           <CardContent className="px-0">
             <Table>
@@ -329,10 +327,8 @@ export function AdminPaymentReportPage() {
 
         <Card variant="subtle">
           <CardHeader>
-            <CardTitle className="text-base">Por estado</CardTitle>
-            <CardDescription>
-              Incluye pendientes y fallidos, que no suman al bruto.
-            </CardDescription>
+            <CardTitle className="text-base">{t("byStatus")}</CardTitle>
+            <CardDescription>{t("byStatusDescription")}</CardDescription>
           </CardHeader>
           <CardContent className="px-0">
             <Table>
@@ -375,12 +371,8 @@ export function AdminPaymentReportPage() {
 
       <Card variant="subtle">
         <CardHeader>
-          <CardTitle className="text-base">
-            Espacios con mayor facturación
-          </CardTitle>
-          <CardDescription>
-            Los cinco espacios de trabajo que más aportaron en el periodo.
-          </CardDescription>
+          <CardTitle className="text-base">{t("topWorkspaces")}</CardTitle>
+          <CardDescription>{t("topWorkspacesDescription")}</CardDescription>
         </CardHeader>
         <CardContent className="px-0">
           <Table>

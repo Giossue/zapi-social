@@ -179,9 +179,7 @@ export function OnlineMediaSearchPage() {
           <p className="font-medium">
             {total} {total === 1 ? "resultado" : "resultados"}
           </p>
-          <p className="text-sm text-muted-foreground">
-            Importar guarda una copia en la biblioteca del espacio de trabajo.
-          </p>
+          <p className="text-sm text-muted-foreground">{t("importHint")}</p>
         </div>
       ) : null}
 

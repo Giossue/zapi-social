@@ -476,7 +476,7 @@ export function StaticPagesSettingsPage() {
                     onChange={(event) =>
                       setDraft({ ...draft, slug: event.target.value })
                     }
-                    placeholder="terminos-de-servicio"
+                    placeholder={t("slugPlaceholder")}
                     value={draft.slug}
                   />
                   <FieldDescription>{t("slugHint")}</FieldDescription>

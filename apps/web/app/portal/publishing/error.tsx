@@ -1,6 +1,7 @@
 "use client"
 
 import { CircleAlert } from "lucide-react"
+import { useTranslations } from "next-intl"
 import {
   Alert,
   AlertAction,
@@ -16,16 +17,16 @@ type PublishingErrorPageProps = {
 export default function PublishingErrorPage({
   reset,
 }: PublishingErrorPageProps) {
+  const t = useTranslations("routeStates")
+
   return (
     <Alert variant="destructive">
       <CircleAlert aria-hidden="true" />
-      <AlertTitle>No se pudo cargar Publishing</AlertTitle>
-      <AlertDescription>
-        Ninguna publicación fue modificada. Intenta cargar la sección de nuevo.
-      </AlertDescription>
+      <AlertTitle>{t("publishing.title")}</AlertTitle>
+      <AlertDescription>{t("publishing.description")}</AlertDescription>
       <AlertAction>
         <Button onClick={reset} size="sm" variant="brand-secondary">
-          Reintentar
+          {t("retry")}
         </Button>
       </AlertAction>
     </Alert>

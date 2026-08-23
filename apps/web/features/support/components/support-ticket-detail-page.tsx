@@ -213,7 +213,7 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
     <div className="mx-auto flex max-w-4xl flex-col gap-4">
       <Button asChild className="w-fit" size="sm" variant="brand-secondary">
         <Link href="/portal/support">
-          <ArrowLeft data-icon="inline-start" /> Todos los casos
+          <ArrowLeft data-icon="inline-start" /> {t("allCases")}
         </Link>
       </Button>
       <Card variant="subtle">
@@ -303,7 +303,7 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
       {ticket.status === "open" ? (
         <Card variant="subtle">
           <CardHeader>
-            <CardTitle className="text-base">Añadir información</CardTitle>
+            <CardTitle className="text-base">{t("addInformation")}</CardTitle>
             <CardDescription>
               Comparte un detalle adicional con el equipo que está revisando tu
               caso.

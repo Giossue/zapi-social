@@ -200,7 +200,7 @@ export function PolarIntegrationPreview() {
   async function testConfiguration() {
     if (!draft || !integration) return
     if (!canComplete(draft, integration)) {
-      toast.error("Completa las credenciales y productos obligatorios.")
+      toast.error(t("polar.incomplete"))
       return
     }
 
@@ -233,7 +233,7 @@ export function PolarIntegrationPreview() {
     } catch (error) {
       setTestState("failed")
       if (error instanceof ApiError && error.status === 400) {
-        toast.error("Completa las credenciales y productos obligatorios.")
+        toast.error(t("polar.incomplete"))
       } else {
         toast.error(t("polar.testFailed"))
       }
@@ -245,7 +245,7 @@ export function PolarIntegrationPreview() {
     if (!draft || !integration) return
 
     if (!canComplete(draft, integration)) {
-      toast.error("Completa las credenciales y productos obligatorios.")
+      toast.error(t("polar.incomplete"))
       return
     }
     if (draft.enabled && testState !== "passed") {

@@ -1,9 +1,11 @@
 import type { Metadata } from "next"
+import { getTranslations } from "next-intl/server"
 
 import { InvitationPage } from "@/features/teams/components/invitation-page"
 
-export const metadata: Metadata = {
-  title: "Invitación - Zapi Social",
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metadata")
+  return { title: t("invite") }
 }
 
 export default function InviteRoute() {

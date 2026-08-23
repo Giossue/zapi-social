@@ -767,7 +767,7 @@ export function CaptionsLibraryPage() {
             <AlertDialogMedia>
               <Trash2 aria-hidden="true" />
             </AlertDialogMedia>
-            <AlertDialogTitle>¿Eliminar este caption?</AlertDialogTitle>
+            <AlertDialogTitle>{t("deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
               {captionToDelete
                 ? `“${captionToDelete.name}” se eliminará de la biblioteca. Esta acción no se puede deshacer.`

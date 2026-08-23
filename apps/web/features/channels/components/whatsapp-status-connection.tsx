@@ -189,7 +189,7 @@ export function WhatsAppStatusConnection({
       <Card variant="inset">
         <CardContent className="flex items-center gap-3 py-5 text-sm text-muted-foreground">
           <Spinner aria-label={t("generating")} />
-          Generando un QR de un solo uso…
+          {t("generatingQr")}
         </CardContent>
       </Card>
     )
@@ -221,10 +221,10 @@ export function WhatsAppStatusConnection({
           <div>
             <p className="flex items-center justify-center gap-2 font-medium">
               <QrCode aria-hidden="true" className="size-4 text-primary" />
-              Escanea el QR desde WhatsApp
+              {t("scanQr")}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              En WhatsApp abre Dispositivos vinculados y confirma la conexión.
+              {t("scanQrHint")}
             </p>
             <p
               aria-live="polite"

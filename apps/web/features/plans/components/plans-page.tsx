@@ -172,6 +172,8 @@ function PermissionGroups({
   selectedIds: string[]
   setSelectedIds: React.Dispatch<React.SetStateAction<string[]>>
 }) {
+  const t = useTranslations("plans")
+
   function togglePermission(permissionId: string, checked: boolean) {
     setSelectedIds((current) =>
       checked
@@ -191,11 +193,9 @@ function PermissionGroups({
   return (
     <FieldSet aria-required="true" disabled={disabled}>
       <FieldLegend className="flex items-center gap-1" variant="label">
-        Permisos incluidos <RequiredMark />
+        {t("includedPermissions")} <RequiredMark />
       </FieldLegend>
-      <FieldDescription>
-        Selecciona al menos una capacidad para los miembros con este plan.
-      </FieldDescription>
+      <FieldDescription>{t("includedPermissionsHint")}</FieldDescription>
       <div className="grid gap-3">
         {planPermissionGroups.map((group) => {
           const permissionIds = group.permissions.map(
@@ -464,7 +464,7 @@ function PlanEditorSheet({
               </Field>
               <Field data-disabled={isSaving || undefined}>
                 <FieldLabel htmlFor="plan-billing">
-                  Tipo de cobro <RequiredMark />
+                  {t("billingType")} <RequiredMark />
                 </FieldLabel>
                 <Select
                   defaultValue={plan.billingType}
@@ -488,7 +488,7 @@ function PlanEditorSheet({
               </Field>
               <Field data-disabled={isSaving || undefined}>
                 <FieldLabel htmlFor="plan-trial-days">
-                  Días de prueba <RequiredMark />
+                  {t("trialDays")} <RequiredMark />
                 </FieldLabel>
                 <Input
                   aria-required="true"
@@ -503,7 +503,7 @@ function PlanEditorSheet({
               </Field>
               <Field data-disabled={isSaving || undefined}>
                 <FieldLabel htmlFor="plan-position">
-                  Posición <RequiredMark />
+                  {t("position")} <RequiredMark />
                 </FieldLabel>
                 <Input
                   aria-required="true"
@@ -537,9 +537,7 @@ function PlanEditorSheet({
               >
                 <div className="flex flex-1 flex-col gap-0.5">
                   <FieldLabel htmlFor="plan-free">{t("freePlan")}</FieldLabel>
-                  <FieldDescription>
-                    No cobra a los suscriptores.
-                  </FieldDescription>
+                  <FieldDescription>{t("freePlanHint")}</FieldDescription>
                 </div>
                 <Switch
                   checked={isFree}
@@ -556,9 +554,7 @@ function PlanEditorSheet({
                   <FieldLabel htmlFor="plan-featured">
                     {t("featured")}
                   </FieldLabel>
-                  <FieldDescription>
-                    Se resalta en el catálogo.
-                  </FieldDescription>
+                  <FieldDescription>{t("featuredHint")}</FieldDescription>
                 </div>
                 <Switch
                   checked={featured}

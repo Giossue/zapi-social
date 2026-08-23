@@ -45,6 +45,7 @@ function MediaPlaceholder({
 }: {
   ratio: "facebook" | "instagram" | "whatsapp"
 }) {
+  const t = useTranslations("publishing.preview")
   const ratioClass =
     ratio === "instagram"
       ? "aspect-square"
@@ -58,7 +59,7 @@ function MediaPlaceholder({
     >
       <div className="flex flex-col items-center gap-2 text-center">
         <Image className="size-6" />
-        <span className="text-xs">Vista de media</span>
+        <span className="text-xs">{t("mediaPreview")}</span>
       </div>
     </div>
   )

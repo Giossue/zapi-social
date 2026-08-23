@@ -66,9 +66,7 @@ export function PublishingMediaPicker({
     <Card size="sm" variant="inset">
       <CardHeader>
         <CardTitle>{t("title")}</CardTitle>
-        <CardDescription>
-          Elige una imagen o video de Files para adjuntarlo a esta publicación.
-        </CardDescription>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -172,9 +170,7 @@ export function PublishingMediaPicker({
             })}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">
-            No encontramos media con esos filtros.
-          </p>
+          <p className="text-sm text-muted-foreground">{t("noMatches")}</p>
         )}
         {selectedAssetId ? (
           <Badge variant="success">{t("selectedBadge")}</Badge>

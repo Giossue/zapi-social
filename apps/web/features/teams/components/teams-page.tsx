@@ -106,13 +106,14 @@ type Confirmation =
   | { kind: "transfer"; member: PortalTeamMember }
   | { kind: "leave" }
 
-const activityCategoryLabels: Record<PortalTeamActivityCategory, string> = {
-  all: "Toda la actividad",
-  invitations: "Invitaciones",
-  members: "Miembros",
-  access: "Acceso",
-  ownership: "Propiedad",
-}
+/** Orden del filtro de actividad; el rótulo sale de `activityCategory`. */
+const activityCategories: readonly PortalTeamActivityCategory[] = [
+  "all",
+  "invitations",
+  "members",
+  "access",
+  "ownership",
+]
 
 function MemberIdentity({
   current,
@@ -254,11 +255,12 @@ function InvitationActions({
   onView: (invitation: PortalTeamInvitation) => void
   pending: boolean
 }) {
+  const t = useTranslations("teams")
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          aria-label={`Acciones para la invitación de ${invitation.email}`}
+          aria-label={t("invitationActions", { email: invitation.email })}
           disabled={pending}
           size="icon-sm"
           variant="brand-secondary"
@@ -270,14 +272,14 @@ function InvitationActions({
         <DropdownMenuGroup>
           <DropdownMenuItem onSelect={() => onView(invitation)}>
             <Eye />
-            Ver detalles
+            {t("viewDetails")}
           </DropdownMenuItem>
           <DropdownMenuItem
             disabled={pending}
             onSelect={() => onResend(invitation)}
           >
             <Send />
-            Reenviar invitación
+            {t("resendInvitation")}
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
@@ -287,7 +289,7 @@ function InvitationActions({
             variant="destructive"
           >
             <Trash2 />
-            Revocar invitación
+            {t("revokeInvitation")}
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>
@@ -657,7 +659,7 @@ export function TeamsPage() {
         }}
         variant="brand-secondary"
       >
-        Limpiar búsqueda
+        {t("clearSearch")}
       </Button>
     ) : undefined,
     description: t("membersEmptyFilteredDescription"),
@@ -673,7 +675,7 @@ export function TeamsPage() {
         }}
         variant="brand-secondary"
       >
-        Limpiar búsqueda
+        {t("clearSearch")}
       </Button>
     ) : undefined,
     description: invitationQuery
@@ -776,9 +778,10 @@ export function TeamsPage() {
                       setActivityCategory(value as PortalTeamActivityCategory)
                       setActivityPage(1)
                     }}
-                    options={Object.entries(activityCategoryLabels).map(
-                      ([value, label]) => ({ label, value })
-                    )}
+                    options={activityCategories.map((value) => ({
+                      label: t(`activityCategory.${value}`),
+                      value,
+                    }))}
                     value={activityCategory}
                   />
                 </DataTableToolbar>
@@ -1379,9 +1382,7 @@ function MemberAccessView({
         <Card variant="inset">
           <CardHeader>
             <CardTitle className="text-base">Tu rol</CardTitle>
-            <CardDescription>
-              Define las acciones disponibles en este workspace.
-            </CardDescription>
+            <CardDescription>{t("yourRoleDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Badge variant={roleVariants[currentMember?.role ?? "member"]}>
@@ -1393,7 +1394,7 @@ function MemberAccessView({
           <CardHeader>
             <CardTitle className="text-base">Cuentas disponibles</CardTitle>
             <CardDescription>
-              Solo puedes trabajar con estas cuentas activas.
+              {t("availableAccountsDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2">
@@ -1409,7 +1410,7 @@ function MemberAccessView({
               ))
             ) : (
               <p className="text-sm text-muted-foreground">
-                Aún no tienes cuentas asignadas.
+                {t("noAssignedAccounts")}
               </p>
             )}
           </CardContent>
@@ -1417,7 +1418,7 @@ function MemberAccessView({
       </div>
       <div>
         <div className="px-4 pb-3">
-          <h3 className="font-medium">Miembros del workspace</h3>
+          <h3 className="font-medium">{t("workspaceMembers")}</h3>
           <p className="text-sm text-muted-foreground">
             Directorio de solo lectura. Los correos y accesos ajenos son
             privados.
@@ -1461,7 +1462,7 @@ function MemberAccessView({
                           onClick={onClearSearch}
                           variant="brand-secondary"
                         >
-                          Limpiar búsqueda
+                          {t("clearSearch")}
                         </Button>
                       ) : undefined
                     }

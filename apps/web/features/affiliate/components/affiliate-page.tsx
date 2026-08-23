@@ -361,10 +361,7 @@ export function AffiliatePage() {
   if (!data.profile) {
     return (
       <div className="flex flex-col gap-4">
-        <CollectionHeader
-          description="Comparte tu código, consulta comisiones y solicita retiros del saldo disponible."
-          title="Afiliados"
-        />
+        <CollectionHeader description={t("description")} title={t("title")} />
         <Card variant="subtle">
           <CardContent>
             <EmptyState
@@ -434,16 +431,13 @@ export function AffiliatePage() {
   return (
     <>
       <div className="flex flex-col gap-4">
-        <CollectionHeader
-          description="Comparte tu código, consulta comisiones y solicita retiros del saldo disponible."
-          title="Afiliados"
-        />
+        <CollectionHeader description={t("description")} title={t("title")} />
 
         <Card variant="subtle">
           <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 flex-col gap-1">
               <span className="text-sm text-muted-foreground">
-                Tu código de afiliado
+                {t("yourCode")}
               </span>
               <div className="flex items-center gap-2">
                 <code className="font-mono text-lg font-semibold">
@@ -468,7 +462,7 @@ export function AffiliatePage() {
                 onClick={() => void copyCode(profile.code)}
                 variant="brand-secondary"
               >
-                <Copy data-icon="inline-start" /> Copiar código
+                <Copy data-icon="inline-start" /> {t("copyCode")}
               </Button>
             </div>
           </CardContent>

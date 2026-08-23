@@ -182,7 +182,7 @@ export function LanguagesCollection() {
         kind: "text",
         label: t("languages.nativeName"),
         name: "nativeName",
-        placeholder: "Español",
+        placeholder: t("languages.nativeNamePlaceholder"),
         required: true,
       },
       {

@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { Inter, Geist_Mono } from "next/font/google"
 import { NextIntlClientProvider } from "next-intl"
-import { getLocale } from "next-intl/server"
+import { getLocale, getTranslations } from "next-intl/server"
 
 import "@workspace/ui/globals.css"
 import { Toaster } from "@workspace/ui/components/toast"
@@ -14,9 +14,9 @@ import { SessionSynchronizer } from "@/features/identity/components/session-sync
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 const fontMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
 
-export const metadata: Metadata = {
-  title: "Zapi Social",
-  description: "Planifica, publica y mide tu contenido social.",
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metadata")
+  return { title: "Zapi Social", description: t("description") }
 }
 
 export default async function RootLayout({

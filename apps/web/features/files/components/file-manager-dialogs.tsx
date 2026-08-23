@@ -154,9 +154,7 @@ export function FileFolderDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("newFolderTitle")}</DialogTitle>
-          <DialogDescription>
-            Organiza los archivos de este espacio de trabajo.
-          </DialogDescription>
+          <DialogDescription>{t("foldersHint")}</DialogDescription>
         </DialogHeader>
         <form
           className="flex flex-col gap-4"
@@ -345,9 +343,7 @@ export function FileRenameDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("renameTitle")}</DialogTitle>
-          <DialogDescription>
-            Elige un nombre claro para encontrarlo después.
-          </DialogDescription>
+          <DialogDescription>{t("nameHint")}</DialogDescription>
         </DialogHeader>
         <form
           className="flex flex-col gap-4"

@@ -7,5 +7,5 @@ type FilesErrorRouteProps = {
 }
 
 export default function FilesErrorRoute({ reset }: FilesErrorRouteProps) {
-  return <FilesErrorState onRetry={reset} section="biblioteca" />
+  return <FilesErrorState onRetry={reset} section="library" />
 }

@@ -251,9 +251,7 @@ function NewSupportTicketSheet({
                   placeholder={t("subjectPlaceholder")}
                   value={values.subject}
                 />
-                <FieldDescription>
-                  Usa una frase breve para reconocer el caso después.
-                </FieldDescription>
+                <FieldDescription>{t("subjectHint")}</FieldDescription>
               </Field>
               <Field>
                 <FieldLabel htmlFor="support-description">
@@ -458,7 +456,7 @@ export function SupportTicketsPage() {
             }
             description={t("loadFailedDescription")}
             icon={LifeBuoy}
-            title="Soporte no disponible"
+            title={t("unavailable")}
           />
         </CardContent>
       </Card>
@@ -533,13 +531,15 @@ export function SupportTicketsPage() {
                   <TableRow>
                     <TableHead>{t("ticket")}</TableHead>
                     <TableHead className="hidden md:table-cell">
-                      Categoría
+                      {t("categoryColumn")}
                     </TableHead>
                     <TableHead>{t("statusColumn")}</TableHead>
                     <TableHead className="hidden lg:table-cell">
                       Actualizado
                     </TableHead>
-                    <TableHead className="text-right">Acción</TableHead>
+                    <TableHead className="text-right">
+                      {t("actionColumn")}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

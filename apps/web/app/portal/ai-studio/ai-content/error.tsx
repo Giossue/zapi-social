@@ -1,6 +1,7 @@
 "use client"
 
 import { CircleAlert } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import {
   Alert,
@@ -16,17 +17,16 @@ type AIContentErrorRouteProps = {
 export default function AIContentErrorRoute({
   reset,
 }: AIContentErrorRouteProps) {
+  const t = useTranslations("routeStates")
+
   return (
     <Alert variant="destructive">
       <CircleAlert aria-hidden="true" />
-      <AlertTitle>No se pudo cargar AI Content</AlertTitle>
-      <AlertDescription>
-        Ningún prompt fue enviado ni se consumieron créditos. Vuelve a
-        intentarlo para recuperar el mock.
-      </AlertDescription>
+      <AlertTitle>{t("aiContent.title")}</AlertTitle>
+      <AlertDescription>{t("aiContent.description")}</AlertDescription>
       <div className="mt-3 flex">
         <Button onClick={reset} variant="brand-secondary">
-          Reintentar
+          {t("retry")}
         </Button>
       </div>
     </Alert>

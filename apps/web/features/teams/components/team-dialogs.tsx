@@ -309,9 +309,7 @@ export function MemberAccessDialog({
                     })}
                   </FieldGroup>
                 ) : (
-                  <FieldDescription>
-                    No hay cuentas activas para asignar.
-                  </FieldDescription>
+                  <FieldDescription>{t("noActiveAccounts")}</FieldDescription>
                 )}
               </FieldSet>
             </FieldGroup>

@@ -207,16 +207,16 @@ export function InvitationPage() {
         <CardHeader>
           <CheckCircle2 aria-hidden="true" className="size-10 text-primary" />
           <CardTitle aria-level={1} role="heading">
-            Ya formas parte del espacio
+            {t("alreadyMember")}
           </CardTitle>
           <CardDescription>
-            Tu acceso a {preview?.workspaceName} quedó activado correctamente.
+            {t("accessActivated", { workspace: preview?.workspaceName ?? "" })}
           </CardDescription>
         </CardHeader>
         <CardFooter>
           <Button asChild className="w-full">
             <Link href="/portal/teams">
-              <ArrowRight data-icon="inline-start" /> Abrir espacio de trabajo
+              <ArrowRight data-icon="inline-start" /> {t("openWorkspace")}
             </Link>
           </Button>
         </CardFooter>
