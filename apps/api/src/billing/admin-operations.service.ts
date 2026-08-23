@@ -164,7 +164,7 @@ export class AdminOperationsService {
         record.workspaceName
           ? { primary: record.workspaceName }
           : { primary: '', primaryKey: 'noWorkspace' },
-        { primary: this.date(record.createdAt) },
+        { primary: '', primaryDate: record.createdAt.toISOString() },
       ],
       statusKey: record.status === 'active' ? 'active' : 'deactivated',
       tone: record.status === 'active' ? 'success' : 'neutral',
@@ -233,9 +233,15 @@ export class AdminOperationsService {
         id: record.id,
         cells: [
           { primary: record.name, secondary: record.slug },
-          { primary: this.integer(record.units) },
-          { primary: this.money(record.priceMinor, record.currency) },
-          { primary: this.integer(record.purchases) },
+          { primary: '', primaryNumber: record.units },
+          {
+            primary: '',
+            primaryMoney: {
+              amountMinor: record.priceMinor,
+              currency: record.currency,
+            },
+          },
+          { primary: '', primaryNumber: record.purchases },
           { primary: String(record.position) },
         ],
         statusKey: record.status === 'active' ? 'active' : 'hidden',
@@ -296,10 +302,12 @@ export class AdminOperationsService {
             primary: this.metadataString(record.metadata, 'packageName') ?? '—',
           },
           {
-            primary: `${record.units > 0 ? '+' : ''}${this.integer(record.units)}`,
+            primary: '',
+            primaryKey: record.units > 0 ? 'creditsAdded' : 'creditsRemoved',
+            primaryNumber: Math.abs(record.units),
           },
           { primary: '—' },
-          { primary: this.date(record.createdAt) },
+          { primary: '', primaryDate: record.createdAt.toISOString() },
         ],
         statusKey: record.type === 'adjustment' ? 'manual' : 'applied',
         tone: record.type === 'adjustment' ? 'warning' : 'success',
@@ -315,19 +323,15 @@ export class AdminOperationsService {
             'credits.ledger.purchases',
             ledger.filter((item) => item.action === 'credits.purchase').length,
           ),
-          this.metric(
+          this.metricNumber(
             'credits.ledger.granted',
-            this.integer(
-              ledger
-                .filter((item) => item.units > 0)
-                .reduce((sum, item) => sum + item.units, 0),
-            ),
+            ledger
+              .filter((item) => item.units > 0)
+              .reduce((sum, item) => sum + item.units, 0),
           ),
-          this.metric(
+          this.metricNumber(
             'credits.ledger.available',
-            this.integer(
-              credits.reduce((sum, item) => sum + item.balanceUnits, 0),
-            ),
+            credits.reduce((sum, item) => sum + item.balanceUnits, 0),
           ),
         ],
         rows,
@@ -349,9 +353,9 @@ export class AdminOperationsService {
             this.metadataString(record.metadata, 'feature') ??
             this.actionName(record.action),
         },
-        { primary: this.integer(Math.abs(record.units)) },
+        { primary: '', primaryNumber: Math.abs(record.units) },
         { primary: '1' },
-        { primary: this.date(record.createdAt) },
+        { primary: '', primaryDate: record.createdAt.toISOString() },
       ],
       statusKey: record.type === 'refund' ? 'reverted' : 'charged',
       tone: record.type === 'refund' ? 'neutral' : 'success',
@@ -360,13 +364,11 @@ export class AdminOperationsService {
     return this.paginate(
       [
         this.metric('credits.usage.total', usage.length),
-        this.metric(
+        this.metricNumber(
           'credits.usage.consumed',
-          this.integer(
-            usage
-              .filter((item) => item.units < 0)
-              .reduce((sum, item) => sum + Math.abs(item.units), 0),
-          ),
+          usage
+            .filter((item) => item.units < 0)
+            .reduce((sum, item) => sum + Math.abs(item.units), 0),
         ),
         this.metric(
           'credits.usage.users',
@@ -424,9 +426,15 @@ export class AdminOperationsService {
         cells: [
           { primary: record.name, secondary: record.email },
           { primary: record.code, mono: true },
-          { primary: this.integer(record.clicks) },
-          { primary: this.integer(record.conversions) },
-          { primary: this.money(record.balance, record.currency) },
+          { primary: '', primaryNumber: record.clicks },
+          { primary: '', primaryNumber: record.conversions },
+          {
+            primary: '',
+            primaryMoney: {
+              amountMinor: record.balance,
+              currency: record.currency,
+            },
+          },
         ],
         statusKey: record.status === 'active' ? 'active' : 'paused',
         tone: record.status === 'active' ? 'success' : 'neutral',
@@ -447,22 +455,18 @@ export class AdminOperationsService {
             'affiliate.overview.total',
             profiles.filter((item) => item.status === 'active').length,
           ),
-          this.metric(
+          this.metricNumber(
             'affiliate.overview.clicks',
-            this.integer(profiles.reduce((sum, item) => sum + item.clicks, 0)),
+            profiles.reduce((sum, item) => sum + item.clicks, 0),
           ),
-          this.metric(
+          this.metricNumber(
             'affiliate.overview.conversions',
-            this.integer(
-              profiles.reduce((sum, item) => sum + item.conversions, 0),
-            ),
+            profiles.reduce((sum, item) => sum + item.conversions, 0),
           ),
-          this.metric(
+          this.metricMoney(
             'affiliate.overview.approved',
-            this.money(
-              profiles.reduce((sum, item) => sum + item.balance, 0),
-              'USD',
-            ),
+            profiles.reduce((sum, item) => sum + item.balance, 0),
+            'USD',
           ),
         ],
         rows,
@@ -510,8 +514,14 @@ export class AdminOperationsService {
               }
             : { primary: '', primaryKey: 'noReferredUser' },
           { primary: record.reference ?? '—', mono: true },
-          { primary: this.money(record.amount, record.currency) },
-          { primary: this.date(record.createdAt) },
+          {
+            primary: '',
+            primaryMoney: {
+              amountMinor: record.amount,
+              currency: record.currency,
+            },
+          },
+          { primary: '', primaryDate: record.createdAt.toISOString() },
         ],
         statusKey: this.commissionStatus(record.status),
         tone:
@@ -535,14 +545,12 @@ export class AdminOperationsService {
             'affiliate.commissions.pending',
             records.filter((item) => item.status === 'pending').length,
           ),
-          this.metric(
+          this.metricMoney(
             'affiliate.commissions.available',
-            this.money(
-              records
-                .filter((item) => item.status === 'available')
-                .reduce((sum, item) => sum + item.amount, 0),
-              'USD',
-            ),
+            records
+              .filter((item) => item.status === 'available')
+              .reduce((sum, item) => sum + item.amount, 0),
+            'USD',
           ),
           this.metric(
             'affiliate.commissions.rejected',
@@ -581,8 +589,14 @@ export class AdminOperationsService {
           primary: '',
           primaryKey: record.reference ? 'referenceSet' : 'referencePending',
         },
-        { primary: this.money(record.amount, record.currency) },
-        { primary: this.date(record.createdAt) },
+        {
+          primary: '',
+          primaryMoney: {
+            amountMinor: record.amount,
+            currency: record.currency,
+          },
+        },
+        { primary: '', primaryDate: record.createdAt.toISOString() },
       ],
       statusKey: this.withdrawalStatus(record.status),
       tone:
@@ -611,23 +625,19 @@ export class AdminOperationsService {
           'affiliate.withdrawals.pending',
           records.filter((item) => item.status === 'requested').length,
         ),
-        this.metric(
+        this.metricMoney(
           'affiliate.withdrawals.approved',
-          this.money(
-            records
-              .filter((item) => item.status === 'approved')
-              .reduce((sum, item) => sum + item.amount, 0),
-            'USD',
-          ),
+          records
+            .filter((item) => item.status === 'approved')
+            .reduce((sum, item) => sum + item.amount, 0),
+          'USD',
         ),
-        this.metric(
+        this.metricMoney(
           'affiliate.withdrawals.paid',
-          this.money(
-            records
-              .filter((item) => item.status === 'paid')
-              .reduce((sum, item) => sum + item.amount, 0),
-            'USD',
-          ),
+          records
+            .filter((item) => item.status === 'paid')
+            .reduce((sum, item) => sum + item.amount, 0),
+          'USD',
         ),
       ],
       rows,
@@ -652,13 +662,28 @@ export class AdminOperationsService {
       const cells: Cell[] = [
         { primary: record.name, secondary: record.code, mono: true },
         {
-          primary:
-            record.type === 'percentage'
-              ? `${record.value / 100}%`
-              : this.money(record.value, record.currency ?? 'USD'),
+          primary: '',
+          ...(record.type === 'percentage'
+            ? {
+                primaryKey: 'percentDiscount',
+                primaryNumber: record.value / 100,
+              }
+            : {
+                primaryMoney: {
+                  amountMinor: record.value,
+                  currency: record.currency ?? 'USD',
+                },
+              }),
         },
         {
-          primary: `${this.integer(record.redemptionCount)} / ${record.maxRedemptions ? this.integer(record.maxRedemptions) : '∞'}`,
+          primary: '',
+          primaryKey: record.maxRedemptions
+            ? 'redemptionsWithLimit'
+            : 'redemptionsUnlimited',
+          primaryNumber: record.redemptionCount,
+          ...(record.maxRedemptions
+            ? { primaryArgs: { limit: String(record.maxRedemptions) } }
+            : {}),
         },
         record.eligiblePlanIds.length
           ? {
@@ -671,7 +696,7 @@ export class AdminOperationsService {
           ? {
               primary: '',
               primaryKey: 'untilDate',
-              primaryArgs: { date: this.date(record.endsAt) },
+              primaryDate: record.endsAt.toISOString(),
             }
           : { primary: '', primaryKey: 'noExpiry' },
       ];
@@ -740,8 +765,14 @@ export class AdminOperationsService {
         { primary: record.name, secondary: record.email },
         { primary: record.product },
         { primary: this.shortId(record.externalId), mono: true },
-        { primary: this.money(record.amount, record.currency) },
-        { primary: this.date(record.createdAt) },
+        {
+          primary: '',
+          primaryMoney: {
+            amountMinor: record.amount,
+            currency: record.currency,
+          },
+        },
+        { primary: '', primaryDate: record.createdAt.toISOString() },
       ],
       statusKey: this.paymentStatus(record.status),
       tone:
@@ -777,14 +808,12 @@ export class AdminOperationsService {
           'payments.payments.refunded',
           records.filter((item) => item.status.includes('refund')).length,
         ),
-        this.metric(
+        this.metricMoney(
           'payments.payments.volume',
-          this.money(
-            records
-              .filter((item) => item.status === 'paid')
-              .reduce((sum, item) => sum + item.amount, 0),
-            'USD',
-          ),
+          records
+            .filter((item) => item.status === 'paid')
+            .reduce((sum, item) => sum + item.amount, 0),
+          'USD',
         ),
       ],
       rows,
@@ -826,10 +855,17 @@ export class AdminOperationsService {
           primary: `${record.planName} ${record.interval === 'month' ? 'mensual' : 'anual'}`,
         },
         {
-          primary: `${this.money(record.amount, record.currency)} / ${record.interval === 'month' ? 'mes' : 'año'}`,
+          primary: '',
+          primaryKey: record.interval === 'month' ? 'perMonth' : 'perYear',
+          primaryMoney: {
+            amountMinor: record.amount,
+            currency: record.currency,
+          },
         },
-        { primary: record.renewsAt ? this.date(record.renewsAt) : '—' },
-        { primary: this.date(record.updatedAt) },
+        record.renewsAt
+          ? { primary: '', primaryDate: record.renewsAt.toISOString() }
+          : { primary: '—' },
+        { primary: '', primaryDate: record.updatedAt.toISOString() },
       ],
       statusKey: record.cancelAtPeriodEnd
         ? 'cancelsAtPeriodEnd'
@@ -872,7 +908,7 @@ export class AdminOperationsService {
           'subscriptions.subscriptions.pastDue',
           records.filter((item) => item.status === 'past_due').length,
         ),
-        this.metric('subscriptions.subscriptions.mrr', this.money(mrr, 'USD')),
+        this.metricMoney('subscriptions.subscriptions.mrr', mrr, 'USD'),
       ],
       rows,
       query,
@@ -1495,30 +1531,21 @@ export class AdminOperationsService {
     return { key, value: String(value) };
   }
 
+  /** El número lo formatea la interfaz con el idioma activo. */
+  private metricNumber(key: string, value: number): Metric {
+    return { key, value: '', numberValue: value };
+  }
+
+  private metricMoney(key: string, amountMinor: number, currency: string) {
+    return { key, value: '', moneyValue: { amountMinor, currency } };
+  }
+
   private actionItem(
     key: AdminOperationActionKey,
     labelKey: string,
     kind?: 'destructive' | 'success',
   ) {
     return { key, labelKey, kind };
-  }
-
-  private date(value: Date) {
-    return new Intl.DateTimeFormat('es-EC', {
-      dateStyle: 'medium',
-      timeZone: 'UTC',
-    }).format(value);
-  }
-
-  private money(value: number, currency: string) {
-    return new Intl.NumberFormat('es-EC', {
-      style: 'currency',
-      currency,
-    }).format(value / 100);
-  }
-
-  private integer(value: number) {
-    return new Intl.NumberFormat('es-EC').format(value);
   }
 
   private shortId(value: string) {

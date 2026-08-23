@@ -43,12 +43,28 @@ export const adminOperationActionKeySchema = z.enum([
   "revoke",
 ])
 
+/**
+ * Una celda trae el dato de una de estas formas, nunca de dos:
+ * `primary` para texto literal, `primaryKey` para clasificación traducible, o
+ * uno de los valores tipados, que la interfaz formatea con el idioma activo.
+ * Los tipados existen porque una fecha o un importe compuestos en el servidor
+ * llevarían el formato de un idioma fijo.
+ */
 export const adminOperationCellSchema = z.object({
-  /** Dato literal. Queda vacío cuando la celda se resuelve por clave. */
+  /** Dato literal. Queda vacío cuando la celda se resuelve de otra forma. */
   primary: z.string(),
   /** Clasificación o texto fijo: la interfaz lo traduce en vez de `primary`. */
   primaryKey: z.string().optional(),
   primaryArgs: z.record(z.string(), z.string()).optional(),
+  /**
+   * Valor tipado. Si además hay `primaryKey`, la interfaz lo formatea y lo
+   * pasa al mensaje como `{value}`; si no, lo muestra tal cual.
+   */
+  primaryNumber: z.number().optional(),
+  primaryDate: z.string().datetime().optional(),
+  primaryMoney: z
+    .object({ amountMinor: z.number(), currency: z.string() })
+    .optional(),
   secondary: z.string().optional(),
   mono: z.boolean().optional(),
 })
@@ -72,7 +88,12 @@ export const adminOperationRowSchema = z.object({
 export const adminOperationMetricSchema = z.object({
   /** Clave `<módulo>.<pestaña>.<métrica>`; la interfaz pone rótulo y detalle. */
   key: z.string(),
+  /** Valor ya compuesto (porcentajes); vacío si viene tipado. */
   value: z.string(),
+  numberValue: z.number().optional(),
+  moneyValue: z
+    .object({ amountMinor: z.number(), currency: z.string() })
+    .optional(),
 })
 
 export const adminOperationViewSchema = z.object({

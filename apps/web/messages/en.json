@@ -616,6 +616,8 @@
         "label": "Create user"
       }
     },
+    "creditsAdded": "+{value}",
+    "creditsRemoved": "{value}",
     "detail": "Detail",
     "detailDescription": "Information recorded in this administrative section.",
     "eligiblePlans": "{count, plural, one {# plan} other {# plans}}",
@@ -942,6 +944,11 @@
     "noPlan": "No plan",
     "noReferredUser": "No user",
     "noWorkspace": "No workspace",
+    "perMonth": "{value} / month",
+    "perYear": "{value} / year",
+    "percentDiscount": "{value}%",
+    "redemptionsUnlimited": "{value} / ∞",
+    "redemptionsWithLimit": "{value} / {limit}",
     "referencePending": "To be defined",
     "referenceSet": "Reference recorded",
     "role": {
@@ -1040,7 +1047,7 @@
       "users": "Users",
       "withdrawals": "Withdrawals"
     },
-    "untilDate": "Until {date}"
+    "untilDate": "Until {value}"
   },
   "adminPaymentReport": {
     "all": "All",

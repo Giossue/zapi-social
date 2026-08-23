@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useTranslations } from "next-intl"
+import { useFormatter, useTranslations } from "next-intl"
 import { adminOperationsApi, ApiError } from "@workspace/api-client"
 import type {
   AdminOperationActionKey,
@@ -300,10 +300,38 @@ function StatusBadge({ label, tone }: { label: string; tone: Tone }) {
  * con una firma llana.
  */
 type Translate = (key: string, values?: Record<string, string>) => string
+type Formatter = ReturnType<typeof useFormatter>
 
-function cellText(t: Translate, cell: Cell) {
-  if (!cell.primaryKey) return cell.primary
-  return t(cell.primaryKey, cell.primaryArgs)
+function money(
+  format: Formatter,
+  value: { amountMinor: number; currency: string }
+) {
+  return format.number(value.amountMinor / 100, {
+    style: "currency",
+    currency: value.currency,
+  })
+}
+
+/**
+ * La API manda fechas, importes y números sin formatear porque componerlos en
+ * el servidor los ataría a un idioma. Con clave, el valor formateado entra en
+ * el mensaje como `{value}`; sin ella, se muestra tal cual.
+ */
+function cellText(t: Translate, format: Formatter, cell: Cell) {
+  const value =
+    cell.primaryDate !== undefined
+      ? format.dateTime(new Date(cell.primaryDate), "date")
+      : cell.primaryMoney !== undefined
+        ? money(format, cell.primaryMoney)
+        : cell.primaryNumber !== undefined
+          ? format.number(cell.primaryNumber)
+          : null
+
+  if (!cell.primaryKey) return value ?? cell.primary
+  return t(cell.primaryKey, {
+    ...cell.primaryArgs,
+    ...(value === null ? {} : { value }),
+  })
 }
 
 function RequiredLabel({ children }: { children: React.ReactNode }) {
@@ -370,6 +398,7 @@ export function AdminModulePreview({
   const translate = useTranslations("adminOperations")
   /** Las claves dinámicas de la API no las puede comprobar el tipado. */
   const t = translate as unknown as Translate
+  const format = useFormatter()
   const moduleConfig = modules[moduleKey]
   const firstTab = moduleConfig.tabs[0]
   const [activeTab, setActiveTab] = React.useState(firstTab.value)
@@ -528,7 +557,13 @@ export function AdminModulePreview({
             icon={metric.icon}
             key={metric.key}
             label={t(`metric.${metric.key}.label`)}
-            value={metric.value}
+            value={
+              metric.moneyValue
+                ? money(format, metric.moneyValue)
+                : metric.numberValue !== undefined
+                  ? format.number(metric.numberValue)
+                  : metric.value
+            }
           />
         ))}
       </CardGrid>
@@ -610,7 +645,7 @@ export function AdminModulePreview({
                             cell.mono ? "font-mono text-xs" : "font-medium"
                           }
                         >
-                          {cellText(t, cell)}
+                          {cellText(t, format, cell)}
                         </span>
                         {cell.secondary ? (
                           <span className="text-xs text-muted-foreground">
@@ -879,7 +914,7 @@ export function AdminModulePreview({
                     : t("fieldNumber", { index: String(index + 1) })}
                 </span>
                 <span className={cell.mono ? "font-mono text-sm" : "text-sm"}>
-                  {cellText(t, cell)}
+                  {cellText(t, format, cell)}
                 </span>
                 {cell.secondary ? (
                   <span className="text-xs text-muted-foreground">

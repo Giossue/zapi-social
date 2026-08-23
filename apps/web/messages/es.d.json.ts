@@ -619,6 +619,8 @@ declare const messages: {
         label: "Crear usuario"
       }
     }
+    creditsAdded: "+{value}"
+    creditsRemoved: "{value}"
     detail: "Detalle"
     detailDescription: "Información registrada en esta sección administrativa."
     eligiblePlans: "{count, plural, one {# plan} other {# planes}}"
@@ -945,6 +947,11 @@ declare const messages: {
     noPlan: "Sin plan"
     noReferredUser: "Sin usuario"
     noWorkspace: "Sin espacio"
+    perMonth: "{value} / mes"
+    perYear: "{value} / año"
+    percentDiscount: "{value}%"
+    redemptionsUnlimited: "{value} / ∞"
+    redemptionsWithLimit: "{value} / {limit}"
     referencePending: "Por definir"
     referenceSet: "Referencia registrada"
     role: {
@@ -1043,7 +1050,7 @@ declare const messages: {
       users: "Usuarios"
       withdrawals: "Retiros"
     }
-    untilDate: "Hasta {date}"
+    untilDate: "Hasta {value}"
   }
   adminPaymentReport: {
     all: "Todos"
