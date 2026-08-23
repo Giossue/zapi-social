@@ -787,7 +787,9 @@ export function FilesLibraryPage() {
 
   useEffect(() => {
     loadedPages.current = 1
-    void loadLibrary()
+    // El temporizador saca el primer `setState` del cuerpo del efecto.
+    const timer = setTimeout(() => void loadLibrary(), 0)
+    return () => clearTimeout(timer)
   }, [loadLibrary])
 
   const hasMoreFiles = Boolean(

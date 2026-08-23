@@ -203,12 +203,17 @@ function ApiKeySheet({
     "posts:read",
   ])
 
-  useEffect(() => {
+  const [wasOpen, setWasOpen] = useState(open)
+
+  // Ajustar el estado durante el render en vez de en un efecto: evita el
+  // segundo render que encadena `setState` dentro de `useEffect`.
+  if (open !== wasOpen) {
+    setWasOpen(open)
     if (!open) {
       setName("")
       setSelected(["posts:read"])
     }
-  }, [open])
+  }
 
   const canSubmit = Boolean(name.trim() && selected.length)
 

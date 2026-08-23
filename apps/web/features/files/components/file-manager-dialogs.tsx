@@ -332,13 +332,14 @@ export function FileRenameDialog({
   const [name, setName] = useState("")
   /** La extensión identifica el formato: se conserva y queda fuera del campo editable. */
   const extension = item && "kind" in item ? fileExtension(item.name) : ""
-  useEffect(
-    () =>
-      setName(
-        item ? item.name.slice(0, item.name.length - extension.length) : ""
-      ),
-    [extension.length, item]
-  )
+  const [lastItemId, setLastItemId] = useState(item?.id ?? null)
+
+  // Ajustar el estado durante el render en vez de en un efecto: evita el
+  // segundo render que encadena `setState` dentro de `useEffect`.
+  if ((item?.id ?? null) !== lastItemId) {
+    setLastItemId(item?.id ?? null)
+    setName(item ? item.name.slice(0, item.name.length - extension.length) : "")
+  }
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent>

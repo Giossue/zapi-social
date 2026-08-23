@@ -136,21 +136,28 @@ function AnnouncementSheet({
   const [targetQuery, setTargetQuery] = useState("")
   const [targets, setTargets] = useState<{ id: string; label: string }[]>([])
 
-  useEffect(() => {
-    if (!open) return
-    setValues(
-      editing
-        ? {
-            title: editing.title,
-            body: editing.body,
-            url: editing.url ?? "",
-            audience: editing.audience,
-            targetId: editing.targetWorkspaceId ?? editing.targetUserId ?? "",
-          }
-        : emptyForm
-    )
-    setTargetQuery("")
-  }, [editing, open])
+  const formKey = open ? (editing?.id ?? "nuevo") : null
+  const [lastFormKey, setLastFormKey] = useState(formKey)
+
+  // Ajustar el estado durante el render en vez de en un efecto: evita el
+  // segundo render que encadena `setState` dentro de `useEffect`.
+  if (formKey !== lastFormKey) {
+    setLastFormKey(formKey)
+    if (open) {
+      setValues(
+        editing
+          ? {
+              title: editing.title,
+              body: editing.body,
+              url: editing.url ?? "",
+              audience: editing.audience,
+              targetId: editing.targetWorkspaceId ?? editing.targetUserId ?? "",
+            }
+          : emptyForm
+      )
+      setTargetQuery("")
+    }
+  }
 
   useEffect(() => {
     if (!open || values.audience === "all") {
