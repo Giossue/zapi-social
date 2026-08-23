@@ -606,7 +606,7 @@ export function AiChatPage() {
             ))
           ) : (
             <p className="p-3 text-sm text-muted-foreground">
-              Aún no tienes generaciones. Escribe abajo para empezar.
+              {t("emptyHistory")}
             </p>
           )}
         </div>
@@ -796,9 +796,7 @@ export function AiChatPage() {
           <span className="font-medium">
             {t("toolOptions", { tool: tt(chatTools[tool].labelKey) })}
           </span>
-          <FieldDescription>
-            Se aplican a la próxima generación de esta herramienta.
-          </FieldDescription>
+          <FieldDescription>{t("toolOptionsHint")}</FieldDescription>
         </div>
         <Separator className="mb-4" />
         <ToolOptions
@@ -816,9 +814,7 @@ export function AiChatPage() {
               <SheetTitle>
                 {t("toolOptions", { tool: tt(chatTools[tool].labelKey) })}
               </SheetTitle>
-              <SheetDescription>
-                Se aplican a la próxima generación de esta herramienta.
-              </SheetDescription>
+              <SheetDescription>{t("toolOptionsHint")}</SheetDescription>
             </SheetHeader>
             <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
               <ToolOptions

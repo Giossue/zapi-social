@@ -1589,538 +1589,577 @@
   },
   "aiStudio": {
     "chat": {
-      "loading": "Loading AI Studio",
-      "loadFailedTitle": "AI Studio unavailable",
-      "loadFailedDescription": "We couldn't load your generations.",
-      "searchLabel": "Search generations",
-      "searchPlaceholder": "Search…",
-      "newConversation": "New conversation",
-      "backToConversations": "Back to conversations",
-      "settings": "AI settings",
-      "showOptions": "Show options",
-      "hideOptions": "Hide options",
-      "emptyTitle": "Start a conversation",
-      "emptyDescription": "Pick a tool, adjust its options and describe what you need.",
-      "send": "Send",
-      "emptyPrompt": "Write what you need before sending.",
-      "sendFailed": "We couldn't send the request. Check the options.",
-      "retrySuccess": "Generation retried.",
-      "retryFailed": "We couldn't retry the generation.",
-      "archived": "Conversation archived.",
       "archiveFailed": "We couldn't archive the conversation.",
+      "archived": "Conversation archived.",
+      "backToConversations": "Back to conversations",
+      "cancelled": "The generation was cancelled.",
       "clipboardUnsupported": "Your browser can't copy the result.",
       "copied": "Result copied.",
       "copyFailed": "We couldn't copy the result.",
+      "emptyDescription": "Pick a tool, adjust its options and describe what you need.",
+      "emptyHistory": "You don't have generations yet. Type below to start.",
+      "emptyPrompt": "Write what you need before sending.",
+      "emptyTitle": "Start a conversation",
+      "generatingImage": "Generating image",
+      "generatingMedia": "Generating media",
+      "generatingVideo": "Generating video",
       "generationFailed": "We couldn't complete the generation.",
       "generationFailedWithCode": "We couldn't complete the generation ({code}).",
-      "cancelled": "The generation was cancelled.",
-      "thinking": "Thinking",
-      "generatingMedia": "Generating media",
-      "workDone": "Work finished",
-      "generatingImage": "Generating image",
-      "generatingVideo": "Generating video",
-      "trace": {
-        "received": "Request received",
-        "reserving": "Reserving credits",
-        "generating": "Generating with the model"
-      },
-      "status": {
-        "queued": "Queued",
-        "processing": "Generating",
-        "succeeded": "Ready",
-        "failed": "Failed",
-        "cancelled": "Cancelled"
-      },
-      "toolOptions": "{tool} options"
-    },
-    "tools": {
-      "field": {
-        "objective": "Goal",
-        "tone": "Tone",
-        "language": "Language",
-        "platforms": "Platforms",
-        "targetPlatforms": "Target platforms",
-        "variantCount": "Variants",
-        "includeHashtags": "Include hashtags",
-        "callToAction": "Call to action",
-        "optional": "Optional",
-        "aspectRatio": "Aspect ratio",
-        "quality": "Quality",
-        "duration": "Duration",
-        "durationDays": "Days",
-        "frequencyPerWeek": "Posts per week",
-        "startDate": "Start date",
-        "timezone": "Time zone",
-        "historyDays": "Days of history",
-        "searchIn": "Where to search",
-        "limit": "Results"
-      },
-      "platform": {
-        "instagram": "Instagram",
-        "facebook": "Facebook",
-        "linkedin": "LinkedIn",
-        "tiktok": "TikTok",
-        "x": "X",
-        "youtube": "YouTube",
-        "email": "Email"
-      },
-      "language": {
-        "es": "Spanish",
-        "en": "English",
-        "pt": "Portuguese"
-      },
-      "tone": {
-        "cercano": "Friendly",
-        "profesional": "Professional",
-        "divertido": "Playful",
-        "inspirador": "Inspiring",
-        "directo": "Direct"
-      },
-      "ratio": {
-        "square": "Square 1:1",
-        "vertical": "Vertical 9:16",
-        "horizontal": "Horizontal 16:9"
-      },
-      "quality": {
-        "low": "Low",
-        "medium": "Medium",
-        "high": "High"
-      },
-      "duration": {
-        "4": "4 seconds",
-        "8": "8 seconds",
-        "12": "12 seconds"
-      },
-      "searchType": {
-        "caption": "Captions",
-        "publishing_post": "Posts",
-        "ai_request": "Generations"
-      },
-      "content": {
-        "label": "Content",
-        "description": "Posts, ads and copy per channel.",
-        "placeholder": "Describe the post you need…",
-        "promptLabel": "Brief"
-      },
-      "image": {
-        "label": "Image",
-        "description": "Images generated or edited from a reference.",
-        "placeholder": "Describe the image you want to generate…",
-        "promptLabel": "Prompt"
-      },
-      "video": {
-        "label": "Video",
-        "description": "Short video from text or from a reference.",
-        "placeholder": "Describe the video you want to generate…",
-        "promptLabel": "Prompt"
-      },
-      "repurpose": {
-        "label": "Repurpose",
-        "description": "Adapt existing content to other channels.",
-        "placeholder": "Paste the original content you want to adapt…",
-        "promptLabel": "Original content"
-      },
-      "review": {
-        "label": "Review",
-        "description": "Analyses a text and suggests fixes.",
-        "placeholder": "Paste the content you want to analyse…",
-        "promptLabel": "Content to analyse"
-      },
-      "planner": {
-        "label": "Planner",
-        "description": "Content calendar by days and frequency.",
-        "placeholder": "Describe the campaign you want to plan…",
-        "promptLabel": "Campaign brief"
-      },
-      "timing": {
-        "label": "Best time",
-        "description": "Best times based on your publishing history.",
-        "placeholder": "Tell us which accounts or campaign to analyse…",
-        "promptLabel": "Context"
-      },
-      "search": {
-        "label": "Research",
-        "description": "Search inside your content and past generations.",
-        "placeholder": "What are you looking for?",
-        "promptLabel": "Query"
-      }
-    },
-    "operations": {
-      "loadingRecords": "Loading records",
-      "loadFailedTitle": "We couldn't load this information",
-      "forbiddenTitle": "You don't have permission to see this information",
-      "retry": "Retry",
-      "records": "records",
-      "status": "Status",
-      "tool": "Tool",
-      "type": "Type",
-      "date": "Date",
-      "noResults": "No results",
-      "saving": "Saving...",
-      "deleting": "Deleting...",
-      "delete": "Delete",
-      "processing": "Processing action",
-      "historyStatus": {
-        "all": "All statuses",
-        "queued": "Queued",
-        "processing": "Processing",
-        "succeeded": "Completed",
-        "failed": "Failed",
-        "cancelled": "Cancelled"
-      },
-      "historyStatusBadge": {
-        "queued": "Queued",
-        "processing": "Processing",
-        "succeeded": "Completed",
-        "failed": "Failed",
-        "cancelled": "Cancelled"
-      },
-      "kind": {
-        "all": "All tools",
-        "content": "Content",
-        "image": "Image",
-        "video": "Video",
-        "repurpose": "Repurpose",
-        "planner": "Planner",
-        "review": "Review",
-        "timing": "Best time",
-        "search": "Research",
-        "ai_publishing": "AI Publishing"
-      },
-      "automationStatus": {
-        "all": "All statuses",
-        "active": "Active",
-        "paused": "Paused",
-        "draft": "Drafts"
-      },
-      "automationStatusBadge": {
-        "active": "Active",
-        "paused": "Paused",
-        "draft": "Draft"
-      },
-      "creditType": {
-        "all": "All movements",
-        "grant": "Grants",
-        "debit": "Usage",
-        "refund": "Refunds",
-        "adjustment": "Adjustments"
-      },
-      "creditTypeBadge": {
-        "grant": "Grant",
-        "debit": "Usage",
-        "refund": "Refund",
-        "adjustment": "Adjustment"
-      },
-      "history": {
-        "pageTitle": "AI history",
-        "pageDescription": "Find, reuse and download any past generation.",
-        "title": "Generations",
-        "description": "Results created inside this workspace.",
-        "searchLabel": "Search generations",
-        "searchPlaceholder": "Search generations...",
-        "filterStatusLabel": "Filter history by status",
-        "filterKindLabel": "Filter history by tool",
-        "errorDescription": "The history didn't respond. You can try again without losing your filters.",
-        "forbiddenDescription": "Your role can't view this workspace's AI history.",
-        "generation": "Generation",
-        "emptyTitle": "No generations yet",
-        "emptyDescription": "New generations will show up here once you use AI Studio.",
-        "emptyFilteredDescription": "Adjust the search, the status or the selected tool."
-      },
-      "automation": {
-        "pageTitle": "Automations",
-        "pageDescription": "Create rules that generate drafts ready for human review.",
-        "createTitle": "New automation",
-        "selectAccount": "Select an account",
-        "saving": "Saving automation",
-        "save": "Save automation",
-        "rulesTitle": "Rules",
-        "rulesDescription": "Rules that create drafts and keep the final approval with a person.",
-        "searchLabel": "Search automations",
-        "searchPlaceholder": "Search automations...",
-        "filterStatusLabel": "Filter automations by status",
-        "errorDescription": "The automations didn't respond. Try again to recover the list.",
-        "forbiddenDescription": "Your role can't view or manage this workspace's automations.",
-        "rule": "Automation",
-        "emptyTitle": "No automations yet",
-        "emptyDescription": "Create a rule to produce drafts automatically.",
-        "emptyFilteredDescription": "Adjust the search or the status filter.",
-        "needsAccount": "Connect a social account first to pick a target.",
-        "noneAvailable": "There are no automations available to review.",
-        "humanApproval": "Human approval active",
-        "deleting": "Deleting automation"
-      },
-      "credits": {
-        "pageTitle": "Credits and usage",
-        "pageDescription": "Understand AI usage and control your workspace budget.",
-        "balance": "Available balance",
-        "used": "Used",
-        "nextRenewal": "Next renewal",
-        "movements": "Movements",
-        "movement": "Movement",
-        "movementsDescription": "Grants, usage, refunds and adjustments for the workspace.",
-        "searchLabel": "Search credit movements",
-        "searchPlaceholder": "Search movements...",
-        "filterTypeLabel": "Filter movements by type",
-        "emptyTitle": "No movements yet",
-        "emptyDescription": "Movements will show up when credits are granted or used.",
-        "emptyFilteredDescription": "Adjust the search or the movement type.",
-        "budgetTitle": "Monthly budget",
-        "budgetHint": "Empty means no monetary limit.",
-        "budgetReadOnly": "Only owners and administrators can change this budget.",
-        "savingBudget": "Saving budget",
-        "saveBudget": "Save budget",
-        "costPerTool": "Cost per tool",
-        "errorDescription": "We couldn't retrieve the balance or the credit movements.",
-        "forbiddenDescription": "Your role can't view this workspace's AI usage."
-      }
-    },
-    "views": {
-      "automation": {
-        "title": "Automations",
-        "description": "Create rules that research, generate and leave drafts ready for review."
-      },
-      "content": {
-        "title": "AI content",
-        "description": "Generate posts consistent with your brand voice and each channel."
-      },
-      "credits": {
-        "title": "Credits and usage",
-        "description": "Understand AI usage and control your workspace budget."
-      },
-      "history": {
-        "title": "AI history",
-        "description": "Find, reuse and download any past generation."
-      },
-      "image": {
-        "title": "Image generator",
-        "description": "Create visuals from an idea, a reference or a campaign."
-      },
-      "overview": {
-        "title": "AI Studio",
-        "description": "Create, research and improve content from a single place."
-      },
-      "planner": {
-        "title": "Smart planner",
-        "description": "Turn a goal into a balanced editorial plan ready to produce."
-      },
-      "repurpose": {
-        "title": "Repurpose content",
-        "description": "Turn an existing piece into native variants for each network."
-      },
-      "review": {
-        "title": "Smart review",
-        "description": "Spot clarity, brand, compliance and performance issues before publishing."
-      },
-      "search": {
-        "title": "Assisted research",
-        "description": "Explore trends, questions and ideas with signals useful for creating content."
-      },
-      "settings": {
-        "title": "AI configuration",
-        "description": "Define the voice, language and rules that guide every generation."
-      },
-      "timing": {
-        "title": "Best time to post",
-        "description": "Find out when to publish based on your accounts' real performance."
-      },
-      "video": {
-        "title": "Video generator",
-        "description": "Design the script, the scenes and the final clip without leaving the workflow."
-      }
-    },
-    "studio": {
-      "clear": "Clear",
-      "clearFilters": "Clear filters",
-      "all": "All",
-      "filterKind": "Filter by type",
-      "filterStatus": "Filter by status",
-      "usage": "Usage",
-      "actions": "Actions",
-      "credits": "{count, plural, one {# credit} other {# credits}}",
-      "generations": "generations",
-      "noMatches": "No matches",
-      "emptyDescription": "Pick a tool to create the first result.",
-      "emptyFilteredDescription": "Try another term, type or status.",
-      "retryQueued": "The generation went back to the queue.",
-      "archived": "Generation archived.",
-      "actionsFor": "Actions for {title}",
-      "processing": "Processing action",
-      "noResultYet": "The generation doesn't have a result yet.",
-      "preview": "Preview",
-      "retry": "Retry",
-      "archive": "Archive",
-      "loading": "Loading AI Studio",
+      "hideOptions": "Hide options",
+      "loadFailedDescription": "We couldn't load your generations.",
       "loadFailedTitle": "AI Studio unavailable",
-      "loadFailedDescription": "We couldn't load the workspace activity.",
-      "metrics": {
-        "credits": "Available credits",
-        "unlimited": "Unlimited",
-        "usedInCycle": "{count, plural, one {# used this cycle} other {# used this cycle}}",
-        "succeeded": "Successful generations",
-        "currentCycle": "During the current cycle",
-        "inProgress": "In progress",
-        "queued": "{count, plural, one {# queued} other {# queued}}",
-        "drafts": "Drafts created",
-        "readyForReview": "Ready for human review"
+      "loading": "Loading AI Studio",
+      "newConversation": "New conversation",
+      "retryFailed": "We couldn't retry the generation.",
+      "retrySuccess": "Generation retried.",
+      "searchLabel": "Search generations",
+      "searchPlaceholder": "Search…",
+      "send": "Send",
+      "sendFailed": "We couldn't send the request. Check the options.",
+      "settings": "AI settings",
+      "showOptions": "Show options",
+      "status": {
+        "cancelled": "Cancelled",
+        "failed": "Failed",
+        "processing": "Generating",
+        "queued": "Queued",
+        "succeeded": "Ready"
       },
-      "recentActivity": "Recent activity"
+      "thinking": "Thinking",
+      "toolOptions": "{tool} options",
+      "toolOptionsHint": "They apply to the next generation of this tool.",
+      "trace": {
+        "generating": "Generating with the model",
+        "received": "Request received",
+        "reserving": "Reserving credits"
+      },
+      "workDone": "Work finished"
     },
     "creation": {
+      "addReferences": "Add references",
+      "backgroundWork": "You can leave this page. The work keeps running in the background.",
+      "brief": "Instruction",
+      "content": {
+        "button": "Generate drafts",
+        "placeholder": "Example: announce the new set menu, available Monday to Friday...",
+        "resultDescription": "Three variants adapted to the selected channel.",
+        "resultTitle": "Generated drafts"
+      },
       "cost": "{count, plural, one {# credit} other {# credits}}",
+      "dimension": {
+        "brandVoice": "Brand voice",
+        "callToAction": "Call to action",
+        "clarity": "Clarity",
+        "safety": "Safety"
+      },
+      "download": "Download",
+      "format": "Format",
+      "generatingResult": "Generating result",
+      "generationFailed": "The generation failed",
+      "goal": {
+        "engagement": "Drive engagement"
+      },
+      "image": {
+        "button": "Generate images",
+        "placeholder": "Example: artisan burger on a dark table, warm light, editorial style...",
+        "resultDescription": "Four compositions ready to review.",
+        "resultTitle": "Visual proposals"
+      },
+      "invalidReference": "Use JPG, PNG or WEBP images up to 30 MB.",
+      "jobQueued": "Job added to the queue.",
+      "missingPrompt": "Fill in the instruction to continue.",
+      "objective": {
+        "inform": "Inform"
+      },
+      "preview": "Preview",
       "promptTitle": {
         "default": "Describe what you need",
         "repurpose": "Original content",
         "review": "Content to analyse"
       },
-      "content": {
-        "button": "Generate drafts",
-        "placeholder": "Example: announce the new set menu, available Monday to Friday...",
-        "resultTitle": "Generated drafts",
-        "resultDescription": "Three variants adapted to the selected channel."
-      },
-      "image": {
-        "button": "Generate images",
-        "placeholder": "Example: artisan burger on a dark table, warm light, editorial style...",
-        "resultTitle": "Visual proposals",
-        "resultDescription": "Four compositions ready to review."
-      },
+      "providerFailed": "The provider couldn't complete the job.",
+      "recentActivity": "Recent activity",
+      "referenceAdded": "Reference added.",
+      "referenceFailed": "We couldn't upload the reference.",
+      "referenceHintImage": "Up to 10 images to guide style, composition or editing.",
+      "referenceHintVideo": "Up to 9 images for animation, character, style or scene.",
       "repurpose": {
         "button": "Create variants",
         "placeholder": "Paste a post, article, transcript or idea you already have...",
-        "resultTitle": "Variants per channel",
-        "resultDescription": "The original idea adapted without losing its message."
+        "resultDescription": "The original idea adapted without losing its message.",
+        "resultTitle": "Variants per channel"
       },
+      "resultPlaceholder": "The result will show up here",
       "review": {
         "button": "Analyse content",
         "placeholder": "Paste here the content you want to check before publishing...",
-        "resultTitle": "Review report",
-        "resultDescription": "Prioritised findings and suggested fixes."
+        "resultDescription": "Prioritised findings and suggested fixes.",
+        "resultTitle": "Review report"
       },
-      "video": {
-        "button": "Generate video",
-        "placeholder": "Example: 15-second vertical video showing how the product is made...",
-        "resultTitle": "Video project",
-        "resultDescription": "Script, scenes and render within the same job."
-      },
-      "recentActivity": "Recent activity",
+      "select": "Select",
+      "sensitiveDataHint": "Sensitive information shouldn't be included in the instruction.",
       "textCopied": "Text copied",
-      "variantCopied": "Variant copied",
-      "download": "Download",
-      "videoRender": "Video render",
-      "dimension": {
-        "clarity": "Clarity",
-        "brandVoice": "Brand voice",
-        "callToAction": "Call to action",
-        "safety": "Safety"
-      },
-      "missingPrompt": "Fill in the instruction to continue.",
-      "jobQueued": "Job added to the queue.",
-      "invalidReference": "Use JPG, PNG or WEBP images up to 30 MB.",
-      "referenceAdded": "Reference added.",
-      "referenceFailed": "We couldn't upload the reference.",
-      "objective": {
-        "inform": "Inform"
-      },
-      "format": "Format",
       "tone": "Tone",
       "tones": {
         "cercano": "Friendly",
-        "experto": "Expert",
-        "directo": "Direct"
+        "directo": "Direct",
+        "experto": "Expert"
       },
-      "referenceHintVideo": "Up to 9 images for animation, character, style or scene.",
-      "referenceHintImage": "Up to 10 images to guide style, composition or editing.",
-      "select": "Select",
-      "generationFailed": "The generation failed",
-      "providerFailed": "The provider couldn't complete the job.",
-      "waiting": "Waiting in line",
-      "generatingResult": "Generating result",
-      "preview": "Preview"
+      "variantCopied": "Variant copied",
+      "video": {
+        "button": "Generate video",
+        "placeholder": "Example: 15-second vertical video showing how the product is made...",
+        "resultDescription": "Script, scenes and render within the same job.",
+        "resultTitle": "Video project"
+      },
+      "videoRender": "Video render",
+      "waiting": "Waiting in line"
+    },
+    "errorRoute": {
+      "description": "No generation was sent and no credits were consumed.",
+      "retry": "Retry",
+      "title": "AI Studio could not be loaded"
+    },
+    "operations": {
+      "automation": {
+        "create": "New automation",
+        "createDescription": "Generates drafts; it never publishes without human review.",
+        "createTitle": "New automation",
+        "deleteTitle": "Delete this automation?",
+        "deleting": "Deleting automation",
+        "emptyDescription": "Create a rule to produce drafts automatically.",
+        "emptyFilteredDescription": "Adjust the search or the status filter.",
+        "emptyTitle": "No automations yet",
+        "errorDescription": "The automations didn't respond. Try again to recover the list.",
+        "filterStatusLabel": "Filter automations by status",
+        "forbiddenDescription": "Your role can't view or manage this workspace's automations.",
+        "frequencyColumn": "Frequency",
+        "humanApproval": "Human approval active",
+        "needsAccount": "Connect a social account first to pick a target.",
+        "nextRunColumn": "Next run",
+        "noAccounts": "Connect a social account to create automations.",
+        "noneAvailable": "There are no automations available to review.",
+        "pageDescription": "Create rules that generate drafts ready for human review.",
+        "pageTitle": "Automations",
+        "prompt": "Instruction",
+        "rule": "Automation",
+        "rulesDescription": "Rules that create drafts and keep the final approval with a person.",
+        "rulesTitle": "Rules",
+        "save": "Save automation",
+        "saving": "Saving automation",
+        "searchLabel": "Search automations",
+        "searchPlaceholder": "Search automations...",
+        "selectAccount": "Select an account",
+        "targetAccount": "Target account"
+      },
+      "automationStatus": {
+        "active": "Active",
+        "all": "All statuses",
+        "draft": "Drafts",
+        "paused": "Paused"
+      },
+      "automationStatusBadge": {
+        "active": "Active",
+        "draft": "Draft",
+        "paused": "Paused"
+      },
+      "creditType": {
+        "adjustment": "Adjustments",
+        "all": "All movements",
+        "debit": "Usage",
+        "grant": "Grants",
+        "refund": "Refunds"
+      },
+      "creditTypeBadge": {
+        "adjustment": "Adjustment",
+        "debit": "Usage",
+        "grant": "Grant",
+        "refund": "Refund"
+      },
+      "credits": {
+        "alertThreshold": "Alert at %",
+        "balance": "Available balance",
+        "balanceHint": "credits",
+        "budgetHint": "Empty means no monetary limit.",
+        "budgetLimit": "USD limit",
+        "budgetReadOnly": "Only owners and administrators can change this budget.",
+        "budgetTitle": "Monthly budget",
+        "costPerTool": "Cost per tool",
+        "creditsColumn": "Credits",
+        "detailColumn": "Detail",
+        "emptyDescription": "Movements will show up when credits are granted or used.",
+        "emptyFilteredDescription": "Adjust the search or the movement type.",
+        "emptyTitle": "No movements yet",
+        "errorDescription": "We couldn't retrieve the balance or the credit movements.",
+        "filterTypeLabel": "Filter movements by type",
+        "forbiddenDescription": "Your role can't view this workspace's AI usage.",
+        "movement": "Movement",
+        "movements": "Movements",
+        "movementsDescription": "Grants, usage, refunds and adjustments for the workspace.",
+        "nextRenewal": "Next renewal",
+        "pageDescription": "Understand AI usage and control your workspace budget.",
+        "pageTitle": "Credits and usage",
+        "saveBudget": "Save budget",
+        "savingBudget": "Saving budget",
+        "searchLabel": "Search credit movements",
+        "searchPlaceholder": "Search movements...",
+        "used": "Used",
+        "usedHint": "in the cycle"
+      },
+      "date": "Date",
+      "delete": "Delete",
+      "deleting": "Deleting...",
+      "forbiddenTitle": "You don't have permission to see this information",
+      "history": {
+        "description": "Results created inside this workspace.",
+        "emptyDescription": "New generations will show up here once you use AI Studio.",
+        "emptyFilteredDescription": "Adjust the search, the status or the selected tool.",
+        "emptyTitle": "No generations yet",
+        "errorDescription": "The history didn't respond. You can try again without losing your filters.",
+        "filterKindLabel": "Filter history by tool",
+        "filterStatusLabel": "Filter history by status",
+        "forbiddenDescription": "Your role can't view this workspace's AI history.",
+        "generation": "Generation",
+        "pageDescription": "Find, reuse and download any past generation.",
+        "pageTitle": "AI history",
+        "searchLabel": "Search generations",
+        "searchPlaceholder": "Search generations...",
+        "title": "Generations"
+      },
+      "historyStatus": {
+        "all": "All statuses",
+        "cancelled": "Cancelled",
+        "failed": "Failed",
+        "processing": "Processing",
+        "queued": "Queued",
+        "succeeded": "Completed"
+      },
+      "historyStatusBadge": {
+        "cancelled": "Cancelled",
+        "failed": "Failed",
+        "processing": "Processing",
+        "queued": "Queued",
+        "succeeded": "Completed"
+      },
+      "kind": {
+        "ai_publishing": "AI Publishing",
+        "all": "All tools",
+        "content": "Content",
+        "image": "Image",
+        "planner": "Planner",
+        "repurpose": "Repurpose",
+        "review": "Review",
+        "search": "Research",
+        "timing": "Best time",
+        "video": "Video"
+      },
+      "loadFailedTitle": "We couldn't load this information",
+      "loadingRecords": "Loading records",
+      "noResults": "No results",
+      "processing": "Processing action",
+      "records": "records",
+      "retry": "Retry",
+      "saving": "Saving...",
+      "status": "Status",
+      "tool": "Tool",
+      "type": "Type"
     },
     "pages": {
-      "planner": {
-        "missingGoal": "Fill in the plan goal.",
-        "queued": "Plan added to the queue.",
-        "goalTitle": "Plan goal",
-        "goalPlaceholder": "Example: increase store visits during August...",
-        "weeklyPlan": "Weekly plan",
-        "suggestedDate": "Suggested date",
-        "ideaReady": "Idea ready",
-        "emptyIdeasTitle": "No ideas in the plan",
-        "emptyIdeasDescription": "The plan was generated without ideas. Adjust the goal and try again.",
-        "emptyTitle": "Create your first plan",
-        "emptyDescription": "Fill in the goal and the frequency."
-      },
-      "timing": {
-        "prompt": "Analyse the performance history and recommend the best times to publish.",
-        "queued": "Analysis added to the queue.",
-        "sampleWarning": "Recommendation based on a sample",
-        "mapTitle": "Opportunity map",
-        "lowOpportunity": "Lower opportunity",
-        "highOpportunity": "Higher opportunity",
-        "perAccount": "Recommendations per account",
-        "sampleCount": "{count, plural, one {# post in the sample} other {# posts in the sample}}",
-        "confidence": {
-          "high": "High",
-          "medium": "Medium",
-          "low": "Low"
-        },
-        "emptyTitle": "No analysis yet",
-        "emptyDescription": "Press Refresh analysis to calculate times.",
-        "insufficientSample": "Insufficient sample",
-        "sampleFound": "{count, plural, one {We found # post with useful data.} other {We found # posts with useful data.}}"
-      },
-      "research": {
-        "title": "Search signals",
-        "topicLabel": "Topic to research",
-        "topicPlaceholder": "Topic, keyword or competitor...",
-        "findings": "Highlighted findings",
-        "untitled": "Untitled",
-        "emptyTitle": "Search inside your content",
-        "emptyDescription": "Find captions, drafts and previous generations.",
-        "noMatchesTitle": "No matches",
-        "noMatchesDescription": "Try other words.",
-        "questions": "Audience questions",
-        "summary": "AI summary"
-      },
-      "settings": {
-        "loading": "Loading AI configuration",
-        "requireHumanReview": "Review before publishing",
-        "warnSensitiveClaims": "Warn about sensitive claims",
-        "redactPersonalData": "Redact personal data",
-        "missingFields": "Fill in the required fields.",
-        "saved": "AI configuration saved.",
-        "brandVoice": "Brand voice",
-        "preferences": "Preferences",
-        "safety": "Safety",
-        "brandIdentity": "Brand identity",
-        "wordsUse": "Words we do use",
-        "wordsAvoid": "Words we avoid",
-        "defaults": "Default values",
-        "language": "Language",
-        "defaultTone": "Default tone",
-        "safetyControls": "Safety controls"
-      },
+      "actionColumn": "Action",
       "operational": {
-        "noPrompt": "No instruction",
-        "nothingToExport": "There are no rows to export.",
-        "export": "Export",
+        "automationCreated": "Automation created.",
+        "automationDeleted": "Automation deleted.",
+        "budgetForbidden": "Your role can't change this workspace's budget.",
+        "budgetSaved": "Budget saved.",
         "download": "Download",
+        "export": "Export",
         "frequency": {
           "daily": "Daily",
           "weekly": "Weekly"
         },
-        "missingFields": "Fill in every required field.",
-        "automationCreated": "Automation created.",
-        "runQueued": "Run added to the queue.",
-        "automationDeleted": "Automation deleted.",
         "invalidBudget": "Check the budget and the alert percentage.",
-        "budgetSaved": "Budget saved.",
-        "budgetForbidden": "Your role can't change this workspace's budget.",
+        "missingFields": "Fill in every required field.",
+        "noDate": "No date",
         "noMovements": "There are no movements to export.",
+        "noPrompt": "No instruction",
+        "nothingToExport": "There are no rows to export.",
+        "runQueued": "Run added to the queue.",
+        "unlimited": "Unlimited"
+      },
+      "planner": {
+        "daily": "One post per day",
+        "description": "Turn a goal into a balanced editorial plan ready to produce.",
+        "duration": "Duration",
+        "emptyDescription": "Fill in the goal and the frequency.",
+        "emptyIdeasDescription": "The plan was generated without ideas. Adjust the goal and try again.",
+        "emptyIdeasTitle": "No ideas in the plan",
+        "emptyTitle": "Create your first plan",
+        "goalDescription": "Define the outcome and the desired frequency.",
+        "goalPlaceholder": "Example: increase store visits during August...",
+        "goalTitle": "Plan goal",
+        "ideaReady": "Idea ready",
+        "missingGoal": "Fill in the plan goal.",
+        "queued": "Plan added to the queue.",
+        "suggestedDate": "Suggested date",
+        "title": "Smart planner",
+        "weeklyPlan": "Weekly plan",
+        "weeklyPlanDescription": "A balanced proposal by channel, format and goal."
+      },
+      "research": {
+        "description": "Combines trends, formats and frequent questions.",
+        "emptyDescription": "Find captions, drafts and previous generations.",
+        "emptyTitle": "Search inside your content",
+        "findings": "Highlighted findings",
+        "findingsDescription": "Results prioritized by relevance and growth.",
+        "noMatchesDescription": "Try other words.",
+        "noMatchesTitle": "No matches",
+        "questions": "Audience questions",
+        "questionsDescription": "Ideas detected around the topic.",
+        "summary": "AI summary",
+        "title": "Search signals",
+        "topicLabel": "Topic to research",
+        "topicPlaceholder": "Topic, keyword or competitor...",
+        "untitled": "Untitled"
+      },
+      "settings": {
+        "brandDescription": "Description",
+        "brandIdentity": "Brand identity",
+        "brandIdentityDescription": "The AI will use this information in every tool.",
+        "brandName": "Brand name",
+        "brandVoice": "Brand voice",
+        "defaultTone": "Default tone",
+        "defaults": "Default values",
+        "description": "Define the voice, language and rules that guide every generation.",
+        "language": "Language",
+        "loading": "Loading AI configuration",
+        "missingFields": "Fill in the required fields.",
+        "preferences": "Preferences",
+        "redactPersonalData": "Redact personal data",
+        "requireHumanReview": "Review before publishing",
+        "safety": "Safety",
+        "safetyControls": "Safety controls",
+        "save": "Save configuration",
+        "saved": "AI configuration saved.",
+        "title": "AI configuration",
+        "warnSensitiveClaims": "Warn about sensitive claims",
+        "wordsAvoid": "Words we avoid",
+        "wordsUse": "Words we do use"
+      },
+      "timing": {
+        "confidence": {
+          "high": "High",
+          "low": "Low",
+          "medium": "Medium"
+        },
+        "description": "Find out when to publish based on your accounts' real performance.",
+        "emptyDescription": "Press Refresh analysis to calculate times.",
+        "emptyTitle": "No analysis yet",
+        "highOpportunity": "Higher opportunity",
+        "insufficientSample": "Insufficient sample",
+        "lowOpportunity": "Lower opportunity",
+        "mapDescription": "More intensity means a higher chance of performing well.",
+        "mapTitle": "Opportunity map",
+        "perAccount": "Recommendations per account",
+        "perAccountDescription": "The best upcoming window for each audience.",
+        "prompt": "Analyse the performance history and recommend the best times to publish.",
+        "queued": "Analysis added to the queue.",
+        "sampleCount": "{count, plural, one {# post in the sample} other {# posts in the sample}}",
+        "sampleFound": "{count, plural, one {We found # post with useful data.} other {We found # posts with useful data.}}",
+        "sampleWarning": "Recommendation based on a sample",
+        "title": "Best time to post"
+      }
+    },
+    "studio": {
+      "actions": "Actions",
+      "actionsFor": "Actions for {title}",
+      "all": "All",
+      "archive": "Archive",
+      "archived": "Generation archived.",
+      "clear": "Clear",
+      "clearFilters": "Clear filters",
+      "credits": "{count, plural, one {# credit} other {# credits}}",
+      "emptyDescription": "Pick a tool to create the first result.",
+      "emptyFilteredDescription": "Try another term, type or status.",
+      "filterKind": "Filter by type",
+      "filterStatus": "Filter by status",
+      "generations": "generations",
+      "loadFailedDescription": "We couldn't load the workspace activity.",
+      "loadFailedTitle": "AI Studio unavailable",
+      "loading": "Loading AI Studio",
+      "metrics": {
+        "credits": "Available credits",
+        "currentCycle": "During the current cycle",
+        "drafts": "Drafts created",
+        "inProgress": "In progress",
+        "queued": "{count, plural, one {# queued} other {# queued}}",
+        "readyForReview": "Ready for human review",
+        "succeeded": "Successful generations",
         "unlimited": "Unlimited",
-        "noDate": "No date"
+        "usedInCycle": "{count, plural, one {# used this cycle} other {# used this cycle}}"
+      },
+      "noMatches": "No matches",
+      "noResultYet": "The generation doesn't have a result yet.",
+      "pickToolDescription": "Pick a tool and start from a prepared structure.",
+      "pickToolTitle": "What do you want to create?",
+      "preview": "Preview",
+      "processing": "Processing action",
+      "recentActivity": "Recent activity",
+      "retry": "Retry",
+      "retryQueued": "The generation went back to the queue.",
+      "usage": "Usage"
+    },
+    "tools": {
+      "content": {
+        "description": "Posts, ads and copy per channel.",
+        "label": "Content",
+        "placeholder": "Describe the post you need…",
+        "promptLabel": "Brief"
+      },
+      "duration": {
+        "12": "12 seconds",
+        "4": "4 seconds",
+        "8": "8 seconds"
+      },
+      "field": {
+        "aspectRatio": "Aspect ratio",
+        "callToAction": "Call to action",
+        "duration": "Duration",
+        "durationDays": "Days",
+        "frequencyPerWeek": "Posts per week",
+        "historyDays": "Days of history",
+        "includeHashtags": "Include hashtags",
+        "language": "Language",
+        "limit": "Results",
+        "objective": "Goal",
+        "optional": "Optional",
+        "platforms": "Platforms",
+        "quality": "Quality",
+        "searchIn": "Where to search",
+        "startDate": "Start date",
+        "targetPlatforms": "Target platforms",
+        "timezone": "Time zone",
+        "tone": "Tone",
+        "variantCount": "Variants"
+      },
+      "image": {
+        "description": "Images generated or edited from a reference.",
+        "label": "Image",
+        "placeholder": "Describe the image you want to generate…",
+        "promptLabel": "Prompt"
+      },
+      "language": {
+        "en": "English",
+        "es": "Spanish",
+        "pt": "Portuguese"
+      },
+      "planner": {
+        "description": "Content calendar by days and frequency.",
+        "label": "Planner",
+        "placeholder": "Describe the campaign you want to plan…",
+        "promptLabel": "Campaign brief"
+      },
+      "platform": {
+        "email": "Email",
+        "facebook": "Facebook",
+        "instagram": "Instagram",
+        "linkedin": "LinkedIn",
+        "tiktok": "TikTok",
+        "x": "X",
+        "youtube": "YouTube"
+      },
+      "quality": {
+        "high": "High",
+        "low": "Low",
+        "medium": "Medium"
+      },
+      "ratio": {
+        "horizontal": "Horizontal 16:9",
+        "square": "Square 1:1",
+        "vertical": "Vertical 9:16"
+      },
+      "repurpose": {
+        "description": "Adapt existing content to other channels.",
+        "label": "Repurpose",
+        "placeholder": "Paste the original content you want to adapt…",
+        "promptLabel": "Original content"
+      },
+      "review": {
+        "description": "Analyses a text and suggests fixes.",
+        "label": "Review",
+        "placeholder": "Paste the content you want to analyse…",
+        "promptLabel": "Content to analyse"
+      },
+      "search": {
+        "description": "Search inside your content and past generations.",
+        "label": "Research",
+        "placeholder": "What are you looking for?",
+        "promptLabel": "Query"
+      },
+      "searchType": {
+        "ai_request": "Generations",
+        "caption": "Captions",
+        "publishing_post": "Posts"
+      },
+      "timing": {
+        "description": "Best times based on your publishing history.",
+        "label": "Best time",
+        "placeholder": "Tell us which accounts or campaign to analyse…",
+        "promptLabel": "Context"
+      },
+      "tone": {
+        "cercano": "Friendly",
+        "directo": "Direct",
+        "divertido": "Playful",
+        "inspirador": "Inspiring",
+        "profesional": "Professional"
+      },
+      "video": {
+        "description": "Short video from text or from a reference.",
+        "label": "Video",
+        "placeholder": "Describe the video you want to generate…",
+        "promptLabel": "Prompt"
+      }
+    },
+    "views": {
+      "automation": {
+        "description": "Create rules that research, generate and leave drafts ready for review.",
+        "title": "Automations"
+      },
+      "content": {
+        "description": "Generate posts consistent with your brand voice and each channel.",
+        "title": "AI content"
+      },
+      "credits": {
+        "description": "Understand AI usage and control your workspace budget.",
+        "title": "Credits and usage"
+      },
+      "history": {
+        "description": "Find, reuse and download any past generation.",
+        "title": "AI history"
+      },
+      "image": {
+        "description": "Create visuals from an idea, a reference or a campaign.",
+        "title": "Image generator"
+      },
+      "overview": {
+        "description": "Create, research and improve content from a single place.",
+        "title": "AI Studio"
+      },
+      "repurpose": {
+        "description": "Turn an existing piece into native variants for each network.",
+        "title": "Repurpose content"
+      },
+      "review": {
+        "description": "Spot clarity, brand, compliance and performance issues before publishing.",
+        "title": "Smart review"
+      },
+      "search": {
+        "description": "Explore trends, questions and ideas with signals useful for creating content.",
+        "title": "Assisted research"
+      },
+      "video": {
+        "description": "Design the script, the scenes and the final clip without leaving the workflow.",
+        "title": "Video generator"
       }
     }
   },

@@ -571,7 +571,7 @@ function AiAutomationSurface({
               type="button"
             >
               <Plus aria-hidden="true" data-icon="inline-start" />
-              Nueva automatización
+              {t("automation.create")}
             </Button>
           ) : undefined
         }
@@ -585,7 +585,7 @@ function AiAutomationSurface({
             <CardHeader>
               <CardTitle>{t("automation.createTitle")}</CardTitle>
               <CardDescription>
-                Genera borradores; nunca publica sin revisión humana.
+                {t("automation.createDescription")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -616,7 +616,7 @@ function AiAutomationSurface({
                 </FieldGroup>
                 <Field>
                   <FieldLabel htmlFor="automation-prompt">
-                    Instrucción <RequiredMark />
+                    {t("automation.prompt")} <RequiredMark />
                   </FieldLabel>
                   <Textarea
                     aria-required="true"
@@ -628,7 +628,7 @@ function AiAutomationSurface({
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="automation-account">
-                    Cuenta de destino <RequiredMark />
+                    {t("automation.targetAccount")} <RequiredMark />
                   </FieldLabel>
                   <Select onValueChange={onAccountIdChange} value={accountId}>
                     <SelectTrigger
@@ -652,7 +652,7 @@ function AiAutomationSurface({
                   </Select>
                   {accounts.length === 0 ? (
                     <FieldDescription>
-                      Conecta una cuenta social para crear automatizaciones.
+                      {t("automation.noAccounts")}
                     </FieldDescription>
                   ) : null}
                 </Field>
@@ -714,10 +714,10 @@ function AiAutomationSurface({
                 <TableRow>
                   <TableHead>{t("automation.rule")}</TableHead>
                   <TableHead className="hidden md:table-cell">
-                    Frecuencia
+                    {t("automation.frequencyColumn")}
                   </TableHead>
                   <TableHead className="hidden lg:table-cell">
-                    Próxima ejecución
+                    {t("automation.nextRunColumn")}
                   </TableHead>
                   <TableHead>{t("status")}</TableHead>
                   {canManage ? (
@@ -850,7 +850,7 @@ function AiAutomationSurface({
       >
         <AlertDialogContent size="sm">
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar esta automatización?</AlertDialogTitle>
+            <AlertDialogTitle>{t("automation.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
               Se eliminará “{pendingDelete?.name ?? "esta automatización"}”. Los
               borradores ya creados se conservarán.
@@ -964,13 +964,13 @@ function AiCreditsSurface({
           <CardGrid layout="xl-3">
             {[
               {
-                description: "créditos",
+                description: t("credits.balanceHint"),
                 icon: Coins,
                 label: t("credits.balance"),
                 value: balance,
               },
               {
-                description: "en el ciclo",
+                description: t("credits.usedHint"),
                 icon: Sparkles,
                 label: t("credits.used"),
                 value: consumed,
@@ -1023,9 +1023,11 @@ function AiCreditsSurface({
                         <TableHead>{t("date")}</TableHead>
                         <TableHead>{t("credits.movement")}</TableHead>
                         <TableHead className="hidden md:table-cell">
-                          Detalle
+                          {t("credits.detailColumn")}
                         </TableHead>
-                        <TableHead className="text-right">Créditos</TableHead>
+                        <TableHead className="text-right">
+                          {t("credits.creditsColumn")}
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1099,7 +1101,7 @@ function AiCreditsSurface({
                     <FieldGroup>
                       <Field data-disabled={!budgetEditable || pendingBudget}>
                         <FieldLabel htmlFor="ai-monthly-budget">
-                          Límite USD
+                          {t("credits.budgetLimit")}
                         </FieldLabel>
                         <Input
                           disabled={!budgetEditable || pendingBudget}
@@ -1115,7 +1117,7 @@ function AiCreditsSurface({
                       </Field>
                       <Field data-disabled={!budgetEditable || pendingBudget}>
                         <FieldLabel htmlFor="ai-budget-alert">
-                          Alerta al % <RequiredMark />
+                          {t("credits.alertThreshold")} <RequiredMark />
                         </FieldLabel>
                         <Input
                           aria-required="true"

@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { CircleAlert, RefreshCw } from "lucide-react"
 
 import {
@@ -10,17 +11,17 @@ import {
 import { Button } from "@workspace/ui/components/button"
 
 export default function AIStudioErrorRoute({ reset }: { reset: () => void }) {
+  const t = useTranslations("aiStudio.errorRoute")
+
   return (
     <Alert variant="destructive">
       <CircleAlert aria-hidden="true" />
-      <AlertTitle>No se pudo cargar AI Studio</AlertTitle>
-      <AlertDescription>
-        Ninguna generación fue enviada ni se consumieron créditos.
-      </AlertDescription>
+      <AlertTitle>{t("title")}</AlertTitle>
+      <AlertDescription>{t("description")}</AlertDescription>
       <div className="mt-3 flex">
         <Button onClick={reset} variant="brand-secondary">
           <RefreshCw data-icon="inline-start" />
-          Reintentar
+          {t("retry")}
         </Button>
       </div>
     </Alert>

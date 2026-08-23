@@ -1589,538 +1589,577 @@
   },
   "aiStudio": {
     "chat": {
-      "loading": "Cargando AI Studio",
-      "loadFailedTitle": "AI Studio no disponible",
-      "loadFailedDescription": "No pudimos cargar tus generaciones.",
-      "searchLabel": "Buscar generaciones",
-      "searchPlaceholder": "Buscar…",
-      "newConversation": "Nueva conversación",
-      "backToConversations": "Volver a las conversaciones",
-      "settings": "Ajustes AI",
-      "showOptions": "Mostrar opciones",
-      "hideOptions": "Ocultar opciones",
-      "emptyTitle": "Empieza una conversación",
-      "emptyDescription": "Elige una herramienta, ajusta sus opciones y describe lo que necesitas.",
-      "send": "Enviar",
-      "emptyPrompt": "Escribe qué necesitas antes de enviar.",
-      "sendFailed": "No pudimos enviar la solicitud. Revisa las opciones.",
-      "retrySuccess": "Generación reintentada.",
-      "retryFailed": "No pudimos reintentar la generación.",
-      "archived": "Conversación archivada.",
       "archiveFailed": "No pudimos archivar la conversación.",
+      "archived": "Conversación archivada.",
+      "backToConversations": "Volver a las conversaciones",
+      "cancelled": "La generación se canceló.",
       "clipboardUnsupported": "Tu navegador no permite copiar el resultado.",
       "copied": "Resultado copiado.",
       "copyFailed": "No pudimos copiar el resultado.",
+      "emptyDescription": "Elige una herramienta, ajusta sus opciones y describe lo que necesitas.",
+      "emptyHistory": "Aún no tienes generaciones. Escribe abajo para empezar.",
+      "emptyPrompt": "Escribe qué necesitas antes de enviar.",
+      "emptyTitle": "Empieza una conversación",
+      "generatingImage": "Generando imagen",
+      "generatingMedia": "Generando media",
+      "generatingVideo": "Generando video",
       "generationFailed": "No pudimos completar la generación.",
       "generationFailedWithCode": "No pudimos completar la generación ({code}).",
-      "cancelled": "La generación se canceló.",
-      "thinking": "Pensando",
-      "generatingMedia": "Generando media",
-      "workDone": "Trabajo terminado",
-      "generatingImage": "Generando imagen",
-      "generatingVideo": "Generando video",
-      "trace": {
-        "received": "Solicitud recibida",
-        "reserving": "Reservando créditos",
-        "generating": "Generando con el modelo"
-      },
-      "status": {
-        "queued": "En cola",
-        "processing": "Generando",
-        "succeeded": "Listo",
-        "failed": "Falló",
-        "cancelled": "Cancelada"
-      },
-      "toolOptions": "Opciones de {tool}"
-    },
-    "tools": {
-      "field": {
-        "objective": "Objetivo",
-        "tone": "Tono",
-        "language": "Idioma",
-        "platforms": "Plataformas",
-        "targetPlatforms": "Plataformas destino",
-        "variantCount": "Variantes",
-        "includeHashtags": "Incluir hashtags",
-        "callToAction": "Llamada a la acción",
-        "optional": "Opcional",
-        "aspectRatio": "Proporción",
-        "quality": "Calidad",
-        "duration": "Duración",
-        "durationDays": "Días",
-        "frequencyPerWeek": "Publicaciones por semana",
-        "startDate": "Fecha inicial",
-        "timezone": "Zona horaria",
-        "historyDays": "Días de histórico",
-        "searchIn": "Dónde buscar",
-        "limit": "Resultados"
-      },
-      "platform": {
-        "instagram": "Instagram",
-        "facebook": "Facebook",
-        "linkedin": "LinkedIn",
-        "tiktok": "TikTok",
-        "x": "X",
-        "youtube": "YouTube",
-        "email": "Correo"
-      },
-      "language": {
-        "es": "Español",
-        "en": "Inglés",
-        "pt": "Portugués"
-      },
-      "tone": {
-        "cercano": "Cercano",
-        "profesional": "Profesional",
-        "divertido": "Divertido",
-        "inspirador": "Inspirador",
-        "directo": "Directo"
-      },
-      "ratio": {
-        "square": "Cuadrada 1:1",
-        "vertical": "Vertical 9:16",
-        "horizontal": "Horizontal 16:9"
-      },
-      "quality": {
-        "low": "Baja",
-        "medium": "Media",
-        "high": "Alta"
-      },
-      "duration": {
-        "4": "4 segundos",
-        "8": "8 segundos",
-        "12": "12 segundos"
-      },
-      "searchType": {
-        "caption": "Captions",
-        "publishing_post": "Publicaciones",
-        "ai_request": "Generaciones"
-      },
-      "content": {
-        "label": "Contenido",
-        "description": "Publicaciones, anuncios y textos por canal.",
-        "placeholder": "Describe la publicación que necesitas…",
-        "promptLabel": "Brief"
-      },
-      "image": {
-        "label": "Imagen",
-        "description": "Imágenes generadas o editadas desde una referencia.",
-        "placeholder": "Describe la imagen que quieres generar…",
-        "promptLabel": "Prompt"
-      },
-      "video": {
-        "label": "Video",
-        "description": "Video corto desde texto o desde una referencia.",
-        "placeholder": "Describe el video que quieres generar…",
-        "promptLabel": "Prompt"
-      },
-      "repurpose": {
-        "label": "Reutilizar",
-        "description": "Adapta contenido existente a otros canales.",
-        "placeholder": "Pega el contenido original que quieres adaptar…",
-        "promptLabel": "Contenido original"
-      },
-      "review": {
-        "label": "Revisión",
-        "description": "Analiza un texto y propone correcciones.",
-        "placeholder": "Pega el contenido que quieres analizar…",
-        "promptLabel": "Contenido para analizar"
-      },
-      "planner": {
-        "label": "Planificador",
-        "description": "Calendario de contenidos por días y frecuencia.",
-        "placeholder": "Describe la campaña que quieres planificar…",
-        "promptLabel": "Brief de campaña"
-      },
-      "timing": {
-        "label": "Mejor horario",
-        "description": "Mejores horarios según tu histórico de publicación.",
-        "placeholder": "Indica qué cuentas o campaña quieres analizar…",
-        "promptLabel": "Contexto"
-      },
-      "search": {
-        "label": "Investigación",
-        "description": "Busca dentro de tu contenido y generaciones previas.",
-        "placeholder": "¿Qué quieres encontrar?",
-        "promptLabel": "Consulta"
-      }
-    },
-    "operations": {
-      "loadingRecords": "Cargando registros",
-      "loadFailedTitle": "No pudimos cargar esta información",
-      "forbiddenTitle": "No tienes permiso para ver esta información",
-      "retry": "Reintentar",
-      "records": "registros",
-      "status": "Estado",
-      "tool": "Herramienta",
-      "type": "Tipo",
-      "date": "Fecha",
-      "noResults": "Sin resultados",
-      "saving": "Guardando...",
-      "deleting": "Eliminando...",
-      "delete": "Eliminar",
-      "processing": "Procesando acción",
-      "historyStatus": {
-        "all": "Todos los estados",
-        "queued": "En cola",
-        "processing": "Procesando",
-        "succeeded": "Completados",
-        "failed": "Fallidos",
-        "cancelled": "Cancelados"
-      },
-      "historyStatusBadge": {
-        "queued": "En cola",
-        "processing": "Procesando",
-        "succeeded": "Completado",
-        "failed": "Falló",
-        "cancelled": "Cancelado"
-      },
-      "kind": {
-        "all": "Todas las herramientas",
-        "content": "Contenido",
-        "image": "Imagen",
-        "video": "Video",
-        "repurpose": "Reutilizar",
-        "planner": "Planificador",
-        "review": "Revisión",
-        "timing": "Mejor hora",
-        "search": "Investigación",
-        "ai_publishing": "Publicación AI"
-      },
-      "automationStatus": {
-        "all": "Todos los estados",
-        "active": "Activas",
-        "paused": "Pausadas",
-        "draft": "Borradores"
-      },
-      "automationStatusBadge": {
-        "active": "Activa",
-        "paused": "Pausada",
-        "draft": "Borrador"
-      },
-      "creditType": {
-        "all": "Todos los movimientos",
-        "grant": "Asignaciones",
-        "debit": "Consumos",
-        "refund": "Reembolsos",
-        "adjustment": "Ajustes"
-      },
-      "creditTypeBadge": {
-        "grant": "Asignación",
-        "debit": "Consumo",
-        "refund": "Reembolso",
-        "adjustment": "Ajuste"
-      },
-      "history": {
-        "pageTitle": "Historial de IA",
-        "pageDescription": "Encuentra, reutiliza y descarga cualquier generación anterior.",
-        "title": "Generaciones",
-        "description": "Resultados creados dentro de este espacio de trabajo.",
-        "searchLabel": "Buscar generaciones",
-        "searchPlaceholder": "Buscar generaciones...",
-        "filterStatusLabel": "Filtrar historial por estado",
-        "filterKindLabel": "Filtrar historial por herramienta",
-        "errorDescription": "El historial no respondió. Puedes volver a intentarlo sin perder tus filtros.",
-        "forbiddenDescription": "Tu rol no permite consultar el historial de IA de este espacio.",
-        "generation": "Generación",
-        "emptyTitle": "Aún no hay generaciones",
-        "emptyDescription": "Las nuevas generaciones aparecerán aquí cuando uses AI Studio.",
-        "emptyFilteredDescription": "Ajusta la búsqueda, el estado o la herramienta seleccionada."
-      },
-      "automation": {
-        "pageTitle": "Automatizaciones",
-        "pageDescription": "Crea reglas que generan borradores listos para revisión humana.",
-        "createTitle": "Nueva automatización",
-        "selectAccount": "Selecciona una cuenta",
-        "saving": "Guardando automatización",
-        "save": "Guardar automatización",
-        "rulesTitle": "Reglas",
-        "rulesDescription": "Reglas que crean borradores y conservan la aprobación final en una persona.",
-        "searchLabel": "Buscar automatizaciones",
-        "searchPlaceholder": "Buscar automatizaciones...",
-        "filterStatusLabel": "Filtrar automatizaciones por estado",
-        "errorDescription": "Las automatizaciones no respondieron. Inténtalo de nuevo para recuperar la lista.",
-        "forbiddenDescription": "Tu rol no permite consultar ni administrar automatizaciones de este espacio.",
-        "rule": "Automatización",
-        "emptyTitle": "Aún no hay automatizaciones",
-        "emptyDescription": "Crea una regla para producir borradores automáticamente.",
-        "emptyFilteredDescription": "Ajusta la búsqueda o el filtro de estado.",
-        "needsAccount": "Conecta primero una cuenta social para elegir un destino.",
-        "noneAvailable": "No hay automatizaciones disponibles para consultar.",
-        "humanApproval": "Aprobación humana activa",
-        "deleting": "Eliminando automatización"
-      },
-      "credits": {
-        "pageTitle": "Créditos y consumo",
-        "pageDescription": "Entiende el consumo de IA y controla el presupuesto de tu espacio de trabajo.",
-        "balance": "Saldo disponible",
-        "used": "Consumidos",
-        "nextRenewal": "Próxima renovación",
-        "movements": "Movimientos",
-        "movement": "Movimiento",
-        "movementsDescription": "Asignaciones, consumos, reembolsos y ajustes del espacio.",
-        "searchLabel": "Buscar movimientos de créditos",
-        "searchPlaceholder": "Buscar movimientos...",
-        "filterTypeLabel": "Filtrar movimientos por tipo",
-        "emptyTitle": "Aún no hay movimientos",
-        "emptyDescription": "Los movimientos aparecerán cuando se asignen o consuman créditos.",
-        "emptyFilteredDescription": "Ajusta la búsqueda o el tipo de movimiento.",
-        "budgetTitle": "Presupuesto mensual",
-        "budgetHint": "Vacío significa sin límite monetario.",
-        "budgetReadOnly": "Solo propietarios y administradores pueden cambiar este presupuesto.",
-        "savingBudget": "Guardando presupuesto",
-        "saveBudget": "Guardar presupuesto",
-        "costPerTool": "Costo por herramienta",
-        "errorDescription": "No pudimos recuperar el saldo ni los movimientos de créditos.",
-        "forbiddenDescription": "Tu rol no permite consultar el consumo de IA de este espacio."
-      }
-    },
-    "views": {
-      "automation": {
-        "title": "Automatizaciones",
-        "description": "Crea reglas que investigan, generan y dejan borradores listos para revisión."
-      },
-      "content": {
-        "title": "Contenido con IA",
-        "description": "Genera publicaciones consistentes con tu voz de marca y cada canal."
-      },
-      "credits": {
-        "title": "Créditos y consumo",
-        "description": "Entiende el consumo de IA y controla el presupuesto de tu espacio de trabajo."
-      },
-      "history": {
-        "title": "Historial de IA",
-        "description": "Encuentra, reutiliza y descarga cualquier generación anterior."
-      },
-      "image": {
-        "title": "Generador de imágenes",
-        "description": "Crea piezas visuales desde una idea, una referencia o una campaña."
-      },
-      "overview": {
-        "title": "AI Studio",
-        "description": "Crea, investiga y mejora contenido desde un solo lugar."
-      },
-      "planner": {
-        "title": "Planificador inteligente",
-        "description": "Convierte un objetivo en un plan editorial equilibrado y listo para producir."
-      },
-      "repurpose": {
-        "title": "Reutilizar contenido",
-        "description": "Transforma una pieza existente en variantes nativas para cada red."
-      },
-      "review": {
-        "title": "Revisión inteligente",
-        "description": "Detecta problemas de claridad, marca, cumplimiento y rendimiento antes de publicar."
-      },
-      "search": {
-        "title": "Investigación asistida",
-        "description": "Explora tendencias, preguntas e ideas con señales útiles para crear contenido."
-      },
-      "settings": {
-        "title": "Configuración de IA",
-        "description": "Define la voz, el idioma y las reglas que guían todas las generaciones."
-      },
-      "timing": {
-        "title": "Mejor hora para publicar",
-        "description": "Descubre cuándo publicar según el rendimiento real de tus cuentas."
-      },
-      "video": {
-        "title": "Generador de video",
-        "description": "Diseña el guion, las escenas y el clip final sin salir del flujo de trabajo."
-      }
-    },
-    "studio": {
-      "clear": "Limpiar",
-      "clearFilters": "Limpiar filtros",
-      "all": "Todos",
-      "filterKind": "Filtrar por tipo",
-      "filterStatus": "Filtrar por estado",
-      "usage": "Consumo",
-      "actions": "Acciones",
-      "credits": "{count, plural, one {# crédito} other {# créditos}}",
-      "generations": "generaciones",
-      "noMatches": "No hay coincidencias",
-      "emptyDescription": "Elige una herramienta para crear el primer resultado.",
-      "emptyFilteredDescription": "Prueba con otro término, tipo o estado.",
-      "retryQueued": "La generación volvió a la cola.",
-      "archived": "Generación archivada.",
-      "actionsFor": "Acciones para {title}",
-      "processing": "Procesando acción",
-      "noResultYet": "La generación todavía no tiene resultado.",
-      "preview": "Vista previa",
-      "retry": "Reintentar",
-      "archive": "Archivar",
-      "loading": "Cargando AI Studio",
+      "hideOptions": "Ocultar opciones",
+      "loadFailedDescription": "No pudimos cargar tus generaciones.",
       "loadFailedTitle": "AI Studio no disponible",
-      "loadFailedDescription": "No pudimos cargar la actividad del espacio.",
-      "metrics": {
-        "credits": "Créditos disponibles",
-        "unlimited": "Sin límite",
-        "usedInCycle": "{count, plural, one {# usado en el ciclo} other {# usados en el ciclo}}",
-        "succeeded": "Generaciones correctas",
-        "currentCycle": "Durante el ciclo actual",
-        "inProgress": "En proceso",
-        "queued": "{count, plural, one {# en cola} other {# en cola}}",
-        "drafts": "Borradores creados",
-        "readyForReview": "Listos para revisión humana"
+      "loading": "Cargando AI Studio",
+      "newConversation": "Nueva conversación",
+      "retryFailed": "No pudimos reintentar la generación.",
+      "retrySuccess": "Generación reintentada.",
+      "searchLabel": "Buscar generaciones",
+      "searchPlaceholder": "Buscar…",
+      "send": "Enviar",
+      "sendFailed": "No pudimos enviar la solicitud. Revisa las opciones.",
+      "settings": "Ajustes AI",
+      "showOptions": "Mostrar opciones",
+      "status": {
+        "cancelled": "Cancelada",
+        "failed": "Falló",
+        "processing": "Generando",
+        "queued": "En cola",
+        "succeeded": "Listo"
       },
-      "recentActivity": "Actividad reciente"
+      "thinking": "Pensando",
+      "toolOptions": "Opciones de {tool}",
+      "toolOptionsHint": "Se aplican a la próxima generación de esta herramienta.",
+      "trace": {
+        "generating": "Generando con el modelo",
+        "received": "Solicitud recibida",
+        "reserving": "Reservando créditos"
+      },
+      "workDone": "Trabajo terminado"
     },
     "creation": {
+      "addReferences": "Añadir referencias",
+      "backgroundWork": "Puedes salir de esta página. El trabajo seguirá en segundo plano.",
+      "brief": "Instrucción",
+      "content": {
+        "button": "Generar borradores",
+        "placeholder": "Ejemplo: anuncia el nuevo menú ejecutivo, disponible de lunes a viernes...",
+        "resultDescription": "Tres variantes adaptadas al canal seleccionado.",
+        "resultTitle": "Borradores generados"
+      },
       "cost": "{count, plural, one {# crédito} other {# créditos}}",
+      "dimension": {
+        "brandVoice": "Voz de marca",
+        "callToAction": "Llamada a la acción",
+        "clarity": "Claridad",
+        "safety": "Seguridad"
+      },
+      "download": "Descargar",
+      "format": "Formato",
+      "generatingResult": "Generando resultado",
+      "generationFailed": "La generación falló",
+      "goal": {
+        "engagement": "Generar interacción"
+      },
+      "image": {
+        "button": "Generar imágenes",
+        "placeholder": "Ejemplo: hamburguesa artesanal sobre mesa oscura, luz cálida, estilo editorial...",
+        "resultDescription": "Cuatro composiciones listas para revisar.",
+        "resultTitle": "Propuestas visuales"
+      },
+      "invalidReference": "Usa imágenes JPG, PNG o WEBP de máximo 30 MB.",
+      "jobQueued": "Trabajo añadido a la cola.",
+      "missingPrompt": "Completa la instrucción para continuar.",
+      "objective": {
+        "inform": "Informar"
+      },
+      "preview": "Vista previa",
       "promptTitle": {
         "default": "Describe lo que necesitas",
         "repurpose": "Contenido original",
         "review": "Contenido para analizar"
       },
-      "content": {
-        "button": "Generar borradores",
-        "placeholder": "Ejemplo: anuncia el nuevo menú ejecutivo, disponible de lunes a viernes...",
-        "resultTitle": "Borradores generados",
-        "resultDescription": "Tres variantes adaptadas al canal seleccionado."
-      },
-      "image": {
-        "button": "Generar imágenes",
-        "placeholder": "Ejemplo: hamburguesa artesanal sobre mesa oscura, luz cálida, estilo editorial...",
-        "resultTitle": "Propuestas visuales",
-        "resultDescription": "Cuatro composiciones listas para revisar."
-      },
+      "providerFailed": "El proveedor no pudo completar el trabajo.",
+      "recentActivity": "Actividad reciente",
+      "referenceAdded": "Referencia añadida.",
+      "referenceFailed": "No pudimos subir la referencia.",
+      "referenceHintImage": "Hasta 10 imágenes para orientar estilo, composición o edición.",
+      "referenceHintVideo": "Hasta 9 imágenes para animación, personaje, estilo o escena.",
       "repurpose": {
         "button": "Crear variantes",
         "placeholder": "Pega una publicación, artículo, transcripción o idea que ya tengas...",
-        "resultTitle": "Variantes por canal",
-        "resultDescription": "La idea original adaptada sin perder su mensaje."
+        "resultDescription": "La idea original adaptada sin perder su mensaje.",
+        "resultTitle": "Variantes por canal"
       },
+      "resultPlaceholder": "Aquí aparecerá el resultado",
       "review": {
         "button": "Analizar contenido",
         "placeholder": "Pega aquí el contenido que quieres validar antes de publicarlo...",
-        "resultTitle": "Informe de revisión",
-        "resultDescription": "Hallazgos priorizados y correcciones sugeridas."
+        "resultDescription": "Hallazgos priorizados y correcciones sugeridas.",
+        "resultTitle": "Informe de revisión"
       },
-      "video": {
-        "button": "Generar video",
-        "placeholder": "Ejemplo: video vertical de 15 segundos mostrando la preparación del producto...",
-        "resultTitle": "Proyecto de video",
-        "resultDescription": "Guion, escenas y render dentro del mismo trabajo."
-      },
-      "recentActivity": "Actividad reciente",
+      "select": "Seleccionar",
+      "sensitiveDataHint": "La información sensible no debe incluirse en la instrucción.",
       "textCopied": "Texto copiado",
-      "variantCopied": "Variante copiada",
-      "download": "Descargar",
-      "videoRender": "Render del video",
-      "dimension": {
-        "clarity": "Claridad",
-        "brandVoice": "Voz de marca",
-        "callToAction": "Llamada a la acción",
-        "safety": "Seguridad"
-      },
-      "missingPrompt": "Completa la instrucción para continuar.",
-      "jobQueued": "Trabajo añadido a la cola.",
-      "invalidReference": "Usa imágenes JPG, PNG o WEBP de máximo 30 MB.",
-      "referenceAdded": "Referencia añadida.",
-      "referenceFailed": "No pudimos subir la referencia.",
-      "objective": {
-        "inform": "Informar"
-      },
-      "format": "Formato",
       "tone": "Tono",
       "tones": {
         "cercano": "Cercano",
-        "experto": "Experto",
-        "directo": "Directo"
+        "directo": "Directo",
+        "experto": "Experto"
       },
-      "referenceHintVideo": "Hasta 9 imágenes para animación, personaje, estilo o escena.",
-      "referenceHintImage": "Hasta 10 imágenes para orientar estilo, composición o edición.",
-      "select": "Seleccionar",
-      "generationFailed": "La generación falló",
-      "providerFailed": "El proveedor no pudo completar el trabajo.",
-      "waiting": "Esperando turno",
-      "generatingResult": "Generando resultado",
-      "preview": "Vista previa"
+      "variantCopied": "Variante copiada",
+      "video": {
+        "button": "Generar video",
+        "placeholder": "Ejemplo: video vertical de 15 segundos mostrando la preparación del producto...",
+        "resultDescription": "Guion, escenas y render dentro del mismo trabajo.",
+        "resultTitle": "Proyecto de video"
+      },
+      "videoRender": "Render del video",
+      "waiting": "Esperando turno"
+    },
+    "errorRoute": {
+      "description": "Ninguna generación fue enviada ni se consumieron créditos.",
+      "retry": "Reintentar",
+      "title": "No se pudo cargar AI Studio"
+    },
+    "operations": {
+      "automation": {
+        "create": "Nueva automatización",
+        "createDescription": "Genera borradores; nunca publica sin revisión humana.",
+        "createTitle": "Nueva automatización",
+        "deleteTitle": "¿Eliminar esta automatización?",
+        "deleting": "Eliminando automatización",
+        "emptyDescription": "Crea una regla para producir borradores automáticamente.",
+        "emptyFilteredDescription": "Ajusta la búsqueda o el filtro de estado.",
+        "emptyTitle": "Aún no hay automatizaciones",
+        "errorDescription": "Las automatizaciones no respondieron. Inténtalo de nuevo para recuperar la lista.",
+        "filterStatusLabel": "Filtrar automatizaciones por estado",
+        "forbiddenDescription": "Tu rol no permite consultar ni administrar automatizaciones de este espacio.",
+        "frequencyColumn": "Frecuencia",
+        "humanApproval": "Aprobación humana activa",
+        "needsAccount": "Conecta primero una cuenta social para elegir un destino.",
+        "nextRunColumn": "Próxima ejecución",
+        "noAccounts": "Conecta una cuenta social para crear automatizaciones.",
+        "noneAvailable": "No hay automatizaciones disponibles para consultar.",
+        "pageDescription": "Crea reglas que generan borradores listos para revisión humana.",
+        "pageTitle": "Automatizaciones",
+        "prompt": "Instrucción",
+        "rule": "Automatización",
+        "rulesDescription": "Reglas que crean borradores y conservan la aprobación final en una persona.",
+        "rulesTitle": "Reglas",
+        "save": "Guardar automatización",
+        "saving": "Guardando automatización",
+        "searchLabel": "Buscar automatizaciones",
+        "searchPlaceholder": "Buscar automatizaciones...",
+        "selectAccount": "Selecciona una cuenta",
+        "targetAccount": "Cuenta de destino"
+      },
+      "automationStatus": {
+        "active": "Activas",
+        "all": "Todos los estados",
+        "draft": "Borradores",
+        "paused": "Pausadas"
+      },
+      "automationStatusBadge": {
+        "active": "Activa",
+        "draft": "Borrador",
+        "paused": "Pausada"
+      },
+      "creditType": {
+        "adjustment": "Ajustes",
+        "all": "Todos los movimientos",
+        "debit": "Consumos",
+        "grant": "Asignaciones",
+        "refund": "Reembolsos"
+      },
+      "creditTypeBadge": {
+        "adjustment": "Ajuste",
+        "debit": "Consumo",
+        "grant": "Asignación",
+        "refund": "Reembolso"
+      },
+      "credits": {
+        "alertThreshold": "Alerta al %",
+        "balance": "Saldo disponible",
+        "balanceHint": "créditos",
+        "budgetHint": "Vacío significa sin límite monetario.",
+        "budgetLimit": "Límite USD",
+        "budgetReadOnly": "Solo propietarios y administradores pueden cambiar este presupuesto.",
+        "budgetTitle": "Presupuesto mensual",
+        "costPerTool": "Costo por herramienta",
+        "creditsColumn": "Créditos",
+        "detailColumn": "Detalle",
+        "emptyDescription": "Los movimientos aparecerán cuando se asignen o consuman créditos.",
+        "emptyFilteredDescription": "Ajusta la búsqueda o el tipo de movimiento.",
+        "emptyTitle": "Aún no hay movimientos",
+        "errorDescription": "No pudimos recuperar el saldo ni los movimientos de créditos.",
+        "filterTypeLabel": "Filtrar movimientos por tipo",
+        "forbiddenDescription": "Tu rol no permite consultar el consumo de IA de este espacio.",
+        "movement": "Movimiento",
+        "movements": "Movimientos",
+        "movementsDescription": "Asignaciones, consumos, reembolsos y ajustes del espacio.",
+        "nextRenewal": "Próxima renovación",
+        "pageDescription": "Entiende el consumo de IA y controla el presupuesto de tu espacio de trabajo.",
+        "pageTitle": "Créditos y consumo",
+        "saveBudget": "Guardar presupuesto",
+        "savingBudget": "Guardando presupuesto",
+        "searchLabel": "Buscar movimientos de créditos",
+        "searchPlaceholder": "Buscar movimientos...",
+        "used": "Consumidos",
+        "usedHint": "en el ciclo"
+      },
+      "date": "Fecha",
+      "delete": "Eliminar",
+      "deleting": "Eliminando...",
+      "forbiddenTitle": "No tienes permiso para ver esta información",
+      "history": {
+        "description": "Resultados creados dentro de este espacio de trabajo.",
+        "emptyDescription": "Las nuevas generaciones aparecerán aquí cuando uses AI Studio.",
+        "emptyFilteredDescription": "Ajusta la búsqueda, el estado o la herramienta seleccionada.",
+        "emptyTitle": "Aún no hay generaciones",
+        "errorDescription": "El historial no respondió. Puedes volver a intentarlo sin perder tus filtros.",
+        "filterKindLabel": "Filtrar historial por herramienta",
+        "filterStatusLabel": "Filtrar historial por estado",
+        "forbiddenDescription": "Tu rol no permite consultar el historial de IA de este espacio.",
+        "generation": "Generación",
+        "pageDescription": "Encuentra, reutiliza y descarga cualquier generación anterior.",
+        "pageTitle": "Historial de IA",
+        "searchLabel": "Buscar generaciones",
+        "searchPlaceholder": "Buscar generaciones...",
+        "title": "Generaciones"
+      },
+      "historyStatus": {
+        "all": "Todos los estados",
+        "cancelled": "Cancelados",
+        "failed": "Fallidos",
+        "processing": "Procesando",
+        "queued": "En cola",
+        "succeeded": "Completados"
+      },
+      "historyStatusBadge": {
+        "cancelled": "Cancelado",
+        "failed": "Falló",
+        "processing": "Procesando",
+        "queued": "En cola",
+        "succeeded": "Completado"
+      },
+      "kind": {
+        "ai_publishing": "Publicación AI",
+        "all": "Todas las herramientas",
+        "content": "Contenido",
+        "image": "Imagen",
+        "planner": "Planificador",
+        "repurpose": "Reutilizar",
+        "review": "Revisión",
+        "search": "Investigación",
+        "timing": "Mejor hora",
+        "video": "Video"
+      },
+      "loadFailedTitle": "No pudimos cargar esta información",
+      "loadingRecords": "Cargando registros",
+      "noResults": "Sin resultados",
+      "processing": "Procesando acción",
+      "records": "registros",
+      "retry": "Reintentar",
+      "saving": "Guardando...",
+      "status": "Estado",
+      "tool": "Herramienta",
+      "type": "Tipo"
     },
     "pages": {
-      "planner": {
-        "missingGoal": "Completa el objetivo del plan.",
-        "queued": "Plan añadido a la cola.",
-        "goalTitle": "Objetivo del plan",
-        "goalPlaceholder": "Ejemplo: aumentar visitas al local durante agosto...",
-        "weeklyPlan": "Plan semanal",
-        "suggestedDate": "Fecha sugerida",
-        "ideaReady": "Idea lista",
-        "emptyIdeasTitle": "Sin ideas en el plan",
-        "emptyIdeasDescription": "El plan se generó sin ideas. Ajusta el objetivo y vuelve a intentarlo.",
-        "emptyTitle": "Crea tu primer plan",
-        "emptyDescription": "Completa el objetivo y la frecuencia."
-      },
-      "timing": {
-        "prompt": "Analiza el historial de rendimiento y recomienda las mejores horas para publicar.",
-        "queued": "Análisis añadido a la cola.",
-        "sampleWarning": "Recomendación basada en una muestra",
-        "mapTitle": "Mapa de oportunidades",
-        "lowOpportunity": "Menor oportunidad",
-        "highOpportunity": "Mayor oportunidad",
-        "perAccount": "Recomendaciones por cuenta",
-        "sampleCount": "{count, plural, one {# publicación en la muestra} other {# publicaciones en la muestra}}",
-        "confidence": {
-          "high": "Alta",
-          "medium": "Media",
-          "low": "Baja"
-        },
-        "emptyTitle": "Aún no hay análisis",
-        "emptyDescription": "Pulsa Actualizar análisis para calcular horarios.",
-        "insufficientSample": "Muestra insuficiente",
-        "sampleFound": "{count, plural, one {Se encontró # publicación con datos útiles.} other {Se encontraron # publicaciones con datos útiles.}}"
-      },
-      "research": {
-        "title": "Buscar señales",
-        "topicLabel": "Tema para investigar",
-        "topicPlaceholder": "Tema, palabra clave o competidor...",
-        "findings": "Hallazgos destacados",
-        "untitled": "Sin título",
-        "emptyTitle": "Busca dentro de tu contenido",
-        "emptyDescription": "Encuentra captions, borradores y generaciones anteriores.",
-        "noMatchesTitle": "Sin coincidencias",
-        "noMatchesDescription": "Prueba con otras palabras.",
-        "questions": "Preguntas de la audiencia",
-        "summary": "Resumen IA"
-      },
-      "settings": {
-        "loading": "Cargando configuración de IA",
-        "requireHumanReview": "Revisión antes de publicar",
-        "warnSensitiveClaims": "Advertir afirmaciones sensibles",
-        "redactPersonalData": "Ocultar datos personales",
-        "missingFields": "Completa los campos obligatorios.",
-        "saved": "Configuración de IA guardada.",
-        "brandVoice": "Voz de marca",
-        "preferences": "Preferencias",
-        "safety": "Seguridad",
-        "brandIdentity": "Identidad de la marca",
-        "wordsUse": "Palabras que sí usamos",
-        "wordsAvoid": "Palabras que evitamos",
-        "defaults": "Valores predeterminados",
-        "language": "Idioma",
-        "defaultTone": "Tono predeterminado",
-        "safetyControls": "Controles de seguridad"
-      },
+      "actionColumn": "Acción",
       "operational": {
-        "noPrompt": "Sin instrucción",
-        "nothingToExport": "No hay filas para exportar.",
-        "export": "Exportar",
+        "automationCreated": "Automatización creada.",
+        "automationDeleted": "Automatización eliminada.",
+        "budgetForbidden": "Tu rol no permite cambiar el presupuesto de este espacio.",
+        "budgetSaved": "Presupuesto guardado.",
         "download": "Descargar",
+        "export": "Exportar",
         "frequency": {
           "daily": "Diario",
           "weekly": "Semanal"
         },
-        "missingFields": "Completa todos los campos obligatorios.",
-        "automationCreated": "Automatización creada.",
-        "runQueued": "Ejecución añadida a la cola.",
-        "automationDeleted": "Automatización eliminada.",
         "invalidBudget": "Revisa el presupuesto y el porcentaje de alerta.",
-        "budgetSaved": "Presupuesto guardado.",
-        "budgetForbidden": "Tu rol no permite cambiar el presupuesto de este espacio.",
+        "missingFields": "Completa todos los campos obligatorios.",
+        "noDate": "Sin fecha",
         "noMovements": "No hay movimientos para exportar.",
+        "noPrompt": "Sin instrucción",
+        "nothingToExport": "No hay filas para exportar.",
+        "runQueued": "Ejecución añadida a la cola.",
+        "unlimited": "Sin límite"
+      },
+      "planner": {
+        "daily": "Una publicación diaria",
+        "description": "Convierte un objetivo en un plan editorial equilibrado y listo para producir.",
+        "duration": "Duración",
+        "emptyDescription": "Completa el objetivo y la frecuencia.",
+        "emptyIdeasDescription": "El plan se generó sin ideas. Ajusta el objetivo y vuelve a intentarlo.",
+        "emptyIdeasTitle": "Sin ideas en el plan",
+        "emptyTitle": "Crea tu primer plan",
+        "goalDescription": "Define el resultado y la frecuencia deseada.",
+        "goalPlaceholder": "Ejemplo: aumentar visitas al local durante agosto...",
+        "goalTitle": "Objetivo del plan",
+        "ideaReady": "Idea lista",
+        "missingGoal": "Completa el objetivo del plan.",
+        "queued": "Plan añadido a la cola.",
+        "suggestedDate": "Fecha sugerida",
+        "title": "Planificador inteligente",
+        "weeklyPlan": "Plan semanal",
+        "weeklyPlanDescription": "Propuesta equilibrada por canal, formato y objetivo."
+      },
+      "research": {
+        "description": "Combina tendencias, formatos y preguntas frecuentes.",
+        "emptyDescription": "Encuentra captions, borradores y generaciones anteriores.",
+        "emptyTitle": "Busca dentro de tu contenido",
+        "findings": "Hallazgos destacados",
+        "findingsDescription": "Resultados priorizados por relevancia y crecimiento.",
+        "noMatchesDescription": "Prueba con otras palabras.",
+        "noMatchesTitle": "Sin coincidencias",
+        "questions": "Preguntas de la audiencia",
+        "questionsDescription": "Ideas detectadas alrededor del tema.",
+        "summary": "Resumen IA",
+        "title": "Buscar señales",
+        "topicLabel": "Tema para investigar",
+        "topicPlaceholder": "Tema, palabra clave o competidor...",
+        "untitled": "Sin título"
+      },
+      "settings": {
+        "brandDescription": "Descripción",
+        "brandIdentity": "Identidad de la marca",
+        "brandIdentityDescription": "La IA usará esta información en cada herramienta.",
+        "brandName": "Nombre de marca",
+        "brandVoice": "Voz de marca",
+        "defaultTone": "Tono predeterminado",
+        "defaults": "Valores predeterminados",
+        "description": "Define la voz, el idioma y las reglas que guían todas las generaciones.",
+        "language": "Idioma",
+        "loading": "Cargando configuración de IA",
+        "missingFields": "Completa los campos obligatorios.",
+        "preferences": "Preferencias",
+        "redactPersonalData": "Ocultar datos personales",
+        "requireHumanReview": "Revisión antes de publicar",
+        "safety": "Seguridad",
+        "safetyControls": "Controles de seguridad",
+        "save": "Guardar configuración",
+        "saved": "Configuración de IA guardada.",
+        "title": "Configuración de IA",
+        "warnSensitiveClaims": "Advertir afirmaciones sensibles",
+        "wordsAvoid": "Palabras que evitamos",
+        "wordsUse": "Palabras que sí usamos"
+      },
+      "timing": {
+        "confidence": {
+          "high": "Alta",
+          "low": "Baja",
+          "medium": "Media"
+        },
+        "description": "Descubre cuándo publicar según el rendimiento real de tus cuentas.",
+        "emptyDescription": "Pulsa Actualizar análisis para calcular horarios.",
+        "emptyTitle": "Aún no hay análisis",
+        "highOpportunity": "Mayor oportunidad",
+        "insufficientSample": "Muestra insuficiente",
+        "lowOpportunity": "Menor oportunidad",
+        "mapDescription": "Más intensidad significa mayor probabilidad de rendimiento.",
+        "mapTitle": "Mapa de oportunidades",
+        "perAccount": "Recomendaciones por cuenta",
+        "perAccountDescription": "La mejor ventana próxima para cada audiencia.",
+        "prompt": "Analiza el historial de rendimiento y recomienda las mejores horas para publicar.",
+        "queued": "Análisis añadido a la cola.",
+        "sampleCount": "{count, plural, one {# publicación en la muestra} other {# publicaciones en la muestra}}",
+        "sampleFound": "{count, plural, one {Se encontró # publicación con datos útiles.} other {Se encontraron # publicaciones con datos útiles.}}",
+        "sampleWarning": "Recomendación basada en una muestra",
+        "title": "Mejor hora para publicar"
+      }
+    },
+    "studio": {
+      "actions": "Acciones",
+      "actionsFor": "Acciones para {title}",
+      "all": "Todos",
+      "archive": "Archivar",
+      "archived": "Generación archivada.",
+      "clear": "Limpiar",
+      "clearFilters": "Limpiar filtros",
+      "credits": "{count, plural, one {# crédito} other {# créditos}}",
+      "emptyDescription": "Elige una herramienta para crear el primer resultado.",
+      "emptyFilteredDescription": "Prueba con otro término, tipo o estado.",
+      "filterKind": "Filtrar por tipo",
+      "filterStatus": "Filtrar por estado",
+      "generations": "generaciones",
+      "loadFailedDescription": "No pudimos cargar la actividad del espacio.",
+      "loadFailedTitle": "AI Studio no disponible",
+      "loading": "Cargando AI Studio",
+      "metrics": {
+        "credits": "Créditos disponibles",
+        "currentCycle": "Durante el ciclo actual",
+        "drafts": "Borradores creados",
+        "inProgress": "En proceso",
+        "queued": "{count, plural, one {# en cola} other {# en cola}}",
+        "readyForReview": "Listos para revisión humana",
+        "succeeded": "Generaciones correctas",
         "unlimited": "Sin límite",
-        "noDate": "Sin fecha"
+        "usedInCycle": "{count, plural, one {# usado en el ciclo} other {# usados en el ciclo}}"
+      },
+      "noMatches": "No hay coincidencias",
+      "noResultYet": "La generación todavía no tiene resultado.",
+      "pickToolDescription": "Elige una herramienta y parte de una estructura preparada.",
+      "pickToolTitle": "¿Qué quieres crear?",
+      "preview": "Vista previa",
+      "processing": "Procesando acción",
+      "recentActivity": "Actividad reciente",
+      "retry": "Reintentar",
+      "retryQueued": "La generación volvió a la cola.",
+      "usage": "Consumo"
+    },
+    "tools": {
+      "content": {
+        "description": "Publicaciones, anuncios y textos por canal.",
+        "label": "Contenido",
+        "placeholder": "Describe la publicación que necesitas…",
+        "promptLabel": "Brief"
+      },
+      "duration": {
+        "12": "12 segundos",
+        "4": "4 segundos",
+        "8": "8 segundos"
+      },
+      "field": {
+        "aspectRatio": "Proporción",
+        "callToAction": "Llamada a la acción",
+        "duration": "Duración",
+        "durationDays": "Días",
+        "frequencyPerWeek": "Publicaciones por semana",
+        "historyDays": "Días de histórico",
+        "includeHashtags": "Incluir hashtags",
+        "language": "Idioma",
+        "limit": "Resultados",
+        "objective": "Objetivo",
+        "optional": "Opcional",
+        "platforms": "Plataformas",
+        "quality": "Calidad",
+        "searchIn": "Dónde buscar",
+        "startDate": "Fecha inicial",
+        "targetPlatforms": "Plataformas destino",
+        "timezone": "Zona horaria",
+        "tone": "Tono",
+        "variantCount": "Variantes"
+      },
+      "image": {
+        "description": "Imágenes generadas o editadas desde una referencia.",
+        "label": "Imagen",
+        "placeholder": "Describe la imagen que quieres generar…",
+        "promptLabel": "Prompt"
+      },
+      "language": {
+        "en": "Inglés",
+        "es": "Español",
+        "pt": "Portugués"
+      },
+      "planner": {
+        "description": "Calendario de contenidos por días y frecuencia.",
+        "label": "Planificador",
+        "placeholder": "Describe la campaña que quieres planificar…",
+        "promptLabel": "Brief de campaña"
+      },
+      "platform": {
+        "email": "Correo",
+        "facebook": "Facebook",
+        "instagram": "Instagram",
+        "linkedin": "LinkedIn",
+        "tiktok": "TikTok",
+        "x": "X",
+        "youtube": "YouTube"
+      },
+      "quality": {
+        "high": "Alta",
+        "low": "Baja",
+        "medium": "Media"
+      },
+      "ratio": {
+        "horizontal": "Horizontal 16:9",
+        "square": "Cuadrada 1:1",
+        "vertical": "Vertical 9:16"
+      },
+      "repurpose": {
+        "description": "Adapta contenido existente a otros canales.",
+        "label": "Reutilizar",
+        "placeholder": "Pega el contenido original que quieres adaptar…",
+        "promptLabel": "Contenido original"
+      },
+      "review": {
+        "description": "Analiza un texto y propone correcciones.",
+        "label": "Revisión",
+        "placeholder": "Pega el contenido que quieres analizar…",
+        "promptLabel": "Contenido para analizar"
+      },
+      "search": {
+        "description": "Busca dentro de tu contenido y generaciones previas.",
+        "label": "Investigación",
+        "placeholder": "¿Qué quieres encontrar?",
+        "promptLabel": "Consulta"
+      },
+      "searchType": {
+        "ai_request": "Generaciones",
+        "caption": "Captions",
+        "publishing_post": "Publicaciones"
+      },
+      "timing": {
+        "description": "Mejores horarios según tu histórico de publicación.",
+        "label": "Mejor horario",
+        "placeholder": "Indica qué cuentas o campaña quieres analizar…",
+        "promptLabel": "Contexto"
+      },
+      "tone": {
+        "cercano": "Cercano",
+        "directo": "Directo",
+        "divertido": "Divertido",
+        "inspirador": "Inspirador",
+        "profesional": "Profesional"
+      },
+      "video": {
+        "description": "Video corto desde texto o desde una referencia.",
+        "label": "Video",
+        "placeholder": "Describe el video que quieres generar…",
+        "promptLabel": "Prompt"
+      }
+    },
+    "views": {
+      "automation": {
+        "description": "Crea reglas que investigan, generan y dejan borradores listos para revisión.",
+        "title": "Automatizaciones"
+      },
+      "content": {
+        "description": "Genera publicaciones consistentes con tu voz de marca y cada canal.",
+        "title": "Contenido con IA"
+      },
+      "credits": {
+        "description": "Entiende el consumo de IA y controla el presupuesto de tu espacio de trabajo.",
+        "title": "Créditos y consumo"
+      },
+      "history": {
+        "description": "Encuentra, reutiliza y descarga cualquier generación anterior.",
+        "title": "Historial de IA"
+      },
+      "image": {
+        "description": "Crea piezas visuales desde una idea, una referencia o una campaña.",
+        "title": "Generador de imágenes"
+      },
+      "overview": {
+        "description": "Crea, investiga y mejora contenido desde un solo lugar.",
+        "title": "AI Studio"
+      },
+      "repurpose": {
+        "description": "Transforma una pieza existente en variantes nativas para cada red.",
+        "title": "Reutilizar contenido"
+      },
+      "review": {
+        "description": "Detecta problemas de claridad, marca, cumplimiento y rendimiento antes de publicar.",
+        "title": "Revisión inteligente"
+      },
+      "search": {
+        "description": "Explora tendencias, preguntas e ideas con señales útiles para crear contenido.",
+        "title": "Investigación asistida"
+      },
+      "video": {
+        "description": "Diseña el guion, las escenas y el clip final sin salir del flujo de trabajo.",
+        "title": "Generador de video"
       }
     }
   },

@@ -596,9 +596,9 @@ function Overview() {
 
       <section className="flex flex-col gap-3">
         <div>
-          <h2 className="font-heading font-medium">¿Qué quieres crear?</h2>
+          <h2 className="font-heading font-medium">{t("pickToolTitle")}</h2>
           <p className="text-sm text-muted-foreground">
-            Elige una herramienta y parte de una estructura preparada.
+            {t("pickToolDescription")}
           </p>
         </div>
         <CardGrid>
@@ -769,9 +769,7 @@ function VideoResult({ request }: { request: PortalAiRequest }) {
           <span className="text-muted-foreground">{request.progress}%</span>
         </div>
         <Progress value={request.progress} />
-        <p className="text-xs text-muted-foreground">
-          Puedes salir de esta página. El trabajo seguirá en segundo plano.
-        </p>
+        <p className="text-xs text-muted-foreground">{t("backgroundWork")}</p>
       </div>
     )
   }
@@ -1067,15 +1065,13 @@ function CreationWorkspace({ view }: { view: CreationView }) {
           <Card variant="subtle">
             <CardHeader>
               <CardTitle>{t(creationTitleKey(view))}</CardTitle>
-              <CardDescription>
-                La información sensible no debe incluirse en la instrucción.
-              </CardDescription>
+              <CardDescription>{t("sensitiveDataHint")}</CardDescription>
             </CardHeader>
             <CardContent>
               <FieldGroup>
                 <Field>
                   <FieldLabel htmlFor={`${view}-brief`}>
-                    Instrucción <RequiredMark />
+                    {t("brief")} <RequiredMark />
                   </FieldLabel>
                   <Textarea
                     id={`${view}-brief`}
@@ -1103,7 +1099,7 @@ function CreationWorkspace({ view }: { view: CreationView }) {
                         <SelectContent>
                           <SelectGroup>
                             <SelectItem value="engagement">
-                              Generar interacción
+                              {t("goal.engagement")}
                             </SelectItem>
                             <SelectItem value="sales">
                               Impulsar ventas
@@ -1167,7 +1163,7 @@ function CreationWorkspace({ view }: { view: CreationView }) {
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-medium">
-                          Añadir referencias
+                          {t("addReferences")}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {view === "video"
@@ -1256,7 +1252,7 @@ function CreationWorkspace({ view }: { view: CreationView }) {
                 </div>
                 <div>
                   <p className="text-sm font-medium">
-                    Aquí aparecerá el resultado
+                    {t("resultPlaceholder")}
                   </p>
                   <p className="mt-1 max-w-sm text-sm text-muted-foreground">
                     Completa la instrucción y genera una primera versión.
@@ -1333,9 +1329,7 @@ function Planner() {
           <Card variant="subtle">
             <CardHeader>
               <CardTitle>{t("planner.goalTitle")}</CardTitle>
-              <CardDescription>
-                Define el resultado y la frecuencia deseada.
-              </CardDescription>
+              <CardDescription>{t("planner.goalDescription")}</CardDescription>
             </CardHeader>
             <CardContent>
               <FieldGroup>
@@ -1353,7 +1347,7 @@ function Planner() {
                 </Field>
                 <Field>
                   <FieldLabel>
-                    Duración <RequiredMark />
+                    {t("planner.duration")} <RequiredMark />
                   </FieldLabel>
                   <Select value={durationDays} onValueChange={setDurationDays}>
                     <SelectTrigger className="w-full">
@@ -1384,9 +1378,7 @@ function Planner() {
                         <SelectItem value="4">
                           4 publicaciones por semana
                         </SelectItem>
-                        <SelectItem value="7">
-                          Una publicación diaria
-                        </SelectItem>
+                        <SelectItem value="7">{t("planner.daily")}</SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>
@@ -1417,7 +1409,7 @@ function Planner() {
           <CardHeader>
             <CardTitle>{t("planner.weeklyPlan")}</CardTitle>
             <CardDescription>
-              Propuesta equilibrada por canal, formato y objetivo.
+              {t("planner.weeklyPlanDescription")}
             </CardDescription>
             <CardAction>
               <Badge variant="secondary">{ideas.length} ideas</Badge>
@@ -1438,7 +1430,9 @@ function Planner() {
                         Formato
                       </TableHead>
                       <TableHead>{tOps("status")}</TableHead>
-                      <TableHead className="text-right">Acción</TableHead>
+                      <TableHead className="text-right">
+                        {t("actionColumn")}
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1602,9 +1596,7 @@ function Timing() {
         <Card variant="subtle">
           <CardHeader>
             <CardTitle>{t("timing.mapTitle")}</CardTitle>
-            <CardDescription>
-              Más intensidad significa mayor probabilidad de rendimiento.
-            </CardDescription>
+            <CardDescription>{t("timing.mapDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -1645,7 +1637,7 @@ function Timing() {
           <CardHeader>
             <CardTitle>{t("timing.perAccount")}</CardTitle>
             <CardDescription>
-              La mejor ventana próxima para cada audiencia.
+              {t("timing.perAccountDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
@@ -1737,9 +1729,7 @@ function Research() {
       <Card variant="subtle">
         <CardHeader>
           <CardTitle>{t("research.title")}</CardTitle>
-          <CardDescription>
-            Combina tendencias, formatos y preguntas frecuentes.
-          </CardDescription>
+          <CardDescription>{t("research.description")}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-2 md:flex-row">
@@ -1769,7 +1759,7 @@ function Research() {
           <CardHeader>
             <CardTitle>{t("research.findings")}</CardTitle>
             <CardDescription>
-              Resultados priorizados por relevancia y crecimiento.
+              {t("research.findingsDescription")}
             </CardDescription>
             <CardAction>
               <Button size="sm" variant="brand-secondary">
@@ -1829,7 +1819,7 @@ function Research() {
             <CardHeader>
               <CardTitle>{t("research.questions")}</CardTitle>
               <CardDescription>
-                Ideas detectadas alrededor del tema.
+                {t("research.questionsDescription")}
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-2">
@@ -1938,7 +1928,7 @@ function FunctionalSettings() {
             <CardHeader>
               <CardTitle>{t("settings.brandIdentity")}</CardTitle>
               <CardDescription>
-                La IA usará esta información en cada herramienta.
+                {t("settings.brandIdentityDescription")}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -1946,7 +1936,7 @@ function FunctionalSettings() {
                 <div className="grid gap-4 md:grid-cols-2">
                   <Field>
                     <FieldLabel>
-                      Nombre de marca <RequiredMark />
+                      {t("settings.brandName")} <RequiredMark />
                     </FieldLabel>
                     <Input
                       value={settings.brandName}
@@ -1969,7 +1959,7 @@ function FunctionalSettings() {
                 </div>
                 <Field>
                   <FieldLabel>
-                    Descripción <RequiredMark />
+                    {t("settings.brandDescription")} <RequiredMark />
                   </FieldLabel>
                   <Textarea
                     rows={4}
@@ -2091,7 +2081,7 @@ function FunctionalSettings() {
           }
           onClick={() => void save()}
         >
-          <Save data-icon="inline-start" /> Guardar configuración
+          <Save data-icon="inline-start" /> {t("settings.save")}
         </Button>
       </div>
     </div>
