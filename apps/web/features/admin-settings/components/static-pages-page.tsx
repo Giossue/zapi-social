@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState, type FormEvent } from "react"
+import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import {
   CircleAlert,
@@ -99,6 +100,7 @@ function slugify(value: string) {
 }
 
 export function StaticPagesSettingsPage() {
+  const t = useTranslations("staticPages")
   const router = useRouter()
   const [pages, setPages] = useState<AdminStaticPage[] | null>(null)
   const [query, setQuery] = useState("")
@@ -157,7 +159,7 @@ export function StaticPagesSettingsPage() {
     } catch (error) {
       if (handleError(error)) return false
       console.error("Static pages save failed", error)
-      toast.error("No pudimos guardar las páginas. Inténtalo de nuevo.")
+      toast.error(t("saveFailed"))
       return false
     } finally {
       setPending(false)
@@ -169,7 +171,7 @@ export function StaticPagesSettingsPage() {
     if (!pages) return
     const slug = draft.slug.trim() || slugify(draft.title)
     if (!draft.title.trim() || !slug) {
-      toast.error("La página necesita título.")
+      toast.error(t("titleRequired"))
       return
     }
     const entry = { ...draft, slug }
@@ -177,7 +179,7 @@ export function StaticPagesSettingsPage() {
       (page) => page.slug === slug && page.slug !== editingSlug
     )
     if (collides) {
-      toast.error("Ya existe una página con esa dirección.")
+      toast.error(t("slugTaken"))
       return
     }
     const next = editingSlug
@@ -185,7 +187,7 @@ export function StaticPagesSettingsPage() {
       : [...pages, entry]
     if (await persist(next)) {
       setIsSheetOpen(false)
-      toast.success(editingSlug ? "Página actualizada." : "Página creada.")
+      toast.success(editingSlug ? t("updated") : t("created"))
     }
   }
 
@@ -193,7 +195,7 @@ export function StaticPagesSettingsPage() {
     if (!pages) return
     if (await persist(pages.filter((item) => item.slug !== page.slug))) {
       setToDelete(null)
-      toast.success("Página eliminada.")
+      toast.success(t("deleted"))
     }
   }
 
@@ -202,9 +204,9 @@ export function StaticPagesSettingsPage() {
       <Card variant="subtle">
         <CardContent>
           <EmptyState
-            description="Solicita a un administrador el permiso necesario para editar las páginas."
+            description={t("forbiddenDescription")}
             icon={ShieldCheck}
-            title="Páginas no disponibles"
+            title={t("unavailable")}
           />
         </CardContent>
       </Card>
@@ -212,7 +214,7 @@ export function StaticPagesSettingsPage() {
   }
 
   if (isLoading && !pages) {
-    return <PageLoading aria-label="Cargando páginas estáticas" />
+    return <PageLoading aria-label={t("loading")} />
   }
 
   if (loadError || !pages) {
@@ -226,9 +228,9 @@ export function StaticPagesSettingsPage() {
                 variant="brand-secondary"
               />
             }
-            description="No pudimos cargar las páginas estáticas."
+            description={t("loadFailed")}
             icon={CircleAlert}
-            title="Páginas no disponibles"
+            title={t("unavailable")}
           />
         </CardContent>
       </Card>
@@ -273,10 +275,7 @@ export function StaticPagesSettingsPage() {
   return (
     <>
       <div className="flex flex-col gap-4">
-        <CollectionHeader
-          description="Contenido legal e informativo que se publica fuera del Portal."
-          title="Páginas estáticas"
-        />
+        <CollectionHeader description={t("description")} title={t("title")} />
         <Card variant="subtle">
           <DataTableHeader
             action={
@@ -286,16 +285,16 @@ export function StaticPagesSettingsPage() {
                 size="sm"
                 type="button"
               >
-                <Plus data-icon="inline-start" /> Nueva página
+                <Plus data-icon="inline-start" /> {t("create")}
               </Button>
             }
             search={{
-              ariaLabel: "Buscar páginas",
+              ariaLabel: t("searchAria"),
               onChange: (value) => {
                 setQuery(value)
                 setCurrentPage(1)
               },
-              placeholder: "Buscar páginas...",
+              placeholder: t("searchPlaceholder"),
               value: query,
             }}
           />
@@ -309,22 +308,22 @@ export function StaticPagesSettingsPage() {
                     type="button"
                     variant="outline"
                   >
-                    <X /> Limpiar
+                    <X /> {t("clear")}
                   </Button>
                 ) : undefined
               }
             >
               <DataTableFilter
-                ariaLabel="Filtrar por estado"
-                label="Estado"
+                ariaLabel={t("filterStatus")}
+                label={t("statusColumn")}
                 onValueChange={(value) => {
                   setStatusFilter(value as PublicationFilter)
                   setCurrentPage(1)
                 }}
                 options={[
-                  { label: "Todas", value: "all" },
-                  { label: "Publicadas", value: "published" },
-                  { label: "Borradores", value: "draft" },
+                  { label: t("filter.all"), value: "all" },
+                  { label: t("filter.published"), value: "published" },
+                  { label: t("filter.draft"), value: "draft" },
                 ]}
                 value={statusFilter}
               />
@@ -332,9 +331,9 @@ export function StaticPagesSettingsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Página</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
+                  <TableHead>{t("pageColumn")}</TableHead>
+                  <TableHead>{t("statusColumn")}</TableHead>
+                  <TableHead className="text-right">{t("actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -353,14 +352,16 @@ export function StaticPagesSettingsPage() {
                         <Badge
                           variant={page.isPublished ? "success" : "neutral"}
                         >
-                          {page.isPublished ? "Publicada" : "Borrador"}
+                          {page.isPublished ? t("published") : t("draft")}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
-                              aria-label={`Abrir acciones para ${page.title}`}
+                              aria-label={t("openActions", {
+                                title: page.title,
+                              })}
                               className="size-8 rounded-md text-muted-foreground hover:bg-muted/50"
                               size="icon-sm"
                               variant="brand-secondary"
@@ -378,7 +379,7 @@ export function StaticPagesSettingsPage() {
                               size="compact"
                             >
                               <Pencil />
-                              Editar
+                              {t("edit")}
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
@@ -387,7 +388,7 @@ export function StaticPagesSettingsPage() {
                               variant="destructive"
                             >
                               <Trash2 />
-                              Eliminar
+                              {t("delete")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -399,19 +400,17 @@ export function StaticPagesSettingsPage() {
                     action={
                       hasFilters ? (
                         <Button onClick={clearFilters} variant="outline">
-                          Restablecer filtros
+                          {t("resetFilters")}
                         </Button>
                       ) : null
                     }
                     colSpan={3}
                     description={
                       hasFilters
-                        ? "Prueba con otro término o estado."
-                        : "Crea páginas como términos de servicio o privacidad."
+                        ? t("emptyFilteredDescription")
+                        : t("emptyDescription")
                     }
-                    title={
-                      hasFilters ? "No hay coincidencias" : "No hay páginas"
-                    }
+                    title={hasFilters ? t("noMatches") : t("emptyTitle")}
                   />
                 )}
               </TableBody>
@@ -419,7 +418,7 @@ export function StaticPagesSettingsPage() {
             <TablePagination
               canGoNext={safePage < pageCount}
               canGoPrevious={safePage > 1}
-              itemLabel="páginas"
+              itemLabel={t("itemLabel")}
               onNextPage={() =>
                 setCurrentPage((current) => Math.min(current + 1, pageCount))
               }
@@ -432,18 +431,16 @@ export function StaticPagesSettingsPage() {
             />
           </CardContent>
         </Card>
-        <FloatingActionButton label="Nueva página" onClick={openCreate} />
+        <FloatingActionButton label={t("create")} onClick={openCreate} />
       </div>
 
       <Sheet onOpenChange={setIsSheetOpen} open={isSheetOpen}>
         <SheetContent className="w-full gap-0 p-0 sm:max-w-2xl" side="right">
           <SheetHeader className="border-b">
             <SheetTitle>
-              {editingSlug ? "Editar página" : "Nueva página"}
+              {editingSlug ? t("editTitle") : t("create")}
             </SheetTitle>
-            <SheetDescription>
-              La dirección se genera desde el título si la dejas vacía.
-            </SheetDescription>
+            <SheetDescription>{t("sheetDescription")}</SheetDescription>
           </SheetHeader>
           <form
             aria-busy={pending}
@@ -472,7 +469,7 @@ export function StaticPagesSettingsPage() {
                   />
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor="page-slug">Dirección</FieldLabel>
+                  <FieldLabel htmlFor="page-slug">{t("slug")}</FieldLabel>
                   <Input
                     disabled={pending}
                     id="page-slug"
@@ -482,12 +479,10 @@ export function StaticPagesSettingsPage() {
                     placeholder="terminos-de-servicio"
                     value={draft.slug}
                   />
-                  <FieldDescription>
-                    Solo minúsculas, números y guiones.
-                  </FieldDescription>
+                  <FieldDescription>{t("slugHint")}</FieldDescription>
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor="page-content">Contenido</FieldLabel>
+                  <FieldLabel htmlFor="page-content">{t("content")}</FieldLabel>
                   <Textarea
                     disabled={pending}
                     id="page-content"
@@ -509,10 +504,8 @@ export function StaticPagesSettingsPage() {
                   />
                   <FieldLabel htmlFor="page-published">
                     <FieldContent>
-                      <FieldTitle>Publicada</FieldTitle>
-                      <FieldDescription>
-                        Solo las publicadas son visibles fuera del Portal.
-                      </FieldDescription>
+                      <FieldTitle>{t("published")}</FieldTitle>
+                      <FieldDescription>{t("publishedHint")}</FieldDescription>
                     </FieldContent>
                   </FieldLabel>
                 </Field>
@@ -525,7 +518,7 @@ export function StaticPagesSettingsPage() {
                 type="button"
                 variant="brand-secondary"
               >
-                Cancelar
+                {t("cancel")}
               </Button>
               <Button disabled={pending || !draft.title.trim()} type="submit">
                 {pending ? (
@@ -533,7 +526,7 @@ export function StaticPagesSettingsPage() {
                 ) : (
                   <Plus data-icon="inline-start" />
                 )}
-                Guardar página
+                {t("save")}
               </Button>
             </SheetFooter>
           </form>
@@ -546,13 +539,17 @@ export function StaticPagesSettingsPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar “{toDelete?.title}”?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("deleteTitle", { title: toDelete?.title ?? "" })}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              La página dejará de estar disponible en su dirección pública.
+              {t("deleteDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={pending}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={pending}>
+              {t("cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               disabled={pending}
               onClick={(event) => {
@@ -562,7 +559,7 @@ export function StaticPagesSettingsPage() {
               variant="destructive"
             >
               {pending ? <Spinner data-icon="inline-start" /> : null}
-              Eliminar
+              {t("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

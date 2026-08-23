@@ -9,6 +9,7 @@ import {
   adminStaticPagesSettingsSchema,
   type AdminCacheState,
   type AdminScheduledJobs,
+  type AdminScheduledQueue,
 } from '@workspace/contracts';
 import { Redis } from 'ioredis';
 import type { ZodType } from 'zod';
@@ -22,18 +23,16 @@ const groupSchemas = {
   'static-pages': adminStaticPagesSettingsSchema,
 } satisfies Record<string, ZodType>;
 
+/** El rótulo de cada cola lo pone la interfaz a partir de su nombre. */
 const scheduledQueues = [
-  { queue: 'rss-schedule-dispatch', name: 'Despacho de programaciones RSS' },
-  { queue: 'ai-schedule-dispatch', name: 'Despacho de publicaciones AI' },
-  { queue: 'automation-webhooks', name: 'Envío de webhooks de automatización' },
-  { queue: 'meta-profile-schedule', name: 'Sincronización de perfiles Meta' },
-  {
-    queue: 'whatsapp-profile-schedule',
-    name: 'Sincronización de perfiles WhatsApp',
-  },
-  { queue: 'file-imports', name: 'Importaciones de archivos' },
-  { queue: 'file-derivatives', name: 'Miniaturas y derivados' },
-];
+  { queue: 'rss-schedule-dispatch' },
+  { queue: 'ai-schedule-dispatch' },
+  { queue: 'automation-webhooks' },
+  { queue: 'meta-profile-schedule' },
+  { queue: 'whatsapp-profile-schedule' },
+  { queue: 'file-imports' },
+  { queue: 'file-derivatives' },
+] as const satisfies readonly { queue: AdminScheduledQueue }[];
 
 const cachePurgeKey = 'cache:last-purged-at';
 
@@ -147,7 +146,6 @@ export class PlatformSettingsService {
           const everyMs = everyMatch ? Number(everyMatch[1]) : NaN;
           return {
             queue: entry.queue,
-            name: entry.name,
             everyMinutes:
               Number.isFinite(everyMs) && everyMs >= 60_000
                 ? Math.round(everyMs / 60_000)

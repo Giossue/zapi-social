@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useFormatter, useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import { CircleAlert, Clock, Database, ShieldCheck, Trash2 } from "lucide-react"
 
@@ -27,14 +28,6 @@ import {
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { toast } from "@workspace/ui/components/toast"
 import { loginPath } from "@/features/identity/login-redirect"
-
-function formatDateTime(value: string | null) {
-  if (!value) return "Nunca"
-  return new Intl.DateTimeFormat("es-EC", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value))
-}
 
 function useAdminResource<T>(load: () => Promise<T>, label: string) {
   const router = useRouter()
@@ -92,21 +85,22 @@ function StateGuard({
   ready: boolean
   title: string
 }) {
+  const t = useTranslations("infrastructure")
   if (forbidden) {
     return (
       <Card variant="subtle">
         <CardContent>
           <EmptyState
-            description="Solicita a un administrador el permiso necesario para ver esta información."
+            description={t("forbiddenDescription")}
             icon={ShieldCheck}
-            title={`${title} no disponible`}
+            title={t("unavailable", { section: title })}
           />
         </CardContent>
       </Card>
     )
   }
   if (isLoading && !ready) {
-    return <PageLoading aria-label={`Cargando ${title.toLowerCase()}`} />
+    return <PageLoading aria-label={t("loading", { section: title })} />
   }
   if (loadError || !ready) {
     return (
@@ -114,9 +108,9 @@ function StateGuard({
         <CardContent>
           <EmptyState
             action={<RetryButton onClick={onRetry} variant="brand-secondary" />}
-            description="No pudimos consultar el estado de la infraestructura."
+            description={t("loadFailed")}
             icon={CircleAlert}
-            title={`${title} no disponible`}
+            title={t("unavailable", { section: title })}
           />
         </CardContent>
       </Card>
@@ -126,23 +120,24 @@ function StateGuard({
 }
 
 export function CacheSettingsPage() {
+  const t = useTranslations("infrastructure")
+  const format = useFormatter()
   const { data, forbidden, isLoading, loadError, refresh, setData } =
-    useAdminResource<AdminCacheState>(() => adminSettingsApi.cache(), "Caché")
+    useAdminResource<AdminCacheState>(
+      () => adminSettingsApi.cache(),
+      t("cache.title")
+    )
   const [pending, setPending] = useState(false)
 
   async function purge() {
     setPending(true)
     try {
       const result = await adminSettingsApi.purgeCache()
-      toast.success(
-        result.removed
-          ? `Se vaciaron ${result.removed} claves de caché.`
-          : "No había claves de caché que vaciar."
-      )
+      toast.success(t("cache.purged", { count: result.removed }))
       setData(await adminSettingsApi.cache())
     } catch (error) {
       console.error("Cache purge failed", error)
-      toast.error("No pudimos vaciar la caché. Inténtalo de nuevo.")
+      toast.error(t("cache.purgeFailed"))
     } finally {
       setPending(false)
     }
@@ -155,40 +150,45 @@ export function CacheSettingsPage() {
       loadError={loadError}
       onRetry={() => void refresh()}
       ready={Boolean(data)}
-      title="Caché"
+      title={t("cache.title")}
     >
       <div className="flex flex-col gap-4">
         <CollectionHeader
-          description="Estado de Redis y vaciado de la caché de aplicación."
-          title="Caché"
+          description={t("cache.description")}
+          title={t("cache.title")}
         />
         <CardGrid layout="md-3">
           <MetricCard
-            description="Claves almacenadas ahora"
+            description={t("cache.keysHint")}
             icon={Database}
-            label="Claves"
+            label={t("cache.keys")}
             value={data?.keys ?? 0}
           />
           <MetricCard
-            description="Memoria usada por Redis"
+            description={t("cache.memoryHint")}
             icon={Database}
-            label="Memoria"
+            label={t("cache.memory")}
             value={data?.memoryUsed ?? "—"}
           />
           <MetricCard
-            description="Última limpieza registrada"
+            description={t("cache.lastPurgeHint")}
             icon={Clock}
-            label="Último vaciado"
-            value={formatDateTime(data?.lastPurgedAt ?? null)}
+            label={t("cache.lastPurge")}
+            value={
+              data?.lastPurgedAt
+                ? format.dateTime(new Date(data.lastPurgedAt), "dateTime")
+                : t("never")
+            }
           />
         </CardGrid>
         <Card variant="subtle">
           <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 flex-col gap-1">
-              <p className="font-medium">Vaciar caché de aplicación</p>
+              <p className="font-medium">{t("cache.purgeTitle")}</p>
               <p className="text-sm text-muted-foreground">
-                Borra solo las claves con prefijo <code>cache:</code>. Las colas
-                de trabajos y sus jobs pendientes no se tocan.
+                {t.rich("cache.purgeHint", {
+                  code: (chunks) => <code>{chunks}</code>,
+                })}
               </p>
             </div>
             <Button
@@ -201,7 +201,7 @@ export function CacheSettingsPage() {
               ) : (
                 <Trash2 data-icon="inline-start" />
               )}
-              Vaciar caché
+              {t("cache.purgeAction")}
             </Button>
           </CardContent>
         </Card>
@@ -211,10 +211,12 @@ export function CacheSettingsPage() {
 }
 
 export function CronsSettingsPage() {
+  const t = useTranslations("infrastructure")
+  const format = useFormatter()
   const { data, forbidden, isLoading, loadError, refresh } =
     useAdminResource<AdminScheduledJobs>(
       () => adminSettingsApi.scheduledJobs(),
-      "Tareas programadas"
+      t("crons.title")
     )
 
   return (
@@ -224,26 +226,26 @@ export function CronsSettingsPage() {
       loadError={loadError}
       onRetry={() => void refresh()}
       ready={Boolean(data)}
-      title="Tareas programadas"
+      title={t("crons.title")}
     >
       <div className="flex flex-col gap-4">
         <CollectionHeader
-          description="Trabajos recurrentes del Worker y su cola en Redis."
-          title="Tareas programadas"
+          description={t("crons.description")}
+          title={t("crons.title")}
         />
         <Card variant="subtle">
           <CardContent className="px-0">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Tarea</TableHead>
+                  <TableHead>{t("crons.jobColumn")}</TableHead>
                   <TableHead className="hidden md:table-cell">
-                    Frecuencia
+                    {t("crons.frequencyColumn")}
                   </TableHead>
                   <TableHead className="hidden lg:table-cell">
-                    Próxima ejecución
+                    {t("crons.nextRunColumn")}
                   </TableHead>
-                  <TableHead>Cola</TableHead>
+                  <TableHead>{t("crons.queueColumn")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -252,7 +254,9 @@ export function CronsSettingsPage() {
                     <TableRow key={job.queue}>
                       <TableCell>
                         <div className="flex min-w-40 flex-col">
-                          <span className="font-medium">{job.name}</span>
+                          <span className="font-medium">
+                            {t(`crons.queue.${job.queue}`)}
+                          </span>
                           <span className="font-mono text-xs text-muted-foreground">
                             {job.queue}
                           </span>
@@ -260,25 +264,29 @@ export function CronsSettingsPage() {
                       </TableCell>
                       <TableCell className="hidden text-muted-foreground md:table-cell">
                         {job.everyMinutes
-                          ? `Cada ${job.everyMinutes} min`
-                          : "Por demanda"}
+                          ? t("crons.everyMinutes", {
+                              minutes: job.everyMinutes,
+                            })
+                          : t("crons.onDemand")}
                       </TableCell>
                       <TableCell className="hidden text-muted-foreground lg:table-cell">
-                        {formatDateTime(job.nextRunAt)}
+                        {job.nextRunAt
+                          ? format.dateTime(new Date(job.nextRunAt), "dateTime")
+                          : t("never")}
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
                           <Badge variant="neutral">
-                            {job.waiting} en espera
+                            {t("crons.waiting", { count: job.waiting })}
                           </Badge>
                           {job.delayed ? (
                             <Badge variant="info">
-                              {job.delayed} diferidos
+                              {t("crons.delayed", { count: job.delayed })}
                             </Badge>
                           ) : null}
                           {job.failed ? (
                             <Badge variant="destructive">
-                              {job.failed} fallidos
+                              {t("crons.failed", { count: job.failed })}
                             </Badge>
                           ) : null}
                         </div>
@@ -288,8 +296,8 @@ export function CronsSettingsPage() {
                 ) : (
                   <TableEmptyRow
                     colSpan={4}
-                    description="El Worker no reporta trabajos recurrentes en Redis."
-                    title="Sin tareas programadas"
+                    description={t("crons.emptyDescription")}
+                    title={t("crons.emptyTitle")}
                   />
                 )}
               </TableBody>

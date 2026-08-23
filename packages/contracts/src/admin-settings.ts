@@ -63,9 +63,19 @@ export const adminCacheStateSchema = z.object({
   lastPurgedAt: z.string().datetime().nullable(),
 })
 
+export const adminScheduledQueueSchema = z.enum([
+  "rss-schedule-dispatch",
+  "ai-schedule-dispatch",
+  "automation-webhooks",
+  "meta-profile-schedule",
+  "whatsapp-profile-schedule",
+  "file-imports",
+  "file-derivatives",
+])
+
 export const adminScheduledJobSchema = z.object({
-  queue: z.string(),
-  name: z.string(),
+  /** Identifica la cola y también su rótulo: la interfaz lo traduce. */
+  queue: adminScheduledQueueSchema,
   everyMinutes: z.number().int().positive().nullable(),
   nextRunAt: z.string().datetime().nullable(),
   waiting: z.number().int().nonnegative(),
@@ -77,6 +87,7 @@ export const adminScheduledJobsSchema = z.object({
   jobs: z.array(adminScheduledJobSchema),
 })
 
+export type AdminScheduledQueue = z.infer<typeof adminScheduledQueueSchema>
 export type AdminGeneralSettings = z.infer<typeof adminGeneralSettingsSchema>
 export type AdminAuthSettings = z.infer<typeof adminAuthSettingsSchema>
 export type AdminAnalyticsSettings = z.infer<
