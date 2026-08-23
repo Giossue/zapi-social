@@ -5,7 +5,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
-import { CircleAlert, QrCode, RefreshCw, Smartphone } from "lucide-react"
+import { CircleAlert, QrCode, Smartphone } from "lucide-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import type { PortalChannelAccount } from "../types/channels"
 
@@ -243,9 +243,7 @@ export function WhatsAppStatusConnection({
                 aria-label="Actualizando código QR"
                 data-icon="inline-start"
               />
-            ) : (
-              <RefreshCw data-icon="inline-start" />
-            )}
+            ) : null}
             Generar otro QR
           </Button>
         </CardContent>

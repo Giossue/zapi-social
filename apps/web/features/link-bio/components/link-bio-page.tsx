@@ -325,7 +325,7 @@ function BlockEditor({
               type="button"
               variant="brand-secondary"
             >
-              <Plus data-icon="inline-start" /> Añadir elemento
+              Añadir elemento
             </Button>
           </div>
         ) : null}

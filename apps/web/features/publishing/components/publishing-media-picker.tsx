@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Check, HardDriveDownload, Image, Search, Video } from "lucide-react"
+import { Check, Image, Search, Video } from "lucide-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -114,11 +114,7 @@ export function PublishingMediaPicker({
             type="button"
             variant="brand-secondary"
           >
-            {driveOpening ? (
-              <Spinner data-icon="inline-start" />
-            ) : (
-              <HardDriveDownload data-icon="inline-start" />
-            )}
+            {driveOpening ? <Spinner data-icon="inline-start" /> : null}
             {driveOpening ? "Abriendo Google" : "Importar desde Google Drive"}
           </Button>
         ) : null}
