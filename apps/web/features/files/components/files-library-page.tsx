@@ -10,6 +10,7 @@ import type {
   PortalGoogleDriveConfiguration,
 } from "@workspace/contracts"
 import { toast } from "@workspace/ui/components/toast"
+import { useFormatter, useTranslations } from "next-intl"
 import {
   ArrowDown,
   ArrowUp,
@@ -118,19 +119,12 @@ type FilesView = "grid" | "list"
 /** Cuánto se sigue un lote de Google Drive antes de dejarlo en segundo plano. */
 const DRIVE_IMPORT_WAIT_MS = 120_000
 
-const sortLabels: Record<PortalFileSort, string> = {
-  modifiedAt: "Fecha de modificación",
-  name: "Nombre",
-}
 type AssetFilter = FileAssetKind | "all" | "folder"
 
-const assetKindMeta: Record<
-  FileAssetKind,
-  { icon: typeof Image; label: string }
-> = {
-  document: { icon: FileText, label: "Documento" },
-  image: { icon: Image, label: "Imagen" },
-  video: { icon: Video, label: "Video" },
+const assetKindMeta: Record<FileAssetKind, { icon: typeof Image }> = {
+  document: { icon: FileText },
+  image: { icon: Image },
+  video: { icon: Video },
 }
 
 function assetMatches(
@@ -245,7 +239,8 @@ function AssetCard({
   onMove: (asset: FileAsset) => void
   onTrash: (asset: FileAsset) => void
 }) {
-  const { label } = assetKindMeta[asset.kind]
+  const t = useTranslations("files")
+  const label = t(`kind.${asset.kind}`)
 
   return (
     <Card
@@ -261,7 +256,11 @@ function AssetCard({
             imageClassName="h-full w-full rounded-lg object-contain p-2"
           />
           <Button
-            aria-label={`${asset.starred ? "Quitar de favoritos" : "Añadir a favoritos"} ${asset.name}`}
+            aria-label={
+              asset.starred
+                ? t("unstar", { name: asset.name })
+                : t("star", { name: asset.name })
+            }
             className={`absolute top-2 right-2 opacity-0 group-hover/file:opacity-100 focus-visible:opacity-100 ${
               asset.starred ? "opacity-100" : ""
             }`}
@@ -432,11 +431,12 @@ function AssetsTable({
   onTrash: (asset: FileAsset) => void
   onTrashFolder: (folder: FileFolder) => void
 }) {
+  const t = useTranslations("files")
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Nombre</TableHead>
+          <TableHead>{t("name")}</TableHead>
           <TableHead className="hidden md:table-cell">Tipo</TableHead>
           <TableHead className="hidden lg:table-cell">Actualizado</TableHead>
           <TableHead className="text-right">Acción</TableHead>
@@ -506,7 +506,7 @@ function AssetsTable({
           </TableRow>
         ))}
         {assets.map((asset) => {
-          const { label } = assetKindMeta[asset.kind]
+          const label = t(`kind.${asset.kind}`)
 
           return (
             <TableRow key={asset.id} {...rowSelection(itemPropsOf(asset.id))}>
@@ -593,13 +593,11 @@ function formatSize(sizeBytes: number) {
     : `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("es", { dateStyle: "medium" }).format(
-    new Date(value)
-  )
-}
-
-function toFolder(folder: PortalFilesResponse["folders"][number]): FileFolder {
+/** La fecha llega ya formateada por quien conoce el idioma activo. */
+function toFolder(
+  folder: PortalFilesResponse["folders"][number],
+  formatDate: (value: string) => string
+): FileFolder {
   return {
     ...folder,
     size: formatSize(folder.sizeBytes),
@@ -607,7 +605,10 @@ function toFolder(folder: PortalFilesResponse["folders"][number]): FileFolder {
   }
 }
 
-function toAsset(asset: PortalFilesResponse["files"][number]): FileAsset {
+function toAsset(
+  asset: PortalFilesResponse["files"][number],
+  formatDate: (value: string) => string
+): FileAsset {
   return {
     id: asset.id,
     name: asset.name,
@@ -633,6 +634,13 @@ const FILES_PAGE_SIZE = 24
 const FILES_MAX_LIMIT = 100
 
 export function FilesLibraryPage() {
+  const t = useTranslations("files")
+  const format = useFormatter()
+  const formatDate = useCallback(
+    (value: string) =>
+      format.dateTime(new Date(value), { dateStyle: "medium" }),
+    [format]
+  )
   const [library, setLibrary] = useState<FileLibraryData | null>(null)
   const [loadingMore, setLoadingMore] = useState(false)
   const [reachedEnd, setReachedEnd] = useState(false)
@@ -717,8 +725,8 @@ export function FilesLibraryPage() {
         canView: true,
         canUpload: data.canManage,
         folderPath: data.folderPath,
-        folders: data.folders.map(toFolder),
-        assets: data.files.map(toAsset),
+        folders: data.folders.map((folder) => toFolder(folder, formatDate)),
+        assets: data.files.map((asset) => toAsset(asset, formatDate)),
         page: data.page,
         filesTotal: data.filesTotal,
       }
@@ -735,7 +743,7 @@ export function FilesLibraryPage() {
         filesTotal: 0,
       })
     }
-  }, [fetchFiles])
+  }, [fetchFiles, formatDate])
 
   const loadMoreFiles = useCallback(async () => {
     setLoadingMore(true)
@@ -752,18 +760,21 @@ export function FilesLibraryPage() {
               ...current,
               // Las carpetas también se paginan en el contrato, así que las de
               // una tanda posterior no describen esta ubicación: se conservan.
-              assets: [...current.assets, ...data.files.map(toAsset)],
+              assets: [
+                ...current.assets,
+                ...data.files.map((asset) => toAsset(asset, formatDate)),
+              ],
               page: data.page,
               filesTotal: data.filesTotal,
             }
           : current
       )
     } catch {
-      toast.error("No pudimos cargar más archivos.")
+      toast.error(t("loadMoreFailed"))
     } finally {
       setLoadingMore(false)
     }
-  }, [fetchFiles])
+  }, [fetchFiles, formatDate, t])
 
   useEffect(() => {
     loadedPages.current = 1
@@ -821,18 +832,15 @@ export function FilesLibraryPage() {
       notifiedDriveBatch.current = driveBatch.id
       void loadLibrary()
       if (driveBatch.status === "completed")
-        toast.success("Importación desde Google Drive completada.", {
+        toast.success(t("driveImportDone"), {
           id: toastId,
         })
       else if (driveBatch.status === "partial")
-        toast.error(
-          "Algunos archivos de Google Drive no se pudieron importar.",
-          {
-            id: toastId,
-          }
-        )
+        toast.error(t("driveImportPartial"), {
+          id: toastId,
+        })
       else
-        toast.error("No pudimos completar la importación desde Google Drive.", {
+        toast.error(t("driveImportFailed"), {
           id: toastId,
         })
       return
@@ -851,12 +859,9 @@ export function FilesLibraryPage() {
     // para siempre: se cierra explicando que continúa en segundo plano.
     if (Date.now() - driveBatchStartedAt.current > DRIVE_IMPORT_WAIT_MS) {
       notifiedDriveBatch.current = driveBatch.id
-      toast.info(
-        "La importación sigue en curso. Actualiza para ver el avance.",
-        {
-          id: toastId,
-        }
-      )
+      toast.info(t("driveImportRunning"), {
+        id: toastId,
+      })
       return
     }
 
@@ -867,7 +872,7 @@ export function FilesLibraryPage() {
         .catch(() => undefined)
     }, 1500)
     return () => window.clearTimeout(timer)
-  }, [driveBatch, loadLibrary])
+  }, [driveBatch, loadLibrary, t])
 
   async function importFromGoogleDrive() {
     setOpeningDrive(true)
@@ -880,7 +885,7 @@ export function FilesLibraryPage() {
         !currentProvider.browserApiKey ||
         !currentProvider.appId
       ) {
-        toast.error("Google Drive no está disponible en este momento.")
+        toast.error(t("driveUnavailable"))
         return
       }
       const picked = await openGoogleDrivePicker({
@@ -908,7 +913,7 @@ export function FilesLibraryPage() {
         })
       )
     } catch {
-      toast.error("No pudimos abrir o iniciar la importación de Google Drive.")
+      toast.error(t("driveOpenFailed"))
     } finally {
       setOpeningDrive(false)
     }
@@ -925,9 +930,9 @@ export function FilesLibraryPage() {
       await filesApi.upload(upload.id, file)
       setUploadDialogOpen(false)
       await loadLibrary()
-      toast.success("Archivo subido")
+      toast.success(t("uploaded"))
     } catch {
-      toast.error("No se pudo subir el archivo")
+      toast.error(t("uploadFailed"))
     }
   }
 
@@ -946,12 +951,12 @@ export function FilesLibraryPage() {
       setFolderName("")
       setFolderDialogOpen(false)
       await loadLibrary()
-      toast.success("Carpeta creada")
+      toast.success(t("folderCreated"))
     } catch (error) {
       toast.error(
         error instanceof ApiError && error.code === "VALIDATION_FAILED"
-          ? "Ya existe una carpeta con ese nombre en esta ubicación."
-          : "No se pudo crear la carpeta"
+          ? t("folderNameTaken")
+          : t("folderCreateFailed")
       )
     } finally {
       setCreatingFolder(false)
@@ -1031,11 +1036,9 @@ export function FilesLibraryPage() {
     try {
       await filesApi.update(asset.id, { starred: !asset.starred })
       await loadLibrary()
-      toast.success(
-        asset.starred ? "Quitado de favoritos" : "Añadido a favoritos"
-      )
+      toast.success(asset.starred ? t("unstarred") : t("starred"))
     } catch {
-      toast.error("No se pudo actualizar favoritos")
+      toast.error(t("starFailed"))
     }
   }
 
@@ -1046,9 +1049,9 @@ export function FilesLibraryPage() {
       else await filesApi.updateFolder(renameItem.id, { name })
       setRenameItem(null)
       await loadLibrary()
-      toast.success("Nombre actualizado")
+      toast.success(t("renamed"))
     } catch {
-      toast.error("No se pudo cambiar el nombre")
+      toast.error(t("renameFailed"))
     }
   }
 
@@ -1060,9 +1063,9 @@ export function FilesLibraryPage() {
       else await filesApi.update(moveItem.id, { folderId: parentFolderId })
       setMoveItem(null)
       await loadLibrary()
-      toast.success("Elemento movido")
+      toast.success(t("moved"))
     } catch {
-      toast.error("No se pudo mover el elemento")
+      toast.error(t("moveFailed"))
     }
   }
 
@@ -1074,12 +1077,12 @@ export function FilesLibraryPage() {
       if (folderId !== "all" && trashItem.id === folderId) openFolder("all")
       setTrashItem(null)
       await loadLibrary()
-      toast.success("Elemento eliminado permanentemente")
+      toast.success(t("deleted"))
     } catch (error) {
       toast.error(
         error instanceof ApiError && error.code === "FILE_IN_USE_BY_PUBLISHING"
-          ? "Este archivo se usa en Publishing y no puede eliminarse."
-          : "No se pudo eliminar el elemento"
+          ? t("inUseByPublishing")
+          : t("deleteFailed")
       )
     }
   }
@@ -1103,15 +1106,13 @@ export function FilesLibraryPage() {
       clearSelection()
       if (failed.length) {
         toast.error(
-          failed.length === total
-            ? "No se pudo mover ningún elemento"
-            : "Algunos elementos no se pudieron mover"
+          failed.length === total ? t("moveNoneFailed") : t("moveSomeFailed")
         )
         return
       }
-      toast.success(total === 1 ? "Elemento movido" : "Elementos movidos")
+      toast.success(t("movedCount", { count: total }))
     } catch {
-      toast.error("No se pudieron mover los elementos")
+      toast.error(t("moveManyFailed"))
     }
   }
 
@@ -1131,18 +1132,14 @@ export function FilesLibraryPage() {
       if (failed.length) {
         toast.error(
           failed.length === total
-            ? "No se pudo eliminar ningún elemento"
-            : "Algunos elementos no se pudieron eliminar"
+            ? t("deleteNoneFailed")
+            : t("deleteSomeFailed")
         )
         return
       }
-      toast.success(
-        total === 1
-          ? "Elemento eliminado permanentemente"
-          : "Elementos eliminados permanentemente"
-      )
+      toast.success(total === 1 ? t("deleted") : t("deletedMany"))
     } catch {
-      toast.error("No se pudieron eliminar los elementos")
+      toast.error(t("deleteManyFailed"))
     }
   }
 
@@ -1170,22 +1167,22 @@ export function FilesLibraryPage() {
       </Button>
     ) : undefined,
     description: hasFilters
-      ? "Prueba con otro término o restablece los filtros para consultar todos los archivos disponibles."
+      ? t("emptyFilteredDescription")
       : folderId === "all"
-        ? "Sube un archivo o crea una carpeta para comenzar a organizar tu biblioteca."
-        : "Crea una subcarpeta o sube un archivo para organizar este espacio.",
+        ? t("emptyRootDescription")
+        : t("emptyFolderDescription"),
     icon: TABLE_EMPTY_ICON,
     title: hasFilters
-      ? "No encontramos archivos"
+      ? t("noMatches")
       : folderId === "all"
-        ? "Aún no tienes archivos"
-        : "Esta carpeta está vacía",
+        ? t("emptyRootTitle")
+        : t("emptyFolderTitle"),
   }
 
   // Como Drive: la ruta profunda deja a la vista la carpeta actual y su madre;
   // el resto, raíz incluida, se recoge en el menú de la elipsis.
   const trail = [
-    { id: "all", name: "Archivos" },
+    { id: "all", name: t("rootFolder") },
     ...currentFolderPath.map((folder) => ({
       id: folder.id,
       name: folder.name,
@@ -1197,7 +1194,7 @@ export function FilesLibraryPage() {
 
   const filesLoader = hasMoreFiles ? (
     <div className="flex justify-center py-4" ref={sentinel}>
-      <Spinner aria-label="Cargando más archivos" />
+      <Spinner aria-label={t("loadingMore")} />
     </div>
   ) : null
 
@@ -1209,9 +1206,9 @@ export function FilesLibraryPage() {
             <Search />
           </InputGroupAddon>
           <InputGroupInput
-            aria-label="Buscar archivos y carpetas"
+            aria-label={t("searchLabel")}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar archivos y carpetas"
+            placeholder={t("searchLabel")}
             value={query}
           />
         </InputGroup>
@@ -1237,7 +1234,7 @@ export function FilesLibraryPage() {
               ) : (
                 <HardDriveDownload data-icon="inline-start" />
               )}
-              {openingDrive ? "Abriendo Google" : "Google Drive"}
+              {openingDrive ? t("openingDrive") : "Google Drive"}
             </Button>
           ) : null}
           <Button
@@ -1259,7 +1256,7 @@ export function FilesLibraryPage() {
                 <BreadcrumbItem>
                   <DropdownMenu>
                     <DropdownMenuTrigger
-                      aria-label="Carpetas anteriores"
+                      aria-label={t("previousFolders")}
                       className="flex size-5 items-center justify-center rounded-sm hover:text-foreground focus-visible:outline-3 focus-visible:outline-ring/50"
                     >
                       <BreadcrumbEllipsis />
@@ -1316,15 +1313,15 @@ export function FilesLibraryPage() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-2">
             <DataTableFilter
-              ariaLabel="Filtrar archivos por tipo"
-              label="Tipo"
+              ariaLabel={t("filterType")}
+              label={t("type")}
               onValueChange={(value) => setAssetFilter(value as AssetFilter)}
               options={[
-                { label: "Todos", value: "all" },
-                { label: "Imágenes", value: "image" },
-                { label: "Videos", value: "video" },
-                { label: "Documentos", value: "document" },
-                { label: "Carpetas", value: "folder" },
+                { label: t("all"), value: "all" },
+                { label: t("filter.image"), value: "image" },
+                { label: t("filter.video"), value: "video" },
+                { label: t("filter.document"), value: "document" },
+                { label: t("filter.folder"), value: "folder" },
               ]}
               value={assetFilter}
             />
@@ -1359,12 +1356,12 @@ export function FilesLibraryPage() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button size="sm" variant="outline">
-                  {sortLabels[sort]}
+                  {t(`sort.${sort}`)}
                   {order === "desc" ? <ArrowDown /> : <ArrowUp />}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Ordenar por</DropdownMenuLabel>
+                <DropdownMenuLabel>{t("sortBy")}</DropdownMenuLabel>
                 <DropdownMenuRadioGroup
                   onValueChange={(value) => setSort(value as PortalFileSort)}
                   value={sort}
@@ -1377,7 +1374,7 @@ export function FilesLibraryPage() {
                   </DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel>Orden</DropdownMenuLabel>
+                <DropdownMenuLabel>{t("order")}</DropdownMenuLabel>
                 <DropdownMenuRadioGroup
                   onValueChange={(value) =>
                     setOrder(value as PortalFileSortOrder)
@@ -1385,16 +1382,16 @@ export function FilesLibraryPage() {
                   value={order}
                 >
                   <DropdownMenuRadioItem value="desc">
-                    {sort === "name" ? "De Z a A" : "De nueva a antigua"}
+                    {sort === "name" ? t("sortZA") : t("sortNewest")}
                   </DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="asc">
-                    {sort === "name" ? "De A a Z" : "De antigua a nueva"}
+                    {sort === "name" ? t("sortAZ") : t("sortOldest")}
                   </DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
             </DropdownMenu>
             <ToggleGroup
-              aria-label="Vista de archivos"
+              aria-label={t("viewLabel")}
               onValueChange={(value) => {
                 if (value) setView(value as FilesView)
               }}
@@ -1404,10 +1401,10 @@ export function FilesLibraryPage() {
               value={view}
               variant="outline"
             >
-              <ToggleGroupItem aria-label="Vista de cuadrícula" value="grid">
+              <ToggleGroupItem aria-label={t("gridView")} value="grid">
                 <Grid2X2 />
               </ToggleGroupItem>
-              <ToggleGroupItem aria-label="Vista de lista" value="list">
+              <ToggleGroupItem aria-label={t("listView")} value="list">
                 <List />
               </ToggleGroupItem>
             </ToggleGroup>
@@ -1489,7 +1486,7 @@ export function FilesLibraryPage() {
 
       <FloatingActionButton
         disabled={!library.canUpload}
-        label="Añadir a la biblioteca"
+        label={t("addToLibrary")}
         menu={
           <DropdownMenuContent align="end" className="w-56" side="top">
             <DropdownMenuItem onSelect={() => setFolderDialogOpen(true)}>

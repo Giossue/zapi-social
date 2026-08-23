@@ -24,6 +24,8 @@ import {
   AlertDialogMedia,
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
+import { useTranslations } from "next-intl"
+
 import { Button } from "@workspace/ui/components/button"
 import {
   Dialog,
@@ -67,13 +69,14 @@ export function FileUploadDialog({
   onSelect: (file: File) => void
   open: boolean
 }) {
+  const t = useTranslations("files")
   const inputRef = useRef<HTMLInputElement>(null)
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Subir archivos</DialogTitle>
+          <DialogTitle>{t("uploadTitle")}</DialogTitle>
           <DialogDescription>
             Se guardará de forma privada y solo será visible para las personas
             con acceso a este espacio de trabajo.
@@ -83,10 +86,13 @@ export function FileUploadDialog({
           <p className="text-sm font-medium">Formatos permitidos</p>
           <dl className="grid gap-3 text-sm sm:grid-cols-2">
             {[
-              ["Imágenes", "JPG, PNG, WebP, GIF, AVIF"],
-              ["Vídeo y audio", "MP4, WebM, MOV · MP3, WAV, M4A, OGG"],
-              ["Documentos", "PDF, TXT, MD, JSON, CSV, RTF, DOC, DOCX, ODT"],
-              ["Hojas y comprimidos", "XLS, XLSX, ODS · ZIP, 7Z, RAR, TAR, GZ"],
+              [t("formats.images"), "JPG, PNG, WebP, GIF, AVIF"],
+              [t("formats.media"), "MP4, WebM, MOV · MP3, WAV, M4A, OGG"],
+              [
+                t("formats.documents"),
+                "PDF, TXT, MD, JSON, CSV, RTF, DOC, DOCX, ODT",
+              ],
+              [t("formats.archives"), "XLS, XLSX, ODS · ZIP, 7Z, RAR, TAR, GZ"],
             ].map(([label, formats]) => (
               <div className="flex flex-col gap-1" key={label}>
                 <dt className="font-medium">{label}</dt>
@@ -137,6 +143,7 @@ export function FileFolderDialog({
   open: boolean
   pending?: boolean
 }) {
+  const t = useTranslations("files")
   return (
     <Dialog
       onOpenChange={(next) => {
@@ -146,7 +153,7 @@ export function FileFolderDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Nueva carpeta</DialogTitle>
+          <DialogTitle>{t("newFolderTitle")}</DialogTitle>
           <DialogDescription>
             Organiza los archivos de este espacio de trabajo.
           </DialogDescription>
@@ -171,7 +178,7 @@ export function FileFolderDialog({
                 aria-required="true"
                 id="file-folder-name"
                 onChange={(event) => onNameChange(event.target.value)}
-                placeholder="Nombre de carpeta"
+                placeholder={t("folderNamePlaceholder")}
                 value={name}
               />
             </InputGroup>
@@ -191,7 +198,7 @@ export function FileFolderDialog({
               ) : (
                 <FolderPlus data-icon="inline-start" />
               )}
-              {pending ? "Creando..." : "Crear carpeta"}
+              {pending ? t("creating") : t("createFolder")}
             </Button>
           </DialogFooter>
         </form>
@@ -209,6 +216,7 @@ export function FilePreviewDialog({
   onOpenChange: (open: boolean) => void
   open: boolean
 }) {
+  const t = useTranslations("files")
   const fallback =
     item?.kind === "image" ? Image : item?.kind === "video" ? Video : FileText
   const Fallback = fallback
@@ -217,7 +225,7 @@ export function FilePreviewDialog({
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>{item?.name}</DialogTitle>
-          <DialogDescription>Vista privada del archivo.</DialogDescription>
+          <DialogDescription>{t("previewDescription")}</DialogDescription>
         </DialogHeader>
         <div className="flex min-h-64 items-center justify-center overflow-hidden rounded-lg bg-muted/50">
           {item?.kind === "image" ? (
@@ -273,25 +281,21 @@ export function FileInfoDialog({
   onOpenChange: (open: boolean) => void
   open: boolean
 }) {
-  const type =
-    item?.kind === "image"
-      ? "Imagen"
-      : item?.kind === "video"
-        ? "Vídeo"
-        : "Documento"
+  const t = useTranslations("files")
+  const type = t(`kind.${item?.kind ?? "document"}`)
   const details = [
-    ["Tipo", type],
-    ["Formato", item?.mimeType ?? "No disponible"],
-    ["Tamaño", item?.size ?? "No disponible"],
-    ["Última actualización", item?.updatedAt ?? "No disponible"],
-    ["Actualizado por", item?.owner ?? "No disponible"],
+    [t("info.type"), type],
+    [t("info.format"), item?.mimeType ?? t("unavailable")],
+    [t("info.size"), item?.size ?? t("unavailable")],
+    [t("info.updatedAt"), item?.updatedAt ?? t("unavailable")],
+    [t("info.updatedBy"), item?.owner ?? t("unavailable")],
   ]
 
   return (
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Información del archivo</DialogTitle>
+          <DialogTitle>{t("infoTitle")}</DialogTitle>
           <DialogDescription className="break-words">
             {item?.name}
           </DialogDescription>
@@ -325,6 +329,7 @@ export function FileRenameDialog({
   onOpenChange: (open: boolean) => void
   open: boolean
 }) {
+  const t = useTranslations("files")
   const [name, setName] = useState("")
   /** La extensión identifica el formato: se conserva y queda fuera del campo editable. */
   const extension = item && "kind" in item ? fileExtension(item.name) : ""
@@ -339,7 +344,7 @@ export function FileRenameDialog({
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Renombrar</DialogTitle>
+          <DialogTitle>{t("renameTitle")}</DialogTitle>
           <DialogDescription>
             Elige un nombre claro para encontrarlo después.
           </DialogDescription>
@@ -407,6 +412,7 @@ export function FileMoveDialog({
   onOpenChange: (open: boolean) => void
   open: boolean
 }) {
+  const t = useTranslations("files")
   const [value, setValue] = useState("root")
   const isBulkAction = selectedCount !== undefined
   useEffect(() => {
@@ -437,13 +443,13 @@ export function FileMoveDialog({
         <DialogHeader>
           <DialogTitle>
             {isBulkAction
-              ? "Mover archivos seleccionados"
+              ? t("moveSelected")
               : `Mover ${item?.isFolder ? "carpeta" : "archivo"}`}
           </DialogTitle>
           <DialogDescription>
             {isBulkAction
               ? `Elige la carpeta de destino para ${selectedCount} ${selectedCount === 1 ? "archivo" : "archivos"}.`
-              : "Elige la carpeta de destino."}
+              : t("chooseFolder")}
           </DialogDescription>
         </DialogHeader>
         <form
@@ -467,7 +473,7 @@ export function FileMoveDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
-                  <SelectItem value="root">Archivos</SelectItem>
+                  <SelectItem value="root">{t("rootFolder")}</SelectItem>
                   {folders.map((folder) => (
                     <SelectItem
                       disabled={descendants.has(folder.id)}
@@ -512,6 +518,7 @@ export function FileTrashDialog({
   onOpenChange: (open: boolean) => void
   open: boolean
 }) {
+  const t = useTranslations("files")
   const isBulkAction = selectedCount !== undefined
   return (
     <AlertDialog onOpenChange={onOpenChange} open={open}>
@@ -521,9 +528,7 @@ export function FileTrashDialog({
             <Trash2 aria-hidden="true" />
           </AlertDialogMedia>
           <AlertDialogTitle>
-            {isBulkAction
-              ? "Eliminar los elementos seleccionados"
-              : "Eliminar permanentemente"}
+            {isBulkAction ? t("deleteSelected") : t("deletePermanently")}
           </AlertDialogTitle>
           <AlertDialogDescription>
             {isBulkAction

@@ -30,11 +30,13 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
 
 import { FilesPermissionState } from "@/features/files/components/files-states"
+import { useTranslations } from "next-intl"
+
 import { loginPath } from "@/features/identity/login-redirect"
 
 const typeMeta = {
-  image: { icon: Image, label: "Imagen" },
-  video: { icon: Play, label: "Video" },
+  image: { icon: Image },
+  video: { icon: Play },
 } as const
 
 const providerLabels = {
@@ -48,6 +50,7 @@ function dimensions(result: PortalOnlineMediaResult) {
 }
 
 export function OnlineMediaSearchPage() {
+  const t = useTranslations("files.online")
   const router = useRouter()
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<PortalOnlineMediaResult[]>([])
@@ -141,7 +144,7 @@ export function OnlineMediaSearchPage() {
     } catch (error) {
       if (handleError(error)) return
       console.error("Online media import failed", error)
-      toast.error("No pudimos importar este medio. Inténtalo de nuevo.")
+      toast.error(t("importFailed"))
     } finally {
       setImportingId(null)
     }
@@ -157,9 +160,9 @@ export function OnlineMediaSearchPage() {
             <Search />
           </InputGroupAddon>
           <InputGroupInput
-            aria-label="Buscar medios online"
+            aria-label={t("searchLabel")}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Busca fotos, ilustraciones o videos"
+            placeholder={t("searchPlaceholder")}
             value={query}
           />
         </InputGroup>
@@ -183,12 +186,12 @@ export function OnlineMediaSearchPage() {
       ) : null}
 
       {isSearching ? (
-        <PageLoading aria-label="Buscando medios online" />
+        <PageLoading aria-label={t("searching")} />
       ) : notConfigured ? (
         <EmptyState
-          description="Ningún proveedor de medios está configurado para esta plataforma. Un administrador debe conectarlo antes de buscar."
+          description={t("notConfiguredDescription")}
           icon={Search}
-          title="Búsqueda online no configurada"
+          title={t("notConfiguredTitle")}
         />
       ) : searchError ? (
         <EmptyState
@@ -198,26 +201,27 @@ export function OnlineMediaSearchPage() {
               variant="brand-secondary"
             />
           }
-          description="No pudimos completar la búsqueda."
+          description={t("searchFailedDescription")}
           icon={Search}
-          title="Búsqueda no disponible"
+          title={t("searchFailedTitle")}
         />
       ) : !hasSearched ? (
         <EmptyState
-          description="Escribe qué necesitas y buscaremos en los proveedores conectados."
+          description={t("emptyDescription")}
           icon={Search}
-          title="Busca un medio para empezar"
+          title={t("emptyTitle")}
         />
       ) : results.length === 0 ? (
         <EmptyState
-          description="Intenta una búsqueda más amplia o con otras palabras."
+          description={t("noResultsDescription")}
           icon={Search}
-          title="No encontramos medios"
+          title={t("noResultsTitle")}
         />
       ) : (
         <CardGrid layout="xl-3">
           {results.map((result) => {
-            const { icon: MediaIcon, label } = typeMeta[result.type]
+            const { icon: MediaIcon } = typeMeta[result.type]
+            const label = t(`type.${result.type}`)
             const imported = importedIds.includes(result.id)
             const importing = importingId === result.id
             const size = dimensions(result)
@@ -256,7 +260,7 @@ export function OnlineMediaSearchPage() {
                 </CardContent>
                 <CardFooter className="justify-between">
                   <span className="text-xs text-muted-foreground">
-                    {imported ? "En tu biblioteca" : "Disponible"}
+                    {imported ? t("inLibrary") : t("available")}
                   </span>
                   <Button
                     disabled={imported || importing}
@@ -271,7 +275,7 @@ export function OnlineMediaSearchPage() {
                     ) : (
                       <Image data-icon="inline-start" />
                     )}
-                    {imported ? "Importado" : "Importar"}
+                    {imported ? t("imported") : t("import")}
                   </Button>
                 </CardFooter>
               </Card>

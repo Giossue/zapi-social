@@ -87,25 +87,23 @@ import {
   TabsTrigger,
 } from "@workspace/ui/components/tabs"
 import { toast } from "@workspace/ui/components/toast"
+import { useFormatter, useTranslations } from "next-intl"
 import { loginPath } from "@/features/identity/login-redirect"
 
 type PortalAutomationApiKey = PortalAutomationResponse["apiKeys"][number]
 type PortalAutomationWebhook = PortalAutomationResponse["webhooks"][number]
 
-const permissionLabels: Record<AutomationPermission, string> = {
-  "accounts:read": "Leer cuentas",
-  "posts:read": "Leer publicaciones",
-  "posts:write": "Crear publicaciones",
-}
+const permissions: AutomationPermission[] = [
+  "accounts:read",
+  "posts:read",
+  "posts:write",
+]
 
-const eventLabels: Record<AutomationWebhookEvent, string> = {
-  "post.created": "Publicación creada",
-  "post.published": "Publicación enviada",
-  "post.failed": "Publicación fallida",
-}
-
-const permissions = Object.keys(permissionLabels) as AutomationPermission[]
-const events = Object.keys(eventLabels) as AutomationWebhookEvent[]
+const events: AutomationWebhookEvent[] = [
+  "post.created",
+  "post.published",
+  "post.failed",
+]
 
 const pageSize = 10
 
@@ -118,24 +116,20 @@ function paginate<T>(items: readonly T[], page: number) {
   return { pageCount, rangeEnd, rangeStart, safePage, visible }
 }
 
-function formatDateTime(value: string | null) {
-  if (!value) return "Nunca"
-  return new Intl.DateTimeFormat("es-EC", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value))
-}
-
-async function copyValue(label: string, value: string) {
+/** El copiado recibe sus mensajes ya traducidos por quien lo invoca. */
+async function copyValue(
+  value: string,
+  messages: { copied: string; failed: string; unsupported: string }
+) {
   if (!navigator.clipboard) {
-    toast.error("Tu navegador no permite copiar este valor.")
+    toast.error(messages.unsupported)
     return
   }
   try {
     await navigator.clipboard.writeText(value)
-    toast.success(`${label} copiado.`)
+    toast.success(messages.copied)
   } catch {
-    toast.error("No pudimos copiar el valor. Inténtalo de nuevo.")
+    toast.error(messages.failed)
   }
 }
 
@@ -150,6 +144,7 @@ function SecretRevealSheet({
   onOpenChange: (open: boolean) => void
   value: string | null
 }) {
+  const t = useTranslations("automation")
   return (
     <Sheet onOpenChange={onOpenChange} open={Boolean(value)}>
       <SheetContent className="w-full gap-0 p-0 sm:max-w-lg" side="right">
@@ -164,18 +159,24 @@ function SecretRevealSheet({
                 {value}
               </code>
               <Button
-                onClick={() => void copyValue(label, value ?? "")}
+                onClick={() =>
+                  void copyValue(value ?? "", {
+                    copied: t("copied", { label }),
+                    failed: t("copyFailed"),
+                    unsupported: t("clipboardUnsupported"),
+                  })
+                }
                 size="icon-sm"
                 variant="brand-secondary"
               >
                 <Copy />
-                <span className="sr-only">Copiar {label}</span>
+                <span className="sr-only">{t("copy", { label })}</span>
               </Button>
             </CardContent>
           </Card>
         </div>
         <SheetFooter className="flex-row justify-end border-t">
-          <Button onClick={() => onOpenChange(false)}>Ya lo guardé</Button>
+          <Button onClick={() => onOpenChange(false)}>{t("saved")}</Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>
@@ -196,6 +197,7 @@ function ApiKeySheet({
   open: boolean
   pending: boolean
 }) {
+  const t = useTranslations("automation")
   const [name, setName] = useState("")
   const [selected, setSelected] = useState<AutomationPermission[]>([
     "posts:read",
@@ -213,7 +215,7 @@ function ApiKeySheet({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!canSubmit) {
-      toast.error("La clave necesita un nombre y al menos un permiso.")
+      toast.error(t("keyRequired"))
       return
     }
     const created = await onCreate({
@@ -227,11 +229,8 @@ function ApiKeySheet({
     <Sheet onOpenChange={onOpenChange} open={open}>
       <SheetContent className="w-full gap-0 p-0 sm:max-w-lg" side="right">
         <SheetHeader className="border-b">
-          <SheetTitle>Nueva clave API</SheetTitle>
-          <SheetDescription>
-            El token se muestra una sola vez al crearla. Después solo verás su
-            prefijo.
-          </SheetDescription>
+          <SheetTitle>{t("newKeyTitle")}</SheetTitle>
+          <SheetDescription>{t("newKeyDescription")}</SheetDescription>
         </SheetHeader>
         <form
           aria-busy={pending}
@@ -255,7 +254,7 @@ function ApiKeySheet({
                   id="api-key-name"
                   maxLength={120}
                   onChange={(event) => setName(event.target.value)}
-                  placeholder="Ej. Integración con n8n"
+                  placeholder={t("keyNamePlaceholder")}
                   value={name}
                 />
               </Field>
@@ -288,7 +287,7 @@ function ApiKeySheet({
                         <FieldLabel htmlFor={controlId}>
                           <FieldContent>
                             <FieldTitle>
-                              {permissionLabels[permission]}
+                              {t(`permission.${permission}`)}
                             </FieldTitle>
                             <FieldDescription>{permission}</FieldDescription>
                           </FieldContent>
@@ -341,6 +340,7 @@ function WebhookSheet({
   pending: boolean
   webhook: PortalAutomationWebhook | null
 }) {
+  const t = useTranslations("automation")
   const [name, setName] = useState("")
   const [url, setUrl] = useState("")
   const [selected, setSelected] = useState<AutomationWebhookEvent[]>([])
@@ -357,7 +357,7 @@ function WebhookSheet({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!canSubmit) {
-      toast.error("El webhook necesita nombre, URL y al menos un evento.")
+      toast.error(t("webhookRequired"))
       return
     }
     const saved = await onSubmit({
@@ -373,12 +373,9 @@ function WebhookSheet({
       <SheetContent className="w-full gap-0 p-0 sm:max-w-lg" side="right">
         <SheetHeader className="border-b">
           <SheetTitle>
-            {webhook ? "Editar webhook" : "Nuevo webhook"}
+            {webhook ? t("editWebhookTitle") : t("newWebhookTitle")}
           </SheetTitle>
-          <SheetDescription>
-            Zapi enviará un POST firmado a esta URL cuando ocurra alguno de los
-            eventos elegidos.
-          </SheetDescription>
+          <SheetDescription>{t("webhookDescription")}</SheetDescription>
         </SheetHeader>
         <form
           aria-busy={pending}
@@ -402,7 +399,7 @@ function WebhookSheet({
                   id="webhook-name"
                   maxLength={120}
                   onChange={(event) => setName(event.target.value)}
-                  placeholder="Ej. Notificar a Slack"
+                  placeholder={t("webhookNamePlaceholder")}
                   value={name}
                 />
               </Field>
@@ -453,7 +450,7 @@ function WebhookSheet({
                         />
                         <FieldLabel htmlFor={controlId}>
                           <FieldContent>
-                            <FieldTitle>{eventLabels[event]}</FieldTitle>
+                            <FieldTitle>{t(`event.${event}`)}</FieldTitle>
                             <FieldDescription>{event}</FieldDescription>
                           </FieldContent>
                         </FieldLabel>
@@ -479,7 +476,7 @@ function WebhookSheet({
               ) : (
                 <Plus data-icon="inline-start" />
               )}
-              {webhook ? "Guardar webhook" : "Crear webhook"}
+              {webhook ? t("saveWebhook") : t("createWebhook")}
             </Button>
           </SheetFooter>
         </form>
@@ -489,6 +486,8 @@ function WebhookSheet({
 }
 
 export function AutomationPage() {
+  const t = useTranslations("automation")
+  const format = useFormatter()
   const router = useRouter()
   const [data, setData] = useState<PortalAutomationResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -569,7 +568,7 @@ export function AutomationPage() {
     } catch (error) {
       if (handleError(error)) return false
       console.error("Automation API key creation failed", error)
-      toast.error("No pudimos crear la clave. Inténtalo de nuevo.")
+      toast.error(t("keyCreateFailed"))
       return false
     } finally {
       setPending(false)
@@ -582,11 +581,11 @@ export function AutomationPage() {
       await automationApi.revokeApiKey(apiKey.id)
       setKeyToRevoke(null)
       await load()
-      toast.success("Clave revocada.")
+      toast.success(t("keyRevoked"))
     } catch (error) {
       if (handleError(error)) return
       console.error("Automation API key revocation failed", error)
-      toast.error("No pudimos revocar la clave. Inténtalo de nuevo.")
+      toast.error(t("keyRevokeFailed"))
     } finally {
       setPending(false)
     }
@@ -604,12 +603,12 @@ export function AutomationPage() {
         : await automationApi.createWebhook(input)
       if (result.signingSecret) setRevealedSecret(result.signingSecret)
       await load()
-      toast.success(editingWebhook ? "Webhook actualizado." : "Webhook creado.")
+      toast.success(editingWebhook ? t("webhookUpdated") : t("webhookCreated"))
       return true
     } catch (error) {
       if (handleError(error)) return false
       console.error("Automation webhook save failed", error)
-      toast.error("No pudimos guardar el webhook. Inténtalo de nuevo.")
+      toast.error(t("webhookSaveFailed"))
       return false
     } finally {
       setPending(false)
@@ -627,7 +626,7 @@ export function AutomationPage() {
     } catch (error) {
       if (handleError(error)) return
       console.error("Automation webhook toggle failed", error)
-      toast.error("No pudimos cambiar el estado del webhook.")
+      toast.error(t("webhookToggleFailed"))
     } finally {
       setPending(false)
     }
@@ -639,11 +638,11 @@ export function AutomationPage() {
       await automationApi.removeWebhook(webhook.id)
       setWebhookToDelete(null)
       await load()
-      toast.success("Webhook eliminado.")
+      toast.success(t("webhookDeleted"))
     } catch (error) {
       if (handleError(error)) return
       console.error("Automation webhook deletion failed", error)
-      toast.error("No pudimos eliminar el webhook. Inténtalo de nuevo.")
+      toast.error(t("webhookDeleteFailed"))
     } finally {
       setPending(false)
     }
@@ -654,7 +653,7 @@ export function AutomationPage() {
       <Card variant="subtle">
         <CardContent>
           <EmptyState
-            description="Tu acceso actual no permite administrar la automatización de este espacio de trabajo."
+            description={t("forbiddenDescription")}
             icon={LockKeyhole}
             title="Automatización no disponible"
           />
@@ -664,7 +663,7 @@ export function AutomationPage() {
   }
 
   if (isLoading && !data && !loadError) {
-    return <PageLoading aria-label="Cargando automatización" />
+    return <PageLoading aria-label={t("loading")} />
   }
 
   if (loadError || !data) {
@@ -678,7 +677,7 @@ export function AutomationPage() {
                 variant="brand-secondary"
               />
             }
-            description="No pudimos cargar las claves y webhooks de este espacio de trabajo."
+            description={t("loadFailedDescription")}
             icon={CircleAlert}
             title="Automatización no disponible"
           />
@@ -744,14 +743,14 @@ export function AutomationPage() {
     <>
       <div className="flex flex-col gap-4">
         <CollectionHeader
-          description="Conecta Zapi con tus propias herramientas mediante claves de API y webhooks firmados."
-          title="Automatización"
+          description={t("pageDescription")}
+          title={t("pageTitle")}
         />
         <Tabs defaultValue="keys">
           <TabsList className="flex h-auto flex-wrap">
-            <TabsTrigger value="keys">Claves API</TabsTrigger>
-            <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
-            <TabsTrigger value="logs">Actividad</TabsTrigger>
+            <TabsTrigger value="keys">{t("tab.keys")}</TabsTrigger>
+            <TabsTrigger value="webhooks">{t("tab.webhooks")}</TabsTrigger>
+            <TabsTrigger value="logs">{t("tab.logs")}</TabsTrigger>
           </TabsList>
 
           <TabsContent className="pt-3" value="keys">
@@ -770,12 +769,12 @@ export function AutomationPage() {
                   ) : undefined
                 }
                 search={{
-                  ariaLabel: "Buscar claves API",
+                  ariaLabel: t("searchKeys"),
                   onChange: (value) => {
                     setKeysQuery(value)
                     setKeysPage(1)
                   },
-                  placeholder: "Buscar claves...",
+                  placeholder: t("searchKeysPlaceholder"),
                   value: keysQuery,
                 }}
               />
@@ -802,9 +801,9 @@ export function AutomationPage() {
                       setKeysPage(1)
                     }}
                     options={[
-                      { label: "Todas", value: "all" },
-                      { label: "Activas", value: "active" },
-                      { label: "Revocadas", value: "revoked" },
+                      { label: t("all"), value: "all" },
+                      { label: t("keyFilter.active"), value: "active" },
+                      { label: t("keyFilter.revoked"), value: "revoked" },
                     ]}
                     value={keysStatus}
                   />
@@ -812,8 +811,8 @@ export function AutomationPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Clave</TableHead>
-                      <TableHead>Permisos</TableHead>
+                      <TableHead>{t("key")}</TableHead>
+                      <TableHead>{t("permissions")}</TableHead>
                       <TableHead className="hidden lg:table-cell">
                         Último uso
                       </TableHead>
@@ -839,13 +838,18 @@ export function AutomationPage() {
                             <div className="flex flex-wrap gap-1">
                               {apiKey.permissions.map((permission) => (
                                 <Badge key={permission} variant="neutral">
-                                  {permissionLabels[permission]}
+                                  {t(`permission.${permission}`)}
                                 </Badge>
                               ))}
                             </div>
                           </TableCell>
                           <TableCell className="hidden text-muted-foreground lg:table-cell">
-                            {formatDateTime(apiKey.lastUsedAt)}
+                            {apiKey.lastUsedAt
+                              ? format.dateTime(new Date(apiKey.lastUsedAt), {
+                                  dateStyle: "medium",
+                                  timeStyle: "short",
+                                })
+                              : t("never")}
                           </TableCell>
                           <TableCell>
                             <Badge
@@ -856,8 +860,8 @@ export function AutomationPage() {
                               }
                             >
                               {apiKey.status === "active"
-                                ? "Activa"
-                                : "Revocada"}
+                                ? t("keyStatus.active")
+                                : t("keyStatus.revoked")}
                             </Badge>
                           </TableCell>
                           {data.canManage ? (
@@ -908,13 +912,11 @@ export function AutomationPage() {
                         colSpan={data.canManage ? 5 : 4}
                         description={
                           hasKeysFilters
-                            ? "Prueba con otro término o estado."
-                            : "Crea una clave para que tus herramientas consulten o publiquen por API."
+                            ? t("emptyFilteredDescription")
+                            : t("keysEmptyDescription")
                         }
                         title={
-                          hasKeysFilters
-                            ? "No hay coincidencias"
-                            : "No hay claves API"
+                          hasKeysFilters ? t("noMatches") : t("keysEmptyTitle")
                         }
                       />
                     )}
@@ -940,7 +942,7 @@ export function AutomationPage() {
             </Card>
             {data.canManage ? (
               <FloatingActionButton
-                label="Nueva clave"
+                label={t("newKey")}
                 onClick={() => setIsKeyOpen(true)}
               />
             ) : null}
@@ -965,12 +967,12 @@ export function AutomationPage() {
                   ) : undefined
                 }
                 search={{
-                  ariaLabel: "Buscar webhooks",
+                  ariaLabel: t("searchWebhooks"),
                   onChange: (value) => {
                     setWebhooksQuery(value)
                     setWebhooksPage(1)
                   },
-                  placeholder: "Buscar webhooks...",
+                  placeholder: t("searchWebhooksPlaceholder"),
                   value: webhooksQuery,
                 }}
               />
@@ -997,9 +999,9 @@ export function AutomationPage() {
                       setWebhooksPage(1)
                     }}
                     options={[
-                      { label: "Todos", value: "all" },
-                      { label: "Habilitados", value: "enabled" },
-                      { label: "Deshabilitados", value: "disabled" },
+                      { label: t("all"), value: "all" },
+                      { label: t("webhookFilter.enabled"), value: "enabled" },
+                      { label: t("webhookFilter.disabled"), value: "disabled" },
                     ]}
                     value={webhooksStatus}
                   />
@@ -1007,12 +1009,12 @@ export function AutomationPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Webhook</TableHead>
-                      <TableHead>Eventos</TableHead>
+                      <TableHead>{t("webhook")}</TableHead>
+                      <TableHead>{t("events")}</TableHead>
                       <TableHead className="hidden lg:table-cell">
                         Último envío
                       </TableHead>
-                      <TableHead>Habilitado</TableHead>
+                      <TableHead>{t("enabled")}</TableHead>
                       {data.canManage ? (
                         <TableHead className="text-right">Acciones</TableHead>
                       ) : null}
@@ -1036,13 +1038,18 @@ export function AutomationPage() {
                             <div className="flex flex-wrap gap-1">
                               {webhook.events.map((event) => (
                                 <Badge key={event} variant="neutral">
-                                  {eventLabels[event]}
+                                  {t(`event.${event}`)}
                                 </Badge>
                               ))}
                             </div>
                           </TableCell>
                           <TableCell className="hidden text-muted-foreground lg:table-cell">
-                            {formatDateTime(webhook.lastSentAt)}
+                            {webhook.lastSentAt
+                              ? format.dateTime(new Date(webhook.lastSentAt), {
+                                  dateStyle: "medium",
+                                  timeStyle: "short",
+                                })
+                              : t("never")}
                             {webhook.lastStatusCode
                               ? ` · ${webhook.lastStatusCode}`
                               : ""}
@@ -1111,13 +1118,13 @@ export function AutomationPage() {
                         colSpan={data.canManage ? 5 : 4}
                         description={
                           hasWebhooksFilters
-                            ? "Prueba con otro término o estado."
-                            : "Recibe un aviso en tu sistema cuando una publicación se cree, se envíe o falle."
+                            ? t("emptyFilteredDescription")
+                            : t("webhooksEmptyDescription")
                         }
                         title={
                           hasWebhooksFilters
-                            ? "No hay coincidencias"
-                            : "No hay webhooks"
+                            ? t("noMatches")
+                            : t("webhooksEmptyTitle")
                         }
                       />
                     )}
@@ -1145,7 +1152,7 @@ export function AutomationPage() {
             </Card>
             {data.canManage ? (
               <FloatingActionButton
-                label="Nuevo webhook"
+                label={t("newWebhook")}
                 onClick={() => {
                   setEditingWebhook(null)
                   setIsWebhookOpen(true)
@@ -1158,12 +1165,12 @@ export function AutomationPage() {
             <Card variant="subtle">
               <DataTableHeader
                 search={{
-                  ariaLabel: "Buscar actividad",
+                  ariaLabel: t("searchActivity"),
                   onChange: (value) => {
                     setLogsQuery(value)
                     setLogsPage(1)
                   },
-                  placeholder: "Buscar actividad...",
+                  placeholder: t("searchActivityPlaceholder"),
                   value: logsQuery,
                 }}
               />
@@ -1183,8 +1190,8 @@ export function AutomationPage() {
                   }
                 >
                   <DataTableFilter
-                    ariaLabel="Filtrar por resultado"
-                    label="Resultado"
+                    ariaLabel={t("filterResult")}
+                    label={t("result")}
                     onValueChange={(value) => {
                       setLogsStatus(
                         value as "all" | "accepted" | "succeeded" | "failed"
@@ -1192,10 +1199,10 @@ export function AutomationPage() {
                       setLogsPage(1)
                     }}
                     options={[
-                      { label: "Todos", value: "all" },
-                      { label: "Aceptados", value: "accepted" },
-                      { label: "Correctos", value: "succeeded" },
-                      { label: "Fallidos", value: "failed" },
+                      { label: t("all"), value: "all" },
+                      { label: t("logFilter.accepted"), value: "accepted" },
+                      { label: t("logFilter.succeeded"), value: "succeeded" },
+                      { label: t("logFilter.failed"), value: "failed" },
                     ]}
                     value={logsStatus}
                   />
@@ -1203,9 +1210,9 @@ export function AutomationPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Evento</TableHead>
-                      <TableHead>Dirección</TableHead>
-                      <TableHead>Resultado</TableHead>
+                      <TableHead>{t("eventColumn")}</TableHead>
+                      <TableHead>{t("direction")}</TableHead>
+                      <TableHead>{t("result")}</TableHead>
                       <TableHead className="hidden lg:table-cell">
                         Fecha
                       </TableHead>
@@ -1227,8 +1234,8 @@ export function AutomationPage() {
                           </TableCell>
                           <TableCell className="text-muted-foreground">
                             {log.direction === "inbound"
-                              ? "Entrante"
-                              : "Saliente"}
+                              ? t("directionLabel.inbound")
+                              : t("directionLabel.outbound")}
                           </TableCell>
                           <TableCell>
                             <Badge
@@ -1240,16 +1247,17 @@ export function AutomationPage() {
                                     : "info"
                               }
                             >
-                              {log.status === "failed"
-                                ? "Fallido"
-                                : log.status === "succeeded"
-                                  ? "Correcto"
-                                  : "Aceptado"}
+                              {t(`logStatus.${log.status}`)}
                               {log.statusCode ? ` · ${log.statusCode}` : ""}
                             </Badge>
                           </TableCell>
                           <TableCell className="hidden text-muted-foreground lg:table-cell">
-                            {formatDateTime(log.createdAt)}
+                            {log.createdAt
+                              ? format.dateTime(new Date(log.createdAt), {
+                                  dateStyle: "medium",
+                                  timeStyle: "short",
+                                })
+                              : t("never")}
                           </TableCell>
                         </TableRow>
                       ))
@@ -1268,13 +1276,11 @@ export function AutomationPage() {
                         colSpan={4}
                         description={
                           hasLogsFilters
-                            ? "Prueba con otro término o resultado."
-                            : "Aquí aparecerán las llamadas por API y los envíos de webhook."
+                            ? t("logsEmptyFilteredDescription")
+                            : t("logsEmptyDescription")
                         }
                         title={
-                          hasLogsFilters
-                            ? "No hay coincidencias"
-                            : "Sin actividad todavía"
+                          hasLogsFilters ? t("noMatches") : t("logsEmptyTitle")
                         }
                       />
                     )}
@@ -1316,14 +1322,14 @@ export function AutomationPage() {
         webhook={editingWebhook}
       />
       <SecretRevealSheet
-        description="Guárdalo ahora: no volveremos a mostrarlo. Si lo pierdes, crea una clave nueva."
-        label="Token de la clave"
+        description={t("tokenDescription")}
+        label={t("tokenLabel")}
         onOpenChange={(open) => !open && setRevealedToken(null)}
         value={revealedToken}
       />
       <SecretRevealSheet
-        description="Úsalo para verificar la firma de cada envío. No volveremos a mostrarlo."
-        label="Secreto de firma"
+        description={t("secretDescription")}
+        label={t("secretLabel")}
         onOpenChange={(open) => !open && setRevealedSecret(null)}
         value={revealedSecret}
       />
@@ -1341,7 +1347,9 @@ export function AutomationPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={pending}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={pending}>
+              {t("cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               disabled={pending}
               onClick={(event) => {
@@ -1372,7 +1380,9 @@ export function AutomationPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={pending}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={pending}>
+              {t("cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               disabled={pending}
               onClick={(event) => {
