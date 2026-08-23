@@ -15,9 +15,33 @@ import {
 import { Spinner } from "@workspace/ui/components/spinner"
 import { cn } from "@workspace/ui/lib/utils"
 
+/**
+ * Un aviso de espacio llega como clave y argumentos porque lo escribe el
+ * sistema y la API no traduce. Cada clase se resuelve por separado en vez de
+ * con una clave construida: así el tipado comprueba que los argumentos del
+ * mensaje son los que realmente lleva el aviso.
+ */
+function workspaceNotificationBody(
+  notification: Extract<PortalNotification, { source: "workspace" }>,
+  t: ReturnType<typeof useTranslations<"notificationKind">>
+) {
+  const title = notification.payload.title ?? ""
+  const actor = notification.payload.actor ?? ""
+
+  switch (notification.kind) {
+    case "board.task_assigned":
+      return t("board.task_assigned.body", { actor, title })
+    case "board.task_commented":
+      return t("board.task_commented.body", { actor, title })
+    case "board.task_due_soon":
+      return t("board.task_due_soon.body", { title })
+  }
+}
+
 export function NotificationBell() {
   const t = useTranslations("shell.notifications")
   const format = useFormatter()
+  const tKind = useTranslations("notificationKind")
   const [notifications, setNotifications] = useState<PortalNotification[]>([])
   const [unread, setUnread] = useState(0)
   const [open, setOpen] = useState(false)
@@ -161,13 +185,17 @@ export function NotificationBell() {
                           className="size-1.5 shrink-0 rounded-full bg-primary"
                         />
                       )}
-                      {notification.title}
+                      {notification.source === "announcement"
+                        ? notification.title
+                        : tKind(`${notification.kind}.title`)}
                       {notification.url ? (
                         <ExternalLink className="size-3 text-muted-foreground" />
                       ) : null}
                     </span>
                     <span className="line-clamp-2 text-sm text-muted-foreground">
-                      {notification.body}
+                      {notification.source === "announcement"
+                        ? notification.body
+                        : workspaceNotificationBody(notification, tKind)}
                     </span>
                     <span className="text-xs text-muted-foreground">
                       {format.dateTime(new Date(notification.publishedAt), {

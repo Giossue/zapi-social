@@ -81,7 +81,15 @@ export const adminAnnouncementTargetsSchema = z.object({
   users: z.array(z.object({ id: z.uuid(), label: z.string() })),
 })
 
-export const portalNotificationSchema = z.object({
+/**
+ * La campana mezcla dos orígenes que no se escriben igual.
+ *
+ * Un anuncio lo redacta un administrador y viaja con su texto ya escrito. Un
+ * aviso de espacio lo genera el sistema y viaja como clave más argumentos,
+ * porque la API no traduce y el idioma es el de quien lo lee.
+ */
+export const portalAnnouncementNotificationSchema = z.object({
+  source: z.literal("announcement"),
   id: z.uuid(),
   title: z.string(),
   body: z.string(),
@@ -89,6 +97,31 @@ export const portalNotificationSchema = z.object({
   publishedAt: z.string().datetime(),
   readAt: z.string().datetime().nullable(),
 })
+
+/**
+ * Conjunto cerrado: la interfaz necesita una clave concreta para tipar su
+ * traducción, y un `string` libre dejaría pasar un aviso sin texto.
+ */
+export const workspaceNotificationKindSchema = z.enum([
+  "board.task_assigned",
+  "board.task_commented",
+  "board.task_due_soon",
+])
+
+export const portalWorkspaceNotificationSchema = z.object({
+  source: z.literal("workspace"),
+  id: z.uuid(),
+  kind: workspaceNotificationKindSchema,
+  payload: z.record(z.string(), z.string()),
+  url: z.string().nullable(),
+  publishedAt: z.string().datetime(),
+  readAt: z.string().datetime().nullable(),
+})
+
+export const portalNotificationSchema = z.discriminatedUnion("source", [
+  portalAnnouncementNotificationSchema,
+  portalWorkspaceNotificationSchema,
+])
 
 export const portalNotificationsResponseSchema = z.object({
   notifications: z.array(portalNotificationSchema),
@@ -112,6 +145,15 @@ export type UpsertAdminAnnouncementInput = z.infer<
 >
 export type AdminAnnouncementTargets = z.infer<
   typeof adminAnnouncementTargetsSchema
+>
+export type WorkspaceNotificationKind = z.infer<
+  typeof workspaceNotificationKindSchema
+>
+export type PortalAnnouncementNotification = z.infer<
+  typeof portalAnnouncementNotificationSchema
+>
+export type PortalWorkspaceNotification = z.infer<
+  typeof portalWorkspaceNotificationSchema
 >
 export type PortalNotification = z.infer<typeof portalNotificationSchema>
 export type PortalNotificationsResponse = z.infer<

@@ -3898,6 +3898,22 @@
       "signOut": "Sign out"
     }
   },
+  "notificationKind": {
+    "board": {
+      "task_assigned": {
+        "body": "{actor} assigned you “{title}”.",
+        "title": "Task assigned"
+      },
+      "task_commented": {
+        "body": "{actor} commented on “{title}”.",
+        "title": "New comment"
+      },
+      "task_due_soon": {
+        "body": "“{title}” is due tomorrow.",
+        "title": "Task due soon"
+      }
+    }
+  },
   "plans": {
     "actions": "Actions",
     "billing": {

@@ -27,6 +27,7 @@ import { EmailTemplatesService } from './email-templates.service';
 import { Aes256GcmService } from '../platform/crypto/aes-256-gcm.service';
 import { AppException } from '../platform/errors/app-exception';
 import {
+  boardTaskEmail,
   passwordResetEmail,
   teamAccessUpdatedEmail,
   teamInvitationAcceptedEmail,
@@ -319,6 +320,76 @@ export class EmailService {
       copy.subject,
       teamMemberRemovedEmail(
         { ...input, portalUrl: this.webUrl('/portal/dashboard') },
+        copy,
+        locale,
+      ),
+    );
+  }
+
+  async sendBoardTaskAssigned(input: {
+    email: string;
+    memberName: string;
+    actorName: string;
+    taskTitle: string;
+    workspaceName: string;
+    taskUrl: string;
+  }): Promise<void> {
+    const locale = await this.localeFor(input.email);
+    const copy = await this.templates.resolve(
+      'board_task_assigned',
+      {
+        workspaceName: input.workspaceName,
+        recipientName: input.memberName,
+        actorName: input.actorName,
+        taskTitle: input.taskTitle,
+      },
+      locale,
+    );
+    await this.sendEmail(
+      input.email,
+      copy.subject,
+      boardTaskEmail(
+        {
+          workspaceName: input.workspaceName,
+          taskTitle: input.taskTitle,
+          taskUrl: this.webUrl(input.taskUrl),
+        },
+        copy,
+        locale,
+      ),
+    );
+  }
+
+  async sendBoardTaskDueSoon(input: {
+    email: string;
+    memberName: string;
+    taskTitle: string;
+    workspaceName: string;
+    taskUrl: string;
+    dueDate: Date;
+  }): Promise<void> {
+    const locale = await this.localeFor(input.email);
+    const dueLabel = this.dateLabel(input.dueDate, locale);
+    const copy = await this.templates.resolve(
+      'board_task_due_soon',
+      {
+        workspaceName: input.workspaceName,
+        recipientName: input.memberName,
+        taskTitle: input.taskTitle,
+        dueLabel,
+      },
+      locale,
+    );
+    await this.sendEmail(
+      input.email,
+      copy.subject,
+      boardTaskEmail(
+        {
+          workspaceName: input.workspaceName,
+          taskTitle: input.taskTitle,
+          taskUrl: this.webUrl(input.taskUrl),
+          dueLabel,
+        },
         copy,
         locale,
       ),

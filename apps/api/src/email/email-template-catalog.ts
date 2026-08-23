@@ -221,4 +221,60 @@ export const EMAIL_TEMPLATE_CATALOG: Record<EmailTemplateKey, CatalogEntry> = {
       { token: '{{counterpartName}}', description: 'La otra parte' },
     ],
   },
+  board_task_assigned: {
+    name: 'Tarea asignada',
+    description: 'Avisa a quien recibe una tarjeta del tablero.',
+    copy: {
+      es: {
+        preview: '{{actorName}} te asignó «{{taskTitle}}».',
+        subject: 'Te asignaron «{{taskTitle}}»',
+        title: 'Tienes una tarea nueva',
+        body: '{{actorName}} te asignó «{{taskTitle}}» en el tablero de {{workspaceName}}.',
+        actionLabel: 'Abrir la tarea',
+        notice: null,
+      },
+      en: {
+        preview: '{{actorName}} assigned you “{{taskTitle}}”.',
+        subject: 'You were assigned “{{taskTitle}}”',
+        title: 'You have a new task',
+        body: '{{actorName}} assigned you “{{taskTitle}}” on the {{workspaceName}} board.',
+        actionLabel: 'Open the task',
+        notice: null,
+      },
+    },
+    variables: [
+      { token: '{{workspaceName}}', description: 'Nombre del espacio' },
+      { token: '{{recipientName}}', description: 'Quien recibe el correo' },
+      { token: '{{actorName}}', description: 'Quien asignó la tarea' },
+      { token: '{{taskTitle}}', description: 'Título de la tarea' },
+    ],
+  },
+  board_task_due_soon: {
+    name: 'Tarea por vencer',
+    description: 'Recuerda una tarjeta del tablero que vence mañana.',
+    copy: {
+      es: {
+        preview: '«{{taskTitle}}» vence {{dueLabel}}.',
+        subject: '«{{taskTitle}}» vence pronto',
+        title: 'Una tarea tuya está por vencer',
+        body: '«{{taskTitle}}» vence {{dueLabel}} en el tablero de {{workspaceName}}.',
+        actionLabel: 'Abrir la tarea',
+        notice: 'Recibes este aviso una vez, el día antes del vencimiento.',
+      },
+      en: {
+        preview: '“{{taskTitle}}” is due {{dueLabel}}.',
+        subject: '“{{taskTitle}}” is due soon',
+        title: 'One of your tasks is due soon',
+        body: '“{{taskTitle}}” is due {{dueLabel}} on the {{workspaceName}} board.',
+        actionLabel: 'Open the task',
+        notice: 'You get this reminder once, the day before it is due.',
+      },
+    },
+    variables: [
+      { token: '{{workspaceName}}', description: 'Nombre del espacio' },
+      { token: '{{recipientName}}', description: 'Quien recibe el correo' },
+      { token: '{{taskTitle}}', description: 'Título de la tarea' },
+      { token: '{{dueLabel}}', description: 'Fecha de vencimiento' },
+    ],
+  },
 };

@@ -2,12 +2,14 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import {
   platformAnnouncementReads,
   platformAnnouncements,
+  workspaceNotifications,
 } from '@workspace/database';
 import { and, desc, eq, isNull, or, sql } from '@workspace/database/query';
 import type { SQL } from '@workspace/database/query';
 import {
   type PortalAuthSession,
   type PortalNotification,
+  type WorkspaceNotificationKind,
   type PortalNotificationsResponse,
 } from '@workspace/contracts';
 import { DatabaseService } from '../database/database.service';
@@ -19,9 +21,7 @@ const FEED_LIMIT = 20;
 export class NotificationsService {
   constructor(private readonly database: DatabaseService) {}
 
-  async feed(
-    session: PortalAuthSession,
-  ): Promise<PortalNotificationsResponse> {
+  async feed(session: PortalAuthSession): Promise<PortalNotificationsResponse> {
     const rows = await this.database.db
       .select({
         announcement: platformAnnouncements,
@@ -46,8 +46,22 @@ export class NotificationsService {
       )
       .orderBy(desc(platformAnnouncements.publishedAt))
       .limit(FEED_LIMIT);
-    const notifications = rows.map(
-      ({ announcement, readAt }): PortalNotification => ({
+    const workspaceRows = await this.database.db
+      .select()
+      .from(workspaceNotifications)
+      .where(
+        and(
+          eq(workspaceNotifications.userId, session.user.id),
+          eq(workspaceNotifications.workspaceId, session.workspace.id),
+          isNull(workspaceNotifications.archivedAt),
+        ),
+      )
+      .orderBy(desc(workspaceNotifications.createdAt))
+      .limit(FEED_LIMIT);
+
+    const notifications: PortalNotification[] = [
+      ...rows.map(({ announcement, readAt }): PortalNotification => ({
+        source: 'announcement',
         id: announcement.id,
         title: announcement.title,
         body: announcement.body,
@@ -56,8 +70,23 @@ export class NotificationsService {
           announcement.publishedAt ?? announcement.createdAt
         ).toISOString(),
         readAt: readAt?.toISOString() ?? null,
-      }),
-    );
+      })),
+      ...workspaceRows.map((row): PortalNotification => ({
+        source: 'workspace',
+        id: row.id,
+        kind: row.kind as WorkspaceNotificationKind,
+        payload: row.payload,
+        url: row.url,
+        publishedAt: row.createdAt.toISOString(),
+        readAt: row.readAt?.toISOString() ?? null,
+      })),
+    ]
+      // Las dos fuentes se ordenan juntas: en la campana el usuario ve una sola
+      // lista, no dos secciones.
+      .sort((first, second) =>
+        second.publishedAt.localeCompare(first.publishedAt),
+      )
+      .slice(0, FEED_LIMIT);
     return {
       notifications,
       unread: notifications.filter((item) => !item.readAt).length,
@@ -72,10 +101,29 @@ export class NotificationsService {
     const [visible] = await this.database.db
       .select({ id: platformAnnouncements.id })
       .from(platformAnnouncements)
-      .where(and(eq(platformAnnouncements.id, id), this.visibleCondition(session)))
+      .where(
+        and(eq(platformAnnouncements.id, id), this.visibleCondition(session)),
+      )
       .limit(1);
-    if (!visible) throw this.notFound();
-    await this.upsertState(session.user.id, [visible.id]);
+    if (visible) {
+      await this.upsertState(session.user.id, [visible.id]);
+      return this.feed(session);
+    }
+
+    // El identificador puede ser de cualquiera de las dos fuentes: la campana
+    // presenta una sola lista y no distingue el origen al marcar.
+    const marked = await this.database.db
+      .update(workspaceNotifications)
+      .set({ readAt: new Date(), updatedAt: new Date() })
+      .where(
+        and(
+          eq(workspaceNotifications.id, id),
+          eq(workspaceNotifications.userId, session.user.id),
+          isNull(workspaceNotifications.readAt),
+        ),
+      )
+      .returning({ id: workspaceNotifications.id });
+    if (!marked.length) throw this.notFound();
     return this.feed(session);
   }
 
@@ -83,7 +131,19 @@ export class NotificationsService {
     session: PortalAuthSession,
   ): Promise<PortalNotificationsResponse> {
     const ids = await this.visibleIds(session);
-    await this.upsertState(session.user.id, ids);
+    await Promise.all([
+      this.upsertState(session.user.id, ids),
+      this.database.db
+        .update(workspaceNotifications)
+        .set({ readAt: new Date(), updatedAt: new Date() })
+        .where(
+          and(
+            eq(workspaceNotifications.userId, session.user.id),
+            eq(workspaceNotifications.workspaceId, session.workspace.id),
+            isNull(workspaceNotifications.readAt),
+          ),
+        ),
+    ]);
     return this.feed(session);
   }
 
@@ -91,7 +151,20 @@ export class NotificationsService {
     session: PortalAuthSession,
   ): Promise<PortalNotificationsResponse> {
     const ids = await this.visibleIds(session);
-    await this.upsertState(session.user.id, ids, { archive: true });
+    const now = new Date();
+    await Promise.all([
+      this.upsertState(session.user.id, ids, { archive: true }),
+      this.database.db
+        .update(workspaceNotifications)
+        .set({ readAt: now, archivedAt: now, updatedAt: now })
+        .where(
+          and(
+            eq(workspaceNotifications.userId, session.user.id),
+            eq(workspaceNotifications.workspaceId, session.workspace.id),
+            isNull(workspaceNotifications.archivedAt),
+          ),
+        ),
+    ]);
     return this.feed(session);
   }
 

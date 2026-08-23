@@ -24,6 +24,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { PublicSiteModule } from './public-site/public-site.module';
 import { SupportModule } from './support/support.module';
 import { WatermarksModule } from './watermarks/watermarks.module';
+import { BoardsModule } from './boards/boards.module';
 import { TeamsModule } from './teams/teams.module';
 import { GroupsModule } from './groups/groups.module';
 import { BulkPostsModule } from './bulk-posts/bulk-posts.module';
@@ -143,6 +144,7 @@ const pinoRedactPaths = [
     PublicSiteModule,
     SupportModule,
     WatermarksModule,
+    BoardsModule,
     TeamsModule,
     GroupsModule,
     BulkPostsModule,

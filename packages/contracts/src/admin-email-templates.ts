@@ -10,6 +10,8 @@ export const emailTemplateKeySchema = z.enum([
   "team_member_removed",
   "team_ownership_new_owner",
   "team_ownership_previous_owner",
+  "board_task_assigned",
+  "board_task_due_soon",
 ])
 
 export const emailTemplateVariableSchema = z.object({

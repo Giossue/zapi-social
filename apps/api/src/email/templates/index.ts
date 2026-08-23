@@ -1,3 +1,4 @@
+export * from './board-task-email';
 export * from './email-chrome';
 export * from './email-copy';
 export * from './email-template';

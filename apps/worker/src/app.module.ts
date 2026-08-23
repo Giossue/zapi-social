@@ -17,6 +17,9 @@ import {
   WHATSAPP_PROFILE_SYNC_QUEUE,
 } from './whatsapp-profile-sync/whatsapp-profile-sync.constants';
 import { WhatsAppProfileScheduleProcessor } from './whatsapp-profile-sync/whatsapp-profile-schedule.processor';
+import { BoardDueReminderProcessor } from './boards/board-due-reminder.processor';
+import { BoardDueReminderScheduler } from './boards/board-due-reminder.scheduler';
+import { BOARD_DUE_REMINDER_QUEUE } from './boards/boards.constants';
 import { WhatsAppProfileSyncProcessor } from './whatsapp-profile-sync/whatsapp-profile-sync.processor';
 import { WhatsAppProfileSyncScheduler } from './whatsapp-profile-sync/whatsapp-profile-sync.scheduler';
 import { FILE_DERIVATIVES_QUEUE } from './files/file-derivatives.constants';
@@ -80,6 +83,7 @@ import { FileImportsScheduler } from './files/file-imports.scheduler';
       { name: AUTOMATION_WEBHOOK_QUEUE },
       { name: PUBLISHING_DELIVERY_QUEUE },
       { name: FILE_IMPORTS_QUEUE },
+      { name: BOARD_DUE_REMINDER_QUEUE },
     ),
   ],
   providers: [
@@ -89,6 +93,8 @@ import { FileImportsScheduler } from './files/file-imports.scheduler';
     MetaProfileSyncScheduler,
     MetaProfileScheduleProcessor,
     MetaProfileSyncProcessor,
+    BoardDueReminderScheduler,
+    BoardDueReminderProcessor,
     WhatsAppProfileSyncScheduler,
     WhatsAppProfileScheduleProcessor,
     WhatsAppProfileSyncProcessor,

@@ -1,5 +1,21 @@
 import type {
   AdminDashboard,
+  BoardColumn,
+  BoardLabel,
+  BoardQuery,
+  BoardResponse,
+  BoardTaskDetail,
+  ContentBoardResponse,
+  CreateBoardColumnInput,
+  CreateBoardLabelInput,
+  CreateBoardTaskAttachmentInput,
+  CreateBoardTaskCommentInput,
+  CreateBoardTaskInput,
+  MoveBoardTaskInput,
+  MoveContentBoardCardInput,
+  ReorderBoardColumnsInput,
+  UpdateBoardColumnInput,
+  UpdateBoardTaskInput,
   AdminPlan,
   AdminPlansList,
   AdminTurnstileConfiguration,
@@ -1690,5 +1706,110 @@ export const auditApi = {
   list: () =>
     request<AdminAuditEventsResponse>("/v1/admin/audit-events", {
       method: "GET",
+    }),
+}
+
+/**
+ * Los nombres de las columnas de arranque viajan en la query porque la API no
+ * traduce: los crea con el idioma activo de quien abre el tablero por primera
+ * vez y a partir de ahí son datos del usuario.
+ */
+function boardQueryString(
+  query: Partial<BoardQuery> = {},
+  starterNames?: { todo: string; doing: string; done: string }
+) {
+  const params = new URLSearchParams()
+  if (query.q) params.set("q", query.q)
+  if (query.assigneeId) params.set("assigneeId", query.assigneeId)
+  if (query.priority) params.set("priority", query.priority)
+  if (query.labelId) params.set("labelId", query.labelId)
+  if (starterNames) {
+    params.set("starterTodo", starterNames.todo)
+    params.set("starterDoing", starterNames.doing)
+    params.set("starterDone", starterNames.done)
+  }
+  const serialized = params.toString()
+  return serialized ? `?${serialized}` : ""
+}
+
+export const boardsApi = {
+  board: (
+    query?: Partial<BoardQuery>,
+    starterNames?: { todo: string; doing: string; done: string }
+  ) =>
+    request<BoardResponse>(
+      `/v1/portal/boards/tasks${boardQueryString(query, starterNames)}`,
+      { method: "GET" }
+    ),
+  createColumn: (input: CreateBoardColumnInput) =>
+    request<BoardColumn>("/v1/portal/boards/columns", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  updateColumn: (id: string, input: UpdateBoardColumnInput) =>
+    request<BoardColumn>(`/v1/portal/boards/columns/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  reorderColumns: (input: ReorderBoardColumnsInput) =>
+    request<void>("/v1/portal/boards/columns/order", {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+  deleteColumn: (id: string) =>
+    request<void>(`/v1/portal/boards/columns/${id}`, { method: "DELETE" }),
+  task: (id: string) =>
+    request<BoardTaskDetail>(`/v1/portal/boards/tasks/${id}`, {
+      method: "GET",
+    }),
+  createTask: (input: CreateBoardTaskInput) =>
+    request<BoardTaskDetail>("/v1/portal/boards/tasks", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  updateTask: (id: string, input: UpdateBoardTaskInput) =>
+    request<BoardTaskDetail>(`/v1/portal/boards/tasks/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  moveTask: (id: string, input: MoveBoardTaskInput) =>
+    request<BoardTaskDetail>(`/v1/portal/boards/tasks/${id}/position`, {
+      method: "PUT",
+      body: JSON.stringify(input),
+    }),
+  archiveTask: (id: string) =>
+    request<void>(`/v1/portal/boards/tasks/${id}/archive`, { method: "POST" }),
+  deleteTask: (id: string) =>
+    request<void>(`/v1/portal/boards/tasks/${id}`, { method: "DELETE" }),
+  addComment: (id: string, input: CreateBoardTaskCommentInput) =>
+    request<BoardTaskDetail>(`/v1/portal/boards/tasks/${id}/comments`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  addAttachment: (id: string, input: CreateBoardTaskAttachmentInput) =>
+    request<BoardTaskDetail>(`/v1/portal/boards/tasks/${id}/attachments`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  removeAttachment: (id: string, attachmentId: string) =>
+    request<BoardTaskDetail>(
+      `/v1/portal/boards/tasks/${id}/attachments/${attachmentId}`,
+      { method: "DELETE" }
+    ),
+  createLabel: (input: CreateBoardLabelInput) =>
+    request<BoardLabel>("/v1/portal/boards/labels", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  deleteLabel: (id: string) =>
+    request<void>(`/v1/portal/boards/labels/${id}`, { method: "DELETE" }),
+  contentBoard: () =>
+    request<ContentBoardResponse>("/v1/portal/boards/content", {
+      method: "GET",
+    }),
+  moveContentCard: (id: string, input: MoveContentBoardCardInput) =>
+    request<ContentBoardResponse>(`/v1/portal/boards/content/${id}/status`, {
+      method: "PUT",
+      body: JSON.stringify(input),
     }),
 }

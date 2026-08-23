@@ -3901,6 +3901,22 @@ declare const messages: {
       signOut: "Cerrar sesión"
     }
   }
+  notificationKind: {
+    board: {
+      task_assigned: {
+        body: "{actor} te asignó «{title}»."
+        title: "Tarea asignada"
+      }
+      task_commented: {
+        body: "{actor} comentó en «{title}»."
+        title: "Comentario nuevo"
+      }
+      task_due_soon: {
+        body: "«{title}» vence mañana."
+        title: "Tarea por vencer"
+      }
+    }
+  }
   plans: {
     actions: "Acciones"
     billing: {

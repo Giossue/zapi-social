@@ -3447,6 +3447,252 @@ export const linkBioEvents = pgTable(
  * Laravel. El estado por persona vive en `platform_announcement_reads` para que
  * un anuncio global no duplique una fila por usuario al publicarse.
  */
+/**
+ * Columnas del tablero de tareas. Las define cada espacio de trabajo en vez de
+ * venir fijas: el juego de la plantilla visual —`ideas`, `qa`, `shipped`— es de
+ * desarrollo de software y no encaja con lo que hace un equipo de contenido.
+ */
+export const boardColumns = pgTable(
+  "board_columns",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    name: varchar("name", { length: 60 }).notNull(),
+    position: integer("position").notNull(),
+    color: varchar("color", { length: 7 }).notNull().default("#2563eb"),
+    /** Columna de «hecho»: al entrar, la tarea sella `completedAt`. */
+    isTerminal: boolean("is_terminal").notNull().default(false),
+    /** Aviso visual al pasarse del límite; no bloquea el movimiento. */
+    wipLimit: integer("wip_limit"),
+    ...timestamps,
+  },
+  (table) => [
+    unique("board_columns_id_workspace_unique").on(table.id, table.workspaceId),
+    index("board_columns_workspace_position_index").on(
+      table.workspaceId,
+      table.position
+    ),
+    check("board_columns_position_check", sql`${table.position} >= 0`),
+    check("board_columns_color_check", sql`${table.color} ~ '^#[0-9a-f]{6}$'`),
+    check(
+      "board_columns_wip_limit_check",
+      sql`${table.wipLimit} is null or ${table.wipLimit} > 0`
+    ),
+  ]
+)
+
+export const boardLabels = pgTable(
+  "board_labels",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    name: varchar("name", { length: 40 }).notNull(),
+    color: varchar("color", { length: 7 }).notNull().default("#64748b"),
+    ...timestamps,
+  },
+  (table) => [
+    unique("board_labels_id_workspace_unique").on(table.id, table.workspaceId),
+    uniqueIndex("board_labels_workspace_name_unique").on(
+      table.workspaceId,
+      table.name
+    ),
+    check("board_labels_color_check", sql`${table.color} ~ '^#[0-9a-f]{6}$'`),
+  ]
+)
+
+export const boardTasks = pgTable(
+  "board_tasks",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    columnId: uuid("column_id").notNull(),
+    createdByUserId: uuid("created_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    assigneeUserId: uuid("assignee_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    title: varchar("title", { length: 200 }).notNull(),
+    description: text("description").notNull().default(""),
+    priority: varchar("priority", { length: 8 })
+      .$type<"low" | "medium" | "high">()
+      .notNull()
+      .default("medium"),
+    dueDate: date("due_date"),
+    progress: integer("progress").notNull().default(0),
+    /**
+     * Orden dentro de la columna. Es entero y se renumera la columna entera al
+     * mover: un tablero tiene decenas de tarjetas, y renumerar sale más barato
+     * que arrastrar la deriva de las posiciones fraccionarias.
+     */
+    position: integer("position").notNull(),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    /** Archivar saca la tarea del tablero sin borrar su historial. */
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    /** Enlace opcional con el tablero de contenido. */
+    publishingPostId: uuid("publishing_post_id"),
+    ...timestamps,
+  },
+  (table) => [
+    unique("board_tasks_id_workspace_unique").on(table.id, table.workspaceId),
+    foreignKey({
+      columns: [table.columnId, table.workspaceId],
+      foreignColumns: [boardColumns.id, boardColumns.workspaceId],
+      name: "board_tasks_column_workspace_fk",
+    }).onDelete("restrict"),
+    foreignKey({
+      columns: [table.publishingPostId, table.workspaceId],
+      foreignColumns: [publishingPosts.id, publishingPosts.workspaceId],
+      name: "board_tasks_publishing_post_workspace_fk",
+    }).onDelete("set null"),
+    index("board_tasks_workspace_column_position_index").on(
+      table.workspaceId,
+      table.columnId,
+      table.position
+    ),
+    index("board_tasks_workspace_assignee_due_index").on(
+      table.workspaceId,
+      table.assigneeUserId,
+      table.dueDate
+    ),
+    check(
+      "board_tasks_priority_check",
+      sql`${table.priority} in ('low', 'medium', 'high')`
+    ),
+    check(
+      "board_tasks_progress_check",
+      sql`${table.progress} between 0 and 100`
+    ),
+    check("board_tasks_position_check", sql`${table.position} >= 0`),
+  ]
+)
+
+export const boardTaskLabels = pgTable(
+  "board_task_labels",
+  {
+    taskId: uuid("task_id").notNull(),
+    labelId: uuid("label_id").notNull(),
+    workspaceId: uuid("workspace_id").notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    primaryKey({ columns: [table.taskId, table.labelId] }),
+    foreignKey({
+      columns: [table.taskId, table.workspaceId],
+      foreignColumns: [boardTasks.id, boardTasks.workspaceId],
+      name: "board_task_labels_task_workspace_fk",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.labelId, table.workspaceId],
+      foreignColumns: [boardLabels.id, boardLabels.workspaceId],
+      name: "board_task_labels_label_workspace_fk",
+    }).onDelete("cascade"),
+    index("board_task_labels_label_index").on(table.labelId),
+  ]
+)
+
+export const boardTaskComments = pgTable(
+  "board_task_comments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    taskId: uuid("task_id").notNull(),
+    workspaceId: uuid("workspace_id").notNull(),
+    authorUserId: uuid("author_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    body: text("body").notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.taskId, table.workspaceId],
+      foreignColumns: [boardTasks.id, boardTasks.workspaceId],
+      name: "board_task_comments_task_workspace_fk",
+    }).onDelete("cascade"),
+    index("board_task_comments_task_created_index").on(
+      table.taskId,
+      table.createdAt
+    ),
+  ]
+)
+
+/** Puente a `file_assets`: la tarea referencia el archivo, no lo copia. */
+export const boardTaskAttachments = pgTable(
+  "board_task_attachments",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    taskId: uuid("task_id").notNull(),
+    fileAssetId: uuid("file_asset_id").notNull(),
+    workspaceId: uuid("workspace_id").notNull(),
+    createdByUserId: uuid("created_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    ...timestamps,
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.taskId, table.workspaceId],
+      foreignColumns: [boardTasks.id, boardTasks.workspaceId],
+      name: "board_task_attachments_task_workspace_fk",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.fileAssetId, table.workspaceId],
+      foreignColumns: [fileAssets.id, fileAssets.workspaceId],
+      name: "board_task_attachments_asset_workspace_fk",
+    }).onDelete("cascade"),
+    uniqueIndex("board_task_attachments_task_asset_unique").on(
+      table.taskId,
+      table.fileAssetId
+    ),
+    index("board_task_attachments_asset_index").on(table.fileAssetId),
+  ]
+)
+
+/**
+ * Aviso dirigido a una persona dentro de un espacio de trabajo. Guarda una
+ * clave y sus argumentos en vez de prosa: lo escribe el sistema, y la API no
+ * traduce. La campana del Portal lo une con `platform_announcements`, que sí
+ * lleva texto porque lo redacta un administrador.
+ */
+export const workspaceNotifications = pgTable(
+  "workspace_notifications",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    kind: varchar("kind", { length: 64 }).notNull(),
+    payload: jsonb("payload")
+      .$type<Record<string, string>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
+    url: varchar("url", { length: 2048 }),
+    readAt: timestamp("read_at", { withTimezone: true }),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => [
+    index("workspace_notifications_user_feed_index").on(
+      table.userId,
+      table.archivedAt,
+      table.createdAt
+    ),
+    index("workspace_notifications_workspace_index").on(
+      table.workspaceId,
+      table.createdAt
+    ),
+  ]
+)
+
 export const platformAnnouncements = pgTable(
   "platform_announcements",
   {
