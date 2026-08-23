@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react"
+import type { ComponentType, SVGProps } from "react"
 
 export type ChannelConnectionProvider =
   "meta" | "linkedin" | "x" | "tiktok" | "whatsapp"
@@ -24,7 +24,7 @@ export type ChannelConnectionCapability = {
   provider: ChannelConnectionProvider
   label: string
   description: string
-  icon: LucideIcon
+  icon: ComponentType<SVGProps<SVGSVGElement>>
   flow: "oauth-picker" | "oauth-direct" | "pkce-direct" | "creator-info" | "qr"
   resources?: readonly ConnectionResource[]
 }

@@ -5,6 +5,13 @@ import type { ColumnDef, RowData } from "@tanstack/react-table"
 import { MoreHorizontal, Pencil, RefreshCw, Trash2 } from "lucide-react"
 
 import {
+  BrandLinkedIn,
+  BrandMeta,
+  BrandTikTok,
+  BrandX,
+} from "@/components/brand-icons"
+
+import {
   Avatar,
   AvatarFallback,
   AvatarImage,
@@ -43,6 +50,14 @@ const providerLabels = {
   x: "X",
   tiktok: "TikTok",
   whatsapp: "Meta",
+} as const
+
+const providerIcons = {
+  meta: BrandMeta,
+  linkedin: BrandLinkedIn,
+  x: BrandX,
+  tiktok: BrandTikTok,
+  whatsapp: BrandMeta,
 } as const
 
 export type ChannelTableActions = {
@@ -183,9 +198,16 @@ export function createChannelsColumns({
     {
       accessorKey: "provider",
       header: "Proveedor",
-      cell: ({ row }) => (
-        <div className="text-sm">{providerLabel(row.original)}</div>
-      ),
+      cell: ({ row }) => {
+        const Icon = providerIcons[row.original.provider]
+
+        return (
+          <div className="flex items-center gap-2 text-sm">
+            {Icon ? <Icon className="size-4 shrink-0" /> : null}
+            {providerLabel(row.original)}
+          </div>
+        )
+      },
       meta: { className: "hidden md:table-cell" },
     },
     {

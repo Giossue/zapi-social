@@ -55,6 +55,8 @@ import {
   ShieldCheck,
   XCircle,
 } from "lucide-react"
+
+import { BrandPolar } from "@/components/brand-icons"
 import * as React from "react"
 import { IntegrationAvailabilityCard } from "./integration-availability-card"
 import { IntegrationCardLoading } from "./integration-card-loading"
@@ -316,6 +318,7 @@ export function PolarIntegrationPreview() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex min-w-0 flex-col gap-2">
               <div className="flex flex-wrap items-center gap-2">
+                <BrandPolar className="size-5 shrink-0" />
                 <CardTitle>Polar.sh</CardTitle>
                 <Badge variant={status.variant}>
                   <StatusIcon aria-hidden="true" />

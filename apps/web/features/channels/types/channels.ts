@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react"
+import type { ComponentType, SVGProps } from "react"
 
 export type ChannelProviderKey =
   "meta" | "linkedin" | "x" | "tiktok" | "whatsapp"
@@ -31,7 +31,7 @@ export type PortalChannelCapability = {
   provider: ChannelProviderKey
   label: string
   description: string
-  icon: LucideIcon
+  icon: ComponentType<SVGProps<SVGSVGElement>>
   availability: ChannelAvailability
   connectionKind: ChannelConnectionKind
   candidates?: readonly ChannelCandidate[]

@@ -1,11 +1,11 @@
 import {
-  AtSign,
-  Building2,
-  LayoutPanelTop,
-  Music2,
-  QrCode,
-  UserRound,
-} from "lucide-react"
+  BrandFacebook,
+  BrandInstagram,
+  BrandLinkedIn,
+  BrandTikTok,
+  BrandX,
+  BrandWhatsApp,
+} from "@/components/brand-icons"
 import type {
   ChannelConnectionCapability,
   ChannelCapabilityKey,
@@ -19,7 +19,7 @@ export const channelConnectionCapabilities: readonly ChannelConnectionCapability
       provider: "meta",
       label: "Página de Facebook",
       description: "Selecciona una página de Facebook que administras.",
-      icon: LayoutPanelTop,
+      icon: BrandFacebook,
       flow: "oauth-picker",
       resources: [
         {
@@ -41,7 +41,7 @@ export const channelConnectionCapabilities: readonly ChannelConnectionCapability
       provider: "meta",
       label: "Perfil de Instagram",
       description: "Selecciona un perfil profesional de Instagram vinculado.",
-      icon: AtSign,
+      icon: BrandInstagram,
       flow: "oauth-picker",
       resources: [
         {
@@ -63,7 +63,7 @@ export const channelConnectionCapabilities: readonly ChannelConnectionCapability
       provider: "linkedin",
       label: "Página de LinkedIn",
       description: "Elige una organización que administras en LinkedIn.",
-      icon: Building2,
+      icon: BrandLinkedIn,
       flow: "oauth-picker",
       resources: [
         {
@@ -85,7 +85,7 @@ export const channelConnectionCapabilities: readonly ChannelConnectionCapability
       provider: "linkedin",
       label: "Perfil de LinkedIn",
       description: "Conecta directamente el perfil que autorices en LinkedIn.",
-      icon: UserRound,
+      icon: BrandLinkedIn,
       flow: "oauth-direct",
     },
     {
@@ -93,7 +93,7 @@ export const channelConnectionCapabilities: readonly ChannelConnectionCapability
       provider: "x",
       label: "Perfil de X",
       description: "Autoriza un perfil de X mediante OAuth 2.0 con PKCE.",
-      icon: AtSign,
+      icon: BrandX,
       flow: "pkce-direct",
     },
     {
@@ -102,7 +102,7 @@ export const channelConnectionCapabilities: readonly ChannelConnectionCapability
       label: "Perfil de TikTok",
       description:
         "Autoriza un perfil y revisa la información pública del creador.",
-      icon: Music2,
+      icon: BrandTikTok,
       flow: "creator-info",
     },
     {
@@ -110,7 +110,7 @@ export const channelConnectionCapabilities: readonly ChannelConnectionCapability
       provider: "whatsapp",
       label: "Historias de WhatsApp",
       description: "Vincula un dispositivo escaneando un QR desde WhatsApp.",
-      icon: QrCode,
+      icon: BrandWhatsApp,
       flow: "qr",
     },
   ]

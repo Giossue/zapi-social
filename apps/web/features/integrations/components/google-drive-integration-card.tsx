@@ -1,6 +1,8 @@
 "use client"
 
 import { useCallback, useEffect, useState, type FormEvent } from "react"
+
+import { BrandGoogleDrive } from "@/components/brand-icons"
 import { ApiError, integrationsApi } from "@workspace/api-client"
 import type {
   GoogleDriveIntegration,
@@ -223,6 +225,7 @@ export function GoogleDriveIntegrationCard() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex min-w-0 flex-col gap-2">
               <div className="flex flex-wrap items-center gap-2">
+                <BrandGoogleDrive className="size-5 shrink-0" />
                 <CardTitle>{integration.label}</CardTitle>
                 <Badge variant={status.variant}>
                   <StatusIcon aria-hidden="true" />

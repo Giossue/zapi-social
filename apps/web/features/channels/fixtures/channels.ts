@@ -1,11 +1,11 @@
 import {
-  AtSign,
-  Building2,
-  LayoutPanelTop,
-  Music2,
-  QrCode,
-  UserRound,
-} from "lucide-react"
+  BrandFacebook,
+  BrandInstagram,
+  BrandLinkedIn,
+  BrandTikTok,
+  BrandX,
+  BrandWhatsApp,
+} from "@/components/brand-icons"
 import type { PortalChannelsDashboard } from "../types/channels"
 
 /** Datos sintéticos deterministas para el mock del Portal. */
@@ -19,7 +19,7 @@ export const channelsFixture: PortalChannelsDashboard = {
       provider: "meta",
       label: "Página de Facebook",
       description: "Conecta una página que administras.",
-      icon: LayoutPanelTop,
+      icon: BrandFacebook,
       availability: "ready",
       connectionKind: "picker",
       candidates: [
@@ -42,7 +42,7 @@ export const channelsFixture: PortalChannelsDashboard = {
       provider: "meta",
       label: "Perfil de Instagram",
       description: "Conecta un perfil Business o Creator elegible.",
-      icon: AtSign,
+      icon: BrandInstagram,
       availability: "ready",
       connectionKind: "picker",
       candidates: [
@@ -59,7 +59,7 @@ export const channelsFixture: PortalChannelsDashboard = {
       provider: "whatsapp",
       label: "Historias de WhatsApp",
       description: "Vincula un dispositivo mediante un código QR.",
-      icon: QrCode,
+      icon: BrandWhatsApp,
       availability: "ready",
       connectionKind: "qr",
     },
@@ -68,7 +68,7 @@ export const channelsFixture: PortalChannelsDashboard = {
       provider: "linkedin",
       label: "Página de LinkedIn",
       description: "Conecta una organización que administras.",
-      icon: Building2,
+      icon: BrandLinkedIn,
       availability: "coming_soon",
       connectionKind: "picker",
     },
@@ -77,7 +77,7 @@ export const channelsFixture: PortalChannelsDashboard = {
       provider: "linkedin",
       label: "Perfil de LinkedIn",
       description: "Conecta directamente el perfil que autorices.",
-      icon: UserRound,
+      icon: BrandLinkedIn,
       availability: "coming_soon",
       connectionKind: "direct",
     },
@@ -86,7 +86,7 @@ export const channelsFixture: PortalChannelsDashboard = {
       provider: "x",
       label: "Perfil de X",
       description: "Autoriza un perfil mediante OAuth 2.0.",
-      icon: AtSign,
+      icon: BrandX,
       availability: "coming_soon",
       connectionKind: "direct",
     },
@@ -95,7 +95,7 @@ export const channelsFixture: PortalChannelsDashboard = {
       provider: "tiktok",
       label: "Perfil de TikTok",
       description: "Conecta un perfil y revisa sus capacidades.",
-      icon: Music2,
+      icon: BrandTikTok,
       availability: "plan_locked",
       connectionKind: "direct",
     },

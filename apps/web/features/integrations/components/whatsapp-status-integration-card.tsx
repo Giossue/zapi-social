@@ -48,6 +48,8 @@ import {
   type FormEvent,
 } from "react"
 
+import { BrandWhatsApp } from "@/components/brand-icons"
+
 type Draft = {
   enabled: boolean
   baseUrl: string
@@ -257,6 +259,7 @@ export function WhatsAppStatusIntegrationCard() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex min-w-0 flex-col gap-2">
               <div className="flex flex-wrap items-center gap-2">
+                <BrandWhatsApp className="size-5 shrink-0" />
                 <CardTitle>{integration.label}</CardTitle>
                 <ProviderStatus readiness={integration.readiness} />
               </div>
