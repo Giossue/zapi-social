@@ -345,12 +345,18 @@ function WebhookSheet({
   const [url, setUrl] = useState("")
   const [selected, setSelected] = useState<AutomationWebhookEvent[]>([])
 
-  useEffect(() => {
-    if (!open) return
-    setName(webhook?.name ?? "")
-    setUrl(webhook?.url ?? "")
-    setSelected(webhook ? [...webhook.events] : ["post.published"])
-  }, [open, webhook])
+  const [wasOpen, setWasOpen] = useState(open)
+
+  // Ajustar el estado durante el render en vez de en un efecto: evita el
+  // segundo render que encadena `setState` dentro de `useEffect`.
+  if (open !== wasOpen) {
+    setWasOpen(open)
+    if (open) {
+      setName(webhook?.name ?? "")
+      setUrl(webhook?.url ?? "")
+      setSelected(webhook ? [...webhook.events] : ["post.published"])
+    }
+  }
 
   const canSubmit = Boolean(name.trim() && url.trim() && selected.length)
 

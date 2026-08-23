@@ -170,7 +170,10 @@ export function fileKind(mime: string) {
 export const TMP_STORAGE_PREFIX = "tmp"
 
 function storageShard(workspaceId: string) {
-  const shard = workspaceId.replace(/[^0-9a-z]/gi, "").slice(0, 2).toLowerCase()
+  const shard = workspaceId
+    .replace(/[^0-9a-z]/gi, "")
+    .slice(0, 2)
+    .toLowerCase()
   return shard.length === 2 ? shard : "00"
 }
 

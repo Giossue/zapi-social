@@ -411,10 +411,15 @@ export function FileMoveDialog({
 }) {
   const t = useTranslations("files")
   const [value, setValue] = useState("root")
+  const [wasOpen, setWasOpen] = useState(open)
   const isBulkAction = selectedCount !== undefined
-  useEffect(() => {
+
+  // Ajustar el estado durante el render en vez de en un efecto: evita el
+  // segundo render que encadena `setState` dentro de `useEffect`.
+  if (open !== wasOpen) {
+    setWasOpen(open)
     if (open) setValue("root")
-  }, [open])
+  }
   const descendants = useMemo(() => {
     if (!item?.isFolder) return new Set<string>()
     const byParent = new Map<string, string[]>()

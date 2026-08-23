@@ -150,9 +150,14 @@ export function ChannelConnectionDialog({
     setIsSelecting(false)
   }
 
-  useEffect(() => {
+  const [wasOpen, setWasOpen] = useState(open)
+
+  // Ajustar el estado durante el render en vez de en un efecto: evita el
+  // segundo render que encadena `setState` dentro de `useEffect`.
+  if (open !== wasOpen) {
+    setWasOpen(open)
     if (!open) reset()
-  }, [open])
+  }
 
   function handleOpenChange(nextOpen: boolean) {
     if (!nextOpen) reset()

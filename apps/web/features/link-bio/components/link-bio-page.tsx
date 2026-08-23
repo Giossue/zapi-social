@@ -387,10 +387,14 @@ function PageSheet({
 }) {
   const t = useTranslations("linkBio")
   const [draft, setDraft] = useState<Draft>(emptyDraft)
+  const [wasOpen, setWasOpen] = useState(open)
 
-  useEffect(() => {
+  // Ajustar el estado durante el render en vez de en un efecto: evita el
+  // segundo render que encadena `setState` dentro de `useEffect`.
+  if (open !== wasOpen) {
+    setWasOpen(open)
     if (open) setDraft(page ? draftFrom(page) : emptyDraft)
-  }, [open, page])
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()

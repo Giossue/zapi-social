@@ -160,10 +160,14 @@ function GroupSheet({
   const t = useTranslations("groups")
   const labels = useChannelLabels()
   const [draft, setDraft] = useState<GroupDraft>(emptyDraft)
+  const [wasOpen, setWasOpen] = useState(open)
 
-  useEffect(() => {
+  // Ajustar el estado durante el render en vez de en un efecto: al abrirse la
+  // hoja el borrador parte del grupo elegido sin encadenar un segundo render.
+  if (open !== wasOpen) {
+    setWasOpen(open)
     if (open) setDraft(group ? draftFrom(group) : emptyDraft)
-  }, [group, open])
+  }
 
   const canSubmit = Boolean(draft.name.trim())
 

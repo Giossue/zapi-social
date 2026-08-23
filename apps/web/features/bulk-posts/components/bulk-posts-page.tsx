@@ -154,13 +154,18 @@ function NewBatchSheet({
   const [accountIds, setAccountIds] = useState<string[]>([])
   const [interval, setInterval] = useState("60")
 
-  useEffect(() => {
+  const [wasOpen, setWasOpen] = useState(open)
+
+  // Ajustar el estado durante el render en vez de en un efecto: evita el
+  // segundo render que encadena `setState` dentro de `useEffect`.
+  if (open !== wasOpen) {
+    setWasOpen(open)
     if (!open) {
       setSourceFileAssetId("")
       setAccountIds([])
       setInterval("60")
     }
-  }, [open])
+  }
 
   const intervalMinutes = Number(interval)
   const canSubmit = Boolean(

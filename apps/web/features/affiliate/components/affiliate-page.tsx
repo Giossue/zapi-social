@@ -155,10 +155,14 @@ function WithdrawalSheet({
 }) {
   const t = useTranslations("affiliate")
   const [amount, setAmount] = useState("")
+  const [wasOpen, setWasOpen] = useState(open)
 
-  useEffect(() => {
+  // Ajustar el estado durante el render en vez de en un efecto: evita el
+  // segundo render que encadena `setState` dentro de `useEffect`.
+  if (open !== wasOpen) {
+    setWasOpen(open)
     if (!open) setAmount("")
-  }, [open])
+  }
 
   const amountMinor = Math.round(Number(amount) * 100)
   const canSubmit =

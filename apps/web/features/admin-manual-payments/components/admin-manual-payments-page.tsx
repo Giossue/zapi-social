@@ -161,12 +161,17 @@ function ManualPaymentSheet({
   const [values, setValues] = useState<FormValues>(emptyForm)
   const [workspaceQuery, setWorkspaceQuery] = useState("")
 
-  useEffect(() => {
+  const [wasOpen, setWasOpen] = useState(open)
+
+  // Ajustar el estado durante el render en vez de en un efecto: evita el
+  // segundo render que encadena `setState` dentro de `useEffect`.
+  if (open !== wasOpen) {
+    setWasOpen(open)
     if (open) {
       setValues({ ...emptyForm, reference: prefix })
       setWorkspaceQuery("")
     }
-  }, [open, prefix])
+  }
 
   useEffect(() => {
     const timer = setTimeout(
