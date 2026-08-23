@@ -29,8 +29,7 @@ export type ChannelCandidate = {
 export type PortalChannelCapability = {
   key: ChannelCapabilityKey
   provider: ChannelProviderKey
-  label: string
-  description: string
+  /** El rótulo y la descripción los pone la interfaz a partir de `key`. */
   icon: ComponentType<SVGProps<SVGSVGElement>>
   availability: ChannelAvailability
   connectionKind: ChannelConnectionKind

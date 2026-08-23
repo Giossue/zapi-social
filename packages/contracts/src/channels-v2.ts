@@ -33,11 +33,13 @@ export const portalChannelAvailabilitySchema = z.enum([
 
 export const portalChannelStatusSchema = z.enum(["connected", "disconnected"])
 
+/**
+ * Sin rótulo ni descripción: la API no traduce. La interfaz los resuelve a
+ * partir de `key`, así que el mismo canal se lee en el idioma de quien mira.
+ */
 export const portalChannelCapabilitySchema = z.object({
   key: portalChannelCapabilityKeySchema,
   provider: portalChannelProviderKeySchema,
-  label: z.string().min(1).max(120),
-  description: z.string().min(1).max(500),
   availability: portalChannelAvailabilitySchema,
   connectionKind: portalChannelConnectionKindSchema,
 })

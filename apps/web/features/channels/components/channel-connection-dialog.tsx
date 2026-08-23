@@ -17,6 +17,8 @@ import { toast } from "@workspace/ui/components/toast"
 import { CheckCircle2, ShieldCheck } from "lucide-react"
 import { type FormEvent, useState } from "react"
 import { useTranslations } from "next-intl"
+
+import { useChannelLabels } from "@/lib/channel-labels"
 import type {
   ChannelCandidate,
   PortalChannelAccount,
@@ -118,6 +120,7 @@ export function ChannelConnectionDialog({
   whatsappReconnectAccountId: string | null
 }) {
   const t = useTranslations("channelConnection")
+  const labels = useChannelLabels()
   const [capability, setCapability] = useState<PortalChannelCapability | null>(
     null
   )
@@ -219,7 +222,9 @@ export function ChannelConnectionDialog({
       connectedAt: "2026-07-31",
     })
     setStep("connected")
-    toast.success(t("mockConnected", { channel: capability.label }))
+    toast.success(
+      t("mockConnected", { channel: labels.capability(capability.key) })
+    )
   }
 
   function authorizeMock() {
@@ -231,7 +236,7 @@ export function ChannelConnectionDialog({
     finishMockConnection({
       id: `${capability.key}-direct`,
       label: t("accountOf", { provider: providerLabels[capability.provider] }),
-      description: capability.label,
+      description: labels.capability(capability.key),
     })
   }
 
@@ -248,7 +253,9 @@ export function ChannelConnectionDialog({
       onConnected(toPortalAccount(result.account))
       await onMetaConnectionCompleted()
       toast.success(
-        t("connected", { channel: metaPickerSession.capability.label })
+        t("connected", {
+          channel: labels.capability(metaPickerSession.capability.key),
+        })
       )
     } catch (error) {
       console.error("Meta candidate selection failed", error)
@@ -301,7 +308,7 @@ export function ChannelConnectionDialog({
   }
 
   const title = capability
-    ? t("connectChannel", { channel: capability.label })
+    ? t("connectChannel", { channel: labels.capability(capability.key) })
     : t("connectAnyChannel")
   const isMetaPicker = capability?.provider === "meta"
   const pickerCandidates = isMetaPicker
@@ -465,7 +472,9 @@ export function ChannelConnectionDialog({
                   />
                   <div className="grid gap-1">
                     <p className="font-medium">
-                      {t("connected", { channel: capability.label })}
+                      {t("connected", {
+                        channel: labels.capability(capability.key),
+                      })}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {t("connectedHint")}

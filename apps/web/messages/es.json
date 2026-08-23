@@ -2890,6 +2890,15 @@
       "whatsapp_status": "Historias de WhatsApp",
       "x_profile": "Perfil de X"
     },
+    "capabilityDescription": {
+      "facebook_page": "Publica en una página administrada de Facebook.",
+      "instagram_profile": "Publica en un perfil profesional vinculado a una página.",
+      "linkedin_page": "Publica en una página de empresa de LinkedIn.",
+      "linkedin_profile": "Publica en tu perfil personal de LinkedIn.",
+      "tiktok_profile": "Publica vídeos y fotos en tu perfil de TikTok.",
+      "whatsapp_status": "Conecta un dispositivo para publicar estados de WhatsApp.",
+      "x_profile": "Publica en tu perfil de X."
+    },
     "channelType": "Tipo de canal",
     "connect": "Conectar canal",
     "connectedAt": "Conectado el",

@@ -2890,6 +2890,15 @@
       "whatsapp_status": "WhatsApp Status",
       "x_profile": "X profile"
     },
+    "capabilityDescription": {
+      "facebook_page": "Post to a Facebook page you manage.",
+      "instagram_profile": "Post to a professional profile linked to a page.",
+      "linkedin_page": "Post to a LinkedIn company page.",
+      "linkedin_profile": "Post to your personal LinkedIn profile.",
+      "tiktok_profile": "Post videos and photos to your TikTok profile.",
+      "whatsapp_status": "Connect a device to publish WhatsApp status updates.",
+      "x_profile": "Post to your X profile."
+    },
     "channelType": "Channel type",
     "connect": "Connect channel",
     "connectedAt": "Connected on",

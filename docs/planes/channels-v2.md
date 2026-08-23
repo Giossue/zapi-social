@@ -410,6 +410,18 @@ La pantalla muestra instrucciones específicas de cada provider: scopes, callbac
 
 Regla de bloqueo de conexión nueva:
 
+
+**Implementado el 23 de agosto de 2026.** `ChannelsService.portalCapabilities()`
+deriva la disponibilidad de la integración de Admin de cada proveedor: hace
+falta que esté encendida, con `readiness` en `ready` —lo que ya exige
+credenciales guardadas y una prueba que coincida con ellas— y con la capability
+concreta activada. Un proveedor que todavía no tiene pantalla de Admin nunca
+está listo. Cubierto por `channel-availability.spec.ts`.
+
+El catálogo dejó de devolver rótulo y descripción: la API no traduce y la
+interfaz los resuelve desde `key` con `useChannelLabels` y
+`channels.capabilityDescription`.
+
 | Estado efectivo                                                     | Acción y etiqueta Portal                                  |
 | ------------------------------------------------------------------- | --------------------------------------------------------- |
 | Provider incompleto, sin test vigente, apagado o capability apagada | Bloqueado · **Próximamente**                              |

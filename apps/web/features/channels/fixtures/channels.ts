@@ -17,8 +17,6 @@ export const channelsFixture: PortalChannelsDashboard = {
     {
       key: "facebook_page",
       provider: "meta",
-      label: "Página de Facebook",
-      description: "Conecta una página que administras.",
       icon: BrandFacebook,
       availability: "ready",
       connectionKind: "picker",
@@ -40,8 +38,6 @@ export const channelsFixture: PortalChannelsDashboard = {
     {
       key: "instagram_profile",
       provider: "meta",
-      label: "Perfil de Instagram",
-      description: "Conecta un perfil Business o Creator elegible.",
       icon: BrandInstagram,
       availability: "ready",
       connectionKind: "picker",
@@ -57,8 +53,6 @@ export const channelsFixture: PortalChannelsDashboard = {
     {
       key: "whatsapp_status",
       provider: "whatsapp",
-      label: "Historias de WhatsApp",
-      description: "Vincula un dispositivo mediante un código QR.",
       icon: BrandWhatsApp,
       availability: "ready",
       connectionKind: "qr",
@@ -66,8 +60,6 @@ export const channelsFixture: PortalChannelsDashboard = {
     {
       key: "linkedin_page",
       provider: "linkedin",
-      label: "Página de LinkedIn",
-      description: "Conecta una organización que administras.",
       icon: BrandLinkedIn,
       availability: "coming_soon",
       connectionKind: "picker",
@@ -75,8 +67,6 @@ export const channelsFixture: PortalChannelsDashboard = {
     {
       key: "linkedin_profile",
       provider: "linkedin",
-      label: "Perfil de LinkedIn",
-      description: "Conecta directamente el perfil que autorices.",
       icon: BrandLinkedIn,
       availability: "coming_soon",
       connectionKind: "direct",
@@ -84,8 +74,6 @@ export const channelsFixture: PortalChannelsDashboard = {
     {
       key: "x_profile",
       provider: "x",
-      label: "Perfil de X",
-      description: "Autoriza un perfil mediante OAuth 2.0.",
       icon: BrandX,
       availability: "coming_soon",
       connectionKind: "direct",
@@ -93,8 +81,6 @@ export const channelsFixture: PortalChannelsDashboard = {
     {
       key: "tiktok_profile",
       provider: "tiktok",
-      label: "Perfil de TikTok",
-      description: "Conecta un perfil y revisa sus capacidades.",
       icon: BrandTikTok,
       availability: "plan_locked",
       connectionKind: "direct",

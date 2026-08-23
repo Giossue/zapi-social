@@ -15,17 +15,19 @@ import {
 
 import { useTranslations } from "next-intl"
 
+import { useChannelLabels } from "@/lib/channel-labels"
+
 import type { PortalChannelCapability } from "../types/channels"
 
-function capabilityDescription(
-  capability: PortalChannelCapability,
-  t: (key: "planLocked" | "comingSoon") => string
-) {
-  if (capability.availability === "ready") return capability.description
-  if (capability.availability === "plan_locked") {
-    return t("planLocked")
-  }
-  return t("comingSoon")
+function useCapabilityDescription(capability: PortalChannelCapability) {
+  const t = useTranslations("channels.picker")
+  const tCapability = useTranslations("channels.capabilityDescription")
+
+  if (capability.availability === "plan_locked") return t("planLocked")
+  // Mientras el canal no esté configurado en Admin no se describe lo que hará:
+  // se dice que todavía no está.
+  if (capability.availability !== "ready") return t("comingSoon")
+  return tCapability(capability.key)
 }
 
 function ChannelCapabilityCard({
@@ -36,6 +38,8 @@ function ChannelCapabilityCard({
   onSelect: () => void
 }) {
   const t = useTranslations("channels.picker")
+  const labels = useChannelLabels()
+  const description = useCapabilityDescription(capability)
   const Icon = capability.icon
   const isAvailable = capability.availability === "ready"
 
@@ -49,13 +53,13 @@ function ChannelCapabilityCard({
             <Icon aria-hidden="true" className="size-4.5" />
           </div>
           <CardTitle className="min-w-0 text-pretty">
-            {capability.label}
+            {labels.capability(capability.key)}
           </CardTitle>
         </div>
       </CardHeader>
       <CardContent className="flex-1">
         <p className="text-sm leading-snug text-muted-foreground">
-          {capabilityDescription(capability, t)}
+          {description}
         </p>
       </CardContent>
       {/* An available channel is already signalled by its button, so only the

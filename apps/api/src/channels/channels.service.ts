@@ -32,61 +32,40 @@ import { TeamAccountAccessService } from '../teams/team-account-access.service';
 import { WhatsAppStatusConnectionsService } from './whatsapp-status-connections.service';
 
 const managerRoles = new Set(['owner', 'admin']);
-const capabilities: PortalChannelCapability[] = [
+const capabilities: Omit<PortalChannelCapability, 'availability'>[] = [
   {
     key: 'facebook_page',
     provider: 'meta',
-    label: 'Página de Facebook',
-    description: 'Publica en una página administrada de Facebook.',
-    availability: 'ready',
     connectionKind: 'oauth_picker',
   },
   {
     key: 'instagram_profile',
     provider: 'meta',
-    label: 'Perfil profesional de Instagram',
-    description: 'Publica en un perfil profesional vinculado a una página.',
-    availability: 'ready',
     connectionKind: 'oauth_picker',
   },
   {
     key: 'linkedin_page',
     provider: 'linkedin',
-    label: 'Página de LinkedIn',
-    description: 'Próximamente.',
-    availability: 'coming_soon',
     connectionKind: 'oauth_picker',
   },
   {
     key: 'linkedin_profile',
     provider: 'linkedin',
-    label: 'Perfil de LinkedIn',
-    description: 'Próximamente.',
-    availability: 'coming_soon',
     connectionKind: 'oauth_direct',
   },
   {
     key: 'x_profile',
     provider: 'x',
-    label: 'Perfil de X',
-    description: 'Próximamente.',
-    availability: 'coming_soon',
     connectionKind: 'oauth_direct',
   },
   {
     key: 'tiktok_profile',
     provider: 'tiktok',
-    label: 'Perfil de TikTok',
-    description: 'Próximamente.',
     connectionKind: 'oauth_direct',
-    availability: 'coming_soon',
   },
   {
     key: 'whatsapp_status',
     provider: 'whatsapp',
-    label: 'Estados de WhatsApp',
-    description: 'Próximamente.',
-    availability: 'coming_soon',
     connectionKind: 'qr_device',
   },
 ];
@@ -251,23 +230,36 @@ export class ChannelsService {
     return this.serialize(account);
   }
 
+  /**
+   * La disponibilidad de un canal la decide su integración de Admin, no una
+   * constante: mientras el proveedor esté apagado, sin credenciales o sin
+   * prueba vigente, el Portal lo enseña como «Próximamente» y no deja
+   * conectarlo. Un proveedor sin pantalla de Admin todavía tampoco está listo.
+   */
   private async portalCapabilities(): Promise<PortalChannelCapability[]> {
-    const whatsApp = await this.integrations.getWhatsAppStatus();
-    const whatsAppReady =
-      whatsApp.enabled &&
-      whatsApp.readiness === 'ready' &&
-      whatsApp.capabilities[0]?.enabled;
-    return capabilities.map((capability) =>
-      capability.key === 'whatsapp_status'
-        ? {
-            ...capability,
-            description: whatsAppReady
-              ? 'Conecta un dispositivo para publicar estados de WhatsApp.'
-              : 'Próximamente.',
-            availability: whatsAppReady ? 'ready' : 'coming_soon',
-          }
-        : capability,
-    );
+    const ready = await this.readyCapabilityKeys();
+    return capabilities.map((capability) => ({
+      ...capability,
+      availability: ready.has(capability.key) ? 'ready' : 'coming_soon',
+    }));
+  }
+
+  private async readyCapabilityKeys(): Promise<Set<string>> {
+    const [meta, whatsApp] = await Promise.all([
+      this.integrations.getMeta(),
+      this.integrations.getWhatsAppStatus(),
+    ]);
+
+    const ready = new Set<string>();
+    for (const integration of [meta, whatsApp]) {
+      // `readiness` ya exige credenciales guardadas y una prueba que coincida
+      // con ellas; el interruptor por capability es lo que decide cada canal.
+      if (!integration.enabled || integration.readiness !== 'ready') continue;
+      for (const capability of integration.capabilities) {
+        if (capability.enabled) ready.add(capability.key);
+      }
+    }
+    return ready;
   }
 
   private listWhere(
