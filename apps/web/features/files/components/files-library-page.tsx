@@ -291,7 +291,7 @@ function AssetCard({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                aria-label={`Acciones de ${asset.name}`}
+                aria-label={t("itemActions", { name: asset.name })}
                 size="icon-sm"
                 variant="brand-secondary"
               >
@@ -374,7 +374,7 @@ function FolderCard({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                aria-label={`Acciones de ${folder.name}`}
+                aria-label={t("itemActions", { name: folder.name })}
                 onClick={(event) => event.stopPropagation()}
                 size="icon-sm"
                 variant="brand-secondary"
@@ -485,7 +485,7 @@ function AssetsTable({
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
-                    aria-label={`Acciones de ${folder.name}`}
+                    aria-label={t("itemActions", { name: folder.name })}
                     size="icon-sm"
                     variant="brand-secondary"
                   >
@@ -544,7 +544,7 @@ function AssetsTable({
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
-                      aria-label={`Acciones de ${asset.name}`}
+                      aria-label={t("itemActions", { name: asset.name })}
                       size="icon-sm"
                       variant="brand-secondary"
                     >
@@ -857,14 +857,14 @@ export function FilesLibraryPage() {
       return
     }
 
-    toast.loading(
-      `Importando ${driveBatch.totalItems} ${driveBatch.totalItems === 1 ? "archivo" : "archivos"} desde Google Drive`,
-      {
-        description: `${driveBatch.completedItems} de ${driveBatch.totalItems} completados.`,
-        duration: Number.POSITIVE_INFINITY,
-        id: toastId,
-      }
-    )
+    toast.loading(t("driveImporting", { count: driveBatch.totalItems }), {
+      description: t("driveProgress", {
+        done: driveBatch.completedItems,
+        total: driveBatch.totalItems,
+      }),
+      duration: Number.POSITIVE_INFINITY,
+      id: toastId,
+    })
 
     // Una importación que deja de progresar no puede dejar el aviso girando
     // para siempre: se cierra explicando que continúa en segundo plano.

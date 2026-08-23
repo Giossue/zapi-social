@@ -95,11 +95,13 @@ function StatusBadge({ status }: { status: PortalChannelAccount["status"] }) {
 }
 
 function AvatarCell({ account }: { account: PortalChannelAccount }) {
+  const t = useTranslations("channels")
+
   return (
     <Avatar size="lg">
       {account.avatarUrl ? (
         <AvatarImage
-          alt={`Avatar de ${account.displayName}`}
+          alt={t("avatarAlt", { name: account.displayName })}
           src={account.avatarUrl}
         />
       ) : null}
@@ -231,7 +233,7 @@ export function createChannelsColumns({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
-                  aria-label={`Abrir acciones para ${account.displayName}`}
+                  aria-label={t("openActions", { name: account.displayName })}
                   className="size-8 rounded-md text-muted-foreground hover:bg-muted/50"
                   size="icon-sm"
                   variant="brand-secondary"

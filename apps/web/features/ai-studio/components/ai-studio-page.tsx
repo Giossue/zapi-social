@@ -680,7 +680,7 @@ function ContentResult({ request }: { request: PortalAiRequest }) {
           <div className="mb-2 flex items-center justify-between">
             <Badge variant="secondary">{variant.platform}</Badge>
             <Button
-              aria-label={`Copiar texto de ${variant.platform}`}
+              aria-label={t("copyVariant", { platform: variant.platform })}
               onClick={() =>
                 void navigator.clipboard
                   .writeText(variant.caption)
@@ -722,7 +722,7 @@ function ImageResult({ request }: { request: PortalAiRequest }) {
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            alt={`Propuesta ${index + 1}`}
+            alt={t("proposalAlt", { index: index + 1 })}
             className="size-full object-cover"
             src={filesApi.previewUrl(asset.fileAssetId)}
           />
@@ -1013,7 +1013,7 @@ function CreationWorkspace({ view }: { view: CreationView }) {
     const available = maximum - referenceAssetIds.length
     const selected = files.slice(0, available)
     if (!selected.length) {
-      toast.error(`Puedes usar hasta ${maximum} imágenes de referencia.`)
+      toast.error(t("referenceLimit", { max: maximum }))
       return
     }
     if (
@@ -1044,7 +1044,7 @@ function CreationWorkspace({ view }: { view: CreationView }) {
       toast.success(
         uploadedIds.length === 1
           ? t("referenceAdded")
-          : `${uploadedIds.length} referencias añadidas.`
+          : t("referencesAdded", { count: uploadedIds.length })
       )
     } catch {
       toast.error(t("referenceFailed"))
@@ -1182,7 +1182,7 @@ function CreationWorkspace({ view }: { view: CreationView }) {
                       >
                         <Upload data-icon="inline-start" />{" "}
                         {referenceAssetIds.length
-                          ? `Añadir más · ${referenceAssetIds.length}`
+                          ? t("addMore", { count: referenceAssetIds.length })
                           : t("select")}
                       </Button>
                       <input
@@ -1413,7 +1413,7 @@ function Planner() {
             ) : (
               <CalendarPlus data-icon="inline-start" />
             )}
-            Generar nuevo plan
+            {t("generateNewPlan")}
           </Button>
         </form>
         <Card variant="subtle">
@@ -1468,7 +1468,9 @@ function Planner() {
                         </TableCell>
                         <TableCell className="text-right">
                           <Button
-                            aria-label={`Crear contenido para ${row.idea}`}
+                            aria-label={t("createContentFor", {
+                              idea: row.idea,
+                            })}
                             asChild
                             size="icon-sm"
                             variant="brand-secondary"
@@ -1590,7 +1592,7 @@ function Timing() {
             ) : (
               <RefreshCw data-icon="inline-start" />
             )}
-            Actualizar análisis
+            {t("refreshAnalysis")}
           </Button>
         }
         view="timing"

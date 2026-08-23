@@ -140,7 +140,7 @@ export function OnlineMediaSearchPage() {
         type: result.type,
       })
       setImportedIds((current) => [...current, result.id])
-      toast.success(`“${result.title}” se guardó en tu biblioteca.`)
+      toast.success(t("savedToLibrary", { title: result.title }))
     } catch (error) {
       if (handleError(error)) return
       console.error("Online media import failed", error)

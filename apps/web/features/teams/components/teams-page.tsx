@@ -203,7 +203,7 @@ function MemberActions({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          aria-label={`Acciones para ${member.name}`}
+          aria-label={t("memberActions", { name: member.name })}
           disabled={pending}
           size="icon-sm"
           variant="brand-secondary"
@@ -579,7 +579,7 @@ export function TeamsPage() {
       await teamsApi.createInvitation(input)
       await refreshAfterAction()
       setInviteOpen(false)
-      toast.success(`Invitación enviada a ${input.email}.`)
+      toast.success(t("invitationSent", { email: input.email }))
     } catch (error) {
       await loadTeams()
       setDialogError(apiErrorMessage(errorCode(error)))
@@ -613,7 +613,7 @@ export function TeamsPage() {
     try {
       await teamsApi.resendInvitation(invitation.id)
       await refreshAfterAction()
-      toast.success(`Invitación reenviada a ${invitation.email}.`)
+      toast.success(t("invitationResent", { email: invitation.email }))
     } catch (error) {
       await loadTeams()
       setActionError(apiErrorMessage(errorCode(error)))
@@ -629,7 +629,7 @@ export function TeamsPage() {
     try {
       if (confirmation.kind === "remove") {
         await teamsApi.removeMember(confirmation.member.id)
-        toast.success(`${confirmation.member.name} fue eliminado.`)
+        toast.success(t("memberRemoved", { name: confirmation.member.name }))
       } else if (confirmation.kind === "revoke") {
         await teamsApi.revokeInvitation(confirmation.invitation.id)
         toast.success(t("invitationRevoked"))

@@ -172,7 +172,7 @@ function ResultBody({ request }: { request: PortalAiRequest }) {
         const platform =
           typeof item.platform === "string"
             ? item.platform
-            : `Variante ${index + 1}`
+            : t("variantFallback", { index: index + 1 })
         const body =
           typeof item.caption === "string"
             ? item.caption

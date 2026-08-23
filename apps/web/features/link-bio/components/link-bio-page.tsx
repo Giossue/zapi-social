@@ -799,7 +799,7 @@ function PageSheet({
               ) : (
                 <Plus data-icon="inline-start" />
               )}
-              Guardar página
+              {t("savePage")}
             </Button>
           </SheetFooter>
         </form>
@@ -1083,7 +1083,12 @@ export function LinkBioPage() {
                           </span>
                           <span className="text-sm text-muted-foreground">
                             {page.views
-                              ? `${((page.clicks / page.views) * 100).toFixed(1)}% de conversión`
+                              ? t("conversionRate", {
+                                  rate: (
+                                    (page.clicks / page.views) *
+                                    100
+                                  ).toFixed(1),
+                                })
                               : t("noViews")}
                           </span>
                         </div>
@@ -1104,7 +1109,9 @@ export function LinkBioPage() {
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button
-                                aria-label={`Abrir acciones para ${page.title}`}
+                                aria-label={t("openActions", {
+                                  name: page.title,
+                                })}
                                 className="size-8 rounded-md text-muted-foreground hover:bg-muted/50"
                                 size="icon-sm"
                                 variant="brand-secondary"
@@ -1225,7 +1232,7 @@ export function LinkBioPage() {
               variant="destructive"
             >
               {pending ? <Spinner data-icon="inline-start" /> : null}
-              Eliminar
+              {t("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -484,7 +484,7 @@ function RssSchedules({
                                 </span>
                                 <span className="text-xs text-muted-foreground">
                                   {row.queued
-                                    ? `${row.queued} borrador${row.queued === 1 ? "" : "es"} por revisar`
+                                    ? t("queuedDrafts", { count: row.queued })
                                     : t("noDrafts")}
                                 </span>
                               </div>
@@ -505,7 +505,9 @@ function RssSchedules({
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <Button
-                                      aria-label={`Abrir acciones para ${row.name}`}
+                                      aria-label={t("openActions", {
+                                        name: row.name,
+                                      })}
                                       disabled={!canManage || isPending}
                                       size="icon-sm"
                                       variant="secondary"

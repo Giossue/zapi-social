@@ -210,7 +210,9 @@ function PermissionGroups({
                 <CardTitle>{group.label}</CardTitle>
                 <CardAction>
                   <Checkbox
-                    aria-label={`Seleccionar todos los permisos de ${group.label}`}
+                    aria-label={t("selectGroupPermissions", {
+                      group: group.label,
+                    })}
                     checked={groupChecked}
                     onCheckedChange={(checked) =>
                       toggleGroup(permissionIds, checked === true)
@@ -624,10 +626,7 @@ function DeletePlanDialog({
   const deletingLock = useRef(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const hasSubscribers = plan.subscriberCount > 0
-  const subscriberLabel =
-    plan.subscriberCount === 1
-      ? "1 suscriptor"
-      : `${plan.subscriberCount.toLocaleString("es")} suscriptores`
+  const subscriberLabel = t("subscriberCount", { count: plan.subscriberCount })
 
   async function confirmDelete(event: MouseEvent<HTMLButtonElement>) {
     event.preventDefault()
@@ -654,12 +653,12 @@ function DeletePlanDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>
             {hasSubscribers
-              ? `No se puede eliminar ${plan.name}`
-              : `¿Eliminar ${plan.name}?`}
+              ? t("deleteBlockedTitle", { plan: plan.name })
+              : t("deleteConfirmTitle", { plan: plan.name })}
           </AlertDialogTitle>
           <AlertDialogDescription>
             {hasSubscribers
-              ? `Este plan está asignado a ${subscriberLabel}. Mueve esas cuentas a otro plan antes de eliminarlo.`
+              ? t("deleteBlockedDescription", { subscribers: subscriberLabel })
               : t("deleteDescription")}
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -1016,7 +1015,7 @@ export function PlansPage() {
                       </TableCell>
                       <TableCell className="hidden lg:table-cell">
                         {plan.trialDays > 0
-                          ? `${plan.trialDays} días`
+                          ? t("trialDaysValue", { count: plan.trialDays })
                           : t("noTrial")}
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
@@ -1038,7 +1037,7 @@ export function PlansPage() {
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
-                              aria-label={`Acciones para ${plan.name}`}
+                              aria-label={t("rowActions", { plan: plan.name })}
                               size="icon-sm"
                               variant="brand-secondary"
                             >

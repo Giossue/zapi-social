@@ -236,7 +236,7 @@ function WithdrawalSheet({
               ) : (
                 <Wallet data-icon="inline-start" />
               )}
-              Solicitar retiro
+              {t("requestWithdrawal")}
             </Button>
           </SheetFooter>
         </form>
@@ -379,7 +379,7 @@ export function AffiliatePage() {
                   ) : (
                     <HandCoins data-icon="inline-start" />
                   )}
-                  Activar programa
+                  {t("activateProgram")}
                 </Button>
               }
               description={t("joinDescription")}

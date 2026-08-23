@@ -327,7 +327,7 @@ function NewBatchSheet({
               ) : (
                 <Plus data-icon="inline-start" />
               )}
-              Crear lote
+              {t("createBatch")}
             </Button>
           </SheetFooter>
         </form>
@@ -744,7 +744,9 @@ export function BulkPostsPage() {
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button
-                                aria-label={`Abrir acciones para ${batch.sourceFileName}`}
+                                aria-label={t("openActions", {
+                                  name: batch.sourceFileName,
+                                })}
                                 className="size-8 rounded-md text-muted-foreground hover:bg-muted/50"
                                 size="icon-sm"
                                 variant="brand-secondary"
@@ -859,7 +861,7 @@ export function BulkPostsPage() {
               variant="destructive"
             >
               {pending ? <Spinner data-icon="inline-start" /> : null}
-              Cancelar lote
+              {t("cancelAction")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -896,7 +896,7 @@ function CollectionMockup({
               ) : (
                 <Trash2 aria-hidden="true" data-icon="inline-start" />
               )}
-              Eliminar
+              {t("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

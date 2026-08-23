@@ -319,7 +319,7 @@ function ApiKeySheet({
               ) : (
                 <Plus data-icon="inline-start" />
               )}
-              Crear clave
+              {t("createKey")}
             </Button>
           </SheetFooter>
         </form>
@@ -886,7 +886,9 @@ export function AutomationPage() {
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <Button
-                                      aria-label={`Abrir acciones para ${apiKey.name}`}
+                                      aria-label={t("openActions", {
+                                        name: apiKey.name,
+                                      })}
                                       className="size-8 rounded-md text-muted-foreground hover:bg-muted/50"
                                       size="icon-sm"
                                       variant="brand-secondary"
@@ -1074,7 +1076,9 @@ export function AutomationPage() {
                           </TableCell>
                           <TableCell>
                             <Switch
-                              aria-label={`Habilitar ${webhook.name}`}
+                              aria-label={t("enableWebhook", {
+                                name: webhook.name,
+                              })}
                               checked={webhook.enabled}
                               disabled={!data.canManage || pending}
                               onCheckedChange={(checked) =>
@@ -1087,7 +1091,9 @@ export function AutomationPage() {
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button
-                                    aria-label={`Abrir acciones para ${webhook.name}`}
+                                    aria-label={t("openActions", {
+                                      name: webhook.name,
+                                    })}
                                     className="size-8 rounded-md text-muted-foreground hover:bg-muted/50"
                                     size="icon-sm"
                                     variant="brand-secondary"
@@ -1377,7 +1383,7 @@ export function AutomationPage() {
               variant="destructive"
             >
               {pending ? <Spinner data-icon="inline-start" /> : null}
-              Revocar clave
+              {t("revokeKey")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1410,7 +1416,7 @@ export function AutomationPage() {
               variant="destructive"
             >
               {pending ? <Spinner data-icon="inline-start" /> : null}
-              Eliminar webhook
+              {t("deleteWebhook")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

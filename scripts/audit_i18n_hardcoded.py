@@ -33,8 +33,9 @@ ROOT = Path(__file__).resolve().parents[1]
 # primitives no traducen, así que cualquier literal suyo es un error de diseño.
 SCANNED = (ROOT / "apps/web", ROOT / "packages/ui/src")
 
-# Rutas cuyo texto no es interfaz traducible.
-EXCLUDED_PARTS = ("node_modules", "/fixtures/", "/messages/")
+# Rutas cuyo texto no es interfaz traducible. `.next` es salida de compilación:
+# sus tipos generados no son código de este repositorio.
+EXCLUDED_PARTS = ("node_modules", "/.next/", "/fixtures/", "/messages/")
 EXCLUDED_SUFFIXES = (".d.json.ts",)
 
 # Nombres propios, marcas y valores técnicos que no se traducen.
@@ -45,7 +46,7 @@ ALLOWED = re.compile(
     # Nombres de campo de proveedores externos y ejemplos técnicos: se
     # muestran igual en cualquier idioma.
     r"|Browser API Key|App ID|Cloudflare Turnstile|Runtime|Web|Worker"
-    r"|G-X+|smtp\.example\.com|Host SMTP"
+    r"|G-X+|smtp\.example\.com|Host SMTP|Zapi Social|KB|MB|GB|ms|px"
     r"|Promise|[\W\d]+)$"
 )
 
@@ -83,7 +84,41 @@ PATTERNS = (
     re.compile(r">\s*([A-Za-zÁÉÍÓÚÑáéíóúñ¿¡][^<>{}\n]*)\s*<"),
     # Aviso al usuario.
     re.compile(r'toast\.(?:success|error|info)\(\s*"([^"]+)"'),
+    # Nodo de texto en su propia línea. Prettier parte el JSX cuando el botón
+    # lleva un icono condicional, y entonces el rótulo no comparte línea con
+    # `>` ni con `<`: así se quedaron sin migrar «Generar QR» y una veintena
+    # más de botones de acción.
+    re.compile(r"[>}]\n\s*([A-Za-zÁÉÍÓÚÑáéíóúñ¿¡][^<>{}\n]*?)\s*\n\s*<"),
 )
+
+# Plantilla con interpolación: `Acciones de ${name}`. Va aparte porque hay que
+# sustituir los `${...}` antes de juzgar el texto —si no, los paréntesis de
+# dentro lo hacen pasar por código—.
+TEMPLATE = re.compile(r"`([^`\n]*\$\{[^`\n]*)`")
+INTERPOLATION = re.compile(r"\$\{[^{}]*\}")
+
+
+# Utilidades de Tailwind que se escriben sin sufijo. Una lista de clases suele
+# delatarse por el guion —`text-sm`, `w-full`—, pero `absolute flex` no tiene
+# ninguno y también es código.
+BARE_UTILITIES = frozenset({
+    "absolute", "relative", "fixed", "sticky", "static", "block", "inline",
+    "flex", "grid", "hidden", "truncate", "italic", "underline", "rounded",
+    "border", "uppercase", "lowercase", "capitalize", "container", "isolate",
+})
+
+CLASS_TOKEN = re.compile(r"^…$|^-?[a-z][\w./%\[\]-]*(?::-?[a-z][\w./%\[\]-]*)*$")
+
+
+def is_class_list(value: str) -> bool:
+    """Distingue una lista de clases de Tailwind de una frase."""
+    tokens = value.split()
+    if not all(CLASS_TOKEN.match(token) for token in tokens):
+        return False
+    return any(
+        token in BARE_UTILITIES or "-" in token or "/" in token
+        for token in tokens
+    )
 
 
 def is_ui_text(value: str) -> bool:
@@ -96,11 +131,37 @@ def is_ui_text(value: str) -> bool:
     if value in SHADCN_DEFAULTS:
         return False
     # Clases de Tailwind en objetos de configuración.
-    if re.fullmatch(r"[\w!/:\[\]-]+(?:\s+[\w!/:\[\]-]+)*", value) and re.search(
-        r"^(text|bg|border|group|flex|grid|p|m|w|h)-", value
-    ):
+    if is_class_list(value):
+        return False
+    # Una plantilla cuya única parte fija es una marca —`${title} - Zapi Social`—
+    # no tiene nada que traducir.
+    if value.count("…") and ALLOWED.match(value.replace("…", " ").strip(" -·|")):
         return False
     return not (ALLOWED.match(value) or CODE_NOISE.search(value))
+
+
+def template_hits(source: str) -> list[tuple[int, str]]:
+    hits = []
+    for match in TEMPLATE.finditer(source):
+        line_start = source.rfind("\n", 0, match.start()) + 1
+        prefix = source[line_start : match.start()].lstrip()
+        # Los comentarios citan nombres de componentes entre acentos graves, y
+        # `console.*` escribe para quien depura, no para quien usa el producto.
+        if prefix.startswith(("*", "//")) or "console." in prefix:
+            continue
+        # El argumento de `t()` es una clave, no texto: `t(`status.${state}`)`.
+        if re.search(r"\bt[A-Za-z]*\(\s*$", prefix):
+            continue
+        value = INTERPOLATION.sub("…", match.group(1)).strip()
+        # Sin espacio es un identificador compuesto: una ruta, un `id` de DOM o
+        # una clave de traducción construida.
+        if " " not in value:
+            continue
+        if not re.search(r"[A-Za-zÁÉÍÓÚÑáéíóúñ]{2,}", value):
+            continue
+        if is_ui_text(value):
+            hits.append((source[: match.start()].count("\n") + 1, value))
+    return hits
 
 
 def scan(path: Path) -> list[tuple[int, str]]:
@@ -113,6 +174,8 @@ def scan(path: Path) -> list[tuple[int, str]]:
                 continue
             line = source[: match.start()].count("\n") + 1
             found.setdefault(line, value)
+    for line, value in template_hits(source):
+        found.setdefault(line, value)
     return sorted(found.items())
 
 
@@ -138,6 +201,16 @@ SELF_TEST = (
     ('toast.error("Falló")', "Falló"),
     ('<Badge>{t("you")}</Badge>', None),
     ("<CardTitle>Meta</CardTitle>", None),
+    ("      ) : null}\n      Generar QR\n    </Button>", "Generar QR"),
+    ("      >\n        Guardar cambios\n      </Button>", "Guardar cambios"),
+    ('aria-label={`Acciones de ${name}`}', "Acciones de …"),
+    ('aria-label={t("rowActions", { name })}', None),
+    ('className={`flex ${size} items-center`}', None),
+    ('className={`absolute ${side}`}', None),
+    ('t(`status.${row.state}`)', None),
+    ('aria-label={`Quitar ${name}`}', "Quitar …"),
+    ('`${done} de ${total} completados.`', "… de … completados."),
+    ('<title>{`${title} - Zapi Social`}</title>', None),
 )
 
 
@@ -150,7 +223,7 @@ def self_test() -> list[str]:
             for pattern in PATTERNS
             for match in pattern.finditer(source)
             if is_ui_text(value := match.group(1).strip())
-        ]
+        ] + [value for _, value in template_hits(source)]
         ok = expected in found if expected else not found
         if not ok:
             failures.append(f"{source} -> {found}")

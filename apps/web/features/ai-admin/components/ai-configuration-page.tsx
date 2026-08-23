@@ -322,7 +322,9 @@ export function AiConfigurationPage() {
     const draft = providerDrafts[providerKey]
     if (!provider?.apiKeyConfigured && draft.apiKey.trim().length < 20) {
       toast.error(
-        `Ingresa una clave de ${provider?.label ?? "proveedor"} válida.`
+        t("invalidApiKey", {
+          provider: provider?.label ?? t("providerFallback"),
+        })
       )
       return
     }

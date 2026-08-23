@@ -447,7 +447,7 @@ function ManualPaymentSheet({
               ) : (
                 <Plus data-icon="inline-start" />
               )}
-              Registrar
+              {t("register")}
             </Button>
           </SheetFooter>
         </form>
@@ -770,7 +770,9 @@ export function AdminManualPaymentsPage() {
                                   </span>
                                 ) : (
                                   <Button
-                                    aria-label={`Eliminar ${payment.reference}`}
+                                    aria-label={t("deleteRow", {
+                                      reference: payment.reference,
+                                    })}
                                     disabled={pending}
                                     onClick={() => setDeleting(payment)}
                                     size="icon-sm"
@@ -902,7 +904,7 @@ export function AdminManualPaymentsPage() {
                 ) : (
                   <Save data-icon="inline-start" />
                 )}
-                Guardar cambios
+                {t("saveChanges")}
               </Button>
             </div>
           </TabsContent>

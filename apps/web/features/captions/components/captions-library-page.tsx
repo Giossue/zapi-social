@@ -277,7 +277,7 @@ function createCaptionColumns({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
-                  aria-label={`Abrir acciones para ${caption.name}`}
+                  aria-label={t("openActions", { name: caption.name })}
                   size="icon-sm"
                   type="button"
                   variant="brand-secondary"
@@ -776,7 +776,7 @@ export function CaptionsLibraryPage() {
             <AlertDialogTitle>{t("deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
               {captionToDelete
-                ? `“${captionToDelete.name}” se eliminará de la biblioteca. Esta acción no se puede deshacer.`
+                ? t("deleteWarningNamed", { name: captionToDelete.name })
                 : t("deleteWarning")}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -795,7 +795,7 @@ export function CaptionsLibraryPage() {
               {pending ? (
                 <Spinner aria-label={t("deleting")} data-icon="inline-start" />
               ) : null}
-              Eliminar caption
+              {t("deleteAction")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

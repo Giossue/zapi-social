@@ -293,7 +293,7 @@ function NewSupportTicketSheet({
               ) : (
                 <LifeBuoy data-icon="inline-start" />
               )}
-              Crear caso
+              {t("createTicket")}
             </Button>
           </SheetFooter>
         </form>

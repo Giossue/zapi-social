@@ -54,13 +54,15 @@ function candidateInitials(label: string) {
 }
 
 function CandidateAvatar({ candidate }: { candidate: ChannelCandidate }) {
+  const t = useTranslations("channelConnection")
+
   return (
     <span className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-accent text-xs font-semibold text-accent-foreground">
       <span aria-hidden="true">{candidateInitials(candidate.label)}</span>
       {candidate.avatarUrl ? (
         // eslint-disable-next-line @next/next/no-img-element -- el avatar lo sirve el proveedor con un dominio que no está en `remotePatterns`.
         <img
-          alt={`Avatar de ${candidate.label}`}
+          alt={t("avatarAlt", { name: candidate.label })}
           className="absolute inset-0 size-full object-cover"
           loading="lazy"
           onError={(event) => {
@@ -228,7 +230,7 @@ export function ChannelConnectionDialog({
     }
     finishMockConnection({
       id: `${capability.key}-direct`,
-      label: `Cuenta de ${providerLabels[capability.provider]}`,
+      label: t("accountOf", { provider: providerLabels[capability.provider] }),
       description: capability.label,
     })
   }
@@ -245,7 +247,9 @@ export function ChannelConnectionDialog({
       )
       onConnected(toPortalAccount(result.account))
       await onMetaConnectionCompleted()
-      toast.success(`${metaPickerSession.capability.label} conectado.`)
+      toast.success(
+        t("connected", { channel: metaPickerSession.capability.label })
+      )
     } catch (error) {
       console.error("Meta candidate selection failed", error)
       toast.error(t("connectFailed"))
@@ -434,7 +438,7 @@ export function ChannelConnectionDialog({
                     ) : (
                       <CheckCircle2 data-icon="inline-start" />
                     )}
-                    Conectar selección
+                    {t("connectSelection")}
                   </Button>
                 </div>
               </form>

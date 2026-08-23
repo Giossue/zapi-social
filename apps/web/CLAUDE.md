@@ -26,9 +26,15 @@ aprobación visual del usuario.
 justo lo que `audit:i18n` no puede ver: si una superficie nunca se migró, los
 dos catálogos siguen sincronizados y ese auditor pasa.
 
-Prohíbe **cualquier** literal en un nodo JSX o una prop de rótulo, sin mirar el
-idioma ni la longitud. Sus dos versiones anteriores fallaron por acotar de más
-—buscar marcas del español dejaba pasar «Guardar perfil»; pedir tres caracteres
-dejaba pasar «Tú»—, y en ambos casos el hueco solo se vio en pantalla. Por eso
-el comando se comprueba a sí mismo contra casos conocidos antes de escanear: si
-deja de reconocerlos, falla.
+Prohíbe **cualquier** literal en un nodo JSX, una prop de rótulo o una plantilla
+con interpolación, sin mirar el idioma ni la longitud. Sus versiones anteriores
+fallaron por acotar de más —buscar marcas del español dejaba pasar «Guardar
+perfil»; pedir tres caracteres dejaba pasar «Tú»; mirar solo `apps/web` dejaba
+pasar «1-1 de 1»; exigir que el texto compartiera línea con `>` dejaba pasar los
+rótulos que Prettier baja a su propia línea—, y cada hueco solo se vio en
+pantalla. Por eso el comando se comprueba a sí mismo contra casos conocidos
+antes de escanear: si deja de reconocerlos, falla.
+
+Para no confundir código con texto descarta lo que no es interfaz: el argumento
+de `t()`, los identificadores sin espacios, las listas de clases de Tailwind,
+los comentarios y `console.*`.

@@ -448,7 +448,7 @@ function WatermarkScopePicker({
             <Badge key={account.id} variant="neutral">
               {account.displayName} · {providerLabels[account.providerKey]}
               <Button
-                aria-label={`Quitar ${account.displayName}`}
+                aria-label={t("removeAccount", { name: account.displayName })}
                 onClick={() => toggleAccount(account.id, false)}
                 size="icon-xs"
                 variant="brand-secondary"

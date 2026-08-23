@@ -149,7 +149,7 @@ export function SettingsFormPage<TValues extends Record<string, unknown>>({
             }
             description={t("loadFailedDescription")}
             icon={CircleAlert}
-            title={`${title} no disponible`}
+            title={t("loadFailedTitle", { title })}
           />
         </CardContent>
       </Card>
@@ -248,7 +248,7 @@ export function SettingsFormPage<TValues extends Record<string, unknown>>({
             ) : (
               <Save data-icon="inline-start" />
             )}
-            Guardar cambios
+            {t("saveChanges")}
           </Button>
         </div>
       </form>

@@ -414,7 +414,7 @@ function AnnouncementSheet({
               ) : (
                 <Send data-icon="inline-start" />
               )}
-              Publicar
+              {t("publish")}
             </Button>
           </SheetFooter>
         </form>
@@ -691,7 +691,9 @@ export function AdminNotificationsPage() {
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button
-                                aria-label={`Acciones de ${announcement.title}`}
+                                aria-label={t("rowActions", {
+                                  title: announcement.title,
+                                })}
                                 size="icon-sm"
                                 variant="brand-secondary"
                               >
@@ -791,7 +793,7 @@ export function AdminNotificationsPage() {
               ) : (
                 <Trash2 data-icon="inline-start" />
               )}
-              Eliminar
+              {t("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

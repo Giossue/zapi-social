@@ -447,11 +447,11 @@ export function FileMoveDialog({
           <DialogTitle>
             {isBulkAction
               ? t("moveSelected")
-              : `Mover ${item?.isFolder ? "carpeta" : "archivo"}`}
+              : t(item?.isFolder ? "moveFolder" : "moveFile")}
           </DialogTitle>
           <DialogDescription>
             {isBulkAction
-              ? `Elige la carpeta de destino para ${selectedCount} ${selectedCount === 1 ? "archivo" : "archivos"}.`
+              ? t("chooseFolderBulk", { count: selectedCount })
               : t("chooseFolder")}
           </DialogDescription>
         </DialogHeader>
@@ -535,8 +535,8 @@ export function FileTrashDialog({
           </AlertDialogTitle>
           <AlertDialogDescription>
             {isBulkAction
-              ? `${selectedCount} ${selectedCount === 1 ? "elemento se eliminará" : "elementos se eliminarán"} permanentemente. Esta acción no se puede deshacer.`
-              : `${item?.name} se eliminará permanentemente. Esta acción no se puede deshacer.`}
+              ? t("deleteBulkWarning", { count: selectedCount })
+              : t("deleteItemWarning", { name: item?.name ?? "" })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

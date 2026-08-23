@@ -749,7 +749,9 @@ function AiAutomationSurface({
                           <AutomationStatusBadge status={row.status} />
                           {canManage ? (
                             <Switch
-                              aria-label={`Activar ${row.name}`}
+                              aria-label={t("enableAutomation", {
+                                name: row.name,
+                              })}
                               checked={row.status === "active"}
                               disabled={busy}
                               onCheckedChange={(checked) =>
@@ -764,7 +766,7 @@ function AiAutomationSurface({
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button
-                                aria-label={`Acciones para ${row.name}`}
+                                aria-label={t("rowActions", { name: row.name })}
                                 disabled={busy}
                                 size="icon-sm"
                                 variant="brand-secondary"

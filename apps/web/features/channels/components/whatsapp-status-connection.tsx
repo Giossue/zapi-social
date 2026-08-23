@@ -242,7 +242,7 @@ export function WhatsAppStatusConnection({
             >
               {isStarting
                 ? t("refreshing")
-                : `Este QR se actualiza en ${countdownLabel(expiresIn)}.`}
+                : t("qrRefreshesIn", { time: countdownLabel(expiresIn) })}
             </p>
           </div>
           <Button
@@ -254,7 +254,7 @@ export function WhatsAppStatusConnection({
             {isStarting ? (
               <Spinner aria-label={t("refreshing")} data-icon="inline-start" />
             ) : null}
-            Generar otro QR
+            {t("generateAnother")}
           </Button>
         </CardContent>
       </Card>
@@ -296,7 +296,7 @@ export function WhatsAppStatusConnection({
           ) : (
             <Smartphone data-icon="inline-start" />
           )}
-          Generar QR
+          {t("generate")}
         </Button>
       </div>
     </div>

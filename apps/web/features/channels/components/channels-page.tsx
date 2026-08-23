@@ -209,7 +209,7 @@ function EditChannelDialog({
               ) : (
                 <Save data-icon="inline-start" />
               )}
-              Guardar cambios
+              {t("saveChanges")}
             </Button>
           </DialogFooter>
         </form>
@@ -241,7 +241,7 @@ function DeleteChannelDialog({
           <AlertDialogTitle>{t("deleteTitle")}</AlertDialogTitle>
           <AlertDialogDescription>
             {account
-              ? `Eliminarás “${account.displayName}” de este espacio de trabajo. Esta acción no se puede deshacer.`
+              ? t("deleteDescription", { name: account.displayName })
               : ""}
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -259,7 +259,7 @@ function DeleteChannelDialog({
             ) : (
               <Trash2 data-icon="inline-start" />
             )}
-            Eliminar
+            {t("delete")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -343,7 +343,7 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
                   ) : (
                     <Send data-icon="inline-start" />
                   )}
-                  Enviar respuesta
+                  {t("sendReply")}
                 </Button>
               </div>
             </form>
