@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 
-import { Command } from "lucide-react"
+import { ZapiLogo } from "@/components/zapi-logo"
 
 import {
   Sidebar,
@@ -35,7 +35,7 @@ function DashboardSidebarHeader({ homeHref }: { homeHref: string }) {
         <SidebarMenuItem>
           <SidebarMenuButton asChild>
             <Link href={homeHref} onClick={() => setOpenMobile(false)}>
-              <Command />
+              <ZapiLogo className="size-5 shrink-0" />
               <span className="font-semibold text-base">Zapi Social</span>
             </Link>
           </SidebarMenuButton>
