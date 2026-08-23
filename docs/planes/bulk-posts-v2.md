@@ -39,6 +39,6 @@ Crear/cancelar requiere rol `owner` o `admin`. El archivo debe ser CSV/TXT `read
 
 - [x] Contratos, API, cliente, schema y Worker implementados en `0020_mushy_peter_parker`.
 - [x] Migración aplicada localmente y typecheck de Database, Contracts, API Client, API y Worker.
-- [x] Sustituir el placeholder por un mockup source-first navegable, copiado desde `diseño ideal/src/app/(main)/dashboard/portal-modules`.
+- [x] Sustituir el placeholder por un mockup source-first navegable, copiado desde `template-shadcn-superdashboard/src/app/(main)/dashboard/portal-modules`.
 - [ ] Conectar el mockup a `bulkPostsApi` y publicar una plantilla CSV descargable.
 - [ ] Añadir prueba de integración de reintento fila/cuenta y un smoke con archivo real en el volumen compartido.

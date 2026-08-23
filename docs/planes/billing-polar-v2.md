@@ -52,7 +52,7 @@ No se recuperan Stripe, PayPal, pagos manuales ni ningún otro gateway eliminado
 
 ## Fuente visual
 
-`diseño ideal` conserva el catálogo general en `/dashboard/platform`, la
+`template-shadcn-superdashboard` conserva el catálogo general en `/dashboard/platform`, la
 composición unificada de proveedores en `/dashboard/platform/integrations` y la
 superficie exacta de Planes en `/dashboard/platform/plans`. Esta última es la
 fuente canónica navegable de métricas, filtros, tabla, formulario y
@@ -141,7 +141,7 @@ Importes se guardan en unidad menor e ISO-4217. Pagos y reembolsos no se borran;
 
 ## Evidencia de la fase mock
 
-- `diseño ideal`: `bun run build` correcto; rutas `/dashboard/platform` y `/dashboard/platform/polar` generadas.
+- `template-shadcn-superdashboard`: `bun run build` correcto; rutas `/dashboard/platform` y `/dashboard/platform/polar` generadas.
 - Zapi V2 Web: typecheck y build correctos; rutas Admin de los ocho módulos generadas.
 - Lint Web completo sin errores; conserva advertencias previas ajenas a esta superficie.
 - `git diff --check` correcto.
@@ -150,7 +150,7 @@ Importes se guardan en unidad menor e ISO-4217. Pagos y reembolsos no se borran;
 
 - Planes reemplaza la cuadrícula de cards por la composición operativa canónica y mantiene `plansApi.list/create/update/remove`.
 - La paginación local actúa sobre el resultado ya filtrado; no cambia contratos REST ni persistencia.
-- `diseño ideal`: check focal del demo y `bun run build` correctos; el check completo conserva errores previos ajenos en Auth/Profile.
+- `template-shadcn-superdashboard`: check focal del demo y `bun run build` correctos; el check completo conserva errores previos ajenos en Auth/Profile.
 - Zapi V2 Web: typecheck y build correctos; lint completo con 0 errores y 50 advertencias previas.
 - `git diff --check` correcto en ambos repositorios.
 

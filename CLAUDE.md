@@ -17,7 +17,7 @@ Lee este archivo primero. Es un **índice**, no una copia de las reglas: cada no
 
 - `../ZapiV2`: destino de todo el trabajo y validación de V2.
 - `../ZapiSocial`: referencia Laravel para auditar comportamiento útil; no se replica su arquitectura.
-- `../diseño ideal`: fuente visual canónica. Cuando exista una superficie equivalente, se copia literalmente su composición a V2 y solo se adaptan datos, rutas, handlers, permisos y lógica real.
+- `../template-shadcn-superdashboard`: fuente visual canónica. Cuando exista una superficie equivalente, se copia literalmente su composición a V2 y solo se adaptan datos, rutas, handlers, permisos y lógica real.
 
 ## Qué leer antes de actuar
 
@@ -38,6 +38,6 @@ Lee este archivo primero. Es un **índice**, no una copia de las reglas: cada no
 2. La regla correspondiente al tipo de cambio.
 3. La arquitectura cuando el cambio cruza áreas del monorepo.
 4. El plan del dominio y la referencia Laravel cuando el cambio es funcional.
-5. Para UI, el catálogo de componentes y la fuente equivalente en `diseño ideal` antes de escribir markup.
+5. Para UI, el catálogo de componentes y la fuente equivalente en `template-shadcn-superdashboard` antes de escribir markup.
 
 No documentar secretos, tokens, datos de producción ni valores de `.env`.

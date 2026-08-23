@@ -5,7 +5,7 @@
 El backend está implementado en contrato, cliente REST y Nest. La migración
 aditiva `0018_gorgeous_doctor_faustus` está aplicada a `zapi_v2_local`.
 El fixture funcional de `/portal/support` usa la fuente canónica navegable
-`diseño ideal/src/app/(main)/dashboard/support`: métricas, tabla, búsqueda,
+`template-shadcn-superdashboard/src/app/(main)/dashboard/support`: métricas, tabla, búsqueda,
 filtro adaptable, paginación compacta, creación y conversación. V2 conserva
 el fixture local hasta conectar `supportApi`.
 Las métricas de abiertos, resueltos y cerrados usan el `MetricCard` compartido
@@ -143,7 +143,7 @@ la base de datos; las mutaciones reales quedan para la fase 7 de esta
 vertical.
 
 Fuente canónica creada primero en
-`diseño ideal/src/app/(main)/dashboard/support-admin` y copiada a
+`template-shadcn-superdashboard/src/app/(main)/dashboard/support-admin` y copiada a
 `apps/web/features/admin-support/` (`admin-support-page.tsx`,
 `admin-support-new-case-sheet.tsx`, `support-catalog-panel.tsx`).
 

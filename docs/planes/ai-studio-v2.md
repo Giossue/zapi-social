@@ -10,7 +10,7 @@ Nest, PostgreSQL y Worker.
 ```text
 Laravel auditado
 → producto y acciones definidos
-→ fuente canónica en diseño ideal
+→ fuente canónica en template-shadcn-superdashboard
 → UI V2 con fixtures deterministas
 → aprobación visual
 → contratos Zod por herramienta
@@ -55,7 +55,7 @@ publicar.
 ## Refactor operativo — 12 de agosto de 2026
 
 - Historial, Automatizaciones y Créditos usan la fuente canónica de
-  `diseño ideal/dashboard/ai-studio` y la misma composición en Portal V2.
+  `template-shadcn-superdashboard/dashboard/ai-studio` y la misma composición en Portal V2.
 - Las tres superficies distinguen carga, error, `403`, vacío inicial y búsqueda
   sin resultados; un fallo de API ya no se representa como colección vacía ni
   deja un loader permanente.
@@ -70,7 +70,7 @@ publicar.
 - Inicio, Créditos y el resumen de uso en `/admin/settings/ai` comparten
   `MetricCard`: icono semántico por dato, valor y contexto breve. Se retiraron
   las dos implementaciones legacy de Créditos que ya no participaban del routing.
-- Validación: TypeScript y build correctos tanto en `diseño ideal` como en
+- Validación: TypeScript y build correctos tanto en `template-shadcn-superdashboard` como en
   `apps/web`; lint focal sin errores y `git diff --check` correcto.
 
 Lo siguiente describe la auditoría y el roadmap completo. Los puntos avanzados
@@ -212,7 +212,7 @@ se filtran con política central de Teams; AI no crea permisos paralelos.
   pending, móvil y claro/oscuro.
 
 Historial, Automatizaciones y Créditos tienen fuente visual exacta en
-`../diseño ideal/src/app/(main)/dashboard/ai-studio/_components/ai-studio-operations.tsx`.
+`../template-shadcn-superdashboard/src/app/(main)/dashboard/ai-studio/_components/ai-studio-operations.tsx`.
 La ruta canónica `/dashboard/ai-studio` permite recorrer sus variantes normal,
 loading, vacío, error y sin permiso. Portal V2 conserva la misma composición y
 solo adapta datos, permisos y handlers al contrato real.
@@ -698,7 +698,7 @@ ella; ninguna entrada, salida ni acción del inventario de módulos se elimina.
 
 ### Fuente visual
 
-`../diseño ideal` contiene una superficie de chat completa en
+`../template-shadcn-superdashboard` contiene una superficie de chat completa en
 `src/app/(main)/chat/_components`: lista de conversaciones, hilo y panel lateral de detalle
 en una rejilla de tres columnas con colapso responsive. Es la fuente a copiar; V2 solo
 adapta datos, acciones y permisos. No se diseña un chat nuevo.
@@ -736,7 +736,7 @@ romper enlaces existentes ni la memoria de los usuarios.
 
 ```text
 inventario de módulos ya auditado
-→ copia de la composición de `diseño ideal`
+→ copia de la composición de `template-shadcn-superdashboard`
 → chat sobre `aiApi` existente, sin contrato nuevo
 → redirecciones de las rutas antiguas
 → retirada de las vistas sustituidas

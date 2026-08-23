@@ -68,7 +68,7 @@ La migración Drizzle del slice es `0020_mushy_peter_parker`; `0021_pale_thor` a
 - [x] Las métricas usan agregados completos, devoluciones se serializan por orden y una orden manual completada no genera comisiones: sólo un pago verificado podrá hacerlo en el futuro.
 - [x] Typecheck de Database, Contracts, API Client y API.
 - [x] Prueba local transaccional: reserva tres unidades, completa una sola vez y termina con `available=7`, `reserved=0` (`portal-backend-v2`, 3/3 en el conjunto).
-- [x] Sustituir el placeholder Affiliate por un mockup source-first navegable, copiado desde `diseño ideal/src/app/(main)/dashboard/portal-modules`.
+- [x] Sustituir el placeholder Affiliate por un mockup source-first navegable, copiado desde `template-shadcn-superdashboard/src/app/(main)/dashboard/portal-modules`.
 - [x] Retirar el mockup y la fuente canónica de `/portal/commerce`: no tenía equivalencia Laravel ni alcance de producto aprobado. No se alteraron API, contratos, schema ni migraciones.
 - [ ] Definir alcance de producto antes de exponer Commerce en Portal; crear una nueva fuente canónica y conectarla a REST sólo tras esa decisión.
 - [ ] Conectar Affiliate a REST sin cambiar su composición aprobada.

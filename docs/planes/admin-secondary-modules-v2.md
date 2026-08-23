@@ -4,7 +4,7 @@
 
 Las rutas principales de plataforma ya tienen superficies propias. Este plan cubre las 16 entradas restantes del sidebar Admin que todavía caen en el placeholder genérico. La entrega actual es exclusivamente visual y usa fixtures sintéticas; no crea contratos, endpoints, tablas ni migraciones. Captcha dejó este alcance: su superficie real se documenta en [`turnstile-v2.md`](./turnstile-v2.md).
 
-Fuente canónica: `diseño ideal/src/app/(main)/dashboard/admin-modules`. La copia V2 vive bajo `features/platform-admin-mockups` y conserva el patrón final de tablas, sheets y formularios.
+Fuente canónica: `template-shadcn-superdashboard/src/app/(main)/dashboard/admin-modules`. La copia V2 vive bajo `features/platform-admin-mockups` y conserva el patrón final de tablas, sheets y formularios.
 
 ## Equivalencia Laravel
 
@@ -33,7 +33,7 @@ Fuente canónica: `diseño ideal/src/app/(main)/dashboard/admin-modules`. La cop
 ## Fases
 
 1. [x] Auditar navegación Admin y módulos Laravel equivalentes.
-2. [x] Crear y validar la fuente canónica navegable en `diseño ideal`.
+2. [x] Crear y validar la fuente canónica navegable en `template-shadcn-superdashboard`.
 3. [x] Copiar las 16 superficies restantes a ZapiV2 y retirar el placeholder de cada entrada del sidebar; Captcha ya es una integración real.
 4. [x] Validar fuente y consumidor con formato, typecheck/build, lint focal y `git diff --check`.
 5. [ ] Obtener aprobación visual del usuario.
@@ -57,7 +57,7 @@ Fuente canónica: `diseño ideal/src/app/(main)/dashboard/admin-modules`. La cop
 
 ## Superficies de usuarios y acceso — 22 de agosto de 2026
 
-Se añadieron tres superficies mock nuevas siguiendo el mismo patrón fuente → copia. La fuente canónica sigue siendo `diseño ideal/src/app/(main)/dashboard/admin-modules` (grupo «Usuarios y acceso» del selector); la copia V2 vive en `apps/web/features/platform-admin-mockups` porque los mockups anteriores ya fueron reemplazados por superficies REST reales.
+Se añadieron tres superficies mock nuevas siguiendo el mismo patrón fuente → copia. La fuente canónica sigue siendo `template-shadcn-superdashboard/src/app/(main)/dashboard/admin-modules` (grupo «Usuarios y acceso» del selector); la copia V2 vive en `apps/web/features/platform-admin-mockups` porque los mockups anteriores ya fueron reemplazados por superficies REST reales.
 
 | Ruta V2              | Referencia Laravel (`modules/AdminUser`)                                          | Qué muestra el mockup                                                                                                                    |
 | -------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
@@ -72,7 +72,7 @@ Adaptaciones respecto a Laravel, documentadas como divergencias del mock:
 - La gestión individual de miembros de un equipo (añadir/quitar con rol) no se replica en el mock; se conserva el conteo de miembros y el propietario.
 - Igual que en Laravel, Equipos no permite crear ni eliminar (los equipos personales se aprovisionan automáticamente); para ello el mockup genérico ganó el modo de acción `edit`.
 
-El mockup genérico de la fuente se amplió antes de copiar: campo `permissions` (matriz con `Checkbox` dentro de `FieldSet`), modo de acción `edit`, botón secundario «Cancelar» sin icono en el sheet de formulario, `FloatingActionButton` para la acción de crear (con el botón del encabezado oculto bajo `sm`) y columnas responsive `hidden md/lg:table-cell`. `FloatingActionButton` se portó a `diseño ideal/src/components` desde `packages/ui`.
+El mockup genérico de la fuente se amplió antes de copiar: campo `permissions` (matriz con `Checkbox` dentro de `FieldSet`), modo de acción `edit`, botón secundario «Cancelar» sin icono en el sheet de formulario, `FloatingActionButton` para la acción de crear (con el botón del encabezado oculto bajo `sm`) y columnas responsive `hidden md/lg:table-cell`. `FloatingActionButton` se portó a `template-shadcn-superdashboard/src/components` desde `packages/ui`.
 
 Evidencia de validación:
 
@@ -85,7 +85,7 @@ Evidencia de validación:
 Se añadió la colección mock `/admin/blog-rss`, equivalente al hijo «RSS Feeds»
 del sidebar de `modules/AdminBlogs` en Laravel (`RssIndex` sobre
 `blog_rss_sources`). La fuente canónica es la colección `blog-rss` del grupo
-«Contenido y localización» en `diseño ideal/src/app/(main)/dashboard/admin-modules`;
+«Contenido y localización» en `template-shadcn-superdashboard/src/app/(main)/dashboard/admin-modules`;
 la copia V2 vive en
 `apps/web/features/admin-content/components/blog-rss-collection.tsx` y reutiliza
 el patrón declarativo de `AdminCollectionPage` con fixtures locales

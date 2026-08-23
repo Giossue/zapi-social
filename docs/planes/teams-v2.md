@@ -140,7 +140,7 @@ workspace_membership_audit_events
 - Pestañas sin contadores: **Miembros**, **Invitaciones pendientes** y **Actividad**.
 - El buscador permanece en la misma posición al cambiar de pestaña, pero conserva una consulta independiente por pestaña. Nunca filtra datos de otra pestaña.
 - La acción contextual usa el patrón de Files: tres puntos verticales, acciones normales agrupadas y acción destructiva separada al final.
-- La ruta canónica `/dashboard/teams` en `diseño ideal` define la composición de tabs, tablas responsive y footer. Miembros, invitaciones, directorio de solo lectura y actividad usan el único `TablePagination`, incluso cuando existe una sola página.
+- La ruta canónica `/dashboard/teams` en `template-shadcn-superdashboard` define la composición de tabs, tablas responsive y footer. Miembros, invitaciones, directorio de solo lectura y actividad usan el único `TablePagination`, incluso cuando existe una sola página.
 
 ### Miembros — owner/admin
 
@@ -265,7 +265,7 @@ La invitación siempre pertenece a un **workspace**. Teams es la superficie que 
 
 ### Superficies y estados
 
-- Crear primero en `diseño ideal` la ruta canónica `/invite`; copiar después composición y estados a V2.
+- Crear primero en `template-shadcn-superdashboard` la ruta canónica `/invite`; copiar después composición y estados a V2.
 - La ruta pública cubre: loading, token ausente, inválido, usado, vencido, invitado sin sesión, sesión con correo distinto, aceptación pendiente, éxito y error recuperable.
 - Login y registro reciben solo un retorno interno permitido hacia `/invite`; el token permanece en `sessionStorage`, nunca en parámetros de esas rutas.
 - El shell de Portal muestra selector solo cuando existen dos o más workspaces activos. Cambiarlo actualiza la sesión actual, renueva autenticación y recarga el contexto.
@@ -280,7 +280,7 @@ La invitación siempre pertenece a un **workspace**. Teams es la superficie que 
 
 ### Orden y criterios verificables
 
-19. [x] Crear y validar mock navegable `/invite` en `diseño ideal`.
+19. [x] Crear y validar mock navegable `/invite` en `template-shadcn-superdashboard`.
 20. [x] Añadir schemas Zod, errores públicos y cliente REST para preview, aceptación y activación.
 21. [x] Implementar preview sin filtrar token/hash y activación limitada a membresías del usuario.
 22. [x] Hacer que aceptación devuelva workspace y que auth liste/active contextos con cookie renovada.

@@ -103,8 +103,8 @@ La migración `0020_mushy_peter_parker` añade intentos, procedencia/resultados 
 - [x] Worker con scheduler, claim, intentos y adapters Facebook/Instagram/WhatsApp Status.
 - [x] Watermarks efímeros de imagen/vídeo y endpoint temporal firmado.
 - [x] Productores Bulk, RSS, AI y Automation conectados.
-- [x] Compositor y confirmación de borrado validados con Biome + TypeScript en `diseño ideal` y ESLint + typecheck de Web en V2.
-- [x] Mockup source-first navegable para AI Publishing, copiado desde `diseño ideal/src/app/(main)/dashboard/portal-modules`.
+- [x] Compositor y confirmación de borrado validados con Biome + TypeScript en `template-shadcn-superdashboard` y ESLint + typecheck de Web en V2.
+- [x] Mockup source-first navegable para AI Publishing, copiado desde `template-shadcn-superdashboard/src/app/(main)/dashboard/portal-modules`.
 - [ ] Conectar AI Publishing a los endpoints de schedules sin cambiar la composición aprobada.
 - [x] `0020_mushy_peter_parker` y `0021_pale_thor` aplicadas localmente; existen `publishing_post_attempts`, FKs compuestas y pasan typechecks de Database, Contracts, API Client, API y Worker.
 - [x] Pruebas locales RSS 2/2 y Support/Watermarks 2/2; lint focalizado del código nuevo API/Worker sin errores.

@@ -17,7 +17,7 @@ contratos, seguridad, evidencia y pendientes de smoke real se mantienen en
 
 - `../ZapiV2`: destino de contrato, API, Worker, persistencia y Portal.
 - `../ZapiSocial/modules/AppFiles`: referencia de lógica Laravel. Se adopta su validación de carga, ownership, preview autenticado y protección de referencias de Publishing, sin copiar su arquitectura Laravel ni proveedores externos.
-- `../diseño ideal/src/app/(main)/dashboard/file-manager/`: fuente visual literal de Files. Grid, lista, carpetas, toolbar, tabs, diálogos, hovers, responsive y estados nuevos se crean aquí primero cuando no existan y luego se copian sin reinterpretación a V2.
+- `../template-shadcn-superdashboard/src/app/(main)/dashboard/file-manager/`: fuente visual literal de Files. Grid, lista, carpetas, toolbar, tabs, diálogos, hovers, responsive y estados nuevos se crean aquí primero cuando no existan y luego se copian sin reinterpretación a V2.
 
 ## Decisiones confirmadas
 
@@ -113,7 +113,7 @@ Los endpoints definitivos se fijan tras diseñar la UI, pero el contrato objetiv
 
 ### 5. Portal y UX
 
-La implementación visual se hace primero en `diseño ideal` y se copia literalmente a `apps/web/features/files`.
+La implementación visual se hace primero en `template-shadcn-superdashboard` y se copia literalmente a `apps/web/features/files`.
 
 - Menú contextual de archivo: vista previa, información, descargar, renombrar, mover y enviar a papelera. Favorito permanece únicamente en la estrella de la tarjeta.
 - Información abre un diálogo de solo lectura con nombre, tipo, MIME, tamaño, fecha de actualización y propietario, sin exponer IDs ni rutas internas.
@@ -138,7 +138,7 @@ La implementación visual se hace primero en `diseño ideal` y se copia literalm
 
 ## Orden de implementación
 
-1. Diseñar en `diseño ideal` los menús, renombre, mover, papelera y preview; aprobar estados visuales y responsive.
+1. Diseñar en `template-shadcn-superdashboard` los menús, renombre, mover, papelera y preview; aprobar estados visuales y responsive.
 2. Copiar literalmente la superficie aprobada a V2, inicialmente con adapters/fixtures coherentes.
 3. Actualizar plan, contratos Zod y cliente REST.
 4. Crear migraciones aditivas y aplicarlas en local/remoto siguiendo `docs/reglas/workflow.md`.
@@ -166,7 +166,7 @@ La implementación visual se hace primero en `diseño ideal` y se copia literalm
 - Enviar a papelera no rompe publicaciones activas; restaurar recupera la ubicación cuando sea posible.
 - Preview y descarga son autenticados, no URLs estáticas del volumen. Preview y miniatura declaran caché privada de 24 horas para evitar repetir la descarga al volver a la biblioteca.
 - Las miniaturas no bloquean la subida ni hacen que un archivo listo desaparezca si fallan.
-- La UI Portal es copia literal de la superficie aprobada en `diseño ideal`; solo datos, texto y handlers difieren.
+- La UI Portal es copia literal de la superficie aprobada en `template-shadcn-superdashboard`; solo datos, texto y handlers difieren.
 
 ## Disposición del almacenamiento — 22 de agosto de 2026
 

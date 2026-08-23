@@ -35,5 +35,5 @@ Base: `/v1/portal/groups`, siempre con sesión Portal.
 - [x] Contratos, API, cliente, schema y migración `0020_mushy_peter_parker`.
 - [x] Migración aplicada en `zapi_v2_local` y typecheck de Database, Contracts, API Client y API.
 - [x] Prueba local confirma aislamiento: otro workspace no lista ni elimina el grupo (`portal-backend-v2`, 3/3 en el conjunto).
-- [x] Sustituir el placeholder genérico por un mockup source-first navegable, copiado desde `diseño ideal/src/app/(main)/dashboard/portal-modules`.
+- [x] Sustituir el placeholder genérico por un mockup source-first navegable, copiado desde `template-shadcn-superdashboard/src/app/(main)/dashboard/portal-modules`.
 - [ ] Conectar el mockup a `groupsApi` y validar estados de carga, error y permisos con respuestas reales.

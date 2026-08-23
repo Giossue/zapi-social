@@ -144,7 +144,7 @@ El endpoint nunca recibe ID de usuario. Siempre parte de la sesión autenticada.
 
 ## Refactor visual con tabs
 
-- Fuente canónica: `../diseño ideal/src/app/(main)/dashboard/profile/`.
+- Fuente canónica: `../template-shadcn-superdashboard/src/app/(main)/dashboard/profile/`.
 - La ruta usa las tabs **Perfil** y **Seguridad**, siguiendo el mismo primitive y densidad del resto del sistema.
 - **Perfil** concentra identidad, correo, verificación, antigüedad y preferencias en una sola superficie.
 - **Seguridad** mantiene el cambio de contraseña como contexto separado.
@@ -157,11 +157,11 @@ El endpoint nunca recibe ID de usuario. Siempre parte de la sesión autenticada.
 
 ### Validación
 
-- [x] Fuente `diseño ideal` formateada, validada y revisada visualmente.
+- [x] Fuente `template-shadcn-superdashboard` formateada, validada y revisada visualmente.
 - [x] Web V2 con lint, typecheck y build exitosos.
 - [x] Tabs, formularios y estados revisados en desktop/móvil y claro/oscuro.
 
-Evidencia local: Biome valida los dos archivos nuevos de la fuente; Playwright confirma cambio de tab y ausencia de overflow a 1440 px y 390 px en claro/oscuro. ESLint focal, typecheck y build Web pasan. El build global de `diseño ideal` compila la ruta, pero conserva el bloqueo preexistente por `@shadcn/react/questionnaire` durante su typecheck.
+Evidencia local: Biome valida los dos archivos nuevos de la fuente; Playwright confirma cambio de tab y ausencia de overflow a 1440 px y 390 px en claro/oscuro. ESLint focal, typecheck y build Web pasan. El build global de `template-shadcn-superdashboard` compila la ruta, pero conserva el bloqueo preexistente por `@shadcn/react/questionnaire` durante su typecheck.
 
 ## Implementación
 

@@ -148,7 +148,7 @@ Fuentes oficiales:
 ### Admin Integraciones
 
 Crear primero la fuente canónica en
-`../diseño ideal/src/app/(main)/dashboard/platform/integrations` y copiarla a
+`../template-shadcn-superdashboard/src/app/(main)/dashboard/platform/integrations` y copiarla a
 `/admin/integrations`.
 
 La card `Google Drive` sigue el patrón aprobado del resto de proveedores:
@@ -179,7 +179,7 @@ cancelado. Los errores de formulario usan toast.
 ### Portal Files
 
 Crear la composición nueva primero en
-`../diseño ideal/src/app/(main)/dashboard/file-manager`.
+`../template-shadcn-superdashboard/src/app/(main)/dashboard/file-manager`.
 
 - Mantener `Subir archivos` como acción principal.
 - Añadir `Google Drive` como acción secundaria con icono a la izquierda.
@@ -207,7 +207,7 @@ Crear la composición nueva primero en
 ### Publishing Calendar
 
 La fuente canónica se amplía primero en
-`../diseño ideal/src/app/(main)/dashboard/publishing`.
+`../template-shadcn-superdashboard/src/app/(main)/dashboard/publishing`.
 
 `PublishingMediaPicker` sigue mostrando Files como fuente única durable, pero
 añade una acción `Importar desde Google Drive`:
@@ -458,7 +458,7 @@ Cancelar OAuth o Picker es una salida normal, no un toast de error.
 
 ## Estado de implementación
 
-- [x] Mock source-first en `diseño ideal` para Admin, Files y Publishing.
+- [x] Mock source-first en `template-shadcn-superdashboard` para Admin, Files y Publishing.
 - [ ] Aprobación visual del usuario sobre los tres entrypoints.
 - [x] Contratos Zod y cliente REST.
 - [x] Configuración Admin cifrada en `provider_integrations`, con prueba real
@@ -488,7 +488,7 @@ Cancelar OAuth o Picker es una salida normal, no un toast de error.
 - `bun run audit:portal-admin-ui`: sin hallazgos.
 - `bun run typecheck`: 8 tareas aprobadas.
 - `bun run build`: Contracts, Database, File Ingestion, API, Worker y Web
-  aprobados; el build fuente de `diseño ideal` también aprobó.
+  aprobados; el build fuente de `template-shadcn-superdashboard` también aprobó.
 - Lint focal Web/API/Worker: cero errores; Web conserva seis advertencias del
   patrón actual de efectos/`img`. El lint raíz sigue bloqueado por configuración ESLint faltante
   en paquetes compartidos, no por diagnósticos de esta vertical.

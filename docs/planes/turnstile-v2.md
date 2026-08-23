@@ -37,8 +37,8 @@ acciones solicitadas; evita proveedor alternativo y no expone la clave secreta.
 
 Fuente canónica:
 
-- `diseño ideal/src/app/(main)/dashboard/platform/captcha`
-- `diseño ideal/src/app/(main)/auth/_components/turnstile-widget.tsx`
+- `template-shadcn-superdashboard/src/app/(main)/dashboard/platform/captcha`
+- `template-shadcn-superdashboard/src/app/(main)/auth/_components/turnstile-widget.tsx`
 
 V2 copia la composición y adapta datos, permisos, callbacks y REST.
 
@@ -56,4 +56,4 @@ V2 copia la composición y adapta datos, permisos, callbacks y REST.
   faltante, respuesta inválida y respuesta válida simulada).
 - `bun run typecheck --filter=api --filter=web`: correcto.
 - `bun run audit:portal-admin-ui`: sin hallazgos.
-- `bun run build` en V2 y `npm run build` en `diseño ideal`: correctos.
+- `bun run build` en V2 y `npm run build` en `template-shadcn-superdashboard`: correctos.

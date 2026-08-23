@@ -23,7 +23,7 @@ una suite en la misma situación.
 
 Las superficies de usuarios y acceso (`/admin/user-report`, `/admin/user-roles`,
 `/admin/teams`) usan `features/platform-admin-mockups/admin-secondary-module-mockup.tsx`,
-copia literal del motor actual de `diseño ideal`; las seis superficies previas
+copia literal del motor actual de `template-shadcn-superdashboard`; las seis superficies previas
 (users, credits, affiliate, coupons, payments, subscriptions) siguen sobre
 `features/platform-admin/components/admin-module-preview.tsx`, la adaptación
 anterior de ese mismo motor. Al conectar cada vertical a REST conviene migrar

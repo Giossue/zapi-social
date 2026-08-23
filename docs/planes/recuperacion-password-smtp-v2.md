@@ -82,7 +82,7 @@ POST /v1/auth/password-reset/confirm
 ```
 
 La composición canónica vive en
-`diseño ideal/src/app/(main)/auth/_components/recovery-form.tsx`. Los campos
+`template-shadcn-superdashboard/src/app/(main)/auth/_components/recovery-form.tsx`. Los campos
 son controlados, no usan validación nativa del navegador, muestran `*` rojo y
 `aria-required`; la acción principal permanece deshabilitada hasta que el
 correo o las contraseñas sean válidos. Los fallos se comunican únicamente por

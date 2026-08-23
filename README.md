@@ -2,7 +2,7 @@
 
 Monorepo de Zapi V2: Portal y Admin en Next.js, API REST en Nest/Fastify, Worker de trabajos asíncronos y paquetes compartidos de contrato, cliente, base de datos y UI.
 
-`ZapiSocial` (Laravel) es la referencia funcional que se audita; no es la arquitectura objetivo. `diseño ideal` es la fuente visual canónica.
+`ZapiSocial` (Laravel) es la referencia funcional que se audita; no es la arquitectura objetivo. `template-shadcn-superdashboard` es la fuente visual canónica.
 
 ## Estructura
 

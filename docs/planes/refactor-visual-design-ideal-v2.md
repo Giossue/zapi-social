@@ -1,15 +1,15 @@
-# Refactor visual V2 — base `diseño ideal`
+# Refactor visual V2 — base `template-shadcn-superdashboard`
 
 ## Decisión
 
-`diseño ideal` es referencia visual completa de ZapiV2: tokens, primitives, densidad, shell y composición. ZapiV2 conserva producto, rutas, sesión, permisos, contratos, REST, Nest, Drizzle y Worker.
+`template-shadcn-superdashboard` es referencia visual completa de ZapiV2: tokens, primitives, densidad, shell y composición. ZapiV2 conserva producto, rutas, sesión, permisos, contratos, REST, Nest, Drizzle y Worker.
 
 ```text
-diseño ideal → referencia visual
+template-shadcn-superdashboard → referencia visual
 ZapiV2       → comportamiento y arquitectura reales
 ```
 
-No existe ni se usa una arquitectura V3. No se importan `ThemeBootScript`, Preferences ni stores de preferencias de `diseño ideal`: configuración visual fija solicitada por producto.
+No existe ni se usa una arquitectura V3. No se importan `ThemeBootScript`, Preferences ni stores de preferencias de `template-shadcn-superdashboard`: configuración visual fija solicitada por producto.
 
 ## Configuración visual fija
 
@@ -38,7 +38,7 @@ No se entrega un selector de preferencias. Presets, fuentes y modos alternos de 
 
 - Cambiar Nest, contratos, Drizzle, Worker, API client, endpoints, permisos u ownership.
 - Copiar `ThemeBootScript`, Preferences, cookies de preferencias o stores de la referencia.
-- Importar `diseño ideal` como dependencia.
+- Importar `template-shadcn-superdashboard` como dependencia.
 - Inventar integración, datos productivos, secretos o mutaciones remotas.
 
 ## Implementación
@@ -74,16 +74,16 @@ No se entrega un selector de preferencias. Presets, fuentes y modos alternos de 
 
 ## Referencias adaptadas
 
-- Shell: `diseño ideal/src/app/(main)/dashboard/layout.tsx`.
-- Dashboard: `diseño ideal/src/app/(main)/dashboard/default/`.
-- Files: `diseño ideal/src/app/(main)/dashboard/file-manager/`.
-- Publishing: `diseño ideal/src/app/(main)/dashboard/calendar/`.
-- Channels: `diseño ideal/src/app/(main)/dashboard/channels/` y `users/`.
-- Teams: `diseño ideal/src/app/(main)/dashboard/teams/`.
-- AI Studio: `diseño ideal/src/app/(main)/dashboard/ai-studio/`.
-- Support: `diseño ideal/src/app/(main)/dashboard/support/`.
-- Integraciones Admin: `diseño ideal/src/app/(main)/dashboard/platform/integrations/`.
-- Captions: `diseño ideal/src/app/(main)/dashboard/captions/_components/caption-library.tsx` y `caption-types.ts`.
+- Shell: `template-shadcn-superdashboard/src/app/(main)/dashboard/layout.tsx`.
+- Dashboard: `template-shadcn-superdashboard/src/app/(main)/dashboard/default/`.
+- Files: `template-shadcn-superdashboard/src/app/(main)/dashboard/file-manager/`.
+- Publishing: `template-shadcn-superdashboard/src/app/(main)/dashboard/calendar/`.
+- Channels: `template-shadcn-superdashboard/src/app/(main)/dashboard/channels/` y `users/`.
+- Teams: `template-shadcn-superdashboard/src/app/(main)/dashboard/teams/`.
+- AI Studio: `template-shadcn-superdashboard/src/app/(main)/dashboard/ai-studio/`.
+- Support: `template-shadcn-superdashboard/src/app/(main)/dashboard/support/`.
+- Integraciones Admin: `template-shadcn-superdashboard/src/app/(main)/dashboard/platform/integrations/`.
+- Captions: `template-shadcn-superdashboard/src/app/(main)/dashboard/captions/_components/caption-library.tsx` y `caption-types.ts`.
 
 Los componentes compartidos de Preferences/layout controls de la referencia se excluyen deliberadamente: son controles para configuración mutable y contradicen la configuración fija aprobada. `date-range-picker` y `simple-icon` no se copian por anticipación: no tienen consumidor V2 actual.
 
@@ -106,7 +106,7 @@ Los componentes compartidos de Preferences/layout controls de la referencia se e
 
 ## Corrección source-first — Dashboard Portal
 
-- La composición previa específica de V2 fue sustituida por la jerarquía de `diseño ideal/src/app/(main)/dashboard/default/`: `MetricCards`, `PerformanceOverview` y `SubscriberOverview` con tabla anidada.
+- La composición previa específica de V2 fue sustituida por la jerarquía de `template-shadcn-superdashboard/src/app/(main)/dashboard/default/`: `MetricCards`, `PerformanceOverview` y `SubscriberOverview` con tabla anidada.
 - El dashboard conserva `portalApi.dashboard()`, manejo de sesión expirada, error/retry, rutas y contrato `PortalDashboard`.
 - Métricas usan `workspace`; la gráfica usa una fila real por `tools[].uses`; tabla usa `attention`, `publishing` y `library`. No se añadieron clientes, fechas, tendencias o valores ficticios.
 - `recharts` se declara explícitamente en `apps/web` para usar la misma estructura `ChartContainer` + `ComposedChart` de la referencia.
@@ -114,7 +114,7 @@ Los componentes compartidos de Preferences/layout controls de la referencia se e
 
 ## Ajuste shell — Theme y footer
 
-- Header incorpora `ThemeSwitcher` con composición fuente de `diseño ideal`; ciclo `light → dark → system` mediante `next-themes`.
+- Header incorpora `ThemeSwitcher` con composición fuente de `template-shadcn-superdashboard`; ciclo `light → dark → system` mediante `next-themes`.
 - Se eliminó el footer de sidebar (`SupportCard` y perfil) por decisión UX; perfil y logout permanecen únicamente en `AccountMenu` del header.
 - Validación: `bun --filter web typecheck` y `bun --filter web build` correctos el 2026-08-03.
 
@@ -125,7 +125,7 @@ Los componentes compartidos de Preferences/layout controls de la referencia se e
 A partir de esta decisión, la aceptación usa exclusivamente la regla `source-first`:
 
 ```text
-diseño ideal → implementación visual literal
+template-shadcn-superdashboard → implementación visual literal
 ZapiV2       → datos y comportamiento de dominio
 ```
 
@@ -141,25 +141,25 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 
 ### Protocolo operativo consolidado
 
-- `diseño ideal` es la fuente visual canónica. Si una superficie no existe allí, se crea y revisa primero allí antes de cualquier composición V2.
+- `template-shadcn-superdashboard` es la fuente visual canónica. Si una superficie no existe allí, se crea y revisa primero allí antes de cualquier composición V2.
 - La copia V2 conserva literalmente JSX, clases, primitives, densidad, responsive y estados visuales; adapta únicamente contenido, datos y comportamiento de dominio.
-- Tokens nuevos se auditan y crean primero en `diseño ideal`, con claro/oscuro; V2 no crea sustitutos visuales locales.
+- Tokens nuevos se auditan y crean primero en `template-shadcn-superdashboard`, con claro/oscuro; V2 no crea sustitutos visuales locales.
 - Cambios que afecten fuente y consumidor se validan en ambos repositorios. Una iteración cerrada queda pausada hasta una solicitud de producto nueva.
 
 ## Channels Portal — avance source-first
 
 - Se auditó completo el flujo antes de cambiar visual: listado REST, cursor, filtros, permisos, OAuth Meta, picker, QR WhatsApp, sincronización, rename, delete, reconnect y estados loading/error/empty/403.
-- El inventario de cuentas sustituyó su grid/card V2 por composición fuente de `diseño ideal/src/app/(main)/dashboard/users/_components/{users,users-columns,users-table}.tsx`.
+- El inventario de cuentas sustituyó su grid/card V2 por composición fuente de `template-shadcn-superdashboard/src/app/(main)/dashboard/users/_components/{users,users-columns,users-table}.tsx`.
 - Los datos, filtros y paginación siguen siendo remotos/cursor de Channels. Las diferencias frente a la tabla fuente se limitan a no inventar filtros locales, selección masiva, exportación, vista grid o páginas numéricas inexistentes en el contrato actual.
-- La fuente canónica del selector inicial vive en `diseño ideal/src/app/(main)/dashboard/channels/_components/channel-capability-picker.tsx`, con demo en `diseño ideal/src/app/(main)/dashboard/channels/page.tsx`.
+- La fuente canónica del selector inicial vive en `template-shadcn-superdashboard/src/app/(main)/dashboard/channels/_components/channel-capability-picker.tsx`, con demo en `template-shadcn-superdashboard/src/app/(main)/dashboard/channels/page.tsx`.
 - V2 copia su `ChannelCapabilityGrid` en `features/channels/components/channel-capability-picker.tsx`; solo adapta textos, tipos de availability y callback de conexión real. No usa variantes, tokens ni clases visuales heredadas de V2.
 - Las capabilities bloqueadas muestran un único badge de estado, sin botón deshabilitado redundante; el grid reserva 32 px al lado del scrollbar y 1 px para el `ring` de las cards, evitando bordes cortados.
 - El diálogo canónico usa `sm:max-w-3xl` en fuente y V2, ampliando las dos columnas y separando visualmente el scrollbar de la card derecha.
-- `diseño ideal` no tenía token `success`; se añadieron `success` y `success-foreground` en claro/oscuro. `Disponible` usa ese verde y los estados no disponibles usan el gris `secondary` ya existente.
+- `template-shadcn-superdashboard` no tenía token `success`; se añadieron `success` y `success-foreground` en claro/oscuro. `Disponible` usa ese verde y los estados no disponibles usan el gris `secondary` ya existente.
 - Los badges usan `leading-none` en fuente y copia para centrar ópticamente su texto dentro de la altura fija del primitive.
-- Validación de la fuente canónica: `npm run check` y `npm run build` correctos en `diseño ideal`.
-- Edición consume `Field`/`FieldGroup` y `SheetFooter` copiados literalmente de `diseño ideal/src/components/ui/{field,sheet}.tsx`; solo cambian etiqueta, valor y callback Zapi.
-- Eliminación consume `AlertDialog` con `AlertDialogMedia`, header y footer de `diseño ideal/src/components/ui/alert-dialog.tsx`; solo cambian recurso, texto y callback destructivo Zapi.
+- Validación de la fuente canónica: `npm run check` y `npm run build` correctos en `template-shadcn-superdashboard`.
+- Edición consume `Field`/`FieldGroup` y `SheetFooter` copiados literalmente de `template-shadcn-superdashboard/src/components/ui/{field,sheet}.tsx`; solo cambian etiqueta, valor y callback Zapi.
+- Eliminación consume `AlertDialog` con `AlertDialogMedia`, header y footer de `template-shadcn-superdashboard/src/components/ui/alert-dialog.tsx`; solo cambian recurso, texto y callback destructivo Zapi.
 - El picker OAuth Meta y el flujo QR WhatsApp tienen fuentes canónicas explícitas en `dashboard/channels/_components`; V2 conserva OAuth, QR y callbacks reales.
 - Validación de este avance: `bun --filter web typecheck`, `bun --filter web build` y `git diff --check` correctos el 2026-08-03; `bun --filter web lint` sin errores; sus warnings restantes no provienen de `channel-capability-picker.tsx`.
 
@@ -176,28 +176,28 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - Validación del 2026-08-10: typecheck de `packages/ui` y Web, lint Web sin
   errores, build Web y `git diff --check` correctos. No se levantó servidor ni
   se ejecutó revisión visual; corresponde a aprobación del usuario.
-- Revisión del 2026-08-12: `TableHeader` adopta el plano semántico `muted`, los controles usan `background` dentro de cards y el lienzo claro se separa de `card`; las superficies Admin estándar usan `Card variant="subtle"`. El cambio existe primero en `diseño ideal` y se replica en `packages/ui`, sin colores locales ni variantes paralelas.
+- Revisión del 2026-08-12: `TableHeader` adopta el plano semántico `muted`, los controles usan `background` dentro de cards y el lienzo claro se separa de `card`; las superficies Admin estándar usan `Card variant="subtle"`. El cambio existe primero en `template-shadcn-superdashboard` y se replica en `packages/ui`, sin colores locales ni variantes paralelas.
 - Cierre de densidad del 2026-08-12: el primitive `Table` absorbe el cuerpo visual de Channels —padding, encabezado, bordes y hover— y se retiraron overrides locales de Channels, Dashboard, Captions, RSS, Support, Teams y Publishing. El resumen del Dashboard también movió búsqueda y filtros a `DataTableHeader`/`DataTableToolbar`; las tablas restantes de Portal y Admin heredan el mismo contrato sin cambiar datos, acciones, permisos ni paginación.
 - Cierre de jerarquía del 2026-08-12: cada colección principal de Portal y Admin conserva un solo título contextual. Los módulos con tabs o métricas mantienen la cabecera superior y usan `DataTableHeader` solo para búsqueda y acción; las tablas puras, como Channels y Auditoría, alojan el contexto dentro de la card. Las acciones de colección pasaron a `DataTableHeader`, los textos como “resultados en esta vista” se eliminaron y el total queda únicamente en `TablePagination`.
 - Alineación de controles del 2026-08-12: cuando `DataTableHeader` no muestra contexto porque la ruta ya tiene título, la búsqueda queda a la izquierda y la acción se alinea al extremo derecho de la card. Las tablas con título dentro de la card mantienen sus controles a la derecha de ese contexto.
 - Barrido del 22 de agosto de 2026: los listados que aún incumplían los seis puntos del patrón (búsqueda, acción en header, filtros, empty en tabla, total y navegación en `TablePagination`) quedaron alineados: Link in bio, Plantillas de correo, Páginas estáticas, Afiliados (comisiones y retiros), API de automatización (claves, webhooks y actividad), Publicaciones masivas (búsqueda), Configuración AI (filtros en modelos y patrón completo en rutas) y el historial de AI Studio. Búsqueda, filtros y paginación son locales sobre los datos ya cargados; buscar o filtrar reinicia la página y el empty filtrado ofrece limpiar filtros. Se excluyen con razón los desgloses agregados de reportes (AI y pagos), la lista fija de jobs de infraestructura, las tablas compactas del dashboard y Files. Validación: typecheck, lint (0 errores), `audit:portal-admin-ui` sin hallazgos y build completo.
-- Barrido responsive del 22 de agosto de 2026, alineado a los mecanismos de `diseño ideal`: (a) todas las tablas operativas sin tratamiento móvil adoptan el escalonado de columnas de `file-manager` (`hidden md/lg:table-cell` emparejado; 3-4 columnas esenciales en móvil) — Configuración AI, AI Studio (overview y operaciones), Planes, Auditoría, módulos secundarios Admin (helper por índice), infraestructura, Bulk posts, RSS, cola de Publishing, Link in bio y, vía `meta.className` añadido primero en la fuente TanStack (`users`/`captions`), Channels y Captions; (b) `DataTableToolbar` pliega los filtros bajo `md` tras un botón «Filtros» accesible, cambiado primero en `diseño ideal/src/components/data-table-controls.tsx` y espejado en `packages/ui`; (c) AI Chat gana el layout móvil del chat fuente (lista↔hilo con deslizamiento, botón atrás `md:hidden`, panel de opciones en `Sheet` bajo `lg` usando `useIsLg`); (d) FAB móvil en Automation (por tab activa), Watermarks (label dinámico), Notificaciones Admin, Pagos manuales y automatizaciones de AI Studio; (e) charts de dashboard con `h-56 md:h-68`, columnas secundarias de las tablas compactas del dashboard ocultas en móvil y título del periodo del calendario truncado bajo `sm` — todo cambiado primero en la fuente y copiado. Quedan como divergencias aceptadas el heatmap del planner con scroll horizontal y el FAB como patrón exclusivo de V2. Validación: fuente pasa Biome focal, tsc y build Next; V2 pasa typecheck (8 tareas), lint 0 errores sin avisos nuevos (recuentos por regla idénticos a HEAD), `audit:portal-admin-ui` sin hallazgos, build completo y `git diff --check`. Aprobación visual pendiente del usuario.
+- Barrido responsive del 22 de agosto de 2026, alineado a los mecanismos de `template-shadcn-superdashboard`: (a) todas las tablas operativas sin tratamiento móvil adoptan el escalonado de columnas de `file-manager` (`hidden md/lg:table-cell` emparejado; 3-4 columnas esenciales en móvil) — Configuración AI, AI Studio (overview y operaciones), Planes, Auditoría, módulos secundarios Admin (helper por índice), infraestructura, Bulk posts, RSS, cola de Publishing, Link in bio y, vía `meta.className` añadido primero en la fuente TanStack (`users`/`captions`), Channels y Captions; (b) `DataTableToolbar` pliega los filtros bajo `md` tras un botón «Filtros» accesible, cambiado primero en `template-shadcn-superdashboard/src/components/data-table-controls.tsx` y espejado en `packages/ui`; (c) AI Chat gana el layout móvil del chat fuente (lista↔hilo con deslizamiento, botón atrás `md:hidden`, panel de opciones en `Sheet` bajo `lg` usando `useIsLg`); (d) FAB móvil en Automation (por tab activa), Watermarks (label dinámico), Notificaciones Admin, Pagos manuales y automatizaciones de AI Studio; (e) charts de dashboard con `h-56 md:h-68`, columnas secundarias de las tablas compactas del dashboard ocultas en móvil y título del periodo del calendario truncado bajo `sm` — todo cambiado primero en la fuente y copiado. Quedan como divergencias aceptadas el heatmap del planner con scroll horizontal y el FAB como patrón exclusivo de V2. Validación: fuente pasa Biome focal, tsc y build Next; V2 pasa typecheck (8 tareas), lint 0 errores sin avisos nuevos (recuentos por regla idénticos a HEAD), `audit:portal-admin-ui` sin hallazgos, build completo y `git diff --check`. Aprobación visual pendiente del usuario.
 - Corrección de Portal del 2026-08-13: `CollectionHeader` pasa a ser la única cabecera contextual fuera de card para Support, Teams, RSS, Captions, Publishing, Dashboard y operaciones de AI Studio. Sus `DataTableHeader` contienen solo búsqueda y acción. `audit:portal-admin-ui` bloquea nuevas regresiones de este tipo. La excepción de Channels que mantenía ese contexto dentro de la card quedó retirada el 15 de agosto de 2026.
 - Validación de jerarquía del 2026-08-12: la fuente canónica pasa Biome focal, TypeScript y build Next de 56 rutas; ZapiV2 pasa lint focal de UI/Web, typecheck de ambos workspaces y build completo de 75 rutas. La búsqueda residual solo conserva el conteo de resultados de búsqueda online de Files, que no es una tabla paginada ni posee footer duplicado.
 
 ## Captions Portal — avance source-first
 
-- La fuente canónica se reestructuró primero en `diseño ideal/src/app/(main)/dashboard/captions/_components/caption-library.tsx` junto con `caption-types.ts`, usando literalmente el patrón tabular de `dashboard/users` que sirve de base a Channels; V2 no compone una variante visual propia.
+- La fuente canónica se reestructuró primero en `template-shadcn-superdashboard/src/app/(main)/dashboard/captions/_components/caption-library.tsx` junto con `caption-types.ts`, usando literalmente el patrón tabular de `dashboard/users` que sirve de base a Channels; V2 no compone una variante visual propia.
 - `apps/web/features/captions/components/captions-library-page.tsx` copia la jerarquía tabular, DOM, clases, responsive, empty/error/loading, diálogos y badges de la fuente. La vista sustituye las cards y métricas por un Card operativo con búsqueda, filtros compactos, conteo, tabla y `TablePagination`; la adaptación se limita a imports `@workspace`, tipos reales, textos, callbacks, IDs accesibles y datos REST.
 - Se eliminó el selector visible de estados de demo. `captionsApi.list/create/update/remove` activa loading, 403, error, resultados y empty según las respuestas reales; el filtro permanece local sobre captions recibidos.
 - Un `ApiError` `AUTH_SESSION_EXPIRED` recibido en carga o mutaciones redirige con `useRouter().replace("/login")`, sin mostrar error técnico ni request IDs. `updatedAt` ISO se formatea para lectura humana y el error de guardado queda persistente en el formulario, además del toast secundario.
 - Error y permiso usan Card + empty state como Channels; los empty inicial/filtrado se renderizan dentro de la tabla. La única divergencia de variante es el botón de acciones: `ghost` en fuente se mapea a `brand-secondary` porque producto lo prohíbe. No se añadieron variantes, tokens, aliases ni colores locales; badges activo verde y los demás grises conservan `leading-none`.
-- Validación: `npm run check` y `npm run build` correctos en `diseño ideal`; `bun --filter web typecheck`, `bun --filter web build` y `git diff --check` correctos en V2 el 2026-08-03. El lint focal no tiene errores y conserva el warning conocido de TanStack Table que ya existe en Channels. La carga REST inicial sigue siendo una promesa cancelable en `useEffect`. No se ejecutó smoke de navegador autenticado en esta iteración.
+- Validación: `npm run check` y `npm run build` correctos en `template-shadcn-superdashboard`; `bun --filter web typecheck`, `bun --filter web build` y `git diff --check` correctos en V2 el 2026-08-03. El lint focal no tiene errores y conserva el warning conocido de TanStack Table que ya existe en Channels. La carga REST inicial sigue siendo una promesa cancelable en `useEffect`. No se ejecutó smoke de navegador autenticado en esta iteración.
 
 ## Publishing Portal — calendario source-first
 
 - Se auditó el flujo mock y la equivalencia Laravel antes de sustituir la composición: permiso `canView`, posts, cuentas, borrador/programación/publicación inmediata, cola, reintento, borradores, preview y errores permanecen locales; no se tocó REST, contratos, Nest, Drizzle ni Worker.
-- La fuente exacta es `diseño ideal/src/app/(main)/dashboard/calendar/_components/calendar.tsx`; su renderer `src/components/calendar/event-calendar-views.tsx` se copia a `apps/web/features/publishing/components/` para evitar promover un pattern que todavía solo consume Publishing.
+- La fuente exacta es `template-shadcn-superdashboard/src/app/(main)/dashboard/calendar/_components/calendar.tsx`; su renderer `src/components/calendar/event-calendar-views.tsx` se copia a `apps/web/features/publishing/components/` para evitar promover un pattern que todavía solo consume Publishing.
 - V2 adapta los eventos desde `PublishingPost`, los calendarios de demo a filtros Facebook/Instagram/WhatsApp y `Add event` al compositor mock. La navegación, selector, jerarquía DOM, clases, responsive, popover y vistas mes/semana/día se conservan de la fuente.
 - La vista diaria es una divergencia visual explícita frente a Laravel, que solo expone mes/semana; no introduce datos ni nuevas transiciones de estado y se reevaluará al definir REST.
 - `@fullcalendar/react` y `date-fns` se declaran en `apps/web` por importación directa. El CSS de skeleton se importa junto al renderer copiado, sin tokens, colores o CSS global V2 nuevos.
@@ -205,12 +205,12 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 
 ## Publishing Portal — encuadre e idioma del calendario — 15 de agosto de 2026
 
-- El calendario ya consumía la fuente canónica; `event-calendar-views.tsx` sigue siendo copia literal de `diseño ideal/src/components/calendar/event-calendar-views.tsx`. El `Calendar` de shadcn no aplica: es un selector de fechas, no un calendario de eventos con vistas mes/semana/día.
+- El calendario ya consumía la fuente canónica; `event-calendar-views.tsx` sigue siendo copia literal de `template-shadcn-superdashboard/src/components/calendar/event-calendar-views.tsx`. El `Calendar` de shadcn no aplica: es un selector de fechas, no un calendario de eventos con vistas mes/semana/día.
 - La fuente `dashboard/calendar/_components/calendar.tsx` no fijaba altura, así que FullCalendar crecía por `aspectRatio` y obligaba a desplazar la página en escritorio. La fuente pasa a encuadrar el calendario en el viewport —`h-[calc(100svh-5rem)] md:h-[calc(100svh-7rem)]` con `min-h-[30rem]`— y su renderer recibe `height="100%"`, `expandRows`, `dayMaxEvents` y `scrollTime="08:00:00"`. ZapiV2 copia ese encuadre; el desplazamiento pasa a ser interno del calendario.
 - El hueco bajo el calendario en móvil venía del espaciador de `FloatingActionButton`, pensado para páginas que se desplazan. El primitive acepta `withSpacer` y el calendario lo desactiva; su fila queda documentada en [`packages/ui/COMPONENTS.md`](../../packages/ui/COMPONENTS.md).
 - El calendario se pintaba sobre el lienzo: su cuerpo usaba `background` y solo su encabezado tenía plano propio (`sidebar`). La fuente pasa a tratarlo como contenido estándar: encabezado y cuerpo comparten `card`, y el renderer sustituye `background` por `card` en cuerpo, encabezados de tabla, encabezado de mes, cabecera de agenda, más-enlaces, anillos de evento e indicador de ahora. En claro la superficie deja de confundirse con el lienzo y en oscuro conserva el tono que ya tenía el encabezado; los controles del toolbar siguen recuperando `background` por su primitive.
 - Divergencia de idioma frente a la fuente: V2 pasa `locale` español de `@fullcalendar/react/locales/es`, con lo que encabezados de día, «todo el día», horas y el título del rango dejan de aparecer en inglés. El título usa `first-letter:uppercase` en vez de `capitalize` para no romper «agosto de 2026».
-- La barra del calendario se rehízo por solicitud de producto tomando Metricool como referencia funcional. No existía fuente equivalente, así que la composición se creó primero en `diseño ideal/src/app/(main)/dashboard/calendar/_components/calendar.tsx` —navegable en su ruta `/dashboard/calendar`— y después se copió a V2. Una sola línea contiene: buscador, botón del periodo actual cuya etiqueta sigue a la vista (`Este mes`, `Esta semana`, `Hoy`), navegación `‹ [rango] ›` con el rango dentro de `ButtonGroupText`, filtro de canales en `Popover` con casillas y contador, menú de tres puntos con la vista del calendario y, al extremo derecho, la acción principal.
+- La barra del calendario se rehízo por solicitud de producto tomando Metricool como referencia funcional. No existía fuente equivalente, así que la composición se creó primero en `template-shadcn-superdashboard/src/app/(main)/dashboard/calendar/_components/calendar.tsx` —navegable en su ruta `/dashboard/calendar`— y después se copió a V2. Una sola línea contiene: buscador, botón del periodo actual cuya etiqueta sigue a la vista (`Este mes`, `Esta semana`, `Hoy`), navegación `‹ [rango] ›` con el rango dentro de `ButtonGroupText`, filtro de canales en `Popover` con casillas y contador, menú de tres puntos con la vista del calendario y, al extremo derecho, la acción principal.
 - Decisiones de esa barra: el bloque de título y el contador `N días · N publicaciones` desaparecen porque el periodo ya vive entre las flechas; el filtro de canales pasa a multi-selección —sin selección equivale a todos— y el buscador filtra los posts por título antes de construir los eventos. Los controles comparten altura `h-7`.
 - La altura dejó de vivir en el calendario: la fuente y ZapiV2 lo declaran `h-full min-h-[30rem]` y su página aplica `h-[calc(100svh-5rem)] md:h-[calc(100svh-7rem)]`, de modo que la cabecera y las pestañas de la ruta ocupan su espacio sin recalcular restas. Ambos repositorios usan `DataTableSearch` en el buscador; la única divergencia es que el tipado estricto de V2 resuelve la vista por constante en vez de `views[0].key`.
 - Publicación en V2 ordena sus tres secciones igual: `CollectionHeader` con título y descripción, pestañas —ahora también en Calendario—, métricas y superficie. Cola y Borradores dejaron de repetir un `CollectionHeader` de nivel `h2` dentro de la tabla y su acción `Nueva publicación` pasó al `DataTableHeader`, junto a la búsqueda.
@@ -227,7 +227,7 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 
 ## Files — carpetas y archivos en una sola superficie — 15 de agosto de 2026
 
-- Producto pidió el modelo de Google Drive: una sola vista donde las carpetas encabezan el mismo listado que los archivos, en vez de una sección `Carpetas` con cards grandes y otra `Todos los archivos`. El cambio se hizo primero en `diseño ideal/src/app/(main)/dashboard/file-manager/` y luego se copió a V2.
+- Producto pidió el modelo de Google Drive: una sola vista donde las carpetas encabezan el mismo listado que los archivos, en vez de una sección `Carpetas` con cards grandes y otra `Todos los archivos`. El cambio se hizo primero en `template-shadcn-superdashboard/src/app/(main)/dashboard/file-manager/` y luego se copió a V2.
 - La fuente retira `folders-section.tsx` y su página deja de mostrar los encabezados `Folders` y `All files`: `FileListView` y `FileGridView` reciben ahora `folders` además de `files`.
 - En lista, cada carpeta es una fila más de la tabla —icono, nombre que abre la carpeta, número de archivos y tamaño, tipo `Carpeta`, fecha y su menú de acciones— sin casilla de selección, porque la selección masiva sigue operando solo sobre archivos.
 - En cuadrícula, las carpetas ocupan cards compactas de una sola línea sobre las cards de archivo. Pierden fecha y tamaño: esa información vive en la vista de lista, como en la referencia.
@@ -243,7 +243,7 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - El breadcrumb sigue el comportamiento de Drive con rutas profundas: deja a la vista la carpeta actual y la que la contiene, y recoge el resto —raíz `Archivos` incluida— en un menú tras la elipsis. Hasta tres tramos se muestran enteros.
 - El recorrido no era deducible en cliente y por eso nunca llegó a verse: al entrar en una carpeta, `GET /v1/portal/files` solo devuelve sus subcarpetas, así que ni la carpeta actual ni sus ancestros estaban en la respuesta. `portalFilesResponseSchema` gana `folderPath`, que el servicio resuelve subiendo por `parentFolderId`, y la biblioteca lo consume tal cual.
 - Cada entrada del menú navega a su carpeta y distingue la raíz con su propio icono.
-- Es composición propia de V2: `diseño ideal` no navega entre carpetas en su file-manager, así que no hay superficie equivalente que copiar.
+- Es composición propia de V2: `template-shadcn-superdashboard` no navega entre carpetas en su file-manager, así que no hay superficie equivalente que copiar.
 
 ## Files — filtro de tipo y fin de lista — 15 de agosto de 2026
 
@@ -265,7 +265,7 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 
 ## Files — selección y navegación al modo Drive — 15 de agosto de 2026
 
-- La biblioteca deja de seleccionarse con casillas. `useLibrarySelection` —copiado entre `diseño ideal` y V2— gobierna carpetas y archivos como una sola colección ordenada: un clic selecciona, doble clic abre, `Ctrl`/`Cmd` alterna, `Mayús` extiende el rango, `Ctrl`/`Cmd` + `A` selecciona todo, `Esc` limpia y un clic en el hueco deselecciona.
+- La biblioteca deja de seleccionarse con casillas. `useLibrarySelection` —copiado entre `template-shadcn-superdashboard` y V2— gobierna carpetas y archivos como una sola colección ordenada: un clic selecciona, doble clic abre, `Ctrl`/`Cmd` alterna, `Mayús` extiende el rango, `Ctrl`/`Cmd` + `A` selecciona todo, `Esc` limpia y un clic en el hueco deselecciona.
 - Con el teclado, las flechas recorren la colección y `Mayús` extiende la selección al moverse; `Intro` abre el elemento activo. Los saltos verticales se resuelven contra la geometría real del DOM, así que funcionan igual en la tabla de una columna que en la rejilla, que cambia de ancho al redimensionar.
 - Abrir significa entrar en la carpeta o previsualizar el archivo. El `Checkbox` desaparece de la card y de la tabla; el estado seleccionado lo pinta `data-selected` en el primitive `Card` —añadido en ambos repositorios— y `data-state="selected"` en `TableRow`, que ya lo soportaba.
 - La rejilla declara `role="listbox"` con `aria-multiselectable` y sus elementos `role="option"`; la tabla conserva su semántica nativa y solo marca `aria-selected` por fila. El recorrido usa `tabindex` móvil para entrar con una sola pulsación de `Tab`.
@@ -288,14 +288,14 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 
 ## Dashboards Portal y Admin — gráficos con datos reales — 22 de agosto de 2026
 
-- Producto pidió que ambos dashboards usen los gráficos de `diseño ideal` con información útil según la base de datos. Las composiciones canónicas se crearon primero en la fuente reutilizando los patrones de charts de `dashboard/analytics` (línea comparativa, barras diarias con shape propio, barras horizontales con tabs y tabla compacta) y después se copiaron a V2.
-- Fuente Portal: `diseño ideal/src/app/(main)/dashboard/default/` se rehízo con `metric-cards` (MetricCard + badge de tendencia), `publishing-activity`, `ai-usage`, `channel-breakdown` y `upcoming-posts`; se retiraron `performance-overview`, `subscriber-overview`, `recent-customers-table` y `data.json`, que solo consumía esa página.
-- Fuente Admin: `diseño ideal/src/app/(main)/dashboard/platform/dashboard/` añade `admin-metric-cards`, `user-growth`, `plan-breakdown`, `recent-payments` y `platform-ai-activity`; `admin-dashboard-preview` los compone y conserva las cards de atención operativa e integraciones.
+- Producto pidió que ambos dashboards usen los gráficos de `template-shadcn-superdashboard` con información útil según la base de datos. Las composiciones canónicas se crearon primero en la fuente reutilizando los patrones de charts de `dashboard/analytics` (línea comparativa, barras diarias con shape propio, barras horizontales con tabs y tabla compacta) y después se copiaron a V2.
+- Fuente Portal: `template-shadcn-superdashboard/src/app/(main)/dashboard/default/` se rehízo con `metric-cards` (MetricCard + badge de tendencia), `publishing-activity`, `ai-usage`, `channel-breakdown` y `upcoming-posts`; se retiraron `performance-overview`, `subscriber-overview`, `recent-customers-table` y `data.json`, que solo consumía esa página.
+- Fuente Admin: `template-shadcn-superdashboard/src/app/(main)/dashboard/platform/dashboard/` añade `admin-metric-cards`, `user-growth`, `plan-breakdown`, `recent-payments` y `platform-ai-activity`; `admin-dashboard-preview` los compone y conserva las cards de atención operativa e integraciones.
 - Contrato: `portalDashboardSchema` pasa a exponer KPIs con tendencia (`change` dirección + etiqueta calculadas en servidor), serie diaria comparada de 28 días, uso AI (créditos, días y tipos), distribución por canal/herramienta y próximas publicaciones (programadas y borradores, sin IDs). Se añade `adminDashboardSchema` con usuarios, workspaces, suscripciones activas, ingresos, crecimiento de usuarios, suscripciones por plan, actividad AI y últimos pagos (`amountMinor` + `currency`, formateo en cliente). Los campos `welcome`, `primaryAction`, `tools` y `attention` desaparecen: ninguna superficie los renderizaba.
 - API: `DashboardService` Portal sustituye el stub por consultas Drizzle reales filtradas por `workspaceId` de la sesión (publishing_posts, social_accounts, ai_requests, file_assets), con ventanas de 28 días actuales y previas agregadas por día en SQL. Nuevo `GET /v1/admin/dashboard` en el mismo módulo con `requirePlatformAdmin` y agregados de plataforma (users, workspaces, billing_subscriptions + plans, billing_payments netos de reembolsos, ai_requests). Los helpers de ventanas, series y etiquetas viven en `dashboard.shared.ts`.
 - Web: `features/dashboard` copia la composición fuente y elimina la tabla de resumen anterior, sus tipos duplicados y la fixture sin consumidores; los tipos vienen de `@workspace/contracts`. `features/platform-admin` incorpora los cinco componentes nuevos y `admin-dashboard.tsx` carga en paralelo `adminDashboardApi.get()` y la disponibilidad de proveedores, conservando loading (`PageLoading`), error con reintento, 403 y redirección de sesión expirada.
 - Divergencias registradas frente a la fuente: los conjuntos vacíos muestran un texto atenuado («Sin datos…», «Sin pagos…») porque los datos reales pueden estar vacíos y la demo siempre tiene filas; las fechas reales se formatean con `Intl` en español; los iconos de tipos AI se resuelven por etiqueta con `Sparkles` como fallback. Los KPI de suscripciones activas no muestran tendencia por no existir un histórico honesto.
-- Validación del 22 de agosto de 2026: `diseño ideal` pasa Biome focal, `tsc --noEmit` y build Next; ZapiV2 pasa `bun run typecheck` (8 tareas), `bun run build` (6 tareas), lint Web con 0 errores (los 2 avisos de los dashboards son el patrón heredado de carga en efecto), `bun --cwd apps/api test` (19 pruebas, 40 omitidas), `audit:portal-admin-ui` sin hallazgos y `git diff --check`. La aprobación visual corresponde al usuario.
+- Validación del 22 de agosto de 2026: `template-shadcn-superdashboard` pasa Biome focal, `tsc --noEmit` y build Next; ZapiV2 pasa `bun run typecheck` (8 tareas), `bun run build` (6 tareas), lint Web con 0 errores (los 2 avisos de los dashboards son el patrón heredado de carga en efecto), `bun --cwd apps/api test` (19 pruebas, 40 omitidas), `audit:portal-admin-ui` sin hallazgos y `git diff --check`. La aprobación visual corresponde al usuario.
 - Corrección post-despliegue del 22 de agosto de 2026: el portal desplegado devolvía 500 porque las cuatro expresiones `case when columna >= ${fecha}` interpolaban un `Date` en un template `sql` crudo; sin encoder de columna, Drizzle lo serializa con `toString()` («Sat Jul 25 2026 …») y Postgres no puede compararlo con `timestamptz`. Las mismas ventanas pasadas por `gte()` sí viajan en ISO. El fix pasa `fecha.toISOString()` con cast `::timestamptz` en portal (créditos y archivos) y admin (workspaces y pagos). Diagnóstico reproducido ejecutando las consultas Drizzle reales contra la base local; verificado el patrón corregido, typecheck y tests de API.
 
 ## Estados de carga compartidos
@@ -306,7 +306,7 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 
 ## Cierre de placeholders del Portal — 10 de agosto de 2026
 
-- `diseño ideal/src/app/(main)/dashboard/portal-modules` es la fuente canónica navegable para Publicaciones masivas, AI Publishing, API de automatización, Grupos y Afiliados.
+- `template-shadcn-superdashboard/src/app/(main)/dashboard/portal-modules` es la fuente canónica navegable para Publicaciones masivas, AI Publishing, API de automatización, Grupos y Afiliados.
 - ZapiV2 copia esa composición en `/portal/bulk-posts`, `/portal/ai-publishing`, `/portal/automation`, `/portal/groups` y `/portal/affiliate`.
 - Las cinco superficies usan el patrón final de tablas, búsqueda y filtros adaptables, paginación compacta, tabs sin contadores, acciones con icono izquierdo y sheets desplazables con validación por toast.
 - Revisión del 12 de agosto de 2026: la cabecera de página y la acción primaria quedaron fuera de la card operativa; métricas, enlace de afiliado y tabla usan la jerarquía semántica de superficies. Crear y editar actualizan las filas locales, ver abre detalle real y las acciones destructivas exigen confirmación antes de retirar la fila. Los filtros y la paginación siguen trabajando únicamente sobre la pestaña activa.
@@ -323,7 +323,7 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 
 ## Cierre de placeholders de Admin — 10 de agosto de 2026
 
-- `diseño ideal/src/app/(main)/dashboard/admin-modules` es la fuente canónica navegable para las 17 entradas secundarias de Admin.
+- `template-shadcn-superdashboard/src/app/(main)/dashboard/admin-modules` es la fuente canónica navegable para las 17 entradas secundarias de Admin.
 - Se cubren contenido, localización, catálogo y observabilidad AI, ajustes generales y operación del sistema con páginas explícitas en ZapiV2.
 - Colecciones usan el patrón final de Channels: cabecera, búsqueda, filtros adaptables, tabla, menú de fila y paginación compacta. Formularios largos usan sheets desplazables; ajustes usan tabs, cards sin footer de acción y botón externo.
 - Esta entrega es mock visual con fixtures sintéticas. No añade contratos, endpoints, schema, migraciones ni conexiones backend para estas 17 superficies.
@@ -338,5 +338,13 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - Los formularios de Meta, WhatsApp Status, SMTP y Polar.sh comparten sheet desplazable, disponibilidad en superficie `inset`, credenciales separadas, prueba previa cuando corresponde y footer externo bloqueado durante guardado.
 - Las acciones Crear/Editar/Ver originadas en tablas de Portal/Admin abren sheet lateral. Planes, Soporte, módulos Admin, módulos Portal y detalle de invitación Teams ya siguen ese contrato; `AlertDialog` queda reservado para confirmar destrucción y Channels abre su conexión de canal en `Sheet` a pantalla completa.
 - Auditoría residual: las superficies activas de Portal y Admin usan `subtle` para cards de contenido, `surface`/`inset` solo en contenido anidado o previews y controles con `background`. Perfil mantiene las acciones fuera de la card; los `CardFooter` restantes corresponden a estados, previews o cards autocontenidas, no a formularios de configuración.
-- Evidencia final: `diseño ideal` pasa `npx biome check`, `npx tsc --noEmit`, build Next (56 rutas) y `git diff --check`; Biome conserva 4 warnings no bloqueantes de previews de Files. ZapiV2 pasa `bun run typecheck` (7 tareas), `bun run build` (5 tareas y 75 rutas), lint Web con 0 errores y `git diff --check`; quedan 46 warnings heredados de hooks, React Compiler, imágenes y bloques legacy no renderizados.
+- Evidencia final: `template-shadcn-superdashboard` pasa `npx biome check`, `npx tsc --noEmit`, build Next (56 rutas) y `git diff --check`; Biome conserva 4 warnings no bloqueantes de previews de Files. ZapiV2 pasa `bun run typecheck` (7 tareas), `bun run build` (5 tareas y 75 rutas), lint Web con 0 errores y `git diff --check`; quedan 46 warnings heredados de hooks, React Compiler, imágenes y bloques legacy no renderizados.
 - La aprobación visual manual sigue correspondiendo al usuario; no se levantó servidor ni se generaron capturas en esta iteración.
+
+## Migración de la fuente canónica — 22 de agosto de 2026
+
+- La referencia visual pasa de `../diseño ideal` a `../template-shadcn-superdashboard`, una versión más reciente del mismo template upstream.
+- El trabajo Zapi del repositorio anterior vivía sin confirmar sobre el template clonado; se migró con merge a tres bandas por archivo (base = template anterior, ours = template nuevo, theirs = delta Zapi): 59 archivos añadidos, 20 merges limpios, 8 borrados, 8 superficies sin upstream copiadas enteras y 5 conflictos resueltos (file-manager y users a favor de Zapi; `globals.css` conservando los tokens `success`/`warning`/`info`). Se copiaron además los archivos de superficies que el upstream nuevo eliminó (channels, captions, ai-studio, publishing, platform, support, teams, admin/portal-modules, support-admin, `data-table-controls`).
+- El template nuevo usa TanStack Table v9: `caption-library` se portó a `useTable`/`FlexRender` con `columnClassName(meta)`; `users` conserva la versión v9 del template con el delta responsive reaplicado (`meta.className` en Team/Workspace). `FileManagerFile` recupera `previewUrl`, que el upstream retiró y las vistas Zapi consumen. La copia V2 de Captions sigue en TanStack v8: la adaptación de API queda documentada como divergencia de copia, igual que los imports.
+- Validación del template migrado: `npx tsc --noEmit`, `npx biome check src` (0 errores; 4 avisos preexistentes de previews) y build Next con las 57 rutas, incluidas todas las superficies Zapi.
+- Toda la documentación de ZapiV2 (índice, reglas, planes y catálogos) referencia ahora `template-shadcn-superdashboard`; no quedan menciones al repositorio anterior, que puede archivarse o borrarse.

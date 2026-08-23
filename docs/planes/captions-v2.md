@@ -94,7 +94,7 @@ type Caption = {
 
 ## Reemplazo visual source-first — 2026-08-03
 
-- La fuente visual canónica se reestructuró primero en `diseño ideal/src/app/(main)/dashboard/captions/_components/caption-library.tsx` junto con `caption-types.ts`, tomando como base literal la densidad tabular de `dashboard/users` que alimenta Channels.
+- La fuente visual canónica se reestructuró primero en `template-shadcn-superdashboard/src/app/(main)/dashboard/captions/_components/caption-library.tsx` junto con `caption-types.ts`, tomando como base literal la densidad tabular de `dashboard/users` que alimenta Channels.
 - `apps/web/features/captions/components/captions-library-page.tsx` copia el
   inventario tabular: card operativo, búsqueda, filtros compactos, filas
   Caption/Origen/Estado/Etiquetas/Actualizado/Acciones y dropdown. Usa los
@@ -112,7 +112,7 @@ type Caption = {
 - [x] `bun --filter web build` — build Next correcto el 2026-08-03.
 - [x] `bun --filter web lint -- features/captions/components/captions-library-page.tsx` — sin errores; conserva un warning `react-hooks/incompatible-library` de TanStack Table, idéntico al existente en `features/channels/components/channel-table/channels-users.tsx`.
 - [x] `git diff --check` — sin errores de whitespace tras el refactor tabular.
-- [x] `TablePagination` — footer estándar compartido con Channels, validado en `diseño ideal` (`npm run check` / `npm run build`) y V2 (`@workspace/ui` y Web typecheck/build).
+- [x] `TablePagination` — footer estándar compartido con Channels, validado en `template-shadcn-superdashboard` (`npm run check` / `npm run build`) y V2 (`@workspace/ui` y Web typecheck/build).
 - [ ] Smoke manual de navegador — no ejecutado en esta iteración.
 
 ## Criterio de cierre
