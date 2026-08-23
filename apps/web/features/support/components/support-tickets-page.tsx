@@ -66,6 +66,7 @@ import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
+import { useFormatter, useTranslations } from "next-intl"
 import { loginPath } from "@/features/identity/login-redirect"
 
 import type {
@@ -89,14 +90,6 @@ const statusVariant: Record<
   closed: "secondary",
 }
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("es-EC", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(value))
-}
-
 type NewTicketValues = {
   categoryId: string
   subject: string
@@ -114,23 +107,24 @@ type SupportCounts = Record<SupportTicketStatus, number>
 const emptyCounts: SupportCounts = { open: 0, resolved: 0, closed: 0 }
 
 function SupportMetrics({ counts }: { counts: SupportCounts }) {
+  const t = useTranslations("support")
   const items = [
     {
-      description: "En espera de atención",
+      description: t("metrics.openDescription"),
       icon: CircleDot,
-      label: "Abiertos",
+      label: t("metrics.open"),
       value: counts.open,
     },
     {
-      description: "Resueltos en el historial",
+      description: t("metrics.resolvedDescription"),
       icon: CircleCheck,
-      label: "Resueltos",
+      label: t("metrics.resolved"),
       value: counts.resolved,
     },
     {
-      description: "Sin acciones pendientes",
+      description: t("metrics.closedDescription"),
       icon: CircleX,
-      label: "Cerrados",
+      label: t("metrics.closed"),
       value: counts.closed,
     },
   ]
@@ -157,6 +151,7 @@ function NewSupportTicketSheet({
   open: boolean
   pending: boolean
 }) {
+  const t = useTranslations("support")
   const [values, setValues] = useState(emptyTicketValues)
   const canSubmit = Boolean(
     values.categoryId && values.subject.trim() && values.description.trim()
@@ -170,7 +165,7 @@ function NewSupportTicketSheet({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!canSubmit) {
-      toast.error("Completa todos los campos obligatorios.")
+      toast.error(t("missingFields"))
       return
     }
 
@@ -189,7 +184,7 @@ function NewSupportTicketSheet({
     >
       <SheetContent className="w-full gap-0 p-0 sm:max-w-xl" side="right">
         <SheetHeader className="border-b">
-          <SheetTitle>Nuevo caso de soporte</SheetTitle>
+          <SheetTitle>{t("createTitle")}</SheetTitle>
           <SheetDescription>
             Describe lo que necesitas. Podrás revisar las respuestas y añadir
             información desde este mismo caso.
@@ -222,7 +217,7 @@ function NewSupportTicketSheet({
                     className="w-full"
                     id="support-category"
                   >
-                    <SelectValue placeholder="Selecciona una categoría" />
+                    <SelectValue placeholder={t("selectCategory")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -253,7 +248,7 @@ function NewSupportTicketSheet({
                       subject: event.target.value,
                     }))
                   }
-                  placeholder="Ej. No puedo publicar en Instagram"
+                  placeholder={t("subjectPlaceholder")}
                   value={values.subject}
                 />
                 <FieldDescription>
@@ -278,7 +273,7 @@ function NewSupportTicketSheet({
                       description: event.target.value,
                     }))
                   }
-                  placeholder="Qué estabas haciendo, qué esperabas que ocurriera y qué ocurrió en su lugar."
+                  placeholder={t("bodyPlaceholder")}
                   rows={6}
                   value={values.description}
                 />
@@ -312,6 +307,8 @@ function NewSupportTicketSheet({
 const pageSize = 10
 
 export function SupportTicketsPage() {
+  const t = useTranslations("support")
+  const format = useFormatter()
   const router = useRouter()
   const [tickets, setTickets] = useState<SupportTicket[]>([])
   const [categories, setCategories] = useState<SupportCategory[]>([])
@@ -418,12 +415,12 @@ export function SupportTicketsPage() {
       await supportApi.create(values)
       setPage(1)
       await load()
-      toast.success("Caso de soporte creado.")
+      toast.success(t("created"))
       return true
     } catch (error) {
       if (handleError(error)) return false
       console.error("Support ticket creation failed", error)
-      toast.error("No pudimos crear el caso. Inténtalo de nuevo.")
+      toast.error(t("createFailed"))
       return false
     } finally {
       setPending(false)
@@ -435,9 +432,9 @@ export function SupportTicketsPage() {
       <Card variant="subtle">
         <CardContent>
           <EmptyState
-            description="Tu acceso actual no permite consultar los casos de soporte de este espacio de trabajo."
+            description={t("forbiddenDescription")}
             icon={LockKeyhole}
-            title="Soporte no disponible"
+            title={t("unavailableTitle")}
           />
         </CardContent>
       </Card>
@@ -445,7 +442,7 @@ export function SupportTicketsPage() {
   }
 
   if (isLoading && !tickets.length && !loadError) {
-    return <PageLoading aria-label="Cargando casos de soporte" />
+    return <PageLoading aria-label={t("loading")} />
   }
 
   if (loadError) {
@@ -459,7 +456,7 @@ export function SupportTicketsPage() {
                 variant="brand-secondary"
               />
             }
-            description="No pudimos cargar tus casos de soporte."
+            description={t("loadFailedDescription")}
             icon={LifeBuoy}
             title="Soporte no disponible"
           />
@@ -472,8 +469,8 @@ export function SupportTicketsPage() {
     <>
       <div className="flex flex-col gap-4">
         <CollectionHeader
-          description="Revisa tus casos abiertos y habla con el equipo de Zapi desde un único lugar."
-          title="Soporte"
+          description={t("pageDescription")}
+          title={t("pageTitle")}
         />
         <SupportMetrics counts={counts} />
         <Card variant="subtle">
@@ -489,12 +486,12 @@ export function SupportTicketsPage() {
               </Button>
             }
             search={{
-              ariaLabel: "Buscar casos de soporte",
+              ariaLabel: t("searchLabel"),
               onChange: (value) => {
                 setQuery(value)
                 setPage(1)
               },
-              placeholder: "Buscar casos...",
+              placeholder: t("searchPlaceholder"),
               value: query,
             }}
           />
@@ -514,18 +511,18 @@ export function SupportTicketsPage() {
               }
             >
               <DataTableFilter
-                ariaLabel="Filtrar por estado"
-                label="Estado"
+                ariaLabel={t("filterStatus")}
+                label={t("statusColumn")}
                 onValueChange={(value) => {
                   const next = value as SupportTicketStatus | "all"
                   setStatus(next)
                   setPage(1)
                 }}
                 options={[
-                  { label: "Todos", value: "all" },
-                  { label: "Abiertos", value: "open" },
-                  { label: "Resueltos", value: "resolved" },
-                  { label: "Cerrados", value: "closed" },
+                  { label: t("all"), value: "all" },
+                  { label: t("filter.open"), value: "open" },
+                  { label: t("filter.resolved"), value: "resolved" },
+                  { label: t("filter.closed"), value: "closed" },
                 ]}
                 value={status}
               />
@@ -534,11 +531,11 @@ export function SupportTicketsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Caso</TableHead>
+                    <TableHead>{t("ticket")}</TableHead>
                     <TableHead className="hidden md:table-cell">
                       Categoría
                     </TableHead>
-                    <TableHead>Estado</TableHead>
+                    <TableHead>{t("statusColumn")}</TableHead>
                     <TableHead className="hidden lg:table-cell">
                       Actualizado
                     </TableHead>
@@ -572,7 +569,11 @@ export function SupportTicketsPage() {
                           </Badge>
                         </TableCell>
                         <TableCell className="hidden text-muted-foreground lg:table-cell">
-                          {formatDate(ticket.updatedAt)}
+                          {format.dateTime(new Date(ticket.updatedAt), {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
                         </TableCell>
                         <TableCell className="text-right">
                           <Button asChild size="sm" variant="brand-secondary">
@@ -596,14 +597,10 @@ export function SupportTicketsPage() {
                       }
                       description={
                         hasFilters
-                          ? "Prueba con otro término o estado."
-                          : "Cuando necesites ayuda, abre un caso y tendrás toda la conversación aquí."
+                          ? t("emptyFilteredDescription")
+                          : t("emptyDescription")
                       }
-                      title={
-                        hasFilters
-                          ? "No hay coincidencias"
-                          : "Aún no tienes casos de soporte"
-                      }
+                      title={hasFilters ? t("noMatches") : t("emptyTitle")}
                     />
                   )}
                 </TableBody>
@@ -627,7 +624,7 @@ export function SupportTicketsPage() {
         </Card>
 
         <FloatingActionButton
-          label="Nuevo caso"
+          label={t("newTicket")}
           onClick={() => setIsCreateOpen(true)}
         />
       </div>

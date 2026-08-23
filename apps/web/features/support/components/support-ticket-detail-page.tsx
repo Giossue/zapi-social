@@ -35,6 +35,7 @@ import {
 } from "@workspace/ui/components/message"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
+import { useFormatter, useTranslations } from "next-intl"
 import { loginPath } from "@/features/identity/login-redirect"
 
 import type {
@@ -43,22 +44,10 @@ import type {
   SupportTicketStatus,
 } from "@/features/support/types/support"
 
-const statusLabel: Record<SupportTicketStatus, string> = {
-  open: "Abierto",
-  resolved: "Resuelto",
-  closed: "Cerrado",
-}
 const statusVariant: Record<
   SupportTicketStatus,
   "info" | "success" | "secondary"
 > = { open: "info", resolved: "success", closed: "secondary" }
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("es-EC", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value))
-}
 
 function initials(name: string) {
   return name
@@ -71,6 +60,8 @@ function initials(name: string) {
 }
 
 export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
+  const t = useTranslations("support")
+  const format = useFormatter()
   const router = useRouter()
   const [ticket, setTicket] = useState<SupportTicketDetail | null>(null)
   const [requesterName, setRequesterName] = useState("")
@@ -128,7 +119,7 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
   }, [])
 
   if (isLoading) {
-    return <PageLoading aria-label="Cargando caso de soporte" />
+    return <PageLoading aria-label={t("loadingTicket")} />
   }
 
   if (loadError) {
@@ -142,9 +133,9 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
                 variant="brand-secondary"
               />
             }
-            description="No pudimos cargar este caso de soporte."
+            description={t("ticketLoadFailed")}
             icon={LifeBuoy}
-            title="Caso no disponible"
+            title={t("ticketUnavailable")}
           />
         </CardContent>
       </Card>
@@ -163,9 +154,9 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
                 </Link>
               </Button>
             }
-            description="El caso no existe o ya no está disponible en este espacio de trabajo."
+            description={t("ticketNotFoundDescription")}
             icon={LifeBuoy}
-            title="No encontramos este caso"
+            title={t("ticketNotFound")}
           />
         </CardContent>
       </Card>
@@ -186,18 +177,18 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
   async function sendReply(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!reply.trim()) {
-      toast.error("Escribe un mensaje antes de enviarlo.")
+      toast.error(t("messageRequired"))
       return
     }
     setPending(true)
     try {
       setTicket(await supportApi.addComment(ticketId, { body: reply.trim() }))
       setReply("")
-      toast.success("Respuesta enviada.")
+      toast.success(t("replySent"))
     } catch (error) {
       if (handleError(error)) return
       console.error("Support comment failed", error)
-      toast.error("No pudimos enviar tu respuesta. Inténtalo de nuevo.")
+      toast.error(t("replyFailed"))
     } finally {
       setPending(false)
     }
@@ -208,11 +199,11 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
     try {
       await supportApi.resolve(ticketId)
       await load()
-      toast.success("Caso marcado como resuelto.")
+      toast.success(t("resolved"))
     } catch (error) {
       if (handleError(error)) return
       console.error("Support ticket resolve failed", error)
-      toast.error("No pudimos marcar el caso como resuelto.")
+      toast.error(t("resolveFailed"))
     } finally {
       setPending(false)
     }
@@ -231,7 +222,7 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
             <div className="flex min-w-0 flex-col gap-2">
               <div className="flex flex-wrap items-center gap-2">
                 <Badge variant={statusVariant[ticket.status]}>
-                  {statusLabel[ticket.status]}
+                  {t(`status.${ticket.status}`)}
                 </Badge>
                 <span className="text-sm text-muted-foreground">
                   {ticket.category.name}
@@ -241,8 +232,16 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
                 {ticket.subject}
               </CardTitle>
               <CardDescription>
-                Creado {formatDateTime(ticket.createdAt)} · actualizado{" "}
-                {formatDateTime(ticket.updatedAt)}
+                {t("createdUpdated", {
+                  created: format.dateTime(new Date(ticket.createdAt), {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  }),
+                  updated: format.dateTime(new Date(ticket.updatedAt), {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  }),
+                })}
               </CardDescription>
             </div>
             {ticket.status === "open" ? (
@@ -288,7 +287,11 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
                       </Bubble>
                     </BubbleGroup>
                     <MessageFooter>
-                      {comment.authorName} · {formatDateTime(comment.createdAt)}
+                      {comment.authorName} ·{" "}
+                      {format.dateTime(new Date(comment.createdAt), {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}
                     </MessageFooter>
                   </MessageContent>
                 </Message>
@@ -325,7 +328,7 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
                   id="support-reply"
                   maxLength={5000}
                   onChange={(event) => setReply(event.target.value)}
-                  placeholder="Escribe tu respuesta..."
+                  placeholder={t("replyPlaceholder")}
                   rows={4}
                   value={reply}
                 />

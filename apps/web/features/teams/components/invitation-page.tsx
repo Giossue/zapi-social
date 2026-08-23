@@ -34,6 +34,7 @@ import {
   UserRoundCog,
   Users,
 } from "lucide-react"
+import { useFormatter, useTranslations } from "next-intl"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
@@ -54,43 +55,16 @@ type InvitationPageState =
 const invitationTokenStorageKey = "zapi:team-invitation-token"
 const returnToInvite = encodeURIComponent("/invite")
 
-const problemCopy: Partial<
-  Record<InvitationPageState, { title: string; description: string }>
-> = {
-  missing: {
-    title: "Falta el enlace de invitación",
-    description: "Abre nuevamente el enlace completo que recibiste por correo.",
-  },
-  invalid: {
-    title: "Esta invitación no es válida",
-    description:
-      "El enlace puede estar incompleto o haber sido reemplazado por una invitación más reciente.",
-  },
-  expired: {
-    title: "Esta invitación venció",
-    description:
-      "Pide a un administrador del espacio de trabajo que te envíe una nueva invitación.",
-  },
-  used: {
-    title: "Esta invitación ya fue utilizada",
-    description:
-      "Inicia sesión para abrir tus espacios de trabajo disponibles.",
-  },
-  full: {
-    title: "El espacio alcanzó su límite",
-    description:
-      "La invitación sigue pendiente, pero un administrador debe liberar un cupo antes de que puedas entrar.",
-  },
-  mismatch: {
-    title: "La invitación pertenece a otro correo",
-    description:
-      "Cierra esta sesión e inicia con la cuenta que recibió la invitación.",
-  },
-  error: {
-    title: "No pudimos comprobar la invitación",
-    description: "Revisa tu conexión e inténtalo nuevamente.",
-  },
-}
+/** Los estados de problema se rotulan desde `messages/`. */
+const problemStates = [
+  "missing",
+  "invalid",
+  "expired",
+  "used",
+  "full",
+  "mismatch",
+  "error",
+] as const
 
 function stateForError(error: unknown): InvitationPageState {
   if (!(error instanceof ApiError)) return "error"
@@ -128,6 +102,8 @@ function InvitationLoading() {
 }
 
 export function InvitationPage() {
+  const t = useTranslations("teams.invitation")
+  const format = useFormatter()
   const router = useRouter()
   const [state, setState] = useState<InvitationPageState>("loading")
   const [token, setToken] = useState("")
@@ -248,19 +224,19 @@ export function InvitationPage() {
     )
   }
 
-  const problem = problemCopy[state]
-  if (problem) {
+  const isProblem = (problemStates as readonly string[]).includes(state)
+  if (isProblem) {
     let problemAction = (
       <Button asChild className="flex-1">
         <Link href={`/login?returnTo=${returnToInvite}`}>
-          <LogIn data-icon="inline-start" /> Iniciar sesión
+          <LogIn data-icon="inline-start" /> {t("signIn")}
         </Link>
       </Button>
     )
     if (state === "error") {
       problemAction = (
         <Button className="flex-1" onClick={retryInvitation}>
-          <RotateCcw data-icon="inline-start" /> Reintentar
+          <RotateCcw data-icon="inline-start" /> {t("retry")}
         </Button>
       )
     } else if (state === "mismatch") {
@@ -287,9 +263,11 @@ export function InvitationPage() {
             className="size-10 text-muted-foreground"
           />
           <CardTitle aria-level={1} role="heading">
-            {problem.title}
+            {t(`problem.${state}.title` as "problem.error.title")}
           </CardTitle>
-          <CardDescription>{problem.description}</CardDescription>
+          <CardDescription>
+            {t(`problem.${state}.description` as "problem.error.description")}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Alert
@@ -299,16 +277,14 @@ export function InvitationPage() {
                 : "default"
             }
           >
-            <AlertTitle>Invitación no disponible</AlertTitle>
-            <AlertDescription>
-              Ningún cambio adicional fue realizado en tu cuenta.
-            </AlertDescription>
+            <AlertTitle>{t("unavailableTitle")}</AlertTitle>
+            <AlertDescription>{t("unavailableDescription")}</AlertDescription>
           </Alert>
         </CardContent>
         <CardFooter className="gap-2">
           {problemAction}
           <Button asChild className="flex-1" variant="outline">
-            <Link href="/">Volver al inicio</Link>
+            <Link href="/">{t("backHome")}</Link>
           </Button>
         </CardFooter>
       </Card>
@@ -317,21 +293,20 @@ export function InvitationPage() {
 
   const hasSession = session?.area === "portal"
   let primaryLabel = preview?.accountExists
-    ? "Iniciar sesión para continuar"
-    : "Crear cuenta para continuar"
-  if (hasSession) primaryLabel = "Aceptar invitación"
-  if (state === "accepting") primaryLabel = "Aceptando…"
+    ? t("signInToContinue")
+    : t("signUpToContinue")
+  if (hasSession) primaryLabel = t("accept")
+  if (state === "accepting") primaryLabel = t("accepting")
 
   return (
     <Card className="w-full max-w-lg">
       <CardHeader>
         <MailCheck aria-hidden="true" className="size-10 text-primary" />
         <CardTitle aria-level={1} role="heading">
-          Te invitaron a un espacio de trabajo
+          {t("invitedTitle")}
         </CardTitle>
         <CardDescription>
-          Confirma tu cuenta para unirte. La invitación solo funciona con{" "}
-          {preview?.invitedEmail}.
+          {t("invitedDescription", { email: preview?.invitedEmail ?? "" })}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
@@ -339,31 +314,30 @@ export function InvitationPage() {
           <Users aria-hidden="true" className="size-5 text-muted-foreground" />
           <div className="min-w-0 flex-1">
             <p className="truncate font-medium">{preview?.workspaceName}</p>
-            <p className="text-sm text-muted-foreground">Espacio de trabajo</p>
+            <p className="text-sm text-muted-foreground">{t("workspace")}</p>
           </div>
           <Badge variant="secondary">
-            {preview?.role === "admin" ? "Administrador" : "Miembro"}
+            {t(`role.${preview?.role === "admin" ? "admin" : "member"}`)}
           </Badge>
         </div>
         <Separator />
         <div className="flex items-center gap-3 text-sm text-muted-foreground">
           <Clock3 aria-hidden="true" className="size-5" />
           <span>
-            Disponible hasta{" "}
-            {preview
-              ? new Intl.DateTimeFormat("es", { dateStyle: "medium" }).format(
-                  new Date(preview.expiresAt)
-                )
-              : "—"}
+            {t("availableUntil", {
+              date: preview
+                ? format.dateTime(new Date(preview.expiresAt), {
+                    dateStyle: "medium",
+                  })
+                : "—",
+            })}
           </span>
         </div>
         {state === "accepting" ? (
           <Alert>
             <Spinner />
-            <AlertTitle>Activando acceso</AlertTitle>
-            <AlertDescription>
-              Estamos preparando el espacio de trabajo.
-            </AlertDescription>
+            <AlertTitle>{t("activatingTitle")}</AlertTitle>
+            <AlertDescription>{t("activatingDescription")}</AlertDescription>
           </Alert>
         ) : null}
       </CardContent>
@@ -378,7 +352,7 @@ export function InvitationPage() {
           }
         >
           {state === "accepting" ? (
-            <Spinner aria-label="Aceptando" data-icon="inline-start" />
+            <Spinner aria-label={t("accepting")} data-icon="inline-start" />
           ) : (
             <MailCheck data-icon="inline-start" />
           )}
@@ -386,7 +360,7 @@ export function InvitationPage() {
         </Button>
         <Button asChild className="flex-1" variant="outline">
           <Link href={hasSession ? "/portal/dashboard" : "/login"}>
-            Ahora no
+            {t("notNow")}
           </Link>
         </Button>
       </CardFooter>

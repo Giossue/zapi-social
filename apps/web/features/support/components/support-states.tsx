@@ -1,3 +1,7 @@
+"use client"
+
+import { useTranslations } from "next-intl"
+
 import { CircleAlert, LifeBuoy, ShieldCheck } from "lucide-react"
 
 import {
@@ -9,28 +13,29 @@ import { Button } from "@workspace/ui/components/button"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 
 export function SupportPermissionState() {
+  const t = useTranslations("support")
+
   return (
     <EmptyState
-      description="Tu acceso actual no permite consultar los casos de soporte de este espacio de trabajo."
+      description={t("forbiddenDescription")}
       icon={ShieldCheck}
-      title="Soporte no disponible"
+      title={t("unavailableTitle")}
     />
   )
 }
 
 export function SupportErrorState({ onRetry }: { onRetry: () => void }) {
+  const t = useTranslations("support")
+
   return (
     <Alert variant="destructive">
       <CircleAlert aria-hidden="true" />
-      <AlertTitle>No se pudieron cargar los casos de soporte</AlertTitle>
-      <AlertDescription>
-        Ningún caso fue modificado. Vuelve a intentarlo para recuperar la
-        información.
-      </AlertDescription>
+      <AlertTitle>{t("loadFailedTitle")}</AlertTitle>
+      <AlertDescription>{t("loadFailedDescription")}</AlertDescription>
       <div className="mt-3 flex">
         <Button onClick={onRetry} variant="brand-secondary">
           <LifeBuoy data-icon="inline-start" />
-          Reintentar
+          {t("retry")}
         </Button>
       </div>
     </Alert>

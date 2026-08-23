@@ -53,9 +53,10 @@ import {
 } from "@workspace/ui/components/sheet"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
+import { useFormatter, useTranslations } from "next-intl"
 import { MailPlus, Save } from "lucide-react"
 
-import { formatTeamDate, roleMeta } from "./team-utils"
+import { roleVariants } from "./team-utils"
 
 type InvitationRole = Exclude<PortalTeamRole, "owner">
 
@@ -74,6 +75,7 @@ export function InviteDialog({
   open: boolean
   pending: boolean
 }) {
+  const t = useTranslations("teams")
   const [email, setEmail] = useState("")
   const [role, setRole] = useState<InvitationRole>("member")
   const normalizedEmail = email.trim().toLowerCase()
@@ -86,7 +88,7 @@ export function InviteDialog({
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!validEmail) {
-      toast.error("Introduce un correo válido.")
+      toast.error(t("invalidEmail"))
       return
     }
     if (pending) return
@@ -97,11 +99,8 @@ export function InviteDialog({
     <Sheet onOpenChange={onOpenChange} open={open}>
       <SheetContent className="w-full gap-0 p-0 sm:max-w-md" side="right">
         <SheetHeader className="border-b">
-          <SheetTitle>Invitar al workspace</SheetTitle>
-          <SheetDescription>
-            La invitación es privada, se vincula a este correo y caduca en siete
-            días.
-          </SheetDescription>
+          <SheetTitle>{t("inviteTitle")}</SheetTitle>
+          <SheetDescription>{t("inviteDescription")}</SheetDescription>
         </SheetHeader>
         <form
           className="flex min-h-0 flex-1 flex-col"
@@ -112,7 +111,7 @@ export function InviteDialog({
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="team-invite-email">
-                  Correo
+                  {t("email")}
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
@@ -127,7 +126,7 @@ export function InviteDialog({
                     disabled={pending}
                     id="team-invite-email"
                     onChange={(event) => setEmail(event.target.value)}
-                    placeholder="nombre@empresa.com"
+                    placeholder={t("emailPlaceholder")}
                     type="email"
                     value={email}
                   />
@@ -150,17 +149,15 @@ export function InviteDialog({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="member">Miembro</SelectItem>
+                      <SelectItem value="member">{t("role.member")}</SelectItem>
                       {canInviteAdmin ? (
-                        <SelectItem value="admin">Administración</SelectItem>
+                        <SelectItem value="admin">{t("role.admin")}</SelectItem>
                       ) : null}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
                 <FieldDescription>
-                  {role === "admin"
-                    ? "Accede a todas las cuentas y puede administrar miembros, excepto otros administradores."
-                    : "Solo trabaja con las cuentas que le asignes."}
+                  {role === "admin" ? t("adminHint") : t("memberHint")}
                 </FieldDescription>
               </Field>
             </FieldGroup>
@@ -172,7 +169,7 @@ export function InviteDialog({
               type="button"
               variant="brand-secondary"
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button disabled={pending || !normalizedEmail} type="submit">
               {pending ? (
@@ -180,7 +177,7 @@ export function InviteDialog({
               ) : (
                 <MailPlus data-icon="inline-start" />
               )}
-              {pending ? "Enviando..." : "Enviar invitación"}
+              {pending ? t("sending") : t("sendInvitation")}
             </Button>
           </SheetFooter>
         </form>
@@ -206,6 +203,7 @@ export function MemberAccessDialog({
   onSubmit: (input: { accountIds: string[]; role: InvitationRole }) => void
   pending: boolean
 }) {
+  const t = useTranslations("teams")
   const [accountIds, setAccountIds] = useState<string[]>(
     () => member?.accountIds ?? []
   )
@@ -265,24 +263,25 @@ export function MemberAccessDialog({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem value="member">Miembro</SelectItem>
-                        <SelectItem value="admin">Administración</SelectItem>
+                        <SelectItem value="member">
+                          {t("role.member")}
+                        </SelectItem>
+                        <SelectItem value="admin">{t("role.admin")}</SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>
                 ) : (
-                  <Badge variant={roleMeta[role].variant}>
-                    {roleMeta[role].label}
+                  <Badge variant={roleVariants[role]}>
+                    {t(`role.${role}`)}
                   </Badge>
                 )}
               </Field>
               <FieldSet data-disabled={role === "admin" || pending}>
-                <FieldLegend variant="label">Cuentas asignadas</FieldLegend>
+                <FieldLegend variant="label">
+                  {t("assignedAccounts")}
+                </FieldLegend>
                 {role === "admin" ? (
-                  <FieldDescription>
-                    Administración accede a todas las cuentas activas del
-                    workspace.
-                  </FieldDescription>
+                  <FieldDescription>{t("adminAllAccounts")}</FieldDescription>
                 ) : accounts.length ? (
                   <FieldGroup data-slot="checkbox-group" className="gap-3">
                     {accounts.map((account) => {
@@ -332,7 +331,7 @@ export function MemberAccessDialog({
               ) : (
                 <Save aria-hidden="true" data-icon="inline-start" />
               )}
-              {pending ? "Guardando..." : "Guardar acceso"}
+              {pending ? t("saving") : t("saveAccess")}
             </Button>
           </SheetFooter>
         </form>
@@ -348,31 +347,36 @@ export function InvitationDetailSheet({
   invitation: PortalTeamInvitation | null
   onOpenChange: (open: boolean) => void
 }) {
+  const t = useTranslations("teams")
+  const format = useFormatter()
+  const teamDate = (value: string | null) =>
+    value
+      ? format.dateTime(new Date(value), {
+          dateStyle: "medium",
+          timeStyle: "short",
+        })
+      : t("notSentYet")
   if (!invitation) return null
-  const deliveryLabel = {
-    pending: "Enviando",
-    sent: "Enviada",
-    failed: "Falló el envío",
-  }[invitation.deliveryStatus]
+  const deliveryLabel = t(`delivery.${invitation.deliveryStatus}`)
 
   return (
     <Sheet onOpenChange={onOpenChange} open>
       <SheetContent className="w-full gap-0 p-0 sm:max-w-md" side="right">
         <SheetHeader className="border-b">
-          <SheetTitle>Detalle de invitación</SheetTitle>
+          <SheetTitle>{t("invitationDetail")}</SheetTitle>
           <SheetDescription>
-            Solo {invitation.email} puede aceptarla antes de su vencimiento.
+            {t("invitationOnlyEmail", { email: invitation.email })}
           </SheetDescription>
         </SheetHeader>
         <dl className="grid min-h-0 flex-1 gap-3 overflow-y-auto p-4 text-sm">
           {[
-            ["Correo", invitation.email],
-            ["Rol", roleMeta[invitation.role].label],
-            ["Invitado por", invitation.invitedByName],
-            ["Creada", formatTeamDate(invitation.createdAt)],
-            ["Último envío", formatTeamDate(invitation.lastSentAt)],
-            ["Vence", formatTeamDate(invitation.expiresAt)],
-            ["Entrega", deliveryLabel],
+            [t("email"), invitation.email],
+            [t("roleColumn"), t(`role.${invitation.role}`)],
+            [t("invitedBy"), invitation.invitedByName],
+            [t("created"), teamDate(invitation.createdAt)],
+            [t("lastSent"), teamDate(invitation.lastSentAt)],
+            [t("expires"), teamDate(invitation.expiresAt)],
+            [t("delivery.label"), deliveryLabel],
           ].map(([label, value]) => (
             <div className="flex items-start justify-between gap-4" key={label}>
               <dt className="text-muted-foreground">{label}</dt>
@@ -382,7 +386,7 @@ export function InvitationDetailSheet({
         </dl>
         <SheetFooter className="flex-row justify-end border-t">
           <Button onClick={() => onOpenChange(false)} variant="brand-secondary">
-            Cerrar
+            {t("close")}
           </Button>
         </SheetFooter>
       </SheetContent>
@@ -411,6 +415,7 @@ export function TeamConfirmationDialog({
   pending: boolean
   title: string
 }) {
+  const t = useTranslations("teams")
   useEffect(() => {
     if (open && error) toast.error(error)
   }, [error, open])
@@ -440,7 +445,7 @@ export function TeamConfirmationDialog({
             variant={destructive ? "destructive" : "default"}
           >
             {pending ? <Spinner data-icon="inline-start" size={16} /> : null}
-            {pending ? "Procesando..." : confirmLabel}
+            {pending ? t("processing") : confirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

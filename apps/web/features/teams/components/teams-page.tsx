@@ -8,7 +8,7 @@ import {
   useRef,
   useState,
 } from "react"
-import { teamsApi } from "@workspace/api-client"
+import { ApiError, teamsApi } from "@workspace/api-client"
 import type {
   PortalTeamActivityCategory,
   PortalTeamActivityEvent,
@@ -72,6 +72,9 @@ import {
   TabsTrigger,
 } from "@workspace/ui/components/tabs"
 import { toast } from "@workspace/ui/components/toast"
+import { useFormatter, useTranslations } from "next-intl"
+
+import { useApiErrorMessage } from "@/lib/api-error-message"
 import {
   CircleAlert,
   DoorOpen,
@@ -92,13 +95,7 @@ import {
   TeamConfirmationDialog,
 } from "./team-dialogs"
 import { TeamsLoading } from "./teams-loading"
-import {
-  activityLabels,
-  formatTeamDate,
-  initials,
-  roleMeta,
-  teamErrorMessage,
-} from "./team-utils"
+import { initials, roleVariants } from "./team-utils"
 
 type ManagerView = "members" | "invitations" | "activity"
 const collectionPageSize = 10
@@ -144,9 +141,12 @@ function MemberIdentity({
   )
 }
 
-function accountScope(member: PortalTeamMember) {
-  if (member.role !== "member") return "Todas las cuentas"
-  return `${member.accountIds.length} cuenta${member.accountIds.length === 1 ? "" : "s"}`
+function accountScope(
+  member: PortalTeamMember,
+  t: ReturnType<typeof useTranslations<"teams">>
+) {
+  if (member.role !== "member") return t("allAccounts")
+  return t("accountCount", { count: member.accountIds.length })
 }
 
 function filterMembers(members: PortalTeamMember[], query: string) {
@@ -154,7 +154,7 @@ function filterMembers(members: PortalTeamMember[], query: string) {
   return members.filter(
     (member) =>
       !normalized ||
-      `${member.name} ${member.email ?? ""} ${roleMeta[member.role].label}`
+      `${member.name} ${member.email ?? ""} ${member.role}`
         .toLocaleLowerCase("es")
         .includes(normalized)
   )
@@ -165,7 +165,7 @@ function filterInvitations(invitations: PortalTeamInvitation[], query: string) {
   return invitations.filter(
     (invitation) =>
       !normalized ||
-      `${invitation.email} ${roleMeta[invitation.role].label} ${invitation.invitedByName}`
+      `${invitation.email} ${invitation.role} ${invitation.invitedByName}`
         .toLocaleLowerCase("es")
         .includes(normalized)
   )
@@ -300,47 +300,60 @@ function DeliveryBadge({
 }: {
   status: PortalTeamInvitation["deliveryStatus"]
 }) {
-  if (status === "sent") return <Badge variant="success">Enviada</Badge>
-  if (status === "failed") return <Badge variant="destructive">Falló</Badge>
-  return <Badge variant="warning">Enviando</Badge>
+  const t = useTranslations("teams")
+
+  if (status === "sent")
+    return <Badge variant="success">{t("delivery.sent")}</Badge>
+  if (status === "failed")
+    return <Badge variant="destructive">{t("delivery.failed")}</Badge>
+  return <Badge variant="warning">{t("delivery.pending")}</Badge>
 }
 
-function confirmationCopy(confirmation: Confirmation | null) {
+function confirmationCopy(
+  confirmation: Confirmation | null,
+  t: ReturnType<typeof useTranslations<"teams">>
+) {
   if (!confirmation) return null
   if (confirmation.kind === "remove") {
     return {
-      title: "¿Eliminar miembro?",
-      description: `${confirmation.member.name} perderá el acceso al workspace y sus sesiones activas se cerrarán.`,
-      confirmLabel: "Eliminar miembro",
+      title: t("confirm.removeTitle"),
+      description: t("confirm.removeDescription", {
+        name: confirmation.member.name,
+      }),
+      confirmLabel: t("confirm.removeAction"),
       destructive: true,
     }
   }
   if (confirmation.kind === "revoke") {
     return {
-      title: "¿Revocar invitación?",
-      description: `La invitación para ${confirmation.invitation.email} dejará de ser válida.`,
-      confirmLabel: "Revocar invitación",
+      title: t("confirm.revokeTitle"),
+      description: t("confirm.revokeDescription", {
+        email: confirmation.invitation.email,
+      }),
+      confirmLabel: t("confirm.revokeAction"),
       destructive: true,
     }
   }
   if (confirmation.kind === "transfer") {
     return {
-      title: "¿Transferir la propiedad?",
-      description: `${confirmation.member.name} será el nuevo propietario. Tu rol cambiará a Administración.`,
-      confirmLabel: "Transferir propiedad",
+      title: t("confirm.transferTitle"),
+      description: t("confirm.transferDescription", {
+        name: confirmation.member.name,
+      }),
+      confirmLabel: t("confirm.transferAction"),
       destructive: false,
     }
   }
   return {
-    title: "¿Abandonar el workspace?",
-    description:
-      "Perderás el acceso a sus cuentas y se cerrarán tus sesiones activas.",
-    confirmLabel: "Abandonar workspace",
+    title: t("confirm.leaveTitle"),
+    description: t("confirm.leaveDescription"),
+    confirmLabel: t("confirm.leaveAction"),
     destructive: true,
   }
 }
 
 function TeamsError({ onRetry }: { onRetry: () => void }) {
+  const t = useTranslations("teams")
   return (
     <Card variant="subtle">
       <EmptyState
@@ -350,15 +363,22 @@ function TeamsError({ onRetry }: { onRetry: () => void }) {
             Reintentar
           </Button>
         }
-        description="No se modificó ningún acceso. Intenta cargar la sección nuevamente."
+        description={t("loadFailedDescription")}
         icon={CircleAlert}
-        title="No se pudo cargar el equipo"
+        title={t("loadFailedTitle")}
       />
     </Card>
   )
 }
 
+/** El código de la API alimenta el diccionario único de errores. */
+function errorCode(error: unknown) {
+  return error instanceof ApiError ? error.code : undefined
+}
+
 export function TeamsPage() {
+  const t = useTranslations("teams")
+  const apiErrorMessage = useApiErrorMessage()
   const [teams, setTeams] = useState<PortalTeamsResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
@@ -492,11 +512,11 @@ export function TeamsPage() {
     : memberQuery
   const searchPlaceholder = teams.canManage
     ? activeView === "members"
-      ? "Buscar miembros..."
+      ? t("searchMembers")
       : activeView === "invitations"
-        ? "Buscar invitaciones..."
-        : "Buscar actividad..."
-    : "Buscar miembros..."
+        ? t("searchInvitations")
+        : t("searchActivity")
+    : t("searchMembers")
 
   function updateCurrentSearch(value: string) {
     if (!teams?.canManage || activeView === "members") {
@@ -557,7 +577,7 @@ export function TeamsPage() {
       toast.success(`Invitación enviada a ${input.email}.`)
     } catch (error) {
       await loadTeams()
-      setDialogError(teamErrorMessage(error))
+      setDialogError(apiErrorMessage(errorCode(error)))
     } finally {
       setPendingAction(null)
     }
@@ -574,9 +594,9 @@ export function TeamsPage() {
       await teamsApi.updateMemberAccess(selectedMember.id, input)
       await refreshAfterAction()
       setSelectedMember(null)
-      toast.success("Acceso actualizado.")
+      toast.success(t("accessUpdated"))
     } catch (error) {
-      setDialogError(teamErrorMessage(error))
+      setDialogError(apiErrorMessage(errorCode(error)))
     } finally {
       setPendingAction(null)
     }
@@ -591,7 +611,7 @@ export function TeamsPage() {
       toast.success(`Invitación reenviada a ${invitation.email}.`)
     } catch (error) {
       await loadTeams()
-      setActionError(teamErrorMessage(error))
+      setActionError(apiErrorMessage(errorCode(error)))
     } finally {
       setPendingAction(null)
     }
@@ -607,12 +627,12 @@ export function TeamsPage() {
         toast.success(`${confirmation.member.name} fue eliminado.`)
       } else if (confirmation.kind === "revoke") {
         await teamsApi.revokeInvitation(confirmation.invitation.id)
-        toast.success("Invitación revocada.")
+        toast.success(t("invitationRevoked"))
       } else if (confirmation.kind === "transfer") {
         await teamsApi.transferOwnership({
           targetUserId: confirmation.member.id,
         })
-        toast.success("Propiedad transferida.")
+        toast.success(t("ownershipTransferred"))
       } else {
         await teamsApi.leaveWorkspace()
         window.location.assign("/login")
@@ -621,7 +641,7 @@ export function TeamsPage() {
       setConfirmation(null)
       await refreshAfterAction()
     } catch (error) {
-      setActionError(teamErrorMessage(error))
+      setActionError(apiErrorMessage(errorCode(error)))
       setConfirmation(null)
     } finally {
       setPendingAction(null)
@@ -640,10 +660,9 @@ export function TeamsPage() {
         Limpiar búsqueda
       </Button>
     ) : undefined,
-    description:
-      "Prueba otra búsqueda para encontrar a una persona del workspace.",
+    description: t("membersEmptyFilteredDescription"),
     icon: TABLE_EMPTY_ICON,
-    title: "No encontramos miembros",
+    title: t("membersNoMatches"),
   }
   const visibleInvitationsEmptyProps = {
     action: invitationQuery ? (
@@ -658,15 +677,15 @@ export function TeamsPage() {
       </Button>
     ) : undefined,
     description: invitationQuery
-      ? "Prueba otra búsqueda para encontrar una invitación."
-      : "Las nuevas invitaciones aparecerán aquí hasta que se acepten, venzan o revoquen.",
+      ? t("invitationsEmptyFilteredDescription")
+      : t("invitationsEmptyDescription"),
     icon: TABLE_EMPTY_ICON,
     title: invitationQuery
-      ? "No encontramos invitaciones"
-      : "Sin invitaciones pendientes",
+      ? t("invitationsNoMatches")
+      : t("invitationsEmptyTitle"),
   }
 
-  const copy = confirmationCopy(confirmation)
+  const copy = confirmationCopy(confirmation, t)
 
   // Shared by both branches below: the tabbed view nests the card inside
   // <Tabs>, the read-only view renders it on its own.
@@ -682,7 +701,7 @@ export function TeamsPage() {
               setInviteOpen(true)
             }}
             size="sm"
-            title={seatsExhausted ? "No quedan cupos disponibles" : undefined}
+            title={seatsExhausted ? t("noSeats") : undefined}
           >
             <MailPlus />
             Invitar miembro
@@ -714,11 +733,11 @@ export function TeamsPage() {
       {actionError ? (
         <Alert variant="destructive">
           <CircleAlert aria-hidden="true" />
-          <AlertTitle>No se pudo completar la acción</AlertTitle>
+          <AlertTitle>{t("actionFailed")}</AlertTitle>
           <AlertDescription>{actionError}</AlertDescription>
           <AlertAction>
             <Button
-              aria-label="Cerrar error"
+              aria-label={t("dismissError")}
               onClick={() => setActionError(null)}
               size="sm"
               variant="brand-secondary"
@@ -731,21 +750,19 @@ export function TeamsPage() {
 
       <CollectionHeader
         description={
-          teams.canManage
-            ? "Administra personas, cuentas asignadas e invitaciones del workspace."
-            : "Consulta tu rol, las cuentas disponibles y quién forma parte del workspace."
+          teams.canManage ? t("manageDescription") : t("viewDescription")
         }
-        title={teams.canManage ? "Equipo" : "Mi acceso"}
+        title={teams.canManage ? t("pageTitle") : t("myAccessTitle")}
       />
 
       {teams.canManage ? (
         <Tabs className="gap-4" onValueChange={changeView} value={activeView}>
-          <TabsList aria-label="Vistas del equipo">
-            <TabsTrigger value="members">Miembros</TabsTrigger>
+          <TabsList aria-label={t("viewsLabel")}>
+            <TabsTrigger value="members">{t("tab.members")}</TabsTrigger>
             <TabsTrigger value="invitations">
               Invitaciones pendientes
             </TabsTrigger>
-            <TabsTrigger value="activity">Actividad</TabsTrigger>
+            <TabsTrigger value="activity">{t("tab.activity")}</TabsTrigger>
           </TabsList>
 
           <Card variant="subtle">
@@ -754,7 +771,7 @@ export function TeamsPage() {
               {activeView === "activity" ? (
                 <DataTableToolbar>
                   <DataTableFilter
-                    ariaLabel="Filtrar actividad"
+                    ariaLabel={t("filterActivity")}
                     onValueChange={(value) => {
                       setActivityCategory(value as PortalTeamActivityCategory)
                       setActivityPage(1)
@@ -853,12 +870,12 @@ export function TeamsPage() {
         <FloatingActionButton
           disabled={seatsExhausted || pendingAction !== null}
           icon={<MailPlus aria-hidden="true" className="size-6" />}
-          label="Invitar miembro"
+          label={t("inviteMember")}
           onClick={() => {
             setDialogError(null)
             setInviteOpen(true)
           }}
-          title={seatsExhausted ? "No quedan cupos disponibles" : undefined}
+          title={seatsExhausted ? t("noSeats") : undefined}
         />
       ) : null}
 
@@ -944,6 +961,15 @@ function MembersTable({
   pending: boolean
   total: number
 }) {
+  const t = useTranslations("teams")
+  const format = useFormatter()
+  const teamDate = (value: string | null) =>
+    value
+      ? format.dateTime(new Date(value), {
+          dateStyle: "medium",
+          timeStyle: "short",
+        })
+      : t("notSentYet")
   const actions = (member: PortalTeamMember) => (
     <MemberActions
       actorRole={actorRole}
@@ -963,10 +989,10 @@ function MembersTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Miembro</TableHead>
+              <TableHead>{t("member")}</TableHead>
               <TableHead>Rol</TableHead>
-              <TableHead>Alcance</TableHead>
-              <TableHead>Se unió</TableHead>
+              <TableHead>{t("scope")}</TableHead>
+              <TableHead>{t("joined")}</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
@@ -980,15 +1006,15 @@ function MembersTable({
                   />
                 </TableCell>
                 <TableCell>
-                  <Badge variant={roleMeta[member.role].variant}>
-                    {roleMeta[member.role].label}
+                  <Badge variant={roleVariants[member.role]}>
+                    {t(`role.${member.role}`)}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  {accountScope(member)}
+                  {accountScope(member, t)}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  {formatTeamDate(member.joinedAt)}
+                  {teamDate(member.joinedAt)}
                 </TableCell>
                 <TableCell className="text-right">{actions(member)}</TableCell>
               </TableRow>
@@ -1011,11 +1037,11 @@ function MembersTable({
               {actions(member)}
             </div>
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              <Badge variant={roleMeta[member.role].variant}>
-                {roleMeta[member.role].label}
+              <Badge variant={roleVariants[member.role]}>
+                {t(`role.${member.role}`)}
               </Badge>
-              <span>{accountScope(member)}</span>
-              <span>Se unió {formatTeamDate(member.joinedAt)}</span>
+              <span>{accountScope(member, t)}</span>
+              <span>Se unió {teamDate(member.joinedAt)}</span>
             </div>
           </div>
         ))}
@@ -1057,6 +1083,15 @@ function InvitationsTable({
   pendingAction: string | null
   total: number
 }) {
+  const t = useTranslations("teams")
+  const format = useFormatter()
+  const teamDate = (value: string | null) =>
+    value
+      ? format.dateTime(new Date(value), {
+          dateStyle: "medium",
+          timeStyle: "short",
+        })
+      : t("notSentYet")
   const actions = (invitation: PortalTeamInvitation) => (
     <InvitationActions
       invitation={invitation}
@@ -1074,12 +1109,12 @@ function InvitationsTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Correo</TableHead>
+              <TableHead>{t("email")}</TableHead>
               <TableHead>Rol</TableHead>
-              <TableHead>Invitado por</TableHead>
-              <TableHead>Último envío</TableHead>
-              <TableHead>Vence</TableHead>
-              <TableHead>Entrega</TableHead>
+              <TableHead>{t("invitedBy")}</TableHead>
+              <TableHead>{t("lastSent")}</TableHead>
+              <TableHead>{t("expires")}</TableHead>
+              <TableHead>{t("delivery.label")}</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
@@ -1090,25 +1125,25 @@ function InvitationsTable({
                   {invitation.email}
                 </TableCell>
                 <TableCell>
-                  <Badge variant={roleMeta[invitation.role].variant}>
-                    {roleMeta[invitation.role].label}
+                  <Badge variant={roleVariants[invitation.role]}>
+                    {t(`role.${invitation.role}`)}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
                   {invitation.invitedByName}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  {formatTeamDate(invitation.lastSentAt)}
+                  {teamDate(invitation.lastSentAt)}
                 </TableCell>
                 <TableCell className="text-sm text-muted-foreground">
-                  {formatTeamDate(invitation.expiresAt)}
+                  {teamDate(invitation.expiresAt)}
                 </TableCell>
                 <TableCell>
                   <DeliveryBadge status={invitation.deliveryStatus} />
                 </TableCell>
                 <TableCell className="text-right">
                   {pendingAction === `resend:${invitation.id}` ? (
-                    <Spinner aria-label="Reenviando invitación" size={16} />
+                    <Spinner aria-label={t("resending")} size={16} />
                   ) : (
                     actions(invitation)
                   )}
@@ -1137,11 +1172,11 @@ function InvitationsTable({
               {actions(invitation)}
             </div>
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-              <Badge variant={roleMeta[invitation.role].variant}>
-                {roleMeta[invitation.role].label}
+              <Badge variant={roleVariants[invitation.role]}>
+                {t(`role.${invitation.role}`)}
               </Badge>
               <DeliveryBadge status={invitation.deliveryStatus} />
-              <span>Vence {formatTeamDate(invitation.expiresAt)}</span>
+              <span>Vence {teamDate(invitation.expiresAt)}</span>
             </div>
           </div>
         ))}
@@ -1177,6 +1212,15 @@ function ActivityTable({
   onPageChange: (page: number) => void
   onRetry: () => void
 }) {
+  const t = useTranslations("teams")
+  const format = useFormatter()
+  const teamDate = (value: string | null) =>
+    value
+      ? format.dateTime(new Date(value), {
+          dateStyle: "medium",
+          timeStyle: "short",
+        })
+      : t("notSentYet")
   if (loading && !data) {
     return <PageLoading />
   }
@@ -1188,9 +1232,9 @@ function ActivityTable({
             Reintentar
           </Button>
         }
-        description="No se pudo consultar la actividad del workspace."
+        description={t("activityFailedDescription")}
         icon={CircleAlert}
-        title="Actividad no disponible"
+        title={t("activityUnavailable")}
       />
     )
   }
@@ -1202,10 +1246,10 @@ function ActivityTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Actividad</TableHead>
-              <TableHead>Realizada por</TableHead>
-              <TableHead>Persona</TableHead>
-              <TableHead>Fecha</TableHead>
+              <TableHead>{t("activity")}</TableHead>
+              <TableHead>{t("performedBy")}</TableHead>
+              <TableHead>{t("person")}</TableHead>
+              <TableHead>{t("date")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -1224,13 +1268,11 @@ function ActivityTable({
                 }
                 description={
                   hasFilters
-                    ? "Prueba otra búsqueda o elimina el filtro de categoría."
-                    : "Los cambios de invitaciones, roles, cuentas y propiedad aparecerán aquí."
+                    ? t("activityEmptyFilteredDescription")
+                    : t("activityEmptyDescription")
                 }
                 title={
-                  hasFilters
-                    ? "Sin actividad para este filtro"
-                    : "Sin actividad"
+                  hasFilters ? t("activityNoMatches") : t("activityEmptyTitle")
                 }
               />
             ) : null}
@@ -1240,11 +1282,17 @@ function ActivityTable({
       <div className="divide-y md:hidden">
         {data.events.map((event) => (
           <div className="flex flex-col gap-2 px-4 py-4" key={event.id}>
-            <p className="text-sm font-medium">{activityLabels[event.type]}</p>
+            <p className="text-sm font-medium">
+              {t(`activityLabel.${event.type}`)}
+            </p>
             <div className="flex flex-col gap-1 text-xs text-muted-foreground">
-              <span>Realizada por {event.actorName ?? "Sistema"}</span>
+              <span>
+                {t("performedByName", {
+                  name: event.actorName ?? t("system"),
+                })}
+              </span>
               <span>Persona: {event.subjectName ?? "—"}</span>
-              <span>{formatTeamDate(event.createdAt)}</span>
+              <span>{teamDate(event.createdAt)}</span>
             </div>
           </div>
         ))}
@@ -1264,19 +1312,28 @@ function ActivityTable({
 }
 
 function ActivityRow({ event }: { event: PortalTeamActivityEvent }) {
+  const t = useTranslations("teams")
+  const format = useFormatter()
+  const teamDate = (value: string | null) =>
+    value
+      ? format.dateTime(new Date(value), {
+          dateStyle: "medium",
+          timeStyle: "short",
+        })
+      : t("notSentYet")
   return (
     <TableRow>
       <TableCell className="font-medium">
-        {activityLabels[event.type]}
+        {t(`activityLabel.${event.type}`)}
       </TableCell>
       <TableCell className="text-sm text-muted-foreground">
-        {event.actorName ?? "Sistema"}
+        {event.actorName ?? t("system")}
       </TableCell>
       <TableCell className="text-sm text-muted-foreground">
         {event.subjectName ?? "—"}
       </TableCell>
       <TableCell className="text-sm text-muted-foreground">
-        {formatTeamDate(event.createdAt)}
+        {teamDate(event.createdAt)}
       </TableCell>
     </TableRow>
   )
@@ -1305,6 +1362,15 @@ function MemberAccessView({
   query: string
   total: number
 }) {
+  const t = useTranslations("teams")
+  const format = useFormatter()
+  const teamDate = (value: string | null) =>
+    value
+      ? format.dateTime(new Date(value), {
+          dateStyle: "medium",
+          timeStyle: "short",
+        })
+      : t("notSentYet")
   const pageCount = Math.max(Math.ceil(total / pageSize), 1)
 
   return (
@@ -1318,8 +1384,8 @@ function MemberAccessView({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Badge variant={roleMeta[currentMember?.role ?? "member"].variant}>
-              {roleMeta[currentMember?.role ?? "member"].label}
+            <Badge variant={roleVariants[currentMember?.role ?? "member"]}>
+              {t(`role.${currentMember?.role ?? "member"}`)}
             </Badge>
           </CardContent>
         </Card>
@@ -1364,7 +1430,7 @@ function MemberAccessView({
                 <TableRow>
                   <TableHead>Miembro</TableHead>
                   <TableHead>Rol</TableHead>
-                  <TableHead>Se unió</TableHead>
+                  <TableHead>{t("joined")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -1377,12 +1443,12 @@ function MemberAccessView({
                       />
                     </TableCell>
                     <TableCell>
-                      <Badge variant={roleMeta[member.role].variant}>
-                        {roleMeta[member.role].label}
+                      <Badge variant={roleVariants[member.role]}>
+                        {t(`role.${member.role}`)}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {formatTeamDate(member.joinedAt)}
+                      {teamDate(member.joinedAt)}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -1399,8 +1465,8 @@ function MemberAccessView({
                         </Button>
                       ) : undefined
                     }
-                    description="Prueba otra búsqueda para encontrar una persona."
-                    title="No encontramos miembros"
+                    description={t("membersEmptyFilteredDescription")}
+                    title={t("membersNoMatches")}
                   />
                 ) : null}
               </TableBody>
@@ -1416,8 +1482,8 @@ function MemberAccessView({
                   current={member.id === currentUserId}
                   member={member}
                 />
-                <Badge variant={roleMeta[member.role].variant}>
-                  {roleMeta[member.role].label}
+                <Badge variant={roleVariants[member.role]}>
+                  {t(`role.${member.role}`)}
                 </Badge>
               </div>
             ))}
