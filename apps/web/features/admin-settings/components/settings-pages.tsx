@@ -7,113 +7,121 @@ import type {
   AdminGeneralSettings,
 } from "@workspace/contracts"
 
+import { useTranslations } from "next-intl"
+
 import { SettingsFormPage } from "./settings-form-page"
 
 export function GeneralSettingsPage() {
+  const t = useTranslations("adminSettings")
+
   return (
     <SettingsFormPage<AdminGeneralSettings>
-      description="Identidad pública de la plataforma y datos de contacto."
+      description={t("general.description")}
       fields={[
-        { kind: "text", label: "Nombre del sitio", name: "siteName" },
+        { kind: "text", label: t("general.siteName"), name: "siteName" },
         {
           kind: "textarea",
-          label: "Descripción",
+          label: t("general.siteDescription"),
           name: "siteDescription",
-          description: "Se usa en metadatos y en la portada pública.",
+          description: t("general.siteDescriptionHint"),
         },
-        { kind: "text", label: "Empresa", name: "companyName" },
-        { kind: "text", label: "Correo de contacto", name: "contactEmail" },
-        { kind: "text", label: "Teléfono", name: "contactPhone" },
-        { kind: "text", label: "Horario de atención", name: "supportHours" },
+        { kind: "text", label: t("general.companyName"), name: "companyName" },
+        { kind: "text", label: t("general.contactEmail"), name: "contactEmail" },
+        { kind: "text", label: t("general.contactPhone"), name: "contactPhone" },
+        { kind: "text", label: t("general.supportHours"), name: "supportHours" },
         {
           kind: "text",
-          label: "Formato de fecha",
+          label: t("general.dateFormat"),
           name: "dateFormat",
-          description: "Por ejemplo d MMM yyyy.",
+          description: t("general.dateFormatHint"),
         },
         {
           kind: "text",
-          label: "Zona horaria",
+          label: t("general.timezone"),
           name: "timezone",
-          description: "Zona IANA, por ejemplo America/Guayaquil.",
+          description: t("general.timezoneHint"),
         },
       ]}
       load={() => adminSettingsApi.general()}
       save={(values) => adminSettingsApi.saveGeneral(values)}
-      title="Ajustes generales"
+      title={t("general.title")}
     />
   )
 }
 
 export function AuthSettingsPage() {
+  const t = useTranslations("adminSettings")
+
   return (
     <SettingsFormPage<AdminAuthSettings>
-      description="Reglas de registro, verificación y sesión para las cuentas del Portal."
+      description={t("auth.description")}
       fields={[
         {
           kind: "switch",
-          label: "Permitir registro",
+          label: t("auth.registrationEnabled"),
           name: "registrationEnabled",
-          description: "Si se desactiva, solo se entra por invitación.",
+          description: t("auth.registrationHint"),
         },
         {
           kind: "switch",
-          label: "Exigir verificación de correo",
+          label: t("auth.requireEmailVerification"),
           name: "requireEmailVerification",
         },
         {
           kind: "number",
-          label: "Longitud mínima de contraseña",
+          label: t("auth.passwordMinLength"),
           name: "passwordMinLength",
         },
         {
           kind: "number",
-          label: "Duración de sesión (horas)",
+          label: t("auth.sessionLifetimeHours"),
           name: "sessionLifetimeHours",
         },
         {
           kind: "number",
-          label: "Intentos de acceso permitidos",
+          label: t("auth.maxLoginAttempts"),
           name: "maxLoginAttempts",
         },
       ]}
       load={() => adminSettingsApi.auth()}
       save={(values) => adminSettingsApi.saveAuth(values)}
-      title="Acceso y registro"
+      title={t("auth.title")}
     />
   )
 }
 
 export function AnalyticsSettingsPage() {
+  const t = useTranslations("adminSettings")
+
   return (
     <SettingsFormPage<AdminAnalyticsSettings>
-      description="Medición de uso con Google Analytics."
+      description={t("analytics.description")}
       fields={[
         {
           kind: "switch",
-          label: "Activar Google Analytics",
+          label: t("analytics.enabled"),
           name: "googleAnalyticsEnabled",
         },
         {
           kind: "text",
-          label: "ID de medición",
+          label: t("analytics.measurementId"),
           name: "googleAnalyticsMeasurementId",
           placeholder: "G-XXXXXXXXXX",
         },
         {
           kind: "switch",
-          label: "Medir visitas públicas",
+          label: t("analytics.trackGuests"),
           name: "trackGuests",
         },
         {
           kind: "switch",
-          label: "Medir uso dentro del Portal",
+          label: t("analytics.trackPortal"),
           name: "trackPortal",
         },
       ]}
       load={() => adminSettingsApi.analytics()}
       save={(values) => adminSettingsApi.saveAnalytics(values)}
-      title="Analíticas"
+      title={t("analytics.title")}
     />
   )
 }

@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
+import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import { CircleAlert, Save, ShieldCheck } from "lucide-react"
 
@@ -47,6 +48,7 @@ export function SettingsFormPage<TValues extends Record<string, unknown>>({
   save: (values: TValues) => Promise<unknown>
   title: string
 }) {
+  const t = useTranslations("adminSettings")
   const router = useRouter()
   const [values, setValues] = useState<TValues | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -100,11 +102,11 @@ export function SettingsFormPage<TValues extends Record<string, unknown>>({
     setPending(true)
     try {
       await saveRef.current(values)
-      toast.success("Ajustes guardados.")
+      toast.success(t("saved"))
     } catch (error) {
       if (handleError(error)) return
       console.error(`${title} save failed`, error)
-      toast.error("No pudimos guardar los ajustes. Inténtalo de nuevo.")
+      toast.error(t("saveFailed"))
     } finally {
       setPending(false)
     }
@@ -115,9 +117,9 @@ export function SettingsFormPage<TValues extends Record<string, unknown>>({
       <Card variant="subtle">
         <CardContent>
           <EmptyState
-            description="Solicita a un administrador el permiso necesario para cambiar estos ajustes."
+            description={t("forbiddenDescription")}
             icon={ShieldCheck}
-            title={`${title} no disponible`}
+            title={t("unavailable", { title })}
           />
         </CardContent>
       </Card>
@@ -125,7 +127,7 @@ export function SettingsFormPage<TValues extends Record<string, unknown>>({
   }
 
   if (isLoading && !values) {
-    return <PageLoading aria-label={`Cargando ${title.toLowerCase()}`} />
+    return <PageLoading aria-label={t("loading", { title })} />
   }
 
   if (loadError || !values) {
@@ -139,7 +141,7 @@ export function SettingsFormPage<TValues extends Record<string, unknown>>({
                 variant="brand-secondary"
               />
             }
-            description="No pudimos cargar estos ajustes."
+            description={t("loadFailedDescription")}
             icon={CircleAlert}
             title={`${title} no disponible`}
           />

@@ -2562,6 +2562,47 @@ declare const messages: {
     "deleteDescription": "Se elimina el registro «{reference}». Esta acción no se puede deshacer.",
     "deleted": "Pago manual eliminado.",
     "cancel": "Cancelar"
+  },
+  "adminSettings": {
+    "saved": "Ajustes guardados.",
+    "saveFailed": "No pudimos guardar los ajustes. Inténtalo de nuevo.",
+    "forbiddenDescription": "Solicita a un administrador el permiso necesario para cambiar estos ajustes.",
+    "loadFailedDescription": "No pudimos cargar estos ajustes.",
+    "unavailable": "{title} no disponible",
+    "loading": "Cargando {title}",
+    "general": {
+      "title": "Ajustes generales",
+      "description": "Identidad pública de la plataforma y datos de contacto.",
+      "siteName": "Nombre del sitio",
+      "siteDescription": "Descripción",
+      "siteDescriptionHint": "Se usa en metadatos y en la portada pública.",
+      "companyName": "Empresa",
+      "contactEmail": "Correo de contacto",
+      "contactPhone": "Teléfono",
+      "supportHours": "Horario de atención",
+      "dateFormat": "Formato de fecha",
+      "dateFormatHint": "Por ejemplo d MMM yyyy.",
+      "timezone": "Zona horaria",
+      "timezoneHint": "Zona IANA, por ejemplo America/Guayaquil."
+    },
+    "auth": {
+      "title": "Acceso y registro",
+      "description": "Reglas de registro, verificación y sesión para las cuentas del Portal.",
+      "registrationEnabled": "Permitir registro",
+      "registrationHint": "Si se desactiva, solo se entra por invitación.",
+      "requireEmailVerification": "Exigir verificación de correo",
+      "passwordMinLength": "Longitud mínima de contraseña",
+      "sessionLifetimeHours": "Duración de sesión (horas)",
+      "maxLoginAttempts": "Intentos de acceso permitidos"
+    },
+    "analytics": {
+      "title": "Analíticas",
+      "description": "Medición de uso con Google Analytics.",
+      "enabled": "Activar Google Analytics",
+      "measurementId": "ID de medición",
+      "trackGuests": "Medir visitas públicas",
+      "trackPortal": "Medir uso dentro del Portal"
+    }
   }
 };
 export default messages;

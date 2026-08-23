@@ -2559,5 +2559,46 @@
     "deleteDescription": "The record “{reference}” will be deleted. This action can't be undone.",
     "deleted": "Manual payment deleted.",
     "cancel": "Cancel"
+  },
+  "adminSettings": {
+    "saved": "Settings saved.",
+    "saveFailed": "We couldn't save the settings. Please try again.",
+    "forbiddenDescription": "Ask an administrator for the permission needed to change these settings.",
+    "loadFailedDescription": "We couldn't load these settings.",
+    "unavailable": "{title} unavailable",
+    "loading": "Loading {title}",
+    "general": {
+      "title": "General settings",
+      "description": "Public identity of the platform and contact details.",
+      "siteName": "Site name",
+      "siteDescription": "Description",
+      "siteDescriptionHint": "Used in metadata and on the public home page.",
+      "companyName": "Company",
+      "contactEmail": "Contact email",
+      "contactPhone": "Phone",
+      "supportHours": "Support hours",
+      "dateFormat": "Date format",
+      "dateFormatHint": "For example d MMM yyyy.",
+      "timezone": "Time zone",
+      "timezoneHint": "IANA zone, for example America/Guayaquil."
+    },
+    "auth": {
+      "title": "Access and sign-up",
+      "description": "Sign-up, verification and session rules for Portal accounts.",
+      "registrationEnabled": "Allow sign-up",
+      "registrationHint": "If disabled, access is by invitation only.",
+      "requireEmailVerification": "Require email verification",
+      "passwordMinLength": "Minimum password length",
+      "sessionLifetimeHours": "Session lifetime (hours)",
+      "maxLoginAttempts": "Allowed sign-in attempts"
+    },
+    "analytics": {
+      "title": "Analytics",
+      "description": "Usage measurement with Google Analytics.",
+      "enabled": "Enable Google Analytics",
+      "measurementId": "Measurement ID",
+      "trackGuests": "Measure public visits",
+      "trackPortal": "Measure Portal usage"
+    }
   }
 }
