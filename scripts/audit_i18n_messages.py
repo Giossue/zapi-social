@@ -26,6 +26,10 @@ MESSAGES = ROOT / "apps/web/messages"
 WEB = ROOT / "apps/web"
 SOURCE_LOCALE = "es"
 
+# Un argumento es `{nombre}` o `{nombre, tipo, …}`; nunca una rama de plural.
+ICU_ARGUMENT = re.compile(r"\{(\w+)\s*[,}]")
+ICU_KIND = re.compile(r"\{\w+\s*,\s*(\w+)")
+
 NAMESPACE = re.compile(r'useTranslations(?:<[^>]*>)?\("([^"]+)"\)')
 DYNAMIC_KEY = re.compile(r"\bt\(`([^`]*)`")
 
@@ -41,8 +45,27 @@ def flatten(node: dict, prefix: str = "") -> set[str]:
     return keys
 
 
+def read(locale: str) -> dict:
+    return json.loads((MESSAGES / f"{locale}.json").read_text("utf-8"))
+
+
+def flat_values(locale: str) -> dict:
+    """Claves aplanadas con su texto, para comparar mensajes entre idiomas."""
+    values: dict[str, str] = {}
+
+    def walk(node: dict, prefix: str = "") -> None:
+        for key, value in node.items():
+            path = f"{prefix}{key}"
+            walk(value, f"{path}.") if isinstance(value, dict) else values.update(
+                {path: value}
+            )
+
+    walk(read(locale))
+    return values
+
+
 def load(locale: str) -> set[str]:
-    return flatten(json.loads((MESSAGES / f"{locale}.json").read_text("utf-8")))
+    return flatten(read(locale))
 
 
 def resolve(catalog: dict, path: str):
@@ -52,6 +75,22 @@ def resolve(catalog: dict, path: str):
             return None
         node = node[part]
     return node
+
+
+def icu_findings(source: dict, locale: str, target: dict) -> list[str]:
+    """Una traducción que pierde un argumento o cambia `plural` por texto plano
+    compila igual y falla al renderizar. El tipado solo cubre el idioma fuente,
+    así que esto se comprueba aquí."""
+    findings: list[str] = []
+    for key, value in source.items():
+        other = target.get(key)
+        if not isinstance(value, str) or not isinstance(other, str):
+            continue
+        if set(ICU_ARGUMENT.findall(value)) != set(ICU_ARGUMENT.findall(other)):
+            findings.append(f"{locale}: «{key}» no usa los mismos argumentos")
+        if sorted(ICU_KIND.findall(value)) != sorted(ICU_KIND.findall(other)):
+            findings.append(f"{locale}: «{key}» cambia el tipo de formato ICU")
+    return findings
 
 
 def dynamic_prefix_findings(catalog: dict) -> list[str]:
@@ -91,7 +130,7 @@ def main() -> int:
     arguments = parser.parse_args()
 
     source = load(SOURCE_LOCALE)
-    catalog = json.loads((MESSAGES / f"{SOURCE_LOCALE}.json").read_text("utf-8"))
+    catalog = read(SOURCE_LOCALE)
     findings: list[str] = dynamic_prefix_findings(catalog)
 
     for path in sorted(MESSAGES.glob("*.json")):
@@ -99,6 +138,7 @@ def main() -> int:
         if locale == SOURCE_LOCALE:
             continue
         keys = load(locale)
+        findings.extend(icu_findings(flat_values(SOURCE_LOCALE), locale, flat_values(locale)))
         for key in sorted(source - keys):
             findings.append(f"{locale}: falta «{key}»")
         for key in sorted(keys - source):
