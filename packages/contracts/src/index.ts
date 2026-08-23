@@ -1651,6 +1651,8 @@ export * from "./workspace-permissions.js"
 
 export * from "./boards.js"
 
+export * from "./channel-catalog.js"
+
 export * from "./portal-core-v2.js"
 
 export * from "./ai-v2.js"

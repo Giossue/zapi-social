@@ -150,8 +150,8 @@ Falta lo que hace que añadir una red sea barato:
 
 1. **El registro y el contrato del publicador**, con Meta migrado encima. Sin
    esto, cada red nueva vuelve a ser trabajo a medida.
-2. **LinkedIn** (páginas y perfiles). API estable, bien documentada, sin
-   revisión de app para lo básico.
+2. **LinkedIn** (páginas y perfiles) sobre la Posts API vigente, no sobre la
+   `ugcPosts` que copia ZapiSocial. Sin revisión de app para lo básico.
 3. **X**. Contrato de publicación sencillo, pero la subida de media son tres
    llamadas y su nivel gratuito es muy limitado: conviene documentarlo al
    comprador.
@@ -159,12 +159,83 @@ Falta lo que hace que añadir una red sea barato:
    asíncrono.
 5. **Instagram no oficial**, solo si decides asumir lo dicho arriba.
 
+## Contraste con la documentación vigente (agosto de 2026)
+
+ZapiSocial es una base fiable, pero no toda está al día. Se contrastó cada red
+con su documentación oficial actual:
+
+### LinkedIn — **la parte obsoleta**
+
+ZapiSocial publica con `/v2/ugcPosts` y sube media con `/v2/assets` y
+`registerUpload`. Las dos son la API antigua: **LinkedIn sustituyó `ugcPosts`
+por la Posts API** y la retiró para integraciones nuevas en junio de 2023. Lo
+vigente es:
+
+```http
+POST https://api.linkedin.com/rest/posts
+Authorization: Bearer {token}
+X-Restli-Protocol-Version: 2.0.0
+Linkedin-Version: {YYYYMM}
+Content-Type: application/json
+```
+
+Puntos que cambian respecto al código Laravel:
+
+- **La versión va en cabecera, no en la URL.** `Linkedin-Version` en formato
+  `YYYYMM` es obligatoria, no hay versión por defecto, y una versión retirada es
+  un error. Cada versión se mantiene un año como mínimo: `202507` se retiró el
+  15 de julio de 2026 y `202607` aguanta hasta el 15 de julio de 2027. **V2
+  tiene que guardar esa versión como campo configurable del proveedor**, igual
+  que hoy guarda `graphVersion` para Meta, o el conector caduca solo.
+- **La media se sube con las APIs de Images y Videos**, que devuelven un
+  `urn:li:image:{id}` o `urn:li:video:{id}` que se referencia en
+  `content.media.id`. Ya no se usa `registerUpload` sobre `/v2/assets`.
+- **Permisos**: `w_member_social` para publicar como persona y
+  `w_organization_social` para publicar como página. Este último exige que la
+  persona autenticada tenga rol `ADMINISTRATOR`, `DIRECT_SPONSORED_CONTENT_POSTER`
+  o `CONTENT_ADMIN` en esa página.
+- El identificador de la publicación **vuelve en la cabecera `x-restli-id`**,
+  no en el cuerpo.
+- Errores tipados útiles para el reintento: `429 TOO_MANY_REQUESTS`,
+  `409 CONFLICT` —que la propia documentación pide reintentar— y
+  `503 SERVICE_UNAVAILABLE`. Encajan con el criterio que ya usa el worker.
+
+### X — al día
+
+ZapiSocial ya usa `api.x.com/2/media/upload/initialize` y `api.x.com/2/tweets`,
+que es la API vigente: X publicó los endpoints de media en la v2 en enero de
+2025 y pide migrar desde `upload.twitter.com/1.1`. La subida sigue siendo en
+tres pasos —`INIT`, `APPEND` en segmentos de menos de 5 MB, `FINALIZE`— y hay
+que sondear el procesado de vídeos y GIF antes de adjuntar el `media_id`.
+
+- Scopes: `tweet.write`, más `tweet.read` y `users.read`.
+- **Citar una publicación exige plan Enterprise**; no está en los niveles de
+  pago por uso. Si V2 lo ofrece, hay que marcarlo.
+
+### TikTok — al día, con un requisito que hay que documentar
+
+El flujo que usa ZapiSocial coincide con el vigente:
+
+1. Consultar la información del creador para saber qué privacidad admite.
+2. `POST /v2/post/publish/video/init/` con `PULL_FROM_URL` o `FILE_UPLOAD`.
+3. Si es `FILE_UPLOAD`, `PUT` al `upload_url` devuelto —**caduca en una hora**—.
+4. Sondear `/v2/post/publish/status/fetch/` hasta `PUBLISH_COMPLETE`.
+
+Para fotos el endpoint es `/v2/post/publish/content/init/`. Scope:
+`video.publish`. Límite: **6 peticiones por minuto y token**.
+
+Y el punto que más soporte va a generar: **todo lo que publique un cliente sin
+auditar queda en modo privado**. Para que se vea en público, la app del
+comprador tiene que pasar la auditoría de TikTok. No es algo que el código
+pueda resolver; va en la guía de instalación, bien visible.
+
 ## Lo que no se puede verificar sin cuentas reales
 
 Conviene decirlo claro, porque tú mismo no puedes probarlo:
 
-- La **forma** de cada petición se puede copiar del código Laravel, que está en
-  producción y funciona. Eso es fiable.
+- La **forma** de cada petición se puede copiar del código Laravel y contrastar
+  con la documentación oficial, que es lo que se hizo arriba. Eso es fiable —y
+  ese contraste ya encontró que LinkedIn está desactualizado en ZapiSocial.
 - El **comportamiento** —límites de tasa, revisión de app, permisos que Meta o
   TikTok conceden a una app nueva— **no**. Cada red exige su propia app
   aprobada, y ese trámite es del comprador, no del código.

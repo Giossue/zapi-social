@@ -1,16 +1,10 @@
-import { createHmac } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
 import { InjectQueue, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import {
   fileAssets,
-  providerIntegrations,
   publishingPostAttempts,
   publishingPostMedia,
   publishingPosts,
-  socialAccountCredentials,
   socialAccounts,
 } from '@workspace/database';
 import { and, asc, eq, or, sql } from '@workspace/database/query';
@@ -26,49 +20,41 @@ import {
   type PublishingDeliveryJobData,
   type PublishingDispatchJobData,
 } from './publishing.constants';
+import { PublishingMediaPreparationService } from './publishing-media-preparation.service';
+import { ChannelPublisherRegistry } from './publishers/channel-publisher.registry';
 import {
-  PublishingMediaPreparationService,
-  type PreparedPublishingAsset,
-} from './publishing-media-preparation.service';
+  PublishingDeliveryError,
+  providerOutcomeUnknownCode,
+  sanitizeProviderResponse,
+  type ProviderResult,
+} from './publishers/publishing-provider';
+
+// Se reexporta porque la prueba de endurecimiento del worker la importa desde
+// aquí desde antes de que hubiera publicadores por red.
+export { sanitizeProviderResponse };
 
 type Account = typeof socialAccounts.$inferSelect;
 type Asset = typeof fileAssets.$inferSelect;
 type Post = typeof publishingPosts.$inferSelect;
 type Attempt = typeof publishingPostAttempts.$inferSelect;
-type ProviderResult = {
-  providerRequestId: string | null;
-  response: Record<string, unknown>;
-};
-const providerOutcomeUnknownCode = 'PUBLISHING_PROVIDER_OUTCOME_UNKNOWN';
 const processingAttemptLeaseMs = 45 * 60_000;
 
 @Injectable()
 @Processor(PUBLISHING_DELIVERY_QUEUE, { concurrency: 3 })
 export class PublishingDeliveryProcessor extends WorkerHost {
-  private readonly apiPublicOrigin?: string;
-  private readonly signingKey: string;
-  private readonly storageRoot: string;
-
   constructor(
     private readonly database: DatabaseService,
     private readonly encryption: Aes256GcmService,
     private readonly audit: WorkerAuditService,
     private readonly events: AutomationWebhookEventsService,
     private readonly mediaPreparation: PublishingMediaPreparationService,
+    private readonly publishers: ChannelPublisherRegistry,
     @InjectQueue(PUBLISHING_DELIVERY_QUEUE)
     private readonly queue: Queue<
       PublishingDeliveryJobData | PublishingDispatchJobData
     >,
-    config: ConfigService,
   ) {
     super();
-    this.apiPublicOrigin = config.get<string>('API_PUBLIC_ORIGIN');
-    this.signingKey = config.getOrThrow<string>(
-      'PROVIDER_INTEGRATIONS_ENCRYPTION_KEY',
-    );
-    this.storageRoot = resolve(
-      config.get<string>('FILES_STORAGE_PATH') ?? './.data/files',
-    );
   }
 
   async process(
@@ -366,354 +352,23 @@ export class PublishingDeliveryProcessor extends WorkerHost {
         true,
       );
     }
-    const prepared = await this.mediaPreparation.prepare(post, account, assets);
-    try {
-      if (account.capabilityKey === 'facebook_page') {
-        return await this.publishFacebook(post, account, prepared.assets);
-      }
-      if (account.capabilityKey === 'instagram_profile') {
-        return await this.publishInstagram(post, account, prepared.assets);
-      }
-      if (account.capabilityKey === 'whatsapp_status') {
-        return await this.publishWhatsAppStatus(post, account, prepared.assets);
-      }
+    const publisher = this.publishers.find(account.capabilityKey);
+    if (!publisher) {
       throw new PublishingDeliveryError(
         'PUBLISHING_CAPABILITY_UNSUPPORTED',
         true,
       );
+    }
+    const prepared = await this.mediaPreparation.prepare(post, account, assets);
+    try {
+      return await publisher.publish({
+        post,
+        account,
+        assets: prepared.assets,
+      });
     } finally {
       await prepared.cleanup();
     }
-  }
-
-  private async publishFacebook(
-    post: Post,
-    account: Account,
-    assets: PreparedPublishingAsset[],
-  ) {
-    const token = await this.metaToken(account);
-    const externalId = this.requireExternalId(account);
-    if (!assets.length) {
-      return this.metaRequest(`${externalId}/feed`, {
-        access_token: token,
-        message: post.content,
-      });
-    }
-    if (assets.length === 1) {
-      const asset = assets[0];
-      const endpoint = asset.mimeType.startsWith('video/')
-        ? `${externalId}/videos`
-        : `${externalId}/photos`;
-      const form = await this.assetForm(asset, token);
-      form.set(
-        asset.mimeType.startsWith('video/') ? 'description' : 'message',
-        post.content,
-      );
-      return this.metaMultipart(endpoint, form);
-    }
-    if (assets.some((asset) => !asset.mimeType.startsWith('image/'))) {
-      throw new PublishingDeliveryError(
-        'PUBLISHING_MEDIA_COMBINATION_UNSUPPORTED',
-        true,
-      );
-    }
-    const uploaded: string[] = [];
-    for (const asset of assets) {
-      const form = await this.assetForm(asset, token);
-      form.set('published', 'false');
-      const result = await this.metaMultipart(`${externalId}/photos`, form);
-      if (!result.providerRequestId) {
-        throw new PublishingDeliveryError(
-          'PUBLISHING_PROVIDER_RESPONSE_INVALID',
-        );
-      }
-      uploaded.push(result.providerRequestId);
-    }
-    const fields: Record<string, string> = {
-      access_token: token,
-      message: post.content,
-    };
-    uploaded.forEach((id, index) => {
-      fields[`attached_media[${index}]`] = JSON.stringify({ media_fbid: id });
-    });
-    return this.metaRequest(`${externalId}/feed`, fields);
-  }
-
-  private async publishInstagram(
-    post: Post,
-    account: Account,
-    assets: PreparedPublishingAsset[],
-  ) {
-    if (assets.length !== 1) {
-      throw new PublishingDeliveryError(
-        'PUBLISHING_INSTAGRAM_MEDIA_REQUIRED',
-        true,
-      );
-    }
-    const token = await this.metaToken(account);
-    const externalId = this.requireExternalId(account);
-    const asset = assets[0];
-    const mediaUrl = this.publicMediaUrl(asset.id, asset.publicVariant);
-    const createFields: Record<string, string> = {
-      access_token: token,
-      caption: post.content,
-      [asset.mimeType.startsWith('video/') ? 'video_url' : 'image_url']:
-        mediaUrl,
-    };
-    if (asset.mimeType.startsWith('video/')) createFields.media_type = 'REELS';
-    const container = await this.metaRequest(
-      `${externalId}/media`,
-      createFields,
-    );
-    if (!container.providerRequestId) {
-      throw new PublishingDeliveryError('PUBLISHING_PROVIDER_RESPONSE_INVALID');
-    }
-    await this.waitForInstagramContainer(container.providerRequestId, token);
-    return this.metaRequest(`${externalId}/media_publish`, {
-      access_token: token,
-      creation_id: container.providerRequestId,
-    });
-  }
-
-  private async publishWhatsAppStatus(
-    post: Post,
-    account: Account,
-    assets: PreparedPublishingAsset[],
-  ) {
-    if (assets.length !== 1) {
-      throw new PublishingDeliveryError(
-        'PUBLISHING_WHATSAPP_MEDIA_REQUIRED',
-        true,
-      );
-    }
-    const [integration] = await this.database.db
-      .select()
-      .from(providerIntegrations)
-      .where(eq(providerIntegrations.providerKey, 'whatsapp-status'))
-      .limit(1);
-    if (
-      !integration?.enabled ||
-      integration.readiness !== 'ready' ||
-      !integration.configurationCiphertext
-    ) {
-      throw new PublishingDeliveryError(
-        'PUBLISHING_WHATSAPP_NOT_CONFIGURED',
-        true,
-      );
-    }
-    const configuration = parseWhatsAppConfiguration(
-      this.encryption.decrypt(
-        integration.configurationCiphertext,
-        'whatsapp-status',
-      ),
-    );
-    const deviceId = stringMetadata(account.metadata, 'deviceId');
-    if (!configuration || !deviceId) {
-      throw new PublishingDeliveryError(
-        'PUBLISHING_WHATSAPP_NOT_CONFIGURED',
-        true,
-      );
-    }
-    const asset = assets[0];
-    const form = new FormData();
-    form.set('phone', 'status@broadcast');
-    form.set('caption', post.content);
-    form.set('compress', 'false');
-    form.set(
-      asset.mimeType.startsWith('video/') ? 'video' : 'image',
-      await this.assetBlob(asset),
-      asset.name,
-    );
-    const endpoint = asset.mimeType.startsWith('video/')
-      ? '/send/video'
-      : '/send/image';
-    const response = await this.providerPost(
-      `${configuration.baseUrl}${endpoint}`,
-      {
-        method: 'POST',
-        headers: {
-          authorization: `Basic ${Buffer.from(`${configuration.basicAuthUsername}:${configuration.basicAuthPassword}`).toString('base64')}`,
-          'x-device-id': deviceId,
-        },
-        body: form,
-        signal: AbortSignal.timeout(180_000),
-      },
-    );
-    const payload = await responseJson(response);
-    if (!response.ok || !isProviderSuccess(payload)) {
-      throw this.providerHttpError(
-        response.status,
-        'PUBLISHING_WHATSAPP_REJECTED',
-      );
-    }
-    const providerRequestId = firstString(payload, [
-      'id',
-      'message_id',
-      'messageId',
-    ]);
-    if (!providerRequestId) {
-      throw new PublishingDeliveryError(providerOutcomeUnknownCode, true);
-    }
-    return {
-      providerRequestId,
-      response: sanitizeProviderResponse(payload, providerRequestId),
-    };
-  }
-
-  private async metaToken(account: Account) {
-    const [credential] = await this.database.db
-      .select()
-      .from(socialAccountCredentials)
-      .where(eq(socialAccountCredentials.socialAccountId, account.id))
-      .limit(1);
-    if (!credential?.accessTokenCiphertext) {
-      throw new PublishingDeliveryError('PUBLISHING_CREDENTIAL_MISSING', true);
-    }
-    try {
-      return this.encryption.decrypt(
-        credential.accessTokenCiphertext,
-        `meta:account:${account.id}`,
-      );
-    } catch {
-      throw new PublishingDeliveryError('PUBLISHING_CREDENTIAL_INVALID', true);
-    }
-  }
-
-  private requireExternalId(account: Account) {
-    if (!account.externalId) {
-      throw new PublishingDeliveryError('PUBLISHING_EXTERNAL_ID_MISSING', true);
-    }
-    return encodeURIComponent(account.externalId);
-  }
-
-  private async metaRequest(path: string, fields: Record<string, string>) {
-    const response = await this.providerPost(
-      `https://graph.facebook.com/v22.0/${path}`,
-      {
-        method: 'POST',
-        headers: { 'content-type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(fields),
-        signal: AbortSignal.timeout(60_000),
-      },
-    );
-    return this.parseMetaResponse(response);
-  }
-
-  private async metaMultipart(path: string, form: FormData) {
-    const response = await this.providerPost(
-      `https://graph.facebook.com/v22.0/${path}`,
-      {
-        method: 'POST',
-        body: form,
-        signal: AbortSignal.timeout(180_000),
-      },
-    );
-    return this.parseMetaResponse(response);
-  }
-
-  private async providerPost(input: string, init: RequestInit) {
-    try {
-      return await fetch(input, init);
-    } catch {
-      throw new PublishingDeliveryError(providerOutcomeUnknownCode, true);
-    }
-  }
-
-  private async parseMetaResponse(response: Response): Promise<ProviderResult> {
-    const payload = await responseJson(response);
-    if (!response.ok || isRecord(payload.error)) {
-      throw this.providerHttpError(response.status, 'PUBLISHING_META_REJECTED');
-    }
-    const providerRequestId = firstString(payload, ['id', 'post_id']);
-    if (!providerRequestId) {
-      throw new PublishingDeliveryError(providerOutcomeUnknownCode, true);
-    }
-    return {
-      providerRequestId,
-      response: sanitizeProviderResponse(payload, providerRequestId),
-    };
-  }
-
-  private providerHttpError(status: number, code: string) {
-    if (status === 408 || status >= 500) {
-      return new PublishingDeliveryError(providerOutcomeUnknownCode, true);
-    }
-    const permanent =
-      status >= 400 && status < 500 && status !== 408 && status !== 429;
-    return new PublishingDeliveryError(code, permanent);
-  }
-
-  private async waitForInstagramContainer(containerId: string, token: string) {
-    for (let attempt = 0; attempt < 20; attempt += 1) {
-      const url = new URL(
-        `https://graph.facebook.com/v22.0/${encodeURIComponent(containerId)}`,
-      );
-      url.search = new URLSearchParams({
-        access_token: token,
-        fields: 'status_code',
-      }).toString();
-      const response = await fetch(url, {
-        signal: AbortSignal.timeout(15_000),
-      });
-      const payload = await responseJson(response);
-      if (!response.ok)
-        throw this.providerHttpError(
-          response.status,
-          'PUBLISHING_META_REJECTED',
-        );
-      const status = firstString(payload, ['status_code']);
-      if (status === 'FINISHED') return;
-      if (status === 'ERROR' || status === 'EXPIRED') {
-        throw new PublishingDeliveryError(
-          'PUBLISHING_INSTAGRAM_CONTAINER_FAILED',
-          true,
-        );
-      }
-      await new Promise((resolvePromise) => setTimeout(resolvePromise, 2_000));
-    }
-    throw new PublishingDeliveryError('PUBLISHING_INSTAGRAM_CONTAINER_TIMEOUT');
-  }
-
-  private publicMediaUrl(assetId: string, variant?: string) {
-    if (!this.apiPublicOrigin) {
-      throw new PublishingDeliveryError(
-        'PUBLISHING_PUBLIC_ORIGIN_MISSING',
-        true,
-      );
-    }
-    const expires = Math.floor(Date.now() / 1000) + 15 * 60;
-    const signature = createHmac('sha256', this.signingKey)
-      .update(`${assetId}.${variant ?? ''}.${expires}`)
-      .digest('hex');
-    const url = new URL(
-      `/v1/public/publishing-media/${encodeURIComponent(assetId)}`,
-      this.apiPublicOrigin,
-    );
-    url.search = new URLSearchParams({
-      expires: String(expires),
-      signature,
-      ...(variant ? { variant } : {}),
-    }).toString();
-    return url.toString();
-  }
-
-  private async assetForm(asset: PreparedPublishingAsset, token: string) {
-    const form = new FormData();
-    form.set('access_token', token);
-    form.set('source', await this.assetBlob(asset), asset.name);
-    return form;
-  }
-
-  private async assetBlob(asset: PreparedPublishingAsset) {
-    const path = resolve(this.storageRoot, asset.storageKey);
-    if (!path.startsWith(`${this.storageRoot}/`)) {
-      throw new PublishingDeliveryError('PUBLISHING_MEDIA_NOT_AVAILABLE', true);
-    }
-    const bytes = await readFile(path).catch(() => null);
-    if (!bytes || bytes.length !== asset.sizeBytes) {
-      throw new PublishingDeliveryError('PUBLISHING_MEDIA_NOT_AVAILABLE', true);
-    }
-    return new Blob([bytes], { type: asset.mimeType });
   }
 
   private async finishSucceeded(
@@ -850,92 +505,5 @@ export class PublishingDeliveryProcessor extends WorkerHost {
         metadata: { publishingPostId: post.id },
       }),
     ]);
-  }
-}
-
-class PublishingDeliveryError extends Error {
-  constructor(
-    readonly code: string,
-    readonly permanent = false,
-  ) {
-    super(code);
-  }
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-async function responseJson(response: Response) {
-  const value: unknown = await response.json().catch(() => ({}));
-  return isRecord(value) ? value : {};
-}
-
-function firstString(
-  value: Record<string, unknown>,
-  keys: string[],
-  maximumLength = 2048,
-) {
-  for (const key of keys) {
-    const candidate = value[key];
-    if (typeof candidate === 'string' && candidate) {
-      return candidate.slice(0, maximumLength);
-    }
-  }
-  return null;
-}
-
-export function sanitizeProviderResponse(
-  value: Record<string, unknown>,
-  providerRequestId: string | null,
-) {
-  const response: Record<string, string | number | boolean> = {};
-  if (providerRequestId) {
-    response.providerRequestId = providerRequestId.slice(0, 2048);
-  }
-  const providerPostId = firstString(value, ['post_id']);
-  if (providerPostId) response.providerPostId = providerPostId;
-  const providerMessageId = firstString(value, ['message_id', 'messageId']);
-  if (providerMessageId) response.providerMessageId = providerMessageId;
-  const status = firstString(value, ['status', 'status_code'], 256);
-  if (status) response.status = status;
-  const code = value.code;
-  if (typeof code === 'string') response.providerCode = code.slice(0, 256);
-  else if (typeof code === 'number' || typeof code === 'boolean')
-    response.providerCode = code;
-  return response;
-}
-
-function isProviderSuccess(value: Record<string, unknown>) {
-  const code = value.code;
-  return (
-    code === undefined ||
-    (typeof code === 'string' && code.toUpperCase() === 'SUCCESS')
-  );
-}
-
-function stringMetadata(value: Record<string, unknown>, key: string) {
-  const candidate = value[key];
-  return typeof candidate === 'string' && candidate ? candidate : null;
-}
-
-function parseWhatsAppConfiguration(value: string) {
-  try {
-    const parsed: unknown = JSON.parse(value);
-    if (
-      !isRecord(parsed) ||
-      typeof parsed.baseUrl !== 'string' ||
-      typeof parsed.basicAuthUsername !== 'string' ||
-      typeof parsed.basicAuthPassword !== 'string'
-    ) {
-      return null;
-    }
-    return {
-      baseUrl: parsed.baseUrl.replace(/\/+$/, ''),
-      basicAuthUsername: parsed.basicAuthUsername,
-      basicAuthPassword: parsed.basicAuthPassword,
-    };
-  } catch {
-    return null;
   }
 }

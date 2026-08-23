@@ -51,6 +51,13 @@ import { PUBLISHING_DELIVERY_QUEUE } from './publishing/publishing.constants';
 import { PublishingDeliveryProcessor } from './publishing/publishing-delivery.processor';
 import { PublishingDeliveryScheduler } from './publishing/publishing-delivery.scheduler';
 import { PublishingMediaPreparationService } from './publishing/publishing-media-preparation.service';
+import { CHANNEL_PUBLISHERS } from './publishing/publishers/channel-publisher';
+import { ChannelPublisherRegistry } from './publishing/publishers/channel-publisher.registry';
+import { FacebookPagePublisher } from './publishing/publishers/facebook-page.publisher';
+import { InstagramProfilePublisher } from './publishing/publishers/instagram-profile.publisher';
+import { MetaGraphService } from './publishing/publishers/meta-graph.service';
+import { PublishingAssetReader } from './publishing/publishers/publishing-asset-reader.service';
+import { WhatsAppStatusPublisher } from './publishing/publishers/whatsapp-status.publisher';
 import { FILE_IMPORTS_QUEUE } from './files/file-imports.constants';
 import { GoogleDriveImportProcessor } from './files/google-drive-import.processor';
 import { FileImportsScheduler } from './files/file-imports.scheduler';
@@ -114,6 +121,27 @@ import { FileImportsScheduler } from './files/file-imports.scheduler';
     PublishingDeliveryProcessor,
     PublishingDeliveryScheduler,
     PublishingMediaPreparationService,
+    PublishingAssetReader,
+    MetaGraphService,
+    FacebookPagePublisher,
+    InstagramProfilePublisher,
+    WhatsAppStatusPublisher,
+    ChannelPublisherRegistry,
+    {
+      // Añadir una red es sumar su publicador a esta lista. Ni el registro ni
+      // el procesador cambian.
+      provide: CHANNEL_PUBLISHERS,
+      inject: [
+        FacebookPagePublisher,
+        InstagramProfilePublisher,
+        WhatsAppStatusPublisher,
+      ],
+      useFactory: (
+        facebook: FacebookPagePublisher,
+        instagram: InstagramProfilePublisher,
+        whatsapp: WhatsAppStatusPublisher,
+      ) => [facebook, instagram, whatsapp],
+    },
     GoogleDriveImportProcessor,
     FileImportsScheduler,
   ],
