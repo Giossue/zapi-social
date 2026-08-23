@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useLocale, useTranslations } from "next-intl"
 
 import {
   Check,
@@ -97,13 +98,23 @@ import {
   type AdminMockTone,
   type AdminSecondaryModuleKey,
   adminSecondaryDefinitions,
-} from "./admin-secondary-fixtures"
+} from "../fixtures/admin-secondary"
 
 const PAGE_SIZE = 6
 
 type FieldValues = Record<string, string | boolean | readonly string[]>
 export type AdminSecondaryViewState =
   "normal" | "loading" | "empty" | "error" | "forbidden"
+
+/**
+ * Las claves llegan del catálogo de mockups, así que el tipado de `next-intl`
+ * no puede comprobarlas: se pide el traductor con una firma llana.
+ */
+type Translate = (key: string, values?: Record<string, string>) => string
+
+function useMockTranslate(): Translate {
+  return useTranslations("adminMockups") as unknown as Translate
+}
 
 function initialValues(fields: readonly AdminMockField[]): FieldValues {
   return Object.fromEntries(fields.map((field) => [field.name, field.value]))
@@ -118,7 +129,7 @@ function valuesFromRow(
     (field) => field.name === "slug" || field.name === "locale"
   )
   for (const field of fields) {
-    if (field.name === "status") values[field.name] = row.status
+    if (field.name === "status") values[field.name] = row.statusKey
     else if (field.name === "slug" || field.name === "locale") {
       values[field.name] = row.values[0]?.secondary ?? ""
     } else if (field.name === "description" && !hasSlugLikeField) {
@@ -147,7 +158,7 @@ function rowWithValues(
     secondary?: string
   }> = current
     ? current.values.map((cell) => ({ ...cell }))
-    : definition.columns.map(() => ({ primary: "—" }))
+    : definition.columnKeys.map(() => ({ primary: "—" }))
   const primaryField = definition.action?.fields.find((field) =>
     ["name", "title", "question", "label", "scope", "task"].includes(field.name)
   )
@@ -172,29 +183,30 @@ function rowWithValues(
     cells[1].primary = String(values[secondColumnField.name] ?? "—")
   }
 
-  const status = statusField
-    ? String(values[statusField.name] ?? current?.status ?? "Activo")
-    : (current?.status ?? definition.filterOptions[1]?.value ?? "Activo")
-  const tone = current?.tone ?? toneForStatus(status)
+  const statusKey = statusField
+    ? String(values[statusField.name] ?? current?.statusKey ?? "active")
+    : (current?.statusKey ?? definition.statusKeys[0] ?? "active")
+  const tone = current?.tone ?? toneForStatus(statusKey)
 
   return {
     id: current?.id ?? `mock-${Date.now()}`,
     search: cells.flatMap((cell) => [cell.primary, cell.secondary]).join(" "),
-    status,
+    statusKey,
     tone,
     values: cells,
   }
 }
 
-function toneForStatus(status: string): AdminMockTone {
-  const normalized = status.toLocaleLowerCase("es")
+/** Trabaja sobre la clave, no sobre el rótulo: no depende del idioma activo. */
+function toneForStatus(statusKey: string): AdminMockTone {
+  const normalized = statusKey.toLowerCase()
   if (normalized.includes("error")) return "destructive"
   if (
-    normalized.includes("inactiv") ||
-    normalized.includes("deshabil") ||
-    normalized.includes("ocult") ||
-    normalized.includes("borrador") ||
-    normalized.includes("archivad")
+    normalized.includes("unused") ||
+    normalized.includes("unverified") ||
+    normalized.includes("without") ||
+    normalized.includes("disabled") ||
+    normalized.includes("draft")
   ) {
     return "neutral"
   }
@@ -243,12 +255,19 @@ function MetricGrid({
 }: {
   metrics?: AdminCollectionDefinition["metrics"]
 }) {
+  const t = useMockTranslate()
   if (!metrics?.length) return null
 
   return (
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {metrics.map((metric) => (
-        <MetricCard key={metric.label} {...metric} />
+        <MetricCard
+          description={t(`metric.${metric.key}.description`)}
+          icon={metric.icon}
+          key={metric.key}
+          label={t(`metric.${metric.key}.label`)}
+          value={metric.value}
+        />
       ))}
     </div>
   )
@@ -263,22 +282,23 @@ function MockField({
   onChange: (value: string | boolean | readonly string[]) => void
   value: string | boolean | readonly string[]
 }) {
+  const t = useMockTranslate()
   if (field.kind === "permissions") {
     const selected = Array.isArray(value) ? (value as readonly string[]) : []
     return (
       <FieldSet>
-        <FieldLegend>{field.label}</FieldLegend>
-        {field.description ? (
-          <FieldDescription>{field.description}</FieldDescription>
+        <FieldLegend>{t(field.labelKey)}</FieldLegend>
+        {field.hasDescription ? (
+          <FieldDescription>{t(`${field.labelKey}Hint`)}</FieldDescription>
         ) : null}
         <div className="overflow-hidden rounded-lg border">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Módulo</TableHead>
+                <TableHead>{t("moduleColumn")}</TableHead>
                 {field.permissionActions?.map((action) => (
                   <TableHead className="text-center" key={action.key}>
-                    {action.label}
+                    {t(`permissionAction.${action.key}`)}
                   </TableHead>
                 ))}
               </TableRow>
@@ -286,13 +306,17 @@ function MockField({
             <TableBody>
               {field.permissionGroups?.map((group) => (
                 <TableRow key={group.key}>
-                  <TableCell className="font-medium">{group.label}</TableCell>
+                  <TableCell className="font-medium">
+                    {t(`permissionGroup.${group.key}`)}
+                  </TableCell>
                   {field.permissionActions?.map((action) => {
                     const permissionKey = `${group.key}.${action.key}`
                     return (
                       <TableCell className="text-center" key={permissionKey}>
                         <Checkbox
-                          aria-label={`${group.label}: ${action.label}`}
+                          aria-label={`${t(
+                            `permissionGroup.${group.key}`
+                          )}: ${t(`permissionAction.${action.key}`)}`}
                           checked={selected.includes(permissionKey)}
                           onCheckedChange={(checked) =>
                             onChange(
@@ -320,9 +344,9 @@ function MockField({
     return (
       <Field orientation="horizontal">
         <div className="flex flex-1 flex-col gap-0.5">
-          <FieldLabel htmlFor={field.name}>{field.label}</FieldLabel>
-          {field.description ? (
-            <FieldDescription>{field.description}</FieldDescription>
+          <FieldLabel htmlFor={field.name}>{t(field.labelKey)}</FieldLabel>
+          {field.hasDescription ? (
+            <FieldDescription>{t(`${field.labelKey}Hint`)}</FieldDescription>
           ) : null}
         </div>
         <Switch
@@ -343,7 +367,9 @@ function MockField({
       aria-readonly={field.kind === "display" || undefined}
       id={field.name}
       onChange={(event) => onChange(event.target.value)}
-      placeholder={field.placeholder}
+      placeholder={
+        field.hasPlaceholder ? t(`${field.labelKey}Placeholder`) : undefined
+      }
       readOnly={field.kind === "display"}
       value={String(value)}
     />
@@ -354,17 +380,23 @@ function MockField({
       <Select onValueChange={onChange} value={String(value)}>
         <SelectTrigger
           {...requiredProps}
-          aria-label={field.label}
+          aria-label={t(field.labelKey)}
           className="w-full"
           id={field.name}
         >
-          <SelectValue placeholder={field.placeholder} />
+          <SelectValue
+            placeholder={
+              field.hasPlaceholder
+                ? t(`${field.labelKey}Placeholder`)
+                : undefined
+            }
+          />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
             {field.options?.map((option) => (
               <SelectItem key={option.value} value={option.value}>
-                {option.label}
+                {t(option.labelKey)}
               </SelectItem>
             ))}
           </SelectGroup>
@@ -379,7 +411,9 @@ function MockField({
         {...requiredProps}
         id={field.name}
         onChange={(event) => onChange(event.target.value)}
-        placeholder={field.placeholder}
+        placeholder={
+          field.hasPlaceholder ? t(`${field.labelKey}Placeholder`) : undefined
+        }
         value={String(value)}
       />
     )
@@ -388,11 +422,11 @@ function MockField({
   return (
     <Field>
       <FieldLabel htmlFor={field.name}>
-        {field.label} {field.required ? <RequiredMark /> : null}
+        {t(field.labelKey)} {field.required ? <RequiredMark /> : null}
       </FieldLabel>
       {control}
-      {field.description ? (
-        <FieldDescription>{field.description}</FieldDescription>
+      {field.hasDescription ? (
+        <FieldDescription>{t(`${field.labelKey}Hint`)}</FieldDescription>
       ) : null}
     </Field>
   )
@@ -401,10 +435,14 @@ function MockField({
 function CollectionMockup({
   definition,
   forceEmpty,
+  moduleKey,
 }: {
   definition: AdminCollectionDefinition
   forceEmpty: boolean
+  moduleKey: AdminSecondaryModuleKey
 }) {
+  const t = useMockTranslate()
+  const locale = useLocale()
   const [records, setRecords] = React.useState<AdminMockRow[]>(() => [
     ...definition.rows,
   ])
@@ -427,14 +465,14 @@ function CollectionMockup({
 
   const filteredRows = React.useMemo(() => {
     if (forceEmpty) return []
-    const needle = search.trim().toLocaleLowerCase("es")
+    const needle = search.trim().toLocaleLowerCase(locale)
     return records.filter((row) => {
       const matchesSearch =
-        !needle || row.search.toLocaleLowerCase("es").includes(needle)
-      const matchesStatus = status === "all" || row.status === status
+        !needle || row.search.toLocaleLowerCase(locale).includes(needle)
+      const matchesStatus = status === "all" || row.statusKey === status
       return matchesSearch && matchesStatus
     })
-  }, [forceEmpty, records, search, status])
+  }, [forceEmpty, locale, records, search, status])
 
   const pageCount = Math.max(1, Math.ceil(filteredRows.length / PAGE_SIZE))
   const currentPage = Math.min(pageIndex, pageCount - 1)
@@ -464,7 +502,7 @@ function CollectionMockup({
 
   function submitForm() {
     if (!definition.action || !complete) {
-      toast.error("Completa todos los campos obligatorios.")
+      toast.error(t("missingFields"))
       return
     }
     if (editingRow && !dirty) return
@@ -473,7 +511,7 @@ function CollectionMockup({
       if (definition.action?.mode === "execute") {
         setSaving(false)
         setSheetOpen(false)
-        toast.success(definition.action.successMessage)
+        toast.success(t(`action.${moduleKey}.executed`))
         return
       }
       const updated = rowWithValues(definition, values, editingRow ?? undefined)
@@ -487,7 +525,7 @@ function CollectionMockup({
       setPageIndex(0)
       setSaving(false)
       setSheetOpen(false)
-      toast.success(definition.action?.successMessage ?? "Cambios guardados.")
+      toast.success(t(`action.${moduleKey}.saved`))
     }, 250)
   }
 
@@ -499,7 +537,7 @@ function CollectionMockup({
       setRecords((current) => current.filter((row) => row.id !== id))
       setPendingDelete(null)
       setSaving(false)
-      toast.success("Elemento eliminado.")
+      toast.success(t("recordDeleted"))
     }, 250)
   }
 
@@ -507,10 +545,10 @@ function CollectionMockup({
     <div className="flex flex-col gap-4">
       <header className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold tracking-tight">
-          {definition.title}
+          {t(`module.${moduleKey}.title`)}
         </h1>
         <p className="text-sm text-muted-foreground">
-          {definition.description}
+          {t(`module.${moduleKey}.description`)}
         </p>
       </header>
 
@@ -529,30 +567,38 @@ function CollectionMockup({
                   aria-hidden="true"
                   data-icon="inline-start"
                 />
-                {definition.action.label}
+                {t(`action.${moduleKey}.label`)}
               </Button>
             ) : undefined
           }
           search={{
-            ariaLabel: `Buscar en ${definition.title}`,
+            ariaLabel: t("searchAria", {
+              section: t(`module.${moduleKey}.title`),
+            }),
             onChange: (value) => {
               setSearch(value)
               setPageIndex(0)
             },
-            placeholder: `Buscar en ${definition.title.toLocaleLowerCase("es")}...`,
+            placeholder: t(`module.${moduleKey}.searchPlaceholder`),
             value: search,
           }}
         />
         <CardContent className="flex flex-col gap-4 px-0">
           <DataTableToolbar>
             <DataTableFilter
-              ariaLabel="Filtrar por estado"
-              label="Estado"
+              ariaLabel={t("filterStatus")}
+              label={t("statusColumn")}
               onValueChange={(value) => {
                 setStatus(value)
                 setPageIndex(0)
               }}
-              options={definition.filterOptions}
+              options={[
+                { label: t("allStatuses"), value: "all" },
+                ...definition.statusKeys.map((key) => ({
+                  label: t(`status.${key}`),
+                  value: key,
+                })),
+              ]}
               value={status}
             />
           </DataTableToolbar>
@@ -560,16 +606,16 @@ function CollectionMockup({
           <Table>
             <TableHeader>
               <TableRow>
-                {definition.columns.map((column, index) => (
+                {definition.columnKeys.map((column, index) => (
                   <TableHead
                     className={responsiveColumnClass(index)}
                     key={column}
                   >
-                    {column}
+                    {t(`column.${column}`)}
                   </TableHead>
                 ))}
-                <TableHead>Estado</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
+                <TableHead>{t("statusColumn")}</TableHead>
+                <TableHead className="text-right">{t("actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -578,7 +624,7 @@ function CollectionMockup({
                   {row.values.map((cell, index) => (
                     <TableCell
                       className={responsiveColumnClass(index)}
-                      key={`${row.id}-${definition.columns[index] ?? index}`}
+                      key={`${row.id}-${definition.columnKeys[index] ?? index}`}
                     >
                       <div className="flex flex-col gap-0.5">
                         <span
@@ -597,13 +643,18 @@ function CollectionMockup({
                     </TableCell>
                   ))}
                   <TableCell>
-                    <StatusBadge label={row.status} tone={row.tone} />
+                    <StatusBadge
+                      label={t(`status.${row.statusKey}`)}
+                      tone={row.tone}
+                    />
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
-                          aria-label={`Acciones para ${row.values[0]?.primary ?? row.id}`}
+                          aria-label={t("rowActions", {
+                            row: row.values[0]?.primary ?? row.id,
+                          })}
                           size="icon-sm"
                           variant="brand-secondary"
                         >
@@ -641,21 +692,19 @@ function CollectionMockup({
               ))}
               {rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={definition.columns.length + 2}>
+                  <TableCell colSpan={definition.columnKeys.length + 2}>
                     <Empty className="min-h-48">
                       <EmptyHeader>
                         <EmptyMedia variant="icon">
                           <FileSearch aria-hidden="true" />
                         </EmptyMedia>
                         <EmptyTitle>
-                          {hasFilters
-                            ? "Sin resultados"
-                            : "Aún no hay registros"}
+                          {hasFilters ? t("noResults") : t("emptyTitle")}
                         </EmptyTitle>
                         <EmptyDescription>
                           {hasFilters
-                            ? "Ajusta la búsqueda o el filtro de estado."
-                            : "Los nuevos registros aparecerán en esta tabla."}
+                            ? t("noResultsDescription")
+                            : t("emptyDescription")}
                         </EmptyDescription>
                       </EmptyHeader>
                     </Empty>
@@ -668,7 +717,7 @@ function CollectionMockup({
           <TablePagination
             canGoNext={currentPage < pageCount - 1}
             canGoPrevious={currentPage > 0}
-            itemLabel="resultados"
+            itemLabel={t("itemLabel")}
             onNextPage={() =>
               setPageIndex((current) => Math.min(current + 1, pageCount - 1))
             }
@@ -690,7 +739,7 @@ function CollectionMockup({
           icon={
             <definition.action.icon aria-hidden="true" className="size-6" />
           }
-          label={definition.action.label}
+          label={t(`action.${moduleKey}.label`)}
           onClick={() => openSheet()}
         />
       ) : null}
@@ -701,11 +750,11 @@ function CollectionMockup({
             <SheetHeader className="border-b pr-12">
               <SheetTitle>
                 {editingRow && actionMode === "create"
-                  ? `Editar · ${definition.action.title}`
-                  : definition.action.title}
+                  ? t(`action.${moduleKey}.editTitle`)
+                  : t(`action.${moduleKey}.label`)}
               </SheetTitle>
               <SheetDescription>
-                {definition.action.description}
+                {t(`action.${moduleKey}.description`)}
               </SheetDescription>
             </SheetHeader>
             <form
@@ -753,7 +802,9 @@ function CollectionMockup({
                   ) : (
                     <Check aria-hidden="true" data-icon="inline-start" />
                   )}
-                  {editingRow ? "Guardar cambios" : definition.action.label}
+                  {editingRow
+                    ? t("saveChanges")
+                    : t(`action.${moduleKey}.label`)}
                 </Button>
               </SheetFooter>
             </form>
@@ -768,20 +819,20 @@ function CollectionMockup({
         <SheetContent className="w-full gap-0 p-0 sm:max-w-xl">
           <SheetHeader className="border-b pr-12">
             <SheetTitle>
-              {detailRow?.values[0]?.primary ?? "Detalle"}
+              {detailRow?.values[0]?.primary ?? t("detail")}
             </SheetTitle>
-            <SheetDescription>
-              Información registrada en esta sección administrativa.
-            </SheetDescription>
+            <SheetDescription>{t("detailDescription")}</SheetDescription>
           </SheetHeader>
           <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
             {detailRow?.values.map((cell, index) => (
               <div
                 className="flex flex-col gap-0.5"
-                key={definition.columns[index] ?? cell.primary}
+                key={definition.columnKeys[index] ?? cell.primary}
               >
                 <span className="text-xs text-muted-foreground">
-                  {definition.columns[index] ?? `Campo ${index + 1}`}
+                  {definition.columnKeys[index]
+                    ? t(`column.${definition.columnKeys[index]}`)
+                    : t("fieldNumber", { index: String(index + 1) })}
                 </span>
                 <span className={cell.mono ? "font-mono text-sm" : "text-sm"}>
                   {cell.primary}
@@ -795,8 +846,13 @@ function CollectionMockup({
             ))}
             {detailRow ? (
               <div className="flex flex-col gap-1">
-                <span className="text-xs text-muted-foreground">Estado</span>
-                <StatusBadge label={detailRow.status} tone={detailRow.tone} />
+                <span className="text-xs text-muted-foreground">
+                  {t("statusColumn")}
+                </span>
+                <StatusBadge
+                  label={t(`status.${detailRow.statusKey}`)}
+                  tone={detailRow.tone}
+                />
               </div>
             ) : null}
           </div>
@@ -817,11 +873,13 @@ function CollectionMockup({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Eliminar registro</AlertDialogTitle>
+            <AlertDialogTitle>{t("deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
               {pendingDelete
-                ? `Se eliminará “${pendingDelete.values[0]?.primary ?? "este registro"}” del mockup.`
-                : "Confirma la eliminación del registro."}
+                ? t("deleteDescription", {
+                    name: pendingDelete.values[0]?.primary ?? t("thisRecord"),
+                  })
+                : t("deleteFallback")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -854,6 +912,7 @@ export function AdminSecondaryModuleMockup({
   moduleKey: AdminSecondaryModuleKey
   viewState?: AdminSecondaryViewState
 }) {
+  const t = useMockTranslate()
   const definition = adminSecondaryDefinitions[moduleKey]
 
   if (viewState === "loading") {
@@ -864,9 +923,9 @@ export function AdminSecondaryModuleMockup({
     return (
       <Card variant="subtle">
         <EmptyState
-          description={`No fue posible cargar ${definition.title.toLocaleLowerCase("es")}.`}
+          description={t("loadFailed")}
           icon={CircleAlert}
-          title="No pudimos cargar esta sección"
+          title={t("loadFailedTitle")}
         />
       </Card>
     )
@@ -876,9 +935,9 @@ export function AdminSecondaryModuleMockup({
     return (
       <Card variant="subtle">
         <EmptyState
-          description="Tu cuenta no tiene permisos para administrar esta sección de la plataforma."
+          description={t("forbiddenDescription")}
           icon={ShieldX}
-          title="Acceso restringido"
+          title={t("forbiddenTitle")}
         />
       </Card>
     )
@@ -888,6 +947,7 @@ export function AdminSecondaryModuleMockup({
     <CollectionMockup
       definition={definition}
       forceEmpty={viewState === "empty"}
+      moduleKey={moduleKey}
     />
   )
 }

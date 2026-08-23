@@ -298,6 +298,167 @@ declare const messages: {
     deleted: "Pago manual eliminado."
     cancel: "Cancelar"
   }
+  adminMockups: {
+    action: {
+      teams: {
+        description: "Actualiza el nombre y la descripción del espacio de trabajo."
+        editTitle: "Editar · Editar equipo"
+        executed: "Editar equipo: acción registrada."
+        label: "Editar equipo"
+        saved: "Editar equipo: mockup guardado."
+      }
+      "user-report": {
+        description: "Registra una entrada de ejemplo en el reporte."
+        editTitle: "Editar registro"
+        executed: "Reporte de usuarios: acción registrada."
+        label: "Nuevo registro"
+        saved: "Reporte de usuarios: mockup guardado."
+      }
+      "user-roles": {
+        description: "Agrupa permisos del panel y reutilízalos entre usuarios administrativos."
+        editTitle: "Editar · Crear rol"
+        executed: "Crear rol: acción registrada."
+        label: "Crear rol"
+        saved: "Crear rol: mockup guardado."
+      }
+    }
+    actions: "Acciones"
+    allStatuses: "Todos los estados"
+    column: {
+      members: "Miembros"
+      owner: "Propietario"
+      permissions: "Permisos"
+      plan: "Plan"
+      role: "Rol"
+      signup: "Registro"
+      slug: "Slug"
+      team: "Equipo"
+      user: "Usuario"
+      users: "Usuarios"
+    }
+    deleteDescription: "Se eliminará “{name}” del mockup."
+    deleteFallback: "Confirma la eliminación del registro."
+    deleteTitle: "Eliminar registro"
+    detail: "Detalle"
+    detailDescription: "Información registrada en esta sección administrativa."
+    emptyDescription: "Los nuevos registros aparecerán en esta tabla."
+    emptyTitle: "Aún no hay registros"
+    field: {
+      description: "Descripción"
+      name: "Nombre"
+      permissions: "Permisos"
+      permissionsHint: "Marca las acciones permitidas por módulo del panel."
+    }
+    fieldNumber: "Campo {index}"
+    filterStatus: "Filtrar por estado"
+    forbiddenDescription: "Tu cuenta no tiene permisos para administrar esta sección de la plataforma."
+    forbiddenTitle: "Acceso restringido"
+    itemLabel: "resultados"
+    loadFailed: "No fue posible cargar la información de esta sección."
+    loadFailedTitle: "No pudimos cargar esta sección"
+    metric: {
+      teams: {
+        averageSize: {
+          description: "Miembros por equipo"
+          label: "Tamaño medio"
+        }
+        teams: {
+          description: "Espacios de trabajo actuales"
+          label: "Equipos"
+        }
+        withOwner: {
+          description: "Equipos con dueño asignado"
+          label: "Con propietario"
+        }
+        withoutOwner: {
+          description: "Requieren reasignar dueño"
+          label: "Sin propietario"
+        }
+      }
+      "user-report": {
+        growth: {
+          description: "86 altas en el período"
+          label: "Crecimiento 30 días"
+        }
+        twoFactor: {
+          description: "474 cuentas protegidas"
+          label: "Dos factores"
+        }
+        users: {
+          description: "Identidades registradas"
+          label: "Usuarios"
+        }
+        verified: {
+          description: "1.023 cuentas verificadas"
+          label: "Correo verificado"
+        }
+      }
+      "user-roles": {
+        assigned: {
+          description: "Cuentas con un rol activo"
+          label: "Usuarios asignados"
+        }
+        permissions: {
+          description: "Claves cubiertas por los roles"
+          label: "Permisos"
+        }
+        roles: {
+          description: "Grupos de permisos disponibles"
+          label: "Roles"
+        }
+      }
+    }
+    missingFields: "Completa todos los campos obligatorios."
+    module: {
+      teams: {
+        description: "Espacios de trabajo con su propietario y miembros asignados."
+        searchPlaceholder: "Buscar en equipos..."
+        title: "Equipos"
+      }
+      "user-report": {
+        description: "Crecimiento, seguridad de cuentas y últimas altas registradas."
+        searchPlaceholder: "Buscar en el reporte de usuarios..."
+        title: "Reporte de usuarios"
+      }
+      "user-roles": {
+        description: "Grupos de permisos reutilizables para el acceso al panel."
+        searchPlaceholder: "Buscar en roles de usuario..."
+        title: "Roles de usuario"
+      }
+    }
+    moduleColumn: "Módulo"
+    noResults: "Sin resultados"
+    noResultsDescription: "Ajusta la búsqueda o el filtro de estado."
+    permissionAction: {
+      create: "Crear"
+      delete: "Eliminar"
+      edit: "Editar"
+      view: "Ver"
+    }
+    permissionGroup: {
+      content: "Contenido"
+      payments: "Pagos"
+      plans: "Planes"
+      roles: "Roles y equipos"
+      settings: "Ajustes"
+      users: "Usuarios"
+    }
+    recordDeleted: "Elemento eliminado."
+    rowActions: "Acciones para {row}"
+    saveChanges: "Guardar cambios"
+    searchAria: "Buscar en {section}"
+    status: {
+      attention: "Atención"
+      inUse: "En uso"
+      unused: "Sin usuarios"
+      unverified: "Sin verificar"
+      verified: "Verificada"
+      withOwner: "Con propietario"
+      withoutOwner: "Sin propietario"
+    }
+    statusColumn: "Estado"
+    thisRecord: "este registro"
+  }
   adminNotifications: {
     pageTitle: "Anuncios"
     pageDescription: "Avisos manuales que aparecen en la campana del Portal de los clientes."
