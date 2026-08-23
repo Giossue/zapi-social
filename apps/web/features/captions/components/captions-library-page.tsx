@@ -1,6 +1,6 @@
 "use client"
 "use no memo"
-import type { ColumnDef } from "@tanstack/react-table"
+import type { ColumnDef, RowData } from "@tanstack/react-table"
 import {
   flexRender,
   getCoreRowModel,
@@ -98,6 +98,12 @@ import type {
   CaptionSourceType,
   CaptionStatus,
 } from "@/features/captions/types/captions"
+
+declare module "@tanstack/react-table" {
+  interface ColumnMeta<TData extends RowData, TValue> {
+    className?: string
+  }
+}
 
 type CaptionEditorValues = Omit<
   Caption,
@@ -239,6 +245,7 @@ function createCaptionColumns({
       accessorKey: "sourceType",
       header: "Origen",
       cell: ({ row }) => <SourceCell sourceType={row.original.sourceType} />,
+      meta: { className: "hidden md:table-cell" },
     },
     {
       accessorKey: "status",
@@ -249,6 +256,7 @@ function createCaptionColumns({
       accessorKey: "tags",
       header: "Etiquetas",
       cell: ({ row }) => <TagsCell tags={row.original.tags} />,
+      meta: { className: "hidden lg:table-cell" },
     },
     {
       accessorKey: "updatedAt",
@@ -258,6 +266,7 @@ function createCaptionColumns({
           {formatUpdatedAt(row.original.updatedAt)}
         </span>
       ),
+      meta: { className: "hidden lg:table-cell" },
     },
     {
       id: "actions",
@@ -345,7 +354,10 @@ function CaptionsTable({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead
+                    className={header.column.columnDef.meta?.className}
+                    key={header.id}
+                  >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -362,7 +374,10 @@ function CaptionsTable({
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      className={cell.column.columnDef.meta?.className}
+                      key={cell.id}
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()

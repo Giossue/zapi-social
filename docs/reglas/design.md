@@ -89,7 +89,12 @@ Antes de crear markup o un componente, ejecutar `codebase-memory` para comprobar
   contexto, los controles permanecen a la derecha de su título. Una
   descripción de tabla explica su propósito y nunca repite su cantidad; el
   total aparece exclusivamente en `TablePagination`. Los filtros no reciben
-  anchos fijos: deben envolver a otra línea sin cortar su texto. Toda tabla
+  anchos fijos: deben envolver a otra línea sin cortar su texto; bajo `md`,
+  `DataTableToolbar` los pliega tras su botón «Filtros». Las columnas de
+  detalle de una tabla se ocultan por breakpoint con `hidden md:table-cell` o
+  `hidden lg:table-cell` (siempre emparejando `TableHead` y `TableCell`), de
+  modo que en móvil queden visibles solo las 3-4 columnas esenciales; el resto
+  se recupera con el scroll horizontal del primitive. Toda tabla
   paginada usa el único `TablePagination`, con rango a la izquierda y
   anterior/siguiente a la derecha; no se duplican footers ni selectores de filas
   por página dentro de features. La biblioteca de Files es la excepción

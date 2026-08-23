@@ -868,7 +868,9 @@ export function LinkBioPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Página</TableHead>
-                  <TableHead>Rendimiento</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    Rendimiento
+                  </TableHead>
                   <TableHead>Estado</TableHead>
                   {data.canManage ? (
                     <TableHead className="text-right">Acciones</TableHead>
@@ -887,7 +889,7 @@ export function LinkBioPage() {
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden md:table-cell">
                         <div className="flex flex-col">
                           <span>
                             {page.views} vistas · {page.clicks} clics

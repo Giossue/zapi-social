@@ -510,10 +510,10 @@ function JobsTable({
           <TableHeader>
             <TableRow>
               <TableHead>Generación</TableHead>
-              <TableHead>Tipo</TableHead>
+              <TableHead className="hidden md:table-cell">Tipo</TableHead>
               <TableHead>Estado</TableHead>
-              <TableHead>Consumo</TableHead>
-              <TableHead>Fecha</TableHead>
+              <TableHead className="hidden lg:table-cell">Consumo</TableHead>
+              <TableHead className="hidden md:table-cell">Fecha</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
@@ -528,12 +528,16 @@ function JobsTable({
                     </p>
                   </div>
                 </TableCell>
-                <TableCell>{requestKindLabels[row.kind]}</TableCell>
+                <TableCell className="hidden md:table-cell">
+                  {requestKindLabels[row.kind]}
+                </TableCell>
                 <TableCell>
                   <StatusBadge status={row.status} />
                 </TableCell>
-                <TableCell>{row.costUnits} créditos</TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell className="hidden lg:table-cell">
+                  {row.costUnits} créditos
+                </TableCell>
+                <TableCell className="hidden text-muted-foreground md:table-cell">
                   {formatDate(row.createdAt)}
                 </TableCell>
                 <TableCell className="text-right">
@@ -1533,8 +1537,12 @@ function Planner() {
                     <TableRow>
                       <TableHead>Fecha sugerida</TableHead>
                       <TableHead>Idea</TableHead>
-                      <TableHead>Canal</TableHead>
-                      <TableHead>Formato</TableHead>
+                      <TableHead className="hidden md:table-cell">
+                        Canal
+                      </TableHead>
+                      <TableHead className="hidden lg:table-cell">
+                        Formato
+                      </TableHead>
                       <TableHead>Estado</TableHead>
                       <TableHead className="text-right">Acción</TableHead>
                     </TableRow>
@@ -1548,8 +1556,12 @@ function Planner() {
                         <TableCell className="max-w-64 font-medium whitespace-normal">
                           {row.idea}
                         </TableCell>
-                        <TableCell>{row.platform}</TableCell>
-                        <TableCell>{row.format}</TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          {row.platform}
+                        </TableCell>
+                        <TableCell className="hidden lg:table-cell">
+                          {row.format}
+                        </TableCell>
                         <TableCell>
                           <Badge variant="success">Idea lista</Badge>
                         </TableCell>
@@ -1698,28 +1710,30 @@ function Timing() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-[4rem_repeat(7,minmax(2.5rem,1fr))] gap-1 text-center text-xs">
-              <span />
-              {weekdays.map((day) => (
-                <span className="py-1 text-muted-foreground" key={day}>
-                  {day}
-                </span>
-              ))}
-              {["08:00", "12:00", "16:00", "18:00", "20:00"].map((time) => [
-                <span
-                  className="flex items-center text-muted-foreground"
-                  key={`${time}-label`}
-                >
-                  {time}
-                </span>,
-                ...weekdays.map((day, column) => (
-                  <div
-                    className={`h-10 rounded-md ${heatLevels[Math.min(4, result?.recommendations?.filter((item) => item.weekday === (column + 1) % 7 && Math.abs(item.hour - Number(time.slice(0, 2))) <= 1).length ?? 0)]}`}
-                    key={`${time}-${day}`}
-                    title={`${day} ${time}`}
-                  />
-                )),
-              ])}
+            <div className="overflow-x-auto">
+              <div className="grid grid-cols-[4rem_repeat(7,minmax(2.5rem,1fr))] gap-1 text-center text-xs">
+                <span />
+                {weekdays.map((day) => (
+                  <span className="py-1 text-muted-foreground" key={day}>
+                    {day}
+                  </span>
+                ))}
+                {["08:00", "12:00", "16:00", "18:00", "20:00"].map((time) => [
+                  <span
+                    className="flex items-center text-muted-foreground"
+                    key={`${time}-label`}
+                  >
+                    {time}
+                  </span>,
+                  ...weekdays.map((day, column) => (
+                    <div
+                      className={`h-10 rounded-md ${heatLevels[Math.min(4, result?.recommendations?.filter((item) => item.weekday === (column + 1) % 7 && Math.abs(item.hour - Number(time.slice(0, 2))) <= 1).length ?? 0)]}`}
+                      key={`${time}-${day}`}
+                      title={`${day} ${time}`}
+                    />
+                  )),
+                ])}
+              </div>
             </div>
             <div className="mt-4 flex items-center justify-end gap-2 text-xs text-muted-foreground">
               <span>Menor oportunidad</span>

@@ -49,7 +49,9 @@ export function UpcomingPosts({
             <TableHeader className="[&_tr]:border-border/50">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="h-8" />
-                <TableHead className="h-8 w-28 font-normal">Canal</TableHead>
+                <TableHead className="hidden h-8 w-28 font-normal md:table-cell">
+                  Canal
+                </TableHead>
                 <TableHead className="h-8 w-28 font-normal">Estado</TableHead>
                 <TableHead className="h-8 w-32 text-right font-normal">
                   Fecha
@@ -68,7 +70,7 @@ export function UpcomingPosts({
                     <TableCell className="max-w-0 truncate py-4 font-medium">
                       {post.content || "Sin contenido"}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="hidden text-muted-foreground md:table-cell">
                       {post.channel}
                     </TableCell>
                     <TableCell>

@@ -237,7 +237,7 @@ export function CronsSettingsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Tarea</TableHead>
-                  <TableHead className="hidden lg:table-cell">
+                  <TableHead className="hidden md:table-cell">
                     Frecuencia
                   </TableHead>
                   <TableHead className="hidden lg:table-cell">
@@ -258,7 +258,7 @@ export function CronsSettingsPage() {
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell className="hidden text-muted-foreground lg:table-cell">
+                      <TableCell className="hidden text-muted-foreground md:table-cell">
                         {job.everyMinutes
                           ? `Cada ${job.everyMinutes} min`
                           : "Por demanda"}

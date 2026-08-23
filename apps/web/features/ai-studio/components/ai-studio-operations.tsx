@@ -26,6 +26,7 @@ import {
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import { CardGrid } from "@workspace/ui/components/card-grid"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import { MetricCard } from "@workspace/ui/components/metric-card"
 import { PageLoading } from "@workspace/ui/components/page-loading"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
@@ -398,10 +399,14 @@ function AiHistorySurface({
               <TableHeader>
                 <TableRow>
                   <TableHead>Generación</TableHead>
-                  <TableHead>Herramienta</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    Herramienta
+                  </TableHead>
                   <TableHead>Estado</TableHead>
-                  <TableHead>Consumo</TableHead>
-                  <TableHead>Fecha</TableHead>
+                  <TableHead className="hidden lg:table-cell">
+                    Consumo
+                  </TableHead>
+                  <TableHead className="hidden md:table-cell">Fecha</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
@@ -416,12 +421,16 @@ function AiHistorySurface({
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell>{row.kind}</TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {row.kind}
+                    </TableCell>
                     <TableCell>
                       <HistoryStatusBadge status={row.status} />
                     </TableCell>
-                    <TableCell>{row.cost}</TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="hidden lg:table-cell">
+                      {row.cost}
+                    </TableCell>
+                    <TableCell className="hidden text-muted-foreground md:table-cell">
                       {row.date}
                     </TableCell>
                     <TableCell className="text-right">
@@ -558,6 +567,7 @@ function AiAutomationSurface({
         actions={
           canManage ? (
             <Button
+              className="hidden sm:inline-flex"
               disabled={state !== "ready"}
               onClick={onToggleForm}
               type="button"
@@ -700,8 +710,12 @@ function AiAutomationSurface({
               <TableHeader>
                 <TableRow>
                   <TableHead>Automatización</TableHead>
-                  <TableHead>Frecuencia</TableHead>
-                  <TableHead>Próxima ejecución</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    Frecuencia
+                  </TableHead>
+                  <TableHead className="hidden lg:table-cell">
+                    Próxima ejecución
+                  </TableHead>
                   <TableHead>Estado</TableHead>
                   {canManage ? (
                     <TableHead className="text-right">Acciones</TableHead>
@@ -715,8 +729,10 @@ function AiAutomationSurface({
                   return (
                     <TableRow key={row.id}>
                       <TableCell className="font-medium">{row.name}</TableCell>
-                      <TableCell>{row.cadence}</TableCell>
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className="hidden md:table-cell">
+                        {row.cadence}
+                      </TableCell>
+                      <TableCell className="hidden text-muted-foreground lg:table-cell">
                         {row.nextRun}
                       </TableCell>
                       <TableCell>
@@ -818,6 +834,14 @@ function AiAutomationSurface({
           llegan como borrador.
         </AlertDescription>
       </Alert>
+
+      {canManage ? (
+        <FloatingActionButton
+          disabled={state !== "ready"}
+          label="Nueva automatización"
+          onClick={onToggleForm}
+        />
+      ) : null}
 
       <AlertDialog
         onOpenChange={onDeleteOpenChange}
@@ -993,7 +1017,9 @@ function AiCreditsSurface({
                       <TableRow>
                         <TableHead>Fecha</TableHead>
                         <TableHead>Movimiento</TableHead>
-                        <TableHead>Detalle</TableHead>
+                        <TableHead className="hidden md:table-cell">
+                          Detalle
+                        </TableHead>
                         <TableHead className="text-right">Créditos</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -1006,7 +1032,9 @@ function AiCreditsSurface({
                           <TableCell>
                             <CreditTypeBadge type={movement.type} />
                           </TableCell>
-                          <TableCell>{movement.detail}</TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            {movement.detail}
+                          </TableCell>
                           <TableCell className="text-right font-medium">
                             {movement.credits}
                           </TableCell>

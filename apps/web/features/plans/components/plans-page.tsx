@@ -949,10 +949,16 @@ export function PlansPage() {
                   <TableRow>
                     <TableHead>Plan</TableHead>
                     <TableHead>Precio</TableHead>
-                    <TableHead>Cobro</TableHead>
-                    <TableHead>Prueba</TableHead>
-                    <TableHead>Suscriptores</TableHead>
-                    <TableHead>Permisos</TableHead>
+                    <TableHead className="hidden md:table-cell">Cobro</TableHead>
+                    <TableHead className="hidden lg:table-cell">
+                      Prueba
+                    </TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      Suscriptores
+                    </TableHead>
+                    <TableHead className="hidden lg:table-cell">
+                      Permisos
+                    </TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
@@ -982,7 +988,7 @@ export function PlansPage() {
                       <TableCell className="font-medium">
                         {formatPrice(plan)}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden md:table-cell">
                         <div className="grid gap-0.5">
                           <span>
                             {plan.isFree
@@ -994,15 +1000,17 @@ export function PlansPage() {
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden lg:table-cell">
                         {plan.trialDays > 0
                           ? `${plan.trialDays} días`
                           : "Sin prueba"}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden md:table-cell">
                         {plan.subscriberCount.toLocaleString("es")}
                       </TableCell>
-                      <TableCell>{plan.permissionIds.length}</TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        {plan.permissionIds.length}
+                      </TableCell>
                       <TableCell>
                         <Badge
                           variant={

@@ -431,9 +431,15 @@ function RssSchedules({
                   <TableHeader>
                     <TableRow>
                       <TableHead>Feed</TableHead>
-                      <TableHead>Destinos</TableHead>
-                      <TableHead>Próxima ejecución</TableHead>
-                      <TableHead>Actividad</TableHead>
+                      <TableHead className="hidden lg:table-cell">
+                        Destinos
+                      </TableHead>
+                      <TableHead className="hidden md:table-cell">
+                        Próxima ejecución
+                      </TableHead>
+                      <TableHead className="hidden lg:table-cell">
+                        Actividad
+                      </TableHead>
                       <TableHead>Estado</TableHead>
                       <TableHead className="text-right">Acciones</TableHead>
                     </TableRow>
@@ -464,7 +470,7 @@ function RssSchedules({
                                 </div>
                               </div>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="hidden lg:table-cell">
                               <div className="grid max-w-48 gap-0.5">
                                 <span className="truncate text-sm">
                                   {destinations.primary}
@@ -474,12 +480,12 @@ function RssSchedules({
                                 </span>
                               </div>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="hidden md:table-cell">
                               <span className="text-sm text-foreground">
                                 {row.nextRun}
                               </span>
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="hidden lg:table-cell">
                               <div className="grid gap-0.5">
                                 <span className="text-sm">{row.lastRun}</span>
                                 <span className="text-xs text-muted-foreground">

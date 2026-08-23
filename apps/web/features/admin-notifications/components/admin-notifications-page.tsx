@@ -58,6 +58,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@workspace/ui/components/field"
+import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import { Input } from "@workspace/ui/components/input"
 import { MetricCard } from "@workspace/ui/components/metric-card"
 import { PageLoading } from "@workspace/ui/components/page-loading"
@@ -571,6 +572,7 @@ export function AdminNotificationsPage() {
           <DataTableHeader
             action={
               <Button
+                className="hidden sm:inline-flex"
                 onClick={() => {
                   setEditing(null)
                   setSheetOpen(true)
@@ -748,6 +750,13 @@ export function AdminNotificationsPage() {
             />
           </CardContent>
         </Card>
+        <FloatingActionButton
+          label="Nuevo anuncio"
+          onClick={() => {
+            setEditing(null)
+            setSheetOpen(true)
+          }}
+        />
       </div>
       <AnnouncementSheet
         editing={editing}

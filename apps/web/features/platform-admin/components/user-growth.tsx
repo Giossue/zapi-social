@@ -54,7 +54,7 @@ export function UserGrowth({
       </CardHeader>
 
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-68 w-full">
+        <ChartContainer config={chartConfig} className="h-56 w-full md:h-68">
           <ComposedChart
             data={chartData}
             margin={{ bottom: 0, left: 0, right: 0, top: 0 }}

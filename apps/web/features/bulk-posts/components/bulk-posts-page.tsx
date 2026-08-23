@@ -697,8 +697,12 @@ export function BulkPostsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Lote</TableHead>
-                  <TableHead>Destinos</TableHead>
-                  <TableHead>Progreso</TableHead>
+                  <TableHead className="hidden lg:table-cell">
+                    Destinos
+                  </TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    Progreso
+                  </TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
@@ -720,13 +724,13 @@ export function BulkPostsPage() {
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell className="text-muted-foreground">
+                        <TableCell className="hidden text-muted-foreground lg:table-cell">
                           {batch.targetAccountIds.length}{" "}
                           {batch.targetAccountIds.length === 1
                             ? "cuenta"
                             : "cuentas"}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden md:table-cell">
                           <div className="flex flex-col">
                             <span>
                               {batch.createdPosts} de {batch.validRows} creadas

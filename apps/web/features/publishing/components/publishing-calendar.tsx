@@ -152,9 +152,9 @@ export function PublishingCalendar({
           >
             <ChevronLeft />
           </Button>
-          <ButtonGroupText className="h-7 whitespace-nowrap first-letter:uppercase">
+          <ButtonGroupText className="h-7 min-w-0 whitespace-nowrap max-sm:max-w-44">
             <CalendarDays aria-hidden="true" />
-            {title}
+            <span className="truncate first-letter:uppercase">{title}</span>
           </ButtonGroupText>
           <Button
             aria-label="Periodo siguiente"

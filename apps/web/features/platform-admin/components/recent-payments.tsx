@@ -52,14 +52,14 @@ export function RecentPayments({
             <TableHeader className="[&_tr]:border-border/50">
               <TableRow className="hover:bg-transparent">
                 <TableHead className="h-8" />
-                <TableHead className="h-8 w-36 font-normal">
+                <TableHead className="hidden h-8 w-36 font-normal md:table-cell">
                   Workspace
                 </TableHead>
                 <TableHead className="h-8 w-28 font-normal">Estado</TableHead>
                 <TableHead className="h-8 w-24 text-right font-normal">
                   Importe
                 </TableHead>
-                <TableHead className="h-8 w-32 text-right font-normal">
+                <TableHead className="hidden h-8 w-32 text-right font-normal sm:table-cell">
                   Fecha
                 </TableHead>
               </TableRow>
@@ -80,7 +80,7 @@ export function RecentPayments({
                     <TableCell className="max-w-0 truncate py-4 font-medium">
                       {payment.product}
                     </TableCell>
-                    <TableCell className="max-w-0 truncate text-muted-foreground">
+                    <TableCell className="hidden max-w-0 truncate text-muted-foreground md:table-cell">
                       {payment.workspace}
                     </TableCell>
                     <TableCell>
@@ -91,7 +91,7 @@ export function RecentPayments({
                     <TableCell className="text-right tabular-nums">
                       {amountFormatter.format(payment.amountMinor / 100)}
                     </TableCell>
-                    <TableCell className="text-right text-muted-foreground tabular-nums">
+                    <TableCell className="hidden text-right text-muted-foreground tabular-nums sm:table-cell">
                       {dateFormatter.format(new Date(payment.date))}
                     </TableCell>
                   </TableRow>

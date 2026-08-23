@@ -50,6 +50,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@workspace/ui/components/field"
+import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import { Input } from "@workspace/ui/components/input"
 import { MetricCard } from "@workspace/ui/components/metric-card"
 import { PageLoading } from "@workspace/ui/components/page-loading"
@@ -610,6 +611,7 @@ export function AdminManualPaymentsPage() {
               <DataTableHeader
                 action={
                   <Button
+                    className="hidden sm:inline-flex"
                     onClick={() => {
                       searchWorkspaces("")
                       setSheetOpen(true)
@@ -796,6 +798,13 @@ export function AdminManualPaymentsPage() {
                 />
               </CardContent>
             </Card>
+            <FloatingActionButton
+              label="Registrar pago"
+              onClick={() => {
+                searchWorkspaces("")
+                setSheetOpen(true)
+              }}
+            />
           </TabsContent>
           <TabsContent className="flex flex-col gap-4" value="settings">
             <Card variant="subtle">

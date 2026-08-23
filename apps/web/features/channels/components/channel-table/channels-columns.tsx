@@ -1,7 +1,7 @@
 "use client"
 "use no memo"
 
-import type { ColumnDef } from "@tanstack/react-table"
+import type { ColumnDef, RowData } from "@tanstack/react-table"
 import { MoreHorizontal, Pencil, RefreshCw, Trash2 } from "lucide-react"
 
 import {
@@ -20,6 +20,12 @@ import {
 } from "@workspace/ui/components/dropdown-menu"
 
 import type { PortalChannelAccount } from "../../types/channels"
+
+declare module "@tanstack/react-table" {
+  interface ColumnMeta<TData extends RowData, TValue> {
+    className?: string
+  }
+}
 
 export const capabilityLabels = {
   facebook_page: "Página de Facebook",
@@ -180,6 +186,7 @@ export function createChannelsColumns({
       cell: ({ row }) => (
         <div className="text-sm">{providerLabel(row.original)}</div>
       ),
+      meta: { className: "hidden md:table-cell" },
     },
     {
       accessorKey: "status",
@@ -194,6 +201,7 @@ export function createChannelsColumns({
           {formatConnectionDate(row.original.connectedAt)}
         </div>
       ),
+      meta: { className: "hidden lg:table-cell" },
     },
     {
       id: "actions",

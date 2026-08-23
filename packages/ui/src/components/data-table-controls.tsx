@@ -1,8 +1,10 @@
 "use client"
 
-import { Search } from "lucide-react"
+import { ChevronDown, ListFilter, Search } from "lucide-react"
+import { useId, useState } from "react"
 import type { ReactNode, Ref } from "react"
 
+import { Button } from "@workspace/ui/components/button"
 import {
   CardAction,
   CardDescription,
@@ -131,6 +133,9 @@ function DataTableToolbar({
   children,
   className,
 }: DataTableToolbarProps) {
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const filtersId = useId()
+
   return (
     <div
       className={cn(
@@ -138,7 +143,28 @@ function DataTableToolbar({
         className
       )}
     >
-      <div className="flex w-full min-w-0 flex-wrap items-center gap-3 sm:w-auto">
+      <Button
+        aria-controls={filtersId}
+        aria-expanded={filtersOpen}
+        className="w-fit md:hidden"
+        onClick={() => setFiltersOpen((open) => !open)}
+        size="sm"
+        type="button"
+        variant="outline"
+      >
+        <ListFilter data-icon="inline-start" /> Filtros
+        <ChevronDown
+          className={cn("transition-transform", filtersOpen && "rotate-180")}
+          data-icon="inline-end"
+        />
+      </Button>
+      <div
+        className={cn(
+          "w-full min-w-0 flex-wrap items-center gap-3 sm:w-auto md:flex",
+          filtersOpen ? "flex" : "hidden"
+        )}
+        id={filtersId}
+      >
         {children}
       </div>
       {actions ? (

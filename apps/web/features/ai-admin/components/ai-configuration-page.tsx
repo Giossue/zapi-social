@@ -788,9 +788,15 @@ export function AiConfigurationPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Modelo</TableHead>
-                    <TableHead>Proveedor</TableHead>
-                    <TableHead>Capacidad</TableHead>
-                    <TableHead>Perfil</TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      Proveedor
+                    </TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      Capacidad
+                    </TableHead>
+                    <TableHead className="hidden lg:table-cell">
+                      Perfil
+                    </TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead className="text-right">Habilitado</TableHead>
                   </TableRow>
@@ -804,16 +810,18 @@ export function AiConfigurationPage() {
                           {model.modelId}
                         </p>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden md:table-cell">
                         {configuration.providers.find(
                           (provider) =>
                             provider.providerKey === model.providerKey
                         )?.label ?? model.providerKey}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="hidden md:table-cell">
                         {capabilityLabels[model.capability]}
                       </TableCell>
-                      <TableCell>{tierLabels[model.tier]}</TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        {tierLabels[model.tier]}
+                      </TableCell>
                       <TableCell>
                         <Badge
                           variant={model.deprecated ? "warning" : "success"}
@@ -941,10 +949,18 @@ export function AiConfigurationPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Herramienta</TableHead>
-                    <TableHead>Modelo principal</TableHead>
-                    <TableHead>Respaldo</TableHead>
-                    <TableHead>Razonamiento</TableHead>
-                    <TableHead>Costo</TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      Modelo principal
+                    </TableHead>
+                    <TableHead className="hidden lg:table-cell">
+                      Respaldo
+                    </TableHead>
+                    <TableHead className="hidden lg:table-cell">
+                      Razonamiento
+                    </TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      Costo
+                    </TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
@@ -964,7 +980,7 @@ export function AiConfigurationPage() {
                               : capabilityLabels[shape.capability]}
                           </p>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden md:table-cell">
                           <RouteModelCell
                             models={configuration.models}
                             primaryId={route.primaryModelId}
@@ -972,7 +988,7 @@ export function AiConfigurationPage() {
                             shape={shape}
                           />
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden lg:table-cell">
                           <RouteModelCell
                             models={configuration.models}
                             primaryId={route.fallbackModelId}
@@ -980,12 +996,14 @@ export function AiConfigurationPage() {
                             shape={shape}
                           />
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden lg:table-cell">
                           {shape.internal || shape.media
                             ? "—"
                             : reasoningLabels[route.reasoningEffort]}
                         </TableCell>
-                        <TableCell>{route.costUnits}</TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          {route.costUnits}
+                        </TableCell>
                         <TableCell>
                           <Badge
                             variant={route.enabled ? "success" : "neutral"}
@@ -1487,8 +1505,12 @@ function UsagePanel({
               <TableRow>
                 <TableHead>Modelo</TableHead>
                 <TableHead>Solicitudes</TableHead>
-                <TableHead>Tokens entrada</TableHead>
-                <TableHead>Tokens salida</TableHead>
+                <TableHead className="hidden md:table-cell">
+                  Tokens entrada
+                </TableHead>
+                <TableHead className="hidden md:table-cell">
+                  Tokens salida
+                </TableHead>
                 <TableHead>Costo estimado</TableHead>
               </TableRow>
             </TableHeader>
@@ -1500,8 +1522,12 @@ function UsagePanel({
                       {item.model}
                     </TableCell>
                     <TableCell>{number(item.requests)}</TableCell>
-                    <TableCell>{number(item.inputTokens)}</TableCell>
-                    <TableCell>{number(item.outputTokens)}</TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {number(item.inputTokens)}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {number(item.outputTokens)}
+                    </TableCell>
                     <TableCell>{money(item.estimatedCostMicrousd)}</TableCell>
                   </TableRow>
                 ))

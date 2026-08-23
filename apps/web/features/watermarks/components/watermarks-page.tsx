@@ -63,6 +63,7 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@workspace/ui/components/field"
+import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import {
   InputGroup,
   InputGroupAddon,
@@ -1195,6 +1196,7 @@ export function WatermarksPage() {
           <div className="flex justify-end">
             <Button
               aria-busy={pending}
+              className="hidden sm:inline-flex"
               disabled={!canSave || pending}
               type="submit"
             >
@@ -1213,6 +1215,23 @@ export function WatermarksPage() {
             </Button>
           </div>
         </form>
+        <FloatingActionButton
+          aria-busy={pending}
+          disabled={!canSave || pending}
+          icon={
+            isCreating ? undefined : (
+              <Save aria-hidden="true" className="size-6" />
+            )
+          }
+          label={
+            isCreating
+              ? isGlobalScope
+                ? "Crear marca de agua"
+                : "Aplicar a cuentas"
+              : "Guardar cambios"
+          }
+          onClick={() => void save()}
+        />
       </div>
       <WatermarkImagePicker
         library={library}

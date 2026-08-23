@@ -352,8 +352,8 @@ export function PublishingPostsTable({
           <TableHeader>
             <TableRow>
               <TableHead className="pl-4">Publicación</TableHead>
-              <TableHead>Cuenta</TableHead>
-              <TableHead>Fecha</TableHead>
+              <TableHead className="hidden md:table-cell">Cuenta</TableHead>
+              <TableHead className="hidden lg:table-cell">Fecha</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead className="pr-4 text-right">Acciones</TableHead>
             </TableRow>
@@ -367,13 +367,13 @@ export function PublishingPostsTable({
                     {post.hasMedia ? "Con archivo" : "Solo texto"}
                   </p>
                 </TableCell>
-                <TableCell>
+                <TableCell className="hidden md:table-cell">
                   <p className="max-w-48 truncate">{post.channel}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {providerLabels[post.provider]}
                   </p>
                 </TableCell>
-                <TableCell className="whitespace-nowrap text-muted-foreground">
+                <TableCell className="hidden whitespace-nowrap text-muted-foreground lg:table-cell">
                   {formatDate(post)} · {post.time}
                 </TableCell>
                 <TableCell>

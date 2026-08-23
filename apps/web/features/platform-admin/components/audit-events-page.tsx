@@ -167,10 +167,12 @@ export function AuditEventsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Evento</TableHead>
-                  <TableHead>Origen</TableHead>
+                  <TableHead className="hidden md:table-cell">Origen</TableHead>
                   <TableHead>Estado</TableHead>
-                  <TableHead>Cuenta</TableHead>
-                  <TableHead>Espacio</TableHead>
+                  <TableHead className="hidden md:table-cell">Cuenta</TableHead>
+                  <TableHead className="hidden lg:table-cell">
+                    Espacio
+                  </TableHead>
                   <TableHead>Fecha</TableHead>
                 </TableRow>
               </TableHeader>
@@ -183,16 +185,20 @@ export function AuditEventsPage() {
                     >
                       {item.event}
                     </TableCell>
-                    <TableCell>{sourceLabels[item.source]}</TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {sourceLabels[item.source]}
+                    </TableCell>
                     <TableCell>
                       <Badge variant={severityVariant[item.severity]}>
                         {item.severity}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       {item.actorName ?? item.actorEmail ?? "Sistema"}
                     </TableCell>
-                    <TableCell>{item.workspaceName ?? "—"}</TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      {item.workspaceName ?? "—"}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">
                       {formatDate(item.createdAt)}
                     </TableCell>

@@ -355,6 +355,15 @@ function RequiredLabel({ children }: { children: React.ReactNode }) {
   )
 }
 
+/**
+ * Escalona las columnas dinámicas: la primera queda siempre visible junto a
+ * Estado y Acciones; las dos siguientes aparecen desde md y el resto desde lg.
+ */
+function responsiveColumnClass(index: number) {
+  if (index === 0) return undefined
+  return index <= 2 ? "hidden md:table-cell" : "hidden lg:table-cell"
+}
+
 function RowActionIcon({ action, index }: { action: Action; index: number }) {
   if (action.kind === "destructive") return <Trash2 />
   if (action.kind === "success") return <Check />
@@ -597,8 +606,13 @@ export function AdminModulePreview({
           <Table>
             <TableHeader>
               <TableRow>
-                {active.columns.map((column) => (
-                  <TableHead key={column}>{column}</TableHead>
+                {active.columns.map((column, index) => (
+                  <TableHead
+                    className={responsiveColumnClass(index)}
+                    key={column}
+                  >
+                    {column}
+                  </TableHead>
                 ))}
                 <TableHead>Estado</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
@@ -609,6 +623,7 @@ export function AdminModulePreview({
                 <TableRow key={row.id}>
                   {row.cells.map((cell, index) => (
                     <TableCell
+                      className={responsiveColumnClass(index)}
                       key={`${row.id}-${active.columns[index] ?? index}`}
                     >
                       <div className="grid gap-0.5">

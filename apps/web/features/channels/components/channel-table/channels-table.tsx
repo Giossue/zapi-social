@@ -51,7 +51,10 @@ export function ChannelsTable({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead
+                    className={header.column.columnDef.meta?.className}
+                    key={header.id}
+                  >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -82,7 +85,10 @@ export function ChannelsTable({
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      className={cell.column.columnDef.meta?.className}
+                      key={cell.id}
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()

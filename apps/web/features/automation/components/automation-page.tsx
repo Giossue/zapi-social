@@ -56,6 +56,7 @@ import {
   FieldSet,
   FieldTitle,
 } from "@workspace/ui/components/field"
+import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import { Input } from "@workspace/ui/components/input"
 import { PageLoading } from "@workspace/ui/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
@@ -759,6 +760,7 @@ export function AutomationPage() {
                 action={
                   data.canManage ? (
                     <Button
+                      className="hidden sm:inline-flex"
                       onClick={() => setIsKeyOpen(true)}
                       size="sm"
                       type="button"
@@ -936,6 +938,12 @@ export function AutomationPage() {
                 />
               </CardContent>
             </Card>
+            {data.canManage ? (
+              <FloatingActionButton
+                label="Nueva clave"
+                onClick={() => setIsKeyOpen(true)}
+              />
+            ) : null}
           </TabsContent>
 
           <TabsContent className="pt-3" value="webhooks">
@@ -944,6 +952,7 @@ export function AutomationPage() {
                 action={
                   data.canManage ? (
                     <Button
+                      className="hidden sm:inline-flex"
                       onClick={() => {
                         setEditingWebhook(null)
                         setIsWebhookOpen(true)
@@ -1134,6 +1143,15 @@ export function AutomationPage() {
                 />
               </CardContent>
             </Card>
+            {data.canManage ? (
+              <FloatingActionButton
+                label="Nuevo webhook"
+                onClick={() => {
+                  setEditingWebhook(null)
+                  setIsWebhookOpen(true)
+                }}
+              />
+            ) : null}
           </TabsContent>
 
           <TabsContent className="pt-3" value="logs">

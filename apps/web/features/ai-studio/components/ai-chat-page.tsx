@@ -11,6 +11,7 @@ import {
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import {
+  ArrowLeft,
   CircleAlert,
   Copy,
   MessageSquarePlus,
@@ -56,9 +57,17 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select"
 import { Separator } from "@workspace/ui/components/separator"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@workspace/ui/components/sheet"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Switch } from "@workspace/ui/components/switch"
 import { toast } from "@workspace/ui/components/toast"
+import { useIsLg } from "@workspace/ui/hooks/use-lg"
 import { cn } from "@workspace/ui/lib/utils"
 
 import { AiGenerationCanvas } from "./ai-generation-canvas"
@@ -351,6 +360,9 @@ export function AiChatPage() {
   const [loadError, setLoadError] = useState(false)
   const [pending, setPending] = useState(false)
   const [showOptions, setShowOptions] = useState(true)
+  const [optionsSheetOpen, setOptionsSheetOpen] = useState(false)
+  const [showThread, setShowThread] = useState(false)
+  const isLg = useIsLg()
 
   const load = useCallback(async () => {
     setIsLoading(true)
@@ -524,7 +536,14 @@ export function AiChatPage() {
         { "--options-width": showOptions ? "22rem" : "0rem" } as CSSProperties
       }
     >
-      <div className="flex h-full flex-col gap-3 p-3">
+      {/* Bajo `md` la lista y el hilo comparten celda y se alternan con un
+         translate animado, como en la fuente de diseño. */}
+      <div
+        className={cn(
+          "flex h-full flex-col gap-3 p-3 transition-transform duration-300 ease-out will-change-transform max-md:col-start-1 max-md:row-start-1",
+          showThread && "max-md:pointer-events-none max-md:-translate-x-full"
+        )}
+      >
         <div className="flex shrink-0 items-center gap-2">
           <InputGroup>
             <InputGroupAddon>
@@ -542,6 +561,7 @@ export function AiChatPage() {
             onClick={() => {
               setSelectedId(null)
               setPrompt("")
+              setShowThread(true)
             }}
             size="icon-sm"
             variant="brand-secondary"
@@ -558,7 +578,10 @@ export function AiChatPage() {
                   request.id === selectedId && "border-border bg-muted"
                 )}
                 key={request.id}
-                onClick={() => setSelectedId(request.id)}
+                onClick={() => {
+                  setSelectedId(request.id)
+                  setShowThread(true)
+                }}
                 type="button"
               >
                 <span className="truncate text-sm font-medium">
@@ -582,15 +605,33 @@ export function AiChatPage() {
         </div>
       </div>
 
-      <div className="flex h-full flex-col">
+      <div
+        className={cn(
+          "flex h-full flex-col transition-transform duration-300 ease-out will-change-transform max-md:col-start-1 max-md:row-start-1",
+          showThread
+            ? "max-md:translate-x-0"
+            : "max-md:pointer-events-none max-md:translate-x-full"
+        )}
+      >
         <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border p-3">
-          <div className="flex min-w-0 flex-col">
-            <span className="truncate font-medium">
-              {selected ? selected.title : "Nueva conversación"}
-            </span>
-            <span className="text-sm text-muted-foreground">
-              {chatTools[tool].description}
-            </span>
+          <div className="flex min-w-0 items-center gap-2">
+            <Button
+              aria-label="Volver a las conversaciones"
+              className="md:hidden"
+              onClick={() => setShowThread(false)}
+              size="icon-sm"
+              variant="brand-secondary"
+            >
+              <ArrowLeft />
+            </Button>
+            <div className="flex min-w-0 flex-col">
+              <span className="truncate font-medium">
+                {selected ? selected.title : "Nueva conversación"}
+              </span>
+              <span className="text-sm text-muted-foreground">
+                {chatTools[tool].description}
+              </span>
+            </div>
           </div>
           <div className="flex items-center gap-1">
             <Button asChild size="sm" variant="brand-secondary">
@@ -604,13 +645,18 @@ export function AiChatPage() {
               </Link>
             </Button>
             <Button
-              aria-label={showOptions ? "Ocultar opciones" : "Mostrar opciones"}
-              className="hidden lg:inline-flex"
-              onClick={() => setShowOptions((current) => !current)}
+              aria-label={
+                isLg && showOptions ? "Ocultar opciones" : "Mostrar opciones"
+              }
+              onClick={() =>
+                isLg
+                  ? setShowOptions((current) => !current)
+                  : setOptionsSheetOpen(true)
+              }
               size="icon-sm"
               variant="brand-secondary"
             >
-              {showOptions ? <PanelRightClose /> : <PanelRightOpen />}
+              {isLg && showOptions ? <PanelRightClose /> : <PanelRightOpen />}
             </Button>
           </div>
         </div>
@@ -745,6 +791,27 @@ export function AiChatPage() {
           values={options[tool]}
         />
       </div>
+
+      {/* Tablet/móvil: las opciones se abren en un Sheet lateral. */}
+      {!isLg && (
+        <Sheet onOpenChange={setOptionsSheetOpen} open={optionsSheetOpen}>
+          <SheetContent side="right">
+            <SheetHeader className="pb-0">
+              <SheetTitle>Opciones de {chatTools[tool].label}</SheetTitle>
+              <SheetDescription>
+                Se aplican a la próxima generación de esta herramienta.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+              <ToolOptions
+                onChange={updateOption}
+                tool={tool}
+                values={options[tool]}
+              />
+            </div>
+          </SheetContent>
+        </Sheet>
+      )}
     </div>
   )
 }
