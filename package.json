@@ -9,7 +9,8 @@
     "format": "turbo format",
     "typecheck": "turbo typecheck",
     "audit:portal-admin-ui": "python3 scripts/audit_portal_admin_ui.py",
-    "audit:i18n": "python3 scripts/audit_i18n_messages.py"
+    "audit:i18n": "python3 scripts/audit_i18n_messages.py",
+    "audit:i18n-hardcoded": "python3 scripts/audit_i18n_hardcoded.py"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",

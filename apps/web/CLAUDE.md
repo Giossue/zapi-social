@@ -16,6 +16,14 @@ bun run typecheck
 bun run lint
 bun run audit:portal-admin-ui
 bun run audit:i18n
+bun run audit:i18n-hardcoded
 ```
 
-El auditor cubre todas las rutas de Portal y Admin. No sustituye la aprobación visual del usuario.
+El auditor de UI cubre todas las rutas de Portal y Admin. No sustituye la
+aprobación visual del usuario.
+
+`audit:i18n-hardcoded` encuentra texto de interfaz escrito en el código, que es
+justo lo que `audit:i18n` no puede ver: si una superficie nunca se migró, los
+dos catálogos siguen sincronizados y ese auditor pasa. Falla mientras queden
+superficies pendientes de la fase 2; el recuento vive en
+[`docs/planes/i18n-v2.md`](../../docs/planes/i18n-v2.md).

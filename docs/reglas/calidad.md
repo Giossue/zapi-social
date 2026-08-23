@@ -18,6 +18,7 @@ bun run typecheck
 bun run build
 bun run audit:portal-admin-ui
 bun run audit:i18n
+bun run audit:i18n-hardcoded
 ```
 
 Los workspaces API y Worker tienen comandos `test`. Antes de ejecutar pruebas de Web u otro paquete, confirmar el script disponible en su `package.json`; no asumir una suite raíz que no existe.
@@ -27,7 +28,7 @@ Los workspaces API y Worker tienen comandos `test`. Antes de ejecutar pruebas de
 | Tipo de cambio      | Validación mínima                                                                                                           |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | Ruta o UI Next      | Typecheck y lint/build disponible; estados mock; permisos; móvil; claro/oscuro; aprobación visual del usuario.              |
-| Texto de interfaz   | Claves en `apps/web/messages/` presentes en todos los idiomas (`audit:i18n`); formato de fecha y número por `useFormatter`. |
+| Texto de interfaz   | Ninguna cadena nueva en el código (`audit:i18n-hardcoded`); claves presentes en todos los idiomas (`audit:i18n`); fecha y número por `useFormatter`. |
 | Feature con mock    | Fixture determinista; loading, empty, error y permiso; interacción principal; composición dentro de `features/<dominio>`.   |
 | Contrato REST       | Schemas Zod, DTOs y errores consistentes; autorización; OpenAPI y cliente sincronizados si existen.                         |
 | API Nest            | Typecheck; test focal si existe; validación de entrada; ownership/permisos; no exponer entidades Drizzle.                   |
