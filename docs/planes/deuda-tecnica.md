@@ -18,3 +18,13 @@ No bloquean, pero conviene saber que no son datos de servidor:
 exista `SUPPORT_WATERMARKS_TEST_DATABASE_URL` apuntando a `zapi_v2_local`. Con esa variable
 definida corren; sin ella el comando pasa en verde sin ejercitar la base. El Worker conserva
 una suite en la misma situación.
+
+## Dos motores de mockup para módulos secundarios de Admin
+
+Las superficies de usuarios y acceso (`/admin/user-report`, `/admin/user-roles`,
+`/admin/teams`) usan `features/platform-admin-mockups/admin-secondary-module-mockup.tsx`,
+copia literal del motor actual de `diseño ideal`; las seis superficies previas
+(users, credits, affiliate, coupons, payments, subscriptions) siguen sobre
+`features/platform-admin/components/admin-module-preview.tsx`, la adaptación
+anterior de ese mismo motor. Al conectar cada vertical a REST conviene migrar
+las seis antiguas al motor copiado y retirar `admin-module-preview.tsx`.

@@ -10,7 +10,8 @@ Fuente canónica: `diseño ideal/src/app/(main)/dashboard/admin-modules`. La cop
 
 | Área              | Rutas V2                                                                                                                                  | Comportamiento útil conservado en el mockup                                                      |
 | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| Contenido         | `/admin/blogs`, `/admin/blog-categories`, `/admin/blog-tags`, `/admin/faqs`                                                               | Listado, búsqueda, estado, orden, creación, edición, duplicación o eliminación según el recurso. |
+| Usuarios y acceso | `/admin/user-report`, `/admin/user-roles`, `/admin/teams`                                                                                 | Reporte de crecimiento y seguridad de cuentas; roles con matriz de permisos; equipos con propietario y miembros. |
+| Contenido         | `/admin/blogs`, `/admin/blog-categories`, `/admin/blog-tags`, `/admin/blog-rss`, `/admin/faqs`                                            | Listado, búsqueda, estado, orden, creación, edición, duplicación o eliminación según el recurso. |
 | Localización      | `/admin/languages`                                                                                                                        | Idiomas y sincronización de traducciones.                                                        |
 | Catálogo AI       | `/admin/ai-templates`, `/admin/ai-template-categories`                                                                                    | Plantillas, categorías, estado, orden y edición contextual.                                      |
 | Observabilidad AI | `/admin/ai-usage-logs`, `/admin/ai-report`                                                                                                | Uso por proveedor/modelo/capacidad, coste, tokens y reporte agregado.                            |
@@ -53,6 +54,56 @@ Fuente canónica: `diseño ideal/src/app/(main)/dashboard/admin-modules`. La cop
 - La separación tonal se resolvió en la fuente canónica y en primitives compartidos, no con colores locales de la feature.
 - Fuente: Biome focal sin diagnósticos, `tsc --noEmit`, `next build` y `git diff --check` correctos.
 - ZapiV2: lint focal Web sin errores, typecheck de Web y `packages/ui`, build Web con las 16 rutas mock y `git diff --check` correctos. Los warnings de lint restantes pertenecen a efectos preexistentes en Planes, Carousel y hooks responsive; no fueron introducidos por esta revisión.
+
+## Superficies de usuarios y acceso — 22 de agosto de 2026
+
+Se añadieron tres superficies mock nuevas siguiendo el mismo patrón fuente → copia. La fuente canónica sigue siendo `diseño ideal/src/app/(main)/dashboard/admin-modules` (grupo «Usuarios y acceso» del selector); la copia V2 vive en `apps/web/features/platform-admin-mockups` porque los mockups anteriores ya fueron reemplazados por superficies REST reales.
+
+| Ruta V2              | Referencia Laravel (`modules/AdminUser`)                                          | Qué muestra el mockup                                                                                                                    |
+| -------------------- | --------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `/admin/user-report` | `AdminUserReportController` + `report/index.blade.php`                             | Métricas de usuarios, crecimiento 30 días, verificación y 2FA; tabla de últimas altas con usuario, rol, plan y registro; solo lectura.    |
+| `/admin/user-roles`  | `RoleIndex`, `RoleForm`, `AdminPermissionCatalog`, `roles-index.blade.php`         | Roles con usuarios asignados y conteo de permisos; crear/editar en sheet con matriz de permisos por módulo y acción; eliminar con aviso. |
+| `/admin/teams`       | `TeamIndex`, `TeamForm`, `teams-index.blade.php`                                   | Equipos con propietario, miembros y slug; estado con/sin propietario; edición de nombre y descripción en sheet, sin crear ni eliminar.   |
+
+Adaptaciones respecto a Laravel, documentadas como divergencias del mock:
+
+- El reporte reduce la batería de gráficos Highcharts a las cuatro métricas principales (`MetricCard`) y la tabla de últimas altas; el estado por fila resume la postura de verificación (`Verificada`, `Sin verificar`, `Atención`).
+- La matriz de permisos usa los grupos representativos del panel V2 con acciones Ver/Crear/Editar/Eliminar, derivadas del catálogo dinámico de rutas de Laravel.
+- La gestión individual de miembros de un equipo (añadir/quitar con rol) no se replica en el mock; se conserva el conteo de miembros y el propietario.
+- Igual que en Laravel, Equipos no permite crear ni eliminar (los equipos personales se aprovisionan automáticamente); para ello el mockup genérico ganó el modo de acción `edit`.
+
+El mockup genérico de la fuente se amplió antes de copiar: campo `permissions` (matriz con `Checkbox` dentro de `FieldSet`), modo de acción `edit`, botón secundario «Cancelar» sin icono en el sheet de formulario, `FloatingActionButton` para la acción de crear (con el botón del encabezado oculto bajo `sm`) y columnas responsive `hidden md/lg:table-cell`. `FloatingActionButton` se portó a `diseño ideal/src/components` desde `packages/ui`.
+
+Evidencia de validación:
+
+- Fuente: Biome focal sin diagnósticos y `tsc --noEmit` correctos; los tres módulos son navegables en `/dashboard/admin-modules`.
+- ZapiV2: `tsc --noEmit` de Web, lint de Web sin errores nuevos (0 hallazgos en los archivos añadidos) y `bun run audit:portal-admin-ui` sin hallazgos.
+- La aprobación visual corresponde al usuario; la navegación del sidebar se integra en un proceso separado.
+
+## Fuente RSS del blog — 22 de agosto de 2026
+
+Se añadió la colección mock `/admin/blog-rss`, equivalente al hijo «RSS Feeds»
+del sidebar de `modules/AdminBlogs` en Laravel (`RssIndex` sobre
+`blog_rss_sources`). La fuente canónica es la colección `blog-rss` del grupo
+«Contenido y localización» en `diseño ideal/src/app/(main)/dashboard/admin-modules`;
+la copia V2 vive en
+`apps/web/features/admin-content/components/blog-rss-collection.tsx` y reutiliza
+el patrón declarativo de `AdminCollectionPage` con fixtures locales
+deterministas (sin contrato REST ni endpoint nuevo).
+
+- Campos tomados de Laravel sin inventar ninguno: nombre, URL del feed,
+  categoría destino, etiquetas, frecuencia de sincronización en minutos,
+  máximo de entradas por ejecución, instrucción para la IA, estado
+  activa/pausada, publicación automática, mejora con IA y traducción
+  automática. La tabla muestra fuente, categoría, sincronización, última
+  importación con conteo de entradas y estado.
+- Divergencias del mock: la validación remota del feed, «Run now»/«Run all»,
+  la selección múltiple y el histórico de importaciones (`RssLogsIndex`)
+  quedan para la vertical real de contenido.
+- Validación: fuente con Biome focal sin diagnósticos y `tsc --noEmit`;
+  ZapiV2 con `tsc --noEmit` de Web, lint sin errores nuevos y
+  `bun run audit:portal-admin-ui` sin hallazgos. La entrada del sidebar se
+  integra en un proceso separado.
 
 ## Retiro de módulos — 12 de agosto de 2026
 

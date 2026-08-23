@@ -127,9 +127,54 @@ no hubo migración.
 - Cada respuesta y cada cambio de estado escribe en `api_audit_logs` con el
   workspace del caso y el usuario administrador como actor.
 
-Sigue fuera de alcance: asignación a un agente, tipos, etiquetas, notas
-internas, adjuntos y aviso por correo. Las categorías se leen pero todavía no
-se administran desde Admin.
+Sigue fuera de alcance en backend: asignación a un agente, tipos, etiquetas,
+notas internas, adjuntos y aviso por correo. Las categorías se leen pero su
+administración todavía no persiste; la creación de casos desde Admin y la
+gestión de categorías, etiquetas y tipos existen como mock visual (ver la
+ampliación del 22 de agosto de 2026).
+
+## Ampliación mock del backoffice — 22 de agosto de 2026
+
+Equivalencia visual de los hijos restantes del sidebar Laravel `AdminSupport`:
+`New Ticket` (`SupportCreate`) y `Manage Categories` / `Manage Labels` /
+`Manage Types` (`SupportTaxonomy`). Todo es mock sobre estado local y
+fixtures deterministas: no cambia el contrato REST, el endpoint de la cola ni
+la base de datos; las mutaciones reales quedan para la fase 7 de esta
+vertical.
+
+Fuente canónica creada primero en
+`diseño ideal/src/app/(main)/dashboard/support-admin` y copiada a
+`apps/web/features/admin-support/` (`admin-support-page.tsx`,
+`admin-support-new-case-sheet.tsx`, `support-catalog-panel.tsx`).
+
+- La superficie `/admin/support` se organiza en tabs «Casos», «Categorías»,
+  «Etiquetas» y «Tipos», el mismo patrón de `/admin/manual-payments`.
+- «Nuevo caso» es la acción principal del `DataTableHeader` de la cola, con
+  `FloatingActionButton` en móvil. El sheet replica los campos de
+  `SupportCreate`: usuario destino (obligatorio), categoría y tipo
+  opcionales, etiquetas múltiples, asunto y mensaje obligatorios. Formulario
+  `noValidate`, asteriscos semánticos, errores por toast y botón deshabilitado
+  hasta completar los obligatorios; Cancelar sin icono.
+- Crear un caso lo añade al estado local de la cola como «Abierto» y suma en
+  las métricas; su botón «Ver caso» queda deshabilitado porque el detalle
+  exige un caso persistido. Los casos locales desaparecen al recargar.
+- Los tres catálogos usan la tabla canónica completa (búsqueda, filtro de
+  estado, `TableEmptyRow` con columnas visibles y `TablePagination`), sheet de
+  creación/edición con nombre obligatorio e interruptor de estado, y
+  eliminación con `AlertDialog`. El catálogo de categorías se siembra con las
+  categorías reales que ya devuelve la cola y después muta solo en local;
+  etiquetas y tipos parten de fixtures.
+- Divergencias frente a Laravel: los campos `icon` (clases FontAwesome) y
+  `color` (hex libre) de la taxonomía no se replican porque V2 no admite
+  iconografía externa ni colores fuera de tokens; el buscador de usuarios se
+  sustituye por un select de fixtures; `status` inicial y `pin` del ticket no
+  se exponen (el mock siempre abre casos en «Abierto» y el pin sigue fuera de
+  alcance).
+
+Evidencia: fuente con Biome focal sin diagnósticos y `tsc --noEmit`; ZapiV2
+con `tsc --noEmit` de Web, lint sin errores nuevos en los archivos tocados y
+`bun run audit:portal-admin-ui` sin hallazgos. La aprobación visual
+corresponde al usuario.
 
 ### Evidencia — 21 de agosto de 2026
 

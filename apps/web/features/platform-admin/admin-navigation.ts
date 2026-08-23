@@ -51,7 +51,16 @@ export const adminNavigationGroups: readonly AdminNavigationGroup[] = [
     label: "Plataforma",
     items: [
       { label: "Integraciones", href: "/admin/integrations", icon: PlugZap },
-      { label: "Usuarios", href: "/admin/users", icon: Users },
+      {
+        label: "Usuarios",
+        icon: Users,
+        children: [
+          { label: "Cuentas", href: "/admin/users" },
+          { label: "Equipos", href: "/admin/teams" },
+          { label: "Reporte", href: "/admin/user-report" },
+          { label: "Roles", href: "/admin/user-roles" },
+        ],
+      },
       {
         label: "Facturación",
         icon: CreditCard,
@@ -85,6 +94,7 @@ export const adminNavigationGroups: readonly AdminNavigationGroup[] = [
           { label: "Entradas", href: "/admin/blogs" },
           { label: "Categorías", href: "/admin/blog-categories" },
           { label: "Etiquetas", href: "/admin/blog-tags" },
+          { label: "RSS Feeds", href: "/admin/blog-rss" },
         ],
       },
       {

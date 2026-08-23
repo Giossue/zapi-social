@@ -9,6 +9,7 @@ import {
   CircleX,
   LifeBuoy,
   MessageSquare,
+  Plus,
   ShieldX,
   Timer,
   X,
@@ -32,6 +33,7 @@ import {
   DataTableToolbar,
 } from "@workspace/ui/components/data-table-controls"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import { MetricCard } from "@workspace/ui/components/metric-card"
 import { PageLoading } from "@workspace/ui/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
@@ -45,7 +47,23 @@ import {
 } from "@workspace/ui/components/table"
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/tabs"
 import { loginPath } from "@/features/identity/login-redirect"
+
+import {
+  AdminSupportNewCaseSheet,
+  type AdminSupportUserFixture,
+  type NewCaseValues,
+} from "./admin-support-new-case-sheet"
+import {
+  SupportCatalogPanel,
+  type SupportCatalogItem,
+} from "./support-catalog-panel"
 
 const statusLabel: Record<AdminSupportTicketStatus, string> = {
   open: "Abierto",
@@ -67,12 +85,62 @@ const emptyMetrics: AdminSupportMetrics = {
 
 const pageSize = 10
 
+/**
+ * Fixtures deterministas del mock de creación y catálogos. Equivalen a los
+ * hijos Laravel `New Ticket`, `Manage Labels` y `Manage Types`; las mutaciones
+ * reales llegan con la vertical de soporte.
+ */
+const fixtureUsers: readonly AdminSupportUserFixture[] = [
+  {
+    id: "user-1",
+    name: "María Andrade",
+    email: "maria@auroracreativa.com",
+    workspaceName: "Aurora Studio",
+  },
+  {
+    id: "user-2",
+    name: "Daniel Vera",
+    email: "daniel@northlab.io",
+    workspaceName: "North Lab",
+  },
+  {
+    id: "user-3",
+    name: "Sofía Torres",
+    email: "sofia@demo.zapi.social",
+    workspaceName: "Demo Workspace",
+  },
+  {
+    id: "user-4",
+    name: "Lucía Herrera",
+    email: "lucia@brandpulse.co",
+    workspaceName: "Brand Pulse",
+  },
+]
+
+const initialLabels: readonly SupportCatalogItem[] = [
+  { id: "label-1", name: "Urgente", isActive: true },
+  { id: "label-2", name: "Facturación", isActive: true },
+  { id: "label-3", name: "Error de producto", isActive: true },
+  { id: "label-4", name: "Seguimiento", isActive: false },
+]
+
+const initialTypes: readonly SupportCatalogItem[] = [
+  { id: "type-1", name: "Incidencia", isActive: true },
+  { id: "type-2", name: "Solicitud", isActive: true },
+  { id: "type-3", name: "Pregunta", isActive: true },
+  { id: "type-4", name: "Mejora", isActive: false },
+]
+
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("es-EC", {
     day: "numeric",
     month: "short",
     year: "numeric",
   }).format(new Date(value))
+}
+
+function isLocalTicket(ticket: AdminSupportTicket) {
+  return ticket.id.startsWith("local-")
 }
 
 function SupportMetrics({ metrics }: { metrics: AdminSupportMetrics }) {
@@ -126,6 +194,18 @@ export function AdminSupportPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [forbidden, setForbidden] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false)
+  /** Casos creados por el mock de «Nuevo caso»; viven solo en esta sesión. */
+  const [localTickets, setLocalTickets] = useState<AdminSupportTicket[]>([])
+  const [categoriesCatalog, setCategoriesCatalog] = useState<
+    SupportCatalogItem[] | null
+  >(null)
+  const [labelsCatalog, setLabelsCatalog] = useState<SupportCatalogItem[]>([
+    ...initialLabels,
+  ])
+  const [typesCatalog, setTypesCatalog] = useState<SupportCatalogItem[]>([
+    ...initialTypes,
+  ])
 
   const load = useCallback(async () => {
     setIsLoading(true)
@@ -144,6 +224,19 @@ export function AdminSupportPage() {
       setMetrics(response.metrics)
       setTotal(response.total)
       setForbidden(false)
+      /**
+       * El catálogo mock de categorías parte del catálogo real ya expuesto por
+       * la cola; después vive en estado local hasta la mutación REST.
+       */
+      setCategoriesCatalog(
+        (current) =>
+          current ??
+          response.categories.map((category) => ({
+            id: category.id,
+            name: category.name,
+            isActive: category.status === "active",
+          }))
+      )
     } catch (error) {
       if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
         router.replace(loginPath())
@@ -165,10 +258,16 @@ export function AdminSupportPage() {
     return () => clearTimeout(timer)
   }, [load, query])
 
-  const pageCount = Math.max(1, Math.ceil(total / pageSize))
+  const displayTickets = [...localTickets, ...tickets]
+  const displayTotal = total + localTickets.length
+  const displayMetrics: AdminSupportMetrics = {
+    ...metrics,
+    open: metrics.open + localTickets.length,
+  }
+  const pageCount = Math.max(1, Math.ceil(displayTotal / pageSize))
   const safePage = Math.min(page, pageCount)
-  const rangeStart = total ? (safePage - 1) * pageSize + 1 : 0
-  const rangeEnd = total ? rangeStart + tickets.length - 1 : 0
+  const rangeStart = displayTotal ? (safePage - 1) * pageSize + 1 : 0
+  const rangeEnd = displayTotal ? rangeStart + displayTickets.length - 1 : 0
   const hasFilters = Boolean(
     query || status !== "all" || categoryId !== "all" || queue !== "all"
   )
@@ -179,6 +278,37 @@ export function AdminSupportPage() {
     setCategoryId("all")
     setQueue("all")
     setPage(1)
+  }
+
+  function createLocalTicket(values: NewCaseValues) {
+    const user = fixtureUsers.find((candidate) => candidate.id === values.userId)
+    if (!user) return
+    const category = (categoriesCatalog ?? []).find(
+      (candidate) => candidate.id === values.categoryId
+    )
+    const now = new Date().toISOString()
+    setLocalTickets((current) => [
+      {
+        id: `local-${current.length + 1}`,
+        subject: values.subject,
+        status: "open",
+        category: {
+          id: category?.id ?? "local-category",
+          name: category?.name ?? "Sin categoría",
+          slug: "local",
+          description: "",
+          status: "active",
+        },
+        workspace: { id: `local-workspace-${user.id}`, name: user.workspaceName },
+        requester: { id: user.id, displayName: user.name, email: user.email },
+        commentCount: 0,
+        awaitingReply: false,
+        lastActivityAt: now,
+        resolvedAt: null,
+        createdAt: now,
+      },
+      ...current,
+    ])
   }
 
   if (forbidden) {
@@ -207,182 +337,281 @@ export function AdminSupportPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <CollectionHeader
-        description="Cola de casos de todos los espacios de trabajo, con su estado y su última actividad."
-        title="Soporte"
-      />
-      <SupportMetrics metrics={metrics} />
-      <Card variant="subtle">
-        <DataTableHeader
-          search={{
-            ariaLabel: "Buscar casos de soporte",
-            onChange: (value) => {
-              setQuery(value)
-              setPage(1)
-            },
-            placeholder: "Buscar por asunto, cliente o espacio...",
-            value: query,
-          }}
+    <>
+      <div className="flex flex-col gap-4">
+        <CollectionHeader
+          description="Cola de casos de todos los espacios de trabajo y catálogos que clasifican la atención."
+          title="Soporte"
         />
-        <CardContent className="flex flex-col gap-4 px-0">
-          <DataTableToolbar
-            actions={
-              hasFilters ? (
-                <Button
-                  onClick={clearFilters}
-                  size="sm"
-                  type="button"
-                  variant="outline"
-                >
-                  <X /> Limpiar
-                </Button>
-              ) : undefined
-            }
+        <Tabs defaultValue="cases">
+          <TabsList
+            aria-label="Secciones de soporte"
+            className="flex h-auto flex-wrap"
           >
-            <DataTableFilter
-              ariaLabel="Filtrar por cola"
-              label="Cola"
-              onValueChange={(value) => {
-                setQueue(value as "all" | "awaiting")
-                setPage(1)
-              }}
-              options={[
-                { label: "Todos", value: "all" },
-                { label: "Sin responder", value: "awaiting" },
-              ]}
-              value={queue}
-            />
-            <DataTableFilter
-              ariaLabel="Filtrar por estado"
-              label="Estado"
-              onValueChange={(value) => {
-                setStatus(value as AdminSupportTicketStatus | "all")
-                setPage(1)
-              }}
-              options={[
-                { label: "Todos", value: "all" },
-                { label: "Abiertos", value: "open" },
-                { label: "Resueltos", value: "resolved" },
-                { label: "Cerrados", value: "closed" },
-              ]}
-              value={status}
-            />
-            <DataTableFilter
-              ariaLabel="Filtrar por categoría"
-              label="Categoría"
-              onValueChange={(value) => {
-                setCategoryId(value)
-                setPage(1)
-              }}
-              options={[
-                { label: "Todas", value: "all" },
-                ...categories.map((category) => ({
-                  label: category.name,
-                  value: category.id,
-                })),
-              ]}
-              value={categoryId}
-            />
-          </DataTableToolbar>
-          <div>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Caso</TableHead>
-                  <TableHead className="hidden lg:table-cell">
-                    Espacio
-                  </TableHead>
-                  <TableHead className="hidden md:table-cell">
-                    Categoría
-                  </TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="hidden lg:table-cell">
-                    Actividad
-                  </TableHead>
-                  <TableHead className="text-right">Acción</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {tickets.length ? (
-                  tickets.map((ticket) => (
-                    <TableRow key={ticket.id}>
-                      <TableCell>
-                        <div className="flex min-w-48 flex-col gap-1">
-                          <span className="font-medium">{ticket.subject}</span>
-                          <span className="text-sm text-muted-foreground">
-                            {ticket.requester.displayName} ·{" "}
-                            {ticket.requester.email}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden text-muted-foreground lg:table-cell">
-                        {ticket.workspace.name}
-                      </TableCell>
-                      <TableCell className="hidden text-muted-foreground md:table-cell">
-                        {ticket.category.name}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <Badge variant={statusVariant[ticket.status]}>
-                            {statusLabel[ticket.status]}
-                          </Badge>
-                          {ticket.awaitingReply ? (
-                            <Badge variant="warning">Sin responder</Badge>
-                          ) : null}
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden text-muted-foreground lg:table-cell">
-                        {formatDate(ticket.lastActivityAt)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button asChild size="sm" variant="brand-secondary">
-                          <Link href={`/admin/support/${ticket.id}`}>
-                            <MessageSquare data-icon="inline-start" /> Ver caso
-                          </Link>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableEmptyRow
-                    action={
-                      hasFilters ? (
-                        <Button onClick={clearFilters} variant="outline">
-                          Restablecer filtros
-                        </Button>
-                      ) : null
-                    }
-                    colSpan={6}
-                    description={
-                      hasFilters
-                        ? "Prueba con otro término, estado o categoría."
-                        : "Cuando un cliente abra un caso aparecerá en esta cola."
-                    }
-                    title={
-                      hasFilters
-                        ? "No hay coincidencias"
-                        : "Todavía no hay casos de soporte"
-                    }
+            <TabsTrigger value="cases">Casos</TabsTrigger>
+            <TabsTrigger value="categories">Categorías</TabsTrigger>
+            <TabsTrigger value="labels">Etiquetas</TabsTrigger>
+            <TabsTrigger value="types">Tipos</TabsTrigger>
+          </TabsList>
+          <TabsContent className="flex flex-col gap-4" value="cases">
+            <SupportMetrics metrics={displayMetrics} />
+            <Card variant="subtle">
+              <DataTableHeader
+                action={
+                  <Button
+                    className="hidden sm:inline-flex"
+                    onClick={() => setCreateOpen(true)}
+                    size="sm"
+                    type="button"
+                  >
+                    <Plus data-icon="inline-start" /> Nuevo caso
+                  </Button>
+                }
+                search={{
+                  ariaLabel: "Buscar casos de soporte",
+                  onChange: (value) => {
+                    setQuery(value)
+                    setPage(1)
+                  },
+                  placeholder: "Buscar por asunto, cliente o espacio...",
+                  value: query,
+                }}
+              />
+              <CardContent className="flex flex-col gap-4 px-0">
+                <DataTableToolbar
+                  actions={
+                    hasFilters ? (
+                      <Button
+                        onClick={clearFilters}
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                      >
+                        <X /> Limpiar
+                      </Button>
+                    ) : undefined
+                  }
+                >
+                  <DataTableFilter
+                    ariaLabel="Filtrar por cola"
+                    label="Cola"
+                    onValueChange={(value) => {
+                      setQueue(value as "all" | "awaiting")
+                      setPage(1)
+                    }}
+                    options={[
+                      { label: "Todos", value: "all" },
+                      { label: "Sin responder", value: "awaiting" },
+                    ]}
+                    value={queue}
                   />
-                )}
-              </TableBody>
-            </Table>
-          </div>
-          <TablePagination
-            canGoNext={safePage < pageCount}
-            canGoPrevious={safePage > 1}
-            itemLabel="casos"
-            onNextPage={() =>
-              setPage((current) => Math.min(current + 1, pageCount))
-            }
-            onPreviousPage={() => setPage((current) => Math.max(current - 1, 1))}
-            rangeEnd={rangeEnd}
-            rangeStart={rangeStart}
-            total={total}
-          />
-        </CardContent>
-      </Card>
-    </div>
+                  <DataTableFilter
+                    ariaLabel="Filtrar por estado"
+                    label="Estado"
+                    onValueChange={(value) => {
+                      setStatus(value as AdminSupportTicketStatus | "all")
+                      setPage(1)
+                    }}
+                    options={[
+                      { label: "Todos", value: "all" },
+                      { label: "Abiertos", value: "open" },
+                      { label: "Resueltos", value: "resolved" },
+                      { label: "Cerrados", value: "closed" },
+                    ]}
+                    value={status}
+                  />
+                  <DataTableFilter
+                    ariaLabel="Filtrar por categoría"
+                    label="Categoría"
+                    onValueChange={(value) => {
+                      setCategoryId(value)
+                      setPage(1)
+                    }}
+                    options={[
+                      { label: "Todas", value: "all" },
+                      ...categories.map((category) => ({
+                        label: category.name,
+                        value: category.id,
+                      })),
+                    ]}
+                    value={categoryId}
+                  />
+                </DataTableToolbar>
+                <div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Caso</TableHead>
+                        <TableHead className="hidden lg:table-cell">
+                          Espacio
+                        </TableHead>
+                        <TableHead className="hidden md:table-cell">
+                          Categoría
+                        </TableHead>
+                        <TableHead>Estado</TableHead>
+                        <TableHead className="hidden lg:table-cell">
+                          Actividad
+                        </TableHead>
+                        <TableHead className="text-right">Acción</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {displayTickets.length ? (
+                        displayTickets.map((ticket) => (
+                          <TableRow key={ticket.id}>
+                            <TableCell>
+                              <div className="flex min-w-48 flex-col gap-1">
+                                <span className="font-medium">
+                                  {ticket.subject}
+                                </span>
+                                <span className="text-sm text-muted-foreground">
+                                  {ticket.requester.displayName} ·{" "}
+                                  {ticket.requester.email}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="hidden text-muted-foreground lg:table-cell">
+                              {ticket.workspace.name}
+                            </TableCell>
+                            <TableCell className="hidden text-muted-foreground md:table-cell">
+                              {ticket.category.name}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <Badge variant={statusVariant[ticket.status]}>
+                                  {statusLabel[ticket.status]}
+                                </Badge>
+                                {ticket.awaitingReply ? (
+                                  <Badge variant="warning">Sin responder</Badge>
+                                ) : null}
+                              </div>
+                            </TableCell>
+                            <TableCell className="hidden text-muted-foreground lg:table-cell">
+                              {formatDate(ticket.lastActivityAt)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {isLocalTicket(ticket) ? (
+                                /* El caso mock no existe en la API: el detalle
+                                   llega con la mutación real. */
+                                <Button disabled size="sm" variant="brand-secondary">
+                                  <MessageSquare data-icon="inline-start" /> Ver
+                                  caso
+                                </Button>
+                              ) : (
+                                <Button asChild size="sm" variant="brand-secondary">
+                                  <Link href={`/admin/support/${ticket.id}`}>
+                                    <MessageSquare data-icon="inline-start" /> Ver
+                                    caso
+                                  </Link>
+                                </Button>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableEmptyRow
+                          action={
+                            hasFilters ? (
+                              <Button onClick={clearFilters} variant="outline">
+                                Restablecer filtros
+                              </Button>
+                            ) : null
+                          }
+                          colSpan={6}
+                          description={
+                            hasFilters
+                              ? "Prueba con otro término, estado o categoría."
+                              : "Cuando un cliente abra un caso aparecerá en esta cola."
+                          }
+                          title={
+                            hasFilters
+                              ? "No hay coincidencias"
+                              : "Todavía no hay casos de soporte"
+                          }
+                        />
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+                <TablePagination
+                  canGoNext={safePage < pageCount}
+                  canGoPrevious={safePage > 1}
+                  itemLabel="casos"
+                  onNextPage={() =>
+                    setPage((current) => Math.min(current + 1, pageCount))
+                  }
+                  onPreviousPage={() =>
+                    setPage((current) => Math.max(current - 1, 1))
+                  }
+                  rangeEnd={rangeEnd}
+                  rangeStart={rangeStart}
+                  total={displayTotal}
+                />
+              </CardContent>
+            </Card>
+            <FloatingActionButton
+              label="Nuevo caso"
+              onClick={() => setCreateOpen(true)}
+            />
+          </TabsContent>
+          <TabsContent className="flex flex-col gap-4" value="categories">
+            <SupportCatalogPanel
+              copy={{
+                createLabel: "Nueva categoría",
+                emptyDescription: "Crea una categoría para organizar los casos.",
+                emptyTitle: "No hay categorías",
+                itemLabel: "categorías",
+                searchPlaceholder: "Buscar categorías...",
+                sheetDescription:
+                  "Las categorías organizan los casos por área de producto.",
+              }}
+              items={categoriesCatalog ?? []}
+              onChange={setCategoriesCatalog}
+            />
+          </TabsContent>
+          <TabsContent className="flex flex-col gap-4" value="labels">
+            <SupportCatalogPanel
+              copy={{
+                createLabel: "Nueva etiqueta",
+                emptyDescription:
+                  "Crea una etiqueta para priorizar y clasificar los casos.",
+                emptyTitle: "No hay etiquetas",
+                itemLabel: "etiquetas",
+                searchPlaceholder: "Buscar etiquetas...",
+                sheetDescription:
+                  "Las etiquetas ayudan al triaje y a la priorización de casos.",
+              }}
+              items={labelsCatalog}
+              onChange={setLabelsCatalog}
+            />
+          </TabsContent>
+          <TabsContent className="flex flex-col gap-4" value="types">
+            <SupportCatalogPanel
+              copy={{
+                createLabel: "Nuevo tipo",
+                emptyDescription:
+                  "Crea un tipo para distinguir incidencias y solicitudes.",
+                emptyTitle: "No hay tipos",
+                itemLabel: "tipos",
+                searchPlaceholder: "Buscar tipos...",
+                sheetDescription:
+                  "Los tipos describen la naturaleza del caso dentro del flujo de soporte.",
+              }}
+              items={typesCatalog}
+              onChange={setTypesCatalog}
+            />
+          </TabsContent>
+        </Tabs>
+      </div>
+      <AdminSupportNewCaseSheet
+        categories={categoriesCatalog ?? []}
+        labels={labelsCatalog}
+        onCreate={createLocalTicket}
+        onOpenChange={setCreateOpen}
+        open={createOpen}
+        types={typesCatalog}
+        users={fixtureUsers}
+      />
+    </>
   )
 }
