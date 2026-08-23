@@ -7,13 +7,14 @@ import type { LinkBioTemplateKey } from "@workspace/contracts"
  * una sola (composición shadcn); cada plantilla aporta únicamente su tema como
  * variables CSS, que el renderer y las miniaturas consumen. Los colores viven
  * aquí y no en clases: la página pública se tematiza por plantilla, fuera del
- * sistema de tokens del producto.
+ * sistema de tokens del producto. El nombre y la descripción de cada plantilla
+ * viven en `messages/` bajo `linkBio.template`.
  */
+export type LinkBioTemplateCategory = "dark" | "light" | "color"
+
 export type LinkBioTemplate = {
   key: LinkBioTemplateKey
-  label: string
-  description: string
-  category: "Oscuras" | "Claras" | "Color"
+  category: LinkBioTemplateCategory
   theme: CSSProperties & Record<`--${string}`, string>
 }
 
@@ -42,9 +43,7 @@ function theme(values: {
 export const linkBioTemplates: readonly LinkBioTemplate[] = [
   {
     key: "aurora",
-    label: "Aurora",
-    description: "Degradado nocturno con bloques de vidrio.",
-    category: "Oscuras",
+    category: "dark",
     theme: theme({
       bg: "radial-gradient(circle at 50% -10%, rgba(96, 165, 250, 0.35), transparent 55%), #0b1220",
       fg: "#f8fafc",
@@ -58,9 +57,7 @@ export const linkBioTemplates: readonly LinkBioTemplate[] = [
   },
   {
     key: "pro-dark",
-    label: "Pro Dark",
-    description: "Oscuro sobrio para marcas.",
-    category: "Oscuras",
+    category: "dark",
     theme: theme({
       bg: "#0a0a0a",
       fg: "#fafafa",
@@ -74,9 +71,7 @@ export const linkBioTemplates: readonly LinkBioTemplate[] = [
   },
   {
     key: "spotlight",
-    label: "Spotlight",
-    description: "Foco violeta sobre fondo profundo.",
-    category: "Oscuras",
+    category: "dark",
     theme: theme({
       bg: "radial-gradient(circle at 50% 0%, rgba(192, 132, 252, 0.3), transparent 50%), #101014",
       fg: "#faf5ff",
@@ -90,9 +85,7 @@ export const linkBioTemplates: readonly LinkBioTemplate[] = [
   },
   {
     key: "forest",
-    label: "Forest",
-    description: "Verde bosque con acentos vivos.",
-    category: "Oscuras",
+    category: "dark",
     theme: theme({
       bg: "linear-gradient(170deg, #052e16, #14532d)",
       fg: "#ecfdf5",
@@ -106,9 +99,7 @@ export const linkBioTemplates: readonly LinkBioTemplate[] = [
   },
   {
     key: "sunset",
-    label: "Sunset",
-    description: "Atardecer cálido en degradado.",
-    category: "Oscuras",
+    category: "dark",
     theme: theme({
       bg: "linear-gradient(160deg, #7c2d12, #be185d)",
       fg: "#fff7ed",
@@ -122,9 +113,7 @@ export const linkBioTemplates: readonly LinkBioTemplate[] = [
   },
   {
     key: "studio",
-    label: "Studio",
-    description: "Azul pizarra profesional.",
-    category: "Oscuras",
+    category: "dark",
     theme: theme({
       bg: "linear-gradient(180deg, #0f172a, #1e293b)",
       fg: "#f1f5f9",
@@ -138,9 +127,7 @@ export const linkBioTemplates: readonly LinkBioTemplate[] = [
   },
   {
     key: "minimal",
-    label: "Minimal",
-    description: "Blanco puro, tipografía primero.",
-    category: "Claras",
+    category: "light",
     theme: theme({
       bg: "#ffffff",
       fg: "#0a0a0a",
@@ -154,9 +141,7 @@ export const linkBioTemplates: readonly LinkBioTemplate[] = [
   },
   {
     key: "paper",
-    label: "Paper",
-    description: "Tarjetas sobre papel cálido.",
-    category: "Claras",
+    category: "light",
     theme: theme({
       bg: "#f7f3ec",
       fg: "#292524",
@@ -170,9 +155,7 @@ export const linkBioTemplates: readonly LinkBioTemplate[] = [
   },
   {
     key: "soft",
-    label: "Soft",
-    description: "Beige suave y sereno.",
-    category: "Claras",
+    category: "light",
     theme: theme({
       bg: "linear-gradient(180deg, #f6f1ea, #efe7db)",
       fg: "#44403c",
@@ -186,9 +169,7 @@ export const linkBioTemplates: readonly LinkBioTemplate[] = [
   },
   {
     key: "sky",
-    label: "Sky",
-    description: "Celeste limpio y aireado.",
-    category: "Claras",
+    category: "light",
     theme: theme({
       bg: "linear-gradient(180deg, #e0f2fe, #eff6ff)",
       fg: "#075985",
@@ -202,9 +183,7 @@ export const linkBioTemplates: readonly LinkBioTemplate[] = [
   },
   {
     key: "wave",
-    label: "Wave",
-    description: "Cian fresco con energía.",
-    category: "Color",
+    category: "color",
     theme: theme({
       bg: "linear-gradient(160deg, #ecfeff, #dbeafe)",
       fg: "#0c4a6e",
@@ -218,9 +197,7 @@ export const linkBioTemplates: readonly LinkBioTemplate[] = [
   },
   {
     key: "promo",
-    label: "Promo",
-    description: "Naranja vivo para campañas.",
-    category: "Color",
+    category: "color",
     theme: theme({
       bg: "linear-gradient(180deg, #fff7ed, #ffedd5)",
       fg: "#7c2d12",

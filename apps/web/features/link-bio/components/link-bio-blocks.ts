@@ -1,28 +1,17 @@
 import type { LinkBioBlock, LinkBioBlockType } from "@workspace/contracts"
 
-export const blockLabels: Record<LinkBioBlockType, string> = {
-  links: "Enlaces",
-  header: "Encabezado",
-  social: "Redes sociales",
-  contact: "Contacto",
-  gallery: "Galería",
-  faq: "Preguntas frecuentes",
-  product: "Productos",
-  video: "Video",
-  embed: "Incrustado",
-}
-
-export const blockHints: Record<LinkBioBlockType, string> = {
-  links: "Lista de botones hacia tus destinos.",
-  header: "Título y texto de presentación.",
-  social: "Iconos hacia tus perfiles.",
-  contact: "Correo, teléfono o dirección.",
-  gallery: "Cuadrícula de imágenes.",
-  faq: "Preguntas con su respuesta.",
-  product: "Artículos con precio y enlace.",
-  video: "Un video incrustado por su URL.",
-  embed: "Contenido externo incrustado.",
-}
+/** El texto de cada tipo vive en `messages/` bajo `linkBio.block`. */
+export const blockTypes: LinkBioBlockType[] = [
+  "links",
+  "header",
+  "social",
+  "contact",
+  "gallery",
+  "faq",
+  "product",
+  "video",
+  "embed",
+]
 
 /** Tipos cuyo contenido se edita como lista de ítems. */
 export const itemBlockTypes: LinkBioBlockType[] = [
@@ -33,8 +22,6 @@ export const itemBlockTypes: LinkBioBlockType[] = [
   "faq",
   "product",
 ]
-
-export const blockTypes = Object.keys(blockLabels) as LinkBioBlockType[]
 
 export function emptyItem(): LinkBioBlock["items"][number] {
   return {
@@ -51,7 +38,8 @@ export function emptyItem(): LinkBioBlock["items"][number] {
   }
 }
 
-export function emptyBlock(type: LinkBioBlockType): LinkBioBlock {
+/** El título inicial lo pone quien crea el bloque, ya traducido. */
+export function emptyBlock(type: LinkBioBlockType, title = ""): LinkBioBlock {
   return {
     buttonLabel: "",
     buttonUrl: "",
@@ -59,7 +47,7 @@ export function emptyBlock(type: LinkBioBlockType): LinkBioBlock {
     enabled: true,
     items: itemBlockTypes.includes(type) ? [emptyItem()] : [],
     subtitle: "",
-    title: blockLabels[type],
+    title,
     type,
     url: "",
   }
