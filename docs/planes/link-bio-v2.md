@@ -122,3 +122,19 @@ guardarse.
   la clase de fondo.
 - Validación: typecheck, lint sin avisos nuevos, `audit:portal-admin-ui` sin hallazgos y
   build Web correctos. Aprobación visual pendiente del usuario.
+
+## Constructor con vista previa en vivo — 23 de agosto de 2026
+
+- El formulario plano del sheet se reorganizó como editor de dos paneles, al nivel del
+  addon original: pestañas **Info** (título, dirección, titular, descripción, alineación,
+  publicada), **Bloques** (editor existente intacto) y **Estilo** (galería de plantillas,
+  estilo de botones, estilo de avatar y texto de marca — estos dos últimos no estaban
+  expuestos en el formulario).
+- El renderer de la página pública se extrajo a `link-bio-renderer.tsx` y lo comparten
+  `/b/{slug}` y la **vista previa en vivo** del constructor: mismo markup y mismo tema;
+  la pública añade el registro de eventos y la previa muestra guías en campos vacíos y
+  avatar de iniciales (el Portal no expone URLs de archivo). El renderer gana soporte de
+  portada con overlay/posición/ajuste y respeta el interruptor de bloque activo.
+- En escritorio la previa vive en el panel derecho permanente; bajo `lg` es una cuarta
+  pestaña. Validación: typecheck, `audit:portal-admin-ui`, build y lint con dos avisos
+  menos que HEAD. Aprobación visual pendiente.

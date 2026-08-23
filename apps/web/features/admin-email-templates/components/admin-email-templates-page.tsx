@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react"
 import {
   CircleAlert,
-  Mail,
   Pencil,
   RotateCcw,
   Save,
@@ -529,10 +528,6 @@ export function AdminEmailTemplatesPage() {
             />
           </CardContent>
         </Card>
-        <p className="text-sm text-muted-foreground">
-          <Mail aria-hidden="true" className="mr-1.5 inline size-4" />
-          El envío usa la configuración SMTP de Integraciones.
-        </p>
       </div>
       <TemplateSheet
         onOpenChange={setSheetOpen}

@@ -96,6 +96,12 @@ import {
 } from "@workspace/ui/components/table"
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
 import { cn } from "@workspace/ui/lib/utils"
@@ -108,6 +114,7 @@ import {
   emptyItem,
   itemBlockTypes,
 } from "./link-bio-blocks"
+import { LinkBioRenderer } from "./link-bio-renderer"
 import { linkBioTemplates } from "../link-bio-templates"
 import { loginPath } from "@/features/identity/login-redirect"
 
@@ -335,6 +342,26 @@ function BlockEditor({
   )
 }
 
+function LinkBioPreview({ draft }: { draft: Draft }) {
+  return (
+    <div className="mx-auto w-full max-w-sm overflow-hidden rounded-3xl border border-border shadow-sm">
+      <LinkBioRenderer
+        page={{
+          appearance: draft.appearance,
+          avatarUrl: null,
+          blocks: draft.blocks,
+          coverUrl: null,
+          description: draft.description,
+          headline: draft.headline,
+          templateKey: draft.templateKey,
+          title: draft.title,
+        }}
+        placeholders
+      />
+    </div>
+  )
+}
+
 function PageSheet({
   onOpenChange,
   onSubmit,
@@ -381,10 +408,25 @@ function PageSheet({
           noValidate
           onSubmit={(event) => void submit(event)}
         >
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4">
-            <div className="mx-auto grid w-full max-w-5xl items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
-              <div className="flex flex-col gap-4">
-                <span className="font-medium">Bloques</span>
+          <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(0,28rem)_minmax(0,1fr)]">
+            <Tabs
+              className="flex min-h-0 flex-col gap-0 border-r border-border"
+              defaultValue="info"
+            >
+              <TabsList className="m-4 mb-0 grid w-auto grid-cols-3 lg:grid-cols-3 max-lg:grid-cols-4">
+                <TabsTrigger value="info">Info</TabsTrigger>
+                <TabsTrigger value="blocks">Bloques</TabsTrigger>
+                <TabsTrigger value="style">Estilo</TabsTrigger>
+                <TabsTrigger className="lg:hidden" value="preview">
+                  Vista previa
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent
+                className="min-h-0 flex-1 overflow-y-auto p-4"
+                value="blocks"
+              >
+                <div className="flex flex-col gap-4">
                 {draft.blocks.map((block, index) => (
                   <BlockEditor
                     block={block}
@@ -417,51 +459,56 @@ function PageSheet({
                     total={draft.blocks.length}
                   />
                 ))}
-                <Select
-                  onValueChange={(value) =>
-                    setDraft({
-                      ...draft,
-                      blocks: [
-                        ...draft.blocks,
-                        emptyBlock(value as LinkBioBlockType),
-                      ],
-                    })
-                  }
-                  value=""
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Añadir bloque…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {blockTypes.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {blockLabels[type]}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <FieldGroup>
-                <Field>
-                  <FieldLabel htmlFor="page-title">
-                    Título{" "}
-                    <span aria-hidden="true" className="text-destructive">
-                      *
-                    </span>
-                    <span className="sr-only"> obligatorio</span>
-                  </FieldLabel>
-                  <Input
-                    aria-required="true"
-                    id="page-title"
-                    onChange={(event) =>
-                      setDraft({ ...draft, title: event.target.value })
+                  <Select
+                    onValueChange={(value) =>
+                      setDraft({
+                        ...draft,
+                        blocks: [
+                          ...draft.blocks,
+                          emptyBlock(value as LinkBioBlockType),
+                        ],
+                      })
                     }
-                    value={draft.title}
-                  />
-                </Field>
+                    value=""
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Añadir bloque…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {blockTypes.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {blockLabels[type]}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </TabsContent>
+
+              <TabsContent
+                className="min-h-0 flex-1 overflow-y-auto p-4"
+                value="info"
+              >
+                <FieldGroup>
+                  <Field>
+                    <FieldLabel htmlFor="page-title">
+                      Título{" "}
+                      <span aria-hidden="true" className="text-destructive">
+                        *
+                      </span>
+                      <span className="sr-only"> obligatorio</span>
+                    </FieldLabel>
+                    <Input
+                      aria-required="true"
+                      id="page-title"
+                      onChange={(event) =>
+                        setDraft({ ...draft, title: event.target.value })
+                      }
+                      value={draft.title}
+                    />
+                  </Field>
                 <Field>
                   <FieldLabel htmlFor="page-slug">Dirección</FieldLabel>
                   <Input
@@ -499,6 +546,59 @@ function PageSheet({
                     value={draft.description}
                   />
                 </Field>
+                <Field>
+                  <FieldLabel htmlFor="page-align">Alineación</FieldLabel>
+                  <Select
+                    onValueChange={(value) =>
+                      setDraft({
+                        ...draft,
+                        appearance: {
+                          ...draft.appearance,
+                          contentAlign: value as "left" | "center",
+                        },
+                      })
+                    }
+                    value={draft.appearance.contentAlign}
+                  >
+                    <SelectTrigger className="w-full" id="page-align">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="center">Centrado</SelectItem>
+                        <SelectItem value="left">A la izquierda</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field orientation="horizontal">
+                  <Switch
+                    checked={draft.status === "published"}
+                    id="page-published"
+                    onCheckedChange={(checked) =>
+                      setDraft({
+                        ...draft,
+                        status: checked ? "published" : "draft",
+                      })
+                    }
+                  />
+                  <FieldLabel htmlFor="page-published">
+                    <FieldContent>
+                      <FieldTitle>Publicada</FieldTitle>
+                      <FieldDescription>
+                        Solo las publicadas son visibles en su dirección.
+                      </FieldDescription>
+                    </FieldContent>
+                  </FieldLabel>
+                </Field>
+                </FieldGroup>
+              </TabsContent>
+
+              <TabsContent
+                className="min-h-0 flex-1 overflow-y-auto p-4"
+                value="style"
+              >
+                <FieldGroup>
                 <Field>
                   <FieldLabel>Plantilla</FieldLabel>
                   <div
@@ -552,31 +652,6 @@ function PageSheet({
                   </FieldDescription>
                 </Field>
                 <Field>
-                  <FieldLabel htmlFor="page-align">Alineación</FieldLabel>
-                  <Select
-                    onValueChange={(value) =>
-                      setDraft({
-                        ...draft,
-                        appearance: {
-                          ...draft.appearance,
-                          contentAlign: value as "left" | "center",
-                        },
-                      })
-                    }
-                    value={draft.appearance.contentAlign}
-                  >
-                    <SelectTrigger className="w-full" id="page-align">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem value="center">Centrado</SelectItem>
-                        <SelectItem value="left">A la izquierda</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <Field>
                   <FieldLabel htmlFor="page-buttons">Botones</FieldLabel>
                   <Select
                     onValueChange={(value) =>
@@ -602,27 +677,79 @@ function PageSheet({
                     </SelectContent>
                   </Select>
                 </Field>
-                <Field orientation="horizontal">
-                  <Switch
-                    checked={draft.status === "published"}
-                    id="page-published"
-                    onCheckedChange={(checked) =>
+                <Field>
+                  <FieldLabel htmlFor="page-avatar-style">Avatar</FieldLabel>
+                  <Select
+                    onValueChange={(value) =>
                       setDraft({
                         ...draft,
-                        status: checked ? "published" : "draft",
+                        appearance: {
+                          ...draft.appearance,
+                          avatarStyle: value as
+                            | "circle"
+                            | "rounded"
+                            | "square",
+                        },
                       })
                     }
+                    value={draft.appearance.avatarStyle}
+                  >
+                    <SelectTrigger className="w-full" id="page-avatar-style">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="circle">Círculo</SelectItem>
+                        <SelectItem value="rounded">Redondeado</SelectItem>
+                        <SelectItem value="square">Recto</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="page-branding">Texto de marca</FieldLabel>
+                  <Input
+                    id="page-branding"
+                    onChange={(event) =>
+                      setDraft({
+                        ...draft,
+                        appearance: {
+                          ...draft.appearance,
+                          brandingText: event.target.value,
+                        },
+                      })
+                    }
+                    placeholder="Hecho con Zapi"
+                    value={draft.appearance.brandingText}
                   />
-                  <FieldLabel htmlFor="page-published">
-                    <FieldContent>
-                      <FieldTitle>Publicada</FieldTitle>
-                      <FieldDescription>
-                        Solo las publicadas son visibles en su dirección.
-                      </FieldDescription>
-                    </FieldContent>
-                  </FieldLabel>
+                  <FieldDescription>
+                    Aparece al pie de la página pública; déjalo vacío para
+                    ocultarlo.
+                  </FieldDescription>
                 </Field>
               </FieldGroup>
+              </TabsContent>
+
+              <TabsContent
+                className="min-h-0 flex-1 overflow-y-auto bg-muted p-4 lg:hidden"
+                value="preview"
+              >
+                <LinkBioPreview draft={draft} />
+              </TabsContent>
+            </Tabs>
+
+            <div className="hidden min-h-0 flex-col bg-muted lg:flex">
+              <div className="border-b border-border bg-background px-4 py-3">
+                <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+                  Vista previa
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  El mismo renderer que la página pública.
+                </p>
+              </div>
+              <div className="min-h-0 flex-1 overflow-y-auto p-6">
+                <LinkBioPreview draft={draft} />
+              </div>
             </div>
           </div>
           <SheetFooter className="flex-row justify-end border-t">
