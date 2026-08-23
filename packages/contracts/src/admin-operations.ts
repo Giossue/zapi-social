@@ -165,7 +165,7 @@ export const updatePolarIntegrationSchema = polarConfigurationDraftSchema
       context.addIssue({
         code: "custom",
         path: ["monthlyProductId"],
-        message: "RECURRING_PRODUCTS_REQUIRED",
+        message: "Configura los productos recurrentes.",
       })
     }
   })
