@@ -400,16 +400,18 @@ function RssSchedules({
                     <TableRow>
                       <TableHead>{t("feed")}</TableHead>
                       <TableHead className="hidden lg:table-cell">
-                        Destinos
+                        {t("targets")}
                       </TableHead>
                       <TableHead className="hidden md:table-cell">
                         {t("nextRunColumn")}
                       </TableHead>
                       <TableHead className="hidden lg:table-cell">
-                        Actividad
+                        {t("activity")}
                       </TableHead>
                       <TableHead>{t("status")}</TableHead>
-                      <TableHead className="text-right">Acciones</TableHead>
+                      <TableHead className="text-right">
+                        {t("actions")}
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -535,7 +537,7 @@ function RssSchedules({
                                       variant="destructive"
                                     >
                                       <Trash2 />
-                                      Eliminar
+                                      {t("delete")}
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
@@ -550,7 +552,7 @@ function RssSchedules({
                         action={
                           query || status !== "all" ? (
                             <Button onClick={resetFilters} variant="outline">
-                              Restablecer filtros
+                              {t("resetFilters")}
                             </Button>
                           ) : null
                         }

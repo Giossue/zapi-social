@@ -401,14 +401,16 @@ function AiHistorySurface({
                 <TableRow>
                   <TableHead>{t("history.generation")}</TableHead>
                   <TableHead className="hidden md:table-cell">
-                    Herramienta
+                    {t("tool")}
                   </TableHead>
                   <TableHead>{t("status")}</TableHead>
                   <TableHead className="hidden lg:table-cell">
-                    Consumo
+                    {t("spend")}
                   </TableHead>
-                  <TableHead className="hidden md:table-cell">Fecha</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    {t("date")}
+                  </TableHead>
+                  <TableHead className="text-right">{t("actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -449,7 +451,7 @@ function AiHistorySurface({
                           type="button"
                           variant="brand-secondary"
                         >
-                          Limpiar filtros
+                          {t("clearFilters")}
                         </Button>
                       ) : undefined
                     }
@@ -593,7 +595,8 @@ function AiAutomationSurface({
                 <FieldGroup className="grid gap-4 md:grid-cols-2">
                   <Field>
                     <FieldLabel htmlFor="automation-name">
-                      Nombre <RequiredMark />
+                      {t("name")}
+                      <RequiredMark />
                     </FieldLabel>
                     <Input
                       aria-required="true"
@@ -721,7 +724,7 @@ function AiAutomationSurface({
                   </TableHead>
                   <TableHead>{t("status")}</TableHead>
                   {canManage ? (
-                    <TableHead className="text-right">Acciones</TableHead>
+                    <TableHead className="text-right">{t("actions")}</TableHead>
                   ) : null}
                 </TableRow>
               </TableHeader>
@@ -784,7 +787,7 @@ function AiAutomationSurface({
                                   variant="destructive"
                                 >
                                   <Trash2 aria-hidden="true" />
-                                  Eliminar
+                                  {t("delete")}
                                 </DropdownMenuItem>
                               </DropdownMenuGroup>
                             </DropdownMenuContent>
@@ -804,7 +807,7 @@ function AiAutomationSurface({
                           type="button"
                           variant="brand-secondary"
                         >
-                          Limpiar filtros
+                          {t("clearFilters")}
                         </Button>
                       ) : undefined
                     }
@@ -858,7 +861,7 @@ function AiAutomationSurface({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={deleting} variant="brand-secondary">
-              Cancelar
+              {t("cancel")}
             </AlertDialogCancel>
             <AlertDialogAction
               disabled={deleting}
@@ -1057,7 +1060,7 @@ function AiCreditsSurface({
                                 type="button"
                                 variant="brand-secondary"
                               >
-                                Limpiar filtros
+                                {t("clearFilters")}
                               </Button>
                             ) : undefined
                           }

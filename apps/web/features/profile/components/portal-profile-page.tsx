@@ -244,7 +244,7 @@ export function PortalProfilePage() {
             onClick={() => window.location.reload()}
             variant="brand-secondary"
           >
-            Reintentar
+            {tCommon("retry")}
           </Button>
         </CardFooter>
       </Card>

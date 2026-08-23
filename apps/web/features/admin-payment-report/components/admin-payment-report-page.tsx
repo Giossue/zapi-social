@@ -287,8 +287,10 @@ export function AdminPaymentReportPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>{t("product")}</TableHead>
-                  <TableHead className="hidden sm:table-cell">Pagos</TableHead>
-                  <TableHead className="text-right">Bruto</TableHead>
+                  <TableHead className="hidden sm:table-cell">
+                    {t("payments")}
+                  </TableHead>
+                  <TableHead className="text-right">{t("gross")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -335,8 +337,10 @@ export function AdminPaymentReportPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>{t("statusColumn")}</TableHead>
-                  <TableHead className="hidden sm:table-cell">Pagos</TableHead>
-                  <TableHead className="text-right">Importe</TableHead>
+                  <TableHead className="hidden sm:table-cell">
+                    {t("payments")}
+                  </TableHead>
+                  <TableHead className="text-right">{t("amount")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -379,8 +383,10 @@ export function AdminPaymentReportPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>{t("workspace")}</TableHead>
-                <TableHead className="hidden sm:table-cell">Pagos</TableHead>
-                <TableHead className="text-right">Bruto</TableHead>
+                <TableHead className="hidden sm:table-cell">
+                  {t("payments")}
+                </TableHead>
+                <TableHead className="text-right">{t("gross")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

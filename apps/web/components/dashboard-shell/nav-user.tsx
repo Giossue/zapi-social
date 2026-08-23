@@ -91,7 +91,7 @@ export function DashboardNavUser({ profile }: DashboardNavUserProps) {
                   onClick={() => setOpenMobile(false)}
                 >
                   <CircleUser />
-                  Mi perfil
+                  {t("myProfile")}
                 </Link>
               </DropdownMenuItem>
             </DropdownMenuGroup>

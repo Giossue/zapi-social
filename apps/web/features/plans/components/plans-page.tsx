@@ -395,7 +395,8 @@ function PlanEditorSheet({
             <FieldGroup className="grid sm:grid-cols-2">
               <Field data-disabled={isSaving || undefined}>
                 <FieldLabel htmlFor="plan-name">
-                  Nombre <RequiredMark />
+                  {t("name")}
+                  <RequiredMark />
                 </FieldLabel>
                 <Input
                   aria-required="true"
@@ -424,7 +425,8 @@ function PlanEditorSheet({
               </Field>
               <Field data-disabled={isSaving || undefined}>
                 <FieldLabel htmlFor="plan-status">
-                  Estado <RequiredMark />
+                  {t("statusColumn")}
+                  <RequiredMark />
                 </FieldLabel>
                 <Select
                   defaultValue={plan.status}
@@ -591,7 +593,7 @@ function PlanEditorSheet({
                 type="button"
                 variant="brand-secondary"
               >
-                Cancelar
+                {t("cancel")}
               </Button>
               <Button disabled={!formComplete || isSaving} type="submit">
                 {isSaving ? (
@@ -663,7 +665,7 @@ function DeletePlanDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isDeleting} variant="brand-secondary">
-            Cancelar
+            {t("cancel")}
           </AlertDialogCancel>
           <AlertDialogAction
             disabled={hasSubscribers || isDeleting}
@@ -841,7 +843,9 @@ export function PlansPage() {
   return (
     <div className="flex flex-col gap-4">
       <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">Planes</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {t("pageTitle")}
+        </h1>
         <p className="text-sm text-muted-foreground">
           Configura el catálogo, precios, permisos y disponibilidad de cada
           plan.
@@ -891,7 +895,7 @@ export function PlansPage() {
                   size="sm"
                 >
                   <Plus data-icon="inline-start" />
-                  Crear plan
+                  {t("create")}
                 </Button>
               }
               search={{
@@ -955,19 +959,19 @@ export function PlansPage() {
                     <TableHead>{t("plan")}</TableHead>
                     <TableHead>{t("price")}</TableHead>
                     <TableHead className="hidden md:table-cell">
-                      Cobro
+                      {t("billingColumn")}
                     </TableHead>
                     <TableHead className="hidden lg:table-cell">
-                      Prueba
+                      {t("trialing")}
                     </TableHead>
                     <TableHead className="hidden md:table-cell">
-                      Suscriptores
+                      {t("subscribers")}
                     </TableHead>
                     <TableHead className="hidden lg:table-cell">
-                      Permisos
+                      {t("permissions")}
                     </TableHead>
                     <TableHead>{t("statusColumn")}</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
+                    <TableHead className="text-right">{t("actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -980,7 +984,7 @@ export function PlansPage() {
                             {plan.featured ? (
                               <Badge variant="warning">
                                 <Sparkles aria-hidden="true" />
-                                Destacado
+                                {t("featured")}
                               </Badge>
                             ) : null}
                             {plan.isDefaultSignup ? (
@@ -1056,7 +1060,7 @@ export function PlansPage() {
                                 variant="destructive"
                               >
                                 <Trash2 />
-                                Eliminar plan
+                                {t("deleteAction")}
                               </DropdownMenuItem>
                             </DropdownMenuGroup>
                           </DropdownMenuContent>
@@ -1072,7 +1076,7 @@ export function PlansPage() {
                             onClick={resetFilters}
                             variant="brand-secondary"
                           >
-                            Restablecer filtros
+                            {t("resetFilters")}
                           </Button>
                         ) : undefined
                       }

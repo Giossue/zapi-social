@@ -242,7 +242,7 @@ export function createChannelsColumns({
                   size="compact"
                 >
                   <Pencil />
-                  Editar
+                  {t("edit")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   disabled={pending}
@@ -250,7 +250,7 @@ export function createChannelsColumns({
                   size="compact"
                 >
                   <RefreshCw />
-                  Actualizar
+                  {t("refresh")}
                 </DropdownMenuItem>
                 {disconnected ? (
                   <DropdownMenuItem
@@ -269,7 +269,7 @@ export function createChannelsColumns({
                   variant="destructive"
                 >
                   <Trash2 />
-                  Eliminar
+                  {t("delete")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

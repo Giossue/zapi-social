@@ -246,7 +246,7 @@ function ApiKeySheet({
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
-                  <span className="sr-only"> obligatorio</span>
+                  <span className="sr-only"> {t("required")}</span>
                 </FieldLabel>
                 <Input
                   aria-required="true"
@@ -306,7 +306,7 @@ function ApiKeySheet({
               type="button"
               variant="brand-secondary"
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button disabled={!canSubmit || pending} type="submit">
               {pending ? (
@@ -391,7 +391,7 @@ function WebhookSheet({
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
-                  <span className="sr-only"> obligatorio</span>
+                  <span className="sr-only"> {t("required")}</span>
                 </FieldLabel>
                 <Input
                   aria-required="true"
@@ -409,7 +409,7 @@ function WebhookSheet({
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
-                  <span className="sr-only"> obligatorio</span>
+                  <span className="sr-only"> {t("required")}</span>
                 </FieldLabel>
                 <Input
                   aria-required="true"
@@ -468,7 +468,7 @@ function WebhookSheet({
               type="button"
               variant="brand-secondary"
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button disabled={!canSubmit || pending} type="submit">
               {pending ? (
@@ -764,7 +764,7 @@ export function AutomationPage() {
                       size="sm"
                       type="button"
                     >
-                      <Plus data-icon="inline-start" /> Nueva clave
+                      <Plus data-icon="inline-start" /> {t("newKey")}
                     </Button>
                   ) : undefined
                 }
@@ -788,14 +788,14 @@ export function AutomationPage() {
                         type="button"
                         variant="outline"
                       >
-                        <X /> Limpiar
+                        <X /> {t("clear")}
                       </Button>
                     ) : undefined
                   }
                 >
                   <DataTableFilter
                     ariaLabel={t("filterStatus")}
-                    label="Estado"
+                    label={t("status")}
                     onValueChange={(value) => {
                       setKeysStatus(value as "all" | "active" | "revoked")
                       setKeysPage(1)
@@ -816,9 +816,11 @@ export function AutomationPage() {
                       <TableHead className="hidden lg:table-cell">
                         Último uso
                       </TableHead>
-                      <TableHead>Estado</TableHead>
+                      <TableHead>{t("status")}</TableHead>
                       {data.canManage ? (
-                        <TableHead className="text-right">Acciones</TableHead>
+                        <TableHead className="text-right">
+                          {t("actions")}
+                        </TableHead>
                       ) : null}
                     </TableRow>
                   </TableHeader>
@@ -905,7 +907,7 @@ export function AutomationPage() {
                               onClick={clearKeysFilters}
                               variant="outline"
                             >
-                              Restablecer filtros
+                              {t("resetFilters")}
                             </Button>
                           ) : null
                         }
@@ -962,7 +964,7 @@ export function AutomationPage() {
                       size="sm"
                       type="button"
                     >
-                      <Plus data-icon="inline-start" /> Nuevo webhook
+                      <Plus data-icon="inline-start" /> {t("newWebhook")}
                     </Button>
                   ) : undefined
                 }
@@ -986,14 +988,14 @@ export function AutomationPage() {
                         type="button"
                         variant="outline"
                       >
-                        <X /> Limpiar
+                        <X /> {t("clear")}
                       </Button>
                     ) : undefined
                   }
                 >
                   <DataTableFilter
                     ariaLabel={t("filterStatus")}
-                    label="Estado"
+                    label={t("status")}
                     onValueChange={(value) => {
                       setWebhooksStatus(value as "all" | "enabled" | "disabled")
                       setWebhooksPage(1)
@@ -1016,7 +1018,9 @@ export function AutomationPage() {
                       </TableHead>
                       <TableHead>{t("enabled")}</TableHead>
                       {data.canManage ? (
-                        <TableHead className="text-right">Acciones</TableHead>
+                        <TableHead className="text-right">
+                          {t("actions")}
+                        </TableHead>
                       ) : null}
                     </TableRow>
                   </TableHeader>
@@ -1086,7 +1090,7 @@ export function AutomationPage() {
                                     size="compact"
                                   >
                                     <Pencil />
-                                    Editar
+                                    {t("edit")}
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem
@@ -1095,7 +1099,7 @@ export function AutomationPage() {
                                     variant="destructive"
                                   >
                                     <Trash2 />
-                                    Eliminar
+                                    {t("delete")}
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
@@ -1111,7 +1115,7 @@ export function AutomationPage() {
                               onClick={clearWebhooksFilters}
                               variant="outline"
                             >
-                              Restablecer filtros
+                              {t("resetFilters")}
                             </Button>
                           ) : null
                         }
@@ -1184,7 +1188,7 @@ export function AutomationPage() {
                         type="button"
                         variant="outline"
                       >
-                        <X /> Limpiar
+                        <X /> {t("clear")}
                       </Button>
                     ) : undefined
                   }
@@ -1214,7 +1218,7 @@ export function AutomationPage() {
                       <TableHead>{t("direction")}</TableHead>
                       <TableHead>{t("result")}</TableHead>
                       <TableHead className="hidden lg:table-cell">
-                        Fecha
+                        {t("date")}
                       </TableHead>
                     </TableRow>
                   </TableHeader>
@@ -1269,7 +1273,7 @@ export function AutomationPage() {
                               onClick={clearLogsFilters}
                               variant="outline"
                             >
-                              Restablecer filtros
+                              {t("resetFilters")}
                             </Button>
                           ) : null
                         }
@@ -1289,7 +1293,7 @@ export function AutomationPage() {
                 <TablePagination
                   canGoNext={logsPagination.safePage < logsPagination.pageCount}
                   canGoPrevious={logsPagination.safePage > 1}
-                  itemLabel="registros"
+                  itemLabel={t("records")}
                   onNextPage={() =>
                     setLogsPage((current) =>
                       Math.min(current + 1, logsPagination.pageCount)

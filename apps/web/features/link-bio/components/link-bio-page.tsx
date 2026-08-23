@@ -510,7 +510,7 @@ function PageSheet({
                       <span aria-hidden="true" className="text-destructive">
                         *
                       </span>
-                      <span className="sr-only"> obligatorio</span>
+                      <span className="sr-only"> {t("required")}</span>
                     </FieldLabel>
                     <Input
                       aria-required="true"
@@ -787,7 +787,7 @@ function PageSheet({
               type="button"
               variant="brand-secondary"
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button disabled={pending || !draft.title.trim()} type="submit">
               {pending ? (
@@ -1024,7 +1024,7 @@ export function LinkBioPage() {
                     type="button"
                     variant="outline"
                   >
-                    <X /> Limpiar
+                    <X /> {t("clear")}
                   </Button>
                 ) : undefined
               }
@@ -1053,7 +1053,7 @@ export function LinkBioPage() {
                   </TableHead>
                   <TableHead>{t("status")}</TableHead>
                   {data.canManage ? (
-                    <TableHead className="text-right">Acciones</TableHead>
+                    <TableHead className="text-right">{t("actions")}</TableHead>
                   ) : null}
                 </TableRow>
               </TableHeader>
@@ -1114,7 +1114,7 @@ export function LinkBioPage() {
                                 size="compact"
                               >
                                 <Pencil />
-                                Editar
+                                {t("edit")}
                               </DropdownMenuItem>
                               {page.status === "published" ? (
                                 <DropdownMenuItem asChild size="compact">
@@ -1135,7 +1135,7 @@ export function LinkBioPage() {
                                 variant="destructive"
                               >
                                 <Trash2 />
-                                Eliminar
+                                {t("delete")}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -1148,7 +1148,7 @@ export function LinkBioPage() {
                     action={
                       hasFilters ? (
                         <Button onClick={clearFilters} variant="outline">
-                          Limpiar filtros
+                          {t("clearFilters")}
                         </Button>
                       ) : null
                     }

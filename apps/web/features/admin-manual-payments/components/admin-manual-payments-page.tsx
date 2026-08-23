@@ -310,7 +310,7 @@ function ManualPaymentSheet({
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
-                  <span className="sr-only"> obligatorio</span>
+                  <span className="sr-only"> {t("required")}</span>
                 </FieldLabel>
                 <Select
                   onValueChange={(productId) => {
@@ -353,7 +353,7 @@ function ManualPaymentSheet({
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
-                  <span className="sr-only"> obligatorio</span>
+                  <span className="sr-only"> {t("required")}</span>
                 </FieldLabel>
                 <Input
                   aria-required="true"
@@ -375,7 +375,7 @@ function ManualPaymentSheet({
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
-                  <span className="sr-only"> obligatorio</span>
+                  <span className="sr-only"> {t("required")}</span>
                 </FieldLabel>
                 <Input
                   aria-required="true"
@@ -435,7 +435,7 @@ function ManualPaymentSheet({
               type="button"
               variant="brand-secondary"
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button disabled={!canSubmit || pending} type="submit">
               {pending ? (
@@ -625,7 +625,7 @@ export function AdminManualPaymentsPage() {
                     size="sm"
                     type="button"
                   >
-                    <Plus data-icon="inline-start" /> Registrar pago
+                    <Plus data-icon="inline-start" /> {t("registerPayment")}
                   </Button>
                 }
                 search={{
@@ -652,7 +652,7 @@ export function AdminManualPaymentsPage() {
                         type="button"
                         variant="outline"
                       >
-                        <X /> Limpiar
+                        <X /> {t("clear")}
                       </Button>
                     ) : undefined
                   }
@@ -679,14 +679,16 @@ export function AdminManualPaymentsPage() {
                       <TableRow>
                         <TableHead>{t("reference")}</TableHead>
                         <TableHead className="hidden lg:table-cell">
-                          Espacio
+                          {t("workspace")}
                         </TableHead>
                         <TableHead className="hidden md:table-cell">
-                          Producto
+                          {t("product")}
                         </TableHead>
                         <TableHead>{t("amount")}</TableHead>
                         <TableHead>{t("statusColumn")}</TableHead>
-                        <TableHead className="text-right">Acciones</TableHead>
+                        <TableHead className="text-right">
+                          {t("actions")}
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -738,7 +740,8 @@ export function AdminManualPaymentsPage() {
                                       }
                                       size="sm"
                                     >
-                                      <Check data-icon="inline-start" /> Aprobar
+                                      <Check data-icon="inline-start" />{" "}
+                                      {t("approve")}
                                     </Button>
                                     <Button
                                       disabled={pending}
@@ -752,7 +755,8 @@ export function AdminManualPaymentsPage() {
                                       size="sm"
                                       variant="brand-secondary"
                                     >
-                                      <X data-icon="inline-start" /> Rechazar
+                                      <X data-icon="inline-start" />{" "}
+                                      {t("reject")}
                                     </Button>
                                   </>
                                 ) : null}
@@ -792,7 +796,7 @@ export function AdminManualPaymentsPage() {
                 <TablePagination
                   canGoNext={safePage < pageCount}
                   canGoPrevious={safePage > 1}
-                  itemLabel="pagos"
+                  itemLabel={t("payments")}
                   onNextPage={() =>
                     setPage((current) => Math.min(current + 1, pageCount))
                   }
@@ -940,7 +944,7 @@ export function AdminManualPaymentsPage() {
                 }, t("deleted"))
               }}
             >
-              <Trash2 data-icon="inline-start" /> Eliminar
+              <Trash2 data-icon="inline-start" /> {t("delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

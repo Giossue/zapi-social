@@ -224,7 +224,7 @@ function WithdrawalSheet({
               type="button"
               variant="brand-secondary"
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button disabled={!canSubmit || pending} type="submit">
               {pending ? (
@@ -546,7 +546,7 @@ export function AffiliatePage() {
                         type="button"
                         variant="outline"
                       >
-                        <X /> Limpiar
+                        <X /> {t("clear")}
                       </Button>
                     ) : undefined
                   }
@@ -614,7 +614,7 @@ export function AffiliatePage() {
                               onClick={clearCommissionFilters}
                               variant="outline"
                             >
-                              Restablecer filtros
+                              {t("resetFilters")}
                             </Button>
                           ) : null
                         }
@@ -636,7 +636,7 @@ export function AffiliatePage() {
                 <TablePagination
                   canGoNext={commissions.safePage < commissions.pageCount}
                   canGoPrevious={commissions.safePage > 1}
-                  itemLabel="comisiones"
+                  itemLabel={t("commissions")}
                   onNextPage={() =>
                     setCommissionPage((current) =>
                       Math.min(current + 1, commissions.pageCount)
@@ -663,7 +663,7 @@ export function AffiliatePage() {
                     size="sm"
                     type="button"
                   >
-                    <Wallet data-icon="inline-start" /> Solicitar retiro
+                    <Wallet data-icon="inline-start" /> {t("requestWithdrawal")}
                   </Button>
                 }
                 search={{
@@ -686,7 +686,7 @@ export function AffiliatePage() {
                         type="button"
                         variant="outline"
                       >
-                        <X /> Limpiar
+                        <X /> {t("clear")}
                       </Button>
                     ) : undefined
                   }
@@ -723,7 +723,7 @@ export function AffiliatePage() {
                       <TableHead>{t("amount")}</TableHead>
                       <TableHead>{t("statusColumn")}</TableHead>
                       <TableHead className="hidden lg:table-cell">
-                        Solicitado
+                        {t("requested")}
                       </TableHead>
                     </TableRow>
                   </TableHeader>
@@ -754,7 +754,7 @@ export function AffiliatePage() {
                               onClick={clearWithdrawalFilters}
                               variant="outline"
                             >
-                              Restablecer filtros
+                              {t("resetFilters")}
                             </Button>
                           ) : null
                         }
@@ -776,7 +776,7 @@ export function AffiliatePage() {
                 <TablePagination
                   canGoNext={withdrawals.safePage < withdrawals.pageCount}
                   canGoPrevious={withdrawals.safePage > 1}
-                  itemLabel="retiros"
+                  itemLabel={t("withdrawals")}
                   onNextPage={() =>
                     setWithdrawalPage((current) =>
                       Math.min(current + 1, withdrawals.pageCount)

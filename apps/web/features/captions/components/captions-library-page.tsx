@@ -288,7 +288,7 @@ function createCaptionColumns({
                   size="compact"
                 >
                   <Pencil />
-                  Editar
+                  {t("edit")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -297,7 +297,7 @@ function createCaptionColumns({
                   variant="destructive"
                 >
                   <Trash2 />
-                  Eliminar
+                  {t("delete")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -645,7 +645,7 @@ export function CaptionsLibraryPage() {
       action={
         <Button onClick={clearFilters} type="button" variant="outline">
           <X data-icon="inline-start" />
-          Limpiar filtros
+          {t("clearFilters")}
         </Button>
       }
       description={t("emptyFilteredDescription")}
@@ -677,7 +677,7 @@ export function CaptionsLibraryPage() {
                 type="button"
               >
                 <Plus />
-                Nuevo caption
+                {t("createTitle")}
               </Button>
             }
             search={{
@@ -698,7 +698,7 @@ export function CaptionsLibraryPage() {
                     variant="outline"
                   >
                     <X />
-                    Limpiar
+                    {t("clear")}
                   </Button>
                 ) : undefined
               }
@@ -855,7 +855,7 @@ function CaptionEditor({
             <FieldGroup className="grid gap-4 md:grid-cols-2">
               <Field>
                 <FieldLabel htmlFor="caption-name">
-                  Nombre
+                  {t("name")}
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
@@ -881,7 +881,7 @@ function CaptionEditor({
               </Field>
               <Field>
                 <FieldLabel htmlFor="caption-source">
-                  Origen
+                  {t("source")}
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
@@ -911,7 +911,7 @@ function CaptionEditor({
               </Field>
               <Field>
                 <FieldLabel htmlFor="caption-status">
-                  Estado
+                  {t("status")}
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
@@ -948,7 +948,7 @@ function CaptionEditor({
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="caption-content">
-                  Contenido
+                  {t("content")}
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
@@ -985,7 +985,7 @@ function CaptionEditor({
               type="button"
               variant="brand-secondary"
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button disabled={pending || !formComplete} type="submit">
               {pending ? (

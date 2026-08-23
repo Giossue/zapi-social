@@ -798,7 +798,7 @@ export function IntegrationsPage() {
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                           <h3 id="test-title" className="text-sm font-semibold">
-                            Probar borrador
+                            {t("testDraft")}
                           </h3>
                           <p className="mt-1 text-sm text-muted-foreground">
                             La prueba valida el borrador con Meta antes de

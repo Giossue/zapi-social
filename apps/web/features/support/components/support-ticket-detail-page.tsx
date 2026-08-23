@@ -318,7 +318,7 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
             >
               <Field>
                 <FieldLabel htmlFor="support-reply">
-                  Respuesta
+                  {t("answer")}
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>

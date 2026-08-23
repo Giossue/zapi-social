@@ -244,7 +244,7 @@ function NewBatchSheet({
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
-                  <span className="sr-only"> obligatorio</span>
+                  <span className="sr-only"> {t("required")}</span>
                 </FieldLabel>
                 <Input
                   aria-required="true"
@@ -314,7 +314,7 @@ function NewBatchSheet({
               type="button"
               variant="brand-secondary"
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button disabled={!canSubmit || pending} type="submit">
               {pending ? (
@@ -624,7 +624,7 @@ export function BulkPostsPage() {
                 size="sm"
                 type="button"
               >
-                <Plus data-icon="inline-start" /> Nuevo lote
+                <Plus data-icon="inline-start" /> {t("createTitle")}
               </Button>
             }
             search={{
@@ -647,7 +647,7 @@ export function BulkPostsPage() {
                     type="button"
                     variant="outline"
                   >
-                    <X /> Limpiar
+                    <X /> {t("clear")}
                   </Button>
                 ) : undefined
               }
@@ -776,7 +776,7 @@ export function BulkPostsPage() {
                     action={
                       hasFilters ? (
                         <Button onClick={clearFilters} variant="outline">
-                          Restablecer filtros
+                          {t("resetFilters")}
                         </Button>
                       ) : null
                     }

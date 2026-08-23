@@ -41,8 +41,14 @@ ALLOWED = re.compile(
     r"|Promise|[\W\d]+)$"
 )
 
-# Fragmentos de código que las expresiones capturan por error.
-CODE_NOISE = re.compile(r"^\w+\)|\bcopy\.|=>|\bconst\b")
+# Fragmentos de código que las expresiones capturan por error: genéricos de
+# TypeScript (`Promise<...>`), cuerpos de flecha y condicionales sueltos caen
+# dentro del patrón de nodo JSX porque también van entre `>` y `<`.
+CODE_NOISE = re.compile(
+    r"=>|===|\|\||&&|\breturn\b|\bif\s*\(|\bconst\b|\bexport\b"
+    r"|\bimport\b|\btype\b|\bPromise\b|\bParameters\b|\bReact\."
+    r"|\bcopy\.|[();{}]|:\s"
+)
 
 LABEL_PROPS = (
     "placeholder|aria-label|ariaLabel|label|title|description|helper|alt"

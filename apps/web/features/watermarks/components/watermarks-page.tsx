@@ -441,7 +441,7 @@ function WatermarkScopePicker({
       </Popover>
       {!isGlobalScope && selectedAccounts.length ? (
         <div
-          aria-label="Cuentas seleccionadas"
+          aria-label={t("selectedAccountsLabel")}
           className="flex flex-wrap gap-2"
         >
           {selectedAccounts.map((account) => (

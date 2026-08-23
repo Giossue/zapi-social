@@ -134,7 +134,7 @@ export function InviteDialog({
               </Field>
               <Field>
                 <FieldLabel htmlFor="team-invite-role">
-                  Rol
+                  {t("roleColumn")}
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
@@ -247,7 +247,7 @@ export function MemberAccessDialog({
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="team-member-role">
-                  Rol
+                  {t("roleColumn")}
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
@@ -321,7 +321,7 @@ export function MemberAccessDialog({
               type="button"
               variant="brand-secondary"
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button disabled={pending} type="submit">
               {pending ? (
@@ -432,7 +432,7 @@ export function TeamConfirmationDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={pending} variant="brand-secondary">
-            Cancelar
+            {t("cancel")}
           </AlertDialogCancel>
           <AlertDialogAction
             disabled={pending}

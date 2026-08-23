@@ -176,7 +176,7 @@ function EditChannelDialog({
           <FieldGroup className="gap-4">
             <Field className="gap-1.5">
               <FieldLabel htmlFor="channel-display-name">
-                Nombre visible
+                {t("displayName")}
                 <span aria-hidden="true" className="text-destructive">
                   *
                 </span>
@@ -198,7 +198,7 @@ function EditChannelDialog({
               type="button"
               variant="brand-secondary"
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button disabled={pending || !displayName.trim()} type="submit">
               {pending ? (

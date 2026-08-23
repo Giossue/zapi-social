@@ -362,7 +362,7 @@ function TeamsError({ onRetry }: { onRetry: () => void }) {
         action={
           <Button onClick={onRetry} variant="brand-secondary">
             <RefreshCw data-icon="inline-start" />
-            Reintentar
+            {t("retry")}
           </Button>
         }
         description={t("loadFailedDescription")}
@@ -706,7 +706,7 @@ export function TeamsPage() {
             title={seatsExhausted ? t("noSeats") : undefined}
           >
             <MailPlus />
-            Invitar miembro
+            {t("inviteMember")}
           </Button>
         ) : (
           <Button
@@ -716,7 +716,7 @@ export function TeamsPage() {
             variant="brand-secondary"
           >
             <DoorOpen />
-            Abandonar workspace
+            {t("leaveWorkspace")}
           </Button>
         )
       }
@@ -744,7 +744,7 @@ export function TeamsPage() {
               size="sm"
               variant="brand-secondary"
             >
-              Cerrar
+              {t("close")}
             </Button>
           </AlertAction>
         </Alert>
@@ -993,10 +993,10 @@ function MembersTable({
           <TableHeader>
             <TableRow>
               <TableHead>{t("member")}</TableHead>
-              <TableHead>Rol</TableHead>
+              <TableHead>{t("roleColumn")}</TableHead>
               <TableHead>{t("scope")}</TableHead>
               <TableHead>{t("joined")}</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
+              <TableHead className="text-right">{t("actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -1113,12 +1113,12 @@ function InvitationsTable({
           <TableHeader>
             <TableRow>
               <TableHead>{t("email")}</TableHead>
-              <TableHead>Rol</TableHead>
+              <TableHead>{t("roleColumn")}</TableHead>
               <TableHead>{t("invitedBy")}</TableHead>
               <TableHead>{t("lastSent")}</TableHead>
               <TableHead>{t("expires")}</TableHead>
               <TableHead>{t("delivery.label")}</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
+              <TableHead className="text-right">{t("actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -1232,7 +1232,7 @@ function ActivityTable({
       <EmptyState
         action={
           <Button onClick={onRetry} variant="brand-secondary">
-            Reintentar
+            {t("retry")}
           </Button>
         }
         description={t("activityFailedDescription")}
@@ -1265,7 +1265,7 @@ function ActivityTable({
                 action={
                   hasFilters ? (
                     <Button onClick={onClearFilters} variant="brand-secondary">
-                      Limpiar filtros
+                      {t("clearFilters")}
                     </Button>
                   ) : undefined
                 }
@@ -1303,7 +1303,7 @@ function ActivityTable({
       <TablePagination
         canGoNext={data.page < pageCount}
         canGoPrevious={data.page > 1}
-        itemLabel="eventos"
+        itemLabel={t("events")}
         onNextPage={() => onPageChange(data.page + 1)}
         onPreviousPage={() => onPageChange(data.page - 1)}
         rangeEnd={Math.min(data.page * data.limit, data.total)}
@@ -1429,8 +1429,8 @@ function MemberAccessView({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Miembro</TableHead>
-                  <TableHead>Rol</TableHead>
+                  <TableHead>{t("member")}</TableHead>
+                  <TableHead>{t("roleColumn")}</TableHead>
                   <TableHead>{t("joined")}</TableHead>
                 </TableRow>
               </TableHeader>

@@ -134,6 +134,7 @@ declare const messages: {
     "openActions": "Abrir acciones para {name}",
     "recordCreated": "Registro creado.",
     "recordDeleted": "Registro eliminado.",
+    "required": "obligatorio",
     "resetFilters": "Restablecer filtros",
     "rss": {
       "active": "Activa",
@@ -237,13 +238,17 @@ declare const messages: {
     "acceptManual": "Aceptar pagos manuales",
     "acceptManualHint": "Muestra las instrucciones de pago fuera de línea a los clientes.",
     "actionFailed": "No pudimos completar la acción. Inténtalo de nuevo.",
+    "actions": "Acciones",
     "all": "Todos",
     "amount": "Importe",
     "applied": "Aplicado",
+    "approve": "Aprobar",
     "approvedToast": "Pago aprobado y aplicado.",
     "cancel": "Cancelar",
+    "clear": "Limpiar",
     "createTitle": "Registrar pago manual",
     "created": "Pago manual registrado.",
+    "delete": "Eliminar",
     "deleteDescription": "Se elimina el registro «{reference}». Esta acción no se puede deshacer.",
     "deleteTitle": "Eliminar pago manual",
     "deleted": "Pago manual eliminado.",
@@ -282,6 +287,7 @@ declare const messages: {
     "pageTitle": "Pagos manuales",
     "paymentInfo": "Datos del pago",
     "paymentInfoPlaceholder": "Banco, número de operación, fecha del depósito...",
+    "payments": "pagos",
     "product": "Producto",
     "productType": {
       "creditsPack": "Paquete de créditos",
@@ -296,6 +302,7 @@ declare const messages: {
     "referencePrefixPlaceholder": "PAY-",
     "referenceTaken": "Esa referencia ya está registrada.",
     "registerPayment": "Registrar pago",
+    "reject": "Rechazar",
     "rejectedToast": "Pago rechazado.",
     "required": "obligatorio",
     "searchLabel": "Buscar pagos manuales",
@@ -315,7 +322,8 @@ declare const messages: {
     "tab": {
       "payments": "Pagos",
       "settings": "Configuración"
-    }
+    },
+    "workspace": "Espacio"
   },
   "adminMockups": {
     "action": {
@@ -479,6 +487,7 @@ declare const messages: {
     "thisRecord": "este registro"
   },
   "adminNotifications": {
+    "actions": "Acciones",
     "all": "Todos",
     "announcement": "Anuncio",
     "audience": {
@@ -494,12 +503,15 @@ declare const messages: {
     },
     "bodyPlaceholder": "Qué ocurre, a quién afecta y qué debe hacer la persona.",
     "cancel": "Cancelar",
+    "clear": "Limpiar",
     "createTitle": "Nuevo anuncio",
+    "delete": "Eliminar",
     "deleteDescription": "Se elimina «{title}» y su historial de lecturas. Esta acción no se puede deshacer.",
     "deleteFailed": "No pudimos eliminar el anuncio.",
     "deleteTitle": "Eliminar anuncio",
     "deleted": "Anuncio eliminado.",
     "draftSaved": "Borrador guardado.",
+    "edit": "Editar",
     "editTitle": "Editar anuncio",
     "emptyDescription": "Publica un aviso para que tus clientes lo vean en el Portal.",
     "emptyFilteredDescription": "Prueba con otro término o estado.",
@@ -531,6 +543,9 @@ declare const messages: {
     "pageDescription": "Avisos manuales que aparecen en la campana del Portal de los clientes.",
     "pageTitle": "Anuncios",
     "published": "Anuncio publicado.",
+    "reads": "Lecturas",
+    "required": "obligatorio",
+    "saveDraft": "Guardar borrador",
     "saveFailed": "No pudimos guardar el anuncio. Inténtalo de nuevo.",
     "searchLabel": "Buscar anuncios",
     "searchPerson": "Buscar persona o correo...",
@@ -1054,6 +1069,7 @@ declare const messages: {
   },
   "adminPaymentReport": {
     "all": "Todos",
+    "amount": "Importe",
     "byProduct": "Por producto",
     "byProductDescription": "Productos con mayor facturación del periodo.",
     "byStatus": "Por estado",
@@ -1062,6 +1078,7 @@ declare const messages: {
     "filterProduct": "Filtrar por producto",
     "forbiddenDescription": "Tu cuenta no tiene permisos para consultar el reporte de pagos.",
     "forbiddenTitle": "Acceso restringido",
+    "gross": "Bruto",
     "loadFailedDescription": "No fue posible calcular el reporte de pagos.",
     "loadFailedTitle": "No pudimos cargar esta sección",
     "loading": "Cargando reporte de pagos",
@@ -1083,6 +1100,7 @@ declare const messages: {
     "noSettledPeriod": "Sin cobros liquidados en este periodo.",
     "pageDescription": "Cobros liquidados, reembolsos y facturación por producto en el periodo seleccionado.",
     "pageTitle": "Reporte de pagos",
+    "payments": "Pagos",
     "product": "Producto",
     "productType": {
       "credits": "Créditos",
@@ -1311,6 +1329,8 @@ declare const messages: {
     "all": "Todos",
     "amount": "Monto",
     "availableAmount": "Disponible: {amount}",
+    "cancel": "Cancelar",
+    "clear": "Limpiar",
     "clipboardUnsupported": "Tu navegador no permite copiar el código.",
     "codeCopied": "Código copiado.",
     "commission": "Comisión",
@@ -1326,6 +1346,7 @@ declare const messages: {
       "paid": "Pagada",
       "pending": "Pendiente"
     },
+    "commissions": "comisiones",
     "commissionsEmptyDescription": "Cuando alguien compre usando tu código verás aquí su comisión.",
     "commissionsEmptyTitle": "Aún no hay comisiones",
     "copyCode": "Copiar código",
@@ -1359,7 +1380,9 @@ declare const messages: {
       "suspended": "Suspendido"
     },
     "requestWithdrawal": "Solicitar retiro",
+    "requested": "Solicitado",
     "required": "obligatorio",
+    "resetFilters": "Restablecer filtros",
     "searchByAmount": "Buscar por monto...",
     "searchCommissions": "Buscar comisiones",
     "searchWithdrawals": "Buscar retiros",
@@ -1385,6 +1408,7 @@ declare const messages: {
       "rejected": "Rechazado",
       "requested": "Solicitado"
     },
+    "withdrawals": "retiros",
     "withdrawalsEmptyDescription": "Tus solicitudes de retiro aparecerán en este historial.",
     "withdrawalsEmptyTitle": "No hay retiros",
     "yourCode": "Tu código de afiliado"
@@ -1629,8 +1653,10 @@ declare const messages: {
   },
   "aiStudio": {
     "chat": {
+      "archive": "Archivar",
       "archiveFailed": "No pudimos archivar la conversación.",
       "archived": "Conversación archivada.",
+      "automations": "Automatizaciones",
       "backToConversations": "Volver a las conversaciones",
       "cancelled": "La generación se canceló.",
       "clipboardUnsupported": "Tu navegador no permite copiar el resultado.",
@@ -1650,6 +1676,7 @@ declare const messages: {
       "loadFailedTitle": "AI Studio no disponible",
       "loading": "Cargando AI Studio",
       "newConversation": "Nueva conversación",
+      "retry": "Reintentar",
       "retryFailed": "No pudimos reintentar la generación.",
       "retrySuccess": "Generación reintentada.",
       "searchLabel": "Buscar generaciones",
@@ -1694,6 +1721,7 @@ declare const messages: {
       },
       "download": "Descargar",
       "format": "Formato",
+      "generating": "Generando",
       "generatingResult": "Generando resultado",
       "generationFailed": "La generación falló",
       "goal": {
@@ -1761,6 +1789,7 @@ declare const messages: {
       "title": "No se pudo cargar AI Studio"
     },
     "operations": {
+      "actions": "Acciones",
       "automation": {
         "create": "Nueva automatización",
         "createDescription": "Genera borradores; nunca publica sin revisión humana.",
@@ -1803,6 +1832,10 @@ declare const messages: {
         "draft": "Borrador",
         "paused": "Pausada"
       },
+      "cancel": "Cancelar",
+      "channel": "Canal",
+      "clearFilters": "Limpiar filtros",
+      "createContent": "Crear contenido",
       "creditType": {
         "adjustment": "Ajustes",
         "all": "Todos los movimientos",
@@ -1850,6 +1883,10 @@ declare const messages: {
       "delete": "Eliminar",
       "deleting": "Eliminando...",
       "forbiddenTitle": "No tienes permiso para ver esta información",
+      "format": "Formato",
+      "frequency": "Frecuencia",
+      "generating": "Generando",
+      "goal": "Objetivo",
       "history": {
         "description": "Resultados creados dentro de este espacio de trabajo.",
         "emptyDescription": "Las nuevas generaciones aparecerán aquí cuando uses AI Studio.",
@@ -1895,17 +1932,20 @@ declare const messages: {
       },
       "loadFailedTitle": "No pudimos cargar esta información",
       "loadingRecords": "Cargando registros",
+      "name": "Nombre",
       "noResults": "Sin resultados",
       "processing": "Procesando acción",
       "records": "registros",
       "retry": "Reintentar",
       "saving": "Guardando...",
+      "spend": "Consumo",
       "status": "Estado",
       "tool": "Herramienta",
       "type": "Tipo"
     },
     "pages": {
       "actionColumn": "Acción",
+      "createContent": "Crear contenido",
       "operational": {
         "automationCreated": "Automatización creada.",
         "automationDeleted": "Automatización eliminada.",
@@ -2378,18 +2418,23 @@ declare const messages: {
     }
   },
   "automation": {
+    "actions": "Acciones",
     "all": "Todos",
     "cancel": "Cancelar",
+    "clear": "Limpiar",
     "clipboardUnsupported": "Tu navegador no permite copiar este valor.",
     "copied": "{label} copiado.",
     "copy": "Copiar {label}",
     "copyFailed": "No pudimos copiar el valor. Inténtalo de nuevo.",
     "createWebhook": "Crear webhook",
+    "date": "Fecha",
+    "delete": "Eliminar",
     "direction": "Dirección",
     "directionLabel": {
       "inbound": "Entrante",
       "outbound": "Saliente"
     },
+    "edit": "Editar",
     "editWebhookTitle": "Editar webhook",
     "emptyFilteredDescription": "Prueba con otro término o estado.",
     "enabled": "Habilitado",
@@ -2450,6 +2495,9 @@ declare const messages: {
       "posts:write": "Crear publicaciones"
     },
     "permissions": "Permisos",
+    "records": "registros",
+    "required": "obligatorio",
+    "resetFilters": "Restablecer filtros",
     "result": "Resultado",
     "saveWebhook": "Guardar webhook",
     "saved": "Ya lo guardé",
@@ -2461,6 +2509,7 @@ declare const messages: {
     "searchWebhooksPlaceholder": "Buscar webhooks...",
     "secretDescription": "Úsalo para verificar la firma de cada envío. No volveremos a mostrarlo.",
     "secretLabel": "Secreto de firma",
+    "status": "Estado",
     "tab": {
       "keys": "Claves API",
       "logs": "Actividad",
@@ -2492,11 +2541,13 @@ declare const messages: {
     "actions": "Acciones",
     "back": "Volver",
     "batch": "Lote",
+    "cancel": "Cancelar",
     "cancelAction": "Cancelar lote",
     "cancelDescription": "Las publicaciones ya creadas se conservan; las filas pendientes dejan de procesarse.",
     "cancelFailed": "No pudimos cancelar el lote. Inténtalo de nuevo.",
     "cancelTitle": "¿Cancelar este lote?",
     "cancelled": "Lote cancelado.",
+    "clear": "Limpiar",
     "connectAccountFirst": "Conecta una cuenta antes de crear un lote.",
     "createFailed": "No pudimos crear el lote. Revisa el archivo e inténtalo.",
     "createTitle": "Nuevo lote",
@@ -2531,6 +2582,7 @@ declare const messages: {
     "pageTitle": "Publicaciones masivas",
     "progress": "Progreso",
     "required": "obligatorio",
+    "resetFilters": "Restablecer filtros",
     "rowStatus": {
       "failed": "Fallida",
       "invalid": "Inválida",
@@ -2560,15 +2612,20 @@ declare const messages: {
     "all": "Todos",
     "cancel": "Cancelar",
     "caption": "Caption",
+    "clear": "Limpiar",
+    "clearFilters": "Limpiar filtros",
+    "content": "Contenido",
     "contentPlaceholder": "Escribe el caption que quieres guardar",
     "createDescription": "Guarda un caption que puedas encontrar y adaptar en futuras publicaciones.",
     "createTitle": "Nuevo caption",
     "created": "Caption creado.",
+    "delete": "Eliminar",
     "deleteFailed": "No se pudo eliminar el caption.",
     "deleteTitle": "¿Eliminar este caption?",
     "deleteWarning": "Esta acción no se puede deshacer.",
     "deleted": "Caption eliminado.",
     "deleting": "Eliminando",
+    "edit": "Editar",
     "editDescription": "Actualiza el contenido y los metadatos que tu equipo necesita para reutilizarlo.",
     "editTitle": "Editar caption",
     "emptyDescription": "Crea un caption para empezar a construir tu biblioteca.",
@@ -2581,6 +2638,7 @@ declare const messages: {
     "loadFailedDescription": "No pudimos cargar la biblioteca en este momento. Inténtalo de nuevo.",
     "loadFailedTitle": "No pudimos cargar los captions",
     "missingFields": "Completa todos los campos obligatorios.",
+    "name": "Nombre",
     "namePlaceholder": "Ej. Lanzamiento de colección",
     "noMatches": "No encontramos captions",
     "notes": "Notas internas",
@@ -2614,6 +2672,7 @@ declare const messages: {
   },
   "channelConnection": {
     "authStartFailed": "No pudimos iniciar la autorización con Meta. Inténtalo de nuevo.",
+    "cancel": "Cancelar",
     "cancelFailed": "No pudimos cancelar la conexión con Meta. Inténtalo de nuevo.",
     "cancelled": "La conexión con Meta fue cancelada.",
     "connectAnyChannel": "Conectar un canal",
@@ -2647,10 +2706,13 @@ declare const messages: {
     "channelType": "Tipo de canal",
     "connect": "Conectar canal",
     "connectedAt": "Conectado el",
+    "delete": "Eliminar",
     "deleteFailed": "No pudimos eliminar el canal. Inténtalo de nuevo.",
     "deleteTitle": "Eliminar canal",
     "deleted": "Canal eliminado.",
     "deleting": "Eliminando canal",
+    "displayName": "Nombre visible",
+    "edit": "Editar",
     "editTitle": "Editar canal",
     "emptyDescription": "Conecta un tipo de canal para empezar.",
     "emptyFilteredDescription": "Prueba con otro término de búsqueda.",
@@ -2692,6 +2754,7 @@ declare const messages: {
     "profileSyncQueued": "Actualización de perfil programada. Puede tardar unos minutos.",
     "provider": "Proveedor",
     "reconnectFailed": "No pudimos iniciar la reconexión del canal. Inténtalo de nuevo.",
+    "refresh": "Actualizar",
     "renameHint": "Este cambio solo actualiza el nombre visible en Zapi.",
     "savingName": "Guardando nombre del canal",
     "searchLabel": "Buscar canales",
@@ -2725,6 +2788,7 @@ declare const messages: {
     "language": {
       "en": "English",
       "es": "Español",
+      "retry": "Reintentar",
       "short": "ESP"
     },
     "loading": "Cargando…"
@@ -2912,9 +2976,13 @@ declare const messages: {
     "actionColumn": "Acción",
     "addToLibrary": "Añadir a la biblioteca",
     "all": "Todos",
+    "cancel": "Cancelar",
     "chooseFolder": "Elige la carpeta de destino.",
+    "clearFilters": "Limpiar filtros",
+    "close": "Cerrar",
     "createFolder": "Crear carpeta",
     "creating": "Creando...",
+    "delete": "Eliminar",
     "deleteFailed": "No se pudo eliminar el elemento",
     "deleteManyFailed": "No se pudieron eliminar los elementos",
     "deleteNoneFailed": "No se pudo eliminar ningún elemento",
@@ -2923,6 +2991,8 @@ declare const messages: {
     "deleteSomeFailed": "Algunos elementos no se pudieron eliminar",
     "deleted": "Elemento eliminado permanentemente",
     "deletedMany": "Elementos eliminados permanentemente",
+    "destination": "Destino",
+    "download": "Descargar",
     "driveImportDone": "Importación desde Google Drive completada.",
     "driveImportFailed": "No pudimos completar la importación desde Google Drive.",
     "driveImportPartial": "Algunos archivos de Google Drive no se pudieron importar.",
@@ -2941,6 +3011,7 @@ declare const messages: {
       "video": "Videos"
     },
     "filterType": "Filtrar archivos por tipo",
+    "folder": "Carpeta",
     "folderCreateFailed": "No se pudo crear la carpeta",
     "folderCreated": "Carpeta creada",
     "folderNamePlaceholder": "Nombre de carpeta",
@@ -3008,13 +3079,16 @@ declare const messages: {
     },
     "openingDrive": "Abriendo Google",
     "order": "Orden",
+    "preview": "Vista previa",
     "previewDescription": "Vista privada del archivo.",
     "previousFolders": "Carpetas anteriores",
     "renameFailed": "No se pudo cambiar el nombre",
     "renameTitle": "Renombrar",
     "renamed": "Nombre actualizado",
     "rootFolder": "Archivos",
+    "save": "Guardar",
     "searchLabel": "Buscar archivos y carpetas",
+    "selectFile": "Seleccionar archivo",
     "sort": {
       "modifiedAt": "Fecha de modificación",
       "name": "Nombre"
@@ -3041,6 +3115,7 @@ declare const messages: {
     "unavailable": "No disponible",
     "unstar": "Quitar de favoritos {name}",
     "unstarred": "Quitado de favoritos",
+    "updated": "Actualizado",
     "uploadFailed": "No se pudo subir el archivo",
     "uploadTitle": "Subir archivos",
     "uploaded": "Archivo subido",
@@ -3052,6 +3127,7 @@ declare const messages: {
     "actions": "Acciones",
     "andMore": " y {count, number} más",
     "cancel": "Cancelar",
+    "clear": "Limpiar",
     "clearFilters": "Restablecer filtros",
     "color": {
       "amber": "Ámbar",
@@ -3105,6 +3181,7 @@ declare const messages: {
     "openActions": "Abrir acciones para {name}",
     "pageDescription": "Organiza cuentas relacionadas para encontrarlas y seleccionarlas más rápido.",
     "pageTitle": "Grupos",
+    "required": "obligatorio",
     "save": "Guardar grupo",
     "saveFailed": "No pudimos guardar el grupo. Inténtalo de nuevo.",
     "searchLabel": "Buscar grupos",
@@ -3363,6 +3440,7 @@ declare const messages: {
     "testBeforeEnable": "Prueba esta configuración antes de habilitarla.",
     "testBeforeSave": "Prueba esta configuración antes de guardarla.",
     "testConfiguration": "Probar configuración",
+    "testDraft": "Probar borrador",
     "tested": "Probado",
     "testing": "Probando configuración",
     "title": "Integraciones",
@@ -3389,6 +3467,7 @@ declare const messages: {
     }
   },
   "linkBio": {
+    "actions": "Acciones",
     "addBlock": "Añadir bloque…",
     "addItem": "Añadir elemento",
     "align": "Alineación",
@@ -3449,16 +3528,20 @@ declare const messages: {
     },
     "buttons": "Botones",
     "cancel": "Cancelar",
+    "clear": "Limpiar",
+    "clearFilters": "Limpiar filtros",
     "codeOrUrl": "Código o URL",
     "create": "Nueva página",
     "createTitle": "Nueva página",
     "created": "Página creada.",
+    "delete": "Eliminar",
     "deleteDescription": "La dirección dejará de funcionar y se pierden sus métricas.",
     "deleteFailed": "No pudimos eliminar la página.",
     "deleteTitle": "¿Eliminar “{title}”?",
     "deleted": "Página eliminada.",
     "descriptionField": "Descripción",
     "destination": "Destino",
+    "edit": "Editar",
     "editTitle": "Editar página",
     "emptyDescription": "Crea una página para reunir todos tus enlaces en una sola dirección.",
     "emptyFilteredDescription": "Prueba con otro término o estado.",
@@ -3497,6 +3580,7 @@ declare const messages: {
     "question": "Pregunta",
     "removeBlock": "Quitar bloque",
     "removeItem": "Quitar elemento",
+    "required": "obligatorio",
     "saveFailed": "No pudimos guardar la página. Inténtalo de nuevo.",
     "searchLabel": "Buscar páginas",
     "searchPlaceholder": "Buscar páginas...",
@@ -3664,16 +3748,19 @@ declare const messages: {
       "workspace": "Espacio de trabajo"
     },
     "user": {
+      "myProfile": "Mi perfil",
       "signOut": "Cerrar sesión"
     }
   },
   "plans": {
+    "actions": "Acciones",
     "billing": {
       "monthly": "Mensual",
       "yearly": "Anual"
     },
     "billingColumn": "Cobro",
     "billingType": "Tipo de cobro",
+    "cancel": "Cancelar",
     "conflict": "El nombre, slug o plan predeterminado ya existe.",
     "create": "Crear plan",
     "created": "Plan creado.",
@@ -3729,14 +3816,17 @@ declare const messages: {
       "subscribers": "Suscriptores",
       "subscribersDescription": "Cuentas en esta vista"
     },
+    "name": "Nombre",
     "nameTooShort": "El nombre del plan debe tener al menos 2 caracteres.",
     "noMatches": "No encontramos planes",
     "noTrial": "Sin prueba",
     "pageTitle": "Planes",
     "permissionRequired": "Selecciona al menos un permiso para el plan.",
+    "permissions": "Permisos",
     "plan": "Plan",
     "position": "Posición",
     "price": "Precio",
+    "resetFilters": "Restablecer filtros",
     "saveChanges": "Guardar cambios",
     "saveFailed": "No pudimos guardar el plan. Inténtalo de nuevo.",
     "saving": "Guardando...",
@@ -3749,7 +3839,9 @@ declare const messages: {
       "inactive": "Inactivo"
     },
     "statusColumn": "Estado",
+    "subscribers": "Suscriptores",
     "trialDays": "Días de prueba",
+    "trialing": "Prueba",
     "updated": "Plan actualizado.",
     "validationFailed": "Revisa los datos del plan antes de guardarlo.",
     "visibility": "Visibilidad"
@@ -3806,6 +3898,8 @@ declare const messages: {
       "selectedLabel": "Cuentas seleccionadas"
     },
     "calendar": {
+      "channels": "Canales",
+      "clearFilters": "Limpiar filtros",
       "create": "Nueva publicación",
       "current": {
         "day": "Hoy",
@@ -4033,9 +4127,12 @@ declare const messages: {
     }
   },
   "rssSchedules": {
+    "actions": "Acciones",
+    "activity": "Actividad",
     "connected": "Conectada",
     "create": "Crear programación",
     "created": "La programación RSS se creó.",
+    "delete": "Eliminar",
     "deleteFailed": "No pudimos eliminar la programación.",
     "deleted": "La programación RSS se eliminó.",
     "emptyDescription": "Añade un feed y elige cuándo publicarlo en tus canales.",
@@ -4063,6 +4160,7 @@ declare const messages: {
     "pause": "Pausar",
     "paused": "La programación quedó en pausa.",
     "pendingFirstRun": "Pendiente de la primera ejecución",
+    "resetFilters": "Restablecer filtros",
     "resume": "Reactivar",
     "resumed": "La programación se reactivó.",
     "retry": "Reintentar",
@@ -4075,6 +4173,7 @@ declare const messages: {
       "active": "Activa",
       "paused": "En pausa"
     },
+    "targets": "Destinos",
     "unavailableTitle": "Programaciones RSS no disponibles",
     "updateFailed": "No pudimos actualizar la programación.",
     "validationFailed": "Revisa las cuentas y los datos de la programación.",
@@ -4109,6 +4208,7 @@ declare const messages: {
       "previous": "Anterior",
       "publishTo": "Publicar en",
       "publishToHint": "Elige las cuentas que recibirán cada artículo nuevo.",
+      "required": "obligatorio",
       "reviewPublishing": "Publicación",
       "reviewSchedule": "Programación",
       "step": {
@@ -4198,6 +4298,7 @@ declare const messages: {
     "pageColumn": "Página",
     "published": "Publicada",
     "publishedHint": "Solo las publicadas son visibles fuera del Portal.",
+    "required": "obligatorio",
     "resetFilters": "Restablecer filtros",
     "save": "Guardar página",
     "saveFailed": "No pudimos guardar las páginas. Inténtalo de nuevo.",
@@ -4219,8 +4320,12 @@ declare const messages: {
     "addInformation": "Añadir información",
     "all": "Todos",
     "allCases": "Todos los casos",
+    "answer": "Respuesta",
     "bodyPlaceholder": "Qué estabas haciendo, qué esperabas que ocurriera y qué ocurrió en su lugar.",
+    "cancel": "Cancelar",
+    "cases": "casos",
     "categoryColumn": "Categoría",
+    "clear": "Limpiar",
     "createFailed": "No pudimos crear el caso. Inténtalo de nuevo.",
     "createTitle": "Nuevo caso de soporte",
     "created": "Caso de soporte creado.",
@@ -4256,6 +4361,8 @@ declare const messages: {
     "replyFailed": "No pudimos enviar tu respuesta. Inténtalo de nuevo.",
     "replyPlaceholder": "Escribe tu respuesta...",
     "replySent": "Respuesta enviada.",
+    "required": "obligatorio",
+    "resetFilters": "Restablecer filtros",
     "resolveFailed": "No pudimos marcar el caso como resuelto.",
     "resolved": "Caso marcado como resuelto.",
     "retry": "Reintentar",
@@ -4276,7 +4383,8 @@ declare const messages: {
     "ticketNotFoundDescription": "El caso no existe o ya no está disponible en este espacio de trabajo.",
     "ticketUnavailable": "Caso no disponible",
     "unavailable": "Soporte no disponible",
-    "unavailableTitle": "Soporte no disponible"
+    "unavailableTitle": "Soporte no disponible",
+    "updated": "Actualizado"
   },
   "systemInformation": {
     "available": "Disponible",
@@ -4308,6 +4416,7 @@ declare const messages: {
     "accessUpdated": "Acceso actualizado.",
     "accountCount": "{count, plural, one {# cuenta} other {# cuentas}}",
     "actionFailed": "No se pudo completar la acción",
+    "actions": "Acciones",
     "activity": "Actividad",
     "activityCategory": {
       "access": "Acceso",
@@ -4348,6 +4457,7 @@ declare const messages: {
     "assignedAccounts": "Cuentas asignadas",
     "availableAccountsDescription": "Solo puedes trabajar con estas cuentas activas.",
     "cancel": "Cancelar",
+    "clearFilters": "Limpiar filtros",
     "clearSearch": "Limpiar búsqueda",
     "close": "Cerrar",
     "confirm": {
@@ -4375,6 +4485,7 @@ declare const messages: {
     "dismissError": "Cerrar error",
     "email": "Correo",
     "emailPlaceholder": "nombre@empresa.com",
+    "events": "eventos",
     "expires": "Vence",
     "filterActivity": "Filtrar actividad",
     "invalidEmail": "Introduce un correo válido.",
@@ -4447,6 +4558,7 @@ declare const messages: {
     "invitedBy": "Invitado por",
     "joined": "Se unió",
     "lastSent": "Último envío",
+    "leaveWorkspace": "Abandonar workspace",
     "loadFailedDescription": "No se modificó ningún acceso. Intenta cargar la sección nuevamente.",
     "loadFailedTitle": "No se pudo cargar el equipo",
     "manageDescription": "Administra personas, cuentas asignadas e invitaciones del workspace.",
@@ -4467,6 +4579,7 @@ declare const messages: {
     "processing": "Procesando...",
     "resendInvitation": "Reenviar invitación",
     "resending": "Reenviando invitación",
+    "retry": "Reintentar",
     "revokeInvitation": "Revocar invitación",
     "role": {
       "admin": "Administración",
@@ -4612,6 +4725,7 @@ declare const messages: {
     "searchAccounts": "Buscar una cuenta",
     "searchAccountsAria": "Buscar cuentas",
     "selectedAccounts": "{count, plural, one {# cuenta seleccionada} other {# cuentas seleccionadas}}",
+    "selectedAccountsLabel": "Cuentas seleccionadas",
     "size": "Tamaño",
     "style": "Estilo",
     "text": "Texto",

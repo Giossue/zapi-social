@@ -473,7 +473,7 @@ export function WhatsAppStatusIntegrationCard() {
                           id="whatsapp-test-title"
                           className="text-sm font-semibold"
                         >
-                          Probar borrador
+                          {t("testDraft")}
                         </h3>
                         <p className="mt-1 text-sm text-muted-foreground">
                           La prueba consulta solo la lista de dispositivos de
@@ -522,7 +522,7 @@ export function WhatsAppStatusIntegrationCard() {
                   type="button"
                   variant="brand-secondary"
                 >
-                  Cancelar
+                  {t("cancel")}
                 </Button>
                 <Button
                   disabled={

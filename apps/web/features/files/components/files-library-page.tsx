@@ -295,7 +295,7 @@ function AssetCard({
               <DropdownMenuGroup>
                 <DropdownMenuItem onSelect={() => onPreview(asset)}>
                   <Eye />
-                  Vista previa
+                  {t("preview")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => onInfo(asset)}>
                   <Info />
@@ -304,12 +304,12 @@ function AssetCard({
                 <DropdownMenuItem asChild>
                   <a href={filesApi.downloadUrl(asset.id)}>
                     <Download />
-                    Descargar
+                    {t("download")}
                   </a>
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => onRename(asset)}>
                   <FilePenLine />
-                  Renombrar
+                  {t("renameTitle")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => onMove(asset)}>
                   <FolderInput />
@@ -323,7 +323,7 @@ function AssetCard({
                   variant="destructive"
                 >
                   <Trash2 />
-                  Eliminar
+                  {t("delete")}
                 </DropdownMenuItem>
               </DropdownMenuGroup>
             </DropdownMenuContent>
@@ -347,6 +347,8 @@ function FolderCard({
   onRename: (folder: FileFolder) => void
   onTrash: (folder: FileFolder) => void
 }) {
+  const t = useTranslations("files")
+
   return (
     <Card
       className="cursor-default transition-colors select-none hover:bg-accent/50"
@@ -377,7 +379,7 @@ function FolderCard({
               <DropdownMenuGroup>
                 <DropdownMenuItem onSelect={() => onRename(folder)}>
                   <FilePenLine />
-                  Renombrar
+                  {t("renameTitle")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => onMove(folder)}>
                   <FolderInput />
@@ -391,7 +393,7 @@ function FolderCard({
                   variant="destructive"
                 >
                   <Trash2 />
-                  Eliminar
+                  {t("delete")}
                 </DropdownMenuItem>
               </DropdownMenuGroup>
             </DropdownMenuContent>
@@ -437,8 +439,8 @@ function AssetsTable({
       <TableHeader>
         <TableRow>
           <TableHead>{t("name")}</TableHead>
-          <TableHead className="hidden md:table-cell">Tipo</TableHead>
-          <TableHead className="hidden lg:table-cell">Actualizado</TableHead>
+          <TableHead className="hidden md:table-cell">{t("type")}</TableHead>
+          <TableHead className="hidden lg:table-cell">{t("updated")}</TableHead>
           <TableHead className="text-right">{t("actionColumn")}</TableHead>
         </TableRow>
       </TableHeader>
@@ -467,7 +469,7 @@ function AssetsTable({
               </div>
             </TableCell>
             <TableCell className="hidden text-muted-foreground md:table-cell">
-              Carpeta
+              {t("folder")}
             </TableCell>
             <TableCell className="hidden text-muted-foreground lg:table-cell">
               {folder.updatedAt}
@@ -486,7 +488,7 @@ function AssetsTable({
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onSelect={() => onRenameFolder(folder)}>
                     <FilePenLine />
-                    Renombrar
+                    {t("renameTitle")}
                   </DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => onMoveFolder(folder)}>
                     <FolderInput />
@@ -498,7 +500,7 @@ function AssetsTable({
                     variant="destructive"
                   >
                     <Trash2 />
-                    Eliminar
+                    {t("delete")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -545,7 +547,7 @@ function AssetsTable({
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onSelect={() => onPreview(asset)}>
                       <Eye />
-                      Vista previa
+                      {t("preview")}
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => onInfo(asset)}>
                       <Info />
@@ -554,12 +556,12 @@ function AssetsTable({
                     <DropdownMenuItem asChild>
                       <a href={filesApi.downloadUrl(asset.id)}>
                         <Download />
-                        Descargar
+                        {t("download")}
                       </a>
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => onRename(asset)}>
                       <FilePenLine />
-                      Renombrar
+                      {t("renameTitle")}
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => onMove(asset)}>
                       <FolderInput />
@@ -571,7 +573,7 @@ function AssetsTable({
                       variant="destructive"
                     >
                       <Trash2 />
-                      Eliminar
+                      {t("delete")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -1160,7 +1162,7 @@ export function FilesLibraryPage() {
         }}
         variant="brand-secondary"
       >
-        Limpiar filtros
+        {t("clearFilters")}
       </Button>
     ) : undefined,
     description: hasFilters
@@ -1217,7 +1219,7 @@ export function FilesLibraryPage() {
             variant="brand-secondary"
           >
             <FolderPlus data-icon="inline-start" />
-            Nueva carpeta
+            {t("newFolderTitle")}
           </Button>
           {driveProvider?.enabled ? (
             <Button
@@ -1240,7 +1242,7 @@ export function FilesLibraryPage() {
             onClick={() => setUploadDialogOpen(true)}
           >
             <Upload data-icon="inline-start" />
-            Subir archivos
+            {t("uploadTitle")}
           </Button>
         </div>
       </div>
@@ -1283,7 +1285,7 @@ export function FilesLibraryPage() {
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
                   <button onClick={() => openFolder("all")} type="button">
-                    Archivos
+                    {t("rootFolder")}
                   </button>
                 </BreadcrumbLink>
               </BreadcrumbItem>
@@ -1344,7 +1346,7 @@ export function FilesLibraryPage() {
                   variant="destructive"
                 >
                   <Trash2 data-icon="inline-start" />
-                  Eliminar
+                  {t("delete")}
                 </Button>
               </>
             ) : null}
@@ -1364,7 +1366,7 @@ export function FilesLibraryPage() {
                   value={sort}
                 >
                   <DropdownMenuRadioItem value="name">
-                    Nombre
+                    {t("name")}
                   </DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="modifiedAt">
                     {t("modifiedColumn")}
@@ -1488,7 +1490,7 @@ export function FilesLibraryPage() {
           <DropdownMenuContent align="end" className="w-56" side="top">
             <DropdownMenuItem onSelect={() => setFolderDialogOpen(true)}>
               <FolderPlus aria-hidden="true" />
-              Nueva carpeta
+              {t("newFolderTitle")}
             </DropdownMenuItem>
             {driveProvider?.enabled ? (
               <DropdownMenuItem

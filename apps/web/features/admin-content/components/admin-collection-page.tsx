@@ -326,7 +326,7 @@ function CollectionSheet({
                           <span aria-hidden="true" className="text-destructive">
                             *
                           </span>
-                          <span className="sr-only"> obligatorio</span>
+                          <span className="sr-only"> {t("required")}</span>
                         </>
                       ) : null}
                     </FieldLabel>

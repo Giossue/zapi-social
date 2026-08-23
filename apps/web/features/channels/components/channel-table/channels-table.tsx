@@ -76,7 +76,7 @@ export function ChannelsTable({
                 <TableRow key={item}>
                   <TableCell colSpan={table.getVisibleLeafColumns().length}>
                     <div className="flex h-10 items-center justify-center">
-                      <Spinner aria-label="Filtrando canales" />
+                      <Spinner aria-label={t("filtering")} />
                     </div>
                   </TableCell>
                 </TableRow>

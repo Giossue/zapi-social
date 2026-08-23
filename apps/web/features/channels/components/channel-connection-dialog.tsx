@@ -406,7 +406,7 @@ export function ChannelConnectionDialog({
                     type="button"
                     variant="brand-secondary"
                   >
-                    Cancelar
+                    {t("cancel")}
                   </Button>
                   <Button disabled={!candidate || isSelecting} type="submit">
                     {isSelecting ? (

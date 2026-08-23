@@ -575,7 +575,7 @@ function Overview() {
           <Button asChild>
             <Link href="/portal/ai-studio/ai-content">
               <WandSparkles data-icon="inline-start" />
-              Crear contenido
+              {tOps("createContent")}
             </Link>
           </Button>
         }
@@ -1203,7 +1203,10 @@ function CreationWorkspace({ view }: { view: CreationView }) {
           <div className="flex justify-end">
             <Button disabled={!brief.trim() || pending} type="submit">
               {pending ? (
-                <Spinner aria-label="Generando" data-icon="inline-start" />
+                <Spinner
+                  aria-label={t("generating")}
+                  data-icon="inline-start"
+                />
               ) : (
                 <WandSparkles data-icon="inline-start" />
               )}
@@ -1335,7 +1338,8 @@ function Planner() {
               <FieldGroup>
                 <Field>
                   <FieldLabel htmlFor="planner-goal">
-                    Objetivo <RequiredMark />
+                    {tOps("goal")}
+                    <RequiredMark />
                   </FieldLabel>
                   <Textarea
                     id="planner-goal"
@@ -1364,7 +1368,8 @@ function Planner() {
                 </Field>
                 <Field>
                   <FieldLabel>
-                    Frecuencia <RequiredMark />
+                    {tOps("frequency")}
+                    <RequiredMark />
                   </FieldLabel>
                   <Select value={frequency} onValueChange={setFrequency}>
                     <SelectTrigger className="w-full">
@@ -1398,7 +1403,10 @@ function Planner() {
             type="submit"
           >
             {pending ? (
-              <Spinner aria-label="Generando" data-icon="inline-start" />
+              <Spinner
+                aria-label={tOps("generating")}
+                data-icon="inline-start"
+              />
             ) : (
               <CalendarPlus data-icon="inline-start" />
             )}
@@ -1424,10 +1432,10 @@ function Planner() {
                       <TableHead>{t("planner.suggestedDate")}</TableHead>
                       <TableHead>Idea</TableHead>
                       <TableHead className="hidden md:table-cell">
-                        Canal
+                        {tOps("channel")}
                       </TableHead>
                       <TableHead className="hidden lg:table-cell">
-                        Formato
+                        {tOps("format")}
                       </TableHead>
                       <TableHead>{tOps("status")}</TableHead>
                       <TableHead className="text-right">
@@ -1791,7 +1799,7 @@ function Research() {
                   <Button asChild size="sm" variant="brand-secondary">
                     <Link href="/portal/ai-studio/ai-content">
                       <WandSparkles data-icon="inline-start" />
-                      Crear contenido
+                      {t("createContent")}
                     </Link>
                   </Button>
                 </div>

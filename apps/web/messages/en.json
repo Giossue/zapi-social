@@ -131,6 +131,7 @@
     "openActions": "Open actions for {name}",
     "recordCreated": "Record created.",
     "recordDeleted": "Record deleted.",
+    "required": "required",
     "resetFilters": "Reset filters",
     "rss": {
       "active": "Active",
@@ -234,13 +235,17 @@
     "acceptManual": "Accept manual payments",
     "acceptManualHint": "Shows offline payment instructions to customers.",
     "actionFailed": "We couldn't complete the action. Please try again.",
+    "actions": "Actions",
     "all": "All",
     "amount": "Amount",
     "applied": "Applied",
+    "approve": "Approve",
     "approvedToast": "Payment approved and applied.",
     "cancel": "Cancel",
+    "clear": "Clear",
     "createTitle": "Record manual payment",
     "created": "Manual payment recorded.",
+    "delete": "Delete",
     "deleteDescription": "The record “{reference}” will be deleted. This action can't be undone.",
     "deleteTitle": "Delete manual payment",
     "deleted": "Manual payment deleted.",
@@ -279,6 +284,7 @@
     "pageTitle": "Manual payments",
     "paymentInfo": "Payment details",
     "paymentInfoPlaceholder": "Bank, transaction number, deposit date...",
+    "payments": "payments",
     "product": "Product",
     "productType": {
       "creditsPack": "Credit pack",
@@ -293,6 +299,7 @@
     "referencePrefixPlaceholder": "PAY-",
     "referenceTaken": "That reference is already recorded.",
     "registerPayment": "Record payment",
+    "reject": "Reject",
     "rejectedToast": "Payment rejected.",
     "required": "required",
     "searchLabel": "Search manual payments",
@@ -312,7 +319,8 @@
     "tab": {
       "payments": "Payments",
       "settings": "Settings"
-    }
+    },
+    "workspace": "Workspace"
   },
   "adminMockups": {
     "action": {
@@ -476,6 +484,7 @@
     "thisRecord": "this record"
   },
   "adminNotifications": {
+    "actions": "Actions",
     "all": "All",
     "announcement": "Announcement",
     "audience": {
@@ -491,12 +500,15 @@
     },
     "bodyPlaceholder": "What's happening, who it affects and what the person should do.",
     "cancel": "Cancel",
+    "clear": "Clear",
     "createTitle": "New announcement",
+    "delete": "Delete",
     "deleteDescription": "“{title}” and its read history will be deleted. This action can't be undone.",
     "deleteFailed": "We couldn't delete the announcement.",
     "deleteTitle": "Delete announcement",
     "deleted": "Announcement deleted.",
     "draftSaved": "Draft saved.",
+    "edit": "Edit",
     "editTitle": "Edit announcement",
     "emptyDescription": "Publish a notice so your customers see it in the Portal.",
     "emptyFilteredDescription": "Try another term or status.",
@@ -528,6 +540,9 @@
     "pageDescription": "Manual notices that appear in the customers' Portal bell.",
     "pageTitle": "Announcements",
     "published": "Announcement published.",
+    "reads": "Reads",
+    "required": "required",
+    "saveDraft": "Save draft",
     "saveFailed": "We couldn't save the announcement. Please try again.",
     "searchLabel": "Search announcements",
     "searchPerson": "Search person or email...",
@@ -1051,6 +1066,7 @@
   },
   "adminPaymentReport": {
     "all": "All",
+    "amount": "Amount",
     "byProduct": "By product",
     "byProductDescription": "Products with the highest revenue in the period.",
     "byStatus": "By status",
@@ -1059,6 +1075,7 @@
     "filterProduct": "Filter by product",
     "forbiddenDescription": "Your account can't view the payment report.",
     "forbiddenTitle": "Restricted access",
+    "gross": "Gross",
     "loadFailedDescription": "The payment report couldn't be calculated.",
     "loadFailedTitle": "We couldn't load this section",
     "loading": "Loading payment report",
@@ -1080,6 +1097,7 @@
     "noSettledPeriod": "No settled charges in this period.",
     "pageDescription": "Settled charges, refunds and billing per product in the selected period.",
     "pageTitle": "Payment report",
+    "payments": "Payments",
     "product": "Product",
     "productType": {
       "credits": "Credits",
@@ -1308,6 +1326,8 @@
     "all": "All",
     "amount": "Amount",
     "availableAmount": "Available: {amount}",
+    "cancel": "Cancel",
+    "clear": "Clear",
     "clipboardUnsupported": "Your browser can't copy the code.",
     "codeCopied": "Code copied.",
     "commission": "Commission",
@@ -1323,6 +1343,7 @@
       "paid": "Paid",
       "pending": "Pending"
     },
+    "commissions": "commissions",
     "commissionsEmptyDescription": "When someone buys using your code you'll see their commission here.",
     "commissionsEmptyTitle": "No commissions yet",
     "copyCode": "Copy code",
@@ -1356,7 +1377,9 @@
       "suspended": "Suspended"
     },
     "requestWithdrawal": "Request withdrawal",
+    "requested": "Requested",
     "required": "required",
+    "resetFilters": "Reset filters",
     "searchByAmount": "Search by amount...",
     "searchCommissions": "Search commissions",
     "searchWithdrawals": "Search withdrawals",
@@ -1382,6 +1405,7 @@
       "rejected": "Rejected",
       "requested": "Requested"
     },
+    "withdrawals": "withdrawals",
     "withdrawalsEmptyDescription": "Your withdrawal requests will appear in this history.",
     "withdrawalsEmptyTitle": "No withdrawals",
     "yourCode": "Your affiliate code"
@@ -1626,8 +1650,10 @@
   },
   "aiStudio": {
     "chat": {
+      "archive": "Archive",
       "archiveFailed": "We couldn't archive the conversation.",
       "archived": "Conversation archived.",
+      "automations": "Automations",
       "backToConversations": "Back to conversations",
       "cancelled": "The generation was cancelled.",
       "clipboardUnsupported": "Your browser can't copy the result.",
@@ -1647,6 +1673,7 @@
       "loadFailedTitle": "AI Studio unavailable",
       "loading": "Loading AI Studio",
       "newConversation": "New conversation",
+      "retry": "Retry",
       "retryFailed": "We couldn't retry the generation.",
       "retrySuccess": "Generation retried.",
       "searchLabel": "Search generations",
@@ -1691,6 +1718,7 @@
       },
       "download": "Download",
       "format": "Format",
+      "generating": "Generating",
       "generatingResult": "Generating result",
       "generationFailed": "The generation failed",
       "goal": {
@@ -1758,6 +1786,7 @@
       "title": "AI Studio could not be loaded"
     },
     "operations": {
+      "actions": "Actions",
       "automation": {
         "create": "New automation",
         "createDescription": "Generates drafts; it never publishes without human review.",
@@ -1800,6 +1829,10 @@
         "draft": "Draft",
         "paused": "Paused"
       },
+      "cancel": "Cancel",
+      "channel": "Channel",
+      "clearFilters": "Clear filters",
+      "createContent": "Create content",
       "creditType": {
         "adjustment": "Adjustments",
         "all": "All movements",
@@ -1847,6 +1880,10 @@
       "delete": "Delete",
       "deleting": "Deleting...",
       "forbiddenTitle": "You don't have permission to see this information",
+      "format": "Format",
+      "frequency": "Frequency",
+      "generating": "Generating",
+      "goal": "Goal",
       "history": {
         "description": "Results created inside this workspace.",
         "emptyDescription": "New generations will show up here once you use AI Studio.",
@@ -1892,17 +1929,20 @@
       },
       "loadFailedTitle": "We couldn't load this information",
       "loadingRecords": "Loading records",
+      "name": "Name",
       "noResults": "No results",
       "processing": "Processing action",
       "records": "records",
       "retry": "Retry",
       "saving": "Saving...",
+      "spend": "Spend",
       "status": "Status",
       "tool": "Tool",
       "type": "Type"
     },
     "pages": {
       "actionColumn": "Action",
+      "createContent": "Create content",
       "operational": {
         "automationCreated": "Automation created.",
         "automationDeleted": "Automation deleted.",
@@ -2375,18 +2415,23 @@
     }
   },
   "automation": {
+    "actions": "Actions",
     "all": "All",
     "cancel": "Cancel",
+    "clear": "Clear",
     "clipboardUnsupported": "Your browser can't copy this value.",
     "copied": "{label} copied.",
     "copy": "Copy {label}",
     "copyFailed": "We couldn't copy the value. Please try again.",
     "createWebhook": "Create webhook",
+    "date": "Date",
+    "delete": "Delete",
     "direction": "Direction",
     "directionLabel": {
       "inbound": "Inbound",
       "outbound": "Outbound"
     },
+    "edit": "Edit",
     "editWebhookTitle": "Edit webhook",
     "emptyFilteredDescription": "Try another term or status.",
     "enabled": "Enabled",
@@ -2447,6 +2492,9 @@
       "posts:write": "Create posts"
     },
     "permissions": "Permissions",
+    "records": "records",
+    "required": "required",
+    "resetFilters": "Reset filters",
     "result": "Result",
     "saveWebhook": "Save webhook",
     "saved": "I saved it",
@@ -2458,6 +2506,7 @@
     "searchWebhooksPlaceholder": "Search webhooks...",
     "secretDescription": "Use it to verify each delivery's signature. We won't show it again.",
     "secretLabel": "Signing secret",
+    "status": "Status",
     "tab": {
       "keys": "API keys",
       "logs": "Activity",
@@ -2489,11 +2538,13 @@
     "actions": "Actions",
     "back": "Back",
     "batch": "Batch",
+    "cancel": "Cancel",
     "cancelAction": "Cancel batch",
     "cancelDescription": "Posts already created are kept; pending rows stop being processed.",
     "cancelFailed": "We couldn't cancel the batch. Please try again.",
     "cancelTitle": "Cancel this batch?",
     "cancelled": "Batch cancelled.",
+    "clear": "Clear",
     "connectAccountFirst": "Connect an account before creating a batch.",
     "createFailed": "We couldn't create the batch. Check the file and try again.",
     "createTitle": "New batch",
@@ -2528,6 +2579,7 @@
     "pageTitle": "Bulk posts",
     "progress": "Progress",
     "required": "required",
+    "resetFilters": "Reset filters",
     "rowStatus": {
       "failed": "Failed",
       "invalid": "Invalid",
@@ -2557,15 +2609,20 @@
     "all": "All",
     "cancel": "Cancel",
     "caption": "Caption",
+    "clear": "Clear",
+    "clearFilters": "Clear filters",
+    "content": "Content",
     "contentPlaceholder": "Write the caption you want to save",
     "createDescription": "Save a caption you can find and adapt in future posts.",
     "createTitle": "New caption",
     "created": "Caption created.",
+    "delete": "Delete",
     "deleteFailed": "The caption couldn't be deleted.",
     "deleteTitle": "Delete this caption?",
     "deleteWarning": "This action can't be undone.",
     "deleted": "Caption deleted.",
     "deleting": "Deleting",
+    "edit": "Edit",
     "editDescription": "Update the content and metadata your team needs to reuse it.",
     "editTitle": "Edit caption",
     "emptyDescription": "Create a caption to start building your library.",
@@ -2578,6 +2635,7 @@
     "loadFailedDescription": "We couldn't load the library right now. Please try again.",
     "loadFailedTitle": "We couldn't load the captions",
     "missingFields": "Fill in every required field.",
+    "name": "Name",
     "namePlaceholder": "E.g. Collection launch",
     "noMatches": "No captions found",
     "notes": "Internal notes",
@@ -2611,6 +2669,7 @@
   },
   "channelConnection": {
     "authStartFailed": "We couldn't start the Meta authorization. Try again.",
+    "cancel": "Cancel",
     "cancelFailed": "We couldn't cancel the Meta connection. Try again.",
     "cancelled": "The Meta connection was cancelled.",
     "connectAnyChannel": "Connect a channel",
@@ -2644,10 +2703,13 @@
     "channelType": "Channel type",
     "connect": "Connect channel",
     "connectedAt": "Connected on",
+    "delete": "Delete",
     "deleteFailed": "We couldn't delete the channel. Please try again.",
     "deleteTitle": "Delete channel",
     "deleted": "Channel deleted.",
     "deleting": "Deleting channel",
+    "displayName": "Display name",
+    "edit": "Edit",
     "editTitle": "Edit channel",
     "emptyDescription": "Connect a channel type to get started.",
     "emptyFilteredDescription": "Try another search term.",
@@ -2689,6 +2751,7 @@
     "profileSyncQueued": "Profile update scheduled. It may take a few minutes.",
     "provider": "Provider",
     "reconnectFailed": "We couldn't start the channel reconnection. Please try again.",
+    "refresh": "Refresh",
     "renameHint": "This change only updates the display name in Zapi.",
     "savingName": "Saving channel name",
     "searchLabel": "Search channels",
@@ -2722,6 +2785,7 @@
     "language": {
       "en": "English",
       "es": "Español",
+      "retry": "Retry",
       "short": "ENG"
     },
     "loading": "Loading…"
@@ -2909,9 +2973,13 @@
     "actionColumn": "Action",
     "addToLibrary": "Add to library",
     "all": "All",
+    "cancel": "Cancel",
     "chooseFolder": "Choose the destination folder.",
+    "clearFilters": "Clear filters",
+    "close": "Close",
     "createFolder": "Create folder",
     "creating": "Creating...",
+    "delete": "Delete",
     "deleteFailed": "The item couldn't be deleted",
     "deleteManyFailed": "The items couldn't be deleted",
     "deleteNoneFailed": "No item could be deleted",
@@ -2920,6 +2988,8 @@
     "deleteSomeFailed": "Some items couldn't be deleted",
     "deleted": "Item permanently deleted",
     "deletedMany": "Items permanently deleted",
+    "destination": "Destination",
+    "download": "Download",
     "driveImportDone": "Google Drive import completed.",
     "driveImportFailed": "We couldn't complete the Google Drive import.",
     "driveImportPartial": "Some Google Drive files couldn't be imported.",
@@ -2938,6 +3008,7 @@
       "video": "Videos"
     },
     "filterType": "Filter files by type",
+    "folder": "Folder",
     "folderCreateFailed": "The folder couldn't be created",
     "folderCreated": "Folder created",
     "folderNamePlaceholder": "Folder name",
@@ -3005,13 +3076,16 @@
     },
     "openingDrive": "Opening Google",
     "order": "Order",
+    "preview": "Preview",
     "previewDescription": "Private file preview.",
     "previousFolders": "Previous folders",
     "renameFailed": "The name couldn't be changed",
     "renameTitle": "Rename",
     "renamed": "Name updated",
     "rootFolder": "Files",
+    "save": "Save",
     "searchLabel": "Search files and folders",
+    "selectFile": "Select file",
     "sort": {
       "modifiedAt": "Modified date",
       "name": "Name"
@@ -3038,6 +3112,7 @@
     "unavailable": "Not available",
     "unstar": "Remove {name} from favourites",
     "unstarred": "Removed from favourites",
+    "updated": "Updated",
     "uploadFailed": "The file couldn't be uploaded",
     "uploadTitle": "Upload files",
     "uploaded": "File uploaded",
@@ -3049,6 +3124,7 @@
     "actions": "Actions",
     "andMore": " and {count, number} more",
     "cancel": "Cancel",
+    "clear": "Clear",
     "clearFilters": "Reset filters",
     "color": {
       "amber": "Amber",
@@ -3102,6 +3178,7 @@
     "openActions": "Open actions for {name}",
     "pageDescription": "Organise related accounts so you can find and select them faster.",
     "pageTitle": "Groups",
+    "required": "required",
     "save": "Save group",
     "saveFailed": "We couldn't save the group. Please try again.",
     "searchLabel": "Search groups",
@@ -3360,6 +3437,7 @@
     "testBeforeEnable": "Test this configuration before enabling it.",
     "testBeforeSave": "Test this configuration before saving it.",
     "testConfiguration": "Test configuration",
+    "testDraft": "Test draft",
     "tested": "Tested",
     "testing": "Testing configuration",
     "title": "Integrations",
@@ -3386,6 +3464,7 @@
     }
   },
   "linkBio": {
+    "actions": "Actions",
     "addBlock": "Add block…",
     "addItem": "Add item",
     "align": "Alignment",
@@ -3446,16 +3525,20 @@
     },
     "buttons": "Buttons",
     "cancel": "Cancel",
+    "clear": "Clear",
+    "clearFilters": "Clear filters",
     "codeOrUrl": "Code or URL",
     "create": "New page",
     "createTitle": "New page",
     "created": "Page created.",
+    "delete": "Delete",
     "deleteDescription": "The address will stop working and its metrics are lost.",
     "deleteFailed": "We couldn't delete the page.",
     "deleteTitle": "Delete “{title}”?",
     "deleted": "Page deleted.",
     "descriptionField": "Description",
     "destination": "Destination",
+    "edit": "Edit",
     "editTitle": "Edit page",
     "emptyDescription": "Create a page to gather all your links under a single address.",
     "emptyFilteredDescription": "Try another term or status.",
@@ -3494,6 +3577,7 @@
     "question": "Question",
     "removeBlock": "Remove block",
     "removeItem": "Remove item",
+    "required": "required",
     "saveFailed": "We couldn't save the page. Please try again.",
     "searchLabel": "Search pages",
     "searchPlaceholder": "Search pages...",
@@ -3661,16 +3745,19 @@
       "workspace": "Workspace"
     },
     "user": {
+      "myProfile": "My profile",
       "signOut": "Sign out"
     }
   },
   "plans": {
+    "actions": "Actions",
     "billing": {
       "monthly": "Monthly",
       "yearly": "Yearly"
     },
     "billingColumn": "Billing",
     "billingType": "Billing type",
+    "cancel": "Cancel",
     "conflict": "The name, slug or default plan already exists.",
     "create": "Create plan",
     "created": "Plan created.",
@@ -3726,14 +3813,17 @@
       "subscribers": "Subscribers",
       "subscribersDescription": "Accounts in this view"
     },
+    "name": "Name",
     "nameTooShort": "The plan name needs at least 2 characters.",
     "noMatches": "No plans found",
     "noTrial": "No trial",
     "pageTitle": "Plans",
     "permissionRequired": "Select at least one permission for the plan.",
+    "permissions": "Permissions",
     "plan": "Plan",
     "position": "Position",
     "price": "Price",
+    "resetFilters": "Reset filters",
     "saveChanges": "Save changes",
     "saveFailed": "We couldn't save the plan. Please try again.",
     "saving": "Saving...",
@@ -3746,7 +3836,9 @@
       "inactive": "Inactive"
     },
     "statusColumn": "Status",
+    "subscribers": "Subscribers",
     "trialDays": "Trial days",
+    "trialing": "Trialing",
     "updated": "Plan updated.",
     "validationFailed": "Check the plan details before saving.",
     "visibility": "Visibility"
@@ -3803,6 +3895,8 @@
       "selectedLabel": "Selected accounts"
     },
     "calendar": {
+      "channels": "Channels",
+      "clearFilters": "Clear filters",
       "create": "New post",
       "current": {
         "day": "Today",
@@ -4030,9 +4124,12 @@
     }
   },
   "rssSchedules": {
+    "actions": "Actions",
+    "activity": "Activity",
     "connected": "Connected",
     "create": "Create schedule",
     "created": "The RSS schedule was created.",
+    "delete": "Delete",
     "deleteFailed": "We couldn't delete the schedule.",
     "deleted": "The RSS schedule was deleted.",
     "emptyDescription": "Add a feed and choose when to publish it on your channels.",
@@ -4060,6 +4157,7 @@
     "pause": "Pause",
     "paused": "The schedule is now paused.",
     "pendingFirstRun": "Waiting for the first run",
+    "resetFilters": "Reset filters",
     "resume": "Resume",
     "resumed": "The schedule was resumed.",
     "retry": "Retry",
@@ -4072,6 +4170,7 @@
       "active": "Active",
       "paused": "Paused"
     },
+    "targets": "Targets",
     "unavailableTitle": "RSS schedules unavailable",
     "updateFailed": "We couldn't update the schedule.",
     "validationFailed": "Check the accounts and the schedule details.",
@@ -4106,6 +4205,7 @@
       "previous": "Previous",
       "publishTo": "Publish to",
       "publishToHint": "Choose the accounts that will receive each new article.",
+      "required": "required",
       "reviewPublishing": "Publishing",
       "reviewSchedule": "Schedule",
       "step": {
@@ -4195,6 +4295,7 @@
     "pageColumn": "Page",
     "published": "Published",
     "publishedHint": "Only published pages are visible outside the Portal.",
+    "required": "required",
     "resetFilters": "Reset filters",
     "save": "Save page",
     "saveFailed": "We couldn't save the pages. Try again.",
@@ -4216,8 +4317,12 @@
     "addInformation": "Add information",
     "all": "All",
     "allCases": "All cases",
+    "answer": "Answer",
     "bodyPlaceholder": "What you were doing, what you expected to happen and what happened instead.",
+    "cancel": "Cancel",
+    "cases": "cases",
     "categoryColumn": "Category",
+    "clear": "Clear",
     "createFailed": "We couldn't create the case. Please try again.",
     "createTitle": "New support case",
     "created": "Support case created.",
@@ -4253,6 +4358,8 @@
     "replyFailed": "We couldn't send your reply. Please try again.",
     "replyPlaceholder": "Write your reply...",
     "replySent": "Reply sent.",
+    "required": "required",
+    "resetFilters": "Reset filters",
     "resolveFailed": "We couldn't mark the case as resolved.",
     "resolved": "Case marked as resolved.",
     "retry": "Retry",
@@ -4273,7 +4380,8 @@
     "ticketNotFoundDescription": "The case doesn't exist or is no longer available in this workspace.",
     "ticketUnavailable": "Case unavailable",
     "unavailable": "Support unavailable",
-    "unavailableTitle": "Support unavailable"
+    "unavailableTitle": "Support unavailable",
+    "updated": "Updated"
   },
   "systemInformation": {
     "available": "Available",
@@ -4305,6 +4413,7 @@
     "accessUpdated": "Access updated.",
     "accountCount": "{count, plural, one {# account} other {# accounts}}",
     "actionFailed": "The action couldn't be completed",
+    "actions": "Actions",
     "activity": "Activity",
     "activityCategory": {
       "access": "Access",
@@ -4345,6 +4454,7 @@
     "assignedAccounts": "Assigned accounts",
     "availableAccountsDescription": "You can only work with these active accounts.",
     "cancel": "Cancel",
+    "clearFilters": "Clear filters",
     "clearSearch": "Clear search",
     "close": "Close",
     "confirm": {
@@ -4372,6 +4482,7 @@
     "dismissError": "Dismiss error",
     "email": "Email",
     "emailPlaceholder": "name@company.com",
+    "events": "events",
     "expires": "Expires",
     "filterActivity": "Filter activity",
     "invalidEmail": "Enter a valid email.",
@@ -4444,6 +4555,7 @@
     "invitedBy": "Invited by",
     "joined": "Joined",
     "lastSent": "Last sent",
+    "leaveWorkspace": "Leave workspace",
     "loadFailedDescription": "No access was modified. Try loading the section again.",
     "loadFailedTitle": "The team couldn't load",
     "manageDescription": "Manage people, assigned accounts and workspace invitations.",
@@ -4464,6 +4576,7 @@
     "processing": "Processing...",
     "resendInvitation": "Resend invitation",
     "resending": "Resending invitation",
+    "retry": "Retry",
     "revokeInvitation": "Revoke invitation",
     "role": {
       "admin": "Administration",
@@ -4609,6 +4722,7 @@
     "searchAccounts": "Search an account",
     "searchAccountsAria": "Search accounts",
     "selectedAccounts": "{count, plural, one {# account selected} other {# accounts selected}}",
+    "selectedAccountsLabel": "Selected accounts",
     "size": "Size",
     "style": "Style",
     "text": "Text",

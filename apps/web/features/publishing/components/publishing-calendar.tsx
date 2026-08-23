@@ -189,7 +189,7 @@ export function PublishingCalendar({
           </PopoverTrigger>
           <PopoverContent align="start" className="w-56 p-3">
             <div className="flex flex-col gap-3">
-              <div className="text-sm font-medium">Canales</div>
+              <div className="text-sm font-medium">{t("channels")}</div>
               {channels.map((channel) => (
                 <div className="flex items-center gap-2" key={channel.key}>
                   <Checkbox
@@ -217,7 +217,7 @@ export function PublishingCalendar({
                 size="sm"
                 variant="outline"
               >
-                Limpiar filtros
+                {t("clearFilters")}
               </Button>
             </div>
           </PopoverContent>

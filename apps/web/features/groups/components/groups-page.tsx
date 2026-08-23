@@ -210,7 +210,7 @@ function GroupSheet({
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
-                  <span className="sr-only"> obligatorio</span>
+                  <span className="sr-only"> {t("required")}</span>
                 </FieldLabel>
                 <Input
                   aria-required="true"
@@ -561,7 +561,7 @@ export function GroupsPage() {
                   size="sm"
                   type="button"
                 >
-                  <Plus data-icon="inline-start" /> Nuevo grupo
+                  <Plus data-icon="inline-start" /> {t("createTitle")}
                 </Button>
               ) : undefined
             }
@@ -585,7 +585,7 @@ export function GroupsPage() {
                     type="button"
                     variant="outline"
                   >
-                    <X /> Limpiar
+                    <X /> {t("clear")}
                   </Button>
                 ) : undefined
               }

@@ -242,7 +242,7 @@ function AnnouncementSheet({
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
-                  <span className="sr-only"> obligatorio</span>
+                  <span className="sr-only"> {t("required")}</span>
                 </FieldLabel>
                 <Input
                   aria-required="true"
@@ -264,7 +264,7 @@ function AnnouncementSheet({
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
-                  <span className="sr-only"> obligatorio</span>
+                  <span className="sr-only"> {t("required")}</span>
                 </FieldLabel>
                 <Textarea
                   aria-required="true"
@@ -336,7 +336,7 @@ function AnnouncementSheet({
                     <span aria-hidden="true" className="text-destructive">
                       *
                     </span>
-                    <span className="sr-only"> obligatorio</span>
+                    <span className="sr-only"> {t("required")}</span>
                   </FieldLabel>
                   <Input
                     aria-label={t("searchTarget")}
@@ -386,7 +386,7 @@ function AnnouncementSheet({
               type="button"
               variant="brand-secondary"
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button
               disabled={!canSubmit || pending}
@@ -399,7 +399,7 @@ function AnnouncementSheet({
               type="button"
               variant="brand-secondary"
             >
-              Guardar borrador
+              {t("saveDraft")}
             </Button>
             <Button disabled={!canSubmit || pending} type="submit">
               {pending ? (
@@ -573,7 +573,7 @@ export function AdminNotificationsPage() {
                 size="sm"
                 type="button"
               >
-                <Plus data-icon="inline-start" /> Nuevo anuncio
+                <Plus data-icon="inline-start" /> {t("createTitle")}
               </Button>
             }
             search={{
@@ -600,7 +600,7 @@ export function AdminNotificationsPage() {
                     type="button"
                     variant="outline"
                   >
-                    <X /> Limpiar
+                    <X /> {t("clear")}
                   </Button>
                 ) : undefined
               }
@@ -626,16 +626,16 @@ export function AdminNotificationsPage() {
                   <TableRow>
                     <TableHead>{t("announcement")}</TableHead>
                     <TableHead className="hidden md:table-cell">
-                      Audiencia
+                      {t("audienceLabel")}
                     </TableHead>
                     <TableHead>{t("statusColumn")}</TableHead>
                     <TableHead className="hidden lg:table-cell">
-                      Lecturas
+                      {t("reads")}
                     </TableHead>
                     <TableHead className="hidden lg:table-cell">
                       Creado
                     </TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
+                    <TableHead className="text-right">{t("actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -698,14 +698,14 @@ export function AdminNotificationsPage() {
                                   setSheetOpen(true)
                                 }}
                               >
-                                <Pencil /> Editar
+                                <Pencil /> {t("edit")}
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 onSelect={() => setDeleting(announcement)}
                                 variant="destructive"
                               >
-                                <Trash2 /> Eliminar
+                                <Trash2 /> {t("delete")}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>

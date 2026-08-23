@@ -643,7 +643,7 @@ export function AiChatPage() {
           <div className="flex items-center gap-1">
             <Button asChild size="sm" variant="brand-secondary">
               <Link href="/portal/ai-studio/automation">
-                <Zap data-icon="inline-start" /> Automatizaciones
+                <Zap data-icon="inline-start" /> {t("automations")}
               </Link>
             </Button>
             <Button asChild size="icon-sm" variant="brand-secondary">
@@ -715,7 +715,7 @@ export function AiChatPage() {
                       size="sm"
                       variant="brand-secondary"
                     >
-                      <RefreshCw data-icon="inline-start" /> Reintentar
+                      <RefreshCw data-icon="inline-start" /> {t("retry")}
                     </Button>
                   ) : null}
                   <Button
@@ -723,7 +723,7 @@ export function AiChatPage() {
                     size="sm"
                     variant="brand-secondary"
                   >
-                    <Trash2 data-icon="inline-start" /> Archivar
+                    <Trash2 data-icon="inline-start" /> {t("archive")}
                   </Button>
                 </div>
               </div>

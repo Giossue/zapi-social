@@ -113,14 +113,14 @@ export function FileUploadDialog({
             type="file"
           />
           <Button onClick={() => inputRef.current?.click()} type="button">
-            <Upload data-icon="inline-start" /> Seleccionar archivo
+            <Upload data-icon="inline-start" /> {t("selectFile")}
           </Button>
           <Button
             onClick={() => onOpenChange(false)}
             type="button"
             variant="brand-secondary"
           >
-            Cerrar
+            {t("close")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -166,7 +166,7 @@ export function FileFolderDialog({
         >
           <Field>
             <FieldLabel htmlFor="file-folder-name">
-              Nombre
+              {t("name")}
               <span aria-hidden="true" className="text-destructive">
                 *
               </span>
@@ -188,7 +188,7 @@ export function FileFolderDialog({
               type="button"
               variant="brand-secondary"
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button disabled={!name.trim() || pending} type="submit">
               {pending ? (
@@ -258,11 +258,11 @@ export function FilePreviewDialog({
           <Button asChild variant="brand-secondary">
             <a href={item ? filesApi.downloadUrl(item.id) : undefined}>
               <Download data-icon="inline-start" />
-              Descargar
+              {t("download")}
             </a>
           </Button>
           <Button onClick={() => onOpenChange(false)} variant="brand-secondary">
-            Cerrar
+            {t("close")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -308,7 +308,7 @@ export function FileInfoDialog({
         </dl>
         <DialogFooter>
           <Button onClick={() => onOpenChange(false)} variant="brand-secondary">
-            Cerrar
+            {t("close")}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -355,7 +355,7 @@ export function FileRenameDialog({
         >
           <Field>
             <FieldLabel htmlFor="file-rename-name">
-              Nombre
+              {t("name")}
               <span aria-hidden="true" className="text-destructive">
                 *
               </span>
@@ -381,10 +381,10 @@ export function FileRenameDialog({
               type="button"
               variant="brand-secondary"
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button disabled={!name.trim()} type="submit">
-              <Save data-icon="inline-start" /> Guardar
+              <Save data-icon="inline-start" /> {t("save")}
             </Button>
           </DialogFooter>
         </form>
@@ -458,7 +458,7 @@ export function FileMoveDialog({
         >
           <Field>
             <FieldLabel htmlFor="file-move-destination">
-              Destino
+              {t("destination")}
               <span aria-hidden="true" className="text-destructive">
                 *
               </span>
@@ -489,7 +489,7 @@ export function FileMoveDialog({
               type="button"
               variant="brand-secondary"
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button type="submit">
               <FolderInput data-icon="inline-start" /> Mover
@@ -534,13 +534,13 @@ export function FileTrashDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel variant="brand-secondary">
-            Cancelar
+            {t("cancel")}
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={() => void onConfirm()}
             variant="destructive"
           >
-            <Trash2 data-icon="inline-start" /> Eliminar
+            <Trash2 data-icon="inline-start" /> {t("delete")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

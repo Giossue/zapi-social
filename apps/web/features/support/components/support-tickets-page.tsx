@@ -204,7 +204,7 @@ function NewSupportTicketSheet({
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
-                  <span className="sr-only"> obligatorio</span>
+                  <span className="sr-only"> {t("required")}</span>
                 </FieldLabel>
                 <Select
                   onValueChange={(categoryId) =>
@@ -236,7 +236,7 @@ function NewSupportTicketSheet({
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
-                  <span className="sr-only"> obligatorio</span>
+                  <span className="sr-only"> {t("required")}</span>
                 </FieldLabel>
                 <Input
                   aria-required="true"
@@ -259,7 +259,7 @@ function NewSupportTicketSheet({
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
-                  <span className="sr-only"> obligatorio</span>
+                  <span className="sr-only"> {t("required")}</span>
                 </FieldLabel>
                 <Textarea
                   aria-required="true"
@@ -285,7 +285,7 @@ function NewSupportTicketSheet({
               type="button"
               variant="brand-secondary"
             >
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button disabled={!canSubmit || pending} type="submit">
               {pending ? (
@@ -480,7 +480,7 @@ export function SupportTicketsPage() {
                 size="sm"
                 type="button"
               >
-                <Plus data-icon="inline-start" /> Nuevo caso
+                <Plus data-icon="inline-start" /> {t("newTicket")}
               </Button>
             }
             search={{
@@ -503,7 +503,7 @@ export function SupportTicketsPage() {
                     type="button"
                     variant="outline"
                   >
-                    <X /> Limpiar
+                    <X /> {t("clear")}
                   </Button>
                 ) : undefined
               }
@@ -535,7 +535,7 @@ export function SupportTicketsPage() {
                     </TableHead>
                     <TableHead>{t("statusColumn")}</TableHead>
                     <TableHead className="hidden lg:table-cell">
-                      Actualizado
+                      {t("updated")}
                     </TableHead>
                     <TableHead className="text-right">
                       {t("actionColumn")}
@@ -591,7 +591,7 @@ export function SupportTicketsPage() {
                       action={
                         hasFilters ? (
                           <Button onClick={clearFilters} variant="outline">
-                            Restablecer filtros
+                            {t("resetFilters")}
                           </Button>
                         ) : null
                       }
@@ -609,7 +609,7 @@ export function SupportTicketsPage() {
             <TablePagination
               canGoNext={safePage < pageCount}
               canGoPrevious={safePage > 1}
-              itemLabel="casos"
+              itemLabel={t("cases")}
               onNextPage={() =>
                 setPage((current) => Math.min(current + 1, pageCount))
               }

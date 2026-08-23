@@ -298,7 +298,7 @@ export function RssScheduleWizard({
                       <span aria-hidden="true" className="text-destructive">
                         *
                       </span>
-                      <span className="sr-only"> obligatorio</span>
+                      <span className="sr-only"> {t("required")}</span>
                     </span>
                   </FieldLabel>
                   <Input
@@ -318,7 +318,7 @@ export function RssScheduleWizard({
                       <span aria-hidden="true" className="text-destructive">
                         *
                       </span>
-                      <span className="sr-only"> obligatorio</span>
+                      <span className="sr-only"> {t("required")}</span>
                     </span>
                   </FieldLabel>
                   <Input
@@ -346,7 +346,7 @@ export function RssScheduleWizard({
                       <span aria-hidden="true" className="text-destructive">
                         *
                       </span>
-                      <span className="sr-only"> obligatorio</span>
+                      <span className="sr-only"> {t("required")}</span>
                     </span>
                   </FieldLabel>
                   <FieldDescription>{t("publishToHint")}</FieldDescription>
@@ -381,7 +381,7 @@ export function RssScheduleWizard({
                         <span aria-hidden="true" className="text-destructive">
                           *
                         </span>
-                        <span className="sr-only"> obligatorio</span>
+                        <span className="sr-only"> {t("required")}</span>
                       </span>
                     </FieldLabel>
                     <Select
@@ -413,7 +413,7 @@ export function RssScheduleWizard({
                         <span aria-hidden="true" className="text-destructive">
                           *
                         </span>
-                        <span className="sr-only"> obligatorio</span>
+                        <span className="sr-only"> {t("required")}</span>
                       </span>
                     </FieldLabel>
                     <TimePicker

@@ -456,7 +456,7 @@ export function StaticPagesSettingsPage() {
                     <span aria-hidden="true" className="text-destructive">
                       *
                     </span>
-                    <span className="sr-only"> obligatorio</span>
+                    <span className="sr-only"> {t("required")}</span>
                   </FieldLabel>
                   <Input
                     aria-required="true"
