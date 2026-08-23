@@ -1,3 +1,7 @@
+"use client"
+
+import { useFormatter, useTranslations } from "next-intl"
+
 import { Badge } from "@workspace/ui/components/badge"
 import {
   Card,
@@ -18,33 +22,27 @@ import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 
 import type { AdminDashboard } from "@workspace/contracts"
 
-const statusCopy = {
-  failed: { label: "Fallido", variant: "destructive" },
-  paid: { label: "Pagado", variant: "success" },
-  partially_refunded: { label: "Reembolso parcial", variant: "warning" },
-  pending: { label: "Pendiente", variant: "warning" },
-  refunded: { label: "Reembolsado", variant: "secondary" },
+const statusVariants = {
+  failed: "destructive",
+  paid: "success",
+  partially_refunded: "warning",
+  pending: "warning",
+  refunded: "secondary",
 } as const
-
-const dateFormatter = new Intl.DateTimeFormat("es", {
-  day: "numeric",
-  month: "short",
-  hour: "2-digit",
-  minute: "2-digit",
-})
 
 export function RecentPayments({
   payments,
 }: {
   payments: AdminDashboard["recentPayments"]
 }) {
+  const t = useTranslations("dashboard.admin.payments")
+  const format = useFormatter()
+
   return (
     <Card className="h-full gap-2" variant="subtle">
       <CardHeader>
-        <CardTitle className="font-normal">Últimos pagos</CardTitle>
-        <CardDescription>
-          Cobros recientes de planes y créditos.
-        </CardDescription>
+        <CardTitle className="font-normal">{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
 
       <CardContent className="px-0">
@@ -53,25 +51,21 @@ export function RecentPayments({
             <TableRow className="hover:bg-transparent">
               <TableHead className="h-8" />
               <TableHead className="hidden h-8 w-36 font-normal md:table-cell">
-                Workspace
+                {t("workspace")}
               </TableHead>
-              <TableHead className="h-8 w-28 font-normal">Estado</TableHead>
+              <TableHead className="h-8 w-28 font-normal">
+                {t("statusColumn")}
+              </TableHead>
               <TableHead className="h-8 w-24 text-right font-normal">
-                Importe
+                {t("amount")}
               </TableHead>
               <TableHead className="hidden h-8 w-32 text-right font-normal sm:table-cell">
-                Fecha
+                {t("date")}
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="[&_tr]:border-border/50">
             {payments.map((payment, index) => {
-              const status = statusCopy[payment.status]
-              const amountFormatter = new Intl.NumberFormat("es", {
-                style: "currency",
-                currency: payment.currency,
-              })
-
               return (
                 <TableRow
                   className="hover:bg-transparent"
@@ -84,15 +78,26 @@ export function RecentPayments({
                     {payment.workspace}
                   </TableCell>
                   <TableCell>
-                    <Badge className="leading-none" variant={status.variant}>
-                      {status.label}
+                    <Badge
+                      className="leading-none"
+                      variant={statusVariants[payment.status]}
+                    >
+                      {t(`status.${payment.status}`)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right tabular-nums">
-                    {amountFormatter.format(payment.amountMinor / 100)}
+                    {format.number(payment.amountMinor / 100, {
+                      currency: payment.currency,
+                      style: "currency",
+                    })}
                   </TableCell>
                   <TableCell className="hidden text-right text-muted-foreground tabular-nums sm:table-cell">
-                    {dateFormatter.format(new Date(payment.date))}
+                    {format.dateTime(new Date(payment.date), {
+                      day: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      month: "short",
+                    })}
                   </TableCell>
                 </TableRow>
               )
@@ -100,8 +105,8 @@ export function RecentPayments({
             {payments.length === 0 ? (
               <TableEmptyRow
                 colSpan={5}
-                description="Los cobros de planes y créditos aparecerán aquí."
-                title="Sin pagos registrados"
+                description={t("emptyDescription")}
+                title={t("emptyTitle")}
               />
             ) : null}
           </TableBody>

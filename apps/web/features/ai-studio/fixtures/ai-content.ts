@@ -8,7 +8,8 @@ export const aiContentStudioFixture: AIContentStudioData = {
     {
       id: "launch",
       title: "Lanzamiento de producto",
-      description: "Una apertura clara y una invitación a descubrir la novedad.",
+      description:
+        "Una apertura clara y una invitación a descubrir la novedad.",
       prompt:
         "Presenta nuestra nueva colección de café de origen. Destaca el proceso artesanal y termina con una invitación a visitarnos este fin de semana.",
     },
@@ -31,7 +32,8 @@ export const aiContentStudioFixture: AIContentStudioData = {
     {
       id: "draft-1",
       title: "Ritual de mañana",
-      excerpt: "Una pausa, una taza y cinco minutos para empezar con intención.",
+      excerpt:
+        "Una pausa, una taza y cinco minutos para empezar con intención.",
       platforms: ["Instagram", "Facebook"],
       updatedAt: "Hoy, 09:24",
     },

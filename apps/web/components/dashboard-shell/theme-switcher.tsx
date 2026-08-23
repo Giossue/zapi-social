@@ -1,6 +1,7 @@
 "use client"
 
 import { Monitor, Moon, Sun } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useTheme } from "next-themes"
 
 import {
@@ -12,9 +13,9 @@ import {
 } from "@workspace/ui/components/dropdown-menu"
 
 const THEMES = [
-  { icon: Sun, label: "Claro", value: "light" },
-  { icon: Moon, label: "Oscuro", value: "dark" },
-  { icon: Monitor, label: "Sistema", value: "system" },
+  { icon: Sun, value: "light" },
+  { icon: Moon, value: "dark" },
+  { icon: Monitor, value: "system" },
 ] as const
 
 type ThemeMode = (typeof THEMES)[number]["value"]
@@ -25,6 +26,7 @@ type ThemeMode = (typeof THEMES)[number]["value"]
  * real value by the time this renders and needs no mounted guard.
  */
 export function ThemeMenuItem() {
+  const t = useTranslations("shell.theme")
   const { setTheme, theme } = useTheme()
   const current = (THEMES.find((item) => item.value === theme)?.value ??
     "system") satisfies ThemeMode
@@ -35,14 +37,14 @@ export function ThemeMenuItem() {
     <DropdownMenuSub>
       <DropdownMenuSubTrigger>
         <CurrentIcon aria-hidden="true" />
-        Tema
+        {t("label")}
       </DropdownMenuSubTrigger>
       <DropdownMenuSubContent>
         <DropdownMenuRadioGroup onValueChange={setTheme} value={current}>
-          {THEMES.map(({ icon: Icon, label, value }) => (
+          {THEMES.map(({ icon: Icon, value }) => (
             <DropdownMenuRadioItem key={value} value={value}>
               <Icon aria-hidden="true" />
-              {label}
+              {t(value)}
             </DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>

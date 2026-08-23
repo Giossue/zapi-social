@@ -1,12 +1,14 @@
 "use client"
 
 import type { PortalAuthSession } from "@workspace/contracts"
+import { useTranslations } from "next-intl"
+import { useMemo } from "react"
 
 import { DashboardShell } from "@/components/dashboard-shell/dashboard-shell"
+import { useTranslatedNavigation } from "@/components/dashboard-shell/translate-navigation"
 import {
   isPortalNavigationItemActive,
   portalNavigationGroups,
-  type PortalNavigationLink,
 } from "@/features/portal-shell/portal-navigation"
 
 type AppShellProps = {
@@ -14,26 +16,35 @@ type AppShellProps = {
   session: PortalAuthSession
 }
 
-const portalDocumentTitleOverrides = {
-  "/portal/profile": "Perfil",
-  "/portal/ai-studio/prompt-history": "Historial de prompts",
-} as const
-
 export function AppShell({ children, session }: AppShellProps) {
+  const t = useTranslations("shell")
+  const items = useTranslatedNavigation(
+    portalNavigationGroups,
+    "navigation.portal"
+  )
   const workspaces = session.workspaces?.length
     ? session.workspaces
     : [session.workspace]
 
+  /** Rutas sin entrada propia en el sidebar que igual titulan el documento. */
+  const documentTitleOverrides = useMemo(
+    () => ({
+      "/portal/profile": t("profile"),
+      "/portal/ai-studio/prompt-history": t("promptHistory"),
+    }),
+    [t]
+  )
+
   return (
     <DashboardShell
       areaName="Portal"
-      documentTitleOverrides={portalDocumentTitleOverrides}
+      documentTitleOverrides={documentTitleOverrides}
       homeHref="/portal/dashboard"
       isItemActive={(item, pathname) =>
-        isPortalNavigationItemActive(item as PortalNavigationLink, pathname)
+        isPortalNavigationItemActive(item.href, pathname)
       }
-      items={portalNavigationGroups}
-      navigationLabel="Navegación principal del portal"
+      items={items}
+      navigationLabel={t("portalNavigationLabel")}
       profile={session.user}
       sidebarStorageKey="zapi:portal-sidebar:v1"
       workspaceContext={{

@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState, type FormEvent } from "react"
+import { useFormatter, useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import {
   CircleAlert,
@@ -101,14 +102,6 @@ type RowStatus = PortalBulkPostBatchDetail["rows"][number]["status"]
 const pageSize = 10
 const rowsPageSize = 50
 
-const statusLabel: Record<BatchStatus, string> = {
-  queued: "En cola",
-  processing: "Procesando",
-  completed: "Completado",
-  failed: "Fallido",
-  cancelled: "Cancelado",
-}
-
 const statusVariant: Record<
   BatchStatus,
   "info" | "warning" | "success" | "destructive" | "neutral"
@@ -120,14 +113,6 @@ const statusVariant: Record<
   cancelled: "neutral",
 }
 
-const rowStatusLabel: Record<RowStatus, string> = {
-  pending: "Pendiente",
-  valid: "Válida",
-  invalid: "Inválida",
-  processed: "Procesada",
-  failed: "Fallida",
-}
-
 const rowStatusVariant: Record<
   RowStatus,
   "info" | "success" | "warning" | "destructive" | "neutral"
@@ -137,13 +122,6 @@ const rowStatusVariant: Record<
   invalid: "warning",
   processed: "success",
   failed: "destructive",
-}
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("es-EC", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value))
 }
 
 function isSourceCandidate(file: PortalFileAsset) {
@@ -171,6 +149,7 @@ function NewBatchSheet({
   pending: boolean
   timezone: string
 }) {
+  const t = useTranslations("bulkPosts")
   const [sourceFileAssetId, setSourceFileAssetId] = useState("")
   const [accountIds, setAccountIds] = useState<string[]>([])
   const [interval, setInterval] = useState("60")
@@ -195,9 +174,7 @@ function NewBatchSheet({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!canSubmit) {
-      toast.error(
-        "Elige un archivo, al menos una cuenta y un intervalo entre 1 y 10080 minutos."
-      )
+      toast.error(t("invalidForm"))
       return
     }
     const created = await onCreate({
@@ -212,7 +189,7 @@ function NewBatchSheet({
     <Sheet onOpenChange={onOpenChange} open={open}>
       <SheetContent className="w-full gap-0 p-0 sm:max-w-lg" side="right">
         <SheetHeader className="border-b">
-          <SheetTitle>Nuevo lote</SheetTitle>
+          <SheetTitle>{t("createTitle")}</SheetTitle>
           <SheetDescription>
             Elige un CSV de tu biblioteca y define en qué cuentas se crearán sus
             publicaciones.
@@ -232,7 +209,7 @@ function NewBatchSheet({
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
-                  <span className="sr-only"> obligatorio</span>
+                  <span className="sr-only"> {t("required")}</span>
                 </FieldLabel>
                 {files.length ? (
                   <Select
@@ -245,7 +222,7 @@ function NewBatchSheet({
                       className="w-full"
                       id="bulk-source"
                     >
-                      <SelectValue placeholder="Selecciona un archivo" />
+                      <SelectValue placeholder={t("selectFile")} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
@@ -258,15 +235,12 @@ function NewBatchSheet({
                     </SelectContent>
                   </Select>
                 ) : (
-                  <FieldDescription>
-                    Sube un archivo .csv o .txt a la biblioteca para crear un
-                    lote.
-                  </FieldDescription>
+                  <FieldDescription>{t("noFiles")}</FieldDescription>
                 )}
               </Field>
               <Field>
                 <FieldLabel htmlFor="bulk-interval">
-                  Intervalo entre publicaciones{" "}
+                  {t("interval")}{" "}
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
@@ -283,13 +257,13 @@ function NewBatchSheet({
                   value={interval}
                 />
                 <FieldDescription>
-                  Minutos entre cada publicación. Se programan en {timezone}.
+                  {t("intervalHint", { timezone })}
                 </FieldDescription>
               </Field>
               <FieldSet>
                 <FieldLabel asChild>
                   <legend>
-                    Cuentas destino{" "}
+                    {t("accounts")}{" "}
                     <span aria-hidden="true" className="text-destructive">
                       *
                     </span>
@@ -368,12 +342,13 @@ function BatchRowsSheet({
   onOpenChange: (open: boolean) => void
   open: boolean
 }) {
+  const t = useTranslations("bulkPosts")
   return (
     <Sheet onOpenChange={onOpenChange} open={open}>
       <SheetContent className="w-full gap-0 p-0 sm:max-w-3xl" side="right">
         <SheetHeader className="border-b">
           <SheetTitle>
-            {detail ? detail.batch.sourceFileName : "Filas del lote"}
+            {detail ? detail.batch.sourceFileName : t("rowsTitle")}
           </SheetTitle>
           <SheetDescription>
             Estado por fila y errores de validación detectados al procesar el
@@ -382,14 +357,14 @@ function BatchRowsSheet({
         </SheetHeader>
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
           {loading || !detail ? (
-            <PageLoading aria-label="Cargando filas del lote" />
+            <PageLoading aria-label={t("loadingRows")} />
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Fila</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Detalle</TableHead>
+                  <TableHead>{t("status")}</TableHead>
+                  <TableHead>{t("detail")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -399,7 +374,7 @@ function BatchRowsSheet({
                       <TableCell>{row.rowNumber}</TableCell>
                       <TableCell>
                         <Badge variant={rowStatusVariant[row.status]}>
-                          {rowStatusLabel[row.status]}
+                          {t(`rowStatus.${row.status}`)}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -413,7 +388,7 @@ function BatchRowsSheet({
                           <span className="text-sm text-muted-foreground">
                             {row.publishingPostIds.length
                               ? `${row.publishingPostIds.length} publicación(es) creadas`
-                              : "Sin observaciones"}
+                              : t("noNotes")}
                           </span>
                         )}
                       </TableCell>
@@ -422,8 +397,8 @@ function BatchRowsSheet({
                 ) : (
                   <TableEmptyRow
                     colSpan={3}
-                    description="Este lote todavía no registra filas procesadas."
-                    title="Sin filas"
+                    description={t("emptyRowsDescription")}
+                    title={t("emptyRowsTitle")}
                   />
                 )}
               </TableBody>
@@ -436,6 +411,8 @@ function BatchRowsSheet({
 }
 
 export function BulkPostsPage() {
+  const t = useTranslations("bulkPosts")
+  const format = useFormatter()
   const router = useRouter()
   const [batches, setBatches] = useState<PortalBulkPostBatch[]>([])
   const [total, setTotal] = useState(0)
@@ -529,12 +506,12 @@ export function BulkPostsPage() {
       await bulkPostsApi.create({ ...input, timezone })
       setPage(1)
       await load()
-      toast.success("Lote creado. Se procesará en segundo plano.")
+      toast.success(t("created"))
       return true
     } catch (error) {
       if (handleError(error)) return false
       console.error("Bulk post batch creation failed", error)
-      toast.error("No pudimos crear el lote. Revisa el archivo e inténtalo.")
+      toast.error(t("createFailed"))
       return false
     } finally {
       setPending(false)
@@ -547,11 +524,11 @@ export function BulkPostsPage() {
       await bulkPostsApi.cancel(batch.id)
       setToCancel(null)
       await load()
-      toast.success("Lote cancelado.")
+      toast.success(t("cancelled"))
     } catch (error) {
       if (handleError(error)) return
       console.error("Bulk post batch cancellation failed", error)
-      toast.error("No pudimos cancelar el lote. Inténtalo de nuevo.")
+      toast.error(t("cancelFailed"))
     } finally {
       setPending(false)
     }
@@ -566,7 +543,7 @@ export function BulkPostsPage() {
     } catch (error) {
       if (handleError(error)) return
       console.error("Bulk post rows request failed", error)
-      toast.error("No pudimos cargar las filas de este lote.")
+      toast.error(t("rowsFailed"))
       setIsDetailOpen(false)
     } finally {
       setIsDetailLoading(false)
@@ -578,9 +555,9 @@ export function BulkPostsPage() {
       <Card variant="subtle">
         <CardContent>
           <EmptyState
-            description="Tu acceso actual no permite consultar las publicaciones masivas de este espacio de trabajo."
+            description={t("forbiddenDescription")}
             icon={LockKeyhole}
-            title="Publicaciones masivas no disponibles"
+            title={t("unavailableTitle")}
           />
         </CardContent>
       </Card>
@@ -588,7 +565,7 @@ export function BulkPostsPage() {
   }
 
   if (isLoading && !batches.length && !loadError) {
-    return <PageLoading aria-label="Cargando lotes" />
+    return <PageLoading aria-label={t("loading")} />
   }
 
   if (loadError) {
@@ -602,7 +579,7 @@ export function BulkPostsPage() {
                 variant="brand-secondary"
               />
             }
-            description="No pudimos cargar los lotes de este espacio de trabajo."
+            description={t("loadFailedDescription")}
             icon={CircleAlert}
             title="Publicaciones masivas no disponibles"
           />
@@ -635,8 +612,8 @@ export function BulkPostsPage() {
     <>
       <div className="flex flex-col gap-4">
         <CollectionHeader
-          description="Importa un CSV, valida cada fila y crea publicaciones por cuenta."
-          title="Publicaciones masivas"
+          description={t("pageDescription")}
+          title={t("pageTitle")}
         />
         <Card variant="subtle">
           <DataTableHeader
@@ -651,12 +628,12 @@ export function BulkPostsPage() {
               </Button>
             }
             search={{
-              ariaLabel: "Buscar lotes",
+              ariaLabel: t("searchLabel"),
               onChange: (value) => {
                 setQuery(value)
                 setPage(1)
               },
-              placeholder: "Buscar lotes...",
+              placeholder: t("searchPlaceholder"),
               value: query,
             }}
           />
@@ -676,19 +653,19 @@ export function BulkPostsPage() {
               }
             >
               <DataTableFilter
-                ariaLabel="Filtrar por estado"
-                label="Estado"
+                ariaLabel={t("filterStatus")}
+                label={t("status")}
                 onValueChange={(value) => {
                   setStatus(value as BatchStatus | "all")
                   setPage(1)
                 }}
                 options={[
-                  { label: "Todos", value: "all" },
-                  { label: "En cola", value: "queued" },
-                  { label: "Procesando", value: "processing" },
-                  { label: "Completados", value: "completed" },
-                  { label: "Fallidos", value: "failed" },
-                  { label: "Cancelados", value: "cancelled" },
+                  { label: t("filter.all"), value: "all" },
+                  { label: t("filter.queued"), value: "queued" },
+                  { label: t("filter.processing"), value: "processing" },
+                  { label: t("filter.completed"), value: "completed" },
+                  { label: t("filter.failed"), value: "failed" },
+                  { label: t("filter.cancelled"), value: "cancelled" },
                 ]}
                 value={status}
               />
@@ -696,15 +673,15 @@ export function BulkPostsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Lote</TableHead>
+                  <TableHead>{t("batch")}</TableHead>
                   <TableHead className="hidden lg:table-cell">
-                    Destinos
+                    {t("targets")}
                   </TableHead>
                   <TableHead className="hidden md:table-cell">
-                    Progreso
+                    {t("progress")}
                   </TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
+                  <TableHead>{t("status")}</TableHead>
+                  <TableHead className="text-right">{t("actions")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -720,7 +697,10 @@ export function BulkPostsPage() {
                               {batch.sourceFileName}
                             </span>
                             <span className="text-sm text-muted-foreground">
-                              {formatDateTime(batch.createdAt)}
+                              {format.dateTime(new Date(batch.createdAt), {
+                                dateStyle: "medium",
+                                timeStyle: "short",
+                              })}
                             </span>
                           </div>
                         </TableCell>
@@ -749,7 +729,7 @@ export function BulkPostsPage() {
                         </TableCell>
                         <TableCell>
                           <Badge variant={statusVariant[batch.status]}>
-                            {statusLabel[batch.status]}
+                            {t(`statusLabel.${batch.status}`)}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
@@ -781,7 +761,7 @@ export function BulkPostsPage() {
                                     variant="destructive"
                                   >
                                     <Trash2 />
-                                    Cancelar lote
+                                    {t("cancelAction")}
                                   </DropdownMenuItem>
                                 </>
                               ) : null}
@@ -803,12 +783,10 @@ export function BulkPostsPage() {
                     colSpan={5}
                     description={
                       hasFilters
-                        ? "Prueba con otro término o estado."
-                        : "Sube un CSV a la biblioteca y crea un lote para procesarlo."
+                        ? t("emptyFilteredDescription")
+                        : t("emptyDescription")
                     }
-                    title={
-                      hasFilters ? "No hay coincidencias" : "No hay lotes todavía"
-                    }
+                    title={hasFilters ? t("noMatches") : t("emptyTitle")}
                   />
                 )}
               </TableBody>
@@ -816,7 +794,7 @@ export function BulkPostsPage() {
             <TablePagination
               canGoNext={safePage < pageCount}
               canGoPrevious={safePage > 1}
-              itemLabel="lotes"
+              itemLabel={t("itemLabel")}
               onNextPage={() =>
                 setPage((current) => Math.min(current + 1, pageCount))
               }
@@ -830,7 +808,7 @@ export function BulkPostsPage() {
           </CardContent>
         </Card>
         <FloatingActionButton
-          label="Nuevo lote"
+          label={t("createTitle")}
           onClick={() => setIsCreateOpen(true)}
         />
       </div>
@@ -855,14 +833,15 @@ export function BulkPostsPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Cancelar este lote?</AlertDialogTitle>
+            <AlertDialogTitle>{t("cancelTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Las publicaciones ya creadas se conservan; las filas pendientes
-              dejan de procesarse.
+              {t("cancelDescription")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={pending}>Volver</AlertDialogCancel>
+            <AlertDialogCancel disabled={pending}>
+              {t("back")}
+            </AlertDialogCancel>
             <AlertDialogAction
               disabled={pending}
               onClick={(event) => {

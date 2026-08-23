@@ -8,6 +8,7 @@ import {
   getSessionArea,
 } from "@/features/identity/session-area"
 import { loginPath } from "@/features/identity/login-redirect"
+import { syncLocaleCookie } from "@/i18n/locale-cookie"
 
 const logoutStorageKey = "zapi:session:logout"
 const sessionInvalidEvent = "zapi:session-invalid"
@@ -40,6 +41,8 @@ export function SessionSynchronizer() {
     if (!isProtectedPath(window.location.pathname)) return
     try {
       const session = await authApi.session()
+      /** El idioma pudo cambiar en otro dispositivo: la cuenta manda. */
+      const localeChanged = syncLocaleCookie(session.user.locale)
       const area = getSessionArea(session)
       if (area) {
         const destination = getAreaDestination(area)
@@ -50,8 +53,10 @@ export function SessionSynchronizer() {
         if (!inExpectedArea) {
           router.replace(destination)
           router.refresh()
+          return
         }
       }
+      if (localeChanged) router.refresh()
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) redirectToLogin()
     }

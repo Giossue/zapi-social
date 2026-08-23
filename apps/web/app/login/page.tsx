@@ -1,10 +1,12 @@
 import type { Metadata } from "next"
+import { getTranslations } from "next-intl/server"
 
 import { AuthPage } from "@/features/identity/components/auth-page"
 import { safeNextPath } from "@/features/identity/login-redirect"
 
-export const metadata: Metadata = {
-  title: "Iniciar sesión - Zapi Social",
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("auth.metadata")
+  return { title: t("login") }
 }
 
 export default async function LoginPage({

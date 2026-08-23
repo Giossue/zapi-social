@@ -83,15 +83,15 @@ import {
 } from "@workspace/ui/components/table"
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
-
-const statusLabel: Record<ManualPaymentStatus, string> = {
-  pending: "Pendiente",
-  approved: "Aprobado",
-  rejected: "Rechazado",
-}
+import { useFormatter, useTranslations } from "next-intl"
 
 const statusVariant: Record<
   ManualPaymentStatus,
@@ -119,20 +119,6 @@ const emptyOptions: AdminManualPaymentOptions = {
 }
 
 const pageSize = 10
-
-function money(minor: number, currency: string) {
-  return new Intl.NumberFormat("es-EC", { currency, style: "currency" }).format(
-    minor / 100
-  )
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("es-EC", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(value))
-}
 
 type FormValues = {
   workspaceId: string
@@ -171,6 +157,8 @@ function ManualPaymentSheet({
   pending: boolean
   prefix: string
 }) {
+  const t = useTranslations("adminManualPayments")
+  const format = useFormatter()
   const [values, setValues] = useState<FormValues>(emptyForm)
   const [workspaceQuery, setWorkspaceQuery] = useState("")
 
@@ -193,9 +181,9 @@ function ManualPaymentSheet({
     values.productType === "plan" ? options.plans : options.creditPackages
   const canSubmit = Boolean(
     values.workspaceId &&
-      values.productId &&
-      values.reference.trim() &&
-      Number(values.amount) > 0
+    values.productId &&
+    values.reference.trim() &&
+    Number(values.amount) > 0
   )
 
   function close() {
@@ -206,7 +194,7 @@ function ManualPaymentSheet({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!canSubmit) {
-      toast.error("Completa todos los campos obligatorios.")
+      toast.error(t("missingFields"))
       return
     }
     const created = await onSubmit({
@@ -225,10 +213,13 @@ function ManualPaymentSheet({
   }
 
   return (
-    <Sheet onOpenChange={(next) => (next ? onOpenChange(true) : close())} open={open}>
+    <Sheet
+      onOpenChange={(next) => (next ? onOpenChange(true) : close())}
+      open={open}
+    >
       <SheetContent className="w-full gap-0 p-0 sm:max-w-xl" side="right">
         <SheetHeader className="border-b">
-          <SheetTitle>Registrar pago manual</SheetTitle>
+          <SheetTitle>{t("createTitle")}</SheetTitle>
           <SheetDescription>
             Queda pendiente hasta que lo apruebes. Al aprobarlo se concede el
             plan o los créditos y se registra el cobro.
@@ -248,12 +239,12 @@ function ManualPaymentSheet({
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
-                  <span className="sr-only"> obligatorio</span>
+                  <span className="sr-only"> {t("required")}</span>
                 </FieldLabel>
                 <Input
-                  aria-label="Buscar espacio de trabajo"
+                  aria-label={t("searchWorkspace")}
                   onChange={(event) => setWorkspaceQuery(event.target.value)}
-                  placeholder="Buscar espacio..."
+                  placeholder={t("searchWorkspacePlaceholder")}
                   value={workspaceQuery}
                 />
                 <Select
@@ -267,7 +258,7 @@ function ManualPaymentSheet({
                     className="w-full"
                     id="manual-workspace"
                   >
-                    <SelectValue placeholder="Selecciona un espacio" />
+                    <SelectValue placeholder={t("selectWorkspace")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -280,11 +271,13 @@ function ManualPaymentSheet({
                   </SelectContent>
                 </Select>
                 <FieldDescription>
-                  El pago se atribuye al propietario del espacio.
+                  {t("ownerHint")}
                 </FieldDescription>
               </Field>
               <Field>
-                <FieldLabel htmlFor="manual-product-type">Producto</FieldLabel>
+                <FieldLabel htmlFor="manual-product-type">
+                  {t("product")}
+                </FieldLabel>
                 <Select
                   onValueChange={(productType) =>
                     setValues((current) => ({
@@ -301,9 +294,11 @@ function ManualPaymentSheet({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="plan">Plan</SelectItem>
+                      <SelectItem value="plan">
+                        {t("productType.plan")}
+                      </SelectItem>
                       <SelectItem value="credits">
-                        Paquete de créditos
+                        {t("productType.creditsPack")}
                       </SelectItem>
                     </SelectGroup>
                   </SelectContent>
@@ -311,7 +306,9 @@ function ManualPaymentSheet({
               </Field>
               <Field>
                 <FieldLabel htmlFor="manual-product">
-                  {values.productType === "plan" ? "Plan" : "Paquete"}{" "}
+                  {values.productType === "plan"
+                    ? t("productType.plan")
+                    : t("productType.pack")}{" "}
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
@@ -335,14 +332,14 @@ function ManualPaymentSheet({
                     className="w-full"
                     id="manual-product"
                   >
-                    <SelectValue placeholder="Selecciona una oferta" />
+                    <SelectValue placeholder={t("selectOffer")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
                       {catalog.map((option) => (
                         <SelectItem key={option.id} value={option.id}>
                           {option.label} ·{" "}
-                          {money(option.amountMinor, option.currency)}
+                          {format.number(option.amountMinor / 100, { currency: option.currency, style: "currency" })}
                         </SelectItem>
                       ))}
                     </SelectGroup>
@@ -389,15 +386,17 @@ function ManualPaymentSheet({
                       reference: event.target.value,
                     }))
                   }
-                  placeholder="PAY-000123"
+                  placeholder={t("referencePlaceholder")}
                   value={values.reference}
                 />
                 <FieldDescription>
-                  Identificador del comprobante. No puede repetirse.
+                  {t("referenceHint")}
                 </FieldDescription>
               </Field>
               <Field>
-                <FieldLabel htmlFor="manual-info">Datos del pago</FieldLabel>
+                <FieldLabel htmlFor="manual-info">
+                  {t("paymentInfo")}
+                </FieldLabel>
                 <Textarea
                   id="manual-info"
                   maxLength={2000}
@@ -407,13 +406,13 @@ function ManualPaymentSheet({
                       paymentInfo: event.target.value,
                     }))
                   }
-                  placeholder="Banco, número de operación, fecha del depósito..."
+                  placeholder={t("paymentInfoPlaceholder")}
                   rows={3}
                   value={values.paymentInfo}
                 />
               </Field>
               <Field>
-                <FieldLabel htmlFor="manual-note">Nota interna</FieldLabel>
+                <FieldLabel htmlFor="manual-note">{t("note")}</FieldLabel>
                 <Textarea
                   id="manual-note"
                   maxLength={2000}
@@ -423,7 +422,7 @@ function ManualPaymentSheet({
                       note: event.target.value,
                     }))
                   }
-                  placeholder="Contexto para el equipo."
+                  placeholder={t("notePlaceholder")}
                   rows={3}
                   value={values.note}
                 />
@@ -455,6 +454,8 @@ function ManualPaymentSheet({
 }
 
 export function AdminManualPaymentsPage() {
+  const t = useTranslations("adminManualPayments")
+  const format = useFormatter()
   const [payments, setPayments] = useState<AdminManualPayment[]>([])
   const [metrics, setMetrics] = useState(emptyMetrics)
   const [settings, setSettings] = useState(emptySettings)
@@ -531,12 +532,15 @@ export function AdminManualPaymentsPage() {
       toast.success(message)
       return true
     } catch (error) {
-      if (error instanceof ApiError && error.code === "MANUAL_PAYMENT_REFERENCE_TAKEN") {
-        toast.error("Esa referencia ya está registrada.")
+      if (
+        error instanceof ApiError &&
+        error.code === "MANUAL_PAYMENT_REFERENCE_TAKEN"
+      ) {
+        toast.error(t("referenceTaken"))
         return false
       }
       console.error("Manual payment action failed", error)
-      toast.error("No pudimos completar la acción. Inténtalo de nuevo.")
+      toast.error(t("actionFailed"))
       return false
     } finally {
       setPending(false)
@@ -546,24 +550,24 @@ export function AdminManualPaymentsPage() {
   if (forbidden) {
     return (
       <EmptyState
-        description="Tu cuenta no tiene permisos para administrar los pagos manuales."
+        description={t("forbiddenDescription")}
         icon={ShieldX}
-        title="Acceso restringido"
+        title={t("forbiddenTitle")}
       />
     )
   }
 
   if (isLoading && !payments.length && !loadError) {
-    return <PageLoading aria-label="Cargando pagos manuales" />
+    return <PageLoading aria-label={t("loading")} />
   }
 
   if (loadError) {
     return (
       <EmptyState
         action={<RetryButton onClick={() => void load()} />}
-        description="No fue posible cargar los pagos manuales."
+        description={t("loadFailedDescription")}
         icon={CircleAlert}
-        title="No pudimos cargar esta sección"
+        title={t("loadFailedTitle")}
       />
     )
   }
@@ -572,39 +576,39 @@ export function AdminManualPaymentsPage() {
     <>
       <div className="flex flex-col gap-4">
         <CollectionHeader
-          description="Cobros fuera de Polar: transferencias, depósitos y efectivo registrados por el equipo."
-          title="Pagos manuales"
+          description={t("pageDescription")}
+          title={t("pageTitle")}
         />
         <Tabs defaultValue="payments">
-          <TabsList aria-label="Secciones de pagos manuales">
-            <TabsTrigger value="payments">Pagos</TabsTrigger>
-            <TabsTrigger value="settings">Configuración</TabsTrigger>
+          <TabsList aria-label={t("sectionsLabel")}>
+            <TabsTrigger value="payments">{t("tab.payments")}</TabsTrigger>
+            <TabsTrigger value="settings">{t("tab.settings")}</TabsTrigger>
           </TabsList>
           <TabsContent className="flex flex-col gap-4" value="payments">
             <CardGrid>
               <MetricCard
-                description="Esperan revisión"
+                description={t("metrics.pendingDescription")}
                 icon={CircleDot}
-                label="Pendientes"
+                label={t("metrics.pending")}
                 value={metrics.pending}
               />
               <MetricCard
-                description="Concedieron plan o créditos"
+                description={t("metrics.approvedDescription")}
                 icon={Check}
-                label="Aprobados"
+                label={t("metrics.approved")}
                 value={metrics.approved}
               />
               <MetricCard
-                description="Descartados por el equipo"
+                description={t("metrics.rejectedDescription")}
                 icon={X}
-                label="Rechazados"
+                label={t("metrics.rejected")}
                 value={metrics.rejected}
               />
               <MetricCard
-                description="Total cobrado fuera de Polar"
+                description={t("metrics.amountDescription")}
                 icon={BadgeDollarSign}
-                label="Importe aprobado"
-                value={money(metrics.approvedAmountMinor, metrics.currency)}
+                label={t("metrics.amount")}
+                value={format.number(metrics.approvedAmountMinor / 100, { currency: metrics.currency, style: "currency" })}
               />
             </CardGrid>
             <Card variant="subtle">
@@ -623,12 +627,12 @@ export function AdminManualPaymentsPage() {
                   </Button>
                 }
                 search={{
-                  ariaLabel: "Buscar pagos manuales",
+                  ariaLabel: t("searchLabel"),
                   onChange: (value) => {
                     setQuery(value)
                     setPage(1)
                   },
-                  placeholder: "Buscar por referencia, cliente o espacio...",
+                  placeholder: t("searchPlaceholder"),
                   value: query,
                 }}
               />
@@ -652,17 +656,17 @@ export function AdminManualPaymentsPage() {
                   }
                 >
                   <DataTableFilter
-                    ariaLabel="Filtrar por estado"
-                    label="Estado"
+                    ariaLabel={t("filterStatus")}
+                    label={t("statusColumn")}
                     onValueChange={(value) => {
                       setStatus(value as ManualPaymentStatus | "all")
                       setPage(1)
                     }}
                     options={[
-                      { label: "Todos", value: "all" },
-                      { label: "Pendientes", value: "pending" },
-                      { label: "Aprobados", value: "approved" },
-                      { label: "Rechazados", value: "rejected" },
+                      { label: t("all"), value: "all" },
+                      { label: t("filter.pending"), value: "pending" },
+                      { label: t("filter.approved"), value: "approved" },
+                      { label: t("filter.rejected"), value: "rejected" },
                     ]}
                     value={status}
                   />
@@ -671,15 +675,15 @@ export function AdminManualPaymentsPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Referencia</TableHead>
+                        <TableHead>{t("reference")}</TableHead>
                         <TableHead className="hidden lg:table-cell">
                           Espacio
                         </TableHead>
                         <TableHead className="hidden md:table-cell">
                           Producto
                         </TableHead>
-                        <TableHead>Importe</TableHead>
-                        <TableHead>Estado</TableHead>
+                        <TableHead>{t("amount")}</TableHead>
+                        <TableHead>{t("statusColumn")}</TableHead>
                         <TableHead className="text-right">Acciones</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -693,7 +697,7 @@ export function AdminManualPaymentsPage() {
                                   {payment.reference}
                                 </span>
                                 <span className="text-sm text-muted-foreground">
-                                  {formatDate(payment.createdAt)}
+                                  {format.dateTime(new Date(payment.createdAt), { dateStyle: "medium", timeStyle: "short" })}
                                 </span>
                               </div>
                             </TableCell>
@@ -704,11 +708,11 @@ export function AdminManualPaymentsPage() {
                               {payment.productLabel}
                             </TableCell>
                             <TableCell>
-                              {money(payment.amountMinor, payment.currency)}
+                              {format.number(payment.amountMinor / 100, { currency: payment.currency, style: "currency" })}
                             </TableCell>
                             <TableCell>
                               <Badge variant={statusVariant[payment.status]}>
-                                {statusLabel[payment.status]}
+                                {t(`status.${payment.status}`)}
                               </Badge>
                             </TableCell>
                             <TableCell className="text-right">
@@ -722,12 +726,11 @@ export function AdminManualPaymentsPage() {
                                           await adminManualPaymentsApi.approve(
                                             payment.id
                                           )
-                                        }, "Pago aprobado y aplicado.")
+                                        }, t("approvedToast"))
                                       }
                                       size="sm"
                                     >
-                                      <Check data-icon="inline-start" />{" "}
-                                      Aprobar
+                                      <Check data-icon="inline-start" /> Aprobar
                                     </Button>
                                     <Button
                                       disabled={pending}
@@ -736,7 +739,7 @@ export function AdminManualPaymentsPage() {
                                           await adminManualPaymentsApi.reject(
                                             payment.id
                                           )
-                                        }, "Pago rechazado.")
+                                        }, t("rejectedToast"))
                                       }
                                       size="sm"
                                       variant="brand-secondary"
@@ -747,7 +750,7 @@ export function AdminManualPaymentsPage() {
                                 ) : null}
                                 {payment.status === "approved" ? (
                                   <span className="text-sm text-muted-foreground">
-                                    {payment.reviewedByName ?? "Aplicado"}
+                                    {payment.reviewedByName ?? t("applied")}
                                   </span>
                                 ) : (
                                   <Button
@@ -769,13 +772,13 @@ export function AdminManualPaymentsPage() {
                           colSpan={6}
                           description={
                             hasFilters
-                              ? "Prueba con otro término o estado."
-                              : "Registra un cobro recibido fuera de Polar para aplicarlo al espacio del cliente."
+                              ? t("emptyFilteredDescription")
+                              : t("emptyDescription")
                           }
                           title={
                             hasFilters
-                              ? "No hay coincidencias"
-                              : "Todavía no hay pagos manuales"
+                              ? t("noMatches")
+                              : t("emptyTitle")
                           }
                         />
                       )}
@@ -799,7 +802,7 @@ export function AdminManualPaymentsPage() {
               </CardContent>
             </Card>
             <FloatingActionButton
-              label="Registrar pago"
+              label={t("registerPayment")}
               onClick={() => {
                 searchWorkspaces("")
                 setSheetOpen(true)
@@ -813,11 +816,10 @@ export function AdminManualPaymentsPage() {
                   <Field orientation="horizontal">
                     <div className="flex flex-col gap-1">
                       <FieldLabel htmlFor="manual-enabled">
-                        Aceptar pagos manuales
+                        {t("acceptManual")}
                       </FieldLabel>
                       <FieldDescription>
-                        Muestra las instrucciones de pago fuera de línea a los
-                        clientes.
+                        {t("acceptManualHint")}
                       </FieldDescription>
                     </div>
                     <Switch
@@ -830,7 +832,7 @@ export function AdminManualPaymentsPage() {
                   </Field>
                   <Field>
                     <FieldLabel htmlFor="manual-prefix">
-                      Prefijo de referencia
+                      {t("referencePrefix")}
                     </FieldLabel>
                     <Input
                       id="manual-prefix"
@@ -841,16 +843,16 @@ export function AdminManualPaymentsPage() {
                           referencePrefix: event.target.value,
                         }))
                       }
-                      placeholder="PAY-"
+                      placeholder={t("referencePrefixPlaceholder")}
                       value={settingsDraft.referencePrefix}
                     />
                     <FieldDescription>
-                      Se propone al registrar un pago nuevo.
+                      {t("referencePrefixHint")}
                     </FieldDescription>
                   </Field>
                   <Field>
                     <FieldLabel htmlFor="manual-instructions">
-                      Instrucciones de pago
+                      {t("instructions")}
                     </FieldLabel>
                     <Textarea
                       id="manual-instructions"
@@ -861,7 +863,7 @@ export function AdminManualPaymentsPage() {
                           instructions: event.target.value,
                         }))
                       }
-                      placeholder="Banco, titular, número de cuenta y qué enviar como comprobante."
+                      placeholder={t("instructionsPlaceholder")}
                       rows={6}
                       value={settingsDraft.instructions}
                     />
@@ -879,7 +881,7 @@ export function AdminManualPaymentsPage() {
                       instructions: settingsDraft.instructions,
                       referencePrefix: settingsDraft.referencePrefix,
                     })
-                  }, "Configuración guardada.")
+                  }, t("settingsSaved"))
                 }
                 type="button"
               >
@@ -900,7 +902,7 @@ export function AdminManualPaymentsPage() {
         onSubmit={async (values) =>
           run(async () => {
             await adminManualPaymentsApi.create(values)
-          }, "Pago manual registrado.")
+          }, t("created"))
         }
         open={sheetOpen}
         options={options}
@@ -913,14 +915,15 @@ export function AdminManualPaymentsPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Eliminar pago manual</AlertDialogTitle>
+            <AlertDialogTitle>{t("deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Se elimina el registro «{deleting?.reference}». Esta acción no se
-              puede deshacer.
+              {t("deleteDescription", { reference: deleting?.reference ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={pending}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={pending}>
+              {t("cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               disabled={pending}
               onClick={(event) => {
@@ -930,7 +933,7 @@ export function AdminManualPaymentsPage() {
                 void run(async () => {
                   await adminManualPaymentsApi.remove(target.id)
                   setDeleting(null)
-                }, "Pago manual eliminado.")
+                }, t("deleted"))
               }}
             >
               <Trash2 data-icon="inline-start" /> Eliminar

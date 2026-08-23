@@ -126,7 +126,11 @@ function CatalogSheet({
           </SheetTitle>
           <SheetDescription>{copy.sheetDescription}</SheetDescription>
         </SheetHeader>
-        <form className="flex min-h-0 flex-1 flex-col" noValidate onSubmit={submit}>
+        <form
+          className="flex min-h-0 flex-1 flex-col"
+          noValidate
+          onSubmit={submit}
+        >
           <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4">
             <FieldGroup>
               <Field>
@@ -374,8 +378,12 @@ export function SupportCatalogPanel({
             canGoNext={safePage < pageCount}
             canGoPrevious={safePage > 1}
             itemLabel={copy.itemLabel}
-            onNextPage={() => setPage((current) => Math.min(current + 1, pageCount))}
-            onPreviousPage={() => setPage((current) => Math.max(current - 1, 1))}
+            onNextPage={() =>
+              setPage((current) => Math.min(current + 1, pageCount))
+            }
+            onPreviousPage={() =>
+              setPage((current) => Math.max(current - 1, 1))
+            }
             rangeEnd={
               filtered.length ? (safePage - 1) * pageSize + visible.length : 0
             }

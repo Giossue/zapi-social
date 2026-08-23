@@ -2,6 +2,7 @@
 
 import type { LucideIcon } from "lucide-react"
 import { Clock3, FileText, Image, Recycle, Sparkles } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { Bar, BarChart, type BarShapeProps, XAxis, YAxis } from "recharts"
 
 import {
@@ -19,20 +20,14 @@ import {
 } from "@workspace/ui/components/chart"
 
 import type { AdminDashboard } from "@workspace/contracts"
+import { useDashboardLabels } from "@/lib/dashboard-labels"
 
 const kindIcons: Record<string, LucideIcon> = {
-  Contenido: FileText,
-  Imagen: Image,
-  Repurpose: Recycle,
-  Timing: Clock3,
+  content: FileText,
+  image: Image,
+  repurpose: Recycle,
+  timing: Clock3,
 }
-
-const chartConfig = {
-  count: {
-    color: "var(--chart-3)",
-    label: "Solicitudes",
-  },
-} satisfies ChartConfig
 
 type ActivityDay = AdminDashboard["aiActivity"]["days"][number]
 
@@ -83,23 +78,26 @@ export function PlatformAiActivity({
 }: {
   aiActivity: AdminDashboard["aiActivity"]
 }) {
+  const t = useTranslations("dashboard.admin.aiActivity")
+  const labels = useDashboardLabels()
   const maxCount = Math.max(...aiActivity.days.map((item) => item.count), 1)
+  const chartConfig = {
+    count: { color: "var(--chart-3)", label: t("series") },
+  } satisfies ChartConfig
 
   return (
     <Card className="h-full" variant="subtle">
       <CardHeader>
-        <CardTitle className="font-normal">Actividad AI</CardTitle>
-        <CardDescription>
-          Solicitudes por día en las últimas 4 semanas.
-        </CardDescription>
+        <CardTitle className="font-normal">{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
 
       <CardContent className="flex flex-col gap-4">
         <div className="flex items-baseline gap-1">
-          <span className="text-2xl tabular-nums leading-none tracking-tight">
+          <span className="text-2xl leading-none tracking-tight tabular-nums">
             {aiActivity.total}
           </span>
-          <span className="text-muted-foreground text-sm">solicitudes</span>
+          <span className="text-sm text-muted-foreground">{t("requests")}</span>
         </div>
         <ChartContainer config={chartConfig} className="h-36 w-full">
           <BarChart
@@ -123,7 +121,7 @@ export function PlatformAiActivity({
         {aiActivity.kinds.length ? (
           <div className="grid grid-cols-2">
             {aiActivity.kinds.map((kind, index) => {
-              const Icon = kindIcons[kind.label] ?? Sparkles
+              const Icon = kindIcons[kind.key] ?? Sparkles
               const isLeft = index % 2 === 0
               const isTop = index < 2
 
@@ -131,17 +129,17 @@ export function PlatformAiActivity({
                 <div
                   className={[
                     "flex items-center gap-3",
-                    isLeft ? "border-border/50 border-r pr-5" : "pl-5",
-                    isTop ? "border-border/50 border-b pt-1 pb-4" : "pt-4 pb-1",
+                    isLeft ? "border-r border-border/50 pr-5" : "pl-5",
+                    isTop ? "border-b border-border/50 pt-1 pb-4" : "pt-4 pb-1",
                   ].join(" ")}
-                  key={kind.label}
+                  key={kind.key}
                 >
                   <Icon
                     aria-hidden="true"
                     className="size-4 shrink-0 text-muted-foreground"
                   />
                   <span className="min-w-0 flex-1 truncate text-sm">
-                    {kind.label}
+                    {labels.aiKind(kind.key)}
                   </span>
                   <span className="text-sm tabular-nums">{kind.count}</span>
                 </div>
@@ -149,9 +147,7 @@ export function PlatformAiActivity({
             })}
           </div>
         ) : (
-          <p className="text-muted-foreground text-sm">
-            Sin solicitudes AI en las últimas 4 semanas.
-          </p>
+          <p className="text-sm text-muted-foreground">{t("empty")}</p>
         )}
       </CardContent>
     </Card>

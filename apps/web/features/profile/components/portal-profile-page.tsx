@@ -43,8 +43,11 @@ import {
 } from "@workspace/ui/components/tabs"
 import { toast } from "@workspace/ui/components/toast"
 import { CircleAlert, KeyRound, Save } from "lucide-react"
+import { useFormatter, useTranslations } from "next-intl"
+import { useRouter } from "next/navigation"
 import { useEffect, useMemo, useState, type FormEvent } from "react"
 import { announceSessionLogout } from "@/features/identity/components/session-synchronizer"
+import { syncLocaleCookie } from "@/i18n/locale-cookie"
 import type { PortalProfile } from "@workspace/contracts"
 
 const supportedTimeZones =
@@ -63,14 +66,6 @@ const suggestedTimeZones = [
   "UTC",
 ]
 
-function formatMemberSince(value: string) {
-  return new Intl.DateTimeFormat("es", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(new Date(value))
-}
-
 function initials(name: string) {
   return name
     .split(/\s+/)
@@ -88,27 +83,32 @@ function browserTimeZone() {
   }
 }
 
-function profileError(error: unknown) {
+/** Devuelve la clave del mensaje; la traduce quien lo muestra. */
+function profileErrorKey(error: unknown) {
   if (!(error instanceof ApiError)) {
-    return "No pudimos guardar los cambios. Inténtalo de nuevo."
+    return "saveFailed"
   }
   if (error.code === "AUTH_CURRENT_PASSWORD_INVALID") {
-    return "La contraseña actual no es correcta."
+    return "currentPasswordInvalid"
   }
   if (error.code === "AUTH_PASSWORD_POLICY_NOT_MET") {
-    return "La nueva contraseña no cumple los requisitos."
+    return "passwordPolicy"
   }
   if (error.code === "VALIDATION_FAILED") {
-    return "Revisa nombre, idioma y zona horaria."
+    return "validationFailed"
   }
-  return "No pudimos guardar los cambios. Inténtalo de nuevo."
+  return "saveFailed"
 }
 
-function ProfileLoading() {
-  return <PageLoading aria-label="Cargando perfil" />
+function ProfileLoading({ label }: { label: string }) {
+  return <PageLoading aria-label={label} />
 }
 
 export function PortalProfilePage() {
+  const t = useTranslations("profile")
+  const tCommon = useTranslations("common.language")
+  const format = useFormatter()
+  const router = useRouter()
   const [profile, setProfile] = useState<PortalProfile | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -134,7 +134,7 @@ export function PortalProfilePage() {
         setError(null)
       })
       .catch(() => {
-        if (active) setError("No pudimos cargar tu perfil.")
+        if (active) setError(t("loadFailed"))
       })
       .finally(() => {
         if (active) setLoading(false)
@@ -143,7 +143,7 @@ export function PortalProfilePage() {
     return () => {
       active = false
     }
-  }, [])
+  }, [t])
 
   const availableTimeZones = useMemo(() => {
     const values = new Set([
@@ -159,11 +159,11 @@ export function PortalProfilePage() {
     event.preventDefault()
     if (!profile) return
     if (!displayName.trim()) {
-      toast.error("Completa el nombre visible.")
+      toast.error(t("nameRequired"))
       return
     }
     if (!timezone) {
-      toast.error("Selecciona tu zona horaria.")
+      toast.error(t("timezoneRequired"))
       return
     }
 
@@ -178,9 +178,11 @@ export function PortalProfilePage() {
       setDisplayName(nextProfile.displayName)
       setLocale(nextProfile.locale ?? "")
       setTimezone(nextProfile.timezone ?? browserTimeZone())
-      toast.success("Perfil actualizado.")
+      toast.success(t("updated"))
+      /** El idioma elegido se aplica sin salir de la pantalla. */
+      if (syncLocaleCookie(nextProfile.locale)) router.refresh()
     } catch (nextError) {
-      toast.error(profileError(nextError))
+      toast.error(t(profileErrorKey(nextError)))
     } finally {
       setSavingPreferences(false)
     }
@@ -189,11 +191,11 @@ export function PortalProfilePage() {
   async function savePassword(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!currentPassword || !newPassword || !passwordConfirmation) {
-      toast.error("Completa todos los campos.")
+      toast.error(t("allFieldsRequired"))
       return
     }
     if (newPassword !== passwordConfirmation) {
-      toast.error("Las contraseñas nuevas no coinciden.")
+      toast.error(t("passwordMismatch"))
       return
     }
 
@@ -207,18 +209,16 @@ export function PortalProfilePage() {
       setCurrentPassword("")
       setNewPassword("")
       setPasswordConfirmation("")
-      toast.success(
-        "Contraseña actualizada. Inicia sesión de nuevo para continuar."
-      )
+      toast.success(t("passwordUpdated"))
       announceSessionLogout()
     } catch (nextError) {
-      toast.error(profileError(nextError))
+      toast.error(t(profileErrorKey(nextError)))
     } finally {
       setSavingPassword(false)
     }
   }
 
-  if (loading) return <ProfileLoading />
+  if (loading) return <ProfileLoading label={t("loading")} />
 
   const preferencesChanged =
     profile !== null &&
@@ -235,10 +235,8 @@ export function PortalProfilePage() {
         <CardContent className="py-6">
           <Alert variant="destructive">
             <CircleAlert />
-            <AlertTitle>No pudimos mostrar tu perfil</AlertTitle>
-            <AlertDescription>
-              {error ?? "No encontramos tu perfil."}
-            </AlertDescription>
+            <AlertTitle>{t("unavailableTitle")}</AlertTitle>
+            <AlertDescription>{error ?? t("notFound")}</AlertDescription>
           </Alert>
         </CardContent>
         <CardFooter className="justify-end">
@@ -255,12 +253,9 @@ export function PortalProfilePage() {
 
   return (
     <Tabs defaultValue="profile" className="mx-auto w-full max-w-4xl gap-4">
-      <TabsList
-        aria-label="Configuración de la cuenta"
-        className="w-full sm:w-fit"
-      >
-        <TabsTrigger value="profile">Perfil</TabsTrigger>
-        <TabsTrigger value="security">Seguridad</TabsTrigger>
+      <TabsList aria-label={t("settingsLabel")} className="w-full sm:w-fit">
+        <TabsTrigger value="profile">{t("tab.profile")}</TabsTrigger>
+        <TabsTrigger value="security">{t("tab.security")}</TabsTrigger>
       </TabsList>
 
       <TabsContent value="profile">
@@ -271,10 +266,8 @@ export function PortalProfilePage() {
         >
           <Card size="sm" variant="subtle">
             <CardHeader>
-              <CardTitle>Información personal</CardTitle>
-              <CardDescription>
-                Administra cómo apareces y tus preferencias del Portal.
-              </CardDescription>
+              <CardTitle>{t("personalTitle")}</CardTitle>
+              <CardDescription>{t("personalDescription")}</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
@@ -291,12 +284,17 @@ export function PortalProfilePage() {
                 </div>
                 <div className="flex flex-col items-start gap-1 sm:items-end">
                   {profile.emailVerifiedAt ? (
-                    <Badge variant="success">Verificado</Badge>
+                    <Badge variant="success">{t("verified")}</Badge>
                   ) : (
-                    <Badge variant="outline">Sin verificar</Badge>
+                    <Badge variant="outline">{t("unverified")}</Badge>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    Miembro desde {formatMemberSince(profile.createdAt)}
+                    {t("memberSince")}{" "}
+                    {format.dateTime(new Date(profile.createdAt), {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
                   </p>
                 </div>
               </div>
@@ -306,7 +304,7 @@ export function PortalProfilePage() {
               <FieldGroup>
                 <Field data-disabled={savingPreferences}>
                   <FieldLabel htmlFor="profile-display-name">
-                    Nombre visible{" "}
+                    {t("displayName")}{" "}
                     <span aria-hidden="true" className="text-destructive">
                       *
                     </span>
@@ -324,7 +322,7 @@ export function PortalProfilePage() {
                 <FieldGroup className="grid gap-5 md:grid-cols-2">
                   <Field data-disabled={savingPreferences}>
                     <FieldLabel htmlFor="profile-locale">
-                      Idioma preferido
+                      {t("preferredLanguage")}
                     </FieldLabel>
                     <Select
                       disabled={savingPreferences}
@@ -336,22 +334,22 @@ export function PortalProfilePage() {
                       value={locale || "system"}
                     >
                       <SelectTrigger className="w-full" id="profile-locale">
-                        <SelectValue placeholder="Usar idioma del Portal" />
+                        <SelectValue placeholder={t("usePortalLanguage")} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
                           <SelectItem value="system">
                             Usar idioma del Portal
                           </SelectItem>
-                          <SelectItem value="es">Español</SelectItem>
-                          <SelectItem value="en">English</SelectItem>
+                          <SelectItem value="es">{tCommon("es")}</SelectItem>
+                          <SelectItem value="en">{tCommon("en")}</SelectItem>
                         </SelectGroup>
                       </SelectContent>
                     </Select>
                   </Field>
                   <Field data-disabled={savingPreferences}>
                     <FieldLabel htmlFor="profile-timezone">
-                      Zona horaria{" "}
+                      {t("timezone")}{" "}
                       <span aria-hidden="true" className="text-destructive">
                         *
                       </span>
@@ -366,7 +364,7 @@ export function PortalProfilePage() {
                         className="w-full"
                         id="profile-timezone"
                       >
-                        <SelectValue placeholder="Selecciona zona horaria" />
+                        <SelectValue placeholder={t("timezonePlaceholder")} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
@@ -407,16 +405,14 @@ export function PortalProfilePage() {
         <form aria-busy={savingPassword} noValidate onSubmit={savePassword}>
           <Card size="sm" variant="subtle">
             <CardHeader>
-              <CardTitle>Cambiar contraseña</CardTitle>
-              <CardDescription>
-                Confirma tu contraseña actual antes de definir una nueva.
-              </CardDescription>
+              <CardTitle>{t("passwordTitle")}</CardTitle>
+              <CardDescription>{t("passwordDescription")}</CardDescription>
             </CardHeader>
             <CardContent>
               <FieldGroup>
                 <Field data-disabled={savingPassword}>
                   <FieldLabel htmlFor="current-password">
-                    Contraseña actual{" "}
+                    {t("currentPassword")}{" "}
                     <span aria-hidden="true" className="text-destructive">
                       *
                     </span>
@@ -435,7 +431,7 @@ export function PortalProfilePage() {
                 <FieldGroup className="grid gap-5 md:grid-cols-2">
                   <Field data-disabled={savingPassword}>
                     <FieldLabel htmlFor="new-password">
-                      Nueva contraseña{" "}
+                      {t("newPassword")}{" "}
                       <span aria-hidden="true" className="text-destructive">
                         *
                       </span>
@@ -453,7 +449,7 @@ export function PortalProfilePage() {
                   </Field>
                   <Field data-disabled={savingPassword}>
                     <FieldLabel htmlFor="confirm-password">
-                      Confirmar nueva contraseña{" "}
+                      {t("confirmPassword")}{" "}
                       <span aria-hidden="true" className="text-destructive">
                         *
                       </span>
@@ -472,10 +468,7 @@ export function PortalProfilePage() {
                     />
                   </Field>
                 </FieldGroup>
-                <FieldDescription>
-                  Mínimo 8 caracteres, con mayúscula, minúscula, número y
-                  carácter especial.
-                </FieldDescription>
+                <FieldDescription>{t("passwordHint")}</FieldDescription>
               </FieldGroup>
             </CardContent>
           </Card>
@@ -488,7 +481,7 @@ export function PortalProfilePage() {
               {!savingPassword ? (
                 <KeyRound aria-hidden="true" data-icon="inline-start" />
               ) : null}
-              Actualizar contraseña
+              {t("updatePassword")}
             </Button>
           </div>
         </form>

@@ -59,36 +59,3 @@ export function buildKpiChange(
     label: `${rounded > 0 ? '+' : ''}${rounded}%`,
   };
 }
-
-const PROVIDER_LABELS: Record<string, string> = {
-  facebook: 'Facebook',
-  instagram: 'Instagram',
-  linkedin: 'LinkedIn',
-  tiktok: 'TikTok',
-  whatsapp: 'WhatsApp',
-  'whatsapp-status': 'WhatsApp Status',
-  x: 'X',
-};
-
-export function providerLabel(providerKey: string | null): string {
-  if (!providerKey) return 'Sin canal';
-  const label = PROVIDER_LABELS[providerKey];
-  if (label) return label;
-  return providerKey.charAt(0).toUpperCase() + providerKey.slice(1);
-}
-
-const AI_KIND_LABELS: Record<string, string> = {
-  ai_publishing: 'AI Publishing',
-  content: 'Contenido',
-  image: 'Imagen',
-  planner: 'Planner',
-  repurpose: 'Repurpose',
-  review: 'Revisión',
-  search: 'Búsqueda',
-  timing: 'Timing',
-  video: 'Vídeo',
-};
-
-export function aiKindLabel(kind: string): string {
-  return AI_KIND_LABELS[kind] ?? kind;
-}

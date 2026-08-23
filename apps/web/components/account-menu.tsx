@@ -13,6 +13,7 @@ import {
 } from "@workspace/ui/components/dropdown-menu"
 import { toast } from "@workspace/ui/components/toast"
 import { CircleUser, LogOut } from "lucide-react"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
@@ -40,6 +41,7 @@ export function initials(displayName: string) {
 
 export function useSessionLogout() {
   const router = useRouter()
+  const t = useTranslations("shell.account")
 
   return async function logout() {
     try {
@@ -56,12 +58,13 @@ export function useSessionLogout() {
       } else {
         console.error("Logout request failed", error)
       }
-      toast.error("No pudimos cerrar tu sesión. Inténtalo de nuevo.")
+      toast.error(t("logoutFailed"))
     }
   }
 }
 
 export function AccountMenu({ profile }: AccountMenuProps) {
+  const t = useTranslations("shell.account")
   const logout = useSessionLogout()
 
   return (
@@ -99,7 +102,7 @@ export function AccountMenu({ profile }: AccountMenuProps) {
           <DropdownMenuItem asChild>
             <Link href="/portal/profile">
               <CircleUser aria-hidden="true" />
-              Mi perfil
+              {t("profile")}
             </Link>
           </DropdownMenuItem>
           <ThemeMenuItem />
@@ -107,7 +110,7 @@ export function AccountMenu({ profile }: AccountMenuProps) {
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" onSelect={() => void logout()}>
           <LogOut aria-hidden="true" />
-          Cerrar sesión
+          {t("logout")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -44,6 +44,7 @@ function session(
       id: userId,
       email: `drive-${userId}@example.test`,
       displayName: 'Drive test user',
+      locale: null,
     },
     workspace: { ...workspace, role },
     workspaces: [{ ...workspace, role }],
@@ -209,6 +210,7 @@ describeDatabase('Google Drive import contracts', () => {
             id: adminId,
             email: `drive-admin-${adminId}@example.test`,
             displayName: 'Drive Admin test',
+            locale: null,
           },
         };
         const driveConfiguration = {

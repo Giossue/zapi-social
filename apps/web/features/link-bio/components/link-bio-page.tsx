@@ -104,11 +104,10 @@ import {
 } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
+import { useTranslations } from "next-intl"
 import { cn } from "@workspace/ui/lib/utils"
 
 import {
-  blockHints,
-  blockLabels,
   blockTypes,
   emptyBlock,
   emptyItem,
@@ -173,6 +172,7 @@ function BlockEditor({
   onRemove: () => void
   total: number
 }) {
+  const t = useTranslations("linkBio")
   const hasItems = itemBlockTypes.includes(block.type)
 
   return (
@@ -180,19 +180,23 @@ function BlockEditor({
       <CardContent className="flex flex-col gap-4 py-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex min-w-0 flex-col">
-            <span className="font-medium">{blockLabels[block.type]}</span>
+            <span className="font-medium">
+              {t(`block.${block.type}.label`)}
+            </span>
             <span className="text-sm text-muted-foreground">
-              {blockHints[block.type]}
+              {t(`block.${block.type}.hint`)}
             </span>
           </div>
           <div className="flex items-center gap-1">
             <Switch
-              aria-label={`Mostrar ${blockLabels[block.type]}`}
+              aria-label={t("showBlock", {
+                block: t(`block.${block.type}.label`),
+              })}
               checked={block.enabled}
               onCheckedChange={(enabled) => onChange({ ...block, enabled })}
             />
             <Button
-              aria-label="Subir bloque"
+              aria-label={t("moveUp")}
               disabled={index === 0}
               onClick={() => onMove(-1)}
               size="icon-sm"
@@ -202,7 +206,7 @@ function BlockEditor({
               <ArrowUp />
             </Button>
             <Button
-              aria-label="Bajar bloque"
+              aria-label={t("moveDown")}
               disabled={index === total - 1}
               onClick={() => onMove(1)}
               size="icon-sm"
@@ -212,7 +216,7 @@ function BlockEditor({
               <ArrowDown />
             </Button>
             <Button
-              aria-label="Quitar bloque"
+              aria-label={t("removeBlock")}
               onClick={onRemove}
               size="icon-sm"
               type="button"
@@ -225,7 +229,9 @@ function BlockEditor({
 
         <FieldGroup>
           <Field>
-            <FieldLabel htmlFor={`block-${index}-title`}>Título</FieldLabel>
+            <FieldLabel htmlFor={`block-${index}-title`}>
+              {t("title")}
+            </FieldLabel>
             <Input
               id={`block-${index}-title`}
               onChange={(event) =>
@@ -237,7 +243,7 @@ function BlockEditor({
           {block.type === "header" || block.type === "embed" ? (
             <Field>
               <FieldLabel htmlFor={`block-${index}-content`}>
-                {block.type === "embed" ? "Código o URL" : "Texto"}
+                {block.type === "embed" ? t("codeOrUrl") : t("text")}
               </FieldLabel>
               <Textarea
                 id={`block-${index}-content`}
@@ -275,7 +281,7 @@ function BlockEditor({
                 key={itemIndex}
               >
                 <Input
-                  aria-label="Etiqueta"
+                  aria-label={t("label")}
                   onChange={(event) =>
                     onChange({
                       ...block,
@@ -286,11 +292,15 @@ function BlockEditor({
                       ),
                     })
                   }
-                  placeholder={block.type === "faq" ? "Pregunta" : "Etiqueta"}
+                  placeholder={
+                    block.type === "faq" ? t("question") : t("label")
+                  }
                   value={item.label}
                 />
                 <Input
-                  aria-label={block.type === "faq" ? "Respuesta" : "Destino"}
+                  aria-label={
+                    block.type === "faq" ? t("answer") : t("destination")
+                  }
                   onChange={(event) =>
                     onChange({
                       ...block,
@@ -303,11 +313,11 @@ function BlockEditor({
                       ),
                     })
                   }
-                  placeholder={block.type === "faq" ? "Respuesta" : "https://…"}
+                  placeholder={block.type === "faq" ? t("answer") : "https://…"}
                   value={block.type === "faq" ? item.answer : item.url}
                 />
                 <Button
-                  aria-label="Quitar elemento"
+                  aria-label={t("removeItem")}
                   onClick={() =>
                     onChange({
                       ...block,
@@ -375,6 +385,7 @@ function PageSheet({
   page: PortalLinkBioPage | null
   pending: boolean
 }) {
+  const t = useTranslations("linkBio")
   const [draft, setDraft] = useState<Draft>(emptyDraft)
 
   useEffect(() => {
@@ -384,7 +395,7 @@ function PageSheet({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!draft.title.trim()) {
-      toast.error("La página necesita un título.")
+      toast.error(t("titleRequired"))
       return
     }
     if (await onSubmit(draft)) onOpenChange(false)
@@ -397,7 +408,7 @@ function PageSheet({
         side="right"
       >
         <SheetHeader className="border-b">
-          <SheetTitle>{page ? "Editar página" : "Nueva página"}</SheetTitle>
+          <SheetTitle>{page ? t("editTitle") : t("createTitle")}</SheetTitle>
           <SheetDescription>
             Los bloques se muestran en el mismo orden en la página pública.
           </SheetDescription>
@@ -413,10 +424,10 @@ function PageSheet({
               className="flex min-h-0 flex-col gap-0 border-r border-border"
               defaultValue="info"
             >
-              <TabsList className="m-4 mb-0 grid w-auto grid-cols-3 lg:grid-cols-3 max-lg:grid-cols-4">
-                <TabsTrigger value="info">Info</TabsTrigger>
-                <TabsTrigger value="blocks">Bloques</TabsTrigger>
-                <TabsTrigger value="style">Estilo</TabsTrigger>
+              <TabsList className="m-4 mb-0 grid w-auto grid-cols-3 max-lg:grid-cols-4 lg:grid-cols-3">
+                <TabsTrigger value="info">{t("tab.info")}</TabsTrigger>
+                <TabsTrigger value="blocks">{t("tab.blocks")}</TabsTrigger>
+                <TabsTrigger value="style">{t("tab.style")}</TabsTrigger>
                 <TabsTrigger className="lg:hidden" value="preview">
                   Vista previa
                 </TabsTrigger>
@@ -427,58 +438,61 @@ function PageSheet({
                 value="blocks"
               >
                 <div className="flex flex-col gap-4">
-                {draft.blocks.map((block, index) => (
-                  <BlockEditor
-                    block={block}
-                    index={index}
-                    key={index}
-                    onChange={(next) =>
-                      setDraft({
-                        ...draft,
-                        blocks: draft.blocks.map((current, position) =>
-                          position === index ? next : current
-                        ),
-                      })
-                    }
-                    onMove={(direction) => {
-                      const target = index + direction
-                      if (target < 0 || target >= draft.blocks.length) return
-                      const blocks = [...draft.blocks]
-                      const [moved] = blocks.splice(index, 1)
-                      blocks.splice(target, 0, moved!)
-                      setDraft({ ...draft, blocks })
-                    }}
-                    onRemove={() =>
-                      setDraft({
-                        ...draft,
-                        blocks: draft.blocks.filter(
-                          (_, position) => position !== index
-                        ),
-                      })
-                    }
-                    total={draft.blocks.length}
-                  />
-                ))}
+                  {draft.blocks.map((block, index) => (
+                    <BlockEditor
+                      block={block}
+                      index={index}
+                      key={index}
+                      onChange={(next) =>
+                        setDraft({
+                          ...draft,
+                          blocks: draft.blocks.map((current, position) =>
+                            position === index ? next : current
+                          ),
+                        })
+                      }
+                      onMove={(direction) => {
+                        const target = index + direction
+                        if (target < 0 || target >= draft.blocks.length) return
+                        const blocks = [...draft.blocks]
+                        const [moved] = blocks.splice(index, 1)
+                        blocks.splice(target, 0, moved!)
+                        setDraft({ ...draft, blocks })
+                      }}
+                      onRemove={() =>
+                        setDraft({
+                          ...draft,
+                          blocks: draft.blocks.filter(
+                            (_, position) => position !== index
+                          ),
+                        })
+                      }
+                      total={draft.blocks.length}
+                    />
+                  ))}
                   <Select
                     onValueChange={(value) =>
                       setDraft({
                         ...draft,
                         blocks: [
                           ...draft.blocks,
-                          emptyBlock(value as LinkBioBlockType),
+                          emptyBlock(
+                            value as LinkBioBlockType,
+                            t(`block.${value as LinkBioBlockType}.label`)
+                          ),
                         ],
                       })
                     }
                     value=""
                   >
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Añadir bloque…" />
+                      <SelectValue placeholder={t("addBlock")} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
                         {blockTypes.map((type) => (
                           <SelectItem key={type} value={type}>
-                            {blockLabels[type]}
+                            {t(`block.${type}.label`)}
                           </SelectItem>
                         ))}
                       </SelectGroup>
@@ -509,88 +523,92 @@ function PageSheet({
                       value={draft.title}
                     />
                   </Field>
-                <Field>
-                  <FieldLabel htmlFor="page-slug">Dirección</FieldLabel>
-                  <Input
-                    id="page-slug"
-                    onChange={(event) =>
-                      setDraft({ ...draft, slug: event.target.value })
-                    }
-                    placeholder="mi-marca"
-                    value={draft.slug ?? ""}
-                  />
-                  <FieldDescription>
-                    Se genera del título si la dejas vacía.
-                  </FieldDescription>
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="page-headline">Titular</FieldLabel>
-                  <Input
-                    id="page-headline"
-                    onChange={(event) =>
-                      setDraft({ ...draft, headline: event.target.value })
-                    }
-                    value={draft.headline}
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="page-description">
-                    Descripción
-                  </FieldLabel>
-                  <Textarea
-                    id="page-description"
-                    onChange={(event) =>
-                      setDraft({ ...draft, description: event.target.value })
-                    }
-                    rows={3}
-                    value={draft.description}
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="page-align">Alineación</FieldLabel>
-                  <Select
-                    onValueChange={(value) =>
-                      setDraft({
-                        ...draft,
-                        appearance: {
-                          ...draft.appearance,
-                          contentAlign: value as "left" | "center",
-                        },
-                      })
-                    }
-                    value={draft.appearance.contentAlign}
-                  >
-                    <SelectTrigger className="w-full" id="page-align">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem value="center">Centrado</SelectItem>
-                        <SelectItem value="left">A la izquierda</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <Field orientation="horizontal">
-                  <Switch
-                    checked={draft.status === "published"}
-                    id="page-published"
-                    onCheckedChange={(checked) =>
-                      setDraft({
-                        ...draft,
-                        status: checked ? "published" : "draft",
-                      })
-                    }
-                  />
-                  <FieldLabel htmlFor="page-published">
-                    <FieldContent>
-                      <FieldTitle>Publicada</FieldTitle>
-                      <FieldDescription>
-                        Solo las publicadas son visibles en su dirección.
-                      </FieldDescription>
-                    </FieldContent>
-                  </FieldLabel>
-                </Field>
+                  <Field>
+                    <FieldLabel htmlFor="page-slug">{t("slug")}</FieldLabel>
+                    <Input
+                      id="page-slug"
+                      onChange={(event) =>
+                        setDraft({ ...draft, slug: event.target.value })
+                      }
+                      placeholder="mi-marca"
+                      value={draft.slug ?? ""}
+                    />
+                    <FieldDescription>
+                      Se genera del título si la dejas vacía.
+                    </FieldDescription>
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="page-headline">
+                      {t("headline")}
+                    </FieldLabel>
+                    <Input
+                      id="page-headline"
+                      onChange={(event) =>
+                        setDraft({ ...draft, headline: event.target.value })
+                      }
+                      value={draft.headline}
+                    />
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="page-description">
+                      Descripción
+                    </FieldLabel>
+                    <Textarea
+                      id="page-description"
+                      onChange={(event) =>
+                        setDraft({ ...draft, description: event.target.value })
+                      }
+                      rows={3}
+                      value={draft.description}
+                    />
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="page-align">{t("align")}</FieldLabel>
+                    <Select
+                      onValueChange={(value) =>
+                        setDraft({
+                          ...draft,
+                          appearance: {
+                            ...draft.appearance,
+                            contentAlign: value as "left" | "center",
+                          },
+                        })
+                      }
+                      value={draft.appearance.contentAlign}
+                    >
+                      <SelectTrigger className="w-full" id="page-align">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectItem value="center">
+                            {t("alignCenter")}
+                          </SelectItem>
+                          <SelectItem value="left">A la izquierda</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field orientation="horizontal">
+                    <Switch
+                      checked={draft.status === "published"}
+                      id="page-published"
+                      onCheckedChange={(checked) =>
+                        setDraft({
+                          ...draft,
+                          status: checked ? "published" : "draft",
+                        })
+                      }
+                    />
+                    <FieldLabel htmlFor="page-published">
+                      <FieldContent>
+                        <FieldTitle>{t("published")}</FieldTitle>
+                        <FieldDescription>
+                          Solo las publicadas son visibles en su dirección.
+                        </FieldDescription>
+                      </FieldContent>
+                    </FieldLabel>
+                  </Field>
                 </FieldGroup>
               </TabsContent>
 
@@ -599,135 +617,149 @@ function PageSheet({
                 value="style"
               >
                 <FieldGroup>
-                <Field>
-                  <FieldLabel>Plantilla</FieldLabel>
-                  <div
-                    aria-label="Plantilla de la página"
-                    className="grid grid-cols-3 gap-2"
-                    role="radiogroup"
-                  >
-                    {linkBioTemplates.map((template) => {
-                      const selected = template.key === draft.templateKey
+                  <Field>
+                    <FieldLabel>{t("templateLabel")}</FieldLabel>
+                    <div
+                      aria-label={t("templateAria")}
+                      className="grid grid-cols-3 gap-2"
+                      role="radiogroup"
+                    >
+                      {linkBioTemplates.map((template) => {
+                        const selected = template.key === draft.templateKey
 
-                      return (
-                        <button
-                          aria-checked={selected}
-                          className={cn(
-                            "flex flex-col gap-1.5 rounded-lg border border-border p-1.5 text-left transition-colors hover:bg-muted/50 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none",
-                            selected && "border-primary ring-1 ring-primary"
-                          )}
-                          key={template.key}
-                          onClick={() =>
-                            setDraft({ ...draft, templateKey: template.key })
-                          }
-                          role="radio"
-                          type="button"
-                        >
-                          <span
-                            aria-hidden="true"
-                            className="flex h-14 w-full items-end rounded-md border border-border p-1.5"
-                            style={{
-                              background: template.theme["--bio-bg"],
-                            }}
+                        return (
+                          <button
+                            aria-checked={selected}
+                            className={cn(
+                              "flex flex-col gap-1.5 rounded-lg border border-border p-1.5 text-left transition-colors hover:bg-muted/50 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none",
+                              selected && "border-primary ring-1 ring-primary"
+                            )}
+                            key={template.key}
+                            onClick={() =>
+                              setDraft({ ...draft, templateKey: template.key })
+                            }
+                            role="radio"
+                            type="button"
                           >
                             <span
-                              className="block h-2.5 w-3/4 rounded-sm border"
+                              aria-hidden="true"
+                              className="flex h-14 w-full items-end rounded-md border border-border p-1.5"
                               style={{
-                                background: template.theme["--bio-card"],
-                                borderColor: template.theme["--bio-border"],
+                                background: template.theme["--bio-bg"],
                               }}
-                            />
-                          </span>
-                          <span className="truncate text-xs font-medium">
-                            {template.label}
-                          </span>
-                        </button>
-                      )
-                    })}
-                  </div>
-                  <FieldDescription>
-                    {linkBioTemplates.find(
-                      (item) => item.key === draft.templateKey
-                    )?.description ?? ""}
-                  </FieldDescription>
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="page-buttons">Botones</FieldLabel>
-                  <Select
-                    onValueChange={(value) =>
-                      setDraft({
-                        ...draft,
-                        appearance: {
-                          ...draft.appearance,
-                          buttonStyle: value as "rounded" | "pill" | "square",
-                        },
-                      })
-                    }
-                    value={draft.appearance.buttonStyle}
-                  >
-                    <SelectTrigger className="w-full" id="page-buttons">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem value="rounded">Redondeados</SelectItem>
-                        <SelectItem value="pill">Píldora</SelectItem>
-                        <SelectItem value="square">Rectos</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="page-avatar-style">Avatar</FieldLabel>
-                  <Select
-                    onValueChange={(value) =>
-                      setDraft({
-                        ...draft,
-                        appearance: {
-                          ...draft.appearance,
-                          avatarStyle: value as
-                            | "circle"
-                            | "rounded"
-                            | "square",
-                        },
-                      })
-                    }
-                    value={draft.appearance.avatarStyle}
-                  >
-                    <SelectTrigger className="w-full" id="page-avatar-style">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem value="circle">Círculo</SelectItem>
-                        <SelectItem value="rounded">Redondeado</SelectItem>
-                        <SelectItem value="square">Recto</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="page-branding">Texto de marca</FieldLabel>
-                  <Input
-                    id="page-branding"
-                    onChange={(event) =>
-                      setDraft({
-                        ...draft,
-                        appearance: {
-                          ...draft.appearance,
-                          brandingText: event.target.value,
-                        },
-                      })
-                    }
-                    placeholder="Hecho con Zapi"
-                    value={draft.appearance.brandingText}
-                  />
-                  <FieldDescription>
-                    Aparece al pie de la página pública; déjalo vacío para
-                    ocultarlo.
-                  </FieldDescription>
-                </Field>
-              </FieldGroup>
+                            >
+                              <span
+                                className="block h-2.5 w-3/4 rounded-sm border"
+                                style={{
+                                  background: template.theme["--bio-card"],
+                                  borderColor: template.theme["--bio-border"],
+                                }}
+                              />
+                            </span>
+                            <span className="truncate text-xs font-medium">
+                              {t(`template.${template.key}.label`)}
+                            </span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <FieldDescription>
+                      {t(`template.${draft.templateKey}.description`)}
+                    </FieldDescription>
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="page-buttons">
+                      {t("buttons")}
+                    </FieldLabel>
+                    <Select
+                      onValueChange={(value) =>
+                        setDraft({
+                          ...draft,
+                          appearance: {
+                            ...draft.appearance,
+                            buttonStyle: value as "rounded" | "pill" | "square",
+                          },
+                        })
+                      }
+                      value={draft.appearance.buttonStyle}
+                    >
+                      <SelectTrigger className="w-full" id="page-buttons">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectItem value="rounded">
+                            {t("buttonStyle.rounded")}
+                          </SelectItem>
+                          <SelectItem value="pill">
+                            {t("buttonStyle.pill")}
+                          </SelectItem>
+                          <SelectItem value="square">
+                            {t("buttonStyle.square")}
+                          </SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="page-avatar-style">
+                      {t("avatar")}
+                    </FieldLabel>
+                    <Select
+                      onValueChange={(value) =>
+                        setDraft({
+                          ...draft,
+                          appearance: {
+                            ...draft.appearance,
+                            avatarStyle: value as
+                              "circle" | "rounded" | "square",
+                          },
+                        })
+                      }
+                      value={draft.appearance.avatarStyle}
+                    >
+                      <SelectTrigger className="w-full" id="page-avatar-style">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectItem value="circle">
+                            {t("avatarStyle.circle")}
+                          </SelectItem>
+                          <SelectItem value="rounded">
+                            {t("avatarStyle.rounded")}
+                          </SelectItem>
+                          <SelectItem value="square">
+                            {t("avatarStyle.square")}
+                          </SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="page-branding">
+                      Texto de marca
+                    </FieldLabel>
+                    <Input
+                      id="page-branding"
+                      onChange={(event) =>
+                        setDraft({
+                          ...draft,
+                          appearance: {
+                            ...draft.appearance,
+                            brandingText: event.target.value,
+                          },
+                        })
+                      }
+                      placeholder={t("brandingPlaceholder")}
+                      value={draft.appearance.brandingText}
+                    />
+                    <FieldDescription>
+                      Aparece al pie de la página pública; déjalo vacío para
+                      ocultarlo.
+                    </FieldDescription>
+                  </Field>
+                </FieldGroup>
               </TabsContent>
 
               <TabsContent
@@ -777,6 +809,7 @@ function PageSheet({
 }
 
 export function LinkBioPage() {
+  const t = useTranslations("linkBio")
   const router = useRouter()
   const [data, setData] = useState<PortalLinkBioPagesResponse | null>(null)
   const [query, setQuery] = useState("")
@@ -832,16 +865,16 @@ export function LinkBioPage() {
       if (editing) await linkBioApi.update(editing.id, draft)
       else await linkBioApi.create(draft)
       await load()
-      toast.success(editing ? "Página actualizada." : "Página creada.")
+      toast.success(editing ? t("updated") : t("created"))
       return true
     } catch (error) {
       if (handleError(error)) return false
       if (error instanceof ApiError && error.code === "LINK_BIO_SLUG_TAKEN") {
-        toast.error("Esa dirección ya está en uso.")
+        toast.error(t("slugTaken"))
         return false
       }
       console.error("Link bio save failed", error)
-      toast.error("No pudimos guardar la página. Inténtalo de nuevo.")
+      toast.error(t("saveFailed"))
       return false
     } finally {
       setPending(false)
@@ -854,11 +887,11 @@ export function LinkBioPage() {
       await linkBioApi.remove(page.id)
       setToDelete(null)
       await load()
-      toast.success("Página eliminada.")
+      toast.success(t("deleted"))
     } catch (error) {
       if (handleError(error)) return
       console.error("Link bio deletion failed", error)
-      toast.error("No pudimos eliminar la página.")
+      toast.error(t("deleteFailed"))
     } finally {
       setPending(false)
     }
@@ -869,7 +902,7 @@ export function LinkBioPage() {
       <Card variant="subtle">
         <CardContent>
           <EmptyState
-            description="Tu acceso actual no permite administrar las páginas de enlaces."
+            description={t("forbiddenDescription")}
             icon={LockKeyhole}
             title="Link in bio no disponible"
           />
@@ -879,7 +912,7 @@ export function LinkBioPage() {
   }
 
   if (isLoading && !data && !loadError) {
-    return <PageLoading aria-label="Cargando páginas de enlaces" />
+    return <PageLoading aria-label={t("loading")} />
   }
 
   if (loadError || !data) {
@@ -893,7 +926,7 @@ export function LinkBioPage() {
                 variant="brand-secondary"
               />
             }
-            description="No pudimos cargar tus páginas de enlaces."
+            description={t("loadFailedDescription")}
             icon={CircleAlert}
             title="Link in bio no disponible"
           />
@@ -938,26 +971,26 @@ export function LinkBioPage() {
     <>
       <div className="flex flex-col gap-4">
         <CollectionHeader
-          description="Una página pública con todos tus enlaces, y sus métricas de visitas y clics."
-          title="Link in bio"
+          description={t("pageDescription")}
+          title={t("pageTitle")}
         />
         <CardGrid layout="md-3">
           <MetricCard
-            description="Creadas en este espacio"
+            description={t("metrics.pagesDescription")}
             icon={Link2}
-            label="Páginas"
+            label={t("metrics.pages")}
             value={data.metrics.total}
           />
           <MetricCard
-            description="Visitas registradas"
+            description={t("metrics.viewsDescription")}
             icon={Eye}
-            label="Vistas"
+            label={t("metrics.views")}
             value={data.metrics.views}
           />
           <MetricCard
-            description="Clics en tus enlaces"
+            description={t("metrics.clicksDescription")}
             icon={MousePointerClick}
-            label="Clics"
+            label={t("metrics.clicks")}
             value={data.metrics.clicks}
           />
         </CardGrid>
@@ -976,12 +1009,12 @@ export function LinkBioPage() {
               ) : undefined
             }
             search={{
-              ariaLabel: "Buscar páginas",
+              ariaLabel: t("searchLabel"),
               onChange: (value) => {
                 setQuery(value)
                 setCurrentPage(1)
               },
-              placeholder: "Buscar páginas...",
+              placeholder: t("searchPlaceholder"),
               value: query,
             }}
           />
@@ -1001,16 +1034,16 @@ export function LinkBioPage() {
               }
             >
               <DataTableFilter
-                ariaLabel="Filtrar por estado"
-                label="Estado"
+                ariaLabel={t("filterStatus")}
+                label={t("status")}
                 onValueChange={(value) => {
                   setStatusFilter(value as PortalLinkBioPage["status"] | "all")
                   setCurrentPage(1)
                 }}
                 options={[
-                  { label: "Todos", value: "all" },
-                  { label: "Publicada", value: "published" },
-                  { label: "Borrador", value: "draft" },
+                  { label: t("all"), value: "all" },
+                  { label: t("statusLabel.published"), value: "published" },
+                  { label: t("statusLabel.draft"), value: "draft" },
                 ]}
                 value={statusFilter}
               />
@@ -1018,11 +1051,11 @@ export function LinkBioPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Página</TableHead>
+                  <TableHead>{t("page")}</TableHead>
                   <TableHead className="hidden md:table-cell">
                     Rendimiento
                   </TableHead>
-                  <TableHead>Estado</TableHead>
+                  <TableHead>{t("status")}</TableHead>
                   {data.canManage ? (
                     <TableHead className="text-right">Acciones</TableHead>
                   ) : null}
@@ -1048,7 +1081,7 @@ export function LinkBioPage() {
                           <span className="text-sm text-muted-foreground">
                             {page.views
                               ? `${((page.clicks / page.views) * 100).toFixed(1)}% de conversión`
-                              : "Sin visitas todavía"}
+                              : t("noViews")}
                           </span>
                         </div>
                       </TableCell>
@@ -1059,8 +1092,8 @@ export function LinkBioPage() {
                           }
                         >
                           {page.status === "published"
-                            ? "Publicada"
-                            : "Borrador"}
+                            ? t("statusLabel.published")
+                            : t("statusLabel.draft")}
                         </Badge>
                       </TableCell>
                       {data.canManage ? (
@@ -1126,14 +1159,10 @@ export function LinkBioPage() {
                     colSpan={data.canManage ? 4 : 3}
                     description={
                       hasFilters
-                        ? "Prueba con otro término o estado."
-                        : "Crea una página para reunir todos tus enlaces en una sola dirección."
+                        ? t("emptyFilteredDescription")
+                        : t("emptyDescription")
                     }
-                    title={
-                      hasFilters
-                        ? "No hay coincidencias"
-                        : "No hay páginas todavía"
-                    }
+                    title={hasFilters ? t("noMatches") : t("emptyTitle")}
                   />
                 )}
               </TableBody>
@@ -1155,7 +1184,7 @@ export function LinkBioPage() {
           </CardContent>
         </Card>
         {data.canManage ? (
-          <FloatingActionButton label="Nueva página" onClick={openCreate} />
+          <FloatingActionButton label={t("createTitle")} onClick={openCreate} />
         ) : null}
       </div>
 
@@ -1179,7 +1208,9 @@ export function LinkBioPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={pending}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={pending}>
+              {t("cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               disabled={pending}
               onClick={(event) => {

@@ -38,6 +38,7 @@ import {
   UserRound,
   X,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useState, type FormEvent } from "react"
@@ -46,6 +47,8 @@ import {
   getAreaDestination,
   getSessionArea,
 } from "@/features/identity/session-area"
+import { syncLocaleCookie } from "@/i18n/locale-cookie"
+import { useApiErrorMessage } from "@/lib/api-error-message"
 import { TurnstileWidget } from "./turnstile-widget"
 
 export type AuthMode = "login" | "register"
@@ -76,20 +79,6 @@ function browserTimeZone() {
   } catch {
     return "UTC"
   }
-}
-
-const authErrorMessages: Record<string, string> = {
-  AUTH_EMAIL_ALREADY_REGISTERED: "Ya existe una cuenta con este correo.",
-  AUTH_INVALID_CREDENTIALS: "Correo o contraseña incorrectos.",
-  AUTH_CAPTCHA_INVALID:
-    "Completa la verificación de seguridad e inténtalo de nuevo.",
-  AUTH_CAPTCHA_UNAVAILABLE:
-    "No pudimos verificar la seguridad. Inténtalo nuevamente.",
-  AUTH_PASSWORD_POLICY_NOT_MET:
-    "La contraseña no cumple los requisitos de seguridad.",
-  AUTH_SESSION_EXPIRED: "Tu sesión terminó. Inicia sesión de nuevo.",
-  AUTH_WORKSPACE_UNAVAILABLE: "No fue posible acceder a tu cuenta.",
-  VALIDATION_FAILED: "Revisa los datos e inténtalo de nuevo.",
 }
 
 function passwordMeetsPolicy(password: string) {
@@ -141,6 +130,10 @@ export function AuthForm({
   returnTo?: string
 }) {
   const router = useRouter()
+  const t = useTranslations("auth.form")
+  const tValidation = useTranslations("auth.validation")
+  const tPolicy = useTranslations("auth.passwordPolicy")
+  const apiErrorMessage = useApiErrorMessage()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [displayName, setDisplayName] = useState("")
   const [email, setEmail] = useState("")
@@ -180,7 +173,7 @@ export function AuthForm({
             requestId: error.requestId,
           })
         }
-        toast.error("No pudimos cargar la verificación de seguridad.")
+        toast.error(tValidation("captchaUnavailable"))
       })
       .finally(() => {
         if (active) setTurnstileLoading(false)
@@ -188,7 +181,7 @@ export function AuthForm({
     return () => {
       active = false
     }
-  }, [])
+  }, [tValidation])
 
   const onTurnstileTokenChange = useCallback((token: string) => {
     setTurnstileToken(token)
@@ -198,8 +191,8 @@ export function AuthForm({
   const onTurnstileError = useCallback(() => {
     setTurnstileToken("")
     setTurnstileWidgetFailed(true)
-    toast.error("No pudimos cargar la verificación de seguridad.")
-  }, [])
+    toast.error(tValidation("captchaUnavailable"))
+  }, [tValidation])
 
   const captchaComplete = Boolean(
     !turnstileLoading &&
@@ -229,34 +222,32 @@ export function AuthForm({
     const form = new FormData(event.currentTarget)
 
     if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      reportError("Ingresa un correo electrónico válido.")
+      reportError(tValidation("email"))
       return
     }
     if (!password) {
-      reportError("Ingresa tu contraseña.")
+      reportError(tValidation("password"))
       return
     }
     if (turnstile?.enabled && !turnstileToken) {
-      reportError("Completa la verificación de seguridad.")
+      reportError(tValidation("captcha"))
       return
     }
     if (!isLogin) {
       if (!displayName.trim()) {
-        reportError("Ingresa tu nombre.")
+        reportError(tValidation("name"))
         return
       }
       if (!timezone) {
-        reportError("Selecciona tu zona horaria.")
+        reportError(tValidation("timezone"))
         return
       }
       if (!passwordMeetsPolicy(password)) {
-        reportError(
-          "La contraseña debe tener 8 caracteres, mayúscula, minúscula, número y símbolo."
-        )
+        reportError(tValidation("passwordPolicy"))
         return
       }
       if (password !== passwordConfirmation) {
-        reportError("Las contraseñas no coinciden.")
+        reportError(tValidation("passwordMismatch"))
         return
       }
     }
@@ -279,11 +270,11 @@ export function AuthForm({
           })
       const area = getSessionArea(session)
       if (!area) {
-        reportError(
-          "Tu sesión no incluye el área de acceso requerida. Vuelve a iniciar sesión."
-        )
+        reportError(tValidation("missingArea"))
         return
       }
+      /** El idioma guardado en la cuenta manda desde el primer render. */
+      syncLocaleCookie(session.user.locale)
       /** El destino solo se respeta si pertenece al área de la sesión. */
       const areaPrefix = area === "admin" ? "/admin" : "/portal"
       const destination =
@@ -307,13 +298,10 @@ export function AuthForm({
             requestId: caught.requestId,
           })
         }
-        reportError(
-          authErrorMessages[caught.code] ??
-            "No pudimos completar la solicitud. Inténtalo de nuevo."
-        )
+        reportError(apiErrorMessage(caught.code))
       } else {
         console.error("Auth request failed", caught)
-        reportError("No pudimos completar la solicitud. Inténtalo de nuevo.")
+        reportError(apiErrorMessage())
       }
     } finally {
       setIsSubmitting(false)
@@ -326,7 +314,7 @@ export function AuthForm({
         {!isLogin ? (
           <Field className="gap-1.5">
             <FieldLabel htmlFor="register-name">
-              Nombre
+              {t("name")}
               <RequiredMark />
             </FieldLabel>
             <InputGroup>
@@ -343,7 +331,7 @@ export function AuthForm({
                 minLength={2}
                 name="displayName"
                 onChange={(event) => setDisplayName(event.target.value)}
-                placeholder="Tu nombre"
+                placeholder={t("namePlaceholder")}
                 value={displayName}
               />
             </InputGroup>
@@ -351,7 +339,7 @@ export function AuthForm({
         ) : null}
         <Field className="gap-1.5">
           <FieldLabel htmlFor={`${initialMode}-email`}>
-            Correo electrónico
+            {t("email")}
             <RequiredMark />
           </FieldLabel>
           <InputGroup>
@@ -367,7 +355,7 @@ export function AuthForm({
               maxLength={320}
               name="email"
               onChange={(event) => setEmail(event.target.value)}
-              placeholder="tu@correo.com"
+              placeholder={t("emailPlaceholder")}
               type="email"
               value={email}
             />
@@ -375,7 +363,7 @@ export function AuthForm({
         </Field>
         <Field className="gap-1.5">
           <FieldLabel htmlFor={`${initialMode}-password`}>
-            Contraseña
+            {t("password")}
             <RequiredMark />
           </FieldLabel>
           {isLogin ? (
@@ -400,7 +388,7 @@ export function AuthForm({
               <InputGroupAddon align="inline-end">
                 <InputGroupButton
                   aria-label={
-                    showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                    showPassword ? t("hidePassword") : t("showPassword")
                   }
                   onClick={() => setShowPassword((visible) => !visible)}
                   size="icon-xs"
@@ -436,7 +424,7 @@ export function AuthForm({
               <InputGroupAddon align="inline-end">
                 <InputGroupButton
                   aria-label={
-                    showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                    showPassword ? t("hidePassword") : t("showPassword")
                   }
                   onClick={() => setShowPassword((visible) => !visible)}
                   size="icon-xs"
@@ -455,7 +443,7 @@ export function AuthForm({
         {!isLogin ? (
           <Field className="gap-1.5">
             <FieldLabel htmlFor="register-password-confirmation">
-              Confirmar contraseña
+              {t("passwordConfirmation")}
               <RequiredMark />
             </FieldLabel>
             <InputGroup>
@@ -482,8 +470,8 @@ export function AuthForm({
                 <InputGroupButton
                   aria-label={
                     showPasswordConfirmation
-                      ? "Ocultar confirmación de contraseña"
-                      : "Mostrar confirmación de contraseña"
+                      ? t("hidePasswordConfirmation")
+                      : t("showPasswordConfirmation")
                   }
                   onClick={() =>
                     setShowPasswordConfirmation((visible) => !visible)
@@ -501,26 +489,26 @@ export function AuthForm({
             </InputGroup>
             <ul className="space-y-1 pt-1">
               <PasswordRequirement fulfilled={password.length >= 8}>
-                8 caracteres o más
+                {tPolicy("length")}
               </PasswordRequirement>
               <PasswordRequirement fulfilled={/[A-Z]/.test(password)}>
-                Una letra mayúscula
+                {tPolicy("uppercase")}
               </PasswordRequirement>
               <PasswordRequirement fulfilled={/[a-z]/.test(password)}>
-                Una letra minúscula
+                {tPolicy("lowercase")}
               </PasswordRequirement>
               <PasswordRequirement fulfilled={/[0-9]/.test(password)}>
-                Un número
+                {tPolicy("number")}
               </PasswordRequirement>
               <PasswordRequirement fulfilled={/[^A-Za-z0-9]/.test(password)}>
-                Un carácter especial
+                {tPolicy("special")}
               </PasswordRequirement>
               <PasswordRequirement
                 fulfilled={
                   Boolean(password) && password === passwordConfirmation
                 }
               >
-                Las contraseñas coinciden
+                {tPolicy("match")}
               </PasswordRequirement>
             </ul>
           </Field>
@@ -529,7 +517,7 @@ export function AuthForm({
             <Checkbox id="login-remember" name="remember" />
             <FieldContent>
               <FieldLabel className="font-normal" htmlFor="login-remember">
-                Recordarme
+                {t("remember")}
               </FieldLabel>
             </FieldContent>
           </Field>
@@ -537,7 +525,7 @@ export function AuthForm({
         {!isLogin ? (
           <Field className="gap-1.5">
             <FieldLabel htmlFor="register-timezone">
-              Zona horaria
+              {t("timezone")}
               <RequiredMark />
             </FieldLabel>
             <Select onValueChange={setTimezone} value={timezone}>
@@ -546,7 +534,7 @@ export function AuthForm({
                 className="w-full"
                 id="register-timezone"
               >
-                <SelectValue placeholder="Selecciona tu zona horaria" />
+                <SelectValue placeholder={t("timezonePlaceholder")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
@@ -574,7 +562,7 @@ export function AuthForm({
           className="w-fit text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           href="/forgot-password"
         >
-          ¿Olvidaste tu contraseña?
+          {t("forgotPassword")}
         </Link>
       ) : null}
       <Button
@@ -583,17 +571,17 @@ export function AuthForm({
         type="submit"
       >
         {isSubmitting ? (
-          <Spinner aria-label="Comprobando" data-icon="inline-start" />
+          <Spinner aria-label={t("submittingLabel")} data-icon="inline-start" />
         ) : isLogin ? (
           <LogIn aria-hidden="true" data-icon="inline-start" />
         ) : (
           <UserPlus aria-hidden="true" data-icon="inline-start" />
         )}
         {isSubmitting
-          ? "Comprobando…"
+          ? t("submitting")
           : isLogin
-            ? "Iniciar sesión"
-            : "Crear cuenta"}
+            ? t("submitLogin")
+            : t("submitRegister")}
       </Button>
     </form>
   )

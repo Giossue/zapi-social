@@ -105,6 +105,13 @@ Antes de crear markup o un componente, ejecutar `codebase-memory` para comprobar
   mismo padding y filas con borde/hover semánticos. Una feature solo puede
   añadir alineación, visibilidad responsive, truncado o ancho motivado por sus
   datos; no redefine padding, fondo, peso del encabezado, borde ni hover.
+- El texto de una superficie ya migrada a i18n vive en `apps/web/messages/`
+  con clave semántica y se lee con `useTranslations`/`getTranslations`; las
+  fechas y números usan `useFormatter`, no `Intl` con un idioma literal. Una
+  clave nueva se añade a todos los idiomas: la paridad la comprueba
+  `bun run audit:i18n`. Las superficies aún no migradas conservan su texto en
+  el código hasta que les toque su tanda en
+  [`planes/i18n-v2.md`](../planes/i18n-v2.md).
 - Un pattern pasa a `packages/ui` solo si su contrato es genérico y será reutilizable por tres o más features. Todo primitive o pattern global añadido, creado o promovido debe añadir o actualizar su fila en `packages/ui/COMPONENTS.md` dentro del mismo cambio.
 
 ## 21st.dev MCP y CLI

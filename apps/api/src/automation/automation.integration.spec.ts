@@ -45,6 +45,7 @@ function portalSession(
       displayName: 'Automation test user',
       email: 'automation-test@example.test',
       id: userId,
+      locale: null,
     },
     workspace: { ...workspace, role },
     workspaces: [{ ...workspace, role }],

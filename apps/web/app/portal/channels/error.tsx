@@ -16,7 +16,8 @@ export default function ChannelsErrorPage({ reset }: { reset: () => void }) {
           <div>
             <p className="font-semibold">No se pudieron cargar los canales</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              No se modificó ninguna conexión. Intenta cargar la sección de nuevo.
+              No se modificó ninguna conexión. Intenta cargar la sección de
+              nuevo.
             </p>
           </div>
         </div>

@@ -15,13 +15,8 @@ import {
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
 import { Building2, ChevronsUpDown } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useState } from "react"
-
-const roleLabels: Record<ActiveWorkspace["role"], string> = {
-  owner: "Propietario",
-  admin: "Administrador",
-  member: "Miembro",
-}
 
 type WorkspaceSwitcherProps = {
   activeWorkspace: ActiveWorkspace
@@ -32,6 +27,7 @@ export function WorkspaceSwitcher({
   activeWorkspace,
   workspaces,
 }: WorkspaceSwitcherProps) {
+  const t = useTranslations("shell.workspaces")
   const [pendingWorkspaceId, setPendingWorkspaceId] = useState<string | null>(
     null
   )
@@ -56,7 +52,7 @@ export function WorkspaceSwitcher({
       } else {
         console.error("Workspace activation failed", error)
       }
-      toast.error("No pudimos cambiar el espacio de trabajo.")
+      toast.error(t("activationFailed"))
       setPendingWorkspaceId(null)
     }
   }
@@ -69,7 +65,7 @@ export function WorkspaceSwitcher({
           variant="brand-secondary"
         >
           {pendingWorkspaceId ? (
-            <Spinner aria-label="Cambiando espacio" data-icon="inline-start" />
+            <Spinner aria-label={t("switching")} data-icon="inline-start" />
           ) : (
             <Building2 aria-hidden="true" data-icon="inline-start" />
           )}
@@ -80,7 +76,7 @@ export function WorkspaceSwitcher({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-64">
-        <DropdownMenuLabel>Espacios de trabajo</DropdownMenuLabel>
+        <DropdownMenuLabel>{t("title")}</DropdownMenuLabel>
         <DropdownMenuGroup>
           <DropdownMenuRadioGroup
             value={activeWorkspace.id}
@@ -95,7 +91,7 @@ export function WorkspaceSwitcher({
                 <div className="grid min-w-0 flex-1">
                   <span className="truncate font-medium">{workspace.name}</span>
                   <span className="text-xs text-muted-foreground">
-                    {roleLabels[workspace.role]}
+                    {t(`role.${workspace.role}`)}
                   </span>
                 </div>
               </DropdownMenuRadioItem>

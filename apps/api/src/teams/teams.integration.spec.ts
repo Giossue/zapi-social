@@ -86,7 +86,7 @@ function portalSession(
 ): PortalAuthSession {
   return {
     area: 'portal',
-    user,
+    user: { ...user, locale: null },
     workspace: { ...workspace, role },
     workspaces: [{ ...workspace, role }],
   };

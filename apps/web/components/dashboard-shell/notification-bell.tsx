@@ -1,5 +1,6 @@
 "use client"
 
+import { useFormatter, useTranslations } from "next-intl"
 import { useCallback, useEffect, useState } from "react"
 import { Archive, Bell, CheckCheck, ExternalLink } from "lucide-react"
 
@@ -14,14 +15,9 @@ import {
 import { Spinner } from "@workspace/ui/components/spinner"
 import { cn } from "@workspace/ui/lib/utils"
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("es-EC", {
-    day: "numeric",
-    month: "short",
-  }).format(new Date(value))
-}
-
 export function NotificationBell() {
+  const t = useTranslations("shell.notifications")
+  const format = useFormatter()
   const [notifications, setNotifications] = useState<PortalNotification[]>([])
   const [unread, setUnread] = useState(0)
   const [open, setOpen] = useState(false)
@@ -72,9 +68,7 @@ export function NotificationBell() {
     >
       <PopoverTrigger asChild>
         <Button
-          aria-label={
-            unread ? `Notificaciones, ${unread} sin leer` : "Notificaciones"
-          }
+          aria-label={unread ? t("unreadLabel", { unread }) : t("title")}
           className="relative"
           size="icon-sm"
           variant="brand-secondary"
@@ -92,10 +86,10 @@ export function NotificationBell() {
       </PopoverTrigger>
       <PopoverContent align="end" className="w-88 p-0">
         <div className="flex items-center justify-between gap-2 border-b p-3">
-          <p className="text-sm font-medium">Notificaciones</p>
+          <p className="text-sm font-medium">{t("title")}</p>
           <div className="flex items-center gap-1">
             <Button
-              aria-label="Marcar todo como leído"
+              aria-label={t("markAllRead")}
               disabled={pending || !notifications.length}
               onClick={() =>
                 void run(async () => {
@@ -110,7 +104,7 @@ export function NotificationBell() {
               <CheckCheck />
             </Button>
             <Button
-              aria-label="Archivar todo"
+              aria-label={t("archiveAll")}
               disabled={pending || !notifications.length}
               onClick={() =>
                 void run(async () => {
@@ -129,7 +123,7 @@ export function NotificationBell() {
         <div className="max-h-88 overflow-y-auto">
           {isLoading && !notifications.length ? (
             <div className="flex items-center justify-center gap-2 p-6 text-sm text-muted-foreground">
-              <Spinner /> Cargando
+              <Spinner /> {t("loading")}
             </div>
           ) : notifications.length ? (
             <ul className="divide-y">
@@ -173,7 +167,10 @@ export function NotificationBell() {
                       {notification.body}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      {formatDate(notification.publishedAt)}
+                      {format.dateTime(new Date(notification.publishedAt), {
+                        day: "numeric",
+                        month: "short",
+                      })}
                     </span>
                   </button>
                 </li>
@@ -181,7 +178,7 @@ export function NotificationBell() {
             </ul>
           ) : (
             <p className="p-6 text-center text-sm text-muted-foreground">
-              No tienes notificaciones.
+              {t("empty")}
             </p>
           )}
         </div>

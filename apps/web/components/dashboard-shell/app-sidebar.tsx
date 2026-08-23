@@ -36,7 +36,7 @@ function DashboardSidebarHeader({ homeHref }: { homeHref: string }) {
           <SidebarMenuButton asChild>
             <Link href={homeHref} onClick={() => setOpenMobile(false)}>
               <ZapiLogo className="size-5 shrink-0" />
-              <span className="font-semibold text-base">Zapi Social</span>
+              <span className="text-base font-semibold">Zapi Social</span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>

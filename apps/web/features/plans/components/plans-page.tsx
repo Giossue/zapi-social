@@ -98,21 +98,12 @@ import {
 } from "@workspace/ui/components/table"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { toast } from "@workspace/ui/components/toast"
+import { useFormatter, useTranslations } from "next-intl"
 
 import { planPermissionGroups } from "../fixtures/plans"
 import { ApiError, plansApi } from "@workspace/api-client"
 
 import type { AdminPlan, PlanBillingType, PlanStatus } from "../types/plans"
-
-const billingLabels: Record<PlanBillingType, string> = {
-  monthly: "Mensual",
-  yearly: "Anual",
-}
-
-const statusLabels: Record<PlanStatus, string> = {
-  active: "Activo",
-  inactive: "Inactivo",
-}
 
 const emptyPlan: AdminPlan = {
   id: "",
@@ -150,14 +141,18 @@ function planInput(plan: AdminPlan) {
   }
 }
 
-function formatPrice(plan: AdminPlan) {
-  if (plan.isFree) return "Gratis"
-
-  return new Intl.NumberFormat("es", {
-    style: "currency",
+/** El precio se formatea con el idioma activo; «Gratis» lo pone la vista. */
+function planPrice(
+  plan: AdminPlan,
+  format: ReturnType<typeof useFormatter>,
+  freeLabel: string
+) {
+  if (plan.isFree) return freeLabel
+  return format.number(plan.price, {
     currency: plan.currency,
     maximumFractionDigits: 0,
-  }).format(plan.price)
+    style: "currency",
+  })
 }
 
 function RequiredMark() {
@@ -268,6 +263,7 @@ function PlanEditorSheet({
   onSave: (plan: AdminPlan) => Promise<void>
   plan: AdminPlan
 }) {
+  const t = useTranslations("plans")
   const savingLock = useRef(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isFree, setIsFree] = useState(plan.isFree)
@@ -281,7 +277,7 @@ function PlanEditorSheet({
   const [position, setPosition] = useState(String(plan.position))
   const isEditing = Boolean(plan.id)
   const SubmitIcon = isEditing ? Check : Plus
-  const submitLabel = isEditing ? "Guardar cambios" : "Crear plan"
+  const submitLabel = isEditing ? t("saveChanges") : t("create")
   const formComplete = Boolean(
     name.trim() &&
     slug.trim() &&
@@ -304,19 +300,19 @@ function PlanEditorSheet({
     const position = Number(formData.get("position") ?? 0)
 
     if (name.length < 2) {
-      toast.error("El nombre del plan debe tener al menos 2 caracteres.")
+      toast.error(t("nameTooShort"))
       return
     }
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
-      toast.error("El slug usa minúsculas, números y guiones, sin espacios.")
+      toast.error(t("invalidSlug"))
       return
     }
     if (existingSlugs.includes(slug) && slug !== plan.slug) {
-      toast.error("Ya existe un plan con este slug.")
+      toast.error(t("slugTaken"))
       return
     }
     if (!isFree && (!Number.isFinite(price) || price < 0)) {
-      toast.error("Indica un precio válido de cero o mayor.")
+      toast.error(t("invalidPrice"))
       return
     }
     if (
@@ -325,11 +321,11 @@ function PlanEditorSheet({
       !Number.isInteger(position) ||
       position < 1
     ) {
-      toast.error("Los días de prueba y la posición deben ser números válidos.")
+      toast.error(t("invalidNumbers"))
       return
     }
     if (permissionIds.length === 0) {
-      toast.error("Selecciona al menos un permiso para el plan.")
+      toast.error(t("permissionRequired"))
       return
     }
 
@@ -337,7 +333,7 @@ function PlanEditorSheet({
       isDefaultSignup &&
       (!isFree || String(formData.get("status")) !== "active")
     ) {
-      toast.error("El plan predeterminado debe estar activo y ser gratuito.")
+      toast.error(t("defaultPlanRules"))
       return
     }
 
@@ -379,7 +375,7 @@ function PlanEditorSheet({
       <SheetContent className="w-full gap-0 p-0 sm:max-w-3xl">
         <SheetHeader className="border-b pr-12">
           <SheetTitle>
-            {isEditing ? `Editar ${plan.name}` : "Crear plan"}
+            {isEditing ? t("editTitle", { name: plan.name }) : t("create")}
           </SheetTitle>
           <SheetDescription>
             Configura el precio, disponibilidad y permisos que recibirá este
@@ -440,8 +436,12 @@ function PlanEditorSheet({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="active">Activo</SelectItem>
-                      <SelectItem value="inactive">Inactivo</SelectItem>
+                      <SelectItem value="active">
+                        {t("status.active")}
+                      </SelectItem>
+                      <SelectItem value="inactive">
+                        {t("status.inactive")}
+                      </SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -476,8 +476,12 @@ function PlanEditorSheet({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="monthly">Mensual</SelectItem>
-                      <SelectItem value="yearly">Anual</SelectItem>
+                      <SelectItem value="monthly">
+                        {t("billing.monthly")}
+                      </SelectItem>
+                      <SelectItem value="yearly">
+                        {t("billing.yearly")}
+                      </SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -514,14 +518,16 @@ function PlanEditorSheet({
               </Field>
             </FieldGroup>
             <Field data-disabled={isSaving || undefined}>
-              <FieldLabel htmlFor="plan-description">Descripción</FieldLabel>
+              <FieldLabel htmlFor="plan-description">
+                {t("description")}
+              </FieldLabel>
               <Textarea
                 defaultValue={plan.description}
                 disabled={isSaving}
                 id="plan-description"
                 maxLength={500}
                 name="description"
-                placeholder="Describe para quién es este plan."
+                placeholder={t("descriptionPlaceholder")}
               />
             </Field>
             <FieldGroup className="grid sm:grid-cols-3">
@@ -530,7 +536,7 @@ function PlanEditorSheet({
                 orientation="horizontal"
               >
                 <div className="flex flex-1 flex-col gap-0.5">
-                  <FieldLabel htmlFor="plan-free">Plan gratuito</FieldLabel>
+                  <FieldLabel htmlFor="plan-free">{t("freePlan")}</FieldLabel>
                   <FieldDescription>
                     No cobra a los suscriptores.
                   </FieldDescription>
@@ -547,7 +553,9 @@ function PlanEditorSheet({
                 orientation="horizontal"
               >
                 <div className="flex flex-1 flex-col gap-0.5">
-                  <FieldLabel htmlFor="plan-featured">Destacado</FieldLabel>
+                  <FieldLabel htmlFor="plan-featured">
+                    {t("featured")}
+                  </FieldLabel>
                   <FieldDescription>
                     Se resalta en el catálogo.
                   </FieldDescription>
@@ -564,8 +572,8 @@ function PlanEditorSheet({
                 orientation="horizontal"
               >
                 <div className="flex flex-1 flex-col gap-0.5">
-                  <FieldLabel htmlFor="plan-default">Predeterminado</FieldLabel>
-                  <FieldDescription>Se asigna al registrarse.</FieldDescription>
+                  <FieldLabel htmlFor="plan-default">{t("default")}</FieldLabel>
+                  <FieldDescription>{t("defaultHint")}</FieldDescription>
                 </div>
                 <Switch
                   checked={isDefaultSignup}
@@ -595,7 +603,7 @@ function PlanEditorSheet({
                 ) : (
                   <SubmitIcon data-icon="inline-start" />
                 )}
-                {isSaving ? "Guardando..." : submitLabel}
+                {isSaving ? t("saving") : submitLabel}
               </Button>
             </div>
           </form>
@@ -614,6 +622,7 @@ function DeletePlanDialog({
   onRemove: () => Promise<void>
   plan: AdminPlan
 }) {
+  const t = useTranslations("plans")
   const deletingLock = useRef(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const hasSubscribers = plan.subscriberCount > 0
@@ -653,7 +662,7 @@ function DeletePlanDialog({
           <AlertDialogDescription>
             {hasSubscribers
               ? `Este plan está asignado a ${subscriberLabel}. Mueve esas cuentas a otro plan antes de eliminarlo.`
-              : "El plan se eliminará de la configuración. Esta acción no se puede deshacer."}
+              : t("deleteDescription")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -670,7 +679,7 @@ function DeletePlanDialog({
             ) : (
               <Trash2 data-icon="inline-start" />
             )}
-            {isDeleting ? "Eliminando..." : "Eliminar plan"}
+            {isDeleting ? t("deleting") : t("deleteAction")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -679,6 +688,8 @@ function DeletePlanDialog({
 }
 
 export function PlansPage() {
+  const t = useTranslations("plans")
+  const format = useFormatter()
   const [plans, setPlans] = useState<AdminPlan[]>([])
   const [query, setQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<"all" | PlanStatus>("all")
@@ -715,16 +726,16 @@ export function PlansPage() {
         return
       }
       if (error instanceof ApiError && error.status === 401) {
-        toast.error("Tu sesión expiró. Vuelve a iniciar sesión.")
+        toast.error(t("sessionExpired"))
       } else {
         console.error("Plans request failed", error)
-        toast.error("No pudimos cargar los planes. Inténtalo de nuevo.")
+        toast.error(t("loadFailed"))
       }
       setHasError(true)
     } finally {
       setIsLoading(false)
     }
-  }, [billingFilter, featuredFilter, query, statusFilter])
+  }, [billingFilter, featuredFilter, query, statusFilter, t])
 
   useEffect(() => {
     void loadPlans()
@@ -742,21 +753,21 @@ export function PlansPage() {
     try {
       if (plan.id) {
         await plansApi.update(plan.id, planInput(plan))
-        toast.success("Plan actualizado.")
+        toast.success(t("updated"))
       } else {
         await plansApi.create(planInput(plan))
-        toast.success("Plan creado.")
+        toast.success(t("created"))
       }
       await loadPlans()
       setEditor(null)
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
-        toast.error("El nombre, slug o plan predeterminado ya existe.")
+        toast.error(t("conflict"))
       } else if (error instanceof ApiError && error.status === 400) {
-        toast.error("Revisa los datos del plan antes de guardarlo.")
+        toast.error(t("validationFailed"))
       } else {
         console.error("Plan save failed", error)
-        toast.error("No pudimos guardar el plan. Inténtalo de nuevo.")
+        toast.error(t("saveFailed"))
       }
       throw error
     }
@@ -766,17 +777,15 @@ export function PlansPage() {
     if (!planToDelete) return
     try {
       await plansApi.remove(planToDelete.id)
-      toast.success("Plan eliminado.")
+      toast.success(t("deleted"))
       await loadPlans()
       setPlanToDelete(null)
     } catch (error) {
       console.error("Plan removal failed", error)
       if (error instanceof ApiError && error.status === 409) {
-        toast.error(
-          "Este plan todavía tiene suscriptores. Muévelos a otro plan antes de eliminarlo."
-        )
+        toast.error(t("hasSubscribers"))
       } else {
-        toast.error("No pudimos eliminar el plan. Inténtalo de nuevo.")
+        toast.error(t("deleteFailed"))
       }
     }
   }
@@ -807,9 +816,9 @@ export function PlansPage() {
     return (
       <Card variant="subtle">
         <EmptyState
-          description="Tu cuenta no tiene acceso para administrar planes."
+          description={t("forbiddenDescription")}
           icon={Users}
-          title="Acceso restringido"
+          title={t("forbiddenTitle")}
         />
       </Card>
     )
@@ -825,9 +834,9 @@ export function PlansPage() {
               variant="brand-secondary"
             />
           }
-          description="No pudimos consultar la configuración de planes."
+          description={t("loadFailedDescription")}
           icon={Search}
-          title="No se pudieron cargar los planes"
+          title={t("loadFailedTitle")}
         />
       </Card>
     )
@@ -849,27 +858,27 @@ export function PlansPage() {
           <CardGrid>
             {[
               {
-                label: "Planes",
+                label: t("metrics.plans"),
                 value: plans.length.toLocaleString("es"),
-                description: "Opciones visibles",
+                description: t("metrics.plansDescription"),
                 icon: WalletCards,
               },
               {
-                label: "Activos",
+                label: t("metrics.active"),
                 value: activePlans.toLocaleString("es"),
-                description: "Disponibles hoy",
+                description: t("metrics.activeDescription"),
                 icon: Check,
               },
               {
-                label: "Suscriptores",
+                label: t("metrics.subscribers"),
                 value: subscriberCount.toLocaleString("es"),
-                description: "Cuentas en esta vista",
+                description: t("metrics.subscribersDescription"),
                 icon: Users,
               },
               {
-                label: "Destacados",
+                label: t("metrics.featured"),
                 value: featuredPlans.toLocaleString("es"),
-                description: "Ofertas principales",
+                description: t("metrics.featuredDescription"),
                 icon: Sparkles,
               },
             ].map((metric) => (
@@ -890,56 +899,56 @@ export function PlansPage() {
                 </Button>
               }
               search={{
-                ariaLabel: "Buscar planes",
+                ariaLabel: t("searchLabel"),
                 onChange: (value) => {
                   setQuery(value)
                   setPageIndex(0)
                 },
-                placeholder: "Buscar por nombre o slug...",
+                placeholder: t("searchPlaceholder"),
                 value: query,
               }}
             />
             <CardContent className="flex flex-col gap-4 px-0">
               <DataTableToolbar>
                 <DataTableFilter
-                  ariaLabel="Filtrar por estado"
-                  label="Estado"
+                  ariaLabel={t("filterStatus")}
+                  label={t("statusColumn")}
                   onValueChange={(value) => {
                     setStatusFilter(value as "all" | PlanStatus)
                     setPageIndex(0)
                   }}
                   options={[
-                    { label: "Todos los estados", value: "all" },
-                    { label: "Activos", value: "active" },
-                    { label: "Inactivos", value: "inactive" },
+                    { label: t("filter.allStatuses"), value: "all" },
+                    { label: t("filter.active"), value: "active" },
+                    { label: t("filter.inactive"), value: "inactive" },
                   ]}
                   value={statusFilter}
                 />
                 <DataTableFilter
-                  ariaLabel="Filtrar por cobro"
-                  label="Cobro"
+                  ariaLabel={t("filterBilling")}
+                  label={t("billingColumn")}
                   onValueChange={(value) => {
                     setBillingFilter(value as "all" | PlanBillingType)
                     setPageIndex(0)
                   }}
                   options={[
-                    { label: "Todo cobro", value: "all" },
-                    { label: "Mensual", value: "monthly" },
-                    { label: "Anual", value: "yearly" },
+                    { label: t("filter.allBilling"), value: "all" },
+                    { label: t("billing.monthly"), value: "monthly" },
+                    { label: t("billing.yearly"), value: "yearly" },
                   ]}
                   value={billingFilter}
                 />
                 <DataTableFilter
-                  ariaLabel="Filtrar por destacado"
-                  label="Visibilidad"
+                  ariaLabel={t("filterFeatured")}
+                  label={t("visibility")}
                   onValueChange={(value) => {
                     setFeaturedFilter(value as "all" | "featured" | "standard")
                     setPageIndex(0)
                   }}
                   options={[
-                    { label: "Todos los planes", value: "all" },
-                    { label: "Destacados", value: "featured" },
-                    { label: "No destacados", value: "standard" },
+                    { label: t("filter.allPlans"), value: "all" },
+                    { label: t("filter.featured"), value: "featured" },
+                    { label: t("filter.standard"), value: "standard" },
                   ]}
                   value={featuredFilter}
                 />
@@ -947,9 +956,11 @@ export function PlansPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Plan</TableHead>
-                    <TableHead>Precio</TableHead>
-                    <TableHead className="hidden md:table-cell">Cobro</TableHead>
+                    <TableHead>{t("plan")}</TableHead>
+                    <TableHead>{t("price")}</TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      Cobro
+                    </TableHead>
                     <TableHead className="hidden lg:table-cell">
                       Prueba
                     </TableHead>
@@ -959,7 +970,7 @@ export function PlansPage() {
                     <TableHead className="hidden lg:table-cell">
                       Permisos
                     </TableHead>
-                    <TableHead>Estado</TableHead>
+                    <TableHead>{t("statusColumn")}</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -977,7 +988,7 @@ export function PlansPage() {
                               </Badge>
                             ) : null}
                             {plan.isDefaultSignup ? (
-                              <Badge variant="neutral">Predeterminado</Badge>
+                              <Badge variant="neutral">{t("default")}</Badge>
                             ) : null}
                           </div>
                           <span className="text-xs text-muted-foreground">
@@ -986,14 +997,14 @@ export function PlansPage() {
                         </div>
                       </TableCell>
                       <TableCell className="font-medium">
-                        {formatPrice(plan)}
+                        {planPrice(plan, format, t("free"))}
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
                         <div className="grid gap-0.5">
                           <span>
                             {plan.isFree
                               ? "—"
-                              : billingLabels[plan.billingType]}
+                              : t(`billing.${plan.billingType}`)}
                           </span>
                           <span className="text-xs text-muted-foreground">
                             Orden #{plan.position}
@@ -1003,7 +1014,7 @@ export function PlansPage() {
                       <TableCell className="hidden lg:table-cell">
                         {plan.trialDays > 0
                           ? `${plan.trialDays} días`
-                          : "Sin prueba"}
+                          : t("noTrial")}
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
                         {plan.subscriberCount.toLocaleString("es")}
@@ -1017,7 +1028,7 @@ export function PlansPage() {
                             plan.status === "active" ? "success" : "neutral"
                           }
                         >
-                          {statusLabels[plan.status]}
+                          {t(`status.${plan.status}`)}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -1072,13 +1083,11 @@ export function PlansPage() {
                       colSpan={8}
                       description={
                         hasActiveFilters
-                          ? "No hay planes que coincidan con los filtros actuales."
-                          : "Aún no hay planes configurados. Crea el primero para comenzar."
+                          ? t("emptyFilteredDescription")
+                          : t("emptyDescription")
                       }
                       title={
-                        hasActiveFilters
-                          ? "No encontramos planes"
-                          : "No hay planes"
+                        hasActiveFilters ? t("noMatches") : t("emptyTitle")
                       }
                     />
                   ) : null}
@@ -1104,7 +1113,7 @@ export function PlansPage() {
           </Card>
 
           <FloatingActionButton
-            label="Crear plan"
+            label={t("create")}
             onClick={() => setEditor("create")}
           />
         </>

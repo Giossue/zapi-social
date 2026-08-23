@@ -78,13 +78,16 @@ function hasSubItems(
 
 function CollapsedIconFallback({ title }: { title: string }) {
   return (
-    <span className="flex size-4 shrink-0 items-center justify-center rounded-xs font-medium text-[10px] outline">
+    <span className="flex size-4 shrink-0 items-center justify-center rounded-xs text-[10px] font-medium outline">
       {title.slice(0, 1)}
     </span>
   )
 }
 
-export function DashboardNavMain({ items, isItemActive }: DashboardNavMainProps) {
+export function DashboardNavMain({
+  items,
+  isItemActive,
+}: DashboardNavMainProps) {
   const pathname = usePathname()
 
   return (
@@ -242,7 +245,11 @@ function NavCollapsibleItem({
   const Icon = item.icon
 
   return (
-    <Collapsible asChild defaultOpen={defaultOpen} className="group/collapsible">
+    <Collapsible
+      asChild
+      defaultOpen={defaultOpen}
+      className="group/collapsible"
+    >
       <SidebarMenuItem>
         <CollapsibleTrigger asChild>
           <SidebarMenuButton isActive={isActive} tooltip={item.label}>

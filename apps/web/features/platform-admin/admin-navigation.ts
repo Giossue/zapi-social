@@ -1,4 +1,3 @@
-import type { LucideIcon } from "lucide-react"
 import {
   Activity,
   BarChart3,
@@ -20,150 +19,155 @@ import {
   Workflow,
 } from "lucide-react"
 
-export type AdminNavigationLink = {
-  label: string
-  href: string
-  icon?: LucideIcon
-}
+import type {
+  NavigationSourceGroup,
+  NavigationSourceItem,
+  NavigationSourceLink,
+} from "@/components/dashboard-shell/navigation-types"
+import type messages from "@/messages/es.d.json"
 
-export type AdminNavigationDisclosure = {
-  label: string
-  icon?: LucideIcon
-  children: readonly AdminNavigationLink[]
-}
+/** Solo se admite una clave existente en `navigation.admin`. */
+type AdminNavigationKey = keyof (typeof messages)["navigation"]["admin"]
 
-export type AdminNavigationItem =
-  AdminNavigationLink | AdminNavigationDisclosure
+export type AdminNavigationLink = NavigationSourceLink<AdminNavigationKey>
+export type AdminNavigationItem = NavigationSourceItem<AdminNavigationKey>
+export type AdminNavigationGroup = NavigationSourceGroup<AdminNavigationKey>
 
-export type AdminNavigationGroup = {
-  label: string
-  items: readonly AdminNavigationItem[]
-}
-
+/** El texto vive en `messages/` bajo `navigation.admin`. */
 export const adminNavigationGroups: readonly AdminNavigationGroup[] = [
   {
-    label: "General",
+    labelKey: "general",
     items: [
-      { label: "Resumen", href: "/admin/dashboard", icon: LayoutDashboard },
+      { labelKey: "overview", href: "/admin/dashboard", icon: LayoutDashboard },
     ],
   },
   {
-    label: "Plataforma",
+    labelKey: "platform",
     items: [
-      { label: "Integraciones", href: "/admin/integrations", icon: PlugZap },
+      { labelKey: "integrations", href: "/admin/integrations", icon: PlugZap },
       {
-        label: "Usuarios",
+        labelKey: "users",
         icon: Users,
         children: [
-          { label: "Cuentas", href: "/admin/users" },
-          { label: "Equipos", href: "/admin/teams" },
-          { label: "Reporte", href: "/admin/user-report" },
-          { label: "Roles", href: "/admin/user-roles" },
+          { labelKey: "accounts", href: "/admin/users" },
+          { labelKey: "teams", href: "/admin/teams" },
+          { labelKey: "report", href: "/admin/user-report" },
+          { labelKey: "roles", href: "/admin/user-roles" },
         ],
       },
       {
-        label: "Facturación",
+        labelKey: "billing",
         icon: CreditCard,
         children: [
-          { label: "Planes", href: "/admin/plans" },
-          { label: "Suscripciones", href: "/admin/subscriptions" },
-          { label: "Pagos", href: "/admin/payments" },
-          { label: "Pagos manuales", href: "/admin/manual-payments" },
-          { label: "Reporte de pagos", href: "/admin/payment-report" },
-          { label: "Cupones", href: "/admin/coupons" },
-          { label: "Créditos", href: "/admin/credits" },
+          { labelKey: "plans", href: "/admin/plans" },
+          { labelKey: "subscriptions", href: "/admin/subscriptions" },
+          { labelKey: "payments", href: "/admin/payments" },
+          { labelKey: "manualPayments", href: "/admin/manual-payments" },
+          { labelKey: "paymentReport", href: "/admin/payment-report" },
+          { labelKey: "coupons", href: "/admin/coupons" },
+          { labelKey: "credits", href: "/admin/credits" },
         ],
       },
-      { label: "Afiliados", href: "/admin/affiliate", icon: HandCoins },
+      { labelKey: "affiliate", href: "/admin/affiliate", icon: HandCoins },
     ],
   },
   {
-    label: "Soporte",
+    labelKey: "support",
     items: [
-      { label: "Casos", href: "/admin/support", icon: LifeBuoy },
-      { label: "Anuncios", href: "/admin/notifications", icon: Megaphone },
+      { labelKey: "cases", href: "/admin/support", icon: LifeBuoy },
+      {
+        labelKey: "announcements",
+        href: "/admin/notifications",
+        icon: Megaphone,
+      },
     ],
   },
   {
-    label: "Contenido",
+    labelKey: "content",
     items: [
       {
-        label: "Blog",
+        labelKey: "blog",
         icon: FileText,
         children: [
-          { label: "Entradas", href: "/admin/blogs" },
-          { label: "Categorías", href: "/admin/blog-categories" },
-          { label: "Etiquetas", href: "/admin/blog-tags" },
-          { label: "RSS Feeds", href: "/admin/blog-rss" },
+          { labelKey: "blogPosts", href: "/admin/blogs" },
+          { labelKey: "categories", href: "/admin/blog-categories" },
+          { labelKey: "tags", href: "/admin/blog-tags" },
+          { labelKey: "blogRss", href: "/admin/blog-rss" },
         ],
       },
       {
-        label: "Preguntas frecuentes",
+        labelKey: "faqs",
         href: "/admin/faqs",
         icon: FileQuestion,
       },
-      { label: "Idiomas", href: "/admin/languages", icon: Languages },
+      { labelKey: "languages", href: "/admin/languages", icon: Languages },
     ],
   },
   {
-    label: "AI",
+    labelKey: "ai",
     items: [
       {
-        label: "Configuración AI",
+        labelKey: "aiConfiguration",
         href: "/admin/settings/ai",
         icon: BrainCircuit,
       },
       {
-        label: "Plantillas AI",
+        labelKey: "aiTemplates",
         icon: Bot,
         children: [
-          { label: "Plantillas", href: "/admin/ai-templates" },
-          { label: "Categorías", href: "/admin/ai-template-categories" },
+          { labelKey: "templates", href: "/admin/ai-templates" },
+          {
+            labelKey: "aiTemplateCategories",
+            href: "/admin/ai-template-categories",
+          },
         ],
       },
       {
-        label: "Observabilidad AI",
+        labelKey: "aiObservability",
         icon: BarChart3,
         children: [
-          { label: "Uso", href: "/admin/ai-usage-logs" },
-          { label: "Reporte", href: "/admin/ai-report" },
+          { labelKey: "aiUsage", href: "/admin/ai-usage-logs" },
+          { labelKey: "aiReport", href: "/admin/ai-report" },
         ],
       },
     ],
   },
   {
-    label: "Sistema",
+    labelKey: "system",
     items: [
       {
-        label: "Ajustes",
+        labelKey: "settings",
         icon: Settings2,
         children: [
-          { label: "General", href: "/admin/settings/general" },
-          { label: "Autenticación", href: "/admin/settings/auth" },
-          { label: "Captcha", href: "/admin/settings/captcha" },
-          { label: "Analítica", href: "/admin/settings/analytics" },
+          { labelKey: "settingsGeneral", href: "/admin/settings/general" },
+          { labelKey: "auth", href: "/admin/settings/auth" },
+          { labelKey: "captcha", href: "/admin/settings/captcha" },
+          { labelKey: "analytics", href: "/admin/settings/analytics" },
         ],
       },
       {
-        label: "Plantillas de correo",
+        labelKey: "emailTemplates",
         href: "/admin/email-templates",
         icon: Mail,
       },
       {
-        label: "Páginas estáticas",
+        labelKey: "staticPages",
         href: "/admin/settings/static-pages",
         icon: Globe2,
       },
       {
-        label: "Operación",
+        labelKey: "operations",
         icon: Workflow,
         children: [
-          { label: "Cache", href: "/admin/settings/cache" },
-          { label: "Tareas programadas", href: "/admin/settings/crons" },
-          { label: "Sistema", href: "/admin/settings/system-information" },
+          { labelKey: "cache", href: "/admin/settings/cache" },
+          { labelKey: "crons", href: "/admin/settings/crons" },
+          {
+            labelKey: "systemInformation",
+            href: "/admin/settings/system-information",
+          },
         ],
       },
-      { label: "Auditoría", href: "/admin/audit", icon: Activity },
+      { labelKey: "audit", href: "/admin/audit", icon: Activity },
     ],
   },
 ]
@@ -182,14 +186,8 @@ function getDeepestAdminNavigationItem(pathname: string) {
     .sort((first, second) => second.href.length - first.href.length)[0]
 }
 
-export function isAdminNavigationItemActive(
-  item: AdminNavigationItem,
-  pathname: string
-) {
-  return (
-    "href" in item &&
-    getDeepestAdminNavigationItem(pathname)?.href === item.href
-  )
+export function isAdminNavigationItemActive(href: string, pathname: string) {
+  return getDeepestAdminNavigationItem(pathname)?.href === href
 }
 
 export function getAdminNavigationItem(pathname: string) {

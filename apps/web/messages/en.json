@@ -1,0 +1,2563 @@
+{
+  "common": {
+    "loading": "Loading…",
+    "language": {
+      "es": "Español",
+      "en": "English",
+      "short": "ENG"
+    }
+  },
+  "errors": {
+    "generic": "We couldn't complete the request. Please try again.",
+    "AUTH_EMAIL_ALREADY_REGISTERED": "An account with this email already exists.",
+    "AUTH_INVALID_CREDENTIALS": "Incorrect email or password.",
+    "AUTH_CAPTCHA_INVALID": "Complete the security check and try again.",
+    "AUTH_CAPTCHA_UNAVAILABLE": "We couldn't verify security. Please try again.",
+    "AUTH_PASSWORD_POLICY_NOT_MET": "The password doesn't meet the security requirements.",
+    "AUTH_SESSION_EXPIRED": "Your session ended. Sign in again.",
+    "AUTH_WORKSPACE_UNAVAILABLE": "We couldn't access your account.",
+    "VALIDATION_FAILED": "Check the details and try again.",
+    "AI_PROVIDER_NOT_READY": "The administrator hasn't enabled a model for this tool yet.",
+    "AI_CREDITS_INSUFFICIENT": "There aren't enough credits to start this generation.",
+    "AI_REQUEST_RATE_LIMITED": "Too many requests. Wait a moment and try again.",
+    "ACCOUNT_GRANT_NOT_ALLOWED": "You can't assign one or more of the selected accounts.",
+    "INVITATION_ALREADY_PENDING": "There's already a pending invitation for that email.",
+    "INVITATION_RESEND_NOT_ALLOWED": "This invitation can't be resent anymore.",
+    "LAST_OWNER_PROTECTED": "Transfer ownership before leaving the workspace.",
+    "MEMBER_LIMIT_REACHED": "There are no seats left in this workspace.",
+    "ROLE_CHANGE_NOT_ALLOWED": "Your role can't complete this change.",
+    "TEAM_ACCESS_DENIED": "You don't have permission to complete this action.",
+    "TEAM_MEMBER_ALREADY_EXISTS": "That email already belongs to the workspace."
+  },
+  "auth": {
+    "metadata": {
+      "login": "Sign in - Zapi Social",
+      "register": "Create account - Zapi Social",
+      "forgotPassword": "Recover password - Zapi Social",
+      "resetPassword": "Reset password - Zapi Social"
+    },
+    "page": {
+      "loginTitle": "Sign in to your account",
+      "registerTitle": "Create your account",
+      "loginDescription": "Enter your details to continue.",
+      "registerDescription": "Enter your details to get started.",
+      "noAccount": "Don't have an account?",
+      "hasAccount": "Already have an account?",
+      "copyright": "© {year} Zapi Social"
+    },
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Your name",
+      "email": "Email",
+      "emailPlaceholder": "you@email.com",
+      "password": "Password",
+      "passwordConfirmation": "Confirm password",
+      "timezone": "Time zone",
+      "timezonePlaceholder": "Select your time zone",
+      "remember": "Remember me",
+      "forgotPassword": "Forgot your password?",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "showPasswordConfirmation": "Show password confirmation",
+      "hidePasswordConfirmation": "Hide password confirmation",
+      "submitLogin": "Sign in",
+      "submitRegister": "Create account",
+      "submitting": "Checking…",
+      "submittingLabel": "Checking"
+    },
+    "passwordPolicy": {
+      "length": "8 characters or more",
+      "uppercase": "One uppercase letter",
+      "lowercase": "One lowercase letter",
+      "number": "One number",
+      "special": "One special character",
+      "match": "Passwords match"
+    },
+    "validation": {
+      "email": "Enter a valid email address.",
+      "password": "Enter your password.",
+      "captcha": "Complete the security check.",
+      "name": "Enter your name.",
+      "timezone": "Select your time zone.",
+      "passwordPolicy": "The password needs 8 characters, an uppercase and a lowercase letter, a number and a symbol.",
+      "passwordMismatch": "Passwords don't match.",
+      "captchaUnavailable": "We couldn't load the security check.",
+      "missingArea": "Your session doesn't include the required access area. Sign in again."
+    },
+    "recovery": {
+      "requestTitle": "Recover your access",
+      "requestDescription": "We'll send instructions if an account exists for that email.",
+      "sentNotice": "If the email exists, you'll get a recovery link in a few minutes.",
+      "backToLogin": "Back to sign in",
+      "submitRequest": "Send instructions",
+      "sending": "Sending",
+      "requestFailed": "We couldn't process the request. Please try again.",
+      "invalidLinkTitle": "Invalid link",
+      "invalidLinkDescription": "Request a new link to continue.",
+      "requestNewLink": "Request recovery",
+      "completedTitle": "Password updated",
+      "completedDescription": "You can now sign in with your new password.",
+      "login": "Sign in",
+      "resetTitle": "Create a new password",
+      "resetDescription": "Choose a new password. The link can only be used once.",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "policyHint": "Use 8 or more characters, with an uppercase and a lowercase letter, a number and a special character.",
+      "submitReset": "Reset password",
+      "updating": "Updating",
+      "invalidToken": "The recovery link isn't valid.",
+      "checkPassword": "Check the password and its confirmation.",
+      "resetSuccess": "Password updated. Sign in with your new password.",
+      "expiredToken": "This link is no longer valid. Request a new one.",
+      "resetPolicyFailed": "The password must include an uppercase and a lowercase letter, a number and a special character.",
+      "resetFailed": "We couldn't reset the password. Please try again."
+    },
+    "access": {
+      "accessCheckTitle": "We couldn't verify your access",
+      "accessCheckFailed": "We couldn't validate your access. Check your connection and try again."
+    }
+  },
+  "navigation": {
+    "portal": {
+      "affiliate": "Affiliates",
+      "aiAutomation": "Automations",
+      "aiChat": "Chat",
+      "aiCredits": "Credits",
+      "aiSettings": "AI settings",
+      "aiStudio": "AI Studio",
+      "apps": "Apps",
+      "automation": "Automation API",
+      "bulkPosts": "Bulk posts",
+      "calendar": "Calendar",
+      "captions": "Captions",
+      "channels": "Channels",
+      "contentTools": "Content tools",
+      "drafts": "Drafts",
+      "files": "Files",
+      "general": "General",
+      "groups": "Groups",
+      "help": "Help",
+      "library": "Library",
+      "linkBio": "Link in bio",
+      "onlineMedia": "Search online media",
+      "overview": "Overview",
+      "publishing": "Publishing",
+      "queue": "Queue",
+      "rssSchedules": "RSS schedules",
+      "support": "Support",
+      "teams": "Teams",
+      "watermarks": "Watermark",
+      "workspace": "Workspace"
+    },
+    "admin": {
+      "accounts": "Accounts",
+      "affiliate": "Affiliates",
+      "ai": "AI",
+      "aiConfiguration": "AI configuration",
+      "aiObservability": "AI observability",
+      "aiReport": "Report",
+      "aiTemplateCategories": "Categories",
+      "aiTemplates": "AI templates",
+      "aiUsage": "Usage",
+      "analytics": "Analytics",
+      "announcements": "Announcements",
+      "audit": "Audit",
+      "auth": "Authentication",
+      "billing": "Billing",
+      "blog": "Blog",
+      "blogPosts": "Posts",
+      "blogRss": "RSS feeds",
+      "cache": "Cache",
+      "captcha": "Captcha",
+      "cases": "Cases",
+      "categories": "Categories",
+      "content": "Content",
+      "coupons": "Coupons",
+      "credits": "Credits",
+      "crons": "Scheduled tasks",
+      "emailTemplates": "Email templates",
+      "faqs": "FAQs",
+      "general": "General",
+      "integrations": "Integrations",
+      "languages": "Languages",
+      "manualPayments": "Manual payments",
+      "operations": "Operations",
+      "overview": "Overview",
+      "paymentReport": "Payment report",
+      "payments": "Payments",
+      "plans": "Plans",
+      "platform": "Platform",
+      "report": "Report",
+      "roles": "Roles",
+      "settings": "Settings",
+      "settingsGeneral": "General",
+      "staticPages": "Static pages",
+      "subscriptions": "Subscriptions",
+      "support": "Support",
+      "system": "System",
+      "systemInformation": "System",
+      "tags": "Tags",
+      "teams": "Teams",
+      "templates": "Templates",
+      "users": "Users"
+    }
+  },
+  "shell": {
+    "portalNavigationLabel": "Portal main navigation",
+    "adminNavigationLabel": "Platform main navigation",
+    "profile": "Profile",
+    "promptHistory": "Prompt history",
+    "account": {
+      "profile": "My profile",
+      "logout": "Sign out",
+      "logoutFailed": "We couldn't sign you out. Please try again."
+    },
+    "theme": {
+      "label": "Theme",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "workspaces": {
+      "title": "Workspaces",
+      "switching": "Switching workspace",
+      "activationFailed": "We couldn't switch the workspace.",
+      "role": {
+        "owner": "Owner",
+        "admin": "Administrator",
+        "member": "Member"
+      }
+    },
+    "search": {
+      "trigger": "Search",
+      "placeholder": "Search the navigation…",
+      "empty": "No results found."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "unreadLabel": "Notifications, {unread, number} unread",
+      "markAllRead": "Mark all as read",
+      "archiveAll": "Archive all",
+      "loading": "Loading",
+      "empty": "You have no notifications."
+    }
+  },
+  "dashboard": {
+    "labels": {
+      "noChannel": "No channel",
+      "aiKind": {
+        "ai_publishing": "AI Publishing",
+        "content": "Content",
+        "image": "Image",
+        "planner": "Planner",
+        "repurpose": "Repurpose",
+        "review": "Review",
+        "search": "Search",
+        "timing": "Timing",
+        "video": "Video"
+      }
+    },
+    "portal": {
+      "loadFailedToast": "We couldn't load your dashboard. Please try again.",
+      "loadFailedTitle": "We couldn't load the dashboard",
+      "loadFailedDescription": "Check your connection and try again.",
+      "metrics": {
+        "publishedPosts": "Posts",
+        "activeChannels": "Active channels",
+        "aiCredits": "AI credits used",
+        "newFiles": "New files",
+        "previousWeeks": "vs. the previous 4 weeks",
+        "connectedRecently": "connected in the last 4 weeks",
+        "noRecentConnections": "no new connections in 4 weeks"
+      },
+      "activity": {
+        "title": "Publishing activity",
+        "description": "Posts per day vs. the previous period.",
+        "currentPeriod": "Last 4 weeks",
+        "previousPeriod": "Previous period",
+        "tooltip": "Posts",
+        "week": "Week {number, number}"
+      },
+      "aiUsage": {
+        "title": "AI usage",
+        "description": "Requests per day over the last 4 weeks.",
+        "series": "Requests",
+        "creditsUsed": "credits used",
+        "empty": "No AI requests in the last 4 weeks."
+      },
+      "breakdown": {
+        "title": "Post distribution",
+        "description": "Last 4 weeks by channel and tool.",
+        "series": "Posts",
+        "channels": "Channels",
+        "aiTools": "AI tools",
+        "empty": "No data in the last 4 weeks."
+      },
+      "upcoming": {
+        "title": "Upcoming posts",
+        "description": "What's next on your content calendar.",
+        "channel": "Channel",
+        "status": {
+          "draft": "Draft",
+          "scheduled": "Scheduled"
+        },
+        "date": "Date",
+        "noContent": "No content",
+        "emptyTitle": "No upcoming posts",
+        "emptyDescription": "Schedule a post to see it here.",
+        "statusColumn": "Status"
+      }
+    },
+    "admin": {
+      "loading": "Loading platform status",
+      "unavailableTitle": "Panel unavailable",
+      "forbiddenDescription": "Ask an administrator for the permission needed to see the platform status.",
+      "loadFailedDescription": "We couldn't check the platform status.",
+      "smtpProvider": "SMTP email",
+      "statusSection": "Platform status",
+      "growthSection": "Growth and distribution",
+      "billingSection": "Billing and activity",
+      "operationsSection": "Platform operations",
+      "attentionTitle": "Needs attention",
+      "attentionDescription": "Providers that aren't available to workspaces yet.",
+      "allReadyTitle": "No pending setup",
+      "allReadyDescription": "Every configured provider passed its connection test.",
+      "allReadyBadge": "All good",
+      "integrationsTitle": "Integrations",
+      "integrationsDescription": "Manage the providers that enable channels for every customer.",
+      "integrationsHint": "Review incomplete setups before enabling them for workspaces.",
+      "integrationsAction": "Manage integrations",
+      "readiness": {
+        "ready": {
+          "label": "Ready",
+          "detail": "Available to workspaces."
+        },
+        "incomplete": {
+          "label": "Incomplete",
+          "detail": "Credentials still missing."
+        },
+        "untested": {
+          "label": "Untested",
+          "detail": "Configured, but without a successful connection test."
+        },
+        "disabled": {
+          "label": "Disabled",
+          "detail": "Not offered to workspaces."
+        }
+      },
+      "metrics": {
+        "users": "Users",
+        "workspaces": "Workspaces",
+        "subscriptions": "Active subscriptions",
+        "revenue": "Revenue",
+        "usersPreviousWeeks": "sign-ups vs. the previous 4 weeks",
+        "workspacesPreviousWeeks": "created vs. the previous 4 weeks",
+        "activeOrTrial": "active or on trial",
+        "chargedRecently": "charged in the last 4 weeks"
+      },
+      "growth": {
+        "title": "User growth",
+        "description": "Sign-ups per day vs. the previous period.",
+        "currentPeriod": "Last 4 weeks",
+        "previousPeriod": "Previous period",
+        "tooltip": "Sign-ups",
+        "week": "Week {number, number}"
+      },
+      "aiActivity": {
+        "title": "AI activity",
+        "description": "Requests per day over the last 4 weeks.",
+        "series": "Requests",
+        "requests": "requests",
+        "empty": "No AI requests in the last 4 weeks."
+      },
+      "breakdown": {
+        "title": "Platform distribution",
+        "description": "Subscriptions by plan and AI usage by tool.",
+        "series": "Total",
+        "plans": "Plans",
+        "aiTools": "AI tools",
+        "empty": "No data in the last 4 weeks."
+      },
+      "payments": {
+        "title": "Latest payments",
+        "description": "Recent charges for plans and credits.",
+        "workspace": "Workspace",
+        "status": {
+          "failed": "Failed",
+          "paid": "Paid",
+          "partially_refunded": "Partially refunded",
+          "pending": "Pending",
+          "refunded": "Refunded"
+        },
+        "amount": "Amount",
+        "date": "Date",
+        "emptyTitle": "No payments yet",
+        "emptyDescription": "Charges for plans and credits will show up here.",
+        "statusColumn": "Status"
+      }
+    }
+  },
+  "publishing": {
+    "loader": {
+      "loadFailedTitle": "Publishing couldn't load",
+      "loadFailedDescription": "We couldn't retrieve the calendar. No post was modified."
+    },
+    "accountPicker": {
+      "placeholder": "Select target accounts",
+      "selectedCount": "{count, plural, one {# account selected} other {# accounts selected}}",
+      "searchLabel": "Search target accounts",
+      "searchPlaceholder": "Search by account or assigned name",
+      "filterLabel": "Filter accounts by network",
+      "allNetworks": "All",
+      "noResults": "No accounts match those filters.",
+      "selectedLabel": "Selected accounts",
+      "remove": "Remove {account}"
+    },
+    "mediaPicker": {
+      "title": "Pick from your storage",
+      "searchLabel": "Search media in storage",
+      "searchPlaceholder": "Search your storage",
+      "filterLabel": "Filter media by type",
+      "filter": {
+        "all": "All",
+        "image": "Images",
+        "video": "Videos"
+      },
+      "kind": {
+        "image": "Image",
+        "video": "Video"
+      },
+      "driveImport": "Import from Google Drive",
+      "driveOpening": "Opening Google",
+      "driveImportingTitle": "Importing from Google Drive",
+      "driveImportingDescription": "The file will be saved to Files and selected when it finishes.",
+      "driveFailedTitle": "Couldn't import from Google Drive",
+      "driveFailedDescription": "Pick another file to try again.",
+      "selectedLabel": "Post media",
+      "selectedBadge": "Media selected"
+    },
+    "preview": {
+      "title": "Preview",
+      "description": "Based on the selected account, the text and the current media.",
+      "emptyTitle": "No preview",
+      "emptyDescription": "Select an account and add content to review the format before publishing.",
+      "contentPlaceholder": "Start typing to see how your post will read.",
+      "mediaSelected": "Image or video selected",
+      "now": "Now",
+      "nowPublic": "Now · Public",
+      "statusNow": "Status · Now",
+      "like": "Like",
+      "comment": "Comment",
+      "share": "Share"
+    },
+    "calendar": {
+      "searchLabel": "Search posts",
+      "searchPlaceholder": "Search posts...",
+      "previousPeriod": "Previous period",
+      "nextPeriod": "Next period",
+      "filterChannel": "Filter by channel",
+      "options": "Calendar options",
+      "viewLabel": "Calendar view",
+      "view": {
+        "month": "Month",
+        "week": "Week",
+        "day": "Day"
+      },
+      "current": {
+        "month": "This month",
+        "week": "This week",
+        "day": "Today"
+      },
+      "create": "New post",
+      "untitled": "Post without text"
+    },
+    "table": {
+      "create": "New post",
+      "searchLabel": "Search posts",
+      "clearFilters": "Clear",
+      "provider": "Network",
+      "status": "Status",
+      "filterProviderLabel": "Filter by network",
+      "filterStatusLabel": "Filter by status",
+      "allProviders": "All networks",
+      "allStatuses": "All statuses",
+      "statusLabel": {
+        "draft": "Draft",
+        "failed": "Failed",
+        "processing": "Processing",
+        "published": "Published",
+        "scheduled": "Scheduled"
+      },
+      "post": "Post",
+      "account": "Account",
+      "date": "Date",
+      "actions": "Actions",
+      "withMedia": "With media",
+      "textOnly": "Text only",
+      "edit": "Edit",
+      "retry": "Retry",
+      "cancel": "Cancel",
+      "deleteLabel": "Delete {title}",
+      "deleteTitle": "Delete draft?",
+      "deleteDescription": "The draft “{title}” will be deleted permanently. This action can't be undone.",
+      "deleteAction": "Delete draft",
+      "deleting": "Deleting...",
+      "empty": {
+        "filtered": {
+          "title": "No posts found",
+          "description": "Try other filters or clear the search to see the available posts."
+        },
+        "drafts": {
+          "title": "No drafts yet",
+          "description": "Save a post as a draft to continue it later."
+        },
+        "queue": {
+          "title": "The queue is empty",
+          "description": "Once you schedule or publish a piece, its progress will show up here for each target."
+        }
+      },
+      "untitled": "Post without text",
+      "now": "Now"
+    },
+    "composer": {
+      "createTitle": "New post",
+      "editTitle": "Edit post",
+      "composerDescription": "Check every target before saving, scheduling or publishing.",
+      "accounts": "Target accounts",
+      "content": "Text",
+      "contentPlaceholder": "Write your post content",
+      "media": "Media",
+      "when": "When to publish",
+      "mode": {
+        "draft": "Draft",
+        "now": "Now",
+        "schedule": "Schedule"
+      },
+      "cancel": "Cancel",
+      "submit": {
+        "draft": "Save draft",
+        "now": "Publish now",
+        "schedule": "Schedule"
+      },
+      "pending": {
+        "draft": "Saving...",
+        "now": "Publishing...",
+        "schedule": "Scheduling..."
+      },
+      "driveImportFailed": "We couldn't import the file from Google Drive.",
+      "driveImportSuccess": "Google Drive file imported and selected.",
+      "driveSelectFailed": "The file was imported, but we couldn't select it.",
+      "driveUnavailable": "Google Drive isn't available right now.",
+      "driveStartFailed": "We couldn't start the Google Drive import."
+    },
+    "page": {
+      "pageTitle": "Publishing",
+      "pageDescription": "Plan the calendar, follow the delivery queue and pick up your channel drafts.",
+      "noAccessTitle": "You don't have access to Publishing",
+      "noAccessDescription": "Ask a workspace administrator for access to manage posts.",
+      "sectionsLabel": "Publishing sections",
+      "section": {
+        "calendar": "Calendar",
+        "queue": "Queue",
+        "drafts": "Drafts"
+      },
+      "calendarLabel": "Post calendar",
+      "queueLabel": "Post queue",
+      "draftsLabel": "Drafts",
+      "createTitle": "New post",
+      "saved": "Your changes were saved.",
+      "draftSaved": "The draft was saved.",
+      "publishStarted": "{count, plural, one {We started the operation for # target.} other {We started the operation for # targets.}}",
+      "scheduled": "{count, plural, one {We scheduled # post.} other {We scheduled # posts.}}",
+      "validationFailed": "Check the accounts, media and date before continuing.",
+      "saveFailed": "We couldn't save the post. Please try again.",
+      "retryQueued": "The retry was added to the queue.",
+      "retryFailed": "We couldn't retry the post.",
+      "draftDeleted": "The draft was deleted.",
+      "draftDeleteFailed": "We couldn't delete the draft.",
+      "metrics": {
+        "scheduled": "Scheduled",
+        "scheduledDescription": "Waiting to be published",
+        "processing": "Processing",
+        "processingDescription": "Sending to the provider",
+        "failed": "Failed",
+        "failedDescription": "Need attention",
+        "drafts": "Total",
+        "draftsDescription": "Saved drafts",
+        "withMedia": "With media",
+        "withMediaDescription": "With an image or video",
+        "ready": "Ready to schedule",
+        "readyDescription": "Have content ready"
+      }
+    }
+  },
+  "aiStudio": {
+    "chat": {
+      "loading": "Loading AI Studio",
+      "loadFailedTitle": "AI Studio unavailable",
+      "loadFailedDescription": "We couldn't load your generations.",
+      "searchLabel": "Search generations",
+      "searchPlaceholder": "Search…",
+      "newConversation": "New conversation",
+      "backToConversations": "Back to conversations",
+      "settings": "AI settings",
+      "showOptions": "Show options",
+      "hideOptions": "Hide options",
+      "emptyTitle": "Start a conversation",
+      "emptyDescription": "Pick a tool, adjust its options and describe what you need.",
+      "send": "Send",
+      "emptyPrompt": "Write what you need before sending.",
+      "sendFailed": "We couldn't send the request. Check the options.",
+      "retrySuccess": "Generation retried.",
+      "retryFailed": "We couldn't retry the generation.",
+      "archived": "Conversation archived.",
+      "archiveFailed": "We couldn't archive the conversation.",
+      "clipboardUnsupported": "Your browser can't copy the result.",
+      "copied": "Result copied.",
+      "copyFailed": "We couldn't copy the result.",
+      "generationFailed": "We couldn't complete the generation.",
+      "generationFailedWithCode": "We couldn't complete the generation ({code}).",
+      "cancelled": "The generation was cancelled.",
+      "thinking": "Thinking",
+      "generatingMedia": "Generating media",
+      "workDone": "Work finished",
+      "generatingImage": "Generating image",
+      "generatingVideo": "Generating video",
+      "trace": {
+        "received": "Request received",
+        "reserving": "Reserving credits",
+        "generating": "Generating with the model"
+      },
+      "status": {
+        "queued": "Queued",
+        "processing": "Generating",
+        "succeeded": "Ready",
+        "failed": "Failed",
+        "cancelled": "Cancelled"
+      },
+      "toolOptions": "{tool} options"
+    },
+    "tools": {
+      "field": {
+        "objective": "Goal",
+        "tone": "Tone",
+        "language": "Language",
+        "platforms": "Platforms",
+        "targetPlatforms": "Target platforms",
+        "variantCount": "Variants",
+        "includeHashtags": "Include hashtags",
+        "callToAction": "Call to action",
+        "optional": "Optional",
+        "aspectRatio": "Aspect ratio",
+        "quality": "Quality",
+        "duration": "Duration",
+        "durationDays": "Days",
+        "frequencyPerWeek": "Posts per week",
+        "startDate": "Start date",
+        "timezone": "Time zone",
+        "historyDays": "Days of history",
+        "searchIn": "Where to search",
+        "limit": "Results"
+      },
+      "platform": {
+        "instagram": "Instagram",
+        "facebook": "Facebook",
+        "linkedin": "LinkedIn",
+        "tiktok": "TikTok",
+        "x": "X",
+        "youtube": "YouTube",
+        "email": "Email"
+      },
+      "language": {
+        "es": "Spanish",
+        "en": "English",
+        "pt": "Portuguese"
+      },
+      "tone": {
+        "cercano": "Friendly",
+        "profesional": "Professional",
+        "divertido": "Playful",
+        "inspirador": "Inspiring",
+        "directo": "Direct"
+      },
+      "ratio": {
+        "square": "Square 1:1",
+        "vertical": "Vertical 9:16",
+        "horizontal": "Horizontal 16:9"
+      },
+      "quality": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "duration": {
+        "4": "4 seconds",
+        "8": "8 seconds",
+        "12": "12 seconds"
+      },
+      "searchType": {
+        "caption": "Captions",
+        "publishing_post": "Posts",
+        "ai_request": "Generations"
+      },
+      "content": {
+        "label": "Content",
+        "description": "Posts, ads and copy per channel.",
+        "placeholder": "Describe the post you need…",
+        "promptLabel": "Brief"
+      },
+      "image": {
+        "label": "Image",
+        "description": "Images generated or edited from a reference.",
+        "placeholder": "Describe the image you want to generate…",
+        "promptLabel": "Prompt"
+      },
+      "video": {
+        "label": "Video",
+        "description": "Short video from text or from a reference.",
+        "placeholder": "Describe the video you want to generate…",
+        "promptLabel": "Prompt"
+      },
+      "repurpose": {
+        "label": "Repurpose",
+        "description": "Adapt existing content to other channels.",
+        "placeholder": "Paste the original content you want to adapt…",
+        "promptLabel": "Original content"
+      },
+      "review": {
+        "label": "Review",
+        "description": "Analyses a text and suggests fixes.",
+        "placeholder": "Paste the content you want to analyse…",
+        "promptLabel": "Content to analyse"
+      },
+      "planner": {
+        "label": "Planner",
+        "description": "Content calendar by days and frequency.",
+        "placeholder": "Describe the campaign you want to plan…",
+        "promptLabel": "Campaign brief"
+      },
+      "timing": {
+        "label": "Best time",
+        "description": "Best times based on your publishing history.",
+        "placeholder": "Tell us which accounts or campaign to analyse…",
+        "promptLabel": "Context"
+      },
+      "search": {
+        "label": "Research",
+        "description": "Search inside your content and past generations.",
+        "placeholder": "What are you looking for?",
+        "promptLabel": "Query"
+      }
+    },
+    "operations": {
+      "loadingRecords": "Loading records",
+      "loadFailedTitle": "We couldn't load this information",
+      "forbiddenTitle": "You don't have permission to see this information",
+      "retry": "Retry",
+      "records": "records",
+      "status": "Status",
+      "tool": "Tool",
+      "type": "Type",
+      "date": "Date",
+      "noResults": "No results",
+      "saving": "Saving...",
+      "deleting": "Deleting...",
+      "delete": "Delete",
+      "processing": "Processing action",
+      "historyStatus": {
+        "all": "All statuses",
+        "queued": "Queued",
+        "processing": "Processing",
+        "succeeded": "Completed",
+        "failed": "Failed",
+        "cancelled": "Cancelled"
+      },
+      "historyStatusBadge": {
+        "queued": "Queued",
+        "processing": "Processing",
+        "succeeded": "Completed",
+        "failed": "Failed",
+        "cancelled": "Cancelled"
+      },
+      "kind": {
+        "all": "All tools",
+        "content": "Content",
+        "image": "Image",
+        "video": "Video",
+        "repurpose": "Repurpose",
+        "planner": "Planner",
+        "review": "Review",
+        "timing": "Best time",
+        "search": "Research",
+        "ai_publishing": "AI Publishing"
+      },
+      "automationStatus": {
+        "all": "All statuses",
+        "active": "Active",
+        "paused": "Paused",
+        "draft": "Drafts"
+      },
+      "automationStatusBadge": {
+        "active": "Active",
+        "paused": "Paused",
+        "draft": "Draft"
+      },
+      "creditType": {
+        "all": "All movements",
+        "grant": "Grants",
+        "debit": "Usage",
+        "refund": "Refunds",
+        "adjustment": "Adjustments"
+      },
+      "creditTypeBadge": {
+        "grant": "Grant",
+        "debit": "Usage",
+        "refund": "Refund",
+        "adjustment": "Adjustment"
+      },
+      "history": {
+        "pageTitle": "AI history",
+        "pageDescription": "Find, reuse and download any past generation.",
+        "title": "Generations",
+        "description": "Results created inside this workspace.",
+        "searchLabel": "Search generations",
+        "searchPlaceholder": "Search generations...",
+        "filterStatusLabel": "Filter history by status",
+        "filterKindLabel": "Filter history by tool",
+        "errorDescription": "The history didn't respond. You can try again without losing your filters.",
+        "forbiddenDescription": "Your role can't view this workspace's AI history.",
+        "generation": "Generation",
+        "emptyTitle": "No generations yet",
+        "emptyDescription": "New generations will show up here once you use AI Studio.",
+        "emptyFilteredDescription": "Adjust the search, the status or the selected tool."
+      },
+      "automation": {
+        "pageTitle": "Automations",
+        "pageDescription": "Create rules that generate drafts ready for human review.",
+        "createTitle": "New automation",
+        "selectAccount": "Select an account",
+        "saving": "Saving automation",
+        "save": "Save automation",
+        "rulesTitle": "Rules",
+        "rulesDescription": "Rules that create drafts and keep the final approval with a person.",
+        "searchLabel": "Search automations",
+        "searchPlaceholder": "Search automations...",
+        "filterStatusLabel": "Filter automations by status",
+        "errorDescription": "The automations didn't respond. Try again to recover the list.",
+        "forbiddenDescription": "Your role can't view or manage this workspace's automations.",
+        "rule": "Automation",
+        "emptyTitle": "No automations yet",
+        "emptyDescription": "Create a rule to produce drafts automatically.",
+        "emptyFilteredDescription": "Adjust the search or the status filter.",
+        "needsAccount": "Connect a social account first to pick a target.",
+        "noneAvailable": "There are no automations available to review.",
+        "humanApproval": "Human approval active",
+        "deleting": "Deleting automation"
+      },
+      "credits": {
+        "pageTitle": "Credits and usage",
+        "pageDescription": "Understand AI usage and control your workspace budget.",
+        "balance": "Available balance",
+        "used": "Used",
+        "nextRenewal": "Next renewal",
+        "movements": "Movements",
+        "movement": "Movement",
+        "movementsDescription": "Grants, usage, refunds and adjustments for the workspace.",
+        "searchLabel": "Search credit movements",
+        "searchPlaceholder": "Search movements...",
+        "filterTypeLabel": "Filter movements by type",
+        "emptyTitle": "No movements yet",
+        "emptyDescription": "Movements will show up when credits are granted or used.",
+        "emptyFilteredDescription": "Adjust the search or the movement type.",
+        "budgetTitle": "Monthly budget",
+        "budgetHint": "Empty means no monetary limit.",
+        "budgetReadOnly": "Only owners and administrators can change this budget.",
+        "savingBudget": "Saving budget",
+        "saveBudget": "Save budget",
+        "costPerTool": "Cost per tool",
+        "errorDescription": "We couldn't retrieve the balance or the credit movements.",
+        "forbiddenDescription": "Your role can't view this workspace's AI usage."
+      }
+    },
+    "views": {
+      "automation": {
+        "title": "Automations",
+        "description": "Create rules that research, generate and leave drafts ready for review."
+      },
+      "content": {
+        "title": "AI content",
+        "description": "Generate posts consistent with your brand voice and each channel."
+      },
+      "credits": {
+        "title": "Credits and usage",
+        "description": "Understand AI usage and control your workspace budget."
+      },
+      "history": {
+        "title": "AI history",
+        "description": "Find, reuse and download any past generation."
+      },
+      "image": {
+        "title": "Image generator",
+        "description": "Create visuals from an idea, a reference or a campaign."
+      },
+      "overview": {
+        "title": "AI Studio",
+        "description": "Create, research and improve content from a single place."
+      },
+      "planner": {
+        "title": "Smart planner",
+        "description": "Turn a goal into a balanced editorial plan ready to produce."
+      },
+      "repurpose": {
+        "title": "Repurpose content",
+        "description": "Turn an existing piece into native variants for each network."
+      },
+      "review": {
+        "title": "Smart review",
+        "description": "Spot clarity, brand, compliance and performance issues before publishing."
+      },
+      "search": {
+        "title": "Assisted research",
+        "description": "Explore trends, questions and ideas with signals useful for creating content."
+      },
+      "settings": {
+        "title": "AI configuration",
+        "description": "Define the voice, language and rules that guide every generation."
+      },
+      "timing": {
+        "title": "Best time to post",
+        "description": "Find out when to publish based on your accounts' real performance."
+      },
+      "video": {
+        "title": "Video generator",
+        "description": "Design the script, the scenes and the final clip without leaving the workflow."
+      }
+    },
+    "studio": {
+      "clear": "Clear",
+      "clearFilters": "Clear filters",
+      "all": "All",
+      "filterKind": "Filter by type",
+      "filterStatus": "Filter by status",
+      "usage": "Usage",
+      "actions": "Actions",
+      "credits": "{count, plural, one {# credit} other {# credits}}",
+      "generations": "generations",
+      "noMatches": "No matches",
+      "emptyDescription": "Pick a tool to create the first result.",
+      "emptyFilteredDescription": "Try another term, type or status.",
+      "retryQueued": "The generation went back to the queue.",
+      "archived": "Generation archived.",
+      "actionsFor": "Actions for {title}",
+      "processing": "Processing action",
+      "noResultYet": "The generation doesn't have a result yet.",
+      "preview": "Preview",
+      "retry": "Retry",
+      "archive": "Archive",
+      "loading": "Loading AI Studio",
+      "loadFailedTitle": "AI Studio unavailable",
+      "loadFailedDescription": "We couldn't load the workspace activity.",
+      "metrics": {
+        "credits": "Available credits",
+        "unlimited": "Unlimited",
+        "usedInCycle": "{count, plural, one {# used this cycle} other {# used this cycle}}",
+        "succeeded": "Successful generations",
+        "currentCycle": "During the current cycle",
+        "inProgress": "In progress",
+        "queued": "{count, plural, one {# queued} other {# queued}}",
+        "drafts": "Drafts created",
+        "readyForReview": "Ready for human review"
+      },
+      "recentActivity": "Recent activity"
+    },
+    "creation": {
+      "cost": "{count, plural, one {# credit} other {# credits}}",
+      "promptTitle": {
+        "default": "Describe what you need",
+        "repurpose": "Original content",
+        "review": "Content to analyse"
+      },
+      "content": {
+        "button": "Generate drafts",
+        "placeholder": "Example: announce the new set menu, available Monday to Friday...",
+        "resultTitle": "Generated drafts",
+        "resultDescription": "Three variants adapted to the selected channel."
+      },
+      "image": {
+        "button": "Generate images",
+        "placeholder": "Example: artisan burger on a dark table, warm light, editorial style...",
+        "resultTitle": "Visual proposals",
+        "resultDescription": "Four compositions ready to review."
+      },
+      "repurpose": {
+        "button": "Create variants",
+        "placeholder": "Paste a post, article, transcript or idea you already have...",
+        "resultTitle": "Variants per channel",
+        "resultDescription": "The original idea adapted without losing its message."
+      },
+      "review": {
+        "button": "Analyse content",
+        "placeholder": "Paste here the content you want to check before publishing...",
+        "resultTitle": "Review report",
+        "resultDescription": "Prioritised findings and suggested fixes."
+      },
+      "video": {
+        "button": "Generate video",
+        "placeholder": "Example: 15-second vertical video showing how the product is made...",
+        "resultTitle": "Video project",
+        "resultDescription": "Script, scenes and render within the same job."
+      },
+      "recentActivity": "Recent activity",
+      "textCopied": "Text copied",
+      "variantCopied": "Variant copied",
+      "download": "Download",
+      "videoRender": "Video render",
+      "dimension": {
+        "clarity": "Clarity",
+        "brandVoice": "Brand voice",
+        "callToAction": "Call to action",
+        "safety": "Safety"
+      },
+      "missingPrompt": "Fill in the instruction to continue.",
+      "jobQueued": "Job added to the queue.",
+      "invalidReference": "Use JPG, PNG or WEBP images up to 30 MB.",
+      "referenceAdded": "Reference added.",
+      "referenceFailed": "We couldn't upload the reference.",
+      "objective": {
+        "inform": "Inform"
+      },
+      "format": "Format",
+      "tone": "Tone",
+      "tones": {
+        "cercano": "Friendly",
+        "experto": "Expert",
+        "directo": "Direct"
+      },
+      "referenceHintVideo": "Up to 9 images for animation, character, style or scene.",
+      "referenceHintImage": "Up to 10 images to guide style, composition or editing.",
+      "select": "Select",
+      "generationFailed": "The generation failed",
+      "providerFailed": "The provider couldn't complete the job.",
+      "waiting": "Waiting in line",
+      "generatingResult": "Generating result",
+      "preview": "Preview"
+    },
+    "pages": {
+      "planner": {
+        "missingGoal": "Fill in the plan goal.",
+        "queued": "Plan added to the queue.",
+        "goalTitle": "Plan goal",
+        "goalPlaceholder": "Example: increase store visits during August...",
+        "weeklyPlan": "Weekly plan",
+        "suggestedDate": "Suggested date",
+        "ideaReady": "Idea ready",
+        "emptyIdeasTitle": "No ideas in the plan",
+        "emptyIdeasDescription": "The plan was generated without ideas. Adjust the goal and try again.",
+        "emptyTitle": "Create your first plan",
+        "emptyDescription": "Fill in the goal and the frequency."
+      },
+      "timing": {
+        "prompt": "Analyse the performance history and recommend the best times to publish.",
+        "queued": "Analysis added to the queue.",
+        "sampleWarning": "Recommendation based on a sample",
+        "mapTitle": "Opportunity map",
+        "lowOpportunity": "Lower opportunity",
+        "highOpportunity": "Higher opportunity",
+        "perAccount": "Recommendations per account",
+        "sampleCount": "{count, plural, one {# post in the sample} other {# posts in the sample}}",
+        "confidence": {
+          "high": "High",
+          "medium": "Medium",
+          "low": "Low"
+        },
+        "emptyTitle": "No analysis yet",
+        "emptyDescription": "Press Refresh analysis to calculate times.",
+        "insufficientSample": "Insufficient sample",
+        "sampleFound": "{count, plural, one {We found # post with useful data.} other {We found # posts with useful data.}}"
+      },
+      "research": {
+        "title": "Search signals",
+        "topicLabel": "Topic to research",
+        "topicPlaceholder": "Topic, keyword or competitor...",
+        "findings": "Highlighted findings",
+        "untitled": "Untitled",
+        "emptyTitle": "Search inside your content",
+        "emptyDescription": "Find captions, drafts and previous generations.",
+        "noMatchesTitle": "No matches",
+        "noMatchesDescription": "Try other words.",
+        "questions": "Audience questions",
+        "summary": "AI summary"
+      },
+      "settings": {
+        "loading": "Loading AI configuration",
+        "requireHumanReview": "Review before publishing",
+        "warnSensitiveClaims": "Warn about sensitive claims",
+        "redactPersonalData": "Redact personal data",
+        "missingFields": "Fill in the required fields.",
+        "saved": "AI configuration saved.",
+        "brandVoice": "Brand voice",
+        "preferences": "Preferences",
+        "safety": "Safety",
+        "brandIdentity": "Brand identity",
+        "wordsUse": "Words we do use",
+        "wordsAvoid": "Words we avoid",
+        "defaults": "Default values",
+        "language": "Language",
+        "defaultTone": "Default tone",
+        "safetyControls": "Safety controls"
+      },
+      "operational": {
+        "noPrompt": "No instruction",
+        "nothingToExport": "There are no rows to export.",
+        "export": "Export",
+        "download": "Download",
+        "frequency": {
+          "daily": "Daily",
+          "weekly": "Weekly"
+        },
+        "missingFields": "Fill in every required field.",
+        "automationCreated": "Automation created.",
+        "runQueued": "Run added to the queue.",
+        "automationDeleted": "Automation deleted.",
+        "invalidBudget": "Check the budget and the alert percentage.",
+        "budgetSaved": "Budget saved.",
+        "budgetForbidden": "Your role can't change this workspace's budget.",
+        "noMovements": "There are no movements to export.",
+        "unlimited": "Unlimited",
+        "noDate": "No date"
+      }
+    }
+  },
+  "groups": {
+    "pageTitle": "Groups",
+    "pageDescription": "Organise related accounts so you can find and select them faster.",
+    "loading": "Loading groups",
+    "forbiddenDescription": "Your current access can't view this workspace's groups.",
+    "loadFailedDescription": "We couldn't load this workspace's groups.",
+    "createTitle": "New group",
+    "editTitle": "Edit group",
+    "namePlaceholder": "E.g. Retail Ecuador",
+    "description": "Description",
+    "descriptionPlaceholder": "Explain when to use this group.",
+    "colorHint": "Identifies the group in lists and selectors.",
+    "color": {
+      "label": "Colour",
+      "blue": "Blue",
+      "green": "Green",
+      "amber": "Amber",
+      "red": "Red",
+      "violet": "Violet",
+      "gray": "Grey"
+    },
+    "status": "Status",
+    "statusLabel": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "accounts": "Accounts",
+    "noAccounts": "There are no connected accounts to group.",
+    "cancel": "Cancel",
+    "save": "Save group",
+    "create": "Create group",
+    "nameRequired": "The group needs a name.",
+    "created": "Group created.",
+    "updated": "Updated",
+    "saveFailed": "We couldn't save the group. Please try again.",
+    "deleted": "Group deleted.",
+    "deleteFailed": "We couldn't delete the group. Please try again.",
+    "metrics": {
+      "totalDescription": "Created in this workspace",
+      "active": "Active",
+      "activeDescription": "Ready to use",
+      "reached": "Accounts reached",
+      "reachedDescription": "Included in some group"
+    },
+    "searchLabel": "Search groups",
+    "searchPlaceholder": "Search groups...",
+    "filterStatus": "Filter by status",
+    "filter": {
+      "all": "All",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "group": "Group",
+    "actions": "Actions",
+    "accountCount": "{count, plural, one {# account} other {# accounts}}",
+    "andMore": " and {count, number} more",
+    "openActions": "Open actions for {name}",
+    "edit": "Edit",
+    "delete": "Delete",
+    "clearFilters": "Reset filters",
+    "noMatches": "No matches",
+    "emptyTitle": "No groups",
+    "emptyDescription": "Create a group to organise your connected accounts.",
+    "emptyFilteredDescription": "Try another term or status.",
+    "itemLabel": "groups",
+    "deleteTitle": "Delete “{name}”?",
+    "deleteDescription": "The accounts stay connected; only this classification is lost.",
+    "deleteAction": "Delete group",
+    "groupUpdated": "Group updated."
+  },
+  "bulkPosts": {
+    "pageTitle": "Bulk posts",
+    "pageDescription": "Import a CSV, validate every row and create posts per account.",
+    "unavailableTitle": "Bulk posts unavailable",
+    "forbiddenDescription": "Your current access can't view this workspace's bulk posts.",
+    "loadFailedDescription": "We couldn't load this workspace's batches.",
+    "loading": "Loading batches",
+    "createTitle": "New batch",
+    "selectFile": "Select a file",
+    "noFiles": "Upload a .csv or .txt file to the library to create a batch.",
+    "interval": "Interval between posts",
+    "required": "required",
+    "intervalHint": "Minutes between each post. They're scheduled in {timezone}.",
+    "accounts": "Target accounts",
+    "invalidForm": "Pick a file, at least one account and an interval between 1 and 10080 minutes.",
+    "created": "Batch created. It will be processed in the background.",
+    "createFailed": "We couldn't create the batch. Check the file and try again.",
+    "cancelled": "Batch cancelled.",
+    "cancelFailed": "We couldn't cancel the batch. Please try again.",
+    "rowsTitle": "Batch rows",
+    "loadingRows": "Loading batch rows",
+    "rowsFailed": "We couldn't load this batch's rows.",
+    "detail": "Detail",
+    "noNotes": "No notes",
+    "emptyRowsTitle": "No rows",
+    "emptyRowsDescription": "This batch hasn't recorded any processed rows yet.",
+    "status": "Status",
+    "statusLabel": {
+      "queued": "Queued",
+      "processing": "Processing",
+      "completed": "Completed",
+      "failed": "Failed",
+      "cancelled": "Cancelled"
+    },
+    "rowStatus": {
+      "pending": "Pending",
+      "valid": "Valid",
+      "invalid": "Invalid",
+      "processed": "Processed",
+      "failed": "Failed"
+    },
+    "searchLabel": "Search batches",
+    "searchPlaceholder": "Search batches...",
+    "filterStatus": "Filter by status",
+    "filter": {
+      "all": "All",
+      "queued": "Queued",
+      "processing": "Processing",
+      "completed": "Completed",
+      "failed": "Failed",
+      "cancelled": "Cancelled"
+    },
+    "batch": "Batch",
+    "targets": "Targets",
+    "progress": "Progress",
+    "actions": "Actions",
+    "noMatches": "No matches",
+    "emptyTitle": "No batches yet",
+    "emptyDescription": "Upload a CSV to the library and create a batch to process it.",
+    "emptyFilteredDescription": "Try another term or status.",
+    "itemLabel": "batches",
+    "cancelTitle": "Cancel this batch?",
+    "cancelDescription": "Posts already created are kept; pending rows stop being processed.",
+    "back": "Back",
+    "cancelAction": "Cancel batch"
+  },
+  "rssSchedules": {
+    "pageTitle": "RSS schedules",
+    "pageDescription": "Manage the feeds that turn new articles into scheduled posts.",
+    "unavailableTitle": "RSS schedules unavailable",
+    "forbiddenDescription": "Your current access can't view this workspace's RSS schedules.",
+    "loadFailedTitle": "RSS schedules couldn't load",
+    "loadFailedDescription": "No schedule was modified. Try again to recover the content.",
+    "retry": "Retry",
+    "connected": "Connected",
+    "created": "The RSS schedule was created.",
+    "resumed": "The schedule was resumed.",
+    "paused": "The schedule is now paused.",
+    "updateFailed": "We couldn't update the schedule.",
+    "deleted": "The RSS schedule was deleted.",
+    "deleteFailed": "We couldn't delete the schedule.",
+    "runQueued": "The run was added to the queue.",
+    "runFailed": "We couldn't start the run.",
+    "validationFailed": "Check the accounts and the schedule details.",
+    "searchLabel": "Search RSS schedules",
+    "searchPlaceholder": "Search schedules...",
+    "filterStatus": "Filter by status",
+    "filter": {
+      "all": "All",
+      "active": "Active",
+      "paused": "Paused"
+    },
+    "status": "Status",
+    "statusLabel": {
+      "active": "Active",
+      "paused": "Paused"
+    },
+    "feed": "Feed",
+    "noTargets": "No targets",
+    "moreTargets": "{count, plural, one {+# target} other {+# targets}}",
+    "oneChannel": "1 connected channel",
+    "pendingFirstRun": "Waiting for the first run",
+    "neverRun": "Hasn't run yet",
+    "noDrafts": "No drafts generated",
+    "pause": "Pause",
+    "resume": "Resume",
+    "noMatches": "No matches",
+    "emptyTitle": "You don't have RSS schedules yet",
+    "emptyDescription": "Add a feed and choose when to publish it on your channels.",
+    "emptyFilteredDescription": "Try another term or reset the filters.",
+    "create": "Create schedule",
+    "wizard": {
+      "title": "New RSS schedule",
+      "description": "Set up how to turn a feed's new articles into posts for your channels.",
+      "stepsLabel": "RSS schedule steps",
+      "step": {
+        "feed": "Feed",
+        "targets": "Targets",
+        "content": "Content",
+        "review": "Review"
+      },
+      "frequency": {
+        "daily": "Once a day",
+        "weekdays": "Monday to Friday",
+        "weekly": "Once a week"
+      },
+      "continue": "Continue",
+      "create": "Create schedule",
+      "creating": "Creating...",
+      "validating": "Validating...",
+      "cancel": "Cancel",
+      "previous": "Previous",
+      "missingFields": "Fill in every required field.",
+      "invalidUrl": "Use a valid URL starting with http:// or https://.",
+      "validationFailed": "We couldn't validate this feed. Check that it's public and available.",
+      "createFailed": "We couldn't create the schedule. Check the details and try again.",
+      "feedUrl": "Feed URL",
+      "feedUrlPlaceholder": "https://site.com/feed.xml",
+      "feedUrlHint": "Use the direct RSS URL, not the site's home page.",
+      "name": "Schedule name",
+      "namePlaceholder": "E.g. Blog news",
+      "nameHint": "Only your team sees it when managing this automation.",
+      "publishTo": "Publish to",
+      "publishToHint": "Choose the accounts that will receive each new article.",
+      "noAccounts": "Connect at least one channel before creating a schedule.",
+      "frequencyLabel": "Frequency",
+      "preferredTime": "Preferred time",
+      "avoidRepeats": "Avoid repeated articles",
+      "avoidRepeatsHint": "The schedule will never send the same article to the same account twice.",
+      "includeSummary": "Include the article summary",
+      "includeSummaryHint": "It will be used as the base of the post text.",
+      "template": "Text that accompanies each post",
+      "templateHint": "Available variables: article title, summary and link.",
+      "reviewSchedule": "Schedule",
+      "reviewPublishing": "Publishing",
+      "atTime": "at {time}"
+    }
+  },
+  "captions": {
+    "pageTitle": "Caption library",
+    "pageDescription": "Manage reusable texts to keep a consistent voice across your posts.",
+    "forbiddenTitle": "You don't have access to captions",
+    "forbiddenDescription": "Ask a workspace administrator for access.",
+    "loadFailedTitle": "We couldn't load the captions",
+    "loadFailedDescription": "We couldn't load the library right now. Please try again.",
+    "caption": "Caption",
+    "source": "Source",
+    "status": "Status",
+    "tags": "Tags",
+    "updated": "Updated",
+    "updatedRecently": "Updated recently",
+    "actions": "Actions",
+    "all": "All",
+    "sourceLabel": {
+      "manual": "Manual",
+      "ai": "AI generated"
+    },
+    "statusLabel": {
+      "active": "Active",
+      "draft": "Draft",
+      "archived": "Archived"
+    },
+    "searchLabel": "Search captions",
+    "searchPlaceholder": "Search captions...",
+    "filterSource": "Filter by source",
+    "filterStatus": "Filter by status",
+    "noMatches": "No captions found",
+    "emptyTitle": "No captions yet",
+    "emptyDescription": "Create a caption to start building your library.",
+    "emptyFilteredDescription": "Try another search term.",
+    "createTitle": "New caption",
+    "editTitle": "Edit caption",
+    "createDescription": "Save a caption you can find and adapt in future posts.",
+    "editDescription": "Update the content and metadata your team needs to reuse it.",
+    "namePlaceholder": "E.g. Collection launch",
+    "contentPlaceholder": "Write the caption you want to save",
+    "notes": "Internal notes",
+    "notesPlaceholder": "Context, approvals or instructions for the team",
+    "requiredFields": "Name and content are required.",
+    "tagsLimit": "Use up to 20 tags of 64 characters each.",
+    "missingFields": "Fill in every required field.",
+    "saving": "Saving",
+    "save": "Save caption",
+    "saveChanges": "Save changes",
+    "saved": "Changes saved.",
+    "created": "Caption created.",
+    "saveFailed": "We couldn't save the changes. Check the details and try again.",
+    "saveFailedToast": "The caption couldn't be saved.",
+    "deleted": "Caption deleted.",
+    "deleteFailed": "The caption couldn't be deleted.",
+    "deleteWarning": "This action can't be undone.",
+    "deleting": "Deleting",
+    "cancel": "Cancel"
+  },
+  "channels": {
+    "pageTitle": "Channels",
+    "pageDescription": "Manage connected accounts and their publishing access.",
+    "forbiddenTitle": "You don't have access to channels",
+    "forbiddenDescription": "Ask a workspace administrator for access.",
+    "loadFailedTitle": "We couldn't load the channels",
+    "loadFailedDescription": "Check your connection and try again.",
+    "account": "Account",
+    "channelType": "Channel type",
+    "provider": "Provider",
+    "type": "Type",
+    "statusColumn": "Status",
+    "connectedAt": "Connected on",
+    "actions": "Actions",
+    "all": "All",
+    "status": {
+      "connected": "Connected",
+      "disconnected": "Disconnected"
+    },
+    "filter": {
+      "connected": "Connected",
+      "disconnected": "Disconnected"
+    },
+    "filterProvider": "Filter by provider",
+    "filterType": "Filter by type",
+    "filterStatus": "Filter by status",
+    "searchLabel": "Search channels",
+    "searchPlaceholder": "Search channels...",
+    "filtering": "Filtering channels",
+    "connect": "Connect channel",
+    "noMatches": "No channels found",
+    "emptyTitle": "No channels yet",
+    "emptyDescription": "Connect a channel type to get started.",
+    "emptyFilteredDescription": "Try another search term.",
+    "editTitle": "Edit channel",
+    "nameRequired": "Enter a display name for the channel.",
+    "savingName": "Saving channel name",
+    "nameUpdated": "Channel name updated.",
+    "updateFailed": "We couldn't update the channel. Please try again.",
+    "deleteTitle": "Delete channel",
+    "deleting": "Deleting channel",
+    "deleted": "Channel deleted.",
+    "deleteFailed": "We couldn't delete the channel. Please try again.",
+    "cancel": "Cancel",
+    "metaCancelled": "The Meta authorisation was cancelled.",
+    "metaFailed": "We couldn't complete the Meta authorisation.",
+    "metaAccountsFailed": "We couldn't retrieve the authorised Meta accounts. Please try again.",
+    "reconnectFailed": "We couldn't start the channel reconnection. Please try again.",
+    "profileSyncQueued": "Profile update scheduled. It may take a few minutes.",
+    "profileSyncCooldown": "You already requested an update. Try again in 15 minutes.",
+    "profileSyncFailed": "We couldn't schedule the profile update.",
+    "capability": {
+      "facebook_page": "Facebook page",
+      "instagram_profile": "Instagram profile",
+      "linkedin_page": "LinkedIn page",
+      "linkedin_profile": "LinkedIn profile",
+      "x_profile": "X profile",
+      "tiktok_profile": "TikTok profile",
+      "whatsapp_status": "WhatsApp Status"
+    },
+    "picker": {
+      "typesLabel": "Channel types",
+      "planLocked": "This channel isn't included in your current plan.",
+      "comingSoon": "We're preparing this connection.",
+      "availability": {
+        "ready": "Available",
+        "coming_soon": "Coming soon",
+        "plan_locked": "Plan required"
+      }
+    },
+    "whatsapp": {
+      "generating": "Generating QR code",
+      "refreshing": "Refreshing QR…",
+      "qrAlt": "QR code to connect WhatsApp Status",
+      "refreshFailed": "We couldn't refresh the QR code. Please try again.",
+      "generateFailed": "We couldn't generate the QR code. Please try again.",
+      "connected": "WhatsApp Status connected.",
+      "connectFailed": "We couldn't complete the WhatsApp connection. Generate a new QR.",
+      "accountMismatch": "The scanned phone doesn't match this channel",
+      "accountMismatchHint": "Scan the original phone or close this dialog to connect the other phone as a new channel.",
+      "qrExpired": "The QR expired or the connector didn't respond",
+      "qrExpiredHint": "Generate a new QR to continue with the connection.",
+      "prepareQr": "Prepare QR link"
+    }
+  },
+  "automation": {
+    "pageTitle": "Automation",
+    "pageDescription": "Connect Zapi with your own tools through API keys and signed webhooks.",
+    "loading": "Loading automation",
+    "unavailableTitle": "Automation unavailable",
+    "forbiddenDescription": "Your current access can't manage this workspace's automation.",
+    "loadFailedDescription": "We couldn't load this workspace's keys and webhooks.",
+    "tab": {
+      "keys": "API keys",
+      "webhooks": "Webhooks",
+      "logs": "Activity"
+    },
+    "all": "All",
+    "never": "Never",
+    "cancel": "Cancel",
+    "noMatches": "No matches",
+    "emptyFilteredDescription": "Try another term or status.",
+    "copy": "Copy {label}",
+    "copied": "{label} copied.",
+    "copyFailed": "We couldn't copy the value. Please try again.",
+    "clipboardUnsupported": "Your browser can't copy this value.",
+    "saved": "I saved it",
+    "tokenLabel": "Key token",
+    "tokenDescription": "Save it now: we won't show it again. If you lose it, create a new key.",
+    "secretLabel": "Signing secret",
+    "secretDescription": "Use it to verify each delivery's signature. We won't show it again.",
+    "permission": {
+      "accounts:read": "Read accounts",
+      "posts:read": "Read posts",
+      "posts:write": "Create posts"
+    },
+    "event": {
+      "post.created": "Post created",
+      "post.published": "Post delivered",
+      "post.failed": "Post failed"
+    },
+    "newKey": "New key",
+    "newKeyTitle": "New API key",
+    "newKeyDescription": "The token is shown only once when created. Afterwards you'll only see its prefix.",
+    "keyNamePlaceholder": "E.g. n8n integration",
+    "keyRequired": "The key needs a name and at least one permission.",
+    "keyCreateFailed": "We couldn't create the key. Please try again.",
+    "keyRevoked": "Key revoked.",
+    "keyRevokeFailed": "We couldn't revoke the key. Please try again.",
+    "key": "Key",
+    "permissions": "Permissions",
+    "keyStatus": {
+      "active": "Active",
+      "revoked": "Revoked"
+    },
+    "keyFilter": {
+      "active": "Active",
+      "revoked": "Revoked"
+    },
+    "searchKeys": "Search API keys",
+    "searchKeysPlaceholder": "Search keys...",
+    "keysEmptyTitle": "No API keys",
+    "keysEmptyDescription": "Create a key so your tools can read or publish through the API.",
+    "newWebhook": "New webhook",
+    "newWebhookTitle": "New webhook",
+    "editWebhookTitle": "Edit webhook",
+    "webhookDescription": "Zapi will send a signed POST to this URL when one of the chosen events happens.",
+    "webhookNamePlaceholder": "E.g. Notify Slack",
+    "webhookRequired": "The webhook needs a name, a URL and at least one event.",
+    "saveWebhook": "Save webhook",
+    "createWebhook": "Create webhook",
+    "webhookCreated": "Webhook created.",
+    "webhookUpdated": "Webhook updated.",
+    "webhookSaveFailed": "We couldn't save the webhook. Please try again.",
+    "webhookToggleFailed": "We couldn't change the webhook status.",
+    "webhookDeleted": "Webhook deleted.",
+    "webhookDeleteFailed": "We couldn't delete the webhook. Please try again.",
+    "webhook": "Webhook",
+    "events": "Events",
+    "enabled": "Enabled",
+    "webhookFilter": {
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "searchWebhooks": "Search webhooks",
+    "searchWebhooksPlaceholder": "Search webhooks...",
+    "webhooksEmptyTitle": "No webhooks",
+    "webhooksEmptyDescription": "Get a notice in your system when a post is created, delivered or fails.",
+    "searchActivity": "Search activity",
+    "searchActivityPlaceholder": "Search activity...",
+    "filterResult": "Filter by result",
+    "result": "Result",
+    "direction": "Direction",
+    "directionLabel": {
+      "inbound": "Inbound",
+      "outbound": "Outbound"
+    },
+    "logStatus": {
+      "failed": "Failed",
+      "succeeded": "Succeeded",
+      "accepted": "Accepted"
+    },
+    "logFilter": {
+      "accepted": "Accepted",
+      "succeeded": "Succeeded",
+      "failed": "Failed"
+    },
+    "logsEmptyTitle": "No activity yet",
+    "logsEmptyDescription": "API calls and webhook deliveries will show up here.",
+    "logsEmptyFilteredDescription": "Try another term or result.",
+    "eventColumn": "Event"
+  },
+  "linkBio": {
+    "pageTitle": "Link in bio",
+    "pageDescription": "A public page with all your links, plus its view and click metrics.",
+    "loading": "Loading link pages",
+    "unavailableTitle": "Link in bio unavailable",
+    "forbiddenDescription": "Your current access can't manage link pages.",
+    "loadFailedDescription": "We couldn't load your link pages.",
+    "createTitle": "New page",
+    "editTitle": "Edit page",
+    "tab": {
+      "info": "Info",
+      "blocks": "Blocks",
+      "style": "Style"
+    },
+    "title": "Title",
+    "slug": "Address",
+    "headline": "Headline",
+    "align": "Alignment",
+    "alignCenter": "Centred",
+    "published": "Published",
+    "templateLabel": "Template",
+    "templateAria": "Page template",
+    "buttons": "Buttons",
+    "buttonStyle": {
+      "rounded": "Rounded",
+      "pill": "Pill",
+      "square": "Square"
+    },
+    "avatar": "Avatar",
+    "avatarStyle": {
+      "circle": "Circle",
+      "rounded": "Rounded",
+      "square": "Square"
+    },
+    "brandingPlaceholder": "Made with Zapi",
+    "addBlock": "Add block…",
+    "moveUp": "Move block up",
+    "moveDown": "Move block down",
+    "removeBlock": "Remove block",
+    "removeItem": "Remove item",
+    "showBlock": "Show {block}",
+    "label": "Label",
+    "text": "Text",
+    "codeOrUrl": "Code or URL",
+    "question": "Question",
+    "answer": "Answer",
+    "destination": "Destination",
+    "titleRequired": "The page needs a title.",
+    "created": "Page created.",
+    "updated": "Page updated.",
+    "slugTaken": "That address is already taken.",
+    "saveFailed": "We couldn't save the page. Please try again.",
+    "deleted": "Page deleted.",
+    "deleteFailed": "We couldn't delete the page.",
+    "cancel": "Cancel",
+    "metrics": {
+      "pages": "Pages",
+      "pagesDescription": "Created in this workspace",
+      "views": "Views",
+      "viewsDescription": "Recorded visits",
+      "clicks": "Clicks",
+      "clicksDescription": "Clicks on your links"
+    },
+    "searchLabel": "Search pages",
+    "searchPlaceholder": "Search pages...",
+    "filterStatus": "Filter by status",
+    "status": "Status",
+    "statusLabel": {
+      "published": "Published",
+      "draft": "Draft"
+    },
+    "all": "All",
+    "page": "Page",
+    "noViews": "No visits yet",
+    "noMatches": "No matches",
+    "emptyTitle": "No pages yet",
+    "emptyDescription": "Create a page to gather all your links under a single address.",
+    "emptyFilteredDescription": "Try another term or status.",
+    "preview": {
+      "headlineHint": "Add a headline",
+      "descriptionHint": "Add a description",
+      "titleHint": "Your page",
+      "itemHint": "New item"
+    },
+    "template": {
+      "aurora": {
+        "label": "Aurora",
+        "description": "Night gradient with glass blocks."
+      },
+      "pro-dark": {
+        "label": "Pro Dark",
+        "description": "Understated dark for brands."
+      },
+      "spotlight": {
+        "label": "Spotlight",
+        "description": "Violet spotlight over a deep background."
+      },
+      "forest": {
+        "label": "Forest",
+        "description": "Forest green with vivid accents."
+      },
+      "sunset": {
+        "label": "Sunset",
+        "description": "Warm sunset gradient."
+      },
+      "studio": {
+        "label": "Studio",
+        "description": "Professional slate blue."
+      },
+      "minimal": {
+        "label": "Minimal",
+        "description": "Pure white, typography first."
+      },
+      "paper": {
+        "label": "Paper",
+        "description": "Cards on warm paper."
+      },
+      "soft": {
+        "label": "Soft",
+        "description": "Soft, calm beige."
+      },
+      "sky": {
+        "label": "Sky",
+        "description": "Clean, airy sky blue."
+      },
+      "wave": {
+        "label": "Wave",
+        "description": "Fresh, energetic cyan."
+      },
+      "promo": {
+        "label": "Promo",
+        "description": "Vivid orange for campaigns."
+      }
+    },
+    "block": {
+      "links": {
+        "label": "Links",
+        "hint": "List of buttons to your destinations."
+      },
+      "header": {
+        "label": "Header",
+        "hint": "Title and introduction text."
+      },
+      "social": {
+        "label": "Social networks",
+        "hint": "Icons linking to your profiles."
+      },
+      "contact": {
+        "label": "Contact",
+        "hint": "Email, phone or address."
+      },
+      "gallery": {
+        "label": "Gallery",
+        "hint": "Image grid."
+      },
+      "faq": {
+        "label": "FAQs",
+        "hint": "Questions with their answer."
+      },
+      "product": {
+        "label": "Products",
+        "hint": "Items with price and link."
+      },
+      "video": {
+        "label": "Video",
+        "hint": "A video embedded by its URL."
+      },
+      "embed": {
+        "label": "Embed",
+        "hint": "External embedded content."
+      }
+    }
+  },
+  "files": {
+    "name": "Name",
+    "type": "Type",
+    "all": "All",
+    "rootFolder": "Files",
+    "unavailable": "Not available",
+    "kind": {
+      "image": "Image",
+      "video": "Video",
+      "document": "Document"
+    },
+    "filter": {
+      "image": "Images",
+      "video": "Videos",
+      "document": "Documents",
+      "folder": "Folders"
+    },
+    "sort": {
+      "modifiedAt": "Modified date",
+      "name": "Name"
+    },
+    "sortBy": "Sort by",
+    "order": "Order",
+    "sortAZ": "A to Z",
+    "sortZA": "Z to A",
+    "sortNewest": "Newest first",
+    "sortOldest": "Oldest first",
+    "viewLabel": "File view",
+    "gridView": "Grid view",
+    "listView": "List view",
+    "searchLabel": "Search files and folders",
+    "filterType": "Filter files by type",
+    "previousFolders": "Previous folders",
+    "loadingMore": "Loading more files",
+    "loadMoreFailed": "We couldn't load more files.",
+    "addToLibrary": "Add to library",
+    "openingDrive": "Opening Google",
+    "star": "Add {name} to favourites",
+    "unstar": "Remove {name} from favourites",
+    "starred": "Added to favourites",
+    "unstarred": "Removed from favourites",
+    "starFailed": "Favourites couldn't be updated",
+    "uploaded": "File uploaded",
+    "uploadFailed": "The file couldn't be uploaded",
+    "folderCreated": "Folder created",
+    "folderCreateFailed": "The folder couldn't be created",
+    "folderNameTaken": "A folder with that name already exists here.",
+    "renamed": "Name updated",
+    "renameFailed": "The name couldn't be changed",
+    "moved": "Item moved",
+    "moveFailed": "The item couldn't be moved",
+    "movedCount": "{count, plural, one {Item moved} other {Items moved}}",
+    "moveNoneFailed": "No item could be moved",
+    "moveSomeFailed": "Some items couldn't be moved",
+    "moveManyFailed": "The items couldn't be moved",
+    "deleted": "Item permanently deleted",
+    "deletedMany": "Items permanently deleted",
+    "deleteFailed": "The item couldn't be deleted",
+    "deleteNoneFailed": "No item could be deleted",
+    "deleteSomeFailed": "Some items couldn't be deleted",
+    "deleteManyFailed": "The items couldn't be deleted",
+    "inUseByPublishing": "This file is used in Publishing and can't be deleted.",
+    "driveImportDone": "Google Drive import completed.",
+    "driveImportPartial": "Some Google Drive files couldn't be imported.",
+    "driveImportFailed": "We couldn't complete the Google Drive import.",
+    "driveImportRunning": "The import is still running. Refresh to see the progress.",
+    "driveUnavailable": "Google Drive isn't available right now.",
+    "driveOpenFailed": "We couldn't open or start the Google Drive import.",
+    "noMatches": "No files found",
+    "emptyRootTitle": "You don't have files yet",
+    "emptyFolderTitle": "This folder is empty",
+    "emptyRootDescription": "Upload a file or create a folder to start organising your library.",
+    "emptyFolderDescription": "Create a subfolder or upload a file to organise this space.",
+    "emptyFilteredDescription": "Try another term or reset the filters to see every available file.",
+    "uploadTitle": "Upload files",
+    "formats": {
+      "images": "Images",
+      "media": "Video and audio",
+      "documents": "Documents",
+      "archives": "Sheets and archives"
+    },
+    "newFolderTitle": "New folder",
+    "folderNamePlaceholder": "Folder name",
+    "creating": "Creating...",
+    "createFolder": "Create folder",
+    "previewDescription": "Private file preview.",
+    "infoTitle": "File information",
+    "info": {
+      "type": "Type",
+      "format": "Format",
+      "size": "Size",
+      "updatedAt": "Last update",
+      "updatedBy": "Updated by"
+    },
+    "renameTitle": "Rename",
+    "moveSelected": "Move selected files",
+    "chooseFolder": "Choose the destination folder.",
+    "deleteSelected": "Delete the selected items",
+    "deletePermanently": "Delete permanently",
+    "online": {
+      "searchLabel": "Search online media",
+      "searchPlaceholder": "Search photos, illustrations or videos",
+      "searching": "Searching online media",
+      "notConfiguredTitle": "Online search not configured",
+      "notConfiguredDescription": "No media provider is configured for this platform. An administrator must connect one before searching.",
+      "searchFailedTitle": "Search unavailable",
+      "searchFailedDescription": "We couldn't complete the search.",
+      "emptyTitle": "Search for media to get started",
+      "emptyDescription": "Type what you need and we'll search the connected providers.",
+      "noResultsTitle": "No media found",
+      "noResultsDescription": "Try a broader search or different words.",
+      "type": {
+        "image": "Image",
+        "video": "Video"
+      },
+      "inLibrary": "In your library",
+      "available": "Available",
+      "imported": "Imported",
+      "import": "Import",
+      "importFailed": "We couldn't import this media. Please try again."
+    }
+  },
+  "profile": {
+    "loading": "Loading profile",
+    "loadFailed": "We couldn't load your profile.",
+    "unavailableTitle": "We couldn't show your profile",
+    "notFound": "We couldn't find your profile.",
+    "settingsLabel": "Account settings",
+    "tab": {
+      "profile": "Profile",
+      "security": "Security"
+    },
+    "personalTitle": "Personal information",
+    "personalDescription": "Manage how you appear and your Portal preferences.",
+    "verified": "Verified",
+    "unverified": "Unverified",
+    "memberSince": "Member since",
+    "displayName": "Display name",
+    "preferredLanguage": "Preferred language",
+    "usePortalLanguage": "Use the Portal language",
+    "timezone": "Time zone",
+    "timezonePlaceholder": "Select a time zone",
+    "nameRequired": "Fill in the display name.",
+    "timezoneRequired": "Select your time zone.",
+    "updated": "Profile updated.",
+    "passwordTitle": "Change password",
+    "passwordDescription": "Confirm your current password before setting a new one.",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm new password",
+    "passwordHint": "At least 8 characters, with an uppercase and a lowercase letter, a number and a special character.",
+    "updatePassword": "Update password",
+    "allFieldsRequired": "Fill in every field.",
+    "passwordMismatch": "The new passwords don't match.",
+    "passwordUpdated": "Password updated. Sign in again to continue.",
+    "saveFailed": "We couldn't save the changes. Please try again.",
+    "currentPasswordInvalid": "The current password isn't correct.",
+    "passwordPolicy": "The new password doesn't meet the requirements.",
+    "validationFailed": "Check the name, language and time zone."
+  },
+  "support": {
+    "pageTitle": "Support",
+    "pageDescription": "Review your open cases and talk to the Zapi team from a single place.",
+    "unavailableTitle": "Support unavailable",
+    "forbiddenDescription": "Your current access can't view this workspace's support cases.",
+    "loadFailedTitle": "Support cases couldn't load",
+    "loadFailedDescription": "No case was modified. Try again to recover the information.",
+    "retry": "Retry",
+    "loading": "Loading support cases",
+    "status": {
+      "open": "Open",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "filter": {
+      "open": "Open",
+      "resolved": "Resolved",
+      "closed": "Closed"
+    },
+    "all": "All",
+    "statusColumn": "Status",
+    "ticket": "Case",
+    "metrics": {
+      "open": "Open",
+      "openDescription": "Waiting for attention",
+      "resolved": "Resolved",
+      "resolvedDescription": "Resolved in the history",
+      "closed": "Closed",
+      "closedDescription": "No pending actions"
+    },
+    "searchLabel": "Search support cases",
+    "searchPlaceholder": "Search cases...",
+    "filterStatus": "Filter by status",
+    "newTicket": "New case",
+    "createTitle": "New support case",
+    "selectCategory": "Select a category",
+    "subjectPlaceholder": "E.g. I can't publish to Instagram",
+    "bodyPlaceholder": "What you were doing, what you expected to happen and what happened instead.",
+    "missingFields": "Fill in every required field.",
+    "created": "Support case created.",
+    "createFailed": "We couldn't create the case. Please try again.",
+    "noMatches": "No matches",
+    "emptyTitle": "You don't have support cases yet",
+    "emptyDescription": "When you need help, open a case and you'll have the whole conversation here.",
+    "emptyFilteredDescription": "Try another term or status.",
+    "loadingTicket": "Loading support case",
+    "ticketUnavailable": "Case unavailable",
+    "ticketLoadFailed": "We couldn't load this support case.",
+    "ticketNotFound": "We couldn't find this case",
+    "ticketNotFoundDescription": "The case doesn't exist or is no longer available in this workspace.",
+    "createdUpdated": "Created {created} · updated {updated}",
+    "messageRequired": "Write a message before sending it.",
+    "replyPlaceholder": "Write your reply...",
+    "replySent": "Reply sent.",
+    "replyFailed": "We couldn't send your reply. Please try again.",
+    "resolved": "Case marked as resolved.",
+    "resolveFailed": "We couldn't mark the case as resolved."
+  },
+  "teams": {
+    "pageTitle": "Team",
+    "myAccessTitle": "My access",
+    "manageDescription": "Manage people, assigned accounts and workspace invitations.",
+    "viewDescription": "Check your role, the available accounts and who's part of the workspace.",
+    "loadFailedTitle": "The team couldn't load",
+    "loadFailedDescription": "No access was modified. Try loading the section again.",
+    "viewsLabel": "Team views",
+    "tab": {
+      "members": "Members",
+      "invitations": "Invitations",
+      "activity": "Activity"
+    },
+    "role": {
+      "owner": "Owner",
+      "admin": "Administration",
+      "member": "Member"
+    },
+    "roleColumn": "Role",
+    "delivery": {
+      "label": "Delivery",
+      "pending": "Sending",
+      "sent": "Sent",
+      "failed": "Delivery failed"
+    },
+    "member": "Member",
+    "scope": "Scope",
+    "joined": "Joined",
+    "email": "Email",
+    "invitedBy": "Invited by",
+    "lastSent": "Last sent",
+    "expires": "Expires",
+    "notSentYet": "Not sent yet",
+    "activity": "Activity",
+    "performedBy": "Performed by",
+    "person": "Person",
+    "date": "Date",
+    "performedByName": "Performed by {name}",
+    "system": "System",
+    "allAccounts": "All accounts",
+    "accountCount": "{count, plural, one {# account} other {# accounts}}",
+    "assignedAccounts": "Assigned accounts",
+    "adminAllAccounts": "Administration can access every active account in the workspace.",
+    "adminHint": "Accesses every account and can manage members, except other administrators.",
+    "memberHint": "Only works with the accounts you assign.",
+    "inviteTitle": "Invite to the workspace",
+    "inviteDescription": "The invitation is private, tied to this email and expires in seven days.",
+    "emailPlaceholder": "name@company.com",
+    "invalidEmail": "Enter a valid email.",
+    "sending": "Sending...",
+    "sendInvitation": "Send invitation",
+    "saving": "Saving...",
+    "saveAccess": "Save access",
+    "cancel": "Cancel",
+    "close": "Close",
+    "processing": "Processing...",
+    "invitationDetail": "Invitation detail",
+    "invitationOnlyEmail": "Only {email} can accept it before it expires.",
+    "inviteMember": "Invite member",
+    "noSeats": "No seats left",
+    "searchMembers": "Search members...",
+    "searchInvitations": "Search invitations...",
+    "searchActivity": "Search activity...",
+    "filterActivity": "Filter activity",
+    "accessUpdated": "Access updated.",
+    "invitationRevoked": "Invitation revoked.",
+    "ownershipTransferred": "Ownership transferred.",
+    "actionFailed": "The action couldn't be completed",
+    "dismissError": "Dismiss error",
+    "resending": "Resending invitation",
+    "membersNoMatches": "No members found",
+    "membersEmptyFilteredDescription": "Try another search to find someone in the workspace.",
+    "invitationsNoMatches": "No invitations found",
+    "invitationsEmptyTitle": "No pending invitations",
+    "invitationsEmptyDescription": "New invitations show up here until they're accepted, expire or are revoked.",
+    "invitationsEmptyFilteredDescription": "Try another search to find an invitation.",
+    "activityUnavailable": "Activity unavailable",
+    "activityFailedDescription": "The workspace activity couldn't be retrieved.",
+    "activityNoMatches": "No activity for this filter",
+    "activityEmptyTitle": "No activity",
+    "activityEmptyDescription": "Changes to invitations, roles, accounts and ownership show up here.",
+    "activityEmptyFilteredDescription": "Try another search or remove the category filter.",
+    "activityFilter": {
+      "all": "All activity",
+      "invitations": "Invitations",
+      "members": "Members",
+      "access": "Access",
+      "ownership": "Ownership"
+    },
+    "activityLabel": {
+      "team.invitation_created": "Invitation created",
+      "team.invitation_resent": "Invitation resent",
+      "team.invitation_revoked": "Invitation revoked",
+      "team.invitation_expired": "Invitation expired",
+      "team.invitation_accepted": "Invitation accepted",
+      "team.member_role_updated": "Role updated",
+      "team.member_access_updated": "Access updated",
+      "team.member_account_grants_replaced": "Accounts assigned",
+      "team.member_revoked": "Member removed",
+      "team.member_left": "Member left the workspace",
+      "team.ownership_transferred": "Ownership transferred"
+    },
+    "confirm": {
+      "removeTitle": "Remove member?",
+      "removeDescription": "{name} will lose access to the workspace and their active sessions will be closed.",
+      "removeAction": "Remove member",
+      "revokeTitle": "Revoke invitation?",
+      "revokeDescription": "The invitation for {email} will stop being valid.",
+      "revokeAction": "Revoke invitation",
+      "transferTitle": "Transfer ownership?",
+      "transferDescription": "{name} will become the new owner. Your role will change to Administration.",
+      "transferAction": "Transfer ownership",
+      "leaveTitle": "Leave the workspace?",
+      "leaveDescription": "You'll lose access to its accounts and your active sessions will be closed.",
+      "leaveAction": "Leave workspace"
+    },
+    "invitation": {
+      "unavailableTitle": "Invitation unavailable",
+      "unavailableDescription": "No further change was made to your account.",
+      "backHome": "Back home",
+      "signIn": "Sign in",
+      "retry": "Retry",
+      "signInToContinue": "Sign in to continue",
+      "signUpToContinue": "Create an account to continue",
+      "accept": "Accept invitation",
+      "accepting": "Accepting…",
+      "notNow": "Not now",
+      "invitedTitle": "You've been invited to a workspace",
+      "invitedDescription": "Confirm your account to join. The invitation only works with {email}.",
+      "workspace": "Workspace",
+      "role": {
+        "admin": "Administrator",
+        "member": "Member"
+      },
+      "availableUntil": "Available until {date}",
+      "activatingTitle": "Activating access",
+      "activatingDescription": "We're preparing the workspace.",
+      "problem": {
+        "missing": {
+          "title": "The invitation link is missing",
+          "description": "Open the full link you received by email again."
+        },
+        "invalid": {
+          "title": "This invitation isn't valid",
+          "description": "The link may be incomplete or replaced by a newer invitation."
+        },
+        "expired": {
+          "title": "This invitation expired",
+          "description": "Ask a workspace administrator to send you a new invitation."
+        },
+        "used": {
+          "title": "This invitation was already used",
+          "description": "Sign in to open your available workspaces."
+        },
+        "full": {
+          "title": "The workspace reached its limit",
+          "description": "The invitation is still pending, but an administrator must free a seat before you can join."
+        },
+        "mismatch": {
+          "title": "The invitation belongs to another email",
+          "description": "Sign out and sign in with the account that received the invitation."
+        },
+        "error": {
+          "title": "We couldn't check the invitation",
+          "description": "Check your connection and try again."
+        }
+      }
+    },
+    "created": "Created"
+  },
+  "plans": {
+    "pageTitle": "Plans",
+    "create": "Create plan",
+    "saveChanges": "Save changes",
+    "editTitle": "Edit {name}",
+    "saving": "Saving...",
+    "deleting": "Deleting...",
+    "deleteAction": "Delete plan",
+    "deleteDescription": "The plan will be removed from the configuration. This action can't be undone.",
+    "description": "Description",
+    "descriptionPlaceholder": "Describe who this plan is for.",
+    "freePlan": "Free plan",
+    "featured": "Featured",
+    "default": "Default",
+    "defaultHint": "Assigned on sign-up.",
+    "free": "Free",
+    "noTrial": "No trial",
+    "plan": "Plan",
+    "price": "Price",
+    "statusColumn": "Status",
+    "billingColumn": "Billing",
+    "visibility": "Visibility",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "billing": {
+      "monthly": "Monthly",
+      "yearly": "Yearly"
+    },
+    "filter": {
+      "allStatuses": "All statuses",
+      "active": "Active",
+      "inactive": "Inactive",
+      "allBilling": "All billing",
+      "allPlans": "All plans",
+      "featured": "Featured",
+      "standard": "Not featured"
+    },
+    "filterStatus": "Filter by status",
+    "filterBilling": "Filter by billing",
+    "filterFeatured": "Filter by featured",
+    "searchLabel": "Search plans",
+    "searchPlaceholder": "Search by name or slug...",
+    "metrics": {
+      "plans": "Plans",
+      "plansDescription": "Visible options",
+      "active": "Active",
+      "activeDescription": "Available today",
+      "subscribers": "Subscribers",
+      "subscribersDescription": "Accounts in this view",
+      "featured": "Featured",
+      "featuredDescription": "Main offers"
+    },
+    "nameTooShort": "The plan name needs at least 2 characters.",
+    "invalidSlug": "The slug uses lowercase letters, numbers and hyphens, no spaces.",
+    "slugTaken": "A plan with this slug already exists.",
+    "invalidPrice": "Enter a valid price of zero or more.",
+    "invalidNumbers": "Trial days and position must be valid numbers.",
+    "permissionRequired": "Select at least one permission for the plan.",
+    "defaultPlanRules": "The default plan must be active and free.",
+    "sessionExpired": "Your session expired. Sign in again.",
+    "loadFailed": "We couldn't load the plans. Please try again.",
+    "updated": "Plan updated.",
+    "created": "Plan created.",
+    "conflict": "The name, slug or default plan already exists.",
+    "validationFailed": "Check the plan details before saving.",
+    "saveFailed": "We couldn't save the plan. Please try again.",
+    "deleted": "Plan deleted.",
+    "hasSubscribers": "This plan still has subscribers. Move them to another plan before deleting it.",
+    "deleteFailed": "We couldn't delete the plan. Please try again.",
+    "forbiddenTitle": "Restricted access",
+    "forbiddenDescription": "Your account can't manage plans.",
+    "loadFailedTitle": "The plans couldn't load",
+    "loadFailedDescription": "We couldn't retrieve the plan configuration.",
+    "noMatches": "No plans found",
+    "emptyTitle": "No plans",
+    "emptyDescription": "There are no plans configured yet. Create the first one to get started.",
+    "emptyFilteredDescription": "No plans match the current filters."
+  },
+  "affiliate": {
+    "pageTitle": "Affiliates",
+    "loading": "Loading affiliates",
+    "unavailableTitle": "Affiliates unavailable",
+    "loadFailedDescription": "We couldn't load your affiliate programme.",
+    "joinTitle": "You're not in the programme yet",
+    "joinDescription": "Once activated you'll get your own code to attribute referrals and earn commissions.",
+    "activated": "Affiliate programme activated.",
+    "activateFailed": "We couldn't activate the programme. Please try again.",
+    "profileStatus": {
+      "active": "Active",
+      "suspended": "Suspended"
+    },
+    "requestWithdrawal": "Request withdrawal",
+    "withdrawalDescription": "The amount is held from your available balance until the request is processed.",
+    "amount": "Amount",
+    "required": "required",
+    "availableAmount": "Available: {amount}",
+    "invalidAmount": "The amount must be greater than zero and no more than your balance.",
+    "withdrawalRequested": "Withdrawal request registered.",
+    "withdrawalFailed": "We couldn't register the withdrawal. Please try again.",
+    "clipboardUnsupported": "Your browser can't copy the code.",
+    "codeCopied": "Code copied.",
+    "copyFailed": "We couldn't copy the code. Please try again.",
+    "metrics": {
+      "clicks": "Clicks",
+      "clicksDescription": "Visits attributed to your code",
+      "referrals": "Referrals",
+      "referralsDescription": "People signed up",
+      "conversions": "Conversions",
+      "conversionsDescription": "Referrals who purchased",
+      "available": "Available",
+      "availableDescription": "Ready to withdraw",
+      "pending": "Pending",
+      "pendingDescription": "Still being validated",
+      "paid": "Paid",
+      "paidDescription": "Withdrawn historically"
+    },
+    "tab": {
+      "commissions": "Commissions",
+      "withdrawals": "Withdrawals"
+    },
+    "all": "All",
+    "statusColumn": "Status",
+    "commission": "Commission",
+    "filterStatus": "Filter by status",
+    "searchCommissions": "Search commissions",
+    "searchWithdrawals": "Search withdrawals",
+    "searchByAmount": "Search by amount...",
+    "commissionStatus": {
+      "pending": "Pending",
+      "available": "Available",
+      "paid": "Paid",
+      "cancelled": "Cancelled"
+    },
+    "commissionFilter": {
+      "pending": "Pending",
+      "available": "Available",
+      "paid": "Paid",
+      "cancelled": "Cancelled"
+    },
+    "withdrawalStatus": {
+      "requested": "Requested",
+      "approved": "Approved",
+      "paid": "Paid",
+      "rejected": "Rejected"
+    },
+    "withdrawalFilter": {
+      "requested": "Requested",
+      "approved": "Approved",
+      "paid": "Paid",
+      "rejected": "Rejected"
+    },
+    "noMatches": "No matches",
+    "emptyFilteredDescription": "Try another term or status.",
+    "commissionsEmptyTitle": "No commissions yet",
+    "commissionsEmptyDescription": "When someone buys using your code you'll see their commission here.",
+    "withdrawalsEmptyTitle": "No withdrawals",
+    "withdrawalsEmptyDescription": "Your withdrawal requests will appear in this history."
+  },
+  "adminEmailTemplates": {
+    "pageTitle": "Email templates",
+    "pageDescription": "Subject and copy of the transactional emails Zapi sends.",
+    "loading": "Loading email templates",
+    "forbiddenTitle": "Restricted access",
+    "forbiddenDescription": "Your account can't edit email templates.",
+    "loadFailedTitle": "We couldn't load this section",
+    "loadFailedDescription": "The email templates couldn't be loaded.",
+    "template": "Template",
+    "sheetDescription": "{description}. The layout, the button and the email's calculated data don't change.",
+    "buttonUrlHint": "The button destination is calculated by the system.",
+    "notice": "Closing notice",
+    "missingFields": "Fill in every required field.",
+    "email": "Email",
+    "statusColumn": "Status",
+    "all": "All",
+    "status": {
+      "customized": "Customised",
+      "default": "Default text"
+    },
+    "searchLabel": "Search templates",
+    "searchPlaceholder": "Search templates...",
+    "filterStatus": "Filter by status",
+    "noMatches": "No matches",
+    "emptyTitle": "No email templates",
+    "emptyDescription": "The system templates will show up here.",
+    "emptyFilteredDescription": "Try another term or status.",
+    "updated": "Template updated.",
+    "saveFailed": "We couldn't save the template.",
+    "resetTitle": "Reset template",
+    "resetDescription": "“{name}” returns to the system default text and the saved customisation is lost.",
+    "reset": "Template reset.",
+    "resetFailed": "We couldn't reset the template.",
+    "cancel": "Cancel"
+  },
+  "adminPaymentReport": {
+    "pageTitle": "Payment report",
+    "pageDescription": "Settled charges, refunds and billing per product in the selected period.",
+    "loading": "Loading payment report",
+    "forbiddenTitle": "Restricted access",
+    "forbiddenDescription": "Your account can't view the payment report.",
+    "loadFailedTitle": "We couldn't load this section",
+    "loadFailedDescription": "The payment report couldn't be calculated.",
+    "range": {
+      "30d": "Last 30 days",
+      "90d": "Last 90 days",
+      "12m": "Last 12 months"
+    },
+    "rangeColumn": "Range",
+    "selectRange": "Select range",
+    "product": "Product",
+    "filterProduct": "Filter by product",
+    "all": "All",
+    "productType": {
+      "plan": "Plan",
+      "credits": "Credits"
+    },
+    "statusColumn": "Status",
+    "workspace": "Workspace",
+    "status": {
+      "paid": "Paid",
+      "pending": "Pending",
+      "partially_refunded": "Partially refunded",
+      "refunded": "Refunded",
+      "failed": "Failed"
+    },
+    "metrics": {
+      "gross": "Gross",
+      "grossDescription": "Settled charges",
+      "net": "Net",
+      "netDescription": "Gross minus refunds",
+      "refunded": "Refunded",
+      "refundedDescription": "{count, plural, one {# payment with a refund} other {# payments with refunds}}",
+      "ticket": "Average ticket",
+      "ticketDescription": "{paid, number} paid · {pending, number} pending · {failed, number} failed"
+    },
+    "currencyNote": "Currency {currency}",
+    "moreCurrencies": " · {count, plural, one {# more currency not aggregated} other {# more currencies not aggregated}}",
+    "noMovements": "No movements",
+    "noSettledDescription": "There are no settled charges in the selected period.",
+    "noData": "No data",
+    "noSettledPeriod": "No settled charges in this period.",
+    "noPaymentsPeriod": "No payments recorded in this period."
+  },
+  "adminNotifications": {
+    "pageTitle": "Announcements",
+    "pageDescription": "Manual notices that appear in the customers' Portal bell.",
+    "loading": "Loading announcements",
+    "forbiddenTitle": "Restricted access",
+    "forbiddenDescription": "Your account can't manage platform announcements.",
+    "loadFailedTitle": "We couldn't load this section",
+    "loadFailedDescription": "The announcements couldn't be loaded.",
+    "createTitle": "New announcement",
+    "editTitle": "Edit announcement",
+    "titlePlaceholder": "E.g. Scheduled maintenance on Sunday",
+    "bodyPlaceholder": "What's happening, who it affects and what the person should do.",
+    "link": "Link",
+    "linkHint": "Optional. If you set it, the announcement becomes actionable.",
+    "audienceLabel": "Audience",
+    "audience": {
+      "all": "Everyone",
+      "workspace": "Workspace",
+      "user": "Person"
+    },
+    "audienceOption": {
+      "all": "All customers",
+      "workspace": "One workspace",
+      "user": "One person"
+    },
+    "searchTarget": "Search recipient",
+    "searchWorkspace": "Search workspace...",
+    "searchPerson": "Search person or email...",
+    "selectTarget": "Select a recipient",
+    "missingFields": "Fill in every required field.",
+    "published": "Announcement published.",
+    "draftSaved": "Draft saved.",
+    "saveFailed": "We couldn't save the announcement. Please try again.",
+    "deleted": "Announcement deleted.",
+    "deleteFailed": "We couldn't delete the announcement.",
+    "metrics": {
+      "published": "Published",
+      "publishedDescription": "Visible in the Portal",
+      "drafts": "Drafts",
+      "draftsDescription": "Not published yet",
+      "targeted": "Targeted",
+      "targetedDescription": "Aimed at a workspace or person",
+      "reads": "Reads",
+      "readsDescription": "Announcements opened by customers"
+    },
+    "searchLabel": "Search announcements",
+    "searchPlaceholder": "Search by title or message...",
+    "filterStatus": "Filter by status",
+    "statusColumn": "Status",
+    "all": "All",
+    "filter": {
+      "published": "Published",
+      "draft": "Drafts"
+    },
+    "status": {
+      "published": "Published",
+      "draft": "Draft"
+    },
+    "announcement": "Announcement",
+    "noMatches": "No matches",
+    "emptyTitle": "No announcements yet",
+    "emptyDescription": "Publish a notice so your customers see it in the Portal.",
+    "emptyFilteredDescription": "Try another term or status.",
+    "deleteTitle": "Delete announcement",
+    "deleteDescription": "“{title}” and its read history will be deleted. This action can't be undone.",
+    "cancel": "Cancel"
+  },
+  "adminManualPayments": {
+    "pageTitle": "Manual payments",
+    "pageDescription": "Charges outside Polar: transfers, deposits and cash recorded by the team.",
+    "loading": "Loading manual payments",
+    "forbiddenTitle": "Restricted access",
+    "forbiddenDescription": "Your account can't manage manual payments.",
+    "loadFailedTitle": "We couldn't load this section",
+    "loadFailedDescription": "The manual payments couldn't be loaded.",
+    "sectionsLabel": "Manual payment sections",
+    "tab": {
+      "payments": "Payments",
+      "settings": "Settings"
+    },
+    "createTitle": "Record manual payment",
+    "registerPayment": "Record payment",
+    "searchWorkspace": "Search workspace",
+    "searchWorkspacePlaceholder": "Search workspace...",
+    "selectWorkspace": "Select a workspace",
+    "ownerHint": "The payment is attributed to the workspace owner.",
+    "product": "Product",
+    "required": "required",
+    "productType": {
+      "plan": "Plan",
+      "creditsPack": "Credit pack",
+      "pack": "Pack"
+    },
+    "selectOffer": "Select an offer",
+    "reference": "Reference",
+    "referencePlaceholder": "PAY-000123",
+    "referenceHint": "Receipt identifier. It can't be repeated.",
+    "paymentInfo": "Payment details",
+    "paymentInfoPlaceholder": "Bank, transaction number, deposit date...",
+    "note": "Internal note",
+    "notePlaceholder": "Context for the team.",
+    "missingFields": "Fill in every required field.",
+    "referenceTaken": "That reference is already recorded.",
+    "actionFailed": "We couldn't complete the action. Please try again.",
+    "created": "Manual payment recorded.",
+    "approvedToast": "Payment approved and applied.",
+    "rejectedToast": "Payment rejected.",
+    "applied": "Applied",
+    "metrics": {
+      "pending": "Pending",
+      "pendingDescription": "Awaiting review",
+      "approved": "Approved",
+      "approvedDescription": "Granted a plan or credits",
+      "rejected": "Rejected",
+      "rejectedDescription": "Discarded by the team",
+      "amount": "Approved amount",
+      "amountDescription": "Total charged outside Polar"
+    },
+    "searchLabel": "Search manual payments",
+    "searchPlaceholder": "Search by reference, customer or workspace...",
+    "filterStatus": "Filter by status",
+    "statusColumn": "Status",
+    "all": "All",
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "filter": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "amount": "Amount",
+    "noMatches": "No matches",
+    "emptyTitle": "No manual payments yet",
+    "emptyDescription": "Record a charge received outside Polar to apply it to the customer's workspace.",
+    "emptyFilteredDescription": "Try another term or status.",
+    "acceptManual": "Accept manual payments",
+    "acceptManualHint": "Shows offline payment instructions to customers.",
+    "referencePrefix": "Reference prefix",
+    "referencePrefixPlaceholder": "PAY-",
+    "referencePrefixHint": "Proposed when recording a new payment.",
+    "instructions": "Payment instructions",
+    "instructionsPlaceholder": "Bank, account holder, account number and what to send as proof.",
+    "settingsSaved": "Settings saved.",
+    "deleteTitle": "Delete manual payment",
+    "deleteDescription": "The record “{reference}” will be deleted. This action can't be undone.",
+    "deleted": "Manual payment deleted.",
+    "cancel": "Cancel"
+  }
+}

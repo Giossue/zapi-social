@@ -12,7 +12,7 @@ import {
   Users,
   Wallet,
   X,
-  } from "lucide-react"
+} from "lucide-react"
 
 import { ApiError, affiliateApi } from "@workspace/api-client"
 import type { PortalAffiliateDashboard } from "@workspace/contracts"
@@ -63,6 +63,7 @@ import {
   TabsTrigger,
 } from "@workspace/ui/components/tabs"
 import { toast } from "@workspace/ui/components/toast"
+import { useTranslations } from "next-intl"
 import { loginPath } from "@/features/identity/login-redirect"
 
 type Commission = PortalAffiliateDashboard["commissions"][number]
@@ -152,6 +153,7 @@ function WithdrawalSheet({
   open: boolean
   pending: boolean
 }) {
+  const t = useTranslations("affiliate")
   const [amount, setAmount] = useState("")
 
   useEffect(() => {
@@ -167,7 +169,7 @@ function WithdrawalSheet({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!canSubmit) {
-      toast.error("El monto debe ser mayor a cero y no superar tu saldo.")
+      toast.error(t("invalidAmount"))
       return
     }
     const requested = await onSubmit(amountMinor)
@@ -178,11 +180,8 @@ function WithdrawalSheet({
     <Sheet onOpenChange={onOpenChange} open={open}>
       <SheetContent className="w-full gap-0 p-0 sm:max-w-md" side="right">
         <SheetHeader className="border-b">
-          <SheetTitle>Solicitar retiro</SheetTitle>
-          <SheetDescription>
-            El monto se reserva de tu saldo disponible hasta que se procese la
-            solicitud.
-          </SheetDescription>
+          <SheetTitle>{t("requestWithdrawal")}</SheetTitle>
+          <SheetDescription>{t("withdrawalDescription")}</SheetDescription>
         </SheetHeader>
         <form
           aria-busy={pending}
@@ -194,11 +193,11 @@ function WithdrawalSheet({
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="withdrawal-amount">
-                  Monto{" "}
+                  {t("amount")}{" "}
                   <span aria-hidden="true" className="text-destructive">
                     *
                   </span>
-                  <span className="sr-only"> obligatorio</span>
+                  <span className="sr-only"> {t("required")}</span>
                 </FieldLabel>
                 <Input
                   aria-required="true"
@@ -211,7 +210,9 @@ function WithdrawalSheet({
                   value={amount}
                 />
                 <FieldDescription>
-                  Disponible: {money(availableMinor, currency)}
+                  {t("availableAmount", {
+                    amount: money(availableMinor, currency),
+                  })}
                 </FieldDescription>
               </Field>
             </FieldGroup>
@@ -241,6 +242,7 @@ function WithdrawalSheet({
 }
 
 export function AffiliatePage() {
+  const t = useTranslations("affiliate")
   const router = useRouter()
   const [data, setData] = useState<PortalAffiliateDashboard | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -292,11 +294,11 @@ export function AffiliatePage() {
     try {
       await affiliateApi.activate()
       await load()
-      toast.success("Programa de afiliados activado.")
+      toast.success(t("activated"))
     } catch (error) {
       if (handleError(error)) return
       console.error("Affiliate activation failed", error)
-      toast.error("No pudimos activar el programa. Inténtalo de nuevo.")
+      toast.error(t("activateFailed"))
     } finally {
       setPending(false)
     }
@@ -307,12 +309,12 @@ export function AffiliatePage() {
     try {
       await affiliateApi.requestWithdrawal({ amountMinor })
       await load()
-      toast.success("Solicitud de retiro registrada.")
+      toast.success(t("withdrawalRequested"))
       return true
     } catch (error) {
       if (handleError(error)) return false
       console.error("Affiliate withdrawal request failed", error)
-      toast.error("No pudimos registrar el retiro. Inténtalo de nuevo.")
+      toast.error(t("withdrawalFailed"))
       return false
     } finally {
       setPending(false)
@@ -321,19 +323,19 @@ export function AffiliatePage() {
 
   async function copyCode(code: string) {
     if (!navigator.clipboard) {
-      toast.error("Tu navegador no permite copiar el código.")
+      toast.error(t("clipboardUnsupported"))
       return
     }
     try {
       await navigator.clipboard.writeText(code)
-      toast.success("Código copiado.")
+      toast.success(t("codeCopied"))
     } catch {
-      toast.error("No pudimos copiar el código. Inténtalo de nuevo.")
+      toast.error(t("copyFailed"))
     }
   }
 
   if (isLoading && !data && !loadError) {
-    return <PageLoading aria-label="Cargando afiliados" />
+    return <PageLoading aria-label={t("loading")} />
   }
 
   if (loadError || !data) {
@@ -347,9 +349,9 @@ export function AffiliatePage() {
                 variant="brand-secondary"
               />
             }
-            description="No pudimos cargar tu programa de afiliados."
+            description={t("loadFailedDescription")}
             icon={CircleAlert}
-            title="Afiliados no disponible"
+            title={t("unavailableTitle")}
           />
         </CardContent>
       </Card>
@@ -376,9 +378,9 @@ export function AffiliatePage() {
                   Activar programa
                 </Button>
               }
-              description="Al activarlo recibirás un código propio para atribuir referidos y acumular comisiones."
+              description={t("joinDescription")}
               icon={HandCoins}
-              title="Aún no participas en el programa"
+              title={t("joinTitle")}
             />
           </CardContent>
         </Card>
@@ -452,7 +454,9 @@ export function AffiliatePage() {
                     profile.status === "active" ? "success" : "destructive"
                   }
                 >
-                  {profile.status === "active" ? "Activo" : "Suspendido"}
+                  {profile.status === "active"
+                    ? t("profileStatus.active")
+                    : t("profileStatus.suspended")}
                 </Badge>
               </div>
               <span className="text-sm text-muted-foreground">
@@ -472,39 +476,39 @@ export function AffiliatePage() {
 
         <CardGrid layout="md-3">
           <MetricCard
-            description="Visitas atribuidas a tu código"
+            description={t("metrics.clicksDescription")}
             icon={MousePointerClick}
-            label="Clics"
+            label={t("metrics.clicks")}
             value={totals.visits}
           />
           <MetricCard
-            description="Personas registradas"
+            description={t("metrics.referralsDescription")}
             icon={Users}
-            label="Referidos"
+            label={t("metrics.referrals")}
             value={totals.referrals}
           />
           <MetricCard
-            description="Referidos que compraron"
+            description={t("metrics.conversionsDescription")}
             icon={BadgeCheck}
-            label="Conversiones"
+            label={t("metrics.conversions")}
             value={totals.conversions}
           />
           <MetricCard
-            description="Lista para retiro"
+            description={t("metrics.availableDescription")}
             icon={Wallet}
-            label="Disponible"
+            label={t("metrics.available")}
             value={money(totals.availableMinor, totals.currency)}
           />
           <MetricCard
-            description="Aún en validación"
+            description={t("metrics.pendingDescription")}
             icon={CircleDollarSign}
-            label="Pendiente"
+            label={t("metrics.pending")}
             value={money(totals.pendingMinor, totals.currency)}
           />
           <MetricCard
-            description="Retirado históricamente"
+            description={t("metrics.paidDescription")}
             icon={HandCoins}
-            label="Pagado"
+            label={t("metrics.paid")}
             value={money(totals.paidMinor, totals.currency)}
           />
         </CardGrid>
@@ -517,20 +521,24 @@ export function AffiliatePage() {
           }}
         >
           <TabsList className="flex h-auto flex-wrap">
-            <TabsTrigger value="commissions">Comisiones</TabsTrigger>
-            <TabsTrigger value="withdrawals">Retiros</TabsTrigger>
+            <TabsTrigger value="commissions">
+              {t("tab.commissions")}
+            </TabsTrigger>
+            <TabsTrigger value="withdrawals">
+              {t("tab.withdrawals")}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent className="pt-3" value="commissions">
             <Card variant="subtle">
               <DataTableHeader
                 search={{
-                  ariaLabel: "Buscar comisiones",
+                  ariaLabel: t("searchCommissions"),
                   onChange: (value) => {
                     setCommissionQuery(value)
                     setCommissionPage(1)
                   },
-                  placeholder: "Buscar por monto...",
+                  placeholder: t("searchByAmount"),
                   value: commissionQuery,
                 }}
               />
@@ -550,18 +558,27 @@ export function AffiliatePage() {
                   }
                 >
                   <DataTableFilter
-                    ariaLabel="Filtrar por estado"
-                    label="Estado"
+                    ariaLabel={t("filterStatus")}
+                    label={t("statusColumn")}
                     onValueChange={(value) => {
                       setCommissionStatus(value as Commission["status"] | "all")
                       setCommissionPage(1)
                     }}
                     options={[
-                      { label: "Todas", value: "all" },
-                      { label: "Pendientes", value: "pending" },
-                      { label: "Disponibles", value: "available" },
-                      { label: "Pagadas", value: "paid" },
-                      { label: "Canceladas", value: "cancelled" },
+                      { label: t("all"), value: "all" },
+                      {
+                        label: t("commissionFilter.pending"),
+                        value: "pending",
+                      },
+                      {
+                        label: t("commissionFilter.available"),
+                        value: "available",
+                      },
+                      { label: t("commissionFilter.paid"), value: "paid" },
+                      {
+                        label: t("commissionFilter.cancelled"),
+                        value: "cancelled",
+                      },
                     ]}
                     value={commissionStatus}
                   />
@@ -569,8 +586,8 @@ export function AffiliatePage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Comisión</TableHead>
-                      <TableHead>Estado</TableHead>
+                      <TableHead>{t("commission")}</TableHead>
+                      <TableHead>{t("statusColumn")}</TableHead>
                       <TableHead className="hidden lg:table-cell">
                         Generada
                       </TableHead>
@@ -610,13 +627,13 @@ export function AffiliatePage() {
                         colSpan={3}
                         description={
                           hasCommissionFilters
-                            ? "Prueba con otro término o estado."
-                            : "Cuando alguien compre usando tu código verás aquí su comisión."
+                            ? t("emptyFilteredDescription")
+                            : t("commissionsEmptyDescription")
                         }
                         title={
                           hasCommissionFilters
-                            ? "No hay coincidencias"
-                            : "Aún no hay comisiones"
+                            ? t("noMatches")
+                            : t("commissionsEmptyTitle")
                         }
                       />
                     )}
@@ -656,12 +673,12 @@ export function AffiliatePage() {
                   </Button>
                 }
                 search={{
-                  ariaLabel: "Buscar retiros",
+                  ariaLabel: t("searchWithdrawals"),
                   onChange: (value) => {
                     setWithdrawalQuery(value)
                     setWithdrawalPage(1)
                   },
-                  placeholder: "Buscar por monto...",
+                  placeholder: t("searchByAmount"),
                   value: withdrawalQuery,
                 }}
               />
@@ -681,18 +698,27 @@ export function AffiliatePage() {
                   }
                 >
                   <DataTableFilter
-                    ariaLabel="Filtrar por estado"
-                    label="Estado"
+                    ariaLabel={t("filterStatus")}
+                    label={t("statusColumn")}
                     onValueChange={(value) => {
                       setWithdrawalStatus(value as Withdrawal["status"] | "all")
                       setWithdrawalPage(1)
                     }}
                     options={[
-                      { label: "Todos", value: "all" },
-                      { label: "Solicitados", value: "requested" },
-                      { label: "Aprobados", value: "approved" },
-                      { label: "Pagados", value: "paid" },
-                      { label: "Rechazados", value: "rejected" },
+                      { label: t("all"), value: "all" },
+                      {
+                        label: t("withdrawalFilter.requested"),
+                        value: "requested",
+                      },
+                      {
+                        label: t("withdrawalFilter.approved"),
+                        value: "approved",
+                      },
+                      { label: t("withdrawalFilter.paid"), value: "paid" },
+                      {
+                        label: t("withdrawalFilter.rejected"),
+                        value: "rejected",
+                      },
                     ]}
                     value={withdrawalStatus}
                   />
@@ -700,8 +726,8 @@ export function AffiliatePage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Monto</TableHead>
-                      <TableHead>Estado</TableHead>
+                      <TableHead>{t("amount")}</TableHead>
+                      <TableHead>{t("statusColumn")}</TableHead>
                       <TableHead className="hidden lg:table-cell">
                         Solicitado
                       </TableHead>
@@ -741,13 +767,13 @@ export function AffiliatePage() {
                         colSpan={3}
                         description={
                           hasWithdrawalFilters
-                            ? "Prueba con otro término o estado."
-                            : "Tus solicitudes de retiro aparecerán en este historial."
+                            ? t("emptyFilteredDescription")
+                            : t("withdrawalsEmptyDescription")
                         }
                         title={
                           hasWithdrawalFilters
-                            ? "No hay coincidencias"
-                            : "No hay retiros"
+                            ? t("noMatches")
+                            : t("withdrawalsEmptyTitle")
                         }
                       />
                     )}

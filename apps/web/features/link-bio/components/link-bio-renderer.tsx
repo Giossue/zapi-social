@@ -1,3 +1,5 @@
+"use client"
+
 import type { CSSProperties, MouseEvent } from "react"
 
 import type {
@@ -5,6 +7,8 @@ import type {
   LinkBioBlock,
   LinkBioTemplateKey,
 } from "@workspace/contracts"
+import { useTranslations } from "next-intl"
+
 import { cn } from "@workspace/ui/lib/utils"
 
 import { linkBioTemplate } from "../link-bio-templates"
@@ -69,18 +73,18 @@ export function LinkBioRenderer({
     url: string
   ) => void
 }) {
+  const t = useTranslations("linkBio.preview")
   const template = linkBioTemplate(page.templateKey)
   const align =
     page.appearance.contentAlign === "left" ? "text-left" : "text-center"
-  const headline =
-    page.headline || (placeholders ? "Añade un titular" : "")
+  const headline = page.headline || (placeholders ? t("headlineHint") : "")
   const description =
-    page.description || (placeholders ? "Añade una descripción" : "")
+    page.description || (placeholders ? t("descriptionHint") : "")
   const overlay = Math.min(Math.max(page.appearance.backgroundOverlay, 0), 85)
 
   return (
     <div
-      className="min-h-full [background:var(--bio-bg)] [color:var(--bio-fg)]"
+      className="min-h-full [color:var(--bio-fg)] [background:var(--bio-bg)]"
       style={template.theme as CSSProperties}
     >
       {page.coverUrl ? (
@@ -116,7 +120,7 @@ export function LinkBioRenderer({
             <img
               alt={page.title}
               className={cn(
-                "size-24 border-2 object-cover [border-color:var(--bio-border)] [background:var(--bio-card)]",
+                "size-24 border-2 [border-color:var(--bio-border)] object-cover [background:var(--bio-card)]",
                 avatarShape[page.appearance.avatarStyle]
               )}
               src={page.avatarUrl}
@@ -125,7 +129,7 @@ export function LinkBioRenderer({
             <span
               aria-hidden="true"
               className={cn(
-                "flex size-24 items-center justify-center border-2 text-2xl font-semibold [background:var(--bio-card)] [border-color:var(--bio-border)] [color:var(--bio-card-fg)]",
+                "flex size-24 items-center justify-center border-2 [border-color:var(--bio-border)] text-2xl font-semibold [color:var(--bio-card-fg)] [background:var(--bio-card)]",
                 avatarShape[page.appearance.avatarStyle]
               )}
             >
@@ -134,7 +138,7 @@ export function LinkBioRenderer({
           ) : null}
           <div className={cn("flex w-full flex-col gap-1", align)}>
             <h1 className="font-heading text-2xl font-semibold">
-              {page.title || (placeholders ? "Tu página" : "")}
+              {page.title || (placeholders ? t("titleHint") : "")}
             </h1>
             {headline ? (
               <p
@@ -163,7 +167,7 @@ export function LinkBioRenderer({
           block.enabled === false ? null : (
             <section className="flex flex-col gap-3" key={blockIndex}>
               {block.title ? (
-                <h2 className="text-sm font-medium tracking-wide uppercase [color:var(--bio-muted)]">
+                <h2 className="text-sm font-medium tracking-wide [color:var(--bio-muted)] uppercase">
                   {block.title}
                 </h2>
               ) : null}
@@ -174,7 +178,7 @@ export function LinkBioRenderer({
 
               {block.type === "video" && block.url ? (
                 <a
-                  className="text-sm underline underline-offset-4 [color:var(--bio-accent)]"
+                  className="text-sm [color:var(--bio-accent)] underline underline-offset-4"
                   href={block.url}
                   rel="noreferrer"
                   target="_blank"
@@ -215,7 +219,7 @@ export function LinkBioRenderer({
                 ? block.items.map((item, itemIndex) => (
                     <a
                       className={cn(
-                        "flex items-center justify-between gap-3 border px-4 py-3 text-sm font-medium transition-colors [background:var(--bio-card)] [border-color:var(--bio-border)] [color:var(--bio-card-fg)] hover:[background:var(--bio-hover)]",
+                        "flex items-center justify-between gap-3 border [border-color:var(--bio-border)] px-4 py-3 text-sm font-medium [color:var(--bio-card-fg)] transition-colors [background:var(--bio-card)] hover:[background:var(--bio-hover)]",
                         buttonShape[page.appearance.buttonStyle]
                       )}
                       href={item.url || "#"}
@@ -230,8 +234,7 @@ export function LinkBioRenderer({
                     >
                       <span className="flex min-w-0 flex-col text-left">
                         <span className="truncate">
-                          {item.label ||
-                            (placeholders ? "Nuevo elemento" : "")}
+                          {item.label || (placeholders ? t("itemHint") : "")}
                         </span>
                         {item.note ? (
                           <span className="truncate text-xs font-normal [color:var(--bio-muted)]">

@@ -65,13 +65,16 @@ export const updateAdminTurnstileConfigurationSchema = z
   })
   .strict()
 
+/** Idiomas con traducción disponible en la interfaz. */
+export const supportedLocaleSchema = z.enum(["es", "en"])
+
 export const portalProfileSchema = z.object({
   id: z.uuid(),
   displayName: z.string(),
   email: z.string().email(),
   username: z.string().nullable(),
   emailVerifiedAt: z.string().datetime().nullable(),
-  locale: z.enum(["es", "en"]).nullable(),
+  locale: supportedLocaleSchema.nullable(),
   timezone: profileTimeZoneSchema.nullable(),
   createdAt: z.string().datetime(),
 })
@@ -79,7 +82,7 @@ export const portalProfileSchema = z.object({
 export const updatePortalProfileSchema = z
   .object({
     displayName: z.string().trim().min(2).max(160),
-    locale: z.enum(["es", "en"]).nullable(),
+    locale: supportedLocaleSchema.nullable(),
     timezone: profileTimeZoneSchema,
   })
   .strict()
@@ -99,6 +102,8 @@ export const authUserSchema = z.object({
   id: z.uuid(),
   email: z.string().email(),
   displayName: z.string(),
+  /** Idioma elegido por el usuario; `null` usa el idioma por defecto. */
+  locale: supportedLocaleSchema.nullable(),
 })
 
 export const activeWorkspaceSchema = z.object({
@@ -136,12 +141,19 @@ const dashboardKpiChangeSchema = z
   })
   .nullable()
 
+/**
+ * El KPI viaja como clave, no como texto: la etiqueta, su descripción y su
+ * icono los resuelve la interfaz según el idioma activo.
+ */
 const portalDashboardKpiSchema = z.object({
-  label: z.string(),
+  key: z.enum(["publishedPosts", "activeChannels", "aiCredits", "newFiles"]),
   value: z.string(),
   change: dashboardKpiChangeSchema,
-  description: z.string(),
-  icon: z.enum(["ai", "calendar", "channels", "files"]),
+  descriptionKey: z.enum([
+    "previousWeeks",
+    "connectedRecently",
+    "noRecentConnections",
+  ]),
 })
 
 const dashboardComparisonPointSchema = z.object({
@@ -155,8 +167,12 @@ const dashboardDayCountSchema = z.object({
   count: z.number().int().nonnegative(),
 })
 
+/**
+ * Los desgloses viajan por clave —proveedor, tipo de uso AI o plan— para que
+ * la interfaz decida su rótulo. `none` representa el registro sin canal.
+ */
 const dashboardBreakdownItemSchema = z.object({
-  label: z.string(),
+  key: z.string(),
   count: z.number().int().nonnegative(),
 })
 
@@ -1029,7 +1045,8 @@ export const portalDashboardSchema = z.object({
   upcoming: z.array(
     z.object({
       content: z.string(),
-      channel: z.string(),
+      /** Clave del proveedor, o `none` cuando la publicación no tiene canal. */
+      channelKey: z.string(),
       status: portalUpcomingPostStatusSchema,
       date: z.string().nullable(),
     })
@@ -1037,11 +1054,17 @@ export const portalDashboardSchema = z.object({
 })
 
 const adminDashboardKpiSchema = z.object({
-  label: z.string(),
+  key: z.enum(["users", "workspaces", "subscriptions", "revenue"]),
   value: z.string(),
+  /** Con moneda, `value` es el importe en unidad menor y lo formatea la web. */
+  currency: z.string().nullable(),
   change: dashboardKpiChangeSchema,
-  description: z.string(),
-  icon: z.enum(["users", "workspaces", "subscriptions", "revenue"]),
+  descriptionKey: z.enum([
+    "usersPreviousWeeks",
+    "workspacesPreviousWeeks",
+    "activeOrTrial",
+    "chargedRecently",
+  ]),
 })
 
 export const adminPaymentStatusSchema = z.enum([
@@ -1198,6 +1221,7 @@ export type ActiveWorkspace = z.infer<typeof activeWorkspaceSchema>
 export type ActivateAuthWorkspaceInput = z.infer<
   typeof activateAuthWorkspaceSchema
 >
+export type SupportedLocale = z.infer<typeof supportedLocaleSchema>
 export type PortalProfile = z.infer<typeof portalProfileSchema>
 export type UpdatePortalProfileInput = z.infer<typeof updatePortalProfileSchema>
 export type ChangePortalPasswordInput = z.infer<

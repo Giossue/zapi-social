@@ -48,8 +48,10 @@ export function DashboardNavUser({ profile }: DashboardNavUserProps) {
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{profile.displayName}</span>
-                <span className="truncate text-muted-foreground text-xs">
+                <span className="truncate font-medium">
+                  {profile.displayName}
+                </span>
+                <span className="truncate text-xs text-muted-foreground">
                   {profile.email}
                 </span>
               </div>
@@ -73,7 +75,7 @@ export function DashboardNavUser({ profile }: DashboardNavUserProps) {
                   <span className="truncate font-medium">
                     {profile.displayName}
                   </span>
-                  <span className="truncate text-muted-foreground text-xs">
+                  <span className="truncate text-xs text-muted-foreground">
                     {profile.email}
                   </span>
                 </div>

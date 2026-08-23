@@ -1,4 +1,13 @@
 import type { NextConfig } from "next"
+import createNextIntlPlugin from "next-intl/plugin"
+
+const withNextIntl = createNextIntlPlugin({
+  experimental: {
+    // Tipa las claves a partir del idioma fuente: una clave inexistente falla
+    // en typecheck en vez de renderizarse como texto crudo.
+    createMessagesDeclaration: "./messages/es.json",
+  },
+})
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@workspace/ui"],
@@ -22,4 +31,4 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default nextConfig
+export default withNextIntl(nextConfig)

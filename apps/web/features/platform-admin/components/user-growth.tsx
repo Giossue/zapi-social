@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { CartesianGrid, ComposedChart, Line, XAxis, YAxis } from "recharts"
 
 import {
@@ -18,39 +19,26 @@ import {
 
 import type { AdminDashboard } from "@workspace/contracts"
 
-const chartConfig = {
-  current: {
-    color: "var(--chart-3)",
-    label: "Últimas 4 semanas",
-  },
-  previous: {
-    color: "var(--muted-foreground)",
-    label: "Periodo anterior",
-  },
-} satisfies ChartConfig
-
 const weeklyTicks = [4, 11, 18, 25]
 
-function formatWeek(value: number) {
-  const weekIndex = weeklyTicks.indexOf(value)
-
-  return weekIndex >= 0 ? `Semana ${weekIndex + 1}` : ""
-}
-
-export function UserGrowth({
-  data,
-}: {
-  data: AdminDashboard["userGrowth"]
-}) {
+export function UserGrowth({ data }: { data: AdminDashboard["userGrowth"] }) {
+  const t = useTranslations("dashboard.admin.growth")
   const chartData = data.map((point, index) => ({ ...point, day: index + 1 }))
+  const chartConfig = {
+    current: { color: "var(--chart-3)", label: t("currentPeriod") },
+    previous: { color: "var(--muted-foreground)", label: t("previousPeriod") },
+  } satisfies ChartConfig
+
+  function formatWeek(value: number) {
+    const weekIndex = weeklyTicks.indexOf(value)
+    return weekIndex >= 0 ? t("week", { number: weekIndex + 1 }) : ""
+  }
 
   return (
     <Card className="h-full" variant="subtle">
       <CardHeader>
-        <CardTitle className="font-normal">Crecimiento de usuarios</CardTitle>
-        <CardDescription>
-          Registros por día frente al periodo anterior.
-        </CardDescription>
+        <CardTitle className="font-normal">{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
 
       <CardContent>
@@ -83,7 +71,7 @@ export function UserGrowth({
               content={
                 <ChartTooltipContent
                   className="w-48"
-                  labelFormatter={() => "Registros"}
+                  labelFormatter={() => t("tooltip")}
                 />
               }
             />

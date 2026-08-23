@@ -8,10 +8,17 @@ import {
   workspaces,
 } from '@workspace/database';
 import type { AdminDashboard } from '@workspace/contracts';
-import { and, count, desc, eq, gte, inArray, sql } from '@workspace/database/query';
+import {
+  and,
+  count,
+  desc,
+  eq,
+  gte,
+  inArray,
+  sql,
+} from '@workspace/database/query';
 import { DatabaseService } from '../database/database.service';
 import {
-  aiKindLabel,
   buildComparisonSeries,
   buildDayCounts,
   buildKpiChange,
@@ -137,11 +144,6 @@ export class AdminDashboardService {
       .filter((row) => row.period === 'previous')
       .reduce((total, row) => total + row.value, 0);
     const revenueCurrency = revenueRows[0]?.currency ?? 'USD';
-    const revenueFormatter = new Intl.NumberFormat('es', {
-      style: 'currency',
-      currency: revenueCurrency,
-    });
-
     const totalRequests = requestsByDay.reduce(
       (total, row) => total + row.value,
       0,
@@ -150,37 +152,37 @@ export class AdminDashboardService {
     return {
       metrics: [
         {
-          label: 'Usuarios',
+          key: 'users' as const,
           value: String(userTotals[0]?.value ?? 0),
+          currency: null,
           change: buildKpiChange(currentUsers, previousUsers),
-          description: 'registros frente a las 4 semanas previas',
-          icon: 'users',
+          descriptionKey: 'usersPreviousWeeks' as const,
         },
         {
-          label: 'Workspaces',
+          key: 'workspaces' as const,
           value: String(workspaceTotals[0]?.value ?? 0),
+          currency: null,
           change: buildKpiChange(workspacesCurrent, workspacesPrevious),
-          description: 'creación frente a las 4 semanas previas',
-          icon: 'workspaces',
+          descriptionKey: 'workspacesPreviousWeeks' as const,
         },
         {
-          label: 'Suscripciones activas',
+          key: 'subscriptions' as const,
           value: String(activeSubscriptions[0]?.value ?? 0),
+          currency: null,
           change: null,
-          description: 'activas o en periodo de prueba',
-          icon: 'subscriptions',
+          descriptionKey: 'activeOrTrial' as const,
         },
         {
-          label: 'Ingresos',
-          value: revenueFormatter.format(revenueCurrent / 100),
+          key: 'revenue' as const,
+          value: String(revenueCurrent),
+          currency: revenueCurrency,
           change: buildKpiChange(revenueCurrent, revenuePrevious),
-          description: 'cobrado en las últimas 4 semanas',
-          icon: 'revenue',
+          descriptionKey: 'chargedRecently' as const,
         },
       ],
       userGrowth,
       plans: subscriptionsByPlan.slice(0, 5).map((row) => ({
-        label: row.label,
+        key: row.label,
         count: row.value,
       })),
       aiActivity: {
@@ -190,7 +192,7 @@ export class AdminDashboardService {
           dayKeys(currentStart, DASHBOARD_WINDOW_DAYS),
         ),
         kinds: requestKinds.slice(0, 4).map((row) => ({
-          label: aiKindLabel(row.kind),
+          key: row.kind,
           count: row.value,
         })),
       },

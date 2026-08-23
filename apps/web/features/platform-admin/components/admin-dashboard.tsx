@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
+import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import {
   ArrowRight,
@@ -44,28 +45,14 @@ import type { AdminDashboard as AdminDashboardData } from "@workspace/contracts"
 
 type Readiness = "ready" | "incomplete" | "untested" | "disabled"
 
+/** Los proveedores son nombres de marca; solo su estado se traduce. */
 type ProviderState = {
-  label: string
+  name: string
   readiness: Readiness
 }
 
-const readinessCopy: Record<Readiness, { label: string; detail: string }> = {
-  ready: { label: "Listo", detail: "Disponible para los workspaces." },
-  incomplete: {
-    label: "Incompleto",
-    detail: "Faltan credenciales por completar.",
-  },
-  untested: {
-    label: "Sin probar",
-    detail: "Configurado, pero sin una prueba de conexión correcta.",
-  },
-  disabled: {
-    label: "Deshabilitado",
-    detail: "No se ofrece a los workspaces.",
-  },
-}
-
 export function AdminDashboard() {
+  const t = useTranslations("dashboard.admin")
   const router = useRouter()
   const [dashboard, setDashboard] = useState<AdminDashboardData | null>(null)
   const [providers, setProviders] = useState<ProviderState[] | null>(null)
@@ -88,11 +75,11 @@ export function AdminDashboard() {
         ])
       setDashboard(nextDashboard)
       setProviders([
-        { label: "Meta", readiness: meta.readiness },
-        { label: "WhatsApp Status", readiness: whatsapp.readiness },
-        { label: "Correo SMTP", readiness: smtp.readiness },
-        { label: "Google Drive", readiness: drive.readiness },
-        { label: "Polar.sh", readiness: polar.readiness },
+        { name: "Meta", readiness: meta.readiness },
+        { name: "WhatsApp Status", readiness: whatsapp.readiness },
+        { name: t("smtpProvider"), readiness: smtp.readiness },
+        { name: "Google Drive", readiness: drive.readiness },
+        { name: "Polar.sh", readiness: polar.readiness },
       ])
       setForbidden(false)
     } catch (error) {
@@ -109,7 +96,7 @@ export function AdminDashboard() {
     } finally {
       setIsLoading(false)
     }
-  }, [router])
+  }, [router, t])
 
   useEffect(() => {
     void load()
@@ -120,9 +107,9 @@ export function AdminDashboard() {
       <Card variant="subtle">
         <CardContent>
           <EmptyState
-            description="Solicita a un administrador el permiso necesario para ver el estado de la plataforma."
+            description={t("forbiddenDescription")}
             icon={ShieldCheck}
-            title="Panel no disponible"
+            title={t("unavailableTitle")}
           />
         </CardContent>
       </Card>
@@ -130,7 +117,7 @@ export function AdminDashboard() {
   }
 
   if (isLoading && !dashboard) {
-    return <PageLoading aria-label="Cargando estado de la plataforma" />
+    return <PageLoading aria-label={t("loading")} />
   }
 
   if (loadError || !dashboard || !providers) {
@@ -144,9 +131,9 @@ export function AdminDashboard() {
                 variant="brand-secondary"
               />
             }
-            description="No pudimos consultar el estado de la plataforma."
+            description={t("loadFailedDescription")}
             icon={CircleAlert}
-            title="Panel no disponible"
+            title={t("unavailableTitle")}
           />
         </CardContent>
       </Card>
@@ -160,12 +147,12 @@ export function AdminDashboard() {
 
   return (
     <div className="flex flex-col gap-4 md:gap-6">
-      <section aria-label="Estado de la plataforma">
+      <section aria-label={t("statusSection")}>
         <AdminMetricCards metrics={dashboard.metrics} />
       </section>
 
       <section
-        aria-label="Crecimiento y distribución"
+        aria-label={t("growthSection")}
         className="grid grid-cols-1 items-stretch gap-4 xl:grid-cols-12"
       >
         <div className="xl:col-span-7">
@@ -180,7 +167,7 @@ export function AdminDashboard() {
       </section>
 
       <section
-        aria-label="Facturación y actividad"
+        aria-label={t("billingSection")}
         className="grid grid-cols-1 items-stretch gap-4 xl:grid-cols-12"
       >
         <div className="xl:col-span-7">
@@ -192,21 +179,19 @@ export function AdminDashboard() {
       </section>
 
       <section
-        aria-label="Operación de plataforma"
+        aria-label={t("operationsSection")}
         className="grid gap-4 xl:grid-cols-[minmax(0,1.4fr)_minmax(18rem,1fr)]"
       >
         <Card variant="subtle">
           <CardHeader>
-            <CardTitle>Atención operativa</CardTitle>
-            <CardDescription>
-              Proveedores que aún no están disponibles para los workspaces.
-            </CardDescription>
+            <CardTitle>{t("attentionTitle")}</CardTitle>
+            <CardDescription>{t("attentionDescription")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col gap-3">
               {attention.length ? (
                 attention.map((provider, index) => (
-                  <div className="flex flex-col gap-3" key={provider.label}>
+                  <div className="flex flex-col gap-3" key={provider.name}>
                     {index > 0 ? <Separator /> : null}
                     <div className="flex items-start gap-3">
                       <TriangleAlert
@@ -214,13 +199,13 @@ export function AdminDashboard() {
                         className="mt-0.5 size-4 shrink-0 text-warning"
                       />
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium">{provider.label}</p>
+                        <p className="text-sm font-medium">{provider.name}</p>
                         <p className="mt-1 text-sm text-muted-foreground">
-                          {readinessCopy[provider.readiness].detail}
+                          {t(`readiness.${provider.readiness}.detail`)}
                         </p>
                       </div>
                       <Badge variant="warning">
-                        {readinessCopy[provider.readiness].label}
+                        {t(`readiness.${provider.readiness}.label`)}
                       </Badge>
                     </div>
                   </div>
@@ -232,15 +217,12 @@ export function AdminDashboard() {
                     className="mt-0.5 size-4 shrink-0 text-success"
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium">
-                      Sin configuraciones pendientes
-                    </p>
+                    <p className="text-sm font-medium">{t("allReadyTitle")}</p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      Todos los proveedores configurados superaron su prueba de
-                      conexión.
+                      {t("allReadyDescription")}
                     </p>
                   </div>
-                  <Badge variant="success">Correcto</Badge>
+                  <Badge variant="success">{t("allReadyBadge")}</Badge>
                 </div>
               )}
             </div>
@@ -249,11 +231,8 @@ export function AdminDashboard() {
 
         <Card variant="subtle">
           <CardHeader>
-            <CardTitle>Integraciones</CardTitle>
-            <CardDescription>
-              Gestiona los proveedores que habilitan los canales para todos los
-              clientes.
-            </CardDescription>
+            <CardTitle>{t("integrationsTitle")}</CardTitle>
+            <CardDescription>{t("integrationsDescription")}</CardDescription>
             <CardAction>
               <PlugZap
                 aria-hidden="true"
@@ -263,12 +242,11 @@ export function AdminDashboard() {
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             <p className="text-sm text-muted-foreground">
-              Revisa las configuraciones incompletas antes de habilitarlas para
-              los workspaces.
+              {t("integrationsHint")}
             </p>
             <Button asChild size="sm" variant="brand-secondary">
               <Link href="/admin/integrations">
-                Administrar integraciones
+                {t("integrationsAction")}
                 <ArrowRight data-icon="inline-end" />
               </Link>
             </Button>

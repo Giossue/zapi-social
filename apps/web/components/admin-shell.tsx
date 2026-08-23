@@ -1,10 +1,12 @@
 "use client"
 
+import { useTranslations } from "next-intl"
+
 import { DashboardShell } from "@/components/dashboard-shell/dashboard-shell"
+import { useTranslatedNavigation } from "@/components/dashboard-shell/translate-navigation"
 import {
   adminNavigationGroups,
   isAdminNavigationItemActive,
-  type AdminNavigationLink,
 } from "@/features/platform-admin/admin-navigation"
 
 type AdminShellProps = {
@@ -13,15 +15,21 @@ type AdminShellProps = {
 }
 
 export function AdminShell({ children, profile }: AdminShellProps) {
+  const t = useTranslations("shell")
+  const items = useTranslatedNavigation(
+    adminNavigationGroups,
+    "navigation.admin"
+  )
+
   return (
     <DashboardShell
       areaName="Admin"
       homeHref="/admin/dashboard"
       isItemActive={(item, pathname) =>
-        isAdminNavigationItemActive(item as AdminNavigationLink, pathname)
+        isAdminNavigationItemActive(item.href, pathname)
       }
-      items={adminNavigationGroups}
-      navigationLabel="Navegación principal de la plataforma"
+      items={items}
+      navigationLabel={t("adminNavigationLabel")}
       profile={profile}
       sidebarStorageKey="zapi:admin-sidebar:v1"
     >

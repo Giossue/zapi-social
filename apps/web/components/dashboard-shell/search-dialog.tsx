@@ -2,6 +2,7 @@
 
 import * as React from "react"
 
+import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 
 import { Search } from "lucide-react"
@@ -90,6 +91,7 @@ function SearchResultGroups({
 }
 
 export function DashboardSearchDialog({ items }: DashboardSearchDialogProps) {
+  const t = useTranslations("shell.search")
   const [open, setOpen] = React.useState(false)
   const [query, setQuery] = React.useState("")
   const router = useRouter()
@@ -125,20 +127,20 @@ export function DashboardSearchDialog({ items }: DashboardSearchDialogProps) {
         onClick={() => handleOpenChange(true)}
       >
         <Search data-icon="inline-start" />
-        Buscar
-        <kbd className="inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-medium text-[10px]">
+        {t("trigger")}
+        <kbd className="inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 text-[10px] font-medium select-none">
           <span className="text-xs">⌘</span>J
         </kbd>
       </Button>
       <CommandDialog open={open} onOpenChange={handleOpenChange}>
         <Command>
           <CommandInput
-            placeholder="Buscar en la navegación…"
+            placeholder={t("placeholder")}
             value={query}
             onValueChange={setQuery}
           />
           <CommandList>
-            <CommandEmpty>No se encontraron resultados.</CommandEmpty>
+            <CommandEmpty>{t("empty")}</CommandEmpty>
             <SearchResultGroups
               items={query ? searchItems : searchItems}
               onSelect={handleSelect}

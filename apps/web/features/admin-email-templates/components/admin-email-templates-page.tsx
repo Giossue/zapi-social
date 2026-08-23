@@ -1,14 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState, type FormEvent } from "react"
-import {
-  CircleAlert,
-  Pencil,
-  RotateCcw,
-  Save,
-  ShieldX,
-  X,
-} from "lucide-react"
+import { CircleAlert, Pencil, RotateCcw, Save, ShieldX, X } from "lucide-react"
 
 import { adminEmailTemplatesApi, ApiError } from "@workspace/api-client"
 import type { AdminEmailTemplate } from "@workspace/contracts"
@@ -62,6 +55,7 @@ import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
+import { useTranslations } from "next-intl"
 
 const pageSize = 10
 
@@ -96,6 +90,7 @@ function TemplateSheet({
   pending: boolean
   template: AdminEmailTemplate | null
 }) {
+  const t = useTranslations("adminEmailTemplates")
   const [values, setValues] = useState<FormValues>({
     subject: "",
     title: "",
@@ -115,7 +110,7 @@ function TemplateSheet({
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!canSubmit) {
-      toast.error("Completa todos los campos obligatorios.")
+      toast.error(t("missingFields"))
       return
     }
     const saved = await onSubmit(values)
@@ -126,10 +121,11 @@ function TemplateSheet({
     <Sheet onOpenChange={onOpenChange} open={open}>
       <SheetContent className="w-full gap-0 p-0 sm:max-w-xl" side="right">
         <SheetHeader className="border-b">
-          <SheetTitle>{template?.name ?? "Plantilla"}</SheetTitle>
+          <SheetTitle>{template?.name ?? t("template")}</SheetTitle>
           <SheetDescription>
-            {template?.description}. La maquetación, el botón y los datos
-            calculados del correo no cambian.
+            {t("sheetDescription", {
+              description: template?.description ?? "",
+            })}
           </SheetDescription>
         </SheetHeader>
         <form
@@ -239,12 +235,10 @@ function TemplateSheet({
                   }
                   value={values.actionLabel}
                 />
-                <FieldDescription>
-                  El destino del botón lo calcula el sistema.
-                </FieldDescription>
+                <FieldDescription>{t("buttonUrlHint")}</FieldDescription>
               </Field>
               <Field>
-                <FieldLabel htmlFor="template-notice">Aviso final</FieldLabel>
+                <FieldLabel htmlFor="template-notice">{t("notice")}</FieldLabel>
                 <Textarea
                   id="template-notice"
                   maxLength={2000}
@@ -285,6 +279,7 @@ function TemplateSheet({
 }
 
 export function AdminEmailTemplatesPage() {
+  const t = useTranslations("adminEmailTemplates")
   const [templates, setTemplates] = useState<AdminEmailTemplate[]>([])
   const [query, setQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<
@@ -325,24 +320,24 @@ export function AdminEmailTemplatesPage() {
   if (forbidden) {
     return (
       <EmptyState
-        description="Tu cuenta no tiene permisos para editar las plantillas de correo."
+        description={t("forbiddenDescription")}
         icon={ShieldX}
-        title="Acceso restringido"
+        title={t("forbiddenTitle")}
       />
     )
   }
 
   if (isLoading && !templates.length && !loadError) {
-    return <PageLoading aria-label="Cargando plantillas de correo" />
+    return <PageLoading aria-label={t("loading")} />
   }
 
   if (loadError) {
     return (
       <EmptyState
         action={<RetryButton onClick={() => void load()} />}
-        description="No fue posible cargar las plantillas de correo."
+        description={t("loadFailedDescription")}
         icon={CircleAlert}
-        title="No pudimos cargar esta sección"
+        title={t("loadFailedTitle")}
       />
     )
   }
@@ -384,18 +379,18 @@ export function AdminEmailTemplatesPage() {
     <>
       <div className="flex flex-col gap-4">
         <CollectionHeader
-          description="Asunto y textos de los correos transaccionales que envía Zapi."
-          title="Plantillas de correo"
+          description={t("pageDescription")}
+          title={t("pageTitle")}
         />
         <Card variant="subtle">
           <DataTableHeader
             search={{
-              ariaLabel: "Buscar plantillas",
+              ariaLabel: t("searchLabel"),
               onChange: (value) => {
                 setQuery(value)
                 setCurrentPage(1)
               },
-              placeholder: "Buscar plantillas...",
+              placeholder: t("searchPlaceholder"),
               value: query,
             }}
           />
@@ -415,16 +410,16 @@ export function AdminEmailTemplatesPage() {
               }
             >
               <DataTableFilter
-                ariaLabel="Filtrar por estado"
-                label="Estado"
+                ariaLabel={t("filterStatus")}
+                label={t("statusColumn")}
                 onValueChange={(value) => {
                   setStatusFilter(value as "all" | "customized" | "default")
                   setCurrentPage(1)
                 }}
                 options={[
-                  { label: "Todos", value: "all" },
-                  { label: "Personalizada", value: "customized" },
-                  { label: "Texto por defecto", value: "default" },
+                  { label: t("all"), value: "all" },
+                  { label: t("status.customized"), value: "customized" },
+                  { label: t("status.default"), value: "default" },
                 ]}
                 value={statusFilter}
               />
@@ -432,9 +427,9 @@ export function AdminEmailTemplatesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Correo</TableHead>
+                  <TableHead>{t("email")}</TableHead>
                   <TableHead className="hidden lg:table-cell">Asunto</TableHead>
-                  <TableHead>Estado</TableHead>
+                  <TableHead>{t("statusColumn")}</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
@@ -458,8 +453,8 @@ export function AdminEmailTemplatesPage() {
                           variant={template.customized ? "info" : "secondary"}
                         >
                           {template.customized
-                            ? "Personalizada"
-                            : "Texto por defecto"}
+                            ? t("status.customized")
+                            : t("status.default")}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -500,14 +495,10 @@ export function AdminEmailTemplatesPage() {
                     colSpan={4}
                     description={
                       hasFilters
-                        ? "Prueba con otro término o estado."
-                        : "Las plantillas del sistema aparecerán aquí."
+                        ? t("emptyFilteredDescription")
+                        : t("emptyDescription")
                     }
-                    title={
-                      hasFilters
-                        ? "No hay coincidencias"
-                        : "No hay plantillas de correo"
-                    }
+                    title={hasFilters ? t("noMatches") : t("emptyTitle")}
                   />
                 )}
               </TableBody>
@@ -543,11 +534,11 @@ export function AdminEmailTemplatesPage() {
               notice: values.notice.trim() || undefined,
             })
             setTemplates(response.templates)
-            toast.success("Plantilla actualizada.")
+            toast.success(t("updated"))
             return true
           } catch (error) {
             console.error("Email template save failed", error)
-            toast.error("No pudimos guardar la plantilla.")
+            toast.error(t("saveFailed"))
             return false
           } finally {
             setPending(false)
@@ -563,14 +554,15 @@ export function AdminEmailTemplatesPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Restablecer plantilla</AlertDialogTitle>
+            <AlertDialogTitle>{t("resetTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              «{resetting?.name}» vuelve al texto por defecto del sistema y se
-              pierde la personalización guardada.
+              {t("resetDescription", { name: resetting?.name ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={pending}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={pending}>
+              {t("cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               disabled={pending}
               onClick={(event) => {
@@ -583,11 +575,11 @@ export function AdminEmailTemplatesPage() {
                   .then((response) => {
                     setTemplates(response.templates)
                     setResetting(null)
-                    toast.success("Plantilla restablecida.")
+                    toast.success(t("reset"))
                   })
                   .catch((error: unknown) => {
                     console.error("Email template reset failed", error)
-                    toast.error("No pudimos restablecer la plantilla.")
+                    toast.error(t("resetFailed"))
                   })
                   .finally(() => setPending(false))
               }}

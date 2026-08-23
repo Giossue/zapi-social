@@ -186,7 +186,8 @@ export function BlogRssCollection() {
       },
     ],
     createLabel: "Nueva fuente RSS",
-    description: "Feeds RSS que alimentan el blog con importaciones programadas.",
+    description:
+      "Feeds RSS que alimentan el blog con importaciones programadas.",
     emptyDescription: "Conecta un feed para importar entradas automáticamente.",
     emptyTitle: "No hay fuentes RSS",
     fields: (response) => [
@@ -310,7 +311,12 @@ export function BlogRssCollection() {
       } else {
         feedSequence += 1
         feedsStore = [
-          { id: `rss-${feedSequence}`, importCount: 0, lastImportedAt: null, ...input },
+          {
+            id: `rss-${feedSequence}`,
+            importCount: 0,
+            lastImportedAt: null,
+            ...input,
+          },
           ...feedsStore,
         ]
       }

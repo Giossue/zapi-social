@@ -6,6 +6,7 @@ import { EmptyState } from "@workspace/ui/components/empty-state"
 import { PageLoading } from "@workspace/ui/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import { ShieldAlert } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useState, type ReactNode } from "react"
 
@@ -31,6 +32,7 @@ function AccessLoading() {
 }
 
 export function AreaAccessGate({ area, children }: AreaAccessGateProps) {
+  const t = useTranslations("auth.access")
   const router = useRouter()
   const [state, setState] = useState<AccessState>({ status: "loading" })
 
@@ -61,13 +63,9 @@ export function AreaAccessGate({ area, children }: AreaAccessGateProps) {
         redirect("/login")
         return
       }
-      setState({
-        status: "error",
-        message:
-          "No pudimos validar tu acceso. Comprueba tu conexión e inténtalo de nuevo.",
-      })
+      setState({ status: "error", message: t("accessCheckFailed") })
     }
-  }, [area, redirect])
+  }, [area, redirect, t])
 
   useEffect(() => {
     void validateSession()
@@ -80,7 +78,7 @@ export function AreaAccessGate({ area, children }: AreaAccessGateProps) {
         <Card variant="subtle" className="w-full max-w-lg">
           <EmptyState
             icon={ShieldAlert}
-            title="No pudimos verificar tu acceso"
+            title={t("accessCheckTitle")}
             description={state.message}
             action={<RetryButton onClick={() => void validateSession()} />}
           />

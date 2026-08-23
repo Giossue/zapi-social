@@ -1,5 +1,7 @@
 import type { Metadata } from "next"
 import { Inter, Geist_Mono } from "next/font/google"
+import { NextIntlClientProvider } from "next-intl"
+import { getLocale } from "next-intl/server"
 
 import "@workspace/ui/globals.css"
 import { Toaster } from "@workspace/ui/components/toast"
@@ -17,17 +19,31 @@ export const metadata: Metadata = {
   description: "Planifica, publica y mide tu contenido social.",
 }
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  const locale = await getLocale()
+
   return (
-    <html lang="es" suppressHydrationWarning className={cn("dark antialiased font-sans", inter.variable, fontMono.variable)}>
+    <html
+      lang={locale}
+      suppressHydrationWarning
+      className={cn(
+        "dark font-sans antialiased",
+        inter.variable,
+        fontMono.variable
+      )}
+    >
       <body>
-        <ThemeProvider>
-          <TooltipProvider>
-            <SessionSynchronizer />
-            {children}
-            <Toaster />
-          </TooltipProvider>
-        </ThemeProvider>
+        <NextIntlClientProvider>
+          <ThemeProvider>
+            <TooltipProvider>
+              <SessionSynchronizer />
+              {children}
+              <Toaster />
+            </TooltipProvider>
+          </ThemeProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   )

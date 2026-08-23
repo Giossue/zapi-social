@@ -9,6 +9,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts"
+import { useTranslations } from "next-intl"
 
 import {
   Card,
@@ -31,15 +32,12 @@ import {
 } from "@workspace/ui/components/tabs"
 
 import type { AdminDashboard } from "@workspace/contracts"
-
-const chartConfig = {
-  count: {
-    color: "var(--chart-1)",
-    label: "Total",
-  },
-} satisfies ChartConfig
+import { useDashboardLabels } from "@/lib/dashboard-labels"
 
 type BreakdownDatum = AdminDashboard["plans"][number]
+
+/** El gráfico pinta el rótulo ya resuelto, no la clave que envía la API. */
+type BreakdownRow = { label: string; count: number }
 
 function renderValueLabel(props: LabelProps) {
   const { height, value, y } = props
@@ -59,11 +57,16 @@ function renderValueLabel(props: LabelProps) {
   )
 }
 
-function BreakdownBarChart({ data }: { data: BreakdownDatum[] }) {
+function BreakdownBarChart({ data }: { data: BreakdownRow[] }) {
+  const t = useTranslations("dashboard.admin.breakdown")
+  const chartConfig = {
+    count: { color: "var(--chart-1)", label: t("series") },
+  } satisfies ChartConfig
+
   if (!data.length) {
     return (
-      <div className="flex h-64 items-center justify-center text-muted-foreground text-sm">
-        Sin datos en las últimas 4 semanas.
+      <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
+        {t("empty")}
       </div>
     )
   }
@@ -120,15 +123,20 @@ export function PlanBreakdown({
   plans: BreakdownDatum[]
   aiTools: BreakdownDatum[]
 }) {
+  const t = useTranslations("dashboard.admin.breakdown")
+  const labels = useDashboardLabels()
+  /** El nombre del plan lo define el administrador: no se traduce. */
+  const planRows = plans.map((row) => ({ count: row.count, label: row.key }))
+  const toolRows = aiTools.map((row) => ({
+    count: row.count,
+    label: labels.aiKind(row.key),
+  }))
+
   return (
     <Card className="h-full gap-2" variant="subtle">
       <CardHeader>
-        <CardTitle className="font-normal">
-          Distribución de la plataforma
-        </CardTitle>
-        <CardDescription>
-          Suscripciones por plan y uso AI por herramienta.
-        </CardDescription>
+        <CardTitle className="font-normal">{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
 
       <CardContent className="px-0">
@@ -138,19 +146,19 @@ export function PlanBreakdown({
             variant="line"
           >
             <TabsTrigger className="flex-none font-normal" value="plans">
-              Planes
+              {t("plans")}
             </TabsTrigger>
             <TabsTrigger className="flex-none font-normal" value="ai">
-              Herramientas AI
+              {t("aiTools")}
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="plans" className="px-4">
-            <BreakdownBarChart data={plans} />
+            <BreakdownBarChart data={planRows} />
           </TabsContent>
 
           <TabsContent value="ai" className="px-4">
-            <BreakdownBarChart data={aiTools} />
+            <BreakdownBarChart data={toolRows} />
           </TabsContent>
         </Tabs>
       </CardContent>

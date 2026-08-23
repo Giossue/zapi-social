@@ -54,6 +54,7 @@ function portalSession(
       displayName: `Account access ${role}`,
       email: `${role}-${userId}@example.test`,
       id: userId,
+      locale: null,
     },
     workspace: { ...workspace, role },
     workspaces: [{ ...workspace, role }],

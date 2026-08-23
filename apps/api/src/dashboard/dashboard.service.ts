@@ -6,16 +6,23 @@ import {
   socialAccounts,
 } from '@workspace/database';
 import type { PortalAuthSession, PortalDashboard } from '@workspace/contracts';
-import { and, count, desc, eq, gte, inArray, ne, sql } from '@workspace/database/query';
+import {
+  and,
+  count,
+  desc,
+  eq,
+  gte,
+  inArray,
+  ne,
+  sql,
+} from '@workspace/database/query';
 import { DatabaseService } from '../database/database.service';
 import {
-  aiKindLabel,
   buildComparisonSeries,
   buildDayCounts,
   buildKpiChange,
   dayKeys,
   DASHBOARD_WINDOW_DAYS,
-  providerLabel,
   windowStarts,
 } from './dashboard.shared';
 
@@ -217,20 +224,20 @@ export class DashboardService {
     const channelsConnected = recentChannels[0]?.value ?? 0;
 
     const aiKinds = requestKinds.slice(0, 4).map((row) => ({
-      label: aiKindLabel(row.kind),
+      key: row.kind,
       count: row.value,
     }));
 
     const upcoming = [
       ...scheduledRows.map((row) => ({
         content: row.content,
-        channel: providerLabel(row.provider),
+        channelKey: row.provider ?? 'none',
         status: 'scheduled' as const,
         date: row.scheduledAt ? row.scheduledAt.toISOString() : null,
       })),
       ...draftRows.map((row) => ({
         content: row.content,
-        channel: providerLabel(row.provider),
+        channelKey: row.provider ?? 'none',
         status: 'draft' as const,
         date: null,
       })),
@@ -239,38 +246,34 @@ export class DashboardService {
     return {
       metrics: [
         {
-          label: 'Publicaciones',
+          key: 'publishedPosts' as const,
           value: String(currentPublished),
           change: buildKpiChange(currentPublished, previousPublished),
-          description: 'frente a las 4 semanas previas',
-          icon: 'calendar',
+          descriptionKey: 'previousWeeks' as const,
         },
         {
-          label: 'Canales activos',
+          key: 'activeChannels' as const,
           value: String(activeChannels),
           change:
             channelsConnected > 0
               ? { direction: 'up' as const, label: `+${channelsConnected}` }
               : null,
-          description:
+          descriptionKey:
             channelsConnected > 0
-              ? 'conectados en las últimas 4 semanas'
-              : 'sin conexiones nuevas en 4 semanas',
-          icon: 'channels',
+              ? ('connectedRecently' as const)
+              : ('noRecentConnections' as const),
         },
         {
-          label: 'Créditos AI usados',
+          key: 'aiCredits' as const,
           value: String(creditsCurrent),
           change: buildKpiChange(creditsCurrent, creditsPrevious),
-          description: 'frente a las 4 semanas previas',
-          icon: 'ai',
+          descriptionKey: 'previousWeeks' as const,
         },
         {
-          label: 'Archivos nuevos',
+          key: 'newFiles' as const,
           value: String(filesCurrent),
           change: buildKpiChange(filesCurrent, filesPrevious),
-          description: 'frente a las 4 semanas previas',
-          icon: 'files',
+          descriptionKey: 'previousWeeks' as const,
         },
       ],
       publishingActivity,
@@ -283,7 +286,7 @@ export class DashboardService {
         kinds: aiKinds,
       },
       channels: postsByProvider.slice(0, 5).map((row) => ({
-        label: providerLabel(row.provider),
+        key: row.provider ?? 'none',
         count: row.value,
       })),
       aiTools: aiKinds,

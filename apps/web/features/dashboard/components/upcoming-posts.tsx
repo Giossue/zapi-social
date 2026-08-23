@@ -1,3 +1,7 @@
+"use client"
+
+import { useFormatter, useTranslations } from "next-intl"
+
 import { Badge } from "@workspace/ui/components/badge"
 import {
   Card,
@@ -17,31 +21,27 @@ import {
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 
 import type { PortalDashboard } from "@workspace/contracts"
+import { useDashboardLabels } from "@/lib/dashboard-labels"
 
-const statusCopy = {
-  draft: { label: "Borrador", variant: "secondary" },
-  scheduled: { label: "Programada", variant: "success" },
+const statusVariants = {
+  draft: "secondary",
+  scheduled: "success",
 } as const
-
-const dateFormatter = new Intl.DateTimeFormat("es", {
-  day: "numeric",
-  month: "short",
-  hour: "2-digit",
-  minute: "2-digit",
-})
 
 export function UpcomingPosts({
   upcoming,
 }: {
   upcoming: PortalDashboard["upcoming"]
 }) {
+  const t = useTranslations("dashboard.portal.upcoming")
+  const format = useFormatter()
+  const labels = useDashboardLabels()
+
   return (
     <Card className="h-full gap-2" variant="subtle">
       <CardHeader>
-        <CardTitle className="font-normal">Próximas publicaciones</CardTitle>
-        <CardDescription>
-          Lo siguiente en tu calendario de contenido.
-        </CardDescription>
+        <CardTitle className="font-normal">{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
 
       <CardContent className="px-0">
@@ -50,36 +50,46 @@ export function UpcomingPosts({
             <TableRow className="hover:bg-transparent">
               <TableHead className="h-8" />
               <TableHead className="hidden h-8 w-28 font-normal md:table-cell">
-                Canal
+                {t("channel")}
               </TableHead>
-              <TableHead className="h-8 w-28 font-normal">Estado</TableHead>
+              <TableHead className="h-8 w-28 font-normal">
+                {t("statusColumn")}
+              </TableHead>
               <TableHead className="h-8 w-32 text-right font-normal">
-                Fecha
+                {t("date")}
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody className="[&_tr]:border-border/50">
             {upcoming.map((post, index) => {
-              const status = statusCopy[post.status]
-
               return (
                 <TableRow
                   className="hover:bg-transparent"
                   key={`${post.content}-${index}`}
                 >
                   <TableCell className="max-w-0 truncate py-4 font-medium">
-                    {post.content || "Sin contenido"}
+                    {post.content || t("noContent")}
                   </TableCell>
                   <TableCell className="hidden text-muted-foreground md:table-cell">
-                    {post.channel}
+                    {labels.provider(post.channelKey)}
                   </TableCell>
                   <TableCell>
-                    <Badge className="leading-none" variant={status.variant}>
-                      {status.label}
+                    <Badge
+                      className="leading-none"
+                      variant={statusVariants[post.status]}
+                    >
+                      {t(`status.${post.status}`)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right text-muted-foreground tabular-nums">
-                    {post.date ? dateFormatter.format(new Date(post.date)) : "—"}
+                    {post.date
+                      ? format.dateTime(new Date(post.date), {
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          month: "short",
+                        })
+                      : "—"}
                   </TableCell>
                 </TableRow>
               )
@@ -87,8 +97,8 @@ export function UpcomingPosts({
             {upcoming.length === 0 ? (
               <TableEmptyRow
                 colSpan={4}
-                description="Programa una publicación para verla aquí."
-                title="Sin publicaciones próximas"
+                description={t("emptyDescription")}
+                title={t("emptyTitle")}
               />
             ) : null}
           </TableBody>

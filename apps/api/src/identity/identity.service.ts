@@ -14,10 +14,12 @@ import {
   activateAuthWorkspaceSchema,
   loginSchema,
   registerSchema,
+  supportedLocaleSchema,
   type ActiveWorkspace,
   type AuthSession,
   type PlatformAdminAuthSession,
   type PortalAuthSession,
+  type SupportedLocale,
 } from '@workspace/contracts';
 import { and, eq, gt, isNull, sql } from '@workspace/database/query';
 import argon2 from 'argon2';
@@ -81,6 +83,7 @@ export class IdentityService {
           id: users.id,
           email: users.email,
           displayName: users.displayName,
+          locale: users.locale,
         });
 
       const [workspace] = await tx
@@ -147,7 +150,7 @@ export class IdentityService {
       }
 
       return {
-        user,
+        user: { ...user, locale: this.supportedLocale(user.locale) },
         area: 'portal' as const,
         workspace: { ...workspace, role: 'owner' as const },
         workspaces: [{ ...workspace, role: 'owner' as const }],
@@ -173,6 +176,7 @@ export class IdentityService {
         id: users.id,
         email: users.email,
         displayName: users.displayName,
+        locale: users.locale,
         passwordHash: users.passwordHash,
         status: users.status,
         isPlatformAdmin: users.isPlatformAdmin,
@@ -200,6 +204,7 @@ export class IdentityService {
       id: user.id,
       email: user.email,
       displayName: user.displayName,
+      locale: this.supportedLocale(user.locale),
     };
     const session: AuthSession = user.isPlatformAdmin
       ? { user: userSession, area: 'admin' }
@@ -231,6 +236,7 @@ export class IdentityService {
         userId: users.id,
         email: users.email,
         displayName: users.displayName,
+        locale: users.locale,
         isPlatformAdmin: users.isPlatformAdmin,
         activeWorkspaceId: authSessions.activeWorkspaceId,
       })
@@ -252,6 +258,7 @@ export class IdentityService {
       id: session.userId,
       email: session.email,
       displayName: session.displayName,
+      locale: this.supportedLocale(session.locale),
     };
     if (session.isPlatformAdmin) {
       return { user, area: 'admin' };
@@ -285,6 +292,7 @@ export class IdentityService {
         userId: users.id,
         email: users.email,
         displayName: users.displayName,
+        locale: users.locale,
         isPlatformAdmin: users.isPlatformAdmin,
         remembered: authSessions.remembered,
       })
@@ -325,6 +333,7 @@ export class IdentityService {
         id: storedSession.userId,
         email: storedSession.email,
         displayName: storedSession.displayName,
+        locale: this.supportedLocale(storedSession.locale),
       },
       area: 'portal',
       workspace,
@@ -389,6 +398,15 @@ export class IdentityService {
       );
     }
     return { user, area: 'portal', workspace, workspaces: availableWorkspaces };
+  }
+
+  /**
+   * `users.locale` es texto libre en la columna: solo viaja en la sesión
+   * cuando corresponde a un idioma con traducción disponible.
+   */
+  private supportedLocale(value: string | null): SupportedLocale | null {
+    const parsed = supportedLocaleSchema.safeParse(value);
+    return parsed.success ? parsed.data : null;
   }
 
   private async buildAuthentication(

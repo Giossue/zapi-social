@@ -1,4 +1,3 @@
-import type { LucideIcon } from "lucide-react"
 import {
   CalendarDays,
   Droplets,
@@ -18,100 +17,101 @@ import {
   Zap,
 } from "lucide-react"
 
-export type PortalNavigationLink = {
-  label: string
-  href: string
-  icon?: LucideIcon
-}
+import type {
+  NavigationSourceGroup,
+  NavigationSourceItem,
+  NavigationSourceLink,
+} from "@/components/dashboard-shell/navigation-types"
+import type messages from "@/messages/es.d.json"
 
-export type PortalNavigationDisclosure = {
-  label: string
-  icon?: LucideIcon
-  children: readonly PortalNavigationLink[]
-}
+/** Solo se admite una clave existente en `navigation.portal`. */
+type PortalNavigationKey = keyof (typeof messages)["navigation"]["portal"]
 
-export type PortalNavigationItem =
-  PortalNavigationLink | PortalNavigationDisclosure
-
-export type PortalNavigationGroup = {
-  label: string
-  items: readonly PortalNavigationItem[]
-}
+export type PortalNavigationLink = NavigationSourceLink<PortalNavigationKey>
+export type PortalNavigationItem = NavigationSourceItem<PortalNavigationKey>
+export type PortalNavigationGroup = NavigationSourceGroup<PortalNavigationKey>
 
 /**
  * Equivalencia del registro de sidebar de Laravel. Visibilidad por plan/equipo
  * todavía es mock: se muestran todas las opciones para diseñar cada módulo.
+ * El texto vive en `messages/` bajo `navigation.portal`.
  */
 export const portalNavigationGroups: readonly PortalNavigationGroup[] = [
   {
-    label: "General",
+    labelKey: "general",
     items: [
-      { label: "Resumen", href: "/portal/dashboard", icon: LayoutDashboard },
+      {
+        labelKey: "overview",
+        href: "/portal/dashboard",
+        icon: LayoutDashboard,
+      },
     ],
   },
   {
-    label: "Espacio de trabajo",
+    labelKey: "workspace",
     items: [
-      { label: "Canales", href: "/portal/channels", icon: Share2 },
+      { labelKey: "channels", href: "/portal/channels", icon: Share2 },
       {
-        label: "Publicación",
+        labelKey: "publishing",
         icon: CalendarDays,
         children: [
-          { label: "Calendario", href: "/portal/publishing/calendar" },
-          { label: "Cola", href: "/portal/publishing/queue" },
-          { label: "Borradores", href: "/portal/publishing/drafts" },
+          { labelKey: "calendar", href: "/portal/publishing/calendar" },
+          { labelKey: "queue", href: "/portal/publishing/queue" },
+          { labelKey: "drafts", href: "/portal/publishing/drafts" },
         ],
       },
-      { label: "Programaciones RSS", href: "/portal/rss-schedules", icon: Rss },
+      { labelKey: "rssSchedules", href: "/portal/rss-schedules", icon: Rss },
       {
-        label: "Publicaciones masivas",
+        labelKey: "bulkPosts",
         href: "/portal/bulk-posts",
         icon: FileText,
       },
-      { label: "API de automatización", href: "/portal/automation", icon: Zap },
+      { labelKey: "automation", href: "/portal/automation", icon: Zap },
     ],
   },
   {
-    label: "Herramientas de contenido",
+    labelKey: "contentTools",
     items: [
-      { label: "Equipos", href: "/portal/teams", icon: Users },
-      { label: "Captions", href: "/portal/captions", icon: PenLine },
+      { labelKey: "teams", href: "/portal/teams", icon: Users },
+      { labelKey: "captions", href: "/portal/captions", icon: PenLine },
       {
-        label: "AI Studio",
+        labelKey: "aiStudio",
         icon: WandSparkles,
         children: [
-          { label: "Chat", href: "/portal/ai-studio" },
+          { labelKey: "aiChat", href: "/portal/ai-studio" },
           {
-            label: "Automatizaciones",
+            labelKey: "aiAutomation",
             href: "/portal/ai-studio/automation",
           },
-          { label: "Ajustes AI", href: "/portal/ai-studio/settings" },
-          { label: "Créditos", href: "/portal/ai-studio/credits" },
+          { labelKey: "aiSettings", href: "/portal/ai-studio/settings" },
+          { labelKey: "aiCredits", href: "/portal/ai-studio/credits" },
         ],
       },
-      { label: "Link in bio", href: "/portal/link-bio", icon: Link2 },
-      { label: "Grupos", href: "/portal/groups", icon: Layers3 },
-      { label: "Marca de agua", href: "/portal/watermarks", icon: Droplets },
+      { labelKey: "linkBio", href: "/portal/link-bio", icon: Link2 },
+      { labelKey: "groups", href: "/portal/groups", icon: Layers3 },
+      { labelKey: "watermarks", href: "/portal/watermarks", icon: Droplets },
     ],
   },
   {
-    label: "Biblioteca",
+    labelKey: "library",
     items: [
-      { label: "Archivos", href: "/portal/files", icon: FolderOpen },
+      { labelKey: "files", href: "/portal/files", icon: FolderOpen },
       {
-        label: "Buscar medios online",
+        labelKey: "onlineMedia",
         href: "/portal/files/search-online",
         icon: Image,
       },
     ],
   },
   {
-    label: "Ayuda",
-    items: [{ label: "Soporte", href: "/portal/support", icon: LifeBuoy }],
+    labelKey: "help",
+    items: [{ labelKey: "support", href: "/portal/support", icon: LifeBuoy }],
   },
   {
-    label: "Aplicaciones",
-    items: [{ label: "Afiliados", href: "/portal/affiliate", icon: HandCoins }],
+    labelKey: "apps",
+    items: [
+      { labelKey: "affiliate", href: "/portal/affiliate", icon: HandCoins },
+    ],
   },
 ]
 
@@ -129,14 +129,8 @@ function getDeepestPortalNavigationItem(pathname: string) {
     .sort((first, second) => second.href.length - first.href.length)[0]
 }
 
-export function isPortalNavigationItemActive(
-  item: PortalNavigationItem,
-  pathname: string
-) {
-  return (
-    "href" in item &&
-    getDeepestPortalNavigationItem(pathname)?.href === item.href
-  )
+export function isPortalNavigationItemActive(href: string, pathname: string) {
+  return getDeepestPortalNavigationItem(pathname)?.href === href
 }
 
 export function getPortalNavigationItem(pathname: string) {

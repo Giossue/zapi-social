@@ -42,6 +42,7 @@ function portalSession(
       displayName: 'RSS test user',
       email: 'rss-test@example.test',
       id: userId,
+      locale: null,
     },
     workspace: { ...workspace, role: 'owner' },
     workspaces: [{ ...workspace, role: 'owner' }],

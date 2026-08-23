@@ -76,6 +76,7 @@ async function seedWorkspace(database: Database, suffix: string) {
       displayName: `Integrity ${suffix}`,
       email: `integrity-${suffix}@example.test`,
       id: userId,
+      locale: null,
     },
     workspace: {
       id: workspaceId,

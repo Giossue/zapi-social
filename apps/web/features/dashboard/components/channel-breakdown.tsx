@@ -9,6 +9,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts"
+import { useTranslations } from "next-intl"
 
 import {
   Card,
@@ -31,15 +32,12 @@ import {
 } from "@workspace/ui/components/tabs"
 
 import type { PortalDashboard } from "@workspace/contracts"
-
-const chartConfig = {
-  count: {
-    color: "var(--chart-1)",
-    label: "Publicaciones",
-  },
-} satisfies ChartConfig
+import { useDashboardLabels } from "@/lib/dashboard-labels"
 
 type BreakdownDatum = PortalDashboard["channels"][number]
+
+/** El gráfico pinta el rótulo ya resuelto, no la clave que envía la API. */
+type BreakdownRow = { label: string; count: number }
 
 function renderValueLabel(props: LabelProps) {
   const { height, value, y } = props
@@ -59,11 +57,16 @@ function renderValueLabel(props: LabelProps) {
   )
 }
 
-function BreakdownBarChart({ data }: { data: BreakdownDatum[] }) {
+function BreakdownBarChart({ data }: { data: BreakdownRow[] }) {
+  const t = useTranslations("dashboard.portal.breakdown")
+  const chartConfig = {
+    count: { color: "var(--chart-1)", label: t("series") },
+  } satisfies ChartConfig
+
   if (!data.length) {
     return (
-      <div className="flex h-64 items-center justify-center text-muted-foreground text-sm">
-        Sin datos en las últimas 4 semanas.
+      <div className="flex h-64 items-center justify-center text-sm text-muted-foreground">
+        {t("empty")}
       </div>
     )
   }
@@ -120,15 +123,22 @@ export function ChannelBreakdown({
   channels: BreakdownDatum[]
   aiTools: BreakdownDatum[]
 }) {
+  const t = useTranslations("dashboard.portal.breakdown")
+  const labels = useDashboardLabels()
+  const channelRows = channels.map((row) => ({
+    count: row.count,
+    label: labels.provider(row.key),
+  }))
+  const toolRows = aiTools.map((row) => ({
+    count: row.count,
+    label: labels.aiKind(row.key),
+  }))
+
   return (
     <Card className="h-full gap-2" variant="subtle">
       <CardHeader>
-        <CardTitle className="font-normal">
-          Distribución de publicaciones
-        </CardTitle>
-        <CardDescription>
-          Últimas 4 semanas por canal y herramienta.
-        </CardDescription>
+        <CardTitle className="font-normal">{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
 
       <CardContent className="px-0">
@@ -138,19 +148,19 @@ export function ChannelBreakdown({
             variant="line"
           >
             <TabsTrigger className="flex-none font-normal" value="channels">
-              Canales
+              {t("channels")}
             </TabsTrigger>
             <TabsTrigger className="flex-none font-normal" value="tools">
-              Herramientas AI
+              {t("aiTools")}
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="channels" className="px-4">
-            <BreakdownBarChart data={channels} />
+            <BreakdownBarChart data={channelRows} />
           </TabsContent>
 
           <TabsContent value="tools" className="px-4">
-            <BreakdownBarChart data={aiTools} />
+            <BreakdownBarChart data={toolRows} />
           </TabsContent>
         </Tabs>
       </CardContent>

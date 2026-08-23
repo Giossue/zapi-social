@@ -281,7 +281,9 @@ export function AdminSupportPage() {
   }
 
   function createLocalTicket(values: NewCaseValues) {
-    const user = fixtureUsers.find((candidate) => candidate.id === values.userId)
+    const user = fixtureUsers.find(
+      (candidate) => candidate.id === values.userId
+    )
     if (!user) return
     const category = (categoriesCatalog ?? []).find(
       (candidate) => candidate.id === values.categoryId
@@ -299,7 +301,10 @@ export function AdminSupportPage() {
           description: "",
           status: "active",
         },
-        workspace: { id: `local-workspace-${user.id}`, name: user.workspaceName },
+        workspace: {
+          id: `local-workspace-${user.id}`,
+          name: user.workspaceName,
+        },
         requester: { id: user.id, displayName: user.name, email: user.email },
         commentCount: 0,
         awaitingReply: false,
@@ -493,15 +498,23 @@ export function AdminSupportPage() {
                               {isLocalTicket(ticket) ? (
                                 /* El caso mock no existe en la API: el detalle
                                    llega con la mutación real. */
-                                <Button disabled size="sm" variant="brand-secondary">
+                                <Button
+                                  disabled
+                                  size="sm"
+                                  variant="brand-secondary"
+                                >
                                   <MessageSquare data-icon="inline-start" /> Ver
                                   caso
                                 </Button>
                               ) : (
-                                <Button asChild size="sm" variant="brand-secondary">
+                                <Button
+                                  asChild
+                                  size="sm"
+                                  variant="brand-secondary"
+                                >
                                   <Link href={`/admin/support/${ticket.id}`}>
-                                    <MessageSquare data-icon="inline-start" /> Ver
-                                    caso
+                                    <MessageSquare data-icon="inline-start" />{" "}
+                                    Ver caso
                                   </Link>
                                 </Button>
                               )}
@@ -558,7 +571,8 @@ export function AdminSupportPage() {
             <SupportCatalogPanel
               copy={{
                 createLabel: "Nueva categoría",
-                emptyDescription: "Crea una categoría para organizar los casos.",
+                emptyDescription:
+                  "Crea una categoría para organizar los casos.",
                 emptyTitle: "No hay categorías",
                 itemLabel: "categorías",
                 searchPlaceholder: "Buscar categorías...",

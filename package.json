@@ -8,7 +8,8 @@
     "lint": "turbo lint",
     "format": "turbo format",
     "typecheck": "turbo typecheck",
-    "audit:portal-admin-ui": "python3 scripts/audit_portal_admin_ui.py"
+    "audit:portal-admin-ui": "python3 scripts/audit_portal_admin_ui.py",
+    "audit:i18n": "python3 scripts/audit_i18n_messages.py"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",

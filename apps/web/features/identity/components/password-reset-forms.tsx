@@ -12,6 +12,7 @@ import {
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
 import { CheckCircle2, KeyRound, Mail, ShieldCheck } from "lucide-react"
+import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useState, type FormEvent, type ReactNode } from "react"
@@ -49,6 +50,9 @@ function RecoveryLayout({
 }
 
 export function ForgotPasswordForm() {
+  const t = useTranslations("auth.recovery")
+  const tForm = useTranslations("auth.form")
+  const tValidation = useTranslations("auth.validation")
   const [email, setEmail] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [sent, setSent] = useState(false)
@@ -61,7 +65,7 @@ export function ForgotPasswordForm() {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!emailValid) {
-      reportError("Ingresa un correo electrónico válido.")
+      reportError(tValidation("email"))
       return
     }
 
@@ -70,7 +74,7 @@ export function ForgotPasswordForm() {
       await authApi.requestPasswordReset({ email: email.trim() })
       setSent(true)
     } catch {
-      reportError("No pudimos procesar la solicitud. Inténtalo de nuevo.")
+      reportError(t("requestFailed"))
     } finally {
       setSubmitting(false)
     }
@@ -78,8 +82,8 @@ export function ForgotPasswordForm() {
 
   return (
     <RecoveryLayout
-      description="Te enviaremos instrucciones si existe una cuenta asociada al correo."
-      title="Recupera tu acceso"
+      description={t("requestDescription")}
+      title={t("requestTitle")}
     >
       {sent ? (
         <div className="flex flex-col gap-5">
@@ -88,11 +92,10 @@ export function ForgotPasswordForm() {
               aria-hidden="true"
               className="mt-0.5 size-4 shrink-0 text-success"
             />
-            Si el correo existe, recibirás un enlace de recuperación en unos
-            minutos.
+            {t("sentNotice")}
           </p>
           <Button asChild className="w-full" variant="brand-secondary">
-            <Link href="/login">Volver a iniciar sesión</Link>
+            <Link href="/login">{t("backToLogin")}</Link>
           </Button>
         </div>
       ) : (
@@ -100,7 +103,7 @@ export function ForgotPasswordForm() {
           <FieldGroup>
             <Field className="gap-1.5">
               <FieldLabel htmlFor="recovery-email">
-                Correo electrónico{" "}
+                {tForm("email")}{" "}
                 <span aria-hidden="true" className="text-destructive">
                   *
                 </span>
@@ -129,17 +132,17 @@ export function ForgotPasswordForm() {
             type="submit"
           >
             {submitting ? (
-              <Spinner aria-label="Enviando" data-icon="inline-start" />
+              <Spinner aria-label={t("sending")} data-icon="inline-start" />
             ) : (
               <Mail data-icon="inline-start" />
             )}
-            {submitting ? "Enviando" : "Enviar instrucciones"}
+            {submitting ? t("sending") : t("submitRequest")}
           </Button>
           <Link
             className="text-center text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
             href="/login"
           >
-            Volver a iniciar sesión
+            {t("backToLogin")}
           </Link>
         </form>
       )}
@@ -148,6 +151,7 @@ export function ForgotPasswordForm() {
 }
 
 export function ResetPasswordForm() {
+  const t = useTranslations("auth.recovery")
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get("token") ?? ""
@@ -165,11 +169,11 @@ export function ResetPasswordForm() {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!token) {
-      reportError("El enlace de recuperación no es válido.")
+      reportError(t("invalidToken"))
       return
     }
     if (password.length < 8 || password !== passwordConfirmation) {
-      reportError("Revisa la contraseña y su confirmación.")
+      reportError(t("checkPassword"))
       return
     }
 
@@ -181,25 +185,21 @@ export function ResetPasswordForm() {
         passwordConfirmation,
       })
       setCompleted(true)
-      toast.success(
-        "Contraseña actualizada. Inicia sesión con la nueva contraseña."
-      )
+      toast.success(t("resetSuccess"))
       router.replace(loginPath())
     } catch (error) {
       if (
         error instanceof ApiError &&
         error.code === "AUTH_PASSWORD_RESET_TOKEN_INVALID"
       ) {
-        reportError("Este enlace ya no es válido. Solicita uno nuevo.")
+        reportError(t("expiredToken"))
       } else if (
         error instanceof ApiError &&
         error.code === "AUTH_PASSWORD_POLICY_NOT_MET"
       ) {
-        reportError(
-          "La contraseña debe incluir mayúscula, minúscula, número y carácter especial."
-        )
+        reportError(t("resetPolicyFailed"))
       } else {
-        reportError("No pudimos restablecer la contraseña. Inténtalo de nuevo.")
+        reportError(t("resetFailed"))
       }
     } finally {
       setSubmitting(false)
@@ -209,11 +209,11 @@ export function ResetPasswordForm() {
   if (!token) {
     return (
       <RecoveryLayout
-        description="Solicita un enlace nuevo para continuar."
-        title="Enlace no válido"
+        description={t("invalidLinkDescription")}
+        title={t("invalidLinkTitle")}
       >
         <Button asChild className="w-full">
-          <Link href="/forgot-password">Solicitar recuperación</Link>
+          <Link href="/forgot-password">{t("requestNewLink")}</Link>
         </Button>
       </RecoveryLayout>
     )
@@ -222,26 +222,23 @@ export function ResetPasswordForm() {
   if (completed) {
     return (
       <RecoveryLayout
-        description="Ya puedes iniciar sesión con tu nueva contraseña."
-        title="Contraseña actualizada"
+        description={t("completedDescription")}
+        title={t("completedTitle")}
       >
         <Button asChild className="w-full">
-          <Link href="/login">Iniciar sesión</Link>
+          <Link href="/login">{t("login")}</Link>
         </Button>
       </RecoveryLayout>
     )
   }
 
   return (
-    <RecoveryLayout
-      description="Elige una contraseña nueva. El enlace solo se puede usar una vez."
-      title="Crea una nueva contraseña"
-    >
+    <RecoveryLayout description={t("resetDescription")} title={t("resetTitle")}>
       <form className="flex flex-col gap-5" noValidate onSubmit={submit}>
         <FieldGroup>
           <Field className="gap-1.5">
             <FieldLabel htmlFor="reset-password">
-              Nueva contraseña{" "}
+              {t("newPassword")}{" "}
               <span aria-hidden="true" className="text-destructive">
                 *
               </span>
@@ -266,7 +263,7 @@ export function ResetPasswordForm() {
           </Field>
           <Field className="gap-1.5">
             <FieldLabel htmlFor="reset-password-confirmation">
-              Confirmar contraseña{" "}
+              {t("confirmPassword")}{" "}
               <span aria-hidden="true" className="text-destructive">
                 *
               </span>
@@ -294,8 +291,7 @@ export function ResetPasswordForm() {
         </FieldGroup>
         <p className="flex items-start gap-2 text-xs text-muted-foreground">
           <KeyRound aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
-          Usa 8 o más caracteres, con mayúscula, minúscula, número y carácter
-          especial.
+          {t("policyHint")}
         </p>
         <Button
           className="w-full"
@@ -303,11 +299,11 @@ export function ResetPasswordForm() {
           type="submit"
         >
           {submitting ? (
-            <Spinner aria-label="Actualizando" data-icon="inline-start" />
+            <Spinner aria-label={t("updating")} data-icon="inline-start" />
           ) : (
             <KeyRound data-icon="inline-start" />
           )}
-          {submitting ? "Actualizando" : "Restablecer contraseña"}
+          {submitting ? t("updating") : t("submitReset")}
         </Button>
       </form>
     </RecoveryLayout>

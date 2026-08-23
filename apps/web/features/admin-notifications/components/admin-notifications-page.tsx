@@ -92,12 +92,7 @@ import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@workspace/ui/components/table-pagination"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
-
-const audienceLabel: Record<AnnouncementAudience, string> = {
-  all: "Todos",
-  workspace: "Espacio",
-  user: "Persona",
-}
+import { useFormatter, useTranslations } from "next-intl"
 
 const emptyMetrics: AdminAnnouncementMetrics = {
   published: 0,
@@ -124,14 +119,6 @@ const emptyForm: FormValues = {
   targetId: "",
 }
 
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("es-EC", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(value))
-}
-
 function AnnouncementSheet({
   editing,
   onOpenChange,
@@ -141,12 +128,11 @@ function AnnouncementSheet({
 }: {
   editing: AdminAnnouncement | null
   onOpenChange: (open: boolean) => void
-  onSubmit: (
-    values: UpsertAdminAnnouncementInput
-  ) => Promise<boolean>
+  onSubmit: (values: UpsertAdminAnnouncementInput) => Promise<boolean>
   open: boolean
   pending: boolean
 }) {
+  const t = useTranslations("adminNotifications")
   const [values, setValues] = useState<FormValues>(emptyForm)
   const [targetQuery, setTargetQuery] = useState("")
   const [targets, setTargets] = useState<{ id: string; label: string }[]>([])
@@ -160,8 +146,7 @@ function AnnouncementSheet({
             body: editing.body,
             url: editing.url ?? "",
             audience: editing.audience,
-            targetId:
-              editing.targetWorkspaceId ?? editing.targetUserId ?? "",
+            targetId: editing.targetWorkspaceId ?? editing.targetUserId ?? "",
           }
         : emptyForm
     )
@@ -174,19 +159,24 @@ function AnnouncementSheet({
       return
     }
     let isCurrent = true
-    const timer = setTimeout(() => {
-      void adminNotificationsApi
-        .targets(targetQuery.trim() || undefined)
-        .then((response) => {
-          if (!isCurrent) return
-          setTargets(
-            values.audience === "workspace" ? response.workspaces : response.users
-          )
-        })
-        .catch((error: unknown) => {
-          console.error("Announcement targets request failed", error)
-        })
-    }, targetQuery ? 300 : 0)
+    const timer = setTimeout(
+      () => {
+        void adminNotificationsApi
+          .targets(targetQuery.trim() || undefined)
+          .then((response) => {
+            if (!isCurrent) return
+            setTargets(
+              values.audience === "workspace"
+                ? response.workspaces
+                : response.users
+            )
+          })
+          .catch((error: unknown) => {
+            console.error("Announcement targets request failed", error)
+          })
+      },
+      targetQuery ? 300 : 0
+    )
     return () => {
       isCurrent = false
       clearTimeout(timer)
@@ -196,8 +186,8 @@ function AnnouncementSheet({
   const needsTarget = values.audience !== "all"
   const canSubmit = Boolean(
     values.title.trim() &&
-      values.body.trim() &&
-      (!needsTarget || values.targetId)
+    values.body.trim() &&
+    (!needsTarget || values.targetId)
   )
 
   function close() {
@@ -208,7 +198,7 @@ function AnnouncementSheet({
   async function submit(event: FormEvent<HTMLFormElement>, publish: boolean) {
     event.preventDefault()
     if (!canSubmit) {
-      toast.error("Completa todos los campos obligatorios.")
+      toast.error(t("missingFields"))
       return
     }
     const saved = await onSubmit({
@@ -225,11 +215,14 @@ function AnnouncementSheet({
   }
 
   return (
-    <Sheet onOpenChange={(next) => (next ? onOpenChange(true) : close())} open={open}>
+    <Sheet
+      onOpenChange={(next) => (next ? onOpenChange(true) : close())}
+      open={open}
+    >
       <SheetContent className="w-full gap-0 p-0 sm:max-w-xl" side="right">
         <SheetHeader className="border-b">
           <SheetTitle>
-            {editing ? "Editar anuncio" : "Nuevo anuncio"}
+            {editing ? t("editTitle") : t("createTitle")}
           </SheetTitle>
           <SheetDescription>
             Los anuncios publicados aparecen en la campana del Portal de sus
@@ -263,7 +256,7 @@ function AnnouncementSheet({
                       title: event.target.value,
                     }))
                   }
-                  placeholder="Ej. Mantenimiento programado el domingo"
+                  placeholder={t("titlePlaceholder")}
                   value={values.title}
                 />
               </Field>
@@ -285,13 +278,13 @@ function AnnouncementSheet({
                       body: event.target.value,
                     }))
                   }
-                  placeholder="Qué ocurre, a quién afecta y qué debe hacer la persona."
+                  placeholder={t("bodyPlaceholder")}
                   rows={6}
                   value={values.body}
                 />
               </Field>
               <Field>
-                <FieldLabel htmlFor="announcement-url">Enlace</FieldLabel>
+                <FieldLabel htmlFor="announcement-url">{t("link")}</FieldLabel>
                 <Input
                   id="announcement-url"
                   maxLength={2048}
@@ -305,12 +298,12 @@ function AnnouncementSheet({
                   value={values.url}
                 />
                 <FieldDescription>
-                  Opcional. Si lo indicas, el anuncio se vuelve accionable.
+                  {t("linkHint")}
                 </FieldDescription>
               </Field>
               <Field>
                 <FieldLabel htmlFor="announcement-audience">
-                  Audiencia
+                  {t("audienceLabel")}
                 </FieldLabel>
                 <Select
                   onValueChange={(audience) =>
@@ -327,11 +320,15 @@ function AnnouncementSheet({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="all">Todos los clientes</SelectItem>
-                      <SelectItem value="workspace">
-                        Un espacio de trabajo
+                      <SelectItem value="all">
+                        {t("audienceOption.all")}
                       </SelectItem>
-                      <SelectItem value="user">Una persona</SelectItem>
+                      <SelectItem value="workspace">
+                        {t("audienceOption.workspace")}
+                      </SelectItem>
+                      <SelectItem value="user">
+                        {t("audienceOption.user")}
+                      </SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
@@ -346,12 +343,12 @@ function AnnouncementSheet({
                     <span className="sr-only"> obligatorio</span>
                   </FieldLabel>
                   <Input
-                    aria-label="Buscar destinatario"
+                    aria-label={t("searchTarget")}
                     onChange={(event) => setTargetQuery(event.target.value)}
                     placeholder={
                       values.audience === "workspace"
-                        ? "Buscar espacio..."
-                        : "Buscar persona o correo..."
+                        ? t("searchWorkspace")
+                        : t("searchPerson")
                     }
                     value={targetQuery}
                   />
@@ -366,7 +363,7 @@ function AnnouncementSheet({
                       className="w-full"
                       id="announcement-target"
                     >
-                      <SelectValue placeholder="Selecciona un destinatario" />
+                      <SelectValue placeholder={t("selectTarget")} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
@@ -424,6 +421,8 @@ function AnnouncementSheet({
 }
 
 export function AdminNotificationsPage() {
+  const t = useTranslations("adminNotifications")
+  const format = useFormatter()
   const [announcements, setAnnouncements] = useState<AdminAnnouncement[]>([])
   const [metrics, setMetrics] = useState<AdminAnnouncementMetrics>(emptyMetrics)
   const [total, setTotal] = useState(0)
@@ -482,12 +481,12 @@ export function AdminNotificationsPage() {
       else await adminNotificationsApi.create(values)
       await load()
       toast.success(
-        values.publish ? "Anuncio publicado." : "Borrador guardado."
+        values.publish ? t("published") : t("draftSaved")
       )
       return true
     } catch (error) {
       console.error("Announcement save failed", error)
-      toast.error("No pudimos guardar el anuncio. Inténtalo de nuevo.")
+      toast.error(t("saveFailed"))
       return false
     } finally {
       setPending(false)
@@ -501,10 +500,10 @@ export function AdminNotificationsPage() {
       await adminNotificationsApi.remove(deleting.id)
       setDeleting(null)
       await load()
-      toast.success("Anuncio eliminado.")
+      toast.success(t("deleted"))
     } catch (error) {
       console.error("Announcement delete failed", error)
-      toast.error("No pudimos eliminar el anuncio.")
+      toast.error(t("deleteFailed"))
     } finally {
       setPending(false)
     }
@@ -513,24 +512,24 @@ export function AdminNotificationsPage() {
   if (forbidden) {
     return (
       <EmptyState
-        description="Tu cuenta no tiene permisos para administrar los anuncios de la plataforma."
+        description={t("forbiddenDescription")}
         icon={ShieldX}
-        title="Acceso restringido"
+        title={t("forbiddenTitle")}
       />
     )
   }
 
   if (isLoading && !announcements.length && !loadError) {
-    return <PageLoading aria-label="Cargando anuncios" />
+    return <PageLoading aria-label={t("loading")} />
   }
 
   if (loadError) {
     return (
       <EmptyState
         action={<RetryButton onClick={() => void load()} />}
-        description="No fue posible cargar los anuncios."
+        description={t("loadFailedDescription")}
         icon={Megaphone}
-        title="No pudimos cargar esta sección"
+        title={t("loadFailedTitle")}
       />
     )
   }
@@ -539,32 +538,32 @@ export function AdminNotificationsPage() {
     <>
       <div className="flex flex-col gap-4">
         <CollectionHeader
-          description="Avisos manuales que aparecen en la campana del Portal de los clientes."
-          title="Anuncios"
+          description={t("pageDescription")}
+          title={t("pageTitle")}
         />
         <CardGrid>
           <MetricCard
-            description="Visibles en el Portal"
+            description={t("metrics.publishedDescription")}
             icon={BellRing}
-            label="Publicados"
+            label={t("metrics.published")}
             value={metrics.published}
           />
           <MetricCard
-            description="Sin publicar todavía"
+            description={t("metrics.draftsDescription")}
             icon={FileText}
-            label="Borradores"
+            label={t("metrics.drafts")}
             value={metrics.drafts}
           />
           <MetricCard
-            description="Dirigidos a un espacio o persona"
+            description={t("metrics.targetedDescription")}
             icon={Target}
-            label="Segmentados"
+            label={t("metrics.targeted")}
             value={metrics.targeted}
           />
           <MetricCard
-            description="Anuncios abiertos por clientes"
+            description={t("metrics.readsDescription")}
             icon={Eye}
-            label="Lecturas"
+            label={t("metrics.reads")}
             value={metrics.reads}
           />
         </CardGrid>
@@ -584,12 +583,12 @@ export function AdminNotificationsPage() {
               </Button>
             }
             search={{
-              ariaLabel: "Buscar anuncios",
+              ariaLabel: t("searchLabel"),
               onChange: (value) => {
                 setQuery(value)
                 setPage(1)
               },
-              placeholder: "Buscar por título o mensaje...",
+              placeholder: t("searchPlaceholder"),
               value: query,
             }}
           />
@@ -613,16 +612,16 @@ export function AdminNotificationsPage() {
               }
             >
               <DataTableFilter
-                ariaLabel="Filtrar por estado"
-                label="Estado"
+                ariaLabel={t("filterStatus")}
+                label={t("statusColumn")}
                 onValueChange={(value) => {
                   setStatus(value as "all" | "draft" | "published")
                   setPage(1)
                 }}
                 options={[
-                  { label: "Todos", value: "all" },
-                  { label: "Publicados", value: "published" },
-                  { label: "Borradores", value: "draft" },
+                  { label: t("all"), value: "all" },
+                  { label: t("filter.published"), value: "published" },
+                  { label: t("filter.draft"), value: "draft" },
                 ]}
                 value={status}
               />
@@ -631,11 +630,11 @@ export function AdminNotificationsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Anuncio</TableHead>
+                    <TableHead>{t("announcement")}</TableHead>
                     <TableHead className="hidden md:table-cell">
                       Audiencia
                     </TableHead>
-                    <TableHead>Estado</TableHead>
+                    <TableHead>{t("statusColumn")}</TableHead>
                     <TableHead className="hidden lg:table-cell">
                       Lecturas
                     </TableHead>
@@ -660,7 +659,7 @@ export function AdminNotificationsPage() {
                           </div>
                         </TableCell>
                         <TableCell className="hidden text-muted-foreground md:table-cell">
-                          {audienceLabel[announcement.audience]}
+                          {t(`audience.${announcement.audience}`)}
                           {announcement.targetLabel
                             ? ` · ${announcement.targetLabel}`
                             : ""}
@@ -674,15 +673,15 @@ export function AdminNotificationsPage() {
                             }
                           >
                             {announcement.status === "published"
-                              ? "Publicado"
-                              : "Borrador"}
+                              ? t("status.published")
+                              : t("status.draft")}
                           </Badge>
                         </TableCell>
                         <TableCell className="hidden text-muted-foreground lg:table-cell">
                           {announcement.readCount}
                         </TableCell>
                         <TableCell className="hidden text-muted-foreground lg:table-cell">
-                          {formatDate(announcement.createdAt)}
+                          {format.dateTime(new Date(announcement.createdAt), { dateStyle: "medium", timeStyle: "short" })}
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
@@ -721,13 +720,13 @@ export function AdminNotificationsPage() {
                       colSpan={6}
                       description={
                         hasFilters
-                          ? "Prueba con otro término o estado."
-                          : "Publica un aviso para que tus clientes lo vean en el Portal."
+                          ? t("emptyFilteredDescription")
+                          : t("emptyDescription")
                       }
                       title={
                         hasFilters
-                          ? "No hay coincidencias"
-                          : "Todavía no hay anuncios"
+                          ? t("noMatches")
+                          : t("emptyTitle")
                       }
                     />
                   )}
@@ -751,7 +750,7 @@ export function AdminNotificationsPage() {
           </CardContent>
         </Card>
         <FloatingActionButton
-          label="Nuevo anuncio"
+          label={t("createTitle")}
           onClick={() => {
             setEditing(null)
             setSheetOpen(true)
@@ -771,14 +770,15 @@ export function AdminNotificationsPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Eliminar anuncio</AlertDialogTitle>
+            <AlertDialogTitle>{t("deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Se elimina «{deleting?.title}» y su historial de lecturas. Esta
-              acción no se puede deshacer.
+              {t("deleteDescription", { title: deleting?.title ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={pending}>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel disabled={pending}>
+              {t("cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               disabled={pending}
               onClick={(event) => {
@@ -786,7 +786,11 @@ export function AdminNotificationsPage() {
                 void remove()
               }}
             >
-              {pending ? <Spinner data-icon="inline-start" /> : <Trash2 data-icon="inline-start" />}
+              {pending ? (
+                <Spinner data-icon="inline-start" />
+              ) : (
+                <Trash2 data-icon="inline-start" />
+              )}
               Eliminar
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -46,6 +46,7 @@ function portalSession(
       displayName: 'Portal backend test user',
       email: 'portal-backend-test@example.test',
       id: userId,
+      locale: null,
     },
     workspace: { ...workspace, role: 'owner' },
     workspaces: [{ ...workspace, role: 'owner' }],

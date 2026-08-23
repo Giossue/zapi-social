@@ -5,6 +5,7 @@ import { EmptyState } from "@workspace/ui/components/empty-state"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import { toast } from "@workspace/ui/components/toast"
 import { TriangleAlert } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
 import { DashboardLoading } from "./dashboard-loading"
@@ -13,6 +14,7 @@ import type { PortalDashboard } from "@workspace/contracts"
 import { loginPath } from "@/features/identity/login-redirect"
 
 export function LivePortalDashboard() {
+  const t = useTranslations("dashboard.portal")
   const router = useRouter()
   const [dashboard, setDashboard] = useState<PortalDashboard | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -32,12 +34,12 @@ export function LivePortalDashboard() {
       }
 
       console.error("Dashboard request failed", error)
-      toast.error("No pudimos cargar tu dashboard. Inténtalo de nuevo.")
+      toast.error(t("loadFailedToast"))
       setHasError(true)
     } finally {
       setIsLoading(false)
     }
-  }, [router])
+  }, [router, t])
 
   useEffect(() => {
     void loadDashboard()
@@ -49,8 +51,8 @@ export function LivePortalDashboard() {
     return (
       <EmptyState
         icon={TriangleAlert}
-        title="No pudimos cargar el dashboard"
-        description="Comprueba tu conexión e inténtalo de nuevo."
+        title={t("loadFailedTitle")}
+        description={t("loadFailedDescription")}
         action={<RetryButton onClick={() => void loadDashboard()} />}
       />
     )

@@ -14,7 +14,7 @@ export default async function NotFound() {
 
   return (
     <div className="flex h-dvh flex-col items-center justify-center space-y-2 text-center">
-      <h1 className="font-semibold text-2xl">No encontramos esta página</h1>
+      <h1 className="text-2xl font-semibold">No encontramos esta página</h1>
       <p className="text-muted-foreground">
         Es posible que el enlace haya cambiado o que ya no exista.
       </p>

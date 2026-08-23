@@ -47,6 +47,7 @@ async function seedWorkspace(database: Database) {
     id: randomUUID(),
     email: `ai-${randomUUID()}@example.test`,
     displayName: 'AI Owner',
+    locale: null,
   };
   const workspace = {
     id: randomUUID(),

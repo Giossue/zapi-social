@@ -121,7 +121,10 @@ export function AdminSupportNewCaseSheet({
   }
 
   return (
-    <Sheet onOpenChange={(next) => (next ? onOpenChange(true) : close())} open={open}>
+    <Sheet
+      onOpenChange={(next) => (next ? onOpenChange(true) : close())}
+      open={open}
+    >
       <SheetContent className="w-full gap-0 p-0 sm:max-w-xl" side="right">
         <SheetHeader className="border-b">
           <SheetTitle>Nuevo caso</SheetTitle>
@@ -129,7 +132,11 @@ export function AdminSupportNewCaseSheet({
             Abre un caso en nombre de un cliente y clasifícalo para el equipo.
           </SheetDescription>
         </SheetHeader>
-        <form className="flex min-h-0 flex-1 flex-col" noValidate onSubmit={submit}>
+        <form
+          className="flex min-h-0 flex-1 flex-col"
+          noValidate
+          onSubmit={submit}
+        >
           <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4">
             <FieldGroup>
               <Field>

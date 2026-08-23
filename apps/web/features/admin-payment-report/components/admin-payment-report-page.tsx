@@ -48,20 +48,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
-
-const rangeLabel: Record<AdminPaymentReportRange, string> = {
-  "30d": "Últimos 30 días",
-  "90d": "Últimos 90 días",
-  "12m": "Últimos 12 meses",
-}
-
-const statusLabel: Record<AdminPaymentReportStatusRow["status"], string> = {
-  paid: "Pagado",
-  pending: "Pendiente",
-  partially_refunded: "Reembolso parcial",
-  refunded: "Reembolsado",
-  failed: "Fallido",
-}
+import { useFormatter, useTranslations } from "next-intl"
 
 const statusVariant: Record<
   AdminPaymentReportStatusRow["status"],
@@ -74,29 +61,25 @@ const statusVariant: Record<
   failed: "destructive",
 }
 
-const chartConfig = {
-  net: { label: "Neto", color: "var(--chart-1)" },
-} satisfies ChartConfig
-
-function money(minor: number, currency: string) {
-  return new Intl.NumberFormat("es-EC", {
-    currency,
-    style: "currency",
-  }).format(minor / 100)
-}
-
-function periodLabel(period: string) {
-  const parts = period.split("-").map(Number)
-  const [year, month, day] = parts
-  if (!year || !month) return period
-  const date = new Date(Date.UTC(year, month - 1, day ?? 1))
-  return new Intl.DateTimeFormat("es-EC", {
-    ...(day ? { day: "numeric", month: "short" } : { month: "short", year: "numeric" }),
-    timeZone: "UTC",
-  }).format(date)
-}
-
 export function AdminPaymentReportPage() {
+  const t = useTranslations("adminPaymentReport")
+  const format = useFormatter()
+  const chartConfig = {
+    net: { label: t("metrics.net"), color: "var(--chart-1)" },
+  } satisfies ChartConfig
+  const reportMoney = (minor: number, currency: string) =>
+    format.number(minor / 100, { currency, style: "currency" })
+  /** El periodo llega como `YYYY-MM` o `YYYY-MM-DD` en UTC. */
+  const periodLabel = (period: string) => {
+    const [year, month, day] = period.split("-").map(Number)
+    if (!year || !month) return period
+    return format.dateTime(new Date(Date.UTC(year, month - 1, day ?? 1)), {
+      ...(day
+        ? { day: "numeric", month: "short" }
+        : { month: "short", year: "numeric" }),
+      timeZone: "UTC",
+    })
+  }
   const [report, setReport] = useState<AdminPaymentReport | null>(null)
   const [range, setRange] = useState<AdminPaymentReportRange>("30d")
   const [productType, setProductType] =
@@ -130,24 +113,24 @@ export function AdminPaymentReportPage() {
   if (forbidden) {
     return (
       <EmptyState
-        description="Tu cuenta no tiene permisos para consultar el reporte de pagos."
+        description={t("forbiddenDescription")}
         icon={ShieldX}
-        title="Acceso restringido"
+        title={t("forbiddenTitle")}
       />
     )
   }
 
   if (isLoading && !report) {
-    return <PageLoading aria-label="Cargando reporte de pagos" />
+    return <PageLoading aria-label={t("loading")} />
   }
 
   if (loadError || !report) {
     return (
       <EmptyState
         action={<RetryButton onClick={() => void load()} />}
-        description="No fue posible calcular el reporte de pagos."
+        description={t("loadFailedDescription")}
         icon={CircleAlert}
-        title="No pudimos cargar esta sección"
+        title={t("loadFailedTitle")}
       />
     )
   }
@@ -161,66 +144,72 @@ export function AdminPaymentReportPage() {
   return (
     <div className="flex flex-col gap-4">
       <CollectionHeader
-        description="Cobros liquidados, reembolsos y facturación por producto en el periodo seleccionado."
-        title="Reporte de pagos"
+        description={t("pageDescription")}
+        title={t("pageTitle")}
       />
       <div className="flex flex-wrap items-center gap-3">
         <DataTableFilter
-          ariaLabel="Seleccionar rango"
-          label="Rango"
+          ariaLabel={t("selectRange")}
+          label={t("rangeColumn")}
           onValueChange={(value) => setRange(value as AdminPaymentReportRange)}
           options={[
-            { label: rangeLabel["30d"], value: "30d" },
-            { label: rangeLabel["90d"], value: "90d" },
-            { label: rangeLabel["12m"], value: "12m" },
+            { label: t("range.30d"), value: "30d" },
+            { label: t("range.90d"), value: "90d" },
+            { label: t("range.12m"), value: "12m" },
           ]}
           value={range}
         />
         <DataTableFilter
-          ariaLabel="Filtrar por producto"
-          label="Producto"
+          ariaLabel={t("filterProduct")}
+          label={t("product")}
           onValueChange={(value) =>
             setProductType(value as AdminPaymentReportProduct)
           }
           options={[
-            { label: "Todos", value: "all" },
-            { label: "Planes", value: "plan" },
-            { label: "Créditos", value: "credits" },
+            { label: t("all"), value: "all" },
+            { label: t("productType.plan"), value: "plan" },
+            { label: t("productType.credits"), value: "credits" },
           ]}
           value={productType}
         />
         <p className="text-sm text-muted-foreground">
-          Moneda {currency}
+          {t("currencyNote", { currency })}
           {report.currencies.length > 1
-            ? ` · ${report.currencies.length - 1} moneda(s) más sin agregar`
+            ? t("moreCurrencies", { count: report.currencies.length - 1 })
             : ""}
         </p>
       </div>
 
       <CardGrid>
         <MetricCard
-          description="Cobros liquidados"
+          description={t("metrics.grossDescription")}
           icon={BadgeDollarSign}
-          label="Bruto"
-          value={money(metrics.grossMinor, currency)}
+          label={t("metrics.gross")}
+          value={reportMoney(metrics.grossMinor, currency)}
         />
         <MetricCard
-          description="Bruto menos reembolsos"
+          description={t("metrics.netDescription")}
           icon={Wallet}
-          label="Neto"
-          value={money(metrics.netMinor, currency)}
+          label={t("metrics.net")}
+          value={reportMoney(metrics.netMinor, currency)}
         />
         <MetricCard
-          description={`${metrics.refundedCount} pagos con devolución`}
+          description={t("metrics.refundedDescription", {
+            count: metrics.refundedCount,
+          })}
           icon={RotateCcw}
-          label="Reembolsado"
-          value={money(metrics.refundedMinor, currency)}
+          label={t("metrics.refunded")}
+          value={reportMoney(metrics.refundedMinor, currency)}
         />
         <MetricCard
-          description={`${metrics.paidCount} pagados · ${metrics.pendingCount} pendientes · ${metrics.failedCount} fallidos`}
+          description={t("metrics.ticketDescription", {
+            failed: metrics.failedCount,
+            paid: metrics.paidCount,
+            pending: metrics.pendingCount,
+          })}
           icon={Receipt}
-          label="Ticket medio"
-          value={money(metrics.averageTicketMinor, currency)}
+          label={t("metrics.ticket")}
+          value={reportMoney(metrics.averageTicketMinor, currency)}
         />
       </CardGrid>
 
@@ -228,12 +217,15 @@ export function AdminPaymentReportPage() {
         <CardHeader>
           <CardTitle className="leading-none">Evolución</CardTitle>
           <CardDescription>
-            Importe neto liquidado · {rangeLabel[report.range].toLowerCase()}
+            Importe neto liquidado · {t(`range.${report.range}`).toLowerCase()}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {series.length ? (
-            <ChartContainer className="aspect-auto h-64 w-full" config={chartConfig}>
+            <ChartContainer
+              className="aspect-auto h-64 w-full"
+              config={chartConfig}
+            >
               <ComposedChart data={series} margin={{ top: 0 }}>
                 <defs>
                   <linearGradient id="fillNet" x1="0" x2="0" y1="0" y2="1">
@@ -258,7 +250,9 @@ export function AdminPaymentReportPage() {
                   tickMargin={8}
                 />
                 <ChartTooltip
-                  content={<ChartTooltipContent className="w-44" indicator="line" />}
+                  content={
+                    <ChartTooltipContent className="w-44" indicator="line" />
+                  }
                   cursor={false}
                 />
                 <Area
@@ -274,9 +268,9 @@ export function AdminPaymentReportPage() {
             </ChartContainer>
           ) : (
             <EmptyState
-              description="No hay cobros liquidados en el periodo seleccionado."
+              description={t("noSettledDescription")}
               icon={BadgeDollarSign}
-              title="Sin movimientos"
+              title={t("noMovements")}
             />
           )}
         </CardContent>
@@ -294,7 +288,7 @@ export function AdminPaymentReportPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Producto</TableHead>
+                  <TableHead>{t("product")}</TableHead>
                   <TableHead className="hidden sm:table-cell">Pagos</TableHead>
                   <TableHead className="text-right">Bruto</TableHead>
                 </TableRow>
@@ -307,7 +301,9 @@ export function AdminPaymentReportPage() {
                         <div className="flex min-w-40 flex-col">
                           <span className="font-medium">{row.label}</span>
                           <span className="text-xs text-muted-foreground">
-                            {row.productType === "plan" ? "Plan" : "Créditos"}
+                            {row.productType === "plan"
+                              ? t("productType.plan")
+                              : t("productType.credits")}
                           </span>
                         </div>
                       </TableCell>
@@ -315,15 +311,15 @@ export function AdminPaymentReportPage() {
                         {row.count}
                       </TableCell>
                       <TableCell className="text-right">
-                        {money(row.grossMinor, currency)}
+                        {reportMoney(row.grossMinor, currency)}
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableEmptyRow
                     colSpan={3}
-                    description="Sin cobros liquidados en este periodo."
-                    title="Sin datos"
+                    description={t("noSettledPeriod")}
+                    title={t("noData")}
                   />
                 )}
               </TableBody>
@@ -342,7 +338,7 @@ export function AdminPaymentReportPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Estado</TableHead>
+                  <TableHead>{t("statusColumn")}</TableHead>
                   <TableHead className="hidden sm:table-cell">Pagos</TableHead>
                   <TableHead className="text-right">Importe</TableHead>
                 </TableRow>
@@ -353,22 +349,22 @@ export function AdminPaymentReportPage() {
                     <TableRow key={row.status}>
                       <TableCell>
                         <Badge variant={statusVariant[row.status]}>
-                          {statusLabel[row.status]}
+                          {t(`status.${row.status}`)}
                         </Badge>
                       </TableCell>
                       <TableCell className="hidden text-muted-foreground sm:table-cell">
                         {row.count}
                       </TableCell>
                       <TableCell className="text-right">
-                        {money(row.amountMinor, currency)}
+                        {reportMoney(row.amountMinor, currency)}
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableEmptyRow
                     colSpan={3}
-                    description="Sin pagos registrados en este periodo."
-                    title="Sin datos"
+                    description={t("noPaymentsPeriod")}
+                    title={t("noData")}
                   />
                 )}
               </TableBody>
@@ -390,7 +386,7 @@ export function AdminPaymentReportPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Espacio de trabajo</TableHead>
+                <TableHead>{t("workspace")}</TableHead>
                 <TableHead className="hidden sm:table-cell">Pagos</TableHead>
                 <TableHead className="text-right">Bruto</TableHead>
               </TableRow>
@@ -406,15 +402,15 @@ export function AdminPaymentReportPage() {
                       {row.count}
                     </TableCell>
                     <TableCell className="text-right">
-                      {money(row.grossMinor, currency)}
+                      {reportMoney(row.grossMinor, currency)}
                     </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableEmptyRow
                   colSpan={3}
-                  description="Sin cobros liquidados en este periodo."
-                  title="Sin datos"
+                  description={t("noSettledPeriod")}
+                  title={t("noData")}
                 />
               )}
             </TableBody>
