@@ -50,7 +50,6 @@ import {
 } from "@workspace/ui/components/dropdown-menu"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
-import { Kbd } from "@workspace/ui/components/kbd"
 import { PageLoading } from "@workspace/ui/components/page-loading"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
@@ -702,7 +701,6 @@ export function TeamsPage() {
       }
       search={{
         ariaLabel: searchPlaceholder.replace("...", ""),
-        endAddon: <Kbd className="h-4 text-[10px]">⌘K</Kbd>,
         inputRef: searchRef,
         onChange: updateCurrentSearch,
         placeholder: searchPlaceholder,
