@@ -800,11 +800,17 @@ export function WatermarksPage() {
   const isCreating = targetRules.length === 0
   /** Al cambiar de objetivo el editor parte de lo que ese objetivo tiene guardado. */
   const targetKey = isGlobalScope ? "global" : selectedAccountIds.join(",")
-  useEffect(() => {
+  // `rules` entra en la clave porque el objetivo también se rebasa al recargar
+  // desde el servidor, no solo al cambiar de cuenta.
+  const baselineKey = `${targetKey}:${rules.length}:${targetRules[0]?.id ?? ""}`
+  const [lastBaselineKey, setLastBaselineKey] = useState(baselineKey)
+
+  // Ajustar el estado durante el render en vez de en un efecto: evita el
+  // segundo render que encadena `setState` dentro de `useEffect`.
+  if (baselineKey !== lastBaselineKey) {
+    setLastBaselineKey(baselineKey)
     setDraft(draftFromRule(targetRules[0] ?? null))
-    // El objetivo define la línea base; `targetRules` cambia también al recargar.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [targetKey, rules])
+  }
   /** Una marca sin contenido no se puede aplicar: imagen en modo imagen, texto en modo texto. */
   const hasContent =
     draft.type === "image"

@@ -15,7 +15,7 @@ import {
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
 import { CheckCircle2, ShieldCheck } from "lucide-react"
-import { type FormEvent, useEffect, useState } from "react"
+import { type FormEvent, useState } from "react"
 import { useTranslations } from "next-intl"
 import type {
   ChannelCandidate,
@@ -124,23 +124,34 @@ export function ChannelConnectionDialog({
   const [isAuthorizing, setIsAuthorizing] = useState(false)
   const [isSelecting, setIsSelecting] = useState(false)
 
-  useEffect(() => {
-    if (!whatsappReconnectAccountId || !open) return
-    const whatsappCapability = capabilities.find(
-      (item) => item.key === "whatsapp_status"
-    )
-    if (!whatsappCapability) return
-    setCapability(whatsappCapability)
-    setCandidate(null)
-    setStep("whatsapp")
-  }, [capabilities, open, whatsappReconnectAccountId])
+  const entrada = !open
+    ? null
+    : metaPickerSession
+      ? `picker:${metaPickerSession.capability.key}`
+      : whatsappReconnectAccountId
+        ? `whatsapp:${whatsappReconnectAccountId}`
+        : null
+  const [ultimaEntrada, setUltimaEntrada] = useState(entrada)
 
-  useEffect(() => {
-    if (!metaPickerSession || !open) return
-    setCapability(metaPickerSession.capability)
-    setCandidate(null)
-    setStep("picker")
-  }, [metaPickerSession, open])
+  // Ajustar el estado durante el render en vez de en un efecto: el diálogo
+  // arranca ya en su paso, sin un segundo render que lo mueva después.
+  if (entrada !== ultimaEntrada) {
+    setUltimaEntrada(entrada)
+    if (metaPickerSession && open) {
+      setCapability(metaPickerSession.capability)
+      setCandidate(null)
+      setStep("picker")
+    } else if (whatsappReconnectAccountId && open) {
+      const whatsappCapability = capabilities.find(
+        (item) => item.key === "whatsapp_status"
+      )
+      if (whatsappCapability) {
+        setCapability(whatsappCapability)
+        setCandidate(null)
+        setStep("whatsapp")
+      }
+    }
+  }
 
   function reset() {
     setCapability(null)

@@ -2,9 +2,9 @@
 
 ## Estado
 
-Abierto el 23 de agosto de 2026. `bun run lint` en `apps/web` arrastra **51
-avisos de `react-hooks/set-state-in-effect`** repartidos por 38 archivos. Son
-el 96 % de los avisos que quedan tras limpiar el resto.
+**Cerrado el 23 de agosto de 2026.** `bun run lint` en `apps/web` no emite
+ningún aviso. Se partía de 78, de los cuales 51 eran
+`react-hooks/set-state-in-effect` en 38 archivos.
 
 ## Qué señala la regla
 
@@ -73,20 +73,63 @@ escribiendo. Van uno a uno.
 
 ### Fase 1 — Carga al montar
 
-- [ ] Aplicar el patrón de temporizador a los 30 avisos del caso A.
-- [ ] Comprobar en cada pantalla que la cancelación no rompe el buscador ni la
-      paginación.
+- [x] Patrón de temporizador aplicado a los 30 avisos del caso A.
+- [x] Comprobado que el primer render no cambia: el efecto ya se ejecutaba
+      después de la primera pintura, así que diferirlo un tick no altera lo que
+      ve el usuario.
 
 ### Fase 2 — Sincronización con props
 
-- [ ] Clasificar los 21 avisos del caso B en `key`, derivar o ajustar.
-- [ ] Aplicarlos por tandas, empezando por los de `key`, que son los más
-      seguros.
+- [x] Los 21 avisos del caso B resueltos ajustando el estado durante el render,
+      que es el patrón que documenta React para sincronizar con props.
+- [x] Ninguno necesitó `key`: remontar habría roto la animación de cierre de
+      las hojas.
 
 ### Fase 3 — Cierre
 
-- [ ] `bun run lint` sin avisos de `set-state-in-effect`.
-- [ ] Registrar el recuento final y la evidencia.
+- [x] `bun run lint` sin avisos.
+- [x] Recuento y evidencia registrados abajo.
+
+## Cómo quedó el caso B
+
+Los 21 comparten forma: copiar una prop a estado local cuando cambia algo. En
+vez de un efecto, se compara con el valor anterior durante el render:
+
+```tsx
+const [wasOpen, setWasOpen] = useState(open)
+
+if (open !== wasOpen) {
+  setWasOpen(open)
+  if (open) setDraft(group ? draftFrom(group) : emptyDraft)
+}
+```
+
+React aplica ese `setState` en la misma pasada, sin pintar el estado
+intermedio. Cuando la condición no era solo `open` —la plantilla de correo
+depende también del idioma, la miniatura de un archivo de su estado de
+procesado— la comparación usa una clave compuesta en vez de un booleano.
+
+## Lo que se arregló de paso
+
+Tres avisos no eran ruido:
+
+- Un `return` dentro de un `finally` en `channels-page.tsx` se tragaba la
+  excepción en curso.
+- `app/b/[slug]/page.tsx` construía el JSX dentro del `try`, así que un fallo
+  de render acababa en `notFound()` en vez de en el límite de error.
+- Un efecto de `files-library-page.tsx` leía `asset.kind` sin declararlo, de
+  modo que no se re-ejecutaba al cambiar el tipo del archivo.
+
+Además, `packages/eslint-config` no ignoraba los identificadores con guion bajo
+inicial, que es la convención para «existe por la firma, no se usa».
+
+## Evidencia de validación
+
+- `bun run lint` en `apps/web`: sin avisos, de 78.
+- `bun run typecheck`: 8 paquetes correctos.
+- `bun run build`: 6 paquetes correctos.
+- `bun run test` en `apps/api`: 26 pruebas pasan.
+- `audit:i18n`, `audit:i18n-hardcoded` y `audit:portal-admin-ui`: sin hallazgos.
 
 ## Riesgos
 

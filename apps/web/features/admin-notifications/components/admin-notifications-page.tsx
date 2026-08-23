@@ -161,8 +161,9 @@ function AnnouncementSheet({
 
   useEffect(() => {
     if (!open || values.audience === "all") {
-      setTargets([])
-      return
+      // Fuera del cuerpo del efecto: dentro sería un `setState` síncrono.
+      const clear = setTimeout(() => setTargets([]), 0)
+      return () => clearTimeout(clear)
     }
     let isCurrent = true
     const timer = setTimeout(
