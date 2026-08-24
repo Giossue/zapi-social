@@ -57,6 +57,9 @@ const publishCapabilities = new Set([
 
 type Account = typeof socialAccounts.$inferSelect;
 type Post = typeof publishingPosts.$inferSelect;
+type Transaction = Parameters<
+  Parameters<DatabaseService['db']['transaction']>[0]
+>[0];
 
 @Injectable()
 export class PublishingService {
@@ -362,6 +365,7 @@ export class PublishingService {
       );
       try {
         created = await this.database.db.transaction(async (tx) => {
+          await this.lockMediaForWorkspace(tx, session.workspace.id, mediaIds);
           const result: Array<{ post: Post; account: Account }> = [];
           for (const account of orderedAccounts) {
             const [post] = await tx
@@ -490,6 +494,8 @@ export class PublishingService {
           );
     this.validateDestinations([existing.account], mediaIds?.length ?? -1);
     const [post] = await this.database.db.transaction(async (tx) => {
+      if (mediaIds)
+        await this.lockMediaForWorkspace(tx, session.workspace.id, mediaIds);
       const [updated] = await tx
         .update(publishingPosts)
         .set({
@@ -674,6 +680,34 @@ export class PublishingService {
           inArray(fileAssets.id, ids),
         ),
       );
+    if (
+      assets.length !== new Set(ids).size ||
+      assets.some(
+        (asset) => !['image', 'video'].includes(this.fileKind(asset.mimeType)),
+      )
+    )
+      throw this.notFound();
+    return ids;
+  }
+
+  private async lockMediaForWorkspace(
+    tx: Transaction,
+    workspaceId: string,
+    ids: string[],
+  ) {
+    if (!ids.length) return [];
+    const assets = await tx
+      .select()
+      .from(fileAssets)
+      .where(
+        and(
+          eq(fileAssets.workspaceId, workspaceId),
+          eq(fileAssets.status, 'ready'),
+          inArray(fileAssets.id, ids),
+        ),
+      )
+      .orderBy(fileAssets.id)
+      .for('update');
     if (
       assets.length !== new Set(ids).size ||
       assets.some(

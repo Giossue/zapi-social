@@ -3,7 +3,7 @@ import { mkdir, open, rename, rm, stat } from 'node:fs/promises';
 import { basename, extname, resolve } from 'node:path';
 import { Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { ConfigService } from '@nestjs/config';
 import { Queue } from 'bullmq';
@@ -50,8 +50,13 @@ import { DatabaseService } from '../database/database.service';
 import { PlanAccessService } from '../plans/plan-access.service';
 import { AppException } from '../platform/errors/app-exception';
 
+type Transaction = Parameters<
+  Parameters<DatabaseService['db']['transaction']>[0]
+>[0];
+
 @Injectable()
 export class FilesService {
+  private readonly logger = new Logger(FilesService.name);
   private readonly root: string;
 
   constructor(
@@ -76,21 +81,39 @@ export class FilesService {
     const parsed = createPortalFileFolderSchema.safeParse(input);
     if (!parsed.success) throw this.invalid();
     const parentFolderId = parsed.data.parentFolderId ?? null;
-    if (parentFolderId) await this.folder(auth, parentFolderId, 'active');
-    await this.assertFolderNameAvailable(
-      auth.workspace.id,
-      parsed.data.name,
-      parentFolderId,
-    );
-    const [folder] = await this.database.db
-      .insert(fileFolders)
-      .values({
-        workspaceId: auth.workspace.id,
-        createdByUserId: auth.user.id,
+    const folder = await this.database.db.transaction(async (tx) => {
+      if (parentFolderId) {
+        const [parent] = await tx
+          .select({ id: fileFolders.id })
+          .from(fileFolders)
+          .where(
+            and(
+              eq(fileFolders.id, parentFolderId),
+              eq(fileFolders.workspaceId, auth.workspace.id),
+              eq(fileFolders.status, 'active'),
+            ),
+          )
+          .for('update')
+          .limit(1);
+        if (!parent) throw this.notFound();
+      }
+      await this.assertFolderNameAvailable(
+        tx,
+        auth.workspace.id,
+        parsed.data.name,
         parentFolderId,
-        name: parsed.data.name,
-      })
-      .returning();
+      );
+      const [created] = await tx
+        .insert(fileFolders)
+        .values({
+          workspaceId: auth.workspace.id,
+          createdByUserId: auth.user.id,
+          parentFolderId,
+          name: parsed.data.name,
+        })
+        .returning();
+      return created;
+    });
     if (!folder) throw this.failed();
     return folder;
   }
@@ -104,41 +127,59 @@ export class FilesService {
     this.requireManage(auth);
     const parsed = updatePortalFileFolderSchema.safeParse(input);
     if (!parsed.success) throw this.invalid();
-    const current = await this.folder(auth, id, 'active');
-    const parentFolderId =
-      parsed.data.parentFolderId === undefined
-        ? current.parentFolderId
-        : parsed.data.parentFolderId;
-    if (parentFolderId) {
-      await this.folder(auth, parentFolderId, 'active');
-      const descendants = await this.folderDescendants(
-        auth.workspace.id,
-        current.id,
-      );
-      if (descendants.has(parentFolderId)) throw this.invalid();
-    }
-    const name = parsed.data.name ?? current.name;
-    await this.assertFolderNameAvailable(
-      auth.workspace.id,
-      name,
-      parentFolderId,
-      current.id,
-    );
-    const [folder] = await this.database.db
-      .update(fileFolders)
-      .set({
-        name,
-        parentFolderId,
-        updatedAt: new Date(),
-      })
-      .where(
-        and(
-          eq(fileFolders.id, current.id),
-          eq(fileFolders.workspaceId, auth.workspace.id),
-          eq(fileFolders.status, 'active'),
-        ),
+    const folder = await this.database.db.transaction(async (tx) => {
+      const folders = await tx
+        .select({
+          id: fileFolders.id,
+          name: fileFolders.name,
+          parentFolderId: fileFolders.parentFolderId,
+        })
+        .from(fileFolders)
+        .where(
+          and(
+            eq(fileFolders.workspaceId, auth.workspace.id),
+            eq(fileFolders.status, 'active'),
+          ),
+        )
+        .orderBy(fileFolders.id)
+        .for('update');
+      const current = folders.find((candidate) => candidate.id === id);
+      if (!current) throw this.notFound();
+      const parentFolderId =
+        parsed.data.parentFolderId === undefined
+          ? current.parentFolderId
+          : parsed.data.parentFolderId;
+      if (parentFolderId) {
+        if (!folders.some((candidate) => candidate.id === parentFolderId))
+          throw this.notFound();
+        if (this.descendantFolderIds(folders, current.id).has(parentFolderId))
+          throw this.invalid();
+      }
+      const name = parsed.data.name ?? current.name;
+      if (
+        folders.some(
+          (candidate) =>
+            candidate.id !== current.id &&
+            candidate.parentFolderId === parentFolderId &&
+            candidate.name.localeCompare(name, undefined, {
+              sensitivity: 'accent',
+            }) === 0,
+        )
       )
-      .returning();
+        throw this.invalid();
+      const [updated] = await tx
+        .update(fileFolders)
+        .set({ name, parentFolderId, updatedAt: new Date() })
+        .where(
+          and(
+            eq(fileFolders.id, current.id),
+            eq(fileFolders.workspaceId, auth.workspace.id),
+            eq(fileFolders.status, 'active'),
+          ),
+        )
+        .returning();
+      return updated;
+    });
     if (!folder) throw this.notFound();
     return folder;
   }
@@ -146,38 +187,63 @@ export class FilesService {
   async removeFolder(session: Promise<PortalAuthSession>, id: string) {
     const auth = await session;
     this.requireManage(auth);
-    const folder = await this.folder(auth, id, 'active');
-    const folderIds = [
-      ...(await this.folderDescendants(auth.workspace.id, folder.id)),
-    ];
-    await this.assertAssetsUnused(auth.workspace.id, folderIds, true);
-    const assets = await this.database.db
-      .select()
-      .from(fileAssets)
-      .where(
-        and(
-          eq(fileAssets.workspaceId, auth.workspace.id),
-          inArray(fileAssets.folderId, folderIds),
-        ),
-      );
-    await this.removePhysicalAssets(assets);
-    await this.database.db.transaction(async (tx) => {
-      if (assets.length)
-        await tx.delete(fileAssets).where(
-          inArray(
-            fileAssets.id,
-            assets.map((asset) => asset.id),
+    const assets = await this.database.db.transaction(async (tx) => {
+      const folders = await tx
+        .select({
+          id: fileFolders.id,
+          parentFolderId: fileFolders.parentFolderId,
+        })
+        .from(fileFolders)
+        .where(
+          and(
+            eq(fileFolders.workspaceId, auth.workspace.id),
+            eq(fileFolders.status, 'active'),
           ),
-        );
+        )
+        .orderBy(fileFolders.id)
+        .for('update');
+      if (!folders.some((folder) => folder.id === id)) throw this.notFound();
+      const folderIds = [...this.descendantFolderIds(folders, id)];
+      const lockedAssets = await tx
+        .select()
+        .from(fileAssets)
+        .where(
+          and(
+            eq(fileAssets.workspaceId, auth.workspace.id),
+            inArray(fileAssets.folderId, folderIds),
+            inArray(fileAssets.status, ['pending', 'ready']),
+          ),
+        )
+        .orderBy(fileAssets.id)
+        .for('update');
+      await this.assertAssetsUnused(
+        tx,
+        auth.workspace.id,
+        lockedAssets.map((asset) => asset.id),
+      );
+      const now = new Date();
+      if (lockedAssets.length)
+        await tx
+          .update(fileAssets)
+          .set({ status: 'trashed', trashedAt: now, updatedAt: now })
+          .where(
+            inArray(
+              fileAssets.id,
+              lockedAssets.map((asset) => asset.id),
+            ),
+          );
       await tx
-        .delete(fileFolders)
+        .update(fileFolders)
+        .set({ status: 'trashed', trashedAt: now, updatedAt: now })
         .where(
           and(
             eq(fileFolders.workspaceId, auth.workspace.id),
             inArray(fileFolders.id, folderIds),
           ),
         );
+      return lockedAssets;
     });
+    await this.cleanupPhysicalAssets(assets);
   }
 
   async startUpload(session: Promise<PortalAuthSession>, input: unknown) {
@@ -189,8 +255,6 @@ export class FilesService {
     const extension = extname(name).slice(1).toLowerCase();
     const mimeType = allowedMime(extension, parsed.data.mimeType);
     if (!mimeType) throw this.invalid();
-    if (parsed.data.folderId)
-      await this.folder(auth, parsed.data.folderId, 'active');
     const assetId = crypto.randomUUID();
     const storageKey = originalStorageKey({
       workspaceId: auth.workspace.id,
@@ -201,24 +265,42 @@ export class FilesService {
       auth.workspace.id,
       parsed.data.sizeBytes,
     );
-    const [asset] = await this.database.db
-      .insert(fileAssets)
-      .values({
-        id: assetId,
-        workspaceId: auth.workspace.id,
-        folderId: parsed.data.folderId ?? null,
-        createdByUserId: auth.user.id,
-        storageKey,
-        name,
-        extension,
-        mimeType,
-        sizeBytes: parsed.data.sizeBytes,
-        thumbnailStatus:
-          mimeType.startsWith('image/') || mimeType.startsWith('video/')
-            ? 'pending'
-            : 'not_applicable',
-      })
-      .returning();
+    const asset = await this.database.db.transaction(async (tx) => {
+      if (parsed.data.folderId) {
+        const [folder] = await tx
+          .select({ id: fileFolders.id })
+          .from(fileFolders)
+          .where(
+            and(
+              eq(fileFolders.id, parsed.data.folderId),
+              eq(fileFolders.workspaceId, auth.workspace.id),
+              eq(fileFolders.status, 'active'),
+            ),
+          )
+          .for('update')
+          .limit(1);
+        if (!folder) throw this.notFound();
+      }
+      const [created] = await tx
+        .insert(fileAssets)
+        .values({
+          id: assetId,
+          workspaceId: auth.workspace.id,
+          folderId: parsed.data.folderId ?? null,
+          createdByUserId: auth.user.id,
+          storageKey,
+          name,
+          extension,
+          mimeType,
+          sizeBytes: parsed.data.sizeBytes,
+          thumbnailStatus:
+            mimeType.startsWith('image/') || mimeType.startsWith('video/')
+              ? 'pending'
+              : 'not_applicable',
+        })
+        .returning();
+      return created;
+    });
     if (!asset) throw this.failed();
     return { id: asset.id, uploadUrl: `/v1/portal/files/${asset.id}/upload` };
   }
@@ -258,10 +340,18 @@ export class FilesService {
         temporaryPath,
       );
       await rename(temporaryPath, path);
-      await this.database.db
+      const [completed] = await this.database.db
         .update(fileAssets)
         .set({ status: 'ready', updatedAt: new Date() })
-        .where(eq(fileAssets.id, asset.id));
+        .where(
+          and(
+            eq(fileAssets.id, asset.id),
+            eq(fileAssets.workspaceId, auth.workspace.id),
+            eq(fileAssets.status, 'pending'),
+          ),
+        )
+        .returning({ id: fileAssets.id });
+      if (!completed) throw this.notFound();
     } catch (error) {
       await Promise.all([
         rm(temporaryPath, { force: true }),
@@ -303,29 +393,57 @@ export class FilesService {
     this.requireManage(auth);
     const parsed = updatePortalFileAssetSchema.safeParse(input);
     if (!parsed.success) throw this.invalid();
-    if (parsed.data.folderId)
-      await this.folder(auth, parsed.data.folderId, 'active');
-    const current = await this.asset(auth, id, 'ready');
-    const name = parsed.data.name
-      ? this.withOriginalExtension(parsed.data.name, current.extension)
-      : undefined;
-    const modifiesAsset =
-      parsed.data.name !== undefined || parsed.data.folderId !== undefined;
-    const [asset] = await this.database.db
-      .update(fileAssets)
-      .set({
-        ...parsed.data,
-        name,
-        ...(modifiesAsset ? { updatedAt: new Date() } : {}),
-      })
-      .where(
-        and(
-          eq(fileAssets.id, id),
-          eq(fileAssets.workspaceId, auth.workspace.id),
-          eq(fileAssets.status, 'ready'),
-        ),
-      )
-      .returning();
+    const asset = await this.database.db.transaction(async (tx) => {
+      if (parsed.data.folderId) {
+        const [folder] = await tx
+          .select({ id: fileFolders.id })
+          .from(fileFolders)
+          .where(
+            and(
+              eq(fileFolders.id, parsed.data.folderId),
+              eq(fileFolders.workspaceId, auth.workspace.id),
+              eq(fileFolders.status, 'active'),
+            ),
+          )
+          .for('update')
+          .limit(1);
+        if (!folder) throw this.notFound();
+      }
+      const [current] = await tx
+        .select()
+        .from(fileAssets)
+        .where(
+          and(
+            eq(fileAssets.id, id),
+            eq(fileAssets.workspaceId, auth.workspace.id),
+            eq(fileAssets.status, 'ready'),
+          ),
+        )
+        .for('update')
+        .limit(1);
+      if (!current) throw this.notFound();
+      const name = parsed.data.name
+        ? this.withOriginalExtension(parsed.data.name, current.extension)
+        : undefined;
+      const modifiesAsset =
+        parsed.data.name !== undefined || parsed.data.folderId !== undefined;
+      const [updated] = await tx
+        .update(fileAssets)
+        .set({
+          ...parsed.data,
+          name,
+          ...(modifiesAsset ? { updatedAt: new Date() } : {}),
+        })
+        .where(
+          and(
+            eq(fileAssets.id, id),
+            eq(fileAssets.workspaceId, auth.workspace.id),
+            eq(fileAssets.status, 'ready'),
+          ),
+        )
+        .returning();
+      return updated;
+    });
     if (!asset) throw this.notFound();
     return asset;
   }
@@ -333,18 +451,37 @@ export class FilesService {
   async remove(session: Promise<PortalAuthSession>, id: string) {
     const auth = await session;
     this.requireManage(auth);
-    const asset = await this.asset(auth, id, 'ready');
-    await this.assertAssetsUnused(auth.workspace.id, [asset.id]);
-    await this.removePhysicalAssets([asset]);
-    await this.database.db
-      .delete(fileAssets)
-      .where(
-        and(
-          eq(fileAssets.id, asset.id),
-          eq(fileAssets.workspaceId, auth.workspace.id),
-          eq(fileAssets.status, 'ready'),
-        ),
-      );
+    const asset = await this.database.db.transaction(async (tx) => {
+      const [locked] = await tx
+        .select()
+        .from(fileAssets)
+        .where(
+          and(
+            eq(fileAssets.id, id),
+            eq(fileAssets.workspaceId, auth.workspace.id),
+            eq(fileAssets.status, 'ready'),
+          ),
+        )
+        .for('update')
+        .limit(1);
+      if (!locked) throw this.notFound();
+      await this.assertAssetsUnused(tx, auth.workspace.id, [locked.id]);
+      const now = new Date();
+      const [trashed] = await tx
+        .update(fileAssets)
+        .set({ status: 'trashed', trashedAt: now, updatedAt: now })
+        .where(
+          and(
+            eq(fileAssets.id, locked.id),
+            eq(fileAssets.workspaceId, auth.workspace.id),
+            eq(fileAssets.status, 'ready'),
+          ),
+        )
+        .returning();
+      if (!trashed) throw this.notFound();
+      return trashed;
+    });
+    await this.cleanupPhysicalAssets([asset]);
   }
 
   async download(session: Promise<PortalAuthSession>, id: string) {
@@ -528,22 +665,6 @@ export class FilesService {
     return asset;
   }
 
-  private async folder(auth: PortalAuthSession, id: string, status: 'active') {
-    const [folder] = await this.database.db
-      .select()
-      .from(fileFolders)
-      .where(
-        and(
-          eq(fileFolders.id, id),
-          eq(fileFolders.workspaceId, auth.workspace.id),
-          eq(fileFolders.status, status),
-        ),
-      )
-      .limit(1);
-    if (!folder) throw this.notFound();
-    return folder;
-  }
-
   private async folderExists(
     workspaceId: string,
     id: string,
@@ -563,14 +684,10 @@ export class FilesService {
     return Boolean(folder);
   }
 
-  private async folderDescendants(workspaceId: string, rootId: string) {
-    const rows = await this.database.db
-      .select({
-        id: fileFolders.id,
-        parentFolderId: fileFolders.parentFolderId,
-      })
-      .from(fileFolders)
-      .where(eq(fileFolders.workspaceId, workspaceId));
+  private descendantFolderIds(
+    rows: Array<{ id: string; parentFolderId: string | null }>,
+    rootId: string,
+  ) {
     const children = new Map<string, string[]>();
     for (const row of rows)
       if (row.parentFolderId)
@@ -618,12 +735,13 @@ export class FilesService {
   }
 
   private async assertFolderNameAvailable(
+    tx: Transaction,
     workspaceId: string,
     name: string,
     parentFolderId: string | null,
     excludingId?: string,
   ) {
-    const siblings = await this.database.db
+    const siblings = await tx
       .select({ id: fileFolders.id, name: fileFolders.name })
       .from(fileFolders)
       .where(
@@ -647,27 +765,14 @@ export class FilesService {
   }
 
   private async assertAssetsUnused(
+    tx: Transaction,
     workspaceId: string,
-    ids: string[],
-    folders = false,
+    assetIds: string[],
   ) {
-    const assetIds = folders
-      ? (
-          await this.database.db
-            .select({ id: fileAssets.id })
-            .from(fileAssets)
-            .where(
-              and(
-                eq(fileAssets.workspaceId, workspaceId),
-                inArray(fileAssets.folderId, ids),
-              ),
-            )
-        ).map((asset) => asset.id)
-      : ids;
     if (!assetIds.length) return;
     const [[publishingReference], [watermarkReference], [bulkReference]] =
       await Promise.all([
-        this.database.db
+        tx
           .select({ id: publishingPostMedia.id })
           .from(publishingPostMedia)
           .innerJoin(
@@ -678,10 +783,16 @@ export class FilesService {
             and(
               eq(publishingPosts.workspaceId, workspaceId),
               inArray(publishingPostMedia.fileAssetId, assetIds),
+              inArray(publishingPosts.status, [
+                'draft',
+                'scheduled',
+                'processing',
+                'failed',
+              ]),
             ),
           )
           .limit(1),
-        this.database.db
+        tx
           .select({ id: publishingWatermarks.id })
           .from(publishingWatermarks)
           .where(
@@ -691,7 +802,7 @@ export class FilesService {
             ),
           )
           .limit(1),
-        this.database.db
+        tx
           .select({ id: bulkPostBatches.id })
           .from(bulkPostBatches)
           .where(
@@ -725,6 +836,18 @@ export class FilesService {
           : []),
       ]),
     );
+  }
+
+  private async cleanupPhysicalAssets(
+    assets: Array<typeof fileAssets.$inferSelect>,
+  ) {
+    try {
+      await this.removePhysicalAssets(assets);
+    } catch {
+      this.logger.error(
+        `FILES_PHYSICAL_CLEANUP_FAILED assetCount=${assets.length}`,
+      );
+    }
   }
 
   private async assertBinaryMatches(

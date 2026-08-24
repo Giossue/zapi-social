@@ -208,7 +208,12 @@ export class PlanAccessService {
         total: sql<number>`coalesce(sum(${fileAssets.sizeBytes}), 0)::bigint`,
       })
       .from(fileAssets)
-      .where(eq(fileAssets.workspaceId, workspaceId));
+      .where(
+        and(
+          eq(fileAssets.workspaceId, workspaceId),
+          inArray(fileAssets.status, ['pending', 'ready']),
+        ),
+      );
     if (
       Number(row?.total ?? 0) + sizeBytes >
       limits.maxStorageMb * 1024 * 1024

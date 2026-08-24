@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState } from "react"
 import {
+  CircleAlert,
   Download,
   FileText,
   FolderInput,
@@ -15,7 +16,6 @@ import {
 import { filesApi } from "@workspace/api-client"
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -500,17 +500,21 @@ export function FileMoveDialog({
 }
 
 export function FileTrashDialog({
+  blockedByPublishing = false,
   item,
   selectedCount,
   onConfirm,
   onOpenChange,
   open,
+  pending = false,
 }: {
+  blockedByPublishing?: boolean
   item: ManagedItem | null
   selectedCount?: number
   onConfirm: () => Promise<void>
   onOpenChange: (open: boolean) => void
   open: boolean
+  pending?: boolean
 }) {
   const t = useTranslations("files")
   const isBulkAction = selectedCount !== undefined
@@ -519,27 +523,45 @@ export function FileTrashDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogMedia>
-            <Trash2 aria-hidden="true" />
+            {blockedByPublishing ? (
+              <CircleAlert aria-hidden="true" />
+            ) : (
+              <Trash2 aria-hidden="true" />
+            )}
           </AlertDialogMedia>
           <AlertDialogTitle>
-            {isBulkAction ? t("deleteSelected") : t("deletePermanently")}
+            {blockedByPublishing
+              ? t("inUseByPublishingTitle")
+              : isBulkAction
+                ? t("deleteSelected")
+                : t("deletePermanently")}
           </AlertDialogTitle>
           <AlertDialogDescription>
-            {isBulkAction
-              ? t("deleteBulkWarning", { count: selectedCount })
-              : t("deleteItemWarning", { name: item?.name ?? "" })}
+            {blockedByPublishing
+              ? t("inUseByPublishing")
+              : isBulkAction
+                ? t("deleteBulkWarning", { count: selectedCount })
+                : t("deleteItemWarning", { name: item?.name ?? "" })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel variant="brand-secondary">
-            {t("cancel")}
+            {blockedByPublishing ? t("close") : t("cancel")}
           </AlertDialogCancel>
-          <AlertDialogAction
-            onClick={() => void onConfirm()}
-            variant="destructive"
-          >
-            <Trash2 data-icon="inline-start" /> {t("delete")}
-          </AlertDialogAction>
+          {!blockedByPublishing ? (
+            <Button
+              disabled={pending}
+              onClick={() => void onConfirm()}
+              variant="destructive"
+            >
+              {pending ? (
+                <Spinner data-icon="inline-start" />
+              ) : (
+                <Trash2 data-icon="inline-start" />
+              )}
+              {t("delete")}
+            </Button>
+          ) : null}
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

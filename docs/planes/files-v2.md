@@ -2,7 +2,7 @@
 
 ## Estado
 
-Inventario, carpetas jerárquicas, subida local en streaming, favorito, breadcrumb, acciones de archivo/carpeta, borrado permanente y miniaturas autenticadas están implementados. No hay papelera ni retención automática.
+Inventario, carpetas jerárquicas, subida local en streaming, favorito, breadcrumb, acciones de archivo/carpeta, borrado permanente y miniaturas autenticadas están implementados. No hay papelera restaurable ni retención automática. El borrado conserva una fila tombstone cuando Publishing necesita mantener una referencia histórica.
 
 La base local registra hasta `0015_lyrical_cargill`: `publishing_posts` y `publishing_post_media` son la referencia durable inicial para impedir enviar a papelera un archivo usado por Publishing.
 
@@ -25,7 +25,8 @@ contratos, seguridad, evidencia y pendientes de smoke real se mantienen en
 - Cada recurso pertenece a un workspace. Cualquier lectura, preview, descarga, mutación o derivado comprueba sesión y ownership de workspace.
 - Solo `owner` y `admin` pueden subir, crear, renombrar, mover, eliminar, restaurar o purgar. Cualquier miembro activo puede listar, ver preview y descargar los recursos autorizados de su workspace.
 - Ninguna URL de archivo o miniatura será pública. Todo acceso pasa por API autenticada; el volumen nunca se expone como directorio HTTP.
-- Eliminar borra original, miniatura y registro de base de datos de inmediato. Los archivos usados por Publishing no se pueden eliminar hasta retirar su referencia.
+- Eliminar retira el recurso de la biblioteca, marca su fila como `trashed` y limpia sus binarios únicamente después de confirmar la transición en base de datos. La fila tombstone y las referencias de publicaciones ya terminadas se conservan como historial.
+- Los archivos usados por publicaciones `draft`, `scheduled`, `processing` o `failed` no se pueden eliminar hasta retirar o reemplazar la media, o hasta que la publicación termine. Una referencia exclusivamente `published` no bloquea el borrado de Files.
 - La selección múltiple no es una fuente de verdad de negocio. Las acciones mutan por IDs validados por API y respetan ownership para cada recurso.
 - La clave de almacenamiento sigue una disposición fija por espacio, definida en `packages/file-ingestion` y compartida por API y Worker. Ninguna feature compone rutas por su cuenta.
 
@@ -36,13 +37,12 @@ contratos, seguridad, evidencia y pendientes de smoke real se mantienen en
 | Jerarquía                    | `file_folders.parent_folder_id`; root, subcarpetas y breadcrumb implementados.                                                                                                                                                                                                                                     |
 | Carga                        | Crea asset `pending`, recibe binario por stream, escribe al volumen local y confirma `ready`; borra temporal y pendiente si falla. Máximo actual: 100 MB.                                                                                                                                                          |
 | Validación                   | La extensión y MIME declarado sólo autorizan el inicio; tras el stream se verifica una firma/magic byte compatible antes de pasar a `ready`. Incluye imágenes, media, PDF, OLE/Office, ZIP/ODF, RTF, TAR/GZip/7z/RAR y texto estructurado.                                                                         |
-| Papelera                     | `DELETE` lógico, `POST restore` y `DELETE purge` para archivos y carpetas. Las carpetas operan sobre todo el descendiente; restore conserva el padre cuando sigue activo o vuelve a raíz.                                                                                                                          |
+| Borrado                      | `DELETE` oculta el recurso mediante `status=trashed`, conserva la fila como tombstone para historial y elimina el binario después del commit. No existe todavía papelera restaurable ni retención automática.                                                                                                      |
 | Seguridad de árbol           | Un movimiento de carpeta comprueba workspace, padre activo, ciclo hacia sí misma/descendientes y nombre único entre hermanos sin distinguir mayúsculas.                                                                                                                                                            |
 | Derivados                    | `GET /v1/portal/files/:id/thumbnail` sirve WebP autenticado; Web usa esa URL sólo cuando el estado es `ready`, con icono como fallback.                                                                                                                                                                            |
 | Despliegue                   | `infra/podman/compose.apps.yaml` declara `files-data` en el mismo `FILES_STORAGE_PATH` para API y Worker; `Dockerfile.worker` instala `ffmpeg`. Falta verificar esta configuración en Dokploy: el 2026-08-04 producción conserva 13 assets `pending`, que no se deben forzar a `ready` sin comprobar sus binarios. |
 | Favorito                     | `file_assets.starred`, expuesto y conectado a Portal.                                                                                                                                                                                                                                                              |
 | Movimiento                   | `PATCH /v1/portal/files/:id` ya permite cambiar `folderId`; falta UI y validación de destino más completa.                                                                                                                                                                                                         |
-| Papelera                     | `DELETE /v1/portal/files/:id` marca archivo como `trashed`; falta UI, restauración, purga y carpetas.                                                                                                                                                                                                              |
 | Renombre                     | API de carpetas existe; no hay renombre de archivo ni UI.                                                                                                                                                                                                                                                          |
 | Descarga                     | Endpoint autenticado implementado.                                                                                                                                                                                                                                                                                 |
 | Preview, player y miniaturas | No implementados. El grid usa iconos de tipo.                                                                                                                                                                                                                                                                      |
@@ -135,6 +135,45 @@ La implementación visual se hace primero en `template-shadcn-superdashboard` y 
 - Publicar o programar conserva una referencia durable al asset, no una URL local.
 - Antes de enviar a papelera, API consulta referencias activas de Publishing y devuelve un error de dominio explicable al usuario.
 - La restauración deja el archivo disponible otra vez sin cambiar IDs ni romper publicaciones existentes.
+
+### 7. Ciclo de vida Files ↔ Publishing — 24 de agosto de 2026
+
+`publishing_post_media` es la fuente durable de dependencia. El estado del post decide si la referencia sigue necesitando el binario; la mera existencia de una referencia histórica no basta para bloquear el borrado.
+
+| Estado de Publishing | ¿Permite borrar en Files? | Motivo                                                                                                   |
+| -------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `draft`              | No                        | El usuario aún puede publicar o programar el borrador.                                                   |
+| `scheduled`          | No                        | Worker necesitará el binario en la fecha programada.                                                     |
+| `processing`         | No                        | El proveedor o Worker puede estar leyendo o subiendo la media.                                           |
+| `failed`             | No                        | El post puede editarse o reintentarse; también cubre resultados desconocidos que requieren conciliación. |
+| `published`          | Sí                        | El envío terminó. Se conserva la relación y la fila tombstone para historial, no el binario local.       |
+
+Invariantes de implementación:
+
+- El borrado de un archivo o árbol de carpetas es todo-o-nada: si un descendiente tiene una referencia bloqueante, no se modifica ninguno.
+- La comprobación de dependencias y la transición `ready → trashed` ocurren en una misma transacción y con bloqueo de las filas de assets.
+- Crear o cambiar media de una publicación vuelve a validar y bloquea esos mismos assets dentro de su transacción. Así, borrar y programar concurrentemente se serializan: solo una operación puede ganar y nunca queda un post activo apuntando a un asset `trashed`.
+- El filesystem nunca se modifica antes del commit. Original, miniatura y derivados se eliminan después; si esa limpieza falla, se registra un fallo normalizado para reconciliación sin devolver el asset a la biblioteca ni exponer rutas físicas.
+- La relación de un post `published` no se elimina. Las métricas e historial pueden seguir afirmando que la publicación tuvo media aunque el archivo ya no sea descargable desde Files.
+- Watermarks y lotes masivos mantienen sus bloqueos actuales hasta que cada vertical defina de forma explícita cuándo deja de requerir el binario.
+- API devuelve `FILE_IN_USE_BY_PUBLISHING` solo por dependencias bloqueantes. Portal mantiene abierto el diálogo de confirmación y sustituye su contenido por una explicación accionable; un toast no es el único feedback.
+
+Casos de prueba obligatorios:
+
+1. Sin referencias: borra, desaparece de la biblioteca y limpia binarios después del commit.
+2. `draft`, `scheduled`, `processing` o `failed`: responde conflicto y conserva fila y binarios.
+3. Solo `published`: permite borrar, conserva tombstone y relación histórica, y limpia binarios.
+4. Referencias mixtas `published + scheduled`: bloquea.
+5. Carpeta con un descendiente bloqueado: no borra parcialmente el árbol.
+6. Carrera borrar/programar: nunca confirma ambas operaciones dejando una dependencia activa sobre un asset `trashed`.
+7. Fallo de limpieza física: la respuesta no filtra paths y el estado lógico permanece coherente.
+
+Evidencia de cierre:
+
+- `apps/api/src/files/files-publishing-lifecycle.integration.spec.ts`: 9/9 casos en PostgreSQL local, incluidos los cuatro estados bloqueantes, asset libre, historial `published`, fallo de limpieza física, atomicidad de carpeta y carrera borrar/programar.
+- API: `typecheck`, `lint`, `build` y suite completa con 95/95 pruebas ejecutadas.
+- Web: `typecheck`, `lint` y build de producción con 90 rutas.
+- i18n: 4485 claves sincronizadas en español e inglés, sin texto de interfaz hardcodeado; declaración tipada regenerada.
 
 ## Orden de implementación
 

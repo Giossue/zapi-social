@@ -3093,10 +3093,10 @@ declare const messages: {
   "dashboard": {
     "admin": {
       "aiActivity": {
-        "description": "Solicitudes por día en las últimas 4 semanas.",
-        "empty": "Sin solicitudes AI en las últimas 4 semanas.",
-        "requests": "solicitudes",
-        "series": "Solicitudes",
+        "description": "Generaciones completadas por día en las últimas 4 semanas.",
+        "empty": "Sin generaciones AI completadas en las últimas 4 semanas.",
+        "requests": "completadas",
+        "series": "Completadas",
         "title": "Actividad AI"
       },
       "allReadyBadge": "Correcto",
@@ -3107,7 +3107,7 @@ declare const messages: {
       "billingSection": "Facturación y actividad",
       "breakdown": {
         "aiTools": "Herramientas AI",
-        "description": "Suscripciones por plan y uso AI por herramienta.",
+        "description": "Suscripciones activas por plan y generaciones AI completadas por herramienta.",
         "empty": "Sin datos en las últimas 4 semanas.",
         "plans": "Planes",
         "series": "Total",
@@ -3196,25 +3196,25 @@ declare const messages: {
     "portal": {
       "activity": {
         "currentPeriod": "Últimas 4 semanas",
-        "description": "Publicaciones por día frente al periodo anterior.",
+        "description": "Publicaciones completadas por día frente al periodo anterior.",
         "previousPeriod": "Periodo anterior",
         "title": "Actividad de publicación",
-        "tooltip": "Publicaciones",
+        "tooltip": "Publicadas",
         "week": "Semana {number, number}"
       },
       "aiUsage": {
         "creditsUsed": "créditos usados",
-        "description": "Solicitudes por día en las últimas 4 semanas.",
-        "empty": "Sin solicitudes AI en las últimas 4 semanas.",
-        "series": "Solicitudes",
+        "description": "Generaciones completadas por día en las últimas 4 semanas.",
+        "empty": "Sin generaciones AI completadas en las últimas 4 semanas.",
+        "series": "Completadas",
         "title": "Uso de AI"
       },
       "breakdown": {
         "aiTools": "Herramientas AI",
         "channels": "Canales",
-        "description": "Últimas 4 semanas por canal y herramienta.",
-        "empty": "Sin datos en las últimas 4 semanas.",
-        "series": "Publicaciones",
+        "description": "Publicaciones y generaciones completadas en las últimas 4 semanas.",
+        "empty": "Sin actividad completada en las últimas 4 semanas.",
+        "series": "Completadas",
         "title": "Distribución de publicaciones"
       },
       "loadFailedDescription": "Comprueba tu conexión e inténtalo de nuevo.",
@@ -3224,10 +3224,10 @@ declare const messages: {
         "activeChannels": "Canales activos",
         "aiCredits": "Créditos AI usados",
         "connectedRecently": "conectados en las últimas 4 semanas",
-        "newFiles": "Archivos nuevos",
+        "newFiles": "Archivos listos",
         "noRecentConnections": "sin conexiones nuevas en 4 semanas",
         "previousWeeks": "frente a las 4 semanas previas",
-        "publishedPosts": "Publicaciones"
+        "publishedPosts": "Publicaciones publicadas"
       },
       "upcoming": {
         "channel": "Canal",
@@ -3361,7 +3361,8 @@ declare const messages: {
       "media": "Vídeo y audio"
     },
     "gridView": "Vista de cuadrícula",
-    "inUseByPublishing": "Este archivo se usa en Publishing y no puede eliminarse.",
+    "inUseByPublishing": "Uno o más archivos están vinculados a una publicación en borrador, programada, en proceso o fallida. Retira o reemplaza la media desde Publicación y vuelve a intentarlo.",
+    "inUseByPublishingTitle": "No se puede eliminar todavía",
     "info": {
       "format": "Formato",
       "size": "Tamaño",

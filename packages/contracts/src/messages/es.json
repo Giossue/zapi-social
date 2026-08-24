@@ -3358,7 +3358,8 @@
       "media": "Vídeo y audio"
     },
     "gridView": "Vista de cuadrícula",
-    "inUseByPublishing": "Este archivo se usa en Publishing y no puede eliminarse.",
+    "inUseByPublishing": "Uno o más archivos están vinculados a una publicación en borrador, programada, en proceso o fallida. Retira o reemplaza la media desde Publicación y vuelve a intentarlo.",
+    "inUseByPublishingTitle": "No se puede eliminar todavía",
     "info": {
       "format": "Formato",
       "size": "Tamaño",

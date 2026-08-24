@@ -691,6 +691,9 @@ export function FilesLibraryPage() {
       })
     | null
   >(null)
+  const [trashBlockedByPublishing, setTrashBlockedByPublishing] =
+    useState(false)
+  const [trashPending, setTrashPending] = useState(false)
   const loadedPages = useRef(1)
   const sentinel = useRef<HTMLDivElement>(null)
 
@@ -1060,19 +1063,24 @@ export function FilesLibraryPage() {
 
   async function trashManagedItem() {
     if (!trashItem) return
+    setTrashPending(true)
     try {
       if (trashItem.isFolder) await filesApi.removeFolder(trashItem.id)
       else await filesApi.remove(trashItem.id)
       if (folderId !== "all" && trashItem.id === folderId) openFolder("all")
+      setTrashBlockedByPublishing(false)
       setTrashItem(null)
       await loadLibrary()
       toast.success(t("deleted"))
     } catch (error) {
-      toast.error(
+      const blockedByPublishing =
         error instanceof ApiError && error.code === "FILE_IN_USE_BY_PUBLISHING"
-          ? t("inUseByPublishing")
-          : t("deleteFailed")
+      setTrashBlockedByPublishing(blockedByPublishing)
+      toast.error(
+        blockedByPublishing ? t("inUseByPublishingTitle") : t("deleteFailed")
       )
+    } finally {
+      setTrashPending(false)
     }
   }
 
@@ -1109,16 +1117,28 @@ export function FilesLibraryPage() {
     const total = selectedAssetIds.length + selectedFolderIds.length
     if (!total) return
 
+    setTrashPending(true)
     try {
       const results = await Promise.allSettled([
         ...selectedAssetIds.map((id) => filesApi.remove(id)),
         ...selectedFolderIds.map((id) => filesApi.removeFolder(id)),
       ])
       const failed = results.filter((result) => result.status === "rejected")
-      setBulkTrashOpen(false)
       await loadLibrary()
-      clearSelection()
       if (failed.length) {
+        const blockedByPublishing = failed.some(
+          (result) =>
+            result.status === "rejected" &&
+            result.reason instanceof ApiError &&
+            result.reason.code === "FILE_IN_USE_BY_PUBLISHING"
+        )
+        if (blockedByPublishing) {
+          setTrashBlockedByPublishing(true)
+          toast.error(t("inUseByPublishingTitle"))
+          return
+        }
+        setBulkTrashOpen(false)
+        clearSelection()
         toast.error(
           failed.length === total
             ? t("deleteNoneFailed")
@@ -1126,9 +1146,14 @@ export function FilesLibraryPage() {
         )
         return
       }
+      setBulkTrashOpen(false)
+      setTrashBlockedByPublishing(false)
+      clearSelection()
       toast.success(total === 1 ? t("deleted") : t("deletedMany"))
     } catch {
       toast.error(t("deleteManyFailed"))
+    } finally {
+      setTrashPending(false)
     }
   }
 
@@ -1537,15 +1562,18 @@ export function FilesLibraryPage() {
         selectedCount={bulkMoveOpen ? selection.length : undefined}
       />
       <FileTrashDialog
+        blockedByPublishing={trashBlockedByPublishing}
         item={trashItem}
         onConfirm={trashItem ? trashManagedItem : trashSelection}
         onOpenChange={(open) => {
           if (!open) {
+            setTrashBlockedByPublishing(false)
             setTrashItem(null)
             setBulkTrashOpen(false)
           }
         }}
         open={Boolean(trashItem) || bulkTrashOpen}
+        pending={trashPending}
         selectedCount={bulkTrashOpen ? selection.length : undefined}
       />
     </div>

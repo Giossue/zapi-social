@@ -3358,7 +3358,8 @@
       "media": "Video and audio"
     },
     "gridView": "Grid view",
-    "inUseByPublishing": "This file is used in Publishing and can't be deleted.",
+    "inUseByPublishing": "One or more files are linked to a draft, scheduled, processing, or failed post. Remove or replace the media in Publishing, then try again.",
+    "inUseByPublishingTitle": "This can't be deleted yet",
     "info": {
       "format": "Format",
       "size": "Size",
