@@ -19,7 +19,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetFooter,
+  SheetActions,
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/components/sheet"
@@ -336,13 +336,10 @@ export function EmailSmtpIntegrationCard() {
         onOpenChange={(open) => !open && !saving && closeDialog()}
         open={draft !== null}
       >
-        <SheetContent
-          className="w-full gap-0 overflow-y-auto overscroll-contain p-0 sm:max-w-xl"
-          side="right"
-        >
+        <SheetContent className="w-full gap-0 p-0 sm:max-w-xl" side="right">
           {draft ? (
             <form
-              className="flex min-h-full flex-col"
+              className="flex min-h-0 flex-1 flex-col"
               noValidate
               onSubmit={saveConfiguration}
             >
@@ -352,7 +349,7 @@ export function EmailSmtpIntegrationCard() {
                   {t("smtp.sheetDescription")}
                 </SheetDescription>
               </SheetHeader>
-              <div className="flex flex-col gap-6 p-4">
+              <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain p-4">
                 <IntegrationAvailabilityCard
                   ariaLabel={t("smtp.enableAria")}
                   checked={draft.enabled}
@@ -573,7 +570,7 @@ export function EmailSmtpIntegrationCard() {
                   </section>
                 ) : null}
               </div>
-              <SheetFooter className="flex-row justify-end border-t">
+              <SheetActions>
                 <Button
                   disabled={saving}
                   onClick={closeDialog}
@@ -598,7 +595,7 @@ export function EmailSmtpIntegrationCard() {
                   )}
                   {saving ? t("saving") : t("saveConfiguration")}
                 </Button>
-              </SheetFooter>
+              </SheetActions>
             </form>
           ) : null}
         </SheetContent>

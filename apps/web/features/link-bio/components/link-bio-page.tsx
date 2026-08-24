@@ -80,7 +80,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetFooter,
+  SheetActions,
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/components/sheet"
@@ -782,7 +782,7 @@ function PageSheet({
               </div>
             </div>
           </div>
-          <SheetFooter className="flex-row justify-end border-t">
+          <SheetActions>
             <Button
               disabled={pending}
               onClick={() => onOpenChange(false)}
@@ -799,7 +799,7 @@ function PageSheet({
               )}
               {t("savePage")}
             </Button>
-          </SheetFooter>
+          </SheetActions>
         </form>
       </SheetContent>
     </Sheet>

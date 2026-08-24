@@ -58,7 +58,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetFooter,
+  SheetActions,
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/components/sheet"
@@ -512,7 +512,7 @@ export function StaticPagesSettingsPage() {
                 </Field>
               </FieldGroup>
             </div>
-            <SheetFooter className="flex-row justify-end border-t">
+            <SheetActions>
               <Button
                 disabled={pending}
                 onClick={() => setIsSheetOpen(false)}
@@ -529,7 +529,7 @@ export function StaticPagesSettingsPage() {
                 )}
                 {t("save")}
               </Button>
-            </SheetFooter>
+            </SheetActions>
           </form>
         </SheetContent>
       </Sheet>

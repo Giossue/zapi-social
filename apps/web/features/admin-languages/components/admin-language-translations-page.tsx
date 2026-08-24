@@ -43,7 +43,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetFooter,
+  SheetActions,
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/components/sheet"
@@ -467,7 +467,7 @@ export function AdminLanguageTranslationsPage({ code }: { code: string }) {
                 <FieldDescription>{t("editHint")}</FieldDescription>
               </Field>
             </div>
-            <SheetFooter className="flex-row justify-end border-t">
+            <SheetActions>
               <Button
                 disabled={pending}
                 onClick={() => setEditingKey(null)}
@@ -484,7 +484,7 @@ export function AdminLanguageTranslationsPage({ code }: { code: string }) {
                 )}
                 {t("save")}
               </Button>
-            </SheetFooter>
+            </SheetActions>
           </form>
         </SheetContent>
       </Sheet>

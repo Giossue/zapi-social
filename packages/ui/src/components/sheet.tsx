@@ -62,7 +62,7 @@ function SheetContent({
         data-slot="sheet-content"
         data-side={side}
         className={cn(
-          "fixed z-50 flex w-full flex-col gap-4 bg-popover bg-clip-padding text-sm text-popover-foreground shadow-lg data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0 data-[side=bottom]:h-auto data-[side=bottom]:max-w-none data-[side=bottom]:border-t data-[side=bottom]:[--sheet-slide-y:2.5rem] data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-full data-[side=left]:[--sheet-slide-x:-2.5rem] data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-full data-[side=right]:[--sheet-slide-x:2.5rem] data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=top]:h-auto data-[side=top]:max-w-none data-[side=top]:border-b data-[side=top]:[--sheet-slide-y:-2.5rem] sm:max-w-sm data-[side=left]:sm:w-3/4 data-[side=left]:sm:border-r data-[side=right]:sm:w-3/4 data-[side=right]:sm:border-l data-open:animate-[sheet-slide-in_200ms_ease-out] data-closed:animate-[sheet-slide-out_200ms_ease-in]",
+          "fixed z-50 flex w-full flex-col gap-4 overflow-hidden bg-popover bg-clip-padding text-sm text-popover-foreground shadow-lg data-[side=bottom]:inset-x-0 data-[side=bottom]:bottom-0 data-[side=bottom]:h-auto data-[side=bottom]:max-w-none data-[side=bottom]:border-t data-[side=bottom]:[--sheet-slide-y:2.5rem] data-[side=left]:inset-y-0 data-[side=left]:left-0 data-[side=left]:h-full data-[side=left]:[--sheet-slide-x:-2.5rem] data-[side=right]:inset-y-0 data-[side=right]:right-0 data-[side=right]:h-full data-[side=right]:[--sheet-slide-x:2.5rem] data-[side=top]:inset-x-0 data-[side=top]:top-0 data-[side=top]:h-auto data-[side=top]:max-w-none data-[side=top]:border-b data-[side=top]:[--sheet-slide-y:-2.5rem] sm:max-w-sm data-[side=left]:sm:w-3/4 data-[side=left]:sm:border-r data-[side=right]:sm:w-3/4 data-[side=right]:sm:border-l data-open:animate-[sheet-slide-in_200ms_ease-out] data-closed:animate-[sheet-slide-out_200ms_ease-in]",
           className
         )}
         {...props}
@@ -89,23 +89,27 @@ function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="sheet-header"
-      className={cn("flex flex-col gap-0.5 p-4", className)}
+      className={cn("flex shrink-0 flex-col gap-0.5 p-4", className)}
       {...props}
     />
   )
 }
 
-function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
+function SheetActions({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="sheet-footer"
       className={cn(
-        "mt-auto flex flex-col gap-2 p-4 pb-[max(1rem,env(safe-area-inset-bottom))]",
+        "mt-auto flex shrink-0 flex-row justify-end gap-2 border-t bg-popover p-4 pb-[max(1rem,env(safe-area-inset-bottom))]",
         className
       )}
       {...props}
     />
   )
+}
+
+function SheetFooter(props: React.ComponentProps<"div">) {
+  return <SheetActions {...props} />
 }
 
 function SheetTitle({
@@ -143,6 +147,7 @@ export {
   SheetClose,
   SheetContent,
   SheetHeader,
+  SheetActions,
   SheetFooter,
   SheetTitle,
   SheetDescription,

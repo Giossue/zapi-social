@@ -45,7 +45,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetFooter,
+  SheetActions,
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/components/sheet"
@@ -1347,7 +1347,7 @@ function RouteSheet({
             <span className="text-sm">{t("toolEnabled")}</span>
           </div>
         </div>
-        <SheetFooter className="flex-row justify-end border-t">
+        <SheetActions>
           <Button
             disabled={pending}
             onClick={() => onOpenChange(false)}
@@ -1371,7 +1371,7 @@ function RouteSheet({
             )}
             {t("saveRoute")}
           </Button>
-        </SheetFooter>
+        </SheetActions>
       </SheetContent>
     </Sheet>
   )

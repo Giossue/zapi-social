@@ -4,7 +4,7 @@
 No sustituye una revisión visual. Evita que regresiones mecánicas conocidas
 obliguen a revisar módulo por módulo: scrollbars nativos en tabs, validación
 nativa, pickers nativos, conteos duplicados, contexto duplicado en tablas y
-enlaces de navegación sin ruta.
+enlaces de navegación sin ruta y composiciones inconsistentes de Sheet.
 """
 
 from __future__ import annotations
@@ -86,6 +86,32 @@ def inspect_tabs(path: Path, source: str) -> list[Finding]:
                     source,
                     match.start(),
                     "TabsList no puede usar overflow auto; usa flex h-auto flex-wrap.",
+                )
+            )
+    return findings
+
+
+def inspect_sheets(path: Path, source: str) -> list[Finding]:
+    findings: list[Finding] = []
+    for match in re.finditer(r"<SheetFooter(?:\s|>)", source):
+        findings.append(
+            finding(
+                "sheet-footer",
+                path,
+                source,
+                match.start(),
+                "Usa SheetActions para conservar el separador y el pie persistente compartido.",
+            )
+        )
+    for match in re.finditer(r"<SheetContent\b(?P<attrs>[\s\S]*?)>", source):
+        if re.search(r"overflow-[xy]-(?:auto|scroll)", match.group("attrs")):
+            findings.append(
+                finding(
+                    "sheet-content-scroll",
+                    path,
+                    source,
+                    match.start(),
+                    "SheetContent no se desplaza completo; el cuerpo usa min-h-0 flex-1 overflow-y-auto y SheetActions queda fuera.",
                 )
             )
     return findings
@@ -281,6 +307,7 @@ def audit() -> list[Finding]:
     for path in source_files():
         source = path.read_text(encoding="utf-8")
         findings.extend(inspect_tabs(path, source))
+        findings.extend(inspect_sheets(path, source))
         findings.extend(inspect_forms(path, source))
         findings.extend(inspect_native_pickers(path, source))
         findings.extend(inspect_duplicate_counts(path, source))

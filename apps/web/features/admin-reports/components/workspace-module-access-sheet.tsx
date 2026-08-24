@@ -16,7 +16,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetFooter,
+  SheetActions,
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/components/sheet"
@@ -111,7 +111,7 @@ export function WorkspaceModuleAccessSheet({
               </FieldGroup>
             </FieldSet>
           </div>
-          <SheetFooter className="flex-row justify-end border-t">
+          <SheetActions>
             <Button
               disabled={saving}
               onClick={() => onOpenChange(false)}
@@ -128,7 +128,7 @@ export function WorkspaceModuleAccessSheet({
               )}
               {saving ? savingLabel : saveLabel}
             </Button>
-          </SheetFooter>
+          </SheetActions>
         </form>
       </SheetContent>
     </Sheet>

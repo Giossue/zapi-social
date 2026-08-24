@@ -74,7 +74,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetFooter,
+  SheetActions,
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/components/sheet"
@@ -380,7 +380,7 @@ function AnnouncementSheet({
               ) : null}
             </FieldGroup>
           </div>
-          <SheetFooter className="flex-row justify-end border-t">
+          <SheetActions>
             <Button
               disabled={pending}
               onClick={close}
@@ -410,7 +410,7 @@ function AnnouncementSheet({
               )}
               {t("publish")}
             </Button>
-          </SheetFooter>
+          </SheetActions>
         </form>
       </SheetContent>
     </Sheet>

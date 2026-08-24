@@ -41,7 +41,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetFooter,
+  SheetActions,
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/components/sheet"
@@ -219,7 +219,7 @@ function WithdrawalSheet({
               </Field>
             </FieldGroup>
           </div>
-          <SheetFooter className="flex-row justify-end border-t">
+          <SheetActions>
             <Button
               disabled={pending}
               onClick={() => onOpenChange(false)}
@@ -236,7 +236,7 @@ function WithdrawalSheet({
               )}
               {t("requestWithdrawal")}
             </Button>
-          </SheetFooter>
+          </SheetActions>
         </form>
       </SheetContent>
     </Sheet>

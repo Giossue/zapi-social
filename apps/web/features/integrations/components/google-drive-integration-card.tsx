@@ -26,7 +26,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetFooter,
+  SheetActions,
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/components/sheet"
@@ -312,10 +312,10 @@ export function GoogleDriveIntegrationCard() {
         }}
         open={sheetOpen && draft !== null}
       >
-        <SheetContent className="w-full gap-0 overflow-y-auto overscroll-contain p-0 sm:max-w-xl">
+        <SheetContent className="w-full gap-0 p-0 sm:max-w-xl">
           {draft ? (
             <form
-              className="flex min-h-full flex-col"
+              className="flex min-h-0 flex-1 flex-col"
               noValidate
               onSubmit={save}
             >
@@ -325,7 +325,7 @@ export function GoogleDriveIntegrationCard() {
                   {t("googleDrive.sheetDescription")}
                 </SheetDescription>
               </SheetHeader>
-              <div className="flex flex-col gap-6 p-4">
+              <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain p-4">
                 <IntegrationAvailabilityCard
                   ariaLabel={t("googleDrive.enableAria")}
                   checked={draft.enabled}
@@ -420,7 +420,7 @@ export function GoogleDriveIntegrationCard() {
                   </section>
                 ) : null}
               </div>
-              <SheetFooter className="flex-row justify-end border-t">
+              <SheetActions>
                 <Button
                   disabled={saving || testState === "testing"}
                   onClick={() => {
@@ -448,7 +448,7 @@ export function GoogleDriveIntegrationCard() {
                   )}
                   {saveLabel}
                 </Button>
-              </SheetFooter>
+              </SheetActions>
             </form>
           ) : null}
         </SheetContent>

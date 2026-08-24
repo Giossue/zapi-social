@@ -58,7 +58,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetFooter,
+  SheetActions,
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/components/sheet"
@@ -875,7 +875,7 @@ export function AdminModulePreview({
                 ))}
               </FieldGroup>
             </div>
-            <SheetFooter className="flex-row justify-end border-t">
+            <SheetActions>
               <Button
                 disabled={saving}
                 onClick={() => setFieldAction(null)}
@@ -888,7 +888,7 @@ export function AdminModulePreview({
                 {saving ? <Spinner data-icon="inline-start" /> : null}
                 {t("apply")}
               </Button>
-            </SheetFooter>
+            </SheetActions>
           </form>
         </SheetContent>
       </Sheet>
@@ -964,7 +964,7 @@ export function AdminModulePreview({
                   ))}
                 </FieldGroup>
               </div>
-              <SheetFooter className="flex-row justify-end border-t">
+              <SheetActions>
                 <Button
                   disabled={saving}
                   onClick={() => setDialogOpen(false)}
@@ -981,7 +981,7 @@ export function AdminModulePreview({
                   )}
                   {saving ? t("saving") : t("save")}
                 </Button>
-              </SheetFooter>
+              </SheetActions>
             </form>
           </SheetContent>
         </Sheet>
@@ -1020,14 +1020,14 @@ export function AdminModulePreview({
               </div>
             ))}
           </div>
-          <SheetFooter className="flex-row justify-end border-t">
+          <SheetActions>
             <Button
               onClick={() => setDetailRow(null)}
               variant="brand-secondary"
             >
               {t("close")}
             </Button>
-          </SheetFooter>
+          </SheetActions>
         </SheetContent>
       </Sheet>
 

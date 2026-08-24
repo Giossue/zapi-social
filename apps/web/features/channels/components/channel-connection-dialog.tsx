@@ -7,6 +7,7 @@ import { Card, CardContent } from "@workspace/ui/components/card"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import {
   Sheet,
+  SheetActions,
   SheetContent,
   SheetDescription,
   SheetHeader,
@@ -291,6 +292,7 @@ export function ChannelConnectionDialog({
               <form
                 aria-busy={isSelecting}
                 className="grid gap-4"
+                id="channel-candidate-form"
                 noValidate
                 onSubmit={submitCandidate}
               >
@@ -338,27 +340,6 @@ export function ChannelConnectionDialog({
                     ))}
                   </CardGrid>
                 </Field>
-                <div className="flex justify-end gap-2">
-                  <Button
-                    disabled={isSelecting}
-                    onClick={() => void cancelPicker()}
-                    type="button"
-                    variant="brand-secondary"
-                  >
-                    {t("cancel")}
-                  </Button>
-                  <Button disabled={!candidate || isSelecting} type="submit">
-                    {isSelecting ? (
-                      <Spinner
-                        aria-label={t("connecting")}
-                        data-icon="inline-start"
-                      />
-                    ) : (
-                      <CheckCircle2 data-icon="inline-start" />
-                    )}
-                    {t("connectSelection")}
-                  </Button>
-                </div>
               </form>
             ) : null}
 
@@ -375,6 +356,33 @@ export function ChannelConnectionDialog({
             ) : null}
           </div>
         </div>
+        {step === "picker" && capability ? (
+          <SheetActions>
+            <Button
+              disabled={isSelecting}
+              onClick={() => void cancelPicker()}
+              type="button"
+              variant="brand-secondary"
+            >
+              {t("cancel")}
+            </Button>
+            <Button
+              disabled={!candidate || isSelecting}
+              form="channel-candidate-form"
+              type="submit"
+            >
+              {isSelecting ? (
+                <Spinner
+                  aria-label={t("connecting")}
+                  data-icon="inline-start"
+                />
+              ) : (
+                <CheckCircle2 data-icon="inline-start" />
+              )}
+              {t("connectSelection")}
+            </Button>
+          </SheetActions>
+        ) : null}
       </SheetContent>
     </Sheet>
   )

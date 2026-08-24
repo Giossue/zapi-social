@@ -26,7 +26,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetFooter,
+  SheetActions,
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/components/sheet"
@@ -235,16 +235,17 @@ export function AdminTurnstileSettingsPage() {
       </Card>
 
       <Sheet open={Boolean(draft)} onOpenChange={(next) => !next && close()}>
-        <SheetContent
-          className="w-full gap-0 overflow-y-auto overscroll-contain p-0 sm:max-w-xl"
-          side="right"
-        >
-          <form className="flex min-h-full flex-col" noValidate onSubmit={save}>
+        <SheetContent className="w-full gap-0 p-0 sm:max-w-xl" side="right">
+          <form
+            className="flex min-h-0 flex-1 flex-col"
+            noValidate
+            onSubmit={save}
+          >
             <SheetHeader className="border-b">
               <SheetTitle>{t("sheetTitle")}</SheetTitle>
               <SheetDescription>{t("sheetDescription")}</SheetDescription>
             </SheetHeader>
-            <div className="flex flex-col gap-6 p-4">
+            <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain p-4">
               <Card className="gap-0 py-0" variant="inset">
                 <CardContent className="px-4 py-4">
                   <Field orientation="horizontal">
@@ -319,7 +320,7 @@ export function AdminTurnstileSettingsPage() {
                 </FieldGroup>
               </section>
             </div>
-            <SheetFooter className="flex-row justify-end border-t">
+            <SheetActions>
               <Button
                 disabled={saving}
                 onClick={close}
@@ -341,7 +342,7 @@ export function AdminTurnstileSettingsPage() {
                 )}
                 {saving ? t("saving") : t("save")}
               </Button>
-            </SheetFooter>
+            </SheetActions>
           </form>
         </SheetContent>
       </Sheet>

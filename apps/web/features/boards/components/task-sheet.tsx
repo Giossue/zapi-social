@@ -44,7 +44,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetFooter,
+  SheetActions,
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/components/sheet"
@@ -501,7 +501,7 @@ export function TaskSheet({
               </FieldSet>
             ) : null}
           </div>
-          <SheetFooter className="flex-row justify-between border-t">
+          <SheetActions className="justify-between">
             {task && canDelete ? (
               <Button
                 disabled={pending}
@@ -533,7 +533,7 @@ export function TaskSheet({
                 {t("save")}
               </Button>
             </span>
-          </SheetFooter>
+          </SheetActions>
         </form>
       </SheetContent>
     </Sheet>

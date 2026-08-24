@@ -48,6 +48,7 @@ import {
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
   Sheet,
+  SheetActions,
   SheetContent,
   SheetDescription,
   SheetHeader,
@@ -389,373 +390,379 @@ function PlanEditorSheet({
           </SheetTitle>
           <SheetDescription>{t("sheetDescription")}</SheetDescription>
         </SheetHeader>
-        <ScrollArea
-          className="min-h-0 flex-1"
-          scrollbarClassName="translate-x-6"
-          type="always"
+        <form
+          className="flex min-h-0 flex-1 flex-col"
+          noValidate
+          onSubmit={submit}
         >
-          <form
-            className="flex flex-col gap-6 px-6 pt-5 pr-12 pb-6"
-            noValidate
-            onSubmit={submit}
+          <ScrollArea
+            className="min-h-0 flex-1"
+            scrollbarClassName="translate-x-6"
+            type="always"
           >
-            <FieldGroup className="grid sm:grid-cols-2">
-              <Field data-disabled={isSaving || undefined}>
-                <FieldLabel htmlFor="plan-name">
-                  {t("name")}
-                  <RequiredMark />
-                </FieldLabel>
-                <Input
-                  aria-required="true"
-                  disabled={isSaving}
-                  id="plan-name"
-                  maxLength={80}
-                  name="name"
-                  onChange={(event) => setName(event.target.value)}
-                  value={name}
-                />
-              </Field>
-              <Field data-disabled={isSaving || undefined}>
-                <FieldLabel htmlFor="plan-slug">
-                  Slug <RequiredMark />
-                </FieldLabel>
-                <Input
-                  aria-required="true"
-                  disabled={isSaving}
-                  id="plan-slug"
-                  maxLength={80}
-                  name="slug"
-                  onChange={(event) => setSlug(event.target.value)}
-                  placeholder={t("slugPlaceholder")}
-                  value={slug}
-                />
-              </Field>
-              <Field data-disabled={isSaving || undefined}>
-                <FieldLabel htmlFor="plan-status">
-                  {t("statusColumn")}
-                  <RequiredMark />
-                </FieldLabel>
-                <Select
-                  defaultValue={plan.status}
-                  disabled={isSaving}
-                  name="status"
-                >
-                  <SelectTrigger aria-required="true" id="plan-status">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="active">
-                        {t("status.active")}
-                      </SelectItem>
-                      <SelectItem value="inactive">
-                        {t("status.inactive")}
-                      </SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field data-disabled={isFree || isSaving || undefined}>
-                <FieldLabel htmlFor="plan-price">
-                  Precio {!isFree ? <RequiredMark /> : null}
-                </FieldLabel>
-                <Input
-                  aria-required={!isFree || undefined}
-                  disabled={isFree || isSaving}
-                  id="plan-price"
-                  min="0"
-                  name="price"
-                  onChange={(event) => setPrice(event.target.value)}
-                  step="0.01"
-                  type="number"
-                  value={price}
-                />
-              </Field>
-              <Field data-disabled={isSaving || undefined}>
-                <FieldLabel htmlFor="plan-billing">
-                  {t("billingType")} <RequiredMark />
-                </FieldLabel>
-                <Select
-                  defaultValue={plan.billingType}
-                  disabled={isSaving}
-                  name="billingType"
-                >
-                  <SelectTrigger aria-required="true" id="plan-billing">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="monthly">
-                        {t("billing.monthly")}
-                      </SelectItem>
-                      <SelectItem value="yearly">
-                        {t("billing.yearly")}
-                      </SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field data-disabled={isSaving || undefined}>
-                <FieldLabel htmlFor="plan-trial-days">
-                  {t("trialDays")} <RequiredMark />
-                </FieldLabel>
-                <Input
-                  aria-required="true"
-                  disabled={isSaving}
-                  id="plan-trial-days"
-                  min="0"
-                  name="trialDays"
-                  onChange={(event) => setTrialDays(event.target.value)}
-                  type="number"
-                  value={trialDays}
-                />
-              </Field>
-              <Field data-disabled={isSaving || undefined}>
-                <FieldLabel htmlFor="plan-position">
-                  {t("position")} <RequiredMark />
-                </FieldLabel>
-                <Input
-                  aria-required="true"
-                  disabled={isSaving}
-                  id="plan-position"
-                  min="1"
-                  name="position"
-                  onChange={(event) => setPosition(event.target.value)}
-                  type="number"
-                  value={position}
-                />
-              </Field>
-            </FieldGroup>
-            <Field data-disabled={isSaving || undefined}>
-              <FieldLabel htmlFor="plan-description">
-                {t("description")}
-              </FieldLabel>
-              <Textarea
-                defaultValue={plan.description}
-                disabled={isSaving}
-                id="plan-description"
-                maxLength={500}
-                name="description"
-                placeholder={t("descriptionPlaceholder")}
-              />
-            </Field>
-            <FieldGroup className="grid sm:grid-cols-3">
-              <Field
-                data-disabled={isSaving || undefined}
-                orientation="horizontal"
-              >
-                <div className="flex flex-1 flex-col gap-0.5">
-                  <FieldLabel htmlFor="plan-free">{t("freePlan")}</FieldLabel>
-                  <FieldDescription>{t("freePlanHint")}</FieldDescription>
-                </div>
-                <Switch
-                  checked={isFree}
-                  disabled={isSaving}
-                  id="plan-free"
-                  onCheckedChange={setIsFree}
-                />
-              </Field>
-              <Field
-                data-disabled={isSaving || undefined}
-                orientation="horizontal"
-              >
-                <div className="flex flex-1 flex-col gap-0.5">
-                  <FieldLabel htmlFor="plan-featured">
-                    {t("featured")}
-                  </FieldLabel>
-                  <FieldDescription>{t("featuredHint")}</FieldDescription>
-                </div>
-                <Switch
-                  checked={featured}
-                  disabled={isSaving}
-                  id="plan-featured"
-                  onCheckedChange={setFeatured}
-                />
-              </Field>
-              <Field
-                data-disabled={isSaving || undefined}
-                orientation="horizontal"
-              >
-                <div className="flex flex-1 flex-col gap-0.5">
-                  <FieldLabel htmlFor="plan-default">{t("default")}</FieldLabel>
-                  <FieldDescription>{t("defaultHint")}</FieldDescription>
-                </div>
-                <Switch
-                  checked={isDefaultSignup}
-                  disabled={isSaving}
-                  id="plan-default"
-                  onCheckedChange={setIsDefaultSignup}
-                />
-              </Field>
-            </FieldGroup>
-            <FieldGroup>
-              <Field>
-                <FieldLabel>{t("limits.title")}</FieldLabel>
-                <FieldDescription>{t("limits.hint")}</FieldDescription>
-              </Field>
-              <div className="grid gap-4 sm:grid-cols-2">
-                {(
-                  [
-                    ["maxChannels", "limits.maxChannels"],
-                    ["maxPostsPerMonth", "limits.maxPostsPerMonth"],
-                    ["maxTeamMembers", "limits.maxTeamMembers"],
-                    ["maxStorageMb", "limits.maxStorageMb"],
-                    ["maxFileSizeMb", "limits.maxFileSizeMb"],
-                    ["aiVideoMaxSeconds", "limits.aiVideoMaxSeconds"],
-                    ["creditsPerMonth", "limits.creditsPerMonth"],
-                  ] as const
-                ).map(([key, labelKey]) => (
-                  <Field data-disabled={isSaving || undefined} key={key}>
-                    <FieldLabel htmlFor={`plan-limit-${key}`}>
-                      {t(labelKey)}
-                    </FieldLabel>
-                    <Input
-                      disabled={isSaving}
-                      id={`plan-limit-${key}`}
-                      inputMode="numeric"
-                      onChange={(event) => {
-                        const parsed = Number(event.target.value)
-                        setLimits((current) => ({
-                          ...current,
-                          [key]: Number.isInteger(parsed) ? parsed : -1,
-                        }))
-                      }}
-                      type="number"
-                      value={String(limits[key])}
-                    />
-                  </Field>
-                ))}
+            <div className="flex flex-col gap-6 px-6 pt-5 pr-12 pb-6">
+              <FieldGroup className="grid sm:grid-cols-2">
                 <Field data-disabled={isSaving || undefined}>
-                  <FieldLabel htmlFor="plan-limit-mode">
-                    {t("limits.channelCountMode")}
+                  <FieldLabel htmlFor="plan-name">
+                    {t("name")}
+                    <RequiredMark />
+                  </FieldLabel>
+                  <Input
+                    aria-required="true"
+                    disabled={isSaving}
+                    id="plan-name"
+                    maxLength={80}
+                    name="name"
+                    onChange={(event) => setName(event.target.value)}
+                    value={name}
+                  />
+                </Field>
+                <Field data-disabled={isSaving || undefined}>
+                  <FieldLabel htmlFor="plan-slug">
+                    Slug <RequiredMark />
+                  </FieldLabel>
+                  <Input
+                    aria-required="true"
+                    disabled={isSaving}
+                    id="plan-slug"
+                    maxLength={80}
+                    name="slug"
+                    onChange={(event) => setSlug(event.target.value)}
+                    placeholder={t("slugPlaceholder")}
+                    value={slug}
+                  />
+                </Field>
+                <Field data-disabled={isSaving || undefined}>
+                  <FieldLabel htmlFor="plan-status">
+                    {t("statusColumn")}
+                    <RequiredMark />
                   </FieldLabel>
                   <Select
+                    defaultValue={plan.status}
                     disabled={isSaving}
-                    onValueChange={(value) =>
-                      setLimits((current) => ({
-                        ...current,
-                        channelCountMode:
-                          value === "per_network" ? "per_network" : "total",
-                      }))
-                    }
-                    value={limits.channelCountMode}
+                    name="status"
                   >
-                    <SelectTrigger className="w-full" id="plan-limit-mode">
+                    <SelectTrigger aria-required="true" id="plan-status">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem value="total">
-                          {t("limits.modeTotal")}
+                        <SelectItem value="active">
+                          {t("status.active")}
                         </SelectItem>
-                        <SelectItem value="per_network">
-                          {t("limits.modePerNetwork")}
+                        <SelectItem value="inactive">
+                          {t("status.inactive")}
                         </SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>
                 </Field>
-              </div>
-            </FieldGroup>
-            <FieldSet disabled={isSaving}>
-              <FieldLegend variant="label">
-                {t("limits.actionCosts")}
-              </FieldLegend>
-              <FieldDescription>{t("limits.actionCostsHint")}</FieldDescription>
-              <FieldGroup className="grid sm:grid-cols-2">
-                {aiRequestKindSchema.options.map((action) => (
-                  <Field data-disabled={isSaving || undefined} key={action}>
-                    <FieldLabel htmlFor={`plan-ai-cost-${action}`}>
-                      {t(`limits.action.${action}` as never)}
-                    </FieldLabel>
-                    <Input
-                      disabled={isSaving}
-                      id={`plan-ai-cost-${action}`}
-                      inputMode="numeric"
-                      min="0"
-                      onChange={(event) => {
-                        const parsed = Number(event.target.value)
-                        setLimits((current) => ({
-                          ...current,
-                          aiActionCosts: {
-                            ...current.aiActionCosts,
-                            [action]:
-                              Number.isInteger(parsed) && parsed >= 0
-                                ? parsed
-                                : 0,
-                          },
-                        }))
-                      }}
-                      type="number"
-                      value={String(limits.aiActionCosts[action])}
-                    />
-                  </Field>
-                ))}
-              </FieldGroup>
-            </FieldSet>
-            <FieldSet disabled={isSaving}>
-              <FieldLegend variant="label">{t("limits.modules")}</FieldLegend>
-              <FieldDescription>{t("limits.modulesHint")}</FieldDescription>
-              <FieldGroup className="grid sm:grid-cols-2">
-                {portalModuleKeys.map((moduleKey) => (
-                  <Field
-                    data-disabled={isSaving || undefined}
-                    key={moduleKey}
-                    orientation="horizontal"
+                <Field data-disabled={isFree || isSaving || undefined}>
+                  <FieldLabel htmlFor="plan-price">
+                    Precio {!isFree ? <RequiredMark /> : null}
+                  </FieldLabel>
+                  <Input
+                    aria-required={!isFree || undefined}
+                    disabled={isFree || isSaving}
+                    id="plan-price"
+                    min="0"
+                    name="price"
+                    onChange={(event) => setPrice(event.target.value)}
+                    step="0.01"
+                    type="number"
+                    value={price}
+                  />
+                </Field>
+                <Field data-disabled={isSaving || undefined}>
+                  <FieldLabel htmlFor="plan-billing">
+                    {t("billingType")} <RequiredMark />
+                  </FieldLabel>
+                  <Select
+                    defaultValue={plan.billingType}
+                    disabled={isSaving}
+                    name="billingType"
                   >
-                    <Checkbox
-                      checked={limits.enabledModules.includes(moduleKey)}
+                    <SelectTrigger aria-required="true" id="plan-billing">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="monthly">
+                          {t("billing.monthly")}
+                        </SelectItem>
+                        <SelectItem value="yearly">
+                          {t("billing.yearly")}
+                        </SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field data-disabled={isSaving || undefined}>
+                  <FieldLabel htmlFor="plan-trial-days">
+                    {t("trialDays")} <RequiredMark />
+                  </FieldLabel>
+                  <Input
+                    aria-required="true"
+                    disabled={isSaving}
+                    id="plan-trial-days"
+                    min="0"
+                    name="trialDays"
+                    onChange={(event) => setTrialDays(event.target.value)}
+                    type="number"
+                    value={trialDays}
+                  />
+                </Field>
+                <Field data-disabled={isSaving || undefined}>
+                  <FieldLabel htmlFor="plan-position">
+                    {t("position")} <RequiredMark />
+                  </FieldLabel>
+                  <Input
+                    aria-required="true"
+                    disabled={isSaving}
+                    id="plan-position"
+                    min="1"
+                    name="position"
+                    onChange={(event) => setPosition(event.target.value)}
+                    type="number"
+                    value={position}
+                  />
+                </Field>
+              </FieldGroup>
+              <Field data-disabled={isSaving || undefined}>
+                <FieldLabel htmlFor="plan-description">
+                  {t("description")}
+                </FieldLabel>
+                <Textarea
+                  defaultValue={plan.description}
+                  disabled={isSaving}
+                  id="plan-description"
+                  maxLength={500}
+                  name="description"
+                  placeholder={t("descriptionPlaceholder")}
+                />
+              </Field>
+              <FieldGroup className="grid sm:grid-cols-3">
+                <Field
+                  data-disabled={isSaving || undefined}
+                  orientation="horizontal"
+                >
+                  <div className="flex flex-1 flex-col gap-0.5">
+                    <FieldLabel htmlFor="plan-free">{t("freePlan")}</FieldLabel>
+                    <FieldDescription>{t("freePlanHint")}</FieldDescription>
+                  </div>
+                  <Switch
+                    checked={isFree}
+                    disabled={isSaving}
+                    id="plan-free"
+                    onCheckedChange={setIsFree}
+                  />
+                </Field>
+                <Field
+                  data-disabled={isSaving || undefined}
+                  orientation="horizontal"
+                >
+                  <div className="flex flex-1 flex-col gap-0.5">
+                    <FieldLabel htmlFor="plan-featured">
+                      {t("featured")}
+                    </FieldLabel>
+                    <FieldDescription>{t("featuredHint")}</FieldDescription>
+                  </div>
+                  <Switch
+                    checked={featured}
+                    disabled={isSaving}
+                    id="plan-featured"
+                    onCheckedChange={setFeatured}
+                  />
+                </Field>
+                <Field
+                  data-disabled={isSaving || undefined}
+                  orientation="horizontal"
+                >
+                  <div className="flex flex-1 flex-col gap-0.5">
+                    <FieldLabel htmlFor="plan-default">
+                      {t("default")}
+                    </FieldLabel>
+                    <FieldDescription>{t("defaultHint")}</FieldDescription>
+                  </div>
+                  <Switch
+                    checked={isDefaultSignup}
+                    disabled={isSaving}
+                    id="plan-default"
+                    onCheckedChange={setIsDefaultSignup}
+                  />
+                </Field>
+              </FieldGroup>
+              <FieldGroup>
+                <Field>
+                  <FieldLabel>{t("limits.title")}</FieldLabel>
+                  <FieldDescription>{t("limits.hint")}</FieldDescription>
+                </Field>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {(
+                    [
+                      ["maxChannels", "limits.maxChannels"],
+                      ["maxPostsPerMonth", "limits.maxPostsPerMonth"],
+                      ["maxTeamMembers", "limits.maxTeamMembers"],
+                      ["maxStorageMb", "limits.maxStorageMb"],
+                      ["maxFileSizeMb", "limits.maxFileSizeMb"],
+                      ["aiVideoMaxSeconds", "limits.aiVideoMaxSeconds"],
+                      ["creditsPerMonth", "limits.creditsPerMonth"],
+                    ] as const
+                  ).map(([key, labelKey]) => (
+                    <Field data-disabled={isSaving || undefined} key={key}>
+                      <FieldLabel htmlFor={`plan-limit-${key}`}>
+                        {t(labelKey)}
+                      </FieldLabel>
+                      <Input
+                        disabled={isSaving}
+                        id={`plan-limit-${key}`}
+                        inputMode="numeric"
+                        onChange={(event) => {
+                          const parsed = Number(event.target.value)
+                          setLimits((current) => ({
+                            ...current,
+                            [key]: Number.isInteger(parsed) ? parsed : -1,
+                          }))
+                        }}
+                        type="number"
+                        value={String(limits[key])}
+                      />
+                    </Field>
+                  ))}
+                  <Field data-disabled={isSaving || undefined}>
+                    <FieldLabel htmlFor="plan-limit-mode">
+                      {t("limits.channelCountMode")}
+                    </FieldLabel>
+                    <Select
                       disabled={isSaving}
-                      id={`plan-module-${moduleKey}`}
-                      onCheckedChange={(checked) =>
+                      onValueChange={(value) =>
                         setLimits((current) => ({
                           ...current,
-                          enabledModules:
-                            checked === true
-                              ? [
-                                  ...new Set([
-                                    ...current.enabledModules,
-                                    moduleKey,
-                                  ]),
-                                ]
-                              : current.enabledModules.filter(
-                                  (item) => item !== moduleKey
-                                ),
+                          channelCountMode:
+                            value === "per_network" ? "per_network" : "total",
                         }))
                       }
-                    />
-                    <FieldLabel htmlFor={`plan-module-${moduleKey}`}>
-                      {t(`limits.module.${moduleKey}` as never)}
-                    </FieldLabel>
+                      value={limits.channelCountMode}
+                    >
+                      <SelectTrigger className="w-full" id="plan-limit-mode">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectItem value="total">
+                            {t("limits.modeTotal")}
+                          </SelectItem>
+                          <SelectItem value="per_network">
+                            {t("limits.modePerNetwork")}
+                          </SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
                   </Field>
-                ))}
+                </div>
               </FieldGroup>
-            </FieldSet>
-            <PermissionGroups
-              disabled={isSaving}
-              selectedIds={permissionIds}
-              setSelectedIds={setPermissionIds}
-            />
-            <div className="flex flex-col-reverse justify-end gap-2 sm:flex-row">
-              <Button
+              <FieldSet disabled={isSaving}>
+                <FieldLegend variant="label">
+                  {t("limits.actionCosts")}
+                </FieldLegend>
+                <FieldDescription>
+                  {t("limits.actionCostsHint")}
+                </FieldDescription>
+                <FieldGroup className="grid sm:grid-cols-2">
+                  {aiRequestKindSchema.options.map((action) => (
+                    <Field data-disabled={isSaving || undefined} key={action}>
+                      <FieldLabel htmlFor={`plan-ai-cost-${action}`}>
+                        {t(`limits.action.${action}` as never)}
+                      </FieldLabel>
+                      <Input
+                        disabled={isSaving}
+                        id={`plan-ai-cost-${action}`}
+                        inputMode="numeric"
+                        min="0"
+                        onChange={(event) => {
+                          const parsed = Number(event.target.value)
+                          setLimits((current) => ({
+                            ...current,
+                            aiActionCosts: {
+                              ...current.aiActionCosts,
+                              [action]:
+                                Number.isInteger(parsed) && parsed >= 0
+                                  ? parsed
+                                  : 0,
+                            },
+                          }))
+                        }}
+                        type="number"
+                        value={String(limits.aiActionCosts[action])}
+                      />
+                    </Field>
+                  ))}
+                </FieldGroup>
+              </FieldSet>
+              <FieldSet disabled={isSaving}>
+                <FieldLegend variant="label">{t("limits.modules")}</FieldLegend>
+                <FieldDescription>{t("limits.modulesHint")}</FieldDescription>
+                <FieldGroup className="grid sm:grid-cols-2">
+                  {portalModuleKeys.map((moduleKey) => (
+                    <Field
+                      data-disabled={isSaving || undefined}
+                      key={moduleKey}
+                      orientation="horizontal"
+                    >
+                      <Checkbox
+                        checked={limits.enabledModules.includes(moduleKey)}
+                        disabled={isSaving}
+                        id={`plan-module-${moduleKey}`}
+                        onCheckedChange={(checked) =>
+                          setLimits((current) => ({
+                            ...current,
+                            enabledModules:
+                              checked === true
+                                ? [
+                                    ...new Set([
+                                      ...current.enabledModules,
+                                      moduleKey,
+                                    ]),
+                                  ]
+                                : current.enabledModules.filter(
+                                    (item) => item !== moduleKey
+                                  ),
+                          }))
+                        }
+                      />
+                      <FieldLabel htmlFor={`plan-module-${moduleKey}`}>
+                        {t(`limits.module.${moduleKey}` as never)}
+                      </FieldLabel>
+                    </Field>
+                  ))}
+                </FieldGroup>
+              </FieldSet>
+              <PermissionGroups
                 disabled={isSaving}
-                onClick={() => onOpenChange(false)}
-                type="button"
-                variant="brand-secondary"
-              >
-                {t("cancel")}
-              </Button>
-              <Button disabled={!formComplete || isSaving} type="submit">
-                {isSaving ? (
-                  <Spinner data-icon="inline-start" />
-                ) : (
-                  <SubmitIcon data-icon="inline-start" />
-                )}
-                {isSaving ? t("saving") : submitLabel}
-              </Button>
+                selectedIds={permissionIds}
+                setSelectedIds={setPermissionIds}
+              />
             </div>
-          </form>
-        </ScrollArea>
+          </ScrollArea>
+          <SheetActions>
+            <Button
+              disabled={isSaving}
+              onClick={() => onOpenChange(false)}
+              type="button"
+              variant="brand-secondary"
+            >
+              {t("cancel")}
+            </Button>
+            <Button disabled={!formComplete || isSaving} type="submit">
+              {isSaving ? (
+                <Spinner data-icon="inline-start" />
+              ) : (
+                <SubmitIcon data-icon="inline-start" />
+              )}
+              {isSaving ? t("saving") : submitLabel}
+            </Button>
+          </SheetActions>
+        </form>
       </SheetContent>
     </Sheet>
   )

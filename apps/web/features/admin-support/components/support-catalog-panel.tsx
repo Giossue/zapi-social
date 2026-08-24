@@ -42,7 +42,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetFooter,
+  SheetActions,
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/components/sheet"
@@ -157,7 +157,7 @@ function CatalogSheet({
               </Field>
             </FieldGroup>
           </div>
-          <SheetFooter className="flex-row justify-end border-t">
+          <SheetActions>
             <Button
               onClick={() => onOpenChange(false)}
               type="button"
@@ -168,7 +168,7 @@ function CatalogSheet({
             <Button disabled={!complete} type="submit">
               <Plus data-icon="inline-start" /> {t("save")}
             </Button>
-          </SheetFooter>
+          </SheetActions>
         </form>
       </SheetContent>
     </Sheet>

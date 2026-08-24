@@ -49,7 +49,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetFooter,
+  SheetActions,
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/components/sheet"
@@ -164,7 +164,7 @@ export function InviteDialog({
               </Field>
             </FieldGroup>
           </div>
-          <SheetFooter className="flex-row justify-end border-t">
+          <SheetActions>
             <Button
               disabled={pending}
               onClick={() => onOpenChange(false)}
@@ -181,7 +181,7 @@ export function InviteDialog({
               )}
               {pending ? t("sending") : t("sendInvitation")}
             </Button>
-          </SheetFooter>
+          </SheetActions>
         </form>
       </SheetContent>
     </Sheet>
@@ -372,7 +372,7 @@ export function MemberAccessDialog({
               </FieldSet>
             </FieldGroup>
           </div>
-          <SheetFooter className="flex-row justify-end border-t">
+          <SheetActions>
             <Button
               disabled={pending}
               onClick={() => onOpenChange(false)}
@@ -389,7 +389,7 @@ export function MemberAccessDialog({
               )}
               {pending ? t("saving") : t("saveAccess")}
             </Button>
-          </SheetFooter>
+          </SheetActions>
         </form>
       </SheetContent>
     </Sheet>
@@ -440,11 +440,11 @@ export function InvitationDetailSheet({
             </div>
           ))}
         </dl>
-        <SheetFooter className="flex-row justify-end border-t">
+        <SheetActions>
           <Button onClick={() => onOpenChange(false)} variant="brand-secondary">
             {t("close")}
           </Button>
-        </SheetFooter>
+        </SheetActions>
       </SheetContent>
     </Sheet>
   )

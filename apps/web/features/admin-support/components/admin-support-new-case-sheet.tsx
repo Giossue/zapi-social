@@ -27,7 +27,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetFooter,
+  SheetActions,
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/components/sheet"
@@ -255,14 +255,14 @@ export function AdminSupportNewCaseSheet({
               </Field>
             </FieldGroup>
           </div>
-          <SheetFooter className="flex-row justify-end border-t">
+          <SheetActions>
             <Button onClick={close} type="button" variant="brand-secondary">
               {t("cancel")}
             </Button>
             <Button disabled={!complete} type="submit">
               <Plus data-icon="inline-start" /> {t("createCase")}
             </Button>
-          </SheetFooter>
+          </SheetActions>
         </form>
       </SheetContent>
     </Sheet>

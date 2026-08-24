@@ -40,7 +40,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetFooter,
+  SheetActions,
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/components/sheet"
@@ -447,7 +447,7 @@ export function ChannelProviderIntegrationCard({
                 </div>
               </section>
             </div>
-            <SheetFooter className="flex-row justify-end border-t">
+            <SheetActions>
               <Button
                 disabled={pending}
                 onClick={() => setOpen(false)}
@@ -467,7 +467,7 @@ export function ChannelProviderIntegrationCard({
                 )}
                 {tShared("saveConfiguration")}
               </Button>
-            </SheetFooter>
+            </SheetActions>
           </form>
         </SheetContent>
       </Sheet>

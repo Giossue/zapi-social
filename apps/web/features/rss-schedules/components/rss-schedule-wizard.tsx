@@ -11,7 +11,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetFooter,
+  SheetActions,
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/components/sheet"
@@ -511,7 +511,7 @@ export function RssScheduleWizard({
             ) : null}
           </div>
 
-          <SheetFooter className="flex-row justify-end border-t">
+          <SheetActions>
             <Button
               disabled={isPending}
               onClick={close}
@@ -534,7 +534,7 @@ export function RssScheduleWizard({
               {primaryIcon}
               {primaryLabel}
             </Button>
-          </SheetFooter>
+          </SheetActions>
         </form>
       </SheetContent>
     </Sheet>

@@ -64,7 +64,7 @@ import {
   Sheet,
   SheetContent,
   SheetDescription,
-  SheetFooter,
+  SheetActions,
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/components/sheet"
@@ -174,9 +174,9 @@ function SecretRevealSheet({
             </CardContent>
           </Card>
         </div>
-        <SheetFooter className="flex-row justify-end border-t">
+        <SheetActions>
           <Button onClick={() => onOpenChange(false)}>{t("saved")}</Button>
-        </SheetFooter>
+        </SheetActions>
       </SheetContent>
     </Sheet>
   )
@@ -301,7 +301,7 @@ function ApiKeySheet({
               </FieldSet>
             </FieldGroup>
           </div>
-          <SheetFooter className="flex-row justify-end border-t">
+          <SheetActions>
             <Button
               disabled={pending}
               onClick={() => onOpenChange(false)}
@@ -318,7 +318,7 @@ function ApiKeySheet({
               )}
               {t("createKey")}
             </Button>
-          </SheetFooter>
+          </SheetActions>
         </form>
       </SheetContent>
     </Sheet>
@@ -467,7 +467,7 @@ function WebhookSheet({
               </FieldSet>
             </FieldGroup>
           </div>
-          <SheetFooter className="flex-row justify-end border-t">
+          <SheetActions>
             <Button
               disabled={pending}
               onClick={() => onOpenChange(false)}
@@ -484,7 +484,7 @@ function WebhookSheet({
               )}
               {webhook ? t("saveWebhook") : t("createWebhook")}
             </Button>
-          </SheetFooter>
+          </SheetActions>
         </form>
       </SheetContent>
     </Sheet>
