@@ -11,10 +11,11 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select"
 
-const hours = Array.from({ length: 24 }, (_, value) =>
-  String(value).padStart(2, "0")
-)
-const minutes = ["00", "15", "30", "45"]
+const timeOptions = Array.from({ length: 96 }, (_, index) => {
+  const hour = String(Math.floor(index / 4)).padStart(2, "0")
+  const minute = String((index % 4) * 15).padStart(2, "0")
+  return `${hour}:${minute}`
+})
 
 type TimePickerProps = {
   "aria-invalid"?: boolean
@@ -40,55 +41,27 @@ function TimePicker({
   const [hour = "00", minute = "00"] = value.split(":")
 
   return (
-    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-      <Select
-        disabled={disabled}
-        onValueChange={(nextHour) => onValueChange(`${nextHour}:${minute}`)}
-        value={hour}
+    <Select disabled={disabled} onValueChange={onValueChange} value={value}>
+      <SelectTrigger
+        aria-invalid={ariaInvalid}
+        aria-label={`${hourLabel}: ${hour}, ${minuteLabel}: ${minute}`}
+        aria-required={ariaRequired}
+        className="w-full"
+        id={id}
       >
-        <SelectTrigger
-          aria-invalid={ariaInvalid}
-          aria-label={hourLabel}
-          aria-required={ariaRequired}
-          id={id}
-        >
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            {hours.map((option) => (
-              <SelectItem key={option} value={option}>
-                {option}
-              </SelectItem>
-            ))}
-          </SelectGroup>
-        </SelectContent>
-      </Select>
-      <Clock3 aria-hidden="true" className="text-muted-foreground" />
-      <Select
-        disabled={disabled}
-        onValueChange={(nextMinute) => onValueChange(`${hour}:${nextMinute}`)}
-        value={minute}
-      >
-        <SelectTrigger
-          aria-invalid={ariaInvalid}
-          aria-label={minuteLabel}
-          aria-required={ariaRequired}
-          id={id ? `${id}-minute` : undefined}
-        >
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectGroup>
-            {minutes.map((option) => (
-              <SelectItem key={option} value={option}>
-                {option}
-              </SelectItem>
-            ))}
-          </SelectGroup>
-        </SelectContent>
-      </Select>
-    </div>
+        <Clock3 aria-hidden="true" />
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectGroup>
+          {timeOptions.map((option) => (
+            <SelectItem key={option} value={option}>
+              {option}
+            </SelectItem>
+          ))}
+        </SelectGroup>
+      </SelectContent>
+    </Select>
   )
 }
 

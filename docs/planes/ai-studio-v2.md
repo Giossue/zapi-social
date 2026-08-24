@@ -381,9 +381,10 @@ eliminar draft y ver ejecuciones.
 **Regla:** genera borradores en Publishing. Publicación directa queda desactivada
 hasta existir aprobación explícita, permisos y política de conciliación.
 
-**Control horario:** reutiliza literalmente el patrón de Publishing: selector de
-hora, icono de reloj y selector de minutos en intervalos de 15. Se conserva como
-`HH:mm`; no se usa el picker nativo del navegador.
+**Control horario:** reutiliza literalmente el `TimePicker` canónico de
+Publishing: un único `Select` con icono de reloj y opciones `HH:mm` en intervalos
+de 15 minutos. No se usa el picker nativo del navegador ni se divide la hora en
+dos controles visibles.
 
 ### 12. Ajustes AI
 
@@ -837,6 +838,12 @@ creación confirmada por la API.
 Validación del Sheet: build y typecheck de Web correctos; typecheck de UI
 correcto; lint focal de AI Studio y `TimePicker` sin errores; auditorías de
 traducciones, texto hardcoded y Portal/Admin UI sin hallazgos.
+
+Corrección del control horario: la fuente y V2 muestran un solo selector
+`HH:mm`; build y typecheck de Web, typecheck de UI, lint focal y auditorías
+correctos. El check focal del template no presenta errores; su build completo
+permanece bloqueado por dos errores TypeScript ajenos en
+`chart-area-interactive.tsx` y `store-traffic.tsx`.
 
 ### Configuración obligatoria de marca — 24 de agosto de 2026
 
