@@ -88,6 +88,7 @@ export const portalAnnouncementNotificationSchema = z.object({
   url: z.string().nullable(),
   publishedAt: z.string().datetime(),
   readAt: z.string().datetime().nullable(),
+  archivedAt: z.string().datetime().nullable(),
 })
 
 export const workspaceNotificationKindSchema = z.enum([
@@ -104,6 +105,7 @@ export const portalWorkspaceNotificationSchema = z.object({
   url: z.string().nullable(),
   publishedAt: z.string().datetime(),
   readAt: z.string().datetime().nullable(),
+  archivedAt: z.string().datetime().nullable(),
 })
 
 export const portalNotificationSchema = z.discriminatedUnion("source", [
@@ -111,9 +113,29 @@ export const portalNotificationSchema = z.discriminatedUnion("source", [
   portalWorkspaceNotificationSchema,
 ])
 
+export const portalNotificationIdSchema = z.string().uuid()
+
+export const portalNotificationsFilterSchema = z.enum([
+  "all",
+  "unread",
+  "read",
+  "archived",
+])
+
+export const portalNotificationsQuerySchema = z
+  .object({
+    filter: portalNotificationsFilterSchema.default("all"),
+    page: z.coerce.number().int().min(1).max(100).default(1),
+    limit: z.coerce.number().int().min(1).max(50).default(20),
+  })
+  .strict()
+
 export const portalNotificationsResponseSchema = z.object({
   notifications: z.array(portalNotificationSchema),
   unread: z.number().int().nonnegative(),
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+  total: z.number().int().nonnegative(),
 })
 
 export type AnnouncementAudience = z.infer<typeof announcementAudienceSchema>
@@ -144,6 +166,12 @@ export type PortalWorkspaceNotification = z.infer<
   typeof portalWorkspaceNotificationSchema
 >
 export type PortalNotification = z.infer<typeof portalNotificationSchema>
+export type PortalNotificationsFilter = z.infer<
+  typeof portalNotificationsFilterSchema
+>
+export type PortalNotificationsQuery = z.infer<
+  typeof portalNotificationsQuerySchema
+>
 export type PortalNotificationsResponse = z.infer<
   typeof portalNotificationsResponseSchema
 >

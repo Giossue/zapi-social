@@ -4293,6 +4293,34 @@ declare const messages: {
     "validationFailed": "Revisa los datos del plan antes de guardarlo.",
     "visibility": "Visibilidad"
   },
+  "portalNotifications": {
+    "actionFailed": "No pudimos actualizar la notificación. Inténtalo de nuevo.",
+    "actions": {
+      "archive": "Archivar notificación",
+      "markRead": "Marcar como leída"
+    },
+    "description": "Consulta y organiza las notificaciones de este workspace.",
+    "empty": {
+      "all": "No tienes notificaciones.",
+      "archived": "No tienes notificaciones archivadas.",
+      "read": "No tienes notificaciones leídas.",
+      "unread": "No tienes notificaciones sin leer."
+    },
+    "filters": {
+      "all": "Todas",
+      "archived": "Archivadas",
+      "read": "Leídas",
+      "unread": "No leídas"
+    },
+    "loadFailedDescription": "Vuelve a intentarlo para recuperar el historial.",
+    "loadFailedTitle": "No pudimos cargar las notificaciones",
+    "next": "Siguiente",
+    "openLink": "Abrir enlace",
+    "previous": "Anterior",
+    "range": "{from, number}-{to, number} de {total, number}",
+    "retry": "Reintentar",
+    "title": "Notificaciones"
+  },
   "portalPlans": {
     "active": "Activo",
     "annual": "Anual",
@@ -4766,12 +4794,11 @@ declare const messages: {
     },
     "adminNavigationLabel": "Navegación principal de la plataforma",
     "notifications": {
-      "archiveAll": "Archivar todo",
       "empty": "No tienes notificaciones.",
       "loading": "Cargando",
-      "markAllRead": "Marcar todo como leído",
       "title": "Notificaciones",
-      "unreadLabel": "Notificaciones, {unread, number} sin leer"
+      "unreadLabel": "Notificaciones, {unread, number} sin leer",
+      "viewAll": "Ver todas"
     },
     "portalNavigationLabel": "Navegación principal del portal",
     "profile": "Perfil",

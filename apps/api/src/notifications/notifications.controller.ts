@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Post, Req } from '@nestjs/common';
+import { Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { FastifyRequest } from 'fastify';
 import { SessionAccessService } from '../identity/session-access.service';
@@ -13,29 +13,24 @@ export class NotificationsController {
   ) {}
 
   @Get()
-  async feed(@Req() request: FastifyRequest) {
+  async feed(@Req() request: FastifyRequest, @Query() query: unknown) {
     return this.notifications.feed(
       await this.access.requirePortalSession(request),
-    );
-  }
-
-  @Post('read-all')
-  async markAllRead(@Req() request: FastifyRequest) {
-    return this.notifications.markAllRead(
-      await this.access.requirePortalSession(request),
-    );
-  }
-
-  @Post('archive-all')
-  async archiveAll(@Req() request: FastifyRequest) {
-    return this.notifications.archiveAll(
-      await this.access.requirePortalSession(request),
+      query,
     );
   }
 
   @Post(':id/read')
-  async markRead(@Req() request: FastifyRequest, @Param('id') id: string) {
+  async markRead(@Req() request: FastifyRequest, @Param('id') id: unknown) {
     return this.notifications.markRead(
+      await this.access.requirePortalSession(request),
+      id,
+    );
+  }
+
+  @Post(':id/archive')
+  async archive(@Req() request: FastifyRequest, @Param('id') id: unknown) {
+    return this.notifications.archive(
       await this.access.requirePortalSession(request),
       id,
     );

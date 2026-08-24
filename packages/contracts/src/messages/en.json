@@ -4290,6 +4290,34 @@
     "validationFailed": "Check the plan details before saving.",
     "visibility": "Visibility"
   },
+  "portalNotifications": {
+    "actionFailed": "We couldn't update the notification. Please try again.",
+    "actions": {
+      "archive": "Archive notification",
+      "markRead": "Mark as read"
+    },
+    "description": "Review and organize notifications for this workspace.",
+    "empty": {
+      "all": "You have no notifications.",
+      "archived": "You have no archived notifications.",
+      "read": "You have no read notifications.",
+      "unread": "You have no unread notifications."
+    },
+    "filters": {
+      "all": "All",
+      "archived": "Archived",
+      "read": "Read",
+      "unread": "Unread"
+    },
+    "loadFailedDescription": "Try again to retrieve your notification history.",
+    "loadFailedTitle": "We couldn't load notifications",
+    "next": "Next",
+    "openLink": "Open link",
+    "previous": "Previous",
+    "range": "{from, number}-{to, number} of {total, number}",
+    "retry": "Retry",
+    "title": "Notifications"
+  },
   "portalPlans": {
     "active": "Active",
     "annual": "Annual",
@@ -4763,12 +4791,11 @@
     },
     "adminNavigationLabel": "Platform main navigation",
     "notifications": {
-      "archiveAll": "Archive all",
       "empty": "You have no notifications.",
       "loading": "Loading",
-      "markAllRead": "Mark all as read",
       "title": "Notifications",
-      "unreadLabel": "Notifications, {unread, number} unread"
+      "unreadLabel": "Notifications, {unread, number} unread",
+      "viewAll": "View all"
     },
     "portalNavigationLabel": "Portal main navigation",
     "profile": "Profile",

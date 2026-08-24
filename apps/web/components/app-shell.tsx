@@ -35,16 +35,14 @@ export function AppShell({ children, session }: AppShellProps) {
       .map((group): DashboardNavigationGroup => {
         const items = group.items.flatMap((item): DashboardNavigationItem[] => {
           if ("children" in item) {
-              const children = item.children.filter((child) => {
-                const moduleKey = portalModuleForHref(child.href)
-                return !moduleKey || enabledModules.includes(moduleKey)
-              })
+            const children = item.children.filter((child) => {
+              const moduleKey = portalModuleForHref(child.href)
+              return !moduleKey || enabledModules.includes(moduleKey)
+            })
             return children.length ? [{ ...item, children }] : []
           }
-            const moduleKey = portalModuleForHref(item.href)
-            return !moduleKey || enabledModules.includes(moduleKey)
-              ? [item]
-              : []
+          const moduleKey = portalModuleForHref(item.href)
+          return !moduleKey || enabledModules.includes(moduleKey) ? [item] : []
         })
         return { ...group, items }
       })
@@ -56,6 +54,7 @@ export function AppShell({ children, session }: AppShellProps) {
 
   const documentTitleOverrides = useMemo(
     () => ({
+      "/portal/notifications": t("notifications.title"),
       "/portal/profile": t("profile"),
       "/portal/ai-studio/prompt-history": t("promptHistory"),
     }),

@@ -1,52 +1,39 @@
 "use client"
 
-import { useFormatter, useTranslations } from "next-intl"
+import Link from "next/link"
+import { useTranslations } from "next-intl"
 import { useCallback, useEffect, useState } from "react"
-import { Archive, Bell, CheckCheck, ExternalLink } from "lucide-react"
+import { Bell } from "lucide-react"
 
 import { ApiError, notificationsApi } from "@workspace/api-client"
 import type { PortalNotification } from "@workspace/contracts"
+import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { ItemGroup, ItemSeparator } from "@workspace/ui/components/item"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@workspace/ui/components/popover"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { cn } from "@workspace/ui/lib/utils"
+import { toast } from "@workspace/ui/components/toast"
 
-function workspaceNotificationBody(
-  notification: Extract<PortalNotification, { source: "workspace" }>,
-  t: ReturnType<typeof useTranslations<"notificationKind">>
-) {
-  const title = notification.payload.title ?? ""
-  const actor = notification.payload.actor ?? ""
-
-  switch (notification.kind) {
-    case "board.task_assigned":
-      return t("board.task_assigned.body", { actor, title })
-    case "board.task_commented":
-      return t("board.task_commented.body", { actor, title })
-    case "board.task_due_soon":
-      return t("board.task_due_soon.body", { title })
-  }
-}
+import { PortalNotificationItem } from "@/features/notifications/components/portal-notification-item"
 
 export function NotificationBell() {
   const t = useTranslations("shell.notifications")
-  const format = useFormatter()
-  const tKind = useTranslations("notificationKind")
+  const tNotifications = useTranslations("portalNotifications")
   const [notifications, setNotifications] = useState<PortalNotification[]>([])
   const [unread, setUnread] = useState(0)
   const [open, setOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [pending, setPending] = useState(false)
+  const [pendingId, setPendingId] = useState<string | null>(null)
   const [unavailable, setUnavailable] = useState(false)
 
   const load = useCallback(async () => {
     setIsLoading(true)
     try {
-      const response = await notificationsApi.feed()
+      const response = await notificationsApi.feed({ limit: 10 })
       setNotifications(response.notifications)
       setUnread(response.unread)
       setUnavailable(false)
@@ -63,15 +50,21 @@ export function NotificationBell() {
     return () => clearTimeout(timer)
   }, [load])
 
-  async function run(action: () => Promise<void>) {
-    setPending(true)
+  async function run(id: string, action: () => Promise<void>) {
+    setPendingId(id)
     try {
       await action()
     } catch (error) {
       console.error("Notification action failed", error)
+      toast.error(tNotifications("actionFailed"))
     } finally {
-      setPending(false)
+      setPendingId(null)
     }
+  }
+
+  function update(response: Awaited<ReturnType<typeof notificationsApi.feed>>) {
+    setNotifications(response.notifications)
+    setUnread(response.unread)
   }
 
   if (unavailable) return null
@@ -102,41 +95,10 @@ export function NotificationBell() {
           ) : null}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-88 p-0">
+      <PopoverContent align="end" className="w-[calc(100vw-2rem)] p-0 sm:w-96">
         <div className="flex items-center justify-between gap-2 border-b p-3">
           <p className="text-sm font-medium">{t("title")}</p>
-          <div className="flex items-center gap-1">
-            <Button
-              aria-label={t("markAllRead")}
-              disabled={pending || !notifications.length}
-              onClick={() =>
-                void run(async () => {
-                  const response = await notificationsApi.markAllRead()
-                  setNotifications(response.notifications)
-                  setUnread(response.unread)
-                })
-              }
-              size="icon-sm"
-              variant="brand-secondary"
-            >
-              <CheckCheck />
-            </Button>
-            <Button
-              aria-label={t("archiveAll")}
-              disabled={pending || !notifications.length}
-              onClick={() =>
-                void run(async () => {
-                  const response = await notificationsApi.archiveAll()
-                  setNotifications(response.notifications)
-                  setUnread(response.unread)
-                })
-              }
-              size="icon-sm"
-              variant="brand-secondary"
-            >
-              <Archive />
-            </Button>
-          </div>
+          {unread ? <Badge variant="secondary">{unread}</Badge> : null}
         </div>
         <div className="max-h-88 overflow-y-auto">
           {isLoading && !notifications.length ? (
@@ -144,65 +106,45 @@ export function NotificationBell() {
               <Spinner /> {t("loading")}
             </div>
           ) : notifications.length ? (
-            <ul className="divide-y">
-              {notifications.map((notification) => (
-                <li key={notification.id}>
-                  <button
-                    className={cn(
-                      "flex w-full flex-col gap-1 p-3 text-left hover:bg-accent",
-                      notification.readAt ? "opacity-70" : ""
-                    )}
-                    onClick={() =>
-                      void run(async () => {
-                        const response = await notificationsApi.markRead(
-                          notification.id
-                        )
-                        setNotifications(response.notifications)
-                        setUnread(response.unread)
-                        if (notification.url)
-                          window.open(
-                            notification.url,
-                            "_blank",
-                            "noopener,noreferrer"
-                          )
-                      })
+            <ItemGroup className="gap-0">
+              {notifications.map((notification, index) => (
+                <div key={`${notification.source}:${notification.id}`}>
+                  {index ? <ItemSeparator className="my-0" /> : null}
+                  <PortalNotificationItem
+                    compact
+                    notification={notification}
+                    onArchive={(item) =>
+                      void run(item.id, async () =>
+                        update(await notificationsApi.archive(item.id))
+                      )
                     }
-                    type="button"
-                  >
-                    <span className="flex items-center gap-1.5 text-sm font-medium">
-                      {notification.readAt ? null : (
-                        <span
-                          aria-hidden="true"
-                          className="size-1.5 shrink-0 rounded-full bg-primary"
-                        />
-                      )}
-                      {notification.source === "announcement"
-                        ? notification.title
-                        : tKind(`${notification.kind}.title`)}
-                      {notification.url ? (
-                        <ExternalLink className="size-3 text-muted-foreground" />
-                      ) : null}
-                    </span>
-                    <span className="line-clamp-2 text-sm text-muted-foreground">
-                      {notification.source === "announcement"
-                        ? notification.body
-                        : workspaceNotificationBody(notification, tKind)}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {format.dateTime(new Date(notification.publishedAt), {
-                        day: "numeric",
-                        month: "short",
-                      })}
-                    </span>
-                  </button>
-                </li>
+                    onMarkRead={(item) =>
+                      void run(item.id, async () =>
+                        update(await notificationsApi.markRead(item.id))
+                      )
+                    }
+                    pending={pendingId !== null}
+                  />
+                </div>
               ))}
-            </ul>
+            </ItemGroup>
           ) : (
             <p className="p-6 text-center text-sm text-muted-foreground">
               {t("empty")}
             </p>
           )}
+        </div>
+        <div className="border-t p-2">
+          <Button
+            asChild
+            className="w-full"
+            size="sm"
+            variant="brand-secondary"
+          >
+            <Link href="/portal/notifications" onClick={() => setOpen(false)}>
+              {t("viewAll")}
+            </Link>
+          </Button>
         </div>
       </PopoverContent>
     </Popover>

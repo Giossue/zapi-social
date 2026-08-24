@@ -231,6 +231,7 @@ import type {
   AdminAnnouncementsQuery,
   AdminAnnouncementsResponse,
   AdminAnnouncementTargets,
+  PortalNotificationsQuery,
   PortalNotificationsResponse,
   UpsertAdminAnnouncementInput,
   AdminManualPayment,
@@ -1672,22 +1673,19 @@ export const adminNotificationsApi = {
 }
 
 export const notificationsApi = {
-  feed: () =>
-    request<PortalNotificationsResponse>("/v1/portal/notifications", {
-      method: "GET",
-    }),
+  feed: (query: Partial<PortalNotificationsQuery> = {}) =>
+    request<PortalNotificationsResponse>(
+      `/v1/portal/notifications${adminContentQueryString(query)}`,
+      { method: "GET" }
+    ),
   markRead: (id: string) =>
     request<PortalNotificationsResponse>(
       `/v1/portal/notifications/${id}/read`,
       { method: "POST" }
     ),
-  markAllRead: () =>
-    request<PortalNotificationsResponse>("/v1/portal/notifications/read-all", {
-      method: "POST",
-    }),
-  archiveAll: () =>
+  archive: (id: string) =>
     request<PortalNotificationsResponse>(
-      "/v1/portal/notifications/archive-all",
+      `/v1/portal/notifications/${id}/archive`,
       { method: "POST" }
     ),
 }
