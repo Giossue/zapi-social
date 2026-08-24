@@ -105,7 +105,8 @@ límite nuevo es un cambio de contrato, visible en typecheck.
 - **Portal**: el error de límite llega como código estable
   (`PLAN_LIMIT_REACHED` con el límite en `details`) y la interfaz lo traduce
   con invitación a mejorar el plan. Los pickers de conexión recortan al
-  remanente, como en Laravel.
+  remanente, como en Laravel. `/portal/plans` consume el catálogo activo de
+  Admin y muestra esos mismos límites antes de abrir checkout.
 
 ## Orden
 

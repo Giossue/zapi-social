@@ -1,5 +1,6 @@
 import {
   CalendarDays,
+  CreditCard,
   Droplets,
   FileText,
   FolderOpen,
@@ -39,6 +40,11 @@ export const portalNavigationGroups: readonly PortalNavigationGroup[] = [
         labelKey: "overview",
         href: "/portal/dashboard",
         icon: LayoutDashboard,
+      },
+      {
+        labelKey: "plans",
+        href: "/portal/plans",
+        icon: CreditCard,
       },
     ],
   },

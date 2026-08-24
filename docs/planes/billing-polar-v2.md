@@ -2,7 +2,12 @@
 
 ## Estado
 
-La vertical Admin está operativa sobre PostgreSQL y **Polar.sh es la única pasarela**. Usuarios, planes, créditos, afiliados, cupones, pagos y suscripciones ya leen datos reales; la configuración Polar se cifra en API y los webhooks firmados son la fuente de verdad para activar planes, acreditar compras, registrar pagos y crear comisiones.
+La vertical Admin y el catálogo de planes del Portal están operativos sobre
+PostgreSQL y **Polar.sh es la única pasarela**. Usuarios, planes, créditos,
+afiliados, cupones, pagos y suscripciones ya leen datos reales; la
+configuración Polar se cifra en API y los webhooks firmados son la fuente de
+verdad para activar planes, acreditar compras, registrar pagos y crear
+comisiones.
 
 ## Evidencia recuperada de Laravel
 
@@ -35,7 +40,7 @@ No se recuperan Stripe, PayPal, pagos manuales ni ningún otro gateway eliminado
 - Los cupones deben respetar el mínimo aceptado por Polar antes de abrir checkout.
 - El sistema opera en una sola moneda: USD. El catálogo ISO completo de Laravel (`modules/AdminPlans/Support/CurrencyCatalog.php`) no se porta y `/admin/plans` no ofrece selector de moneda; `plans.currency` queda fijado por constraint y no existe conversión en ninguna capa.
 
-## Superficies Admin
+## Superficies
 
 | Ruta                   | Alcance del mockup                                                              |
 | ---------------------- | ------------------------------------------------------------------------------- |
@@ -49,6 +54,8 @@ No se recuperan Stripe, PayPal, pagos manuales ni ningún otro gateway eliminado
 | `/admin/subscriptions` | Renovaciones, mora, cancelación al final y revocación inmediata.                |
 | `/admin/payment-report` | Reporte agregado del periodo: bruto, neto, reembolsos, ticket medio, evolución, producto, estado y espacios. |
 | `/admin/manual-payments` | Cobros fuera de Polar: registro, aprobación, rechazo y configuración de instrucciones. |
+| `/portal/plans` | Catálogo activo de Admin, plan vigente, límites y checkout para el propietario. |
+| `/portal/billing/success` y `/portal/billing/cancel` | Retornos del checkout; la activación sigue dependiendo del webhook. |
 
 ## Fuente visual
 
@@ -61,6 +68,12 @@ confirmación destructiva; sus estados alternos se revisan con
 composición sobre `/admin/plans` y mantiene el REST/CRUD existente.
 Las cuatro métricas de Planes reutilizan el `MetricCard` compartido de
 `/admin/users`; la fuente y V2 ya no mantienen JSX paralelo para esas cards.
+
+El catálogo de cliente tiene su composición canónica en
+`/dashboard/portal-plans`: resumen del plan vigente, selector mensual/anual,
+cards comparables y estados de carga, error y checkout no disponible. Zapi V2
+copia esa composición en `/portal/plans` y sustituye únicamente fixtures por
+el contrato real de billing.
 
 En `/admin/integrations`, Polar se presenta como una card de resumen igual que
 los demás proveedores. Credenciales, productos y opciones de checkout se
@@ -88,6 +101,9 @@ GET  /v1/admin/operations/:module
 POST /v1/admin/operations/:module
 POST /v1/admin/operations/:module/:tab/:id/actions
 
+GET  /v1/portal/billing/plans
+POST /v1/portal/billing/checkout
+
 GET   /v1/admin/integrations/polar
 POST  /v1/admin/integrations/polar/test
 PATCH /v1/admin/integrations/polar
@@ -106,6 +122,13 @@ POST  /v1/webhooks/polar
 - Las suscripciones se sincronizan con estados Polar, cancelación al final, reactivación y revocación inmediata.
 - Cupones se conservan localmente y se sincronizan con Discounts de Polar cuando la integración está disponible.
 - Retiros de afiliados usan transiciones `requested → approved → paid` o `requested → rejected`; lo pagado permanece descontado del saldo retirable.
+- El catálogo Portal expone solo planes activos y no filtra secretos, IDs de
+  producto ni permisos internos de Admin. Solo el propietario puede crear un
+  checkout; precio, producto, prueba y metadata se reconstruyen en API.
+- Una suscripción activa bloquea un segundo checkout para evitar cobros
+  duplicados. El cambio entre planes pagos y el downgrade diferido siguen el
+  ciclo pendiente documentado en
+  [`limites-de-plan-v2.md`](./limites-de-plan-v2.md).
 
 ## Persistencia
 
@@ -138,6 +161,7 @@ Importes se guardan en unidad menor e ISO-4217. Pagos y reembolsos no se borran;
 - [x] Conectar planes, cupones, créditos y comisiones al ciclo de pago verificado.
 - [x] Añadir el reporte agregado de pagos equivalente a `AdminPaymentReport` de Laravel.
 - [x] Añadir pagos manuales y su configuración, equivalentes a `AdminManualPayments` y `AdminPaymentManualConfig`.
+- [x] Publicar el catálogo de planes en Portal e iniciar upgrades seguros con Polar.
 
 ## Evidencia de la fase mock
 
@@ -259,4 +283,25 @@ recibo por correo y conciliación bancaria.
 - `bun run audit:portal-admin-ui` sin hallazgos.
 - No se ejecutó una aprobación real contra la base: no existe suite focal de
   billing y hacerlo movería saldo de un espacio real.
+- Falta la aprobación visual del usuario.
+
+## Catálogo de planes en Portal — 24 de agosto de 2026
+
+- `/portal/plans` consume `GET /v1/portal/billing/plans`, resalta el plan
+  vigente y compara precio, periodo, prueba y límites tipados del catálogo que
+  mantiene Admin. La navegación y los retornos de Polar ya apuntan a rutas
+  reales del Portal.
+- `POST /v1/portal/billing/checkout` exige propietario, vuelve a consultar el
+  plan activo y construye en API el producto, precio dinámico, prueba,
+  cliente y metadata. Una suscripción viva bloquea un segundo checkout.
+- Tres pruebas focales cubren precio en unidad menor y metadata, ownership y
+  prevención de suscripciones duplicadas. La suite API termina con 65 pruebas
+  ejecutadas en verde y 45 integraciones omitidas por no habilitar su base de
+  prueba.
+- Build del monorepo, typecheck de Contracts, API Client, API y Web, auditorías
+  de UI/i18n y `git diff --check` correctos. El lint Web conserva únicamente
+  dos advertencias previas en `channels-page.tsx`.
+- El preview canónico `/dashboard/portal-plans` pasa Biome y compila en el
+  template. Su build global llega a TypeScript y conserva dos errores previos
+  ajenos en `chart-area-interactive.tsx` y `store-traffic.tsx`.
 - Falta la aprobación visual del usuario.

@@ -218,6 +218,9 @@ import type {
   TestPolarIntegrationResponse,
   UpdatePolarIntegrationInput,
   AdminPaymentReport,
+  CreatePortalPlanCheckoutInput,
+  PortalPlanCheckoutResponse,
+  PortalPlansResponse,
   AdminPaymentReportQuery,
   AdminSupportTicketDetail,
   AdminSupportTicketsQuery,
@@ -1399,6 +1402,18 @@ export const plansApi = {
     }),
   remove: (id: string) =>
     request<void>(`/v1/admin/plans/${id}`, { method: "DELETE" }),
+}
+
+export const portalBillingApi = {
+  plans: () =>
+    request<PortalPlansResponse>("/v1/portal/billing/plans", {
+      method: "GET",
+    }),
+  checkout: (input: CreatePortalPlanCheckoutInput) =>
+    request<PortalPlanCheckoutResponse>("/v1/portal/billing/checkout", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
 }
 
 export const adminOperationsApi = {
