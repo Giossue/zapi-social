@@ -208,7 +208,9 @@ export function ChannelProviderIntegrationCard({
                       disabled={pending || field.readOnly}
                       id={controlId}
                       maxLength={field.maxLength ?? undefined}
-                      onChange={(event) => update(field.key, event.target.value)}
+                      onChange={(event) =>
+                        update(field.key, event.target.value)
+                      }
                       rows={3}
                       value={values[field.key] ?? ""}
                     />
@@ -218,7 +220,9 @@ export function ChannelProviderIntegrationCard({
                       disabled={pending || field.readOnly}
                       id={controlId}
                       maxLength={field.maxLength ?? undefined}
-                      onChange={(event) => update(field.key, event.target.value)}
+                      onChange={(event) =>
+                        update(field.key, event.target.value)
+                      }
                       placeholder={configured ? t("secretConfigured") : ""}
                       readOnly={field.readOnly}
                       type={field.type === "secret" ? "password" : "text"}

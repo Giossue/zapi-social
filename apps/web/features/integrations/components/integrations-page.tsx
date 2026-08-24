@@ -409,13 +409,19 @@ export function IntegrationsPage() {
             <TabsTrigger value="email">{t("tab.email")}</TabsTrigger>
             <TabsTrigger value="polar">Polar.sh</TabsTrigger>
             <TabsTrigger value="google-drive">Google Drive</TabsTrigger>
-          {channelProviders.map((provider) => (
-            <TabsTrigger key={provider.providerKey} value={provider.providerKey}>
-              {labels.provider(provider.providerKey)}
-            </TabsTrigger>
-          ))}
             {channelProviders.map((provider) => (
-              <TabsTrigger key={provider.providerKey} value={provider.providerKey}>
+              <TabsTrigger
+                key={provider.providerKey}
+                value={provider.providerKey}
+              >
+                {labels.provider(provider.providerKey)}
+              </TabsTrigger>
+            ))}
+            {channelProviders.map((provider) => (
+              <TabsTrigger
+                key={provider.providerKey}
+                value={provider.providerKey}
+              >
                 {labels.provider(provider.providerKey)}
               </TabsTrigger>
             ))}
@@ -443,13 +449,19 @@ export function IntegrationsPage() {
             <TabsTrigger value="email">{t("tab.email")}</TabsTrigger>
             <TabsTrigger value="polar">Polar.sh</TabsTrigger>
             <TabsTrigger value="google-drive">Google Drive</TabsTrigger>
-          {channelProviders.map((provider) => (
-            <TabsTrigger key={provider.providerKey} value={provider.providerKey}>
-              {labels.provider(provider.providerKey)}
-            </TabsTrigger>
-          ))}
             {channelProviders.map((provider) => (
-              <TabsTrigger key={provider.providerKey} value={provider.providerKey}>
+              <TabsTrigger
+                key={provider.providerKey}
+                value={provider.providerKey}
+              >
+                {labels.provider(provider.providerKey)}
+              </TabsTrigger>
+            ))}
+            {channelProviders.map((provider) => (
+              <TabsTrigger
+                key={provider.providerKey}
+                value={provider.providerKey}
+              >
                 {labels.provider(provider.providerKey)}
               </TabsTrigger>
             ))}
@@ -501,7 +513,10 @@ export function IntegrationsPage() {
           <TabsTrigger value="polar">Polar.sh</TabsTrigger>
           <TabsTrigger value="google-drive">Google Drive</TabsTrigger>
           {channelProviders.map((provider) => (
-            <TabsTrigger key={provider.providerKey} value={provider.providerKey}>
+            <TabsTrigger
+              key={provider.providerKey}
+              value={provider.providerKey}
+            >
               {labels.provider(provider.providerKey)}
             </TabsTrigger>
           ))}

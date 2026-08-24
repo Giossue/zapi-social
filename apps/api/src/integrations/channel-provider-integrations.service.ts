@@ -58,7 +58,6 @@ export class ChannelProviderIntegrationsService {
 
   constructor(
     private readonly database: DatabaseService,
-    private readonly encryption: Aes256GcmService,
     private readonly config: ConfigService,
     @Optional()
     @Inject(CHANNEL_PROVIDER_VERIFIERS)
@@ -66,6 +65,17 @@ export class ChannelProviderIntegrationsService {
   ) {
     this.verifiers = new Map(
       verifiers.map((verifier) => [verifier.providerKey, verifier]),
+    );
+  }
+
+  /**
+   * `Aes256GcmService` no es un proveedor de Nest en la API: recibe la clave,
+   * no `ConfigService`. Se construye igual que en `IntegrationsService`, que es
+   * el vecino de al lado; inyectarlo hace que la aplicación no arranque.
+   */
+  private encryption(): Aes256GcmService {
+    return new Aes256GcmService(
+      this.config.getOrThrow<string>('PROVIDER_INTEGRATIONS_ENCRYPTION_KEY'),
     );
   }
 
@@ -336,7 +346,7 @@ export class ChannelProviderIntegrationsService {
     if (!ciphertext) return null;
     try {
       const parsed: unknown = JSON.parse(
-        this.encryption.decrypt(ciphertext, providerKey),
+        this.encryption().decrypt(ciphertext, providerKey),
       );
       if (typeof parsed !== 'object' || parsed === null) return null;
       const values: Record<string, string> = {};
@@ -353,7 +363,7 @@ export class ChannelProviderIntegrationsService {
     providerKey: PortalChannelProviderKey,
     values: Record<string, string>,
   ): string {
-    return this.encryption.encrypt(JSON.stringify(values), providerKey);
+    return this.encryption().encrypt(JSON.stringify(values), providerKey);
   }
 
   private readiness(enabled: boolean, configured: boolean, tested: boolean) {
