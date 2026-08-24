@@ -47,6 +47,7 @@ import { openGoogleDrivePicker } from "@/features/files/components/google-drive-
 import { IntegrationAvailabilityCard } from "./integration-availability-card"
 import { IntegrationCardLoading } from "./integration-card-loading"
 import { IntegrationInsetCard } from "./integration-inset-card"
+import { IntegrationSection } from "./integration-section"
 
 type Draft = GoogleDriveIntegrationConfiguration & { enabled: boolean }
 type TestState = "not-tested" | "testing" | "passed" | "failed"
@@ -249,49 +250,58 @@ export function GoogleDriveIntegrationCard() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-3">
-          <IntegrationInsetCard>
-            <div className="flex items-center gap-2">
-              <CirclePower
-                aria-hidden="true"
-                className="size-4 text-muted-foreground"
-              />
-              <p className="text-xs font-medium text-muted-foreground">
-                {t("statusLabel")}
-              </p>
+        <CardContent>
+          <IntegrationSection
+            icon={LockKeyhole}
+            title={t("configurationSummary")}
+          >
+            <div className="grid gap-3 md:grid-cols-3">
+              <IntegrationInsetCard>
+                <div className="flex items-center gap-2">
+                  <CirclePower
+                    aria-hidden="true"
+                    className="size-4 text-muted-foreground"
+                  />
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {t("statusLabel")}
+                  </p>
+                </div>
+                <p className="mt-1 text-sm">
+                  {integration.enabled
+                    ? t("availableInPortal")
+                    : t("readiness.disabled")}
+                </p>
+              </IntegrationInsetCard>
+              <IntegrationInsetCard>
+                <div className="flex items-center gap-2">
+                  <ShieldCheck
+                    aria-hidden="true"
+                    className="size-4 text-muted-foreground"
+                  />
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {t("googleDrive.oauthScope")}
+                  </p>
+                </div>
+                <p className="mt-1 text-sm">drive.file</p>
+              </IntegrationInsetCard>
+              <IntegrationInsetCard>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2
+                    aria-hidden="true"
+                    className="size-4 text-muted-foreground"
+                  />
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {t("googleDrive.picker")}
+                  </p>
+                </div>
+                <p className="mt-1 text-sm">
+                  {integration.lastTestedAt
+                    ? t("tested")
+                    : t("readiness.untested")}
+                </p>
+              </IntegrationInsetCard>
             </div>
-            <p className="mt-1 text-sm">
-              {integration.enabled
-                ? t("availableInPortal")
-                : t("readiness.disabled")}
-            </p>
-          </IntegrationInsetCard>
-          <IntegrationInsetCard>
-            <div className="flex items-center gap-2">
-              <ShieldCheck
-                aria-hidden="true"
-                className="size-4 text-muted-foreground"
-              />
-              <p className="text-xs font-medium text-muted-foreground">
-                {t("googleDrive.oauthScope")}
-              </p>
-            </div>
-            <p className="mt-1 text-sm">drive.file</p>
-          </IntegrationInsetCard>
-          <IntegrationInsetCard>
-            <div className="flex items-center gap-2">
-              <CheckCircle2
-                aria-hidden="true"
-                className="size-4 text-muted-foreground"
-              />
-              <p className="text-xs font-medium text-muted-foreground">
-                {t("googleDrive.picker")}
-              </p>
-            </div>
-            <p className="mt-1 text-sm">
-              {integration.lastTestedAt ? t("tested") : t("readiness.untested")}
-            </p>
-          </IntegrationInsetCard>
+          </IntegrationSection>
         </CardContent>
       </Card>
 

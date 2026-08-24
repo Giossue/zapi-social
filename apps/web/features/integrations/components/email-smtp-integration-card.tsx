@@ -30,6 +30,7 @@ import {
   CheckCircle2,
   Circle,
   CircleAlert,
+  LockKeyhole,
   Mail,
   Save,
   Send,
@@ -49,6 +50,7 @@ import { useTranslations } from "next-intl"
 import { IntegrationCardLoading } from "./integration-card-loading"
 import { IntegrationAvailabilityCard } from "./integration-availability-card"
 import { IntegrationInsetCard } from "./integration-inset-card"
+import { IntegrationSection } from "./integration-section"
 
 type Draft = {
   enabled: boolean
@@ -277,51 +279,58 @@ export function EmailSmtpIntegrationCard() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="grid gap-3 sm:grid-cols-3">
-          <IntegrationInsetCard>
-            <div className="flex items-center gap-2">
-              <Server
-                aria-hidden="true"
-                className="size-4 text-muted-foreground"
-              />
-              <p className="text-xs font-medium text-muted-foreground">
-                {t("smtp.server")}
-              </p>
+        <CardContent>
+          <IntegrationSection
+            icon={LockKeyhole}
+            title={t("configurationSummary")}
+          >
+            <div className="grid gap-3 sm:grid-cols-3">
+              <IntegrationInsetCard>
+                <div className="flex items-center gap-2">
+                  <Server
+                    aria-hidden="true"
+                    className="size-4 text-muted-foreground"
+                  />
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {t("smtp.server")}
+                  </p>
+                </div>
+                <p className="mt-1 text-sm break-all">
+                  {integration.host ?? t("notConfigured")}
+                </p>
+              </IntegrationInsetCard>
+              <IntegrationInsetCard>
+                <div className="flex items-center gap-2">
+                  <ShieldCheck
+                    aria-hidden="true"
+                    className="size-4 text-muted-foreground"
+                  />
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {t("smtp.portAndSecurity")}
+                  </p>
+                </div>
+                <p className="mt-1 text-sm">
+                  {integration.port
+                    ? `${integration.port} · ${integration.secure ? t("smtp.directTls") : t("smtp.startTls")}`
+                    : t("notConfigured")}
+                </p>
+              </IntegrationInsetCard>
+              <IntegrationInsetCard>
+                <div className="flex items-center gap-2">
+                  <Send
+                    aria-hidden="true"
+                    className="size-4 text-muted-foreground"
+                  />
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {t("smtp.sender")}
+                  </p>
+                </div>
+                <p className="mt-1 text-sm break-all">
+                  {integration.fromEmail ?? t("notConfigured")}
+                </p>
+              </IntegrationInsetCard>
             </div>
-            <p className="mt-1 text-sm break-all">
-              {integration.host ?? t("notConfigured")}
-            </p>
-          </IntegrationInsetCard>
-          <IntegrationInsetCard>
-            <div className="flex items-center gap-2">
-              <ShieldCheck
-                aria-hidden="true"
-                className="size-4 text-muted-foreground"
-              />
-              <p className="text-xs font-medium text-muted-foreground">
-                {t("smtp.portAndSecurity")}
-              </p>
-            </div>
-            <p className="mt-1 text-sm">
-              {integration.port
-                ? `${integration.port} · ${integration.secure ? t("smtp.directTls") : t("smtp.startTls")}`
-                : t("notConfigured")}
-            </p>
-          </IntegrationInsetCard>
-          <IntegrationInsetCard>
-            <div className="flex items-center gap-2">
-              <Send
-                aria-hidden="true"
-                className="size-4 text-muted-foreground"
-              />
-              <p className="text-xs font-medium text-muted-foreground">
-                {t("smtp.sender")}
-              </p>
-            </div>
-            <p className="mt-1 text-sm break-all">
-              {integration.fromEmail ?? t("notConfigured")}
-            </p>
-          </IntegrationInsetCard>
+          </IntegrationSection>
         </CardContent>
       </Card>
 

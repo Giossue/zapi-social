@@ -3681,6 +3681,7 @@
       "webhooksHint": "Register these URLs in Polar. The API generates them and they're read-only here.",
       "yearlyProduct": "Yearly product"
     },
+    "providerStatus": "Provider status",
     "providerTabs": "Integration provider",
     "readiness": {
       "disabled": "Disabled",

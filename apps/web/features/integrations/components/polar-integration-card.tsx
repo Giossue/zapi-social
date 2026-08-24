@@ -62,6 +62,7 @@ import { useTranslations } from "next-intl"
 import { IntegrationAvailabilityCard } from "./integration-availability-card"
 import { IntegrationCardLoading } from "./integration-card-loading"
 import { IntegrationInsetCard } from "./integration-inset-card"
+import { IntegrationSection } from "./integration-section"
 
 type PolarDraft = {
   accessToken: string
@@ -340,54 +341,56 @@ export function PolarIntegrationPreview() {
           </div>
         </CardHeader>
         <CardContent className="flex flex-col gap-7">
-          <div className="grid gap-3 sm:grid-cols-3">
-            <IntegrationInsetCard>
-              <div className="flex items-center gap-2">
-                <CirclePower
-                  aria-hidden="true"
-                  className="size-4 text-muted-foreground"
-                />
-                <p className="text-xs font-medium text-muted-foreground">
-                  {t("statusLabel")}
+          <IntegrationSection icon={CirclePower} title={t("providerStatus")}>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <IntegrationInsetCard>
+                <div className="flex items-center gap-2">
+                  <CirclePower
+                    aria-hidden="true"
+                    className="size-4 text-muted-foreground"
+                  />
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {t("statusLabel")}
+                  </p>
+                </div>
+                <p className="mt-1 text-sm">
+                  {integration.enabled ? t("available") : t("disabled")}
                 </p>
-              </div>
-              <p className="mt-1 text-sm">
-                {integration.enabled ? t("available") : t("disabled")}
-              </p>
-            </IntegrationInsetCard>
-            <IntegrationInsetCard>
-              <div className="flex items-center gap-2">
-                <Globe2
-                  aria-hidden="true"
-                  className="size-4 text-muted-foreground"
-                />
-                <p className="text-xs font-medium text-muted-foreground">
-                  {t("polar.environment")}
+              </IntegrationInsetCard>
+              <IntegrationInsetCard>
+                <div className="flex items-center gap-2">
+                  <Globe2
+                    aria-hidden="true"
+                    className="size-4 text-muted-foreground"
+                  />
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {t("polar.environment")}
+                  </p>
+                </div>
+                <p className="mt-1 text-sm">
+                  {integration.environment === "live"
+                    ? t("polar.live")
+                    : "Sandbox"}
                 </p>
-              </div>
-              <p className="mt-1 text-sm">
-                {integration.environment === "live"
-                  ? t("polar.live")
-                  : "Sandbox"}
-              </p>
-            </IntegrationInsetCard>
-            <IntegrationInsetCard>
-              <div className="flex items-center gap-2">
-                <RefreshCcw
-                  aria-hidden="true"
-                  className="size-4 text-muted-foreground"
-                />
-                <p className="text-xs font-medium text-muted-foreground">
-                  {t("polar.recurringProducts")}
+              </IntegrationInsetCard>
+              <IntegrationInsetCard>
+                <div className="flex items-center gap-2">
+                  <RefreshCcw
+                    aria-hidden="true"
+                    className="size-4 text-muted-foreground"
+                  />
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {t("polar.recurringProducts")}
+                  </p>
+                </div>
+                <p className="mt-1 text-sm">
+                  {integration.recurring
+                    ? t("polar.monthlyAndYearly")
+                    : t("polar.recurringOff")}
                 </p>
-              </div>
-              <p className="mt-1 text-sm">
-                {integration.recurring
-                  ? t("polar.monthlyAndYearly")
-                  : t("polar.recurringOff")}
-              </p>
-            </IntegrationInsetCard>
-          </div>
+              </IntegrationInsetCard>
+            </div>
+          </IntegrationSection>
 
           <section
             aria-labelledby="polar-webhooks-title"

@@ -52,6 +52,7 @@ import { useChannelLabels } from "@/lib/channel-labels"
 
 import { IntegrationAvailabilityCard } from "./integration-availability-card"
 import { IntegrationInsetCard } from "./integration-inset-card"
+import { IntegrationSection } from "./integration-section"
 
 const statusVariants = {
   disabled: "neutral",
@@ -235,16 +236,7 @@ export function ChannelProviderIntegrationCard({
             </IntegrationInsetCard>
           ) : null}
 
-          <section className="flex flex-col gap-3">
-            <div className="flex items-center gap-2">
-              <KeyRound
-                aria-hidden="true"
-                className="size-4 text-muted-foreground"
-              />
-              <h2 className="text-sm font-semibold">
-                {tShared("channelTypes")}
-              </h2>
-            </div>
+          <IntegrationSection icon={KeyRound} title={tShared("channelTypes")}>
             <div className="grid gap-3 md:grid-cols-2">
               {provider.capabilities.map((capability) => (
                 <IntegrationInsetCard key={capability.key}>
@@ -261,18 +253,12 @@ export function ChannelProviderIntegrationCard({
                 </IntegrationInsetCard>
               ))}
             </div>
-          </section>
+          </IntegrationSection>
 
-          <section className="flex flex-col gap-3">
-            <div className="flex items-center gap-2">
-              <LockKeyhole
-                aria-hidden="true"
-                className="size-4 text-muted-foreground"
-              />
-              <h2 className="text-sm font-semibold">
-                {tShared("configurationSummary")}
-              </h2>
-            </div>
+          <IntegrationSection
+            icon={LockKeyhole}
+            title={tShared("configurationSummary")}
+          >
             <CardGrid layout="2">
               {editableFields.map((field) => (
                 <IntegrationInsetCard key={field.key}>
@@ -289,17 +275,10 @@ export function ChannelProviderIntegrationCard({
                 </IntegrationInsetCard>
               ))}
             </CardGrid>
-          </section>
+          </IntegrationSection>
 
           {readOnlyFields.length ? (
-            <section className="flex flex-col gap-3">
-              <div className="flex items-center gap-2">
-                <Link2
-                  aria-hidden="true"
-                  className="size-4 text-muted-foreground"
-                />
-                <h2 className="text-sm font-semibold">{t("callbackUrls")}</h2>
-              </div>
+            <IntegrationSection icon={Link2} title={t("callbackUrls")}>
               <p className="text-sm text-muted-foreground">
                 {t("callbackUrlsHint")}
               </p>
@@ -333,7 +312,7 @@ export function ChannelProviderIntegrationCard({
                   </div>
                 </div>
               ))}
-            </section>
+            </IntegrationSection>
           ) : null}
         </CardContent>
       </Card>
