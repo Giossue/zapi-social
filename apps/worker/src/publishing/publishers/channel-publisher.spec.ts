@@ -80,10 +80,46 @@ describe('channel media rules', () => {
     ).toBeNull();
   });
 
+  it('lets LinkedIn post text alone but not two videos', () => {
+    expect(validateChannelMedia('linkedin_page', 'feed', [])).toBeNull();
+    expect(
+      validateChannelMedia('linkedin_profile', 'feed', [image]),
+    ).toBeNull();
+    expect(validateChannelMedia('linkedin_page', 'feed', [video, video])).toBe(
+      'tooManyVideos',
+    );
+  });
+
+  it('splits TikTok into a video destination and a photo one', () => {
+    expect(validateChannelMedia('tiktok_profile', 'video', [video])).toBeNull();
+    // Una foto no vale para el destino de vídeo, y al revés tampoco.
+    expect(validateChannelMedia('tiktok_profile', 'video', [image])).toBe(
+      'imagesNotAllowed',
+    );
+    expect(validateChannelMedia('tiktok_profile', 'photo', [video])).toBe(
+      'videosNotAllowed',
+    );
+  });
+
+  it('caps X at four images or a single video', () => {
+    expect(
+      validateChannelMedia('x_profile', 'feed', [image, image, image, image]),
+    ).toBeNull();
+    expect(
+      validateChannelMedia('x_profile', 'feed', [
+        image,
+        image,
+        image,
+        image,
+        image,
+      ]),
+    ).toBe('tooManyItems');
+  });
+
   it('rejects a destination the capability does not declare', () => {
     expect(validateChannelMedia('facebook_page', 'stories', [image])).toBe(
       'destinationUnsupported',
     );
-    expect(channelCapability('linkedin_page')).toBeUndefined();
+    expect(channelCapability('linkedin_page')).toBeDefined();
   });
 });

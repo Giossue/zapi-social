@@ -156,6 +156,31 @@ Falta lo que hace que añadir una red sea barato:
    `channelCapabilityCatalog`, con `validateChannelMedia()` en contratos para
    que la interfaz avise antes de guardar y la API lo compruebe antes de
    encolar. Falta engancharlas al formulario de Publishing.
+### LinkedIn, estado al 23 de agosto de 2026
+
+- [x] Proveedor y capabilities en el catálogo, con `apiVersion` configurable.
+- [x] Pantalla de Admin, servida por la genérica.
+- [x] **Verificador**: pide un token con `client_credentials` contra
+      `linkedin.com/oauth/v2/accessToken`. No necesita que nadie autorice nada,
+      así que se prueba entero sin cuenta. Distingue credencial inválida —400 y
+      401— de proveedor caído, que no debe culpar a las credenciales.
+- [x] **Publicador** sobre `POST /rest/posts`, con `Linkedin-Version` y
+      `X-Restli-Protocol-Version`, y la media por `/rest/images?action=initializeUpload`.
+      El identificador de la publicación vuelve en la cabecera `x-restli-id`.
+      **No se copió el de ZapiSocial**, que usa la `ugcPosts` retirada.
+- [ ] **Vídeo**: falta la API de Videos, con su subida por partes. Hoy una
+      publicación con vídeo falla con `PUBLISHING_LINKEDIN_VIDEO_UNSUPPORTED`
+      en vez de intentarlo y fallar en el proveedor.
+- [ ] **Conexión de cuenta.** El canje de código vive en
+      `channel-connections.service.ts` y está escrito para Meta de principio a
+      fin: `exchangeCode` apunta al Graph, `fetchCandidates` lista páginas de
+      Facebook. LinkedIn necesita su propio camino —`/v2/userinfo` para un
+      perfil, `/rest/organizationAcls?q=roleAssignee` para las páginas donde la
+      persona es administradora—. **Hasta que exista, no hay cuentas que
+      publicar.**
+- [ ] **Refresco de token.** Los de LinkedIn caducan; los de Meta son de larga
+      duración y por eso no hizo falta hasta ahora.
+
 4. **Los verificadores y el flujo OAuth de cada red.** Sin verificador, su
    integración se queda en «sin probar» y el Portal no abre el canal, que es el
    comportamiento correcto pero no sirve todavía para conectar.

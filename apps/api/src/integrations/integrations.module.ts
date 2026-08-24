@@ -3,6 +3,7 @@ import { EmailModule } from '../email/email.module';
 import { IdentityModule } from '../identity/identity.module';
 import { ChannelProviderIntegrationsService } from './channel-provider-integrations.service';
 import { CHANNEL_PROVIDER_VERIFIERS } from './channel-provider-verifier';
+import { LinkedInProviderVerifier } from './verifiers/linkedin-provider.verifier';
 import {
   ChannelProviderIntegrationsController,
   EmailSmtpIntegrationsController,
@@ -24,11 +25,13 @@ import { IntegrationsService } from './integrations.service';
   providers: [
     IntegrationsService,
     ChannelProviderIntegrationsService,
+    LinkedInProviderVerifier,
     {
       // Añadir una red es sumar su verificador aquí. Mientras no lo tenga, su
       // integración se queda en «sin probar» y el Portal no abre el canal.
       provide: CHANNEL_PROVIDER_VERIFIERS,
-      useFactory: () => [],
+      inject: [LinkedInProviderVerifier],
+      useFactory: (linkedin: LinkedInProviderVerifier) => [linkedin],
     },
   ],
   exports: [IntegrationsService, ChannelProviderIntegrationsService],

@@ -55,6 +55,10 @@ import { CHANNEL_PUBLISHERS } from './publishing/publishers/channel-publisher';
 import { ChannelPublisherRegistry } from './publishing/publishers/channel-publisher.registry';
 import { FacebookPagePublisher } from './publishing/publishers/facebook-page.publisher';
 import { InstagramProfilePublisher } from './publishing/publishers/instagram-profile.publisher';
+import {
+  LinkedInPagePublisher,
+  LinkedInProfilePublisher,
+} from './publishing/publishers/linkedin.publisher';
 import { MetaGraphService } from './publishing/publishers/meta-graph.service';
 import { PublishingAssetReader } from './publishing/publishers/publishing-asset-reader.service';
 import { WhatsAppStatusPublisher } from './publishing/publishers/whatsapp-status.publisher';
@@ -125,6 +129,8 @@ import { FileImportsScheduler } from './files/file-imports.scheduler';
     MetaGraphService,
     FacebookPagePublisher,
     InstagramProfilePublisher,
+    LinkedInPagePublisher,
+    LinkedInProfilePublisher,
     WhatsAppStatusPublisher,
     ChannelPublisherRegistry,
     {
@@ -134,13 +140,17 @@ import { FileImportsScheduler } from './files/file-imports.scheduler';
       inject: [
         FacebookPagePublisher,
         InstagramProfilePublisher,
+        LinkedInPagePublisher,
+        LinkedInProfilePublisher,
         WhatsAppStatusPublisher,
       ],
       useFactory: (
         facebook: FacebookPagePublisher,
         instagram: InstagramProfilePublisher,
+        linkedinPage: LinkedInPagePublisher,
+        linkedinProfile: LinkedInProfilePublisher,
         whatsapp: WhatsAppStatusPublisher,
-      ) => [facebook, instagram, whatsapp],
+      ) => [facebook, instagram, linkedinPage, linkedinProfile, whatsapp],
     },
     GoogleDriveImportProcessor,
     FileImportsScheduler,
