@@ -3526,8 +3526,12 @@ declare const messages: {
     }
     cardForbidden: "Tu cuenta no puede administrar esta integración."
     channelProvider: {
-      capabilities: "Canales"
+      callbackUrls: "URLs de retorno OAuth"
+      callbackUrlsHint: "Son datos de solo lectura generados por la API. Regístralos en la consola del proveedor."
       capabilitiesHint: "Solo los marcados se pueden conectar desde el Portal."
+      capabilityDisabled: "Desactivada"
+      capabilityEnabled: "Activa"
+      copyField: "Copiar {label}"
       description: "Credenciales de la aplicación que conecta esta red."
       enabled: "Integración activa"
       enabledHint: "Mientras esté apagada, el Portal muestra sus canales como próximamente."
@@ -3542,7 +3546,6 @@ declare const messages: {
         clientSecret: "Client Secret"
         graphVersion: "Versión del Graph"
       }
-      readOnlyHint: "Lo calcula el servidor. Cópialo en la consola del proveedor."
       readiness: {
         disabled: "Apagada"
         incomplete: "Falta configuración"
@@ -3552,6 +3555,7 @@ declare const messages: {
       save: "Guardar"
       saved: "Integración guardada."
       secretConfigured: "Guardado; escribe para reemplazarlo"
+      sheetDescription: "Los cambios se aplican al guardar. Prueba las credenciales antes de activarla."
       test: "Probar credenciales"
       testPassed: "Las credenciales funcionan."
     }

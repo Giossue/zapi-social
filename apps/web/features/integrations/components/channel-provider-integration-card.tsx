@@ -2,7 +2,18 @@
 
 import { useState, type FormEvent } from "react"
 import { useTranslations } from "next-intl"
-import { CircleAlert, CircleCheck, PlugZap, Save } from "lucide-react"
+import {
+  CheckCircle2,
+  Circle,
+  CircleAlert,
+  Copy,
+  KeyRound,
+  Link2,
+  LockKeyhole,
+  PlugZap,
+  Save,
+  Settings2,
+} from "lucide-react"
 
 import { ApiError, integrationsApi } from "@workspace/api-client"
 import type { ChannelProviderIntegration } from "@workspace/contracts"
@@ -15,6 +26,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import { CardGrid } from "@workspace/ui/components/card-grid"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
   Field,
@@ -27,9 +39,16 @@ import {
   FieldTitle,
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@workspace/ui/components/sheet"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Switch } from "@workspace/ui/components/switch"
-import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
 
 import { useApiErrorMessage } from "@/lib/api-error-message"
@@ -37,18 +56,38 @@ import { useChannelLabels } from "@/lib/channel-labels"
 
 import { IntegrationInsetCard } from "./integration-inset-card"
 
-const readinessVariants = {
+const statusVariants = {
   disabled: "neutral",
   incomplete: "warning",
   untested: "warning",
   ready: "success",
 } as const
 
+function ProviderStatus({
+  readiness,
+}: {
+  readiness: ChannelProviderIntegration["readiness"]
+}) {
+  const t = useTranslations("integrations.channelProvider")
+  const Icon =
+    readiness === "ready"
+      ? CheckCircle2
+      : readiness === "disabled"
+        ? Circle
+        : CircleAlert
+
+  return (
+    <Badge variant={statusVariants[readiness]}>
+      <Icon aria-hidden="true" />
+      {t(`readiness.${readiness}`)}
+    </Badge>
+  )
+}
+
 /**
- * Pantalla de un proveedor de canal, pintada desde su definición.
- *
- * No sabe de qué red se trata: los campos, sus tipos y sus capabilities vienen
- * del catálogo. Añadir una red no toca este archivo.
+ * Integración de canal pintada desde su definición, con la misma composición
+ * que Meta y Polar: la tarjeta resume y la hoja lateral edita. No sabe de qué
+ * red se trata, así que añadir una no toca este archivo.
  */
 export function ChannelProviderIntegrationCard({
   onSaved,
@@ -58,10 +97,12 @@ export function ChannelProviderIntegrationCard({
   provider: ChannelProviderIntegration
 }) {
   const t = useTranslations("integrations.channelProvider")
+  const tShared = useTranslations("integrations")
   const tIssue = useTranslations("integrations.issue")
   const labels = useChannelLabels()
   const apiErrorMessage = useApiErrorMessage()
 
+  const [open, setOpen] = useState(false)
   const [enabled, setEnabled] = useState(provider.enabled)
   const [values, setValues] = useState<Record<string, string>>(provider.values)
   const [capabilityKeys, setCapabilityKeys] = useState<string[]>(() =>
@@ -71,10 +112,30 @@ export function ChannelProviderIntegrationCard({
   )
   const [pending, setPending] = useState(false)
   const [tested, setTested] = useState(provider.readiness === "ready")
+  const [wasOpen, setWasOpen] = useState(open)
+
+  // Ajustar el estado durante el render en vez de en un efecto: al abrir la
+  // hoja el borrador parte de lo guardado sin encadenar un segundo render.
+  if (open !== wasOpen) {
+    setWasOpen(open)
+    if (open) {
+      setEnabled(provider.enabled)
+      setValues(provider.values)
+      setCapabilityKeys(
+        provider.capabilities
+          .filter((capability) => capability.enabled)
+          .map((capability) => capability.key)
+      )
+      setTested(provider.readiness === "ready")
+    }
+  }
 
   const [firstIssue] = provider.issues
   const editableFields = provider.definition.fields.filter(
     (field) => !field.readOnly
+  )
+  const readOnlyFields = provider.definition.fields.filter(
+    (field) => field.readOnly
   )
   const missingRequired = editableFields.some(
     (field) =>
@@ -85,17 +146,24 @@ export function ChannelProviderIntegrationCard({
 
   function update(key: string, value: string) {
     setValues((current) => ({ ...current, [key]: value }))
-    // Cambiar una credencial invalida la prueba: la API hace lo mismo al
-    // guardar, y aquí se refleja para que el botón no mienta.
+    // Cambiar una credencial invalida la prueba, igual que hace la API al
+    // guardar; si no, el botón diría que se puede activar cuando no.
     setTested(false)
   }
 
-  function toggleCapability(key: string, checked: boolean) {
-    setCapabilityKeys((current) =>
-      checked
-        ? [...new Set([...current, key])]
-        : current.filter((value) => value !== key)
+  function editableValues() {
+    return Object.fromEntries(
+      editableFields.map((field) => [field.key, values[field.key] ?? ""])
     )
+  }
+
+  async function copy(label: string, value: string) {
+    try {
+      await navigator.clipboard.writeText(value)
+      toast.success(tShared("copied", { label }))
+    } catch {
+      toast.error(tShared("copyFailed"))
+    }
   }
 
   async function test() {
@@ -120,12 +188,6 @@ export function ChannelProviderIntegrationCard({
     }
   }
 
-  function editableValues() {
-    return Object.fromEntries(
-      editableFields.map((field) => [field.key, values[field.key] ?? ""])
-    )
-  }
-
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setPending(true)
@@ -137,6 +199,7 @@ export function ChannelProviderIntegrationCard({
           enabledCapabilityKeys: capabilityKeys as never,
         })
       )
+      setOpen(false)
       toast.success(t("saved"))
     } catch (error) {
       toast.error(
@@ -148,23 +211,24 @@ export function ChannelProviderIntegrationCard({
   }
 
   return (
-    <Card variant="subtle">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          {labels.provider(provider.providerKey)}
-          <Badge variant={readinessVariants[provider.readiness]}>
-            {t(`readiness.${provider.readiness}`)}
-          </Badge>
-        </CardTitle>
-        <CardDescription>{t("description")}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form
-          aria-busy={pending}
-          className="flex flex-col gap-5"
-          noValidate
-          onSubmit={(event) => void submit(event)}
-        >
+    <>
+      <Card variant="subtle">
+        <CardHeader className="gap-4 border-b border-border pb-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex min-w-0 flex-col gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <CardTitle>{labels.provider(provider.providerKey)}</CardTitle>
+                <ProviderStatus readiness={provider.readiness} />
+              </div>
+              <CardDescription>{t("description")}</CardDescription>
+            </div>
+            <Button onClick={() => setOpen(true)} variant="brand-secondary">
+              <Settings2 data-icon="inline-start" />
+              {tShared("viewAndConfigure")}
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-7">
           {firstIssue ? (
             <IntegrationInsetCard>
               <p className="flex items-center gap-2 text-sm text-warning">
@@ -174,137 +238,244 @@ export function ChannelProviderIntegrationCard({
             </IntegrationInsetCard>
           ) : null}
 
-          <Field orientation="horizontal">
-            <Switch
-              checked={enabled}
-              disabled={pending}
-              id={`provider-${provider.providerKey}-enabled`}
-              onCheckedChange={setEnabled}
-            />
-            <FieldLabel htmlFor={`provider-${provider.providerKey}-enabled`}>
-              <FieldContent>
-                <FieldTitle>{t("enabled")}</FieldTitle>
-                <FieldDescription>{t("enabledHint")}</FieldDescription>
-              </FieldContent>
-            </FieldLabel>
-          </Field>
+          <section className="flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              <KeyRound
+                aria-hidden="true"
+                className="size-4 text-muted-foreground"
+              />
+              <h2 className="text-sm font-semibold">
+                {tShared("channelTypes")}
+              </h2>
+            </div>
+            <div className="grid gap-3 md:grid-cols-2">
+              {provider.capabilities.map((capability) => (
+                <IntegrationInsetCard key={capability.key}>
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-medium">
+                      {labels.capability(capability.key)}
+                    </p>
+                    <Badge variant={capability.enabled ? "success" : "neutral"}>
+                      {capability.enabled
+                        ? t("capabilityEnabled")
+                        : t("capabilityDisabled")}
+                    </Badge>
+                  </div>
+                </IntegrationInsetCard>
+              ))}
+            </div>
+          </section>
 
-          <FieldGroup>
-            {provider.definition.fields.map((field) => {
-              const controlId = `provider-${provider.providerKey}-${field.key}`
-              const configured = provider.secretsConfigured.includes(field.key)
-              return (
-                <Field key={field.key}>
-                  <FieldLabel htmlFor={controlId}>
+          <section className="flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              <LockKeyhole
+                aria-hidden="true"
+                className="size-4 text-muted-foreground"
+              />
+              <h2 className="text-sm font-semibold">
+                {tShared("configurationSummary")}
+              </h2>
+            </div>
+            <CardGrid layout="2">
+              {editableFields.map((field) => (
+                <IntegrationInsetCard key={field.key}>
+                  <p className="text-xs font-medium text-muted-foreground">
                     {t(`field.${field.key}`)}
-                    {field.required ? (
-                      <span aria-hidden="true" className="text-destructive">
-                        *
-                      </span>
-                    ) : null}
-                  </FieldLabel>
-                  {field.type === "textarea" ? (
-                    <Textarea
-                      disabled={pending || field.readOnly}
-                      id={controlId}
-                      maxLength={field.maxLength ?? undefined}
-                      onChange={(event) =>
-                        update(field.key, event.target.value)
-                      }
-                      rows={3}
-                      value={values[field.key] ?? ""}
-                    />
-                  ) : (
-                    <Input
-                      aria-required={field.required}
-                      disabled={pending || field.readOnly}
-                      id={controlId}
-                      maxLength={field.maxLength ?? undefined}
-                      onChange={(event) =>
-                        update(field.key, event.target.value)
-                      }
-                      placeholder={configured ? t("secretConfigured") : ""}
-                      readOnly={field.readOnly}
-                      type={field.type === "secret" ? "password" : "text"}
-                      value={values[field.key] ?? ""}
-                    />
-                  )}
-                  {field.readOnly ? (
-                    <FieldDescription>{t("readOnlyHint")}</FieldDescription>
-                  ) : null}
-                </Field>
-              )
-            })}
-          </FieldGroup>
+                  </p>
+                  <p className="mt-1 text-sm break-all">
+                    {field.type === "secret"
+                      ? provider.secretsConfigured.includes(field.key)
+                        ? tShared("configured")
+                        : tShared("notConfigured")
+                      : provider.values[field.key] || tShared("notConfigured")}
+                  </p>
+                </IntegrationInsetCard>
+              ))}
+            </CardGrid>
+          </section>
 
-          {provider.capabilities.length ? (
-            <FieldSet data-disabled={pending}>
-              <FieldLegend variant="label">{t("capabilities")}</FieldLegend>
-              <FieldDescription>{t("capabilitiesHint")}</FieldDescription>
-              <FieldGroup className="gap-3" data-slot="checkbox-group">
-                {provider.capabilities.map((capability) => {
-                  const controlId = `provider-capability-${capability.key}`
+          {readOnlyFields.length ? (
+            <section className="flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <Link2
+                  aria-hidden="true"
+                  className="size-4 text-muted-foreground"
+                />
+                <h2 className="text-sm font-semibold">{t("callbackUrls")}</h2>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {t("callbackUrlsHint")}
+              </p>
+              {readOnlyFields.map((field) => (
+                <div className="flex flex-col gap-2" key={field.key}>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    {t(`field.${field.key}`)}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      className="font-mono text-xs"
+                      readOnly
+                      value={provider.values[field.key] ?? ""}
+                    />
+                    <Button
+                      aria-label={t("copyField", {
+                        label: t(`field.${field.key}`),
+                      })}
+                      onClick={() =>
+                        void copy(
+                          t(`field.${field.key}`),
+                          provider.values[field.key] ?? ""
+                        )
+                      }
+                      size="icon"
+                      type="button"
+                      variant="surface"
+                    >
+                      <Copy />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </section>
+          ) : null}
+        </CardContent>
+      </Card>
+
+      <Sheet onOpenChange={(next) => !pending && setOpen(next)} open={open}>
+        <SheetContent className="w-full gap-0 p-0 sm:max-w-lg" side="right">
+          <SheetHeader className="border-b">
+            <SheetTitle>{labels.provider(provider.providerKey)}</SheetTitle>
+            <SheetDescription>{t("sheetDescription")}</SheetDescription>
+          </SheetHeader>
+          <form
+            aria-busy={pending}
+            className="flex min-h-0 flex-1 flex-col"
+            noValidate
+            onSubmit={(event) => void submit(event)}
+          >
+            <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4">
+              <Field orientation="horizontal">
+                <Switch
+                  checked={enabled}
+                  disabled={pending}
+                  id={`provider-${provider.providerKey}-enabled`}
+                  onCheckedChange={setEnabled}
+                />
+                <FieldLabel
+                  htmlFor={`provider-${provider.providerKey}-enabled`}
+                >
+                  <FieldContent>
+                    <FieldTitle>{t("enabled")}</FieldTitle>
+                    <FieldDescription>{t("enabledHint")}</FieldDescription>
+                  </FieldContent>
+                </FieldLabel>
+              </Field>
+
+              <FieldGroup>
+                {editableFields.map((field) => {
+                  const controlId = `provider-${provider.providerKey}-${field.key}`
+                  const configured = provider.secretsConfigured.includes(
+                    field.key
+                  )
                   return (
-                    <Field key={capability.key} orientation="horizontal">
-                      <Checkbox
-                        checked={capabilityKeys.includes(capability.key)}
+                    <Field key={field.key}>
+                      <FieldLabel htmlFor={controlId}>
+                        {t(`field.${field.key}`)}
+                        {field.required ? (
+                          <span aria-hidden="true" className="text-destructive">
+                            *
+                          </span>
+                        ) : null}
+                      </FieldLabel>
+                      <Input
+                        aria-required={field.required}
                         disabled={pending}
                         id={controlId}
-                        onCheckedChange={(value) =>
-                          toggleCapability(capability.key, value === true)
+                        maxLength={field.maxLength ?? undefined}
+                        onChange={(event) =>
+                          update(field.key, event.target.value)
                         }
+                        placeholder={
+                          configured ? t("secretConfigured") : undefined
+                        }
+                        type={field.type === "secret" ? "password" : "text"}
+                        value={values[field.key] ?? ""}
                       />
-                      <FieldLabel htmlFor={controlId}>
-                        <FieldContent>
-                          <FieldTitle>
-                            {labels.capability(capability.key)}
-                          </FieldTitle>
-                        </FieldContent>
-                      </FieldLabel>
                     </Field>
                   )
                 })}
               </FieldGroup>
-            </FieldSet>
-          ) : null}
 
-          <div className="flex flex-wrap justify-end gap-2">
-            <Button
-              disabled={pending || missingRequired}
-              onClick={() => void test()}
-              type="button"
-              variant="brand-secondary"
-            >
-              {pending ? (
-                <Spinner data-icon="inline-start" size={16} />
-              ) : (
-                <PlugZap aria-hidden="true" data-icon="inline-start" />
-              )}
-              {t("test")}
-            </Button>
-            <Button
-              // Activar un proveedor sin prueba vigente abriría el canal en el
-              // Portal sin saber si las credenciales sirven.
-              disabled={pending || missingRequired || (enabled && !tested)}
-              type="submit"
-            >
-              {pending ? (
-                <Spinner data-icon="inline-start" size={16} />
-              ) : (
-                <Save aria-hidden="true" data-icon="inline-start" />
-              )}
-              {t("save")}
-            </Button>
-          </div>
-
-          {tested ? (
-            <p className="flex items-center justify-end gap-2 text-sm text-success">
-              <CircleCheck aria-hidden="true" className="size-4" />
-              {t("testPassed")}
-            </p>
-          ) : null}
-        </form>
-      </CardContent>
-    </Card>
+              {provider.capabilities.length ? (
+                <FieldSet data-disabled={pending}>
+                  <FieldLegend variant="label">
+                    {tShared("channelTypes")}
+                  </FieldLegend>
+                  <FieldDescription>{t("capabilitiesHint")}</FieldDescription>
+                  <FieldGroup className="gap-3" data-slot="checkbox-group">
+                    {provider.capabilities.map((capability) => {
+                      const controlId = `provider-capability-${capability.key}`
+                      return (
+                        <Field key={capability.key} orientation="horizontal">
+                          <Checkbox
+                            checked={capabilityKeys.includes(capability.key)}
+                            disabled={pending}
+                            id={controlId}
+                            onCheckedChange={(value) =>
+                              setCapabilityKeys((current) =>
+                                value === true
+                                  ? [...new Set([...current, capability.key])]
+                                  : current.filter(
+                                      (key) => key !== capability.key
+                                    )
+                              )
+                            }
+                          />
+                          <FieldLabel htmlFor={controlId}>
+                            <FieldContent>
+                              <FieldTitle>
+                                {labels.capability(capability.key)}
+                              </FieldTitle>
+                            </FieldContent>
+                          </FieldLabel>
+                        </Field>
+                      )
+                    })}
+                  </FieldGroup>
+                </FieldSet>
+              ) : null}
+            </div>
+            <SheetFooter className="flex-row justify-end border-t">
+              <Button
+                disabled={pending || missingRequired}
+                onClick={() => void test()}
+                type="button"
+                variant="brand-secondary"
+              >
+                {pending ? (
+                  <Spinner data-icon="inline-start" size={16} />
+                ) : (
+                  <PlugZap aria-hidden="true" data-icon="inline-start" />
+                )}
+                {t("test")}
+              </Button>
+              <Button
+                // Activarla sin prueba vigente abriría el canal en el Portal sin
+                // saber si las credenciales sirven.
+                disabled={pending || missingRequired || (enabled && !tested)}
+                type="submit"
+              >
+                {pending ? (
+                  <Spinner data-icon="inline-start" size={16} />
+                ) : (
+                  <Save aria-hidden="true" data-icon="inline-start" />
+                )}
+                {t("save")}
+              </Button>
+            </SheetFooter>
+          </form>
+        </SheetContent>
+      </Sheet>
+    </>
   )
 }
