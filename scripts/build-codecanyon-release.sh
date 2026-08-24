@@ -9,7 +9,7 @@ if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
   exit 1
 fi
 
-for command_name in git tar zip sha256sum; do
+for command_name in git tar python3 sha256sum; do
   if ! command -v "$command_name" >/dev/null 2>&1; then
     printf 'Missing required command: %s\n' "$command_name" >&2
     exit 1
@@ -68,10 +68,30 @@ printf 'Zapi Social %s\nSource commit: %s\nRelease date: %s\n' \
 
 find "$package_root" -exec touch -h -d "@$source_epoch" {} +
 rm -f -- "$archive_path" "$checksum_path"
-(
-  cd "$temporary_root"
-  find "$package_name" -type f -print | LC_ALL=C sort | zip -X -q "$archive_path" -@
-)
+PACKAGE_ROOT="$package_root" \
+ARCHIVE_PATH="$archive_path" \
+SOURCE_EPOCH="$source_epoch" \
+python3 - <<'PY'
+import os
+import time
+import zipfile
+from pathlib import Path
+
+root = Path(os.environ["PACKAGE_ROOT"])
+archive = Path(os.environ["ARCHIVE_PATH"])
+epoch = max(int(os.environ["SOURCE_EPOCH"]), 315532800)
+timestamp = time.gmtime(epoch)[:6]
+
+with zipfile.ZipFile(
+    archive, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9
+) as output:
+    for path in sorted(item for item in root.rglob("*") if item.is_file()):
+        relative = path.relative_to(root.parent).as_posix()
+        info = zipfile.ZipInfo(relative, timestamp)
+        info.compress_type = zipfile.ZIP_DEFLATED
+        info.external_attr = (path.stat().st_mode & 0xFFFF) << 16
+        output.writestr(info, path.read_bytes())
+PY
 (
   cd "$release_root"
   sha256sum "$archive_name" > "$archive_name.sha256"
