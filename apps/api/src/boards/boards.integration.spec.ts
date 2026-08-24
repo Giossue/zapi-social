@@ -92,20 +92,20 @@ async function seedWorkspace(database: Database, suffix: string) {
     .values({
       name: `Boards ${suffix}`,
       slug: `boards-${suffix}-${randomUUID().slice(0, 8)}`,
-      ownerUserId: owner!.id,
+      ownerUserId: owner.id,
     })
     .returning();
   await database.insert(workspaceMemberships).values([
-    { workspaceId: workspace!.id, userId: owner!.id, role: 'owner' },
-    { workspaceId: workspace!.id, userId: member!.id, role: 'member' },
+    { workspaceId: workspace.id, userId: owner.id, role: 'owner' },
+    { workspaceId: workspace.id, userId: member.id, role: 'member' },
   ]);
 
   return {
-    member: member!,
-    memberSession: sessionFor(member!, workspace!, 'member'),
-    owner: owner!,
-    ownerSession: sessionFor(owner!, workspace!, 'owner'),
-    workspace: workspace!,
+    member: member,
+    memberSession: sessionFor(member, workspace, 'member'),
+    owner: owner,
+    ownerSession: sessionFor(owner, workspace, 'owner'),
+    workspace: workspace,
   };
 }
 
@@ -228,7 +228,7 @@ describeDatabase('Board lifecycle', () => {
       for (const title of ['Primera', 'Segunda', 'Tercera']) {
         created.push(
           await service.createTask(scenario.ownerSession, {
-            columnId: todo!.id,
+            columnId: todo.id,
             title,
           }),
         );
@@ -236,14 +236,14 @@ describeDatabase('Board lifecycle', () => {
       expect(created.map((task) => task.position)).toEqual([0, 1, 2]);
 
       // La tercera se mueve al principio: la columna entera se renumera.
-      await service.moveTask(scenario.ownerSession, created[2]!.id, {
-        columnId: todo!.id,
+      await service.moveTask(scenario.ownerSession, created[2].id, {
+        columnId: todo.id,
         position: 0,
       });
       const reordered = await database
         .select({ title: boardTasks.title, position: boardTasks.position })
         .from(boardTasks)
-        .where(eq(boardTasks.columnId, todo!.id))
+        .where(eq(boardTasks.columnId, todo.id))
         .orderBy(asc(boardTasks.position));
       expect(reordered).toEqual([
         { title: 'Tercera', position: 0 },
@@ -254,14 +254,14 @@ describeDatabase('Board lifecycle', () => {
       // Entrar en la columna terminal sella la fecha; salir la deshace.
       const finished = await service.moveTask(
         scenario.ownerSession,
-        created[0]!.id,
-        { columnId: done!.id, position: 0 },
+        created[0].id,
+        { columnId: done.id, position: 0 },
       );
       expect(finished.completedAt).not.toBeNull();
       const reopened = await service.moveTask(
         scenario.ownerSession,
-        created[0]!.id,
-        { columnId: todo!.id, position: 0 },
+        created[0].id,
+        { columnId: todo.id, position: 0 },
       );
       expect(reopened.completedAt).toBeNull();
     });
@@ -276,7 +276,7 @@ describeDatabase('Board lifecycle', () => {
         {},
         starterNames,
       );
-      const column = board.columns[0]!;
+      const column = board.columns[0];
 
       await service.createTask(scenario.ownerSession, {
         columnId: column.id,
@@ -320,7 +320,7 @@ describeDatabase('Board lifecycle', () => {
         {},
         starterNames,
       );
-      const column = board.columns[0]!;
+      const column = board.columns[0];
 
       await expectCode(
         service.createTask(scenario.ownerSession, {
@@ -347,7 +347,7 @@ describeDatabase('Board lifecycle', () => {
         .where(eq(boardColumns.workspaceId, scenario.workspace.id))
         .orderBy(asc(boardColumns.position));
       await expect(
-        service.deleteColumn(scenario.ownerSession, empty[1]!.id),
+        service.deleteColumn(scenario.ownerSession, empty[1].id),
       ).resolves.toBeUndefined();
     });
   });

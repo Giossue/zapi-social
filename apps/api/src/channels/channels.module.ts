@@ -4,6 +4,7 @@ import { IdentityModule } from '../identity/identity.module';
 import { IntegrationsModule } from '../integrations/integrations.module';
 import { TeamsModule } from '../teams/teams.module';
 import { ChannelConnectionsService } from './channel-connections.service';
+import { LinkedInConnectionAdapter } from './connection-adapters/linkedin-connection.adapter';
 import {
   ChannelConnectionsController,
   ChannelsController,
@@ -42,6 +43,7 @@ const WHATSAPP_PROFILE_SYNC_QUEUE = 'whatsapp-profile-sync';
   providers: [
     ChannelsService,
     ChannelConnectionsService,
+    LinkedInConnectionAdapter,
     WhatsAppStatusConnectionsService,
     ChannelOAuthService,
     ChannelOAuthAuthorizationService,

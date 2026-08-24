@@ -7,8 +7,7 @@ const valid = {
 };
 
 function respondWith(init: { ok: boolean; status: number }) {
-  globalThis.fetch = (() =>
-    Promise.resolve(init as unknown as Response)) as typeof fetch;
+  globalThis.fetch = () => Promise.resolve(init as unknown as Response);
 }
 
 describe('LinkedIn provider verifier', () => {
@@ -35,17 +34,16 @@ describe('LinkedIn provider verifier', () => {
     respondWith({ ok: false, status: 503 });
     await expect(verifier.verify(valid)).resolves.toBe('provider_unreachable');
 
-    globalThis.fetch = (() =>
-      Promise.reject(new Error('network'))) as typeof fetch;
+    globalThis.fetch = () => Promise.reject(new Error('network'));
     await expect(verifier.verify(valid)).resolves.toBe('provider_unreachable');
   });
 
   it('demands the API version in YYYYMM before calling out', async () => {
     let called = false;
-    globalThis.fetch = (() => {
+    globalThis.fetch = () => {
       called = true;
       return Promise.resolve({ ok: true, status: 200 } as unknown as Response);
-    }) as typeof fetch;
+    };
 
     await expect(verifier.verify({ ...valid, apiVersion: 'v2' })).resolves.toBe(
       'configuration_required',

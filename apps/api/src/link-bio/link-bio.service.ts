@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { fileAssets, linkBioEvents, linkBioPages } from '@workspace/database';
-import { and, asc, desc, eq, inArray, sql } from '@workspace/database/query';
+import { and, desc, eq, inArray, sql } from '@workspace/database/query';
 import {
   trackPublicLinkBioEventSchema,
   upsertPortalLinkBioPageSchema,
@@ -126,7 +126,7 @@ export class LinkBioService {
             ),
           )
           .returning();
-        return this.toPortal(row!, 0, 0);
+        return this.toPortal(row, 0, 0);
       }
 
       const [row] = await this.database.db
@@ -139,14 +139,15 @@ export class LinkBioService {
           workspaceId: session.workspace.id,
         })
         .returning();
-      return this.toPortal(row!, 0, 0);
+      return this.toPortal(row, 0, 0);
     } catch (error) {
-      if (
-        error &&
-        typeof error === 'object' &&
-        'code' in error &&
-        error.code === '23505'
-      ) {
+      // `'code' in error` no estrecha el tipo a algo indexable, así que se lee
+      // explícito en vez de silenciar la regla.
+      const code =
+        error && typeof error === 'object'
+          ? (error as { code?: unknown }).code
+          : undefined;
+      if (code === '23505') {
         throw new AppException('LINK_BIO_SLUG_TAKEN', HttpStatus.CONFLICT);
       }
       throw error instanceof AppException ? error : this.invalid();

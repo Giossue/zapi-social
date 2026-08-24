@@ -21,7 +21,6 @@ import {
   inArray,
   isNull,
   or,
-  sql,
 } from '@workspace/database/query';
 import type { SQL } from '@workspace/database/query';
 import {
@@ -305,7 +304,8 @@ export class BoardsService {
           await this.assertLabels(tx, session, parsed.data.labelIds);
           await this.replaceLabels(tx, session, taskId, parsed.data.labelIds);
         }
-        const { labelIds: _labelIds, ...columnsToSet } = parsed.data;
+        const columnsToSet = { ...parsed.data };
+        delete columnsToSet.labelIds;
         const [updated] = await tx
           .update(boardTasks)
           .set({ ...columnsToSet, updatedAt: new Date() })

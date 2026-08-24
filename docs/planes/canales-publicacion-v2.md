@@ -171,13 +171,28 @@ Falta lo que hace que añadir una red sea barato:
 - [ ] **Vídeo**: falta la API de Videos, con su subida por partes. Hoy una
       publicación con vídeo falla con `PUBLISHING_LINKEDIN_VIDEO_UNSUPPORTED`
       en vez de intentarlo y fallar en el proveedor.
-- [ ] **Conexión de cuenta.** El canje de código vive en
-      `channel-connections.service.ts` y está escrito para Meta de principio a
-      fin: `exchangeCode` apunta al Graph, `fetchCandidates` lista páginas de
-      Facebook. LinkedIn necesita su propio camino —`/v2/userinfo` para un
-      perfil, `/rest/organizationAcls?q=roleAssignee` para las páginas donde la
-      persona es administradora—. **Hasta que exista, no hay cuentas que
-      publicar.**
+- [x] **Adaptador de conexión** (`LinkedInConnectionAdapter`), contrastado con
+      la documentación de LinkedIn de 2026:
+      - Canje en `POST /oauth/v2/accessToken` con `grant_type=authorization_code`.
+        El `redirect_uri` debe ser idéntico al del paso anterior o responde
+        `invalid_redirect_uri`.
+      - Un perfil sale de `/v2/userinfo`: es OpenID Connect y el identificador
+        de persona es `sub`, no `id`.
+      - Una página sale de
+        `/rest/organizationAcls?q=roleAssignee&role=ADMINISTRATOR&state=APPROVED`.
+        La respuesta trae el rol pero no el nombre, así que se resuelve con la
+        API de organizaciones; si eso falla se usa el identificador, porque no
+        merece la pena tumbar la conexión por un rótulo.
+      - La documentación usa `organization` en unos ejemplos y
+        `organizationTarget` en otros: el adaptador acepta los dos.
+      - Scopes por capability: publicar como persona y como página son permisos
+        distintos y LinkedIn obliga a aceptarlos todos de golpe, así que solo se
+        piden los que hagan falta.
+- [ ] **Enganchar el adaptador** a `channel-connections.service.ts`, que hoy
+      llama a sus métodos de Meta directamente —`exchangeCode` apunta al Graph,
+      `fetchCandidates` a `/me/accounts`—. Lo demás de ese servicio ya es común:
+      la sesión, la tabla de candidatos, la selección y el guardado. **Hasta que
+      se enganche, no hay cuentas de LinkedIn que publicar.**
 - [ ] **Refresco de token.** Los de LinkedIn caducan; los de Meta son de larga
       duración y por eso no hizo falta hasta ahora.
 

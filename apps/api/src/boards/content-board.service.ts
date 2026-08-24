@@ -6,14 +6,7 @@ import {
   socialAccounts,
   users,
 } from '@workspace/database';
-import {
-  and,
-  asc,
-  count,
-  eq,
-  inArray,
-  isNull,
-} from '@workspace/database/query';
+import { and, asc, count, eq, inArray } from '@workspace/database/query';
 import {
   type ContentBoardCard,
   type ContentBoardResponse,
