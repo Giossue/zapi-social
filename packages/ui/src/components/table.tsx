@@ -47,6 +47,23 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
   const scroller = React.useRef<HTMLDivElement>(null)
   const bar = useScrollbar(scroller)
 
+  /**
+   * Lleva el scroll al punto del carril donde está el puntero, centrando el
+   * pulgar bajo el cursor. La barra parece un scrollbar, así que tiene que
+   * comportarse como uno: antes solo pintaba la posición y no había forma de
+   * arrastrar, porque la nativa está oculta.
+   */
+  function scrollToPointer(clientX: number, track: HTMLElement) {
+    const element = scroller.current
+    if (!element) return
+    const { left, width } = track.getBoundingClientRect()
+    if (!width) return
+    const ratio = (clientX - left) / width
+    const maximum = element.scrollWidth - element.clientWidth
+    const target = ratio * element.scrollWidth - element.clientWidth / 2
+    element.scrollLeft = Math.min(Math.max(target, 0), maximum)
+  }
+
   return (
     // The bar is a sibling of the scroller, not a child, so it stays pinned to
     // the visible edge instead of scrolling away with the columns.
@@ -70,10 +87,24 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
       {bar.visible ? (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-4 bottom-0 h-1.5"
+          // `py-1.5` agranda la zona de agarre sin engordar la barra: 1,5 px de
+          // alto es imposible de coger con el ratón.
+          className="absolute inset-x-4 bottom-0 cursor-grab py-1.5 active:cursor-grabbing"
+          onPointerDown={(event) => {
+            event.preventDefault()
+            event.currentTarget.setPointerCapture(event.pointerId)
+            scrollToPointer(event.clientX, event.currentTarget)
+          }}
+          onPointerMove={(event) => {
+            if (!event.currentTarget.hasPointerCapture(event.pointerId)) return
+            scrollToPointer(event.clientX, event.currentTarget)
+          }}
+          onPointerUp={(event) =>
+            event.currentTarget.releasePointerCapture(event.pointerId)
+          }
         >
           <div
-            className="h-full rounded-full bg-border"
+            className="h-1.5 rounded-full bg-border"
             style={{ marginLeft: `${bar.offset}%`, width: `${bar.size}%` }}
           />
         </div>
