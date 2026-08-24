@@ -809,3 +809,21 @@ mantienen; solo se retira el panel lateral permanente que competía con el hilo.
 Validación de la corrección: build y typecheck de Web correctos; lint focal de
 AI Studio y AI Elements sin errores; auditorías de traducciones, texto hardcoded
 y Portal/Admin UI sin hallazgos.
+
+### Correcciones del chat — 24 de agosto de 2026
+
+- Las sugerencias del estado vacío se distribuyen en varias filas dentro del
+  ancho disponible; ninguna acción queda recortada fuera del lienzo.
+- El encabezado conserva solo el acceso contextual a Ajustes. Automatizaciones
+  permanece en la navegación de AI Studio y ya no duplica esa ruta en el chat.
+- Ajustes, Planner y Mejor horario completan su metadata traducida en
+  `aiStudio.views`, evitando que el encabezado muestre claves de traducción.
+- Imagen y Video aceptan referencias JPG, PNG o WebP desde `PromptInput`, muestran
+  los archivos seleccionados y permiten retirarlos antes del envío. Web importa
+  cada referencia a Files mediante el flujo autenticado existente y envía sus
+  IDs en `referenceAssetIds`; API y Worker conservan validación de tipo, tamaño,
+  estado, workspace y límites de diez referencias para imagen o nueve para video.
+
+Validación: build y typecheck de Web correctos; lint focal de AI Studio y
+Suggestions sin errores; auditorías de traducciones, texto hardcoded y UI de
+Portal/Admin sin hallazgos; `git diff --check` correcto.

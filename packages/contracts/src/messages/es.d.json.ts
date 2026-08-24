@@ -1709,6 +1709,7 @@ declare const messages: {
   },
   "aiStudio": {
     "chat": {
+      "addReferences": "Adjuntar imágenes de referencia",
       "archive": "Archivar",
       "archiveFailed": "No pudimos archivar la conversación.",
       "archived": "Conversación archivada.",
@@ -1734,7 +1735,12 @@ declare const messages: {
       "loadFailedTitle": "AI Studio no disponible",
       "loading": "Cargando AI Studio",
       "newConversation": "Nueva conversación",
+      "invalidReference": "Usa imágenes JPG, PNG o WebP de máximo 30 MB.",
       "options": "Opciones",
+      "referenceImage": "Imagen de referencia",
+      "referenceLimit": "Puedes adjuntar un máximo de {max, number} imágenes.",
+      "referenceUploadFailed": "No pudimos subir las imágenes de referencia.",
+      "removeReference": "Quitar {name}",
       "retry": "Reintentar",
       "retryFailed": "No pudimos reintentar la generación.",
       "retrySuccess": "Generación reintentada.",
@@ -2334,6 +2340,10 @@ declare const messages: {
         "description": "Crea, investiga y mejora contenido desde un solo lugar.",
         "title": "AI Studio"
       },
+      "planner": {
+        "description": "Convierte un objetivo en un plan editorial equilibrado y listo para producir.",
+        "title": "Planificador inteligente"
+      },
       "repurpose": {
         "description": "Transforma una pieza existente en variantes nativas para cada red.",
         "title": "Reutilizar contenido"
@@ -2345,6 +2355,14 @@ declare const messages: {
       "search": {
         "description": "Explora tendencias, preguntas e ideas con señales útiles para crear contenido.",
         "title": "Investigación asistida"
+      },
+      "settings": {
+        "description": "Define la voz, el idioma y las reglas que guían todas las generaciones.",
+        "title": "Configuración de IA"
+      },
+      "timing": {
+        "description": "Descubre cuándo publicar según el rendimiento real de tus cuentas.",
+        "title": "Mejor hora para publicar"
       },
       "video": {
         "description": "Diseña el guion, las escenas y el clip final sin salir del flujo de trabajo.",

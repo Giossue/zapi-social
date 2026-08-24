@@ -2,23 +2,35 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import Image from "next/image"
 import Link from "next/link"
 import {
   Archive,
   ArrowLeft,
   CircleAlert,
   Copy,
+  ImagePlus,
   MessageSquarePlus,
   RefreshCw,
   Search,
   Settings2,
   SlidersHorizontal,
   Sparkles,
-  Zap,
+  X,
 } from "lucide-react"
 
-import { ApiError, aiApi } from "@workspace/api-client"
+import { ApiError, aiApi, filesApi } from "@workspace/api-client"
 import type { PortalAiRequest } from "@workspace/contracts"
+import {
+  Attachment,
+  AttachmentAction,
+  AttachmentActions,
+  AttachmentContent,
+  AttachmentDescription,
+  AttachmentGroup,
+  AttachmentMedia,
+  AttachmentTitle,
+} from "@workspace/ui/components/attachment"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
@@ -83,6 +95,7 @@ import {
   PromptInputSubmit,
   PromptInputTextarea,
   PromptInputTools,
+  usePromptInputAttachments,
 } from "@/components/ai-elements/prompt-input"
 import {
   Reasoning,
@@ -113,9 +126,94 @@ const statusVariants: Record<
 }
 
 const suggestionTools = ["content", "image", "video", "planner"] as const
+const REFERENCE_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"] as const
+const MAX_REFERENCE_SIZE_BYTES = 30 * 1024 * 1024
 
 function idempotencyKey() {
   return `chat-${crypto.randomUUID()}`
+}
+
+function isMediaTool(tool: ChatTool): tool is "image" | "video" {
+  return tool === "image" || tool === "video"
+}
+
+async function filePartToFile(part: PromptInputMessage["files"][number]) {
+  const response = await fetch(part.url)
+  if (!response.ok) throw new Error("REFERENCE_FILE_UNAVAILABLE")
+
+  const blob = await response.blob()
+  const mediaType = part.mediaType || blob.type
+  if (
+    !REFERENCE_IMAGE_TYPES.includes(
+      mediaType as (typeof REFERENCE_IMAGE_TYPES)[number]
+    ) ||
+    blob.size > MAX_REFERENCE_SIZE_BYTES
+  ) {
+    throw new Error("INVALID_REFERENCE_FILE")
+  }
+
+  return new File([blob], part.filename || "reference-image", {
+    type: mediaType,
+  })
+}
+
+function ReferenceAttachmentButton({ label }: { label: string }) {
+  const attachments = usePromptInputAttachments()
+
+  return (
+    <PromptInputButton
+      aria-label={label}
+      onClick={attachments.openFileDialog}
+      tooltip={label}
+      type="button"
+    >
+      <ImagePlus />
+    </PromptInputButton>
+  )
+}
+
+function ReferenceAttachments({ enabled }: { enabled: boolean }) {
+  const t = useTranslations("aiStudio.chat")
+  const { files, remove } = usePromptInputAttachments()
+
+  if (!enabled || !files.length) return null
+
+  return (
+    <AttachmentGroup className="px-3 pt-3">
+      {files.map((file) => (
+        <Attachment key={file.id} size="sm">
+          <AttachmentMedia variant="image">
+            <Image
+              alt={file.filename || t("referenceImage")}
+              className="object-cover"
+              fill
+              sizes="32px"
+              src={file.url}
+              unoptimized
+            />
+          </AttachmentMedia>
+          <AttachmentContent>
+            <AttachmentTitle>
+              {file.filename || t("referenceImage")}
+            </AttachmentTitle>
+            <AttachmentDescription>{t("referenceImage")}</AttachmentDescription>
+          </AttachmentContent>
+          <AttachmentActions>
+            <AttachmentAction
+              aria-label={t("removeReference", {
+                name: file.filename || t("referenceImage"),
+              })}
+              onClick={() => remove(file.id)}
+              type="button"
+              variant="brand-secondary"
+            >
+              <X />
+            </AttachmentAction>
+          </AttachmentActions>
+        </Attachment>
+      ))}
+    </AttachmentGroup>
+  )
 }
 
 function traceSummary(
@@ -433,15 +531,38 @@ export function AiChatPage() {
     const nextPrompt = message.text.trim()
     if (!nextPrompt) {
       toast.error(t("emptyPrompt"))
-      return
+      throw new Error("EMPTY_PROMPT")
+    }
+    const maximumReferences = tool === "video" ? 9 : 10
+    if (isMediaTool(tool) && message.files.length > maximumReferences) {
+      toast.error(t("referenceLimit", { max: maximumReferences }))
+      throw new Error("REFERENCE_LIMIT_EXCEEDED")
     }
     setPending(true)
+    let uploadingReferences = false
     try {
-      const input = Object.fromEntries(
+      const input: Record<string, unknown> = Object.fromEntries(
         Object.entries(options[tool]).filter(
           ([, value]) => value !== "" && value !== undefined
         )
       )
+      if (isMediaTool(tool) && message.files.length) {
+        uploadingReferences = true
+        const referenceAssetIds: string[] = []
+        for (const part of message.files) {
+          const file = await filePartToFile(part)
+          const upload = await filesApi.startUpload({
+            folderId: null,
+            mimeType: file.type,
+            name: file.name,
+            sizeBytes: file.size,
+          })
+          await filesApi.upload(upload.id, file)
+          referenceAssetIds.push(upload.id)
+        }
+        input.referenceAssetIds = referenceAssetIds
+        uploadingReferences = false
+      }
       const created = await aiApi.createRequest({
         idempotencyKey: idempotencyKey(),
         input,
@@ -454,10 +575,13 @@ export function AiChatPage() {
     } catch (error) {
       if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
         router.replace(loginPath())
-        return
+      } else {
+        console.error("AI request creation failed", error)
+        toast.error(
+          uploadingReferences ? t("referenceUploadFailed") : t("sendFailed")
+        )
       }
-      console.error("AI request creation failed", error)
-      toast.error(t("sendFailed"))
+      throw error
     } finally {
       setPending(false)
     }
@@ -640,11 +764,6 @@ export function AiChatPage() {
             <Badge variant="neutral">{tt(chatTools[tool].labelKey)}</Badge>
           </div>
           <div className="flex items-center gap-1">
-            <Button asChild size="sm" variant="brand-secondary">
-              <Link href="/portal/ai-studio/automation">
-                <Zap data-icon="inline-start" /> {t("automations")}
-              </Link>
-            </Button>
             <Button asChild size="icon-sm" variant="brand-secondary">
               <Link
                 aria-label={t("settings")}
@@ -730,7 +849,7 @@ export function AiChatPage() {
                     {t("emptyDescription")}
                   </p>
                 </div>
-                <Suggestions className="mx-auto">
+                <Suggestions wrap>
                   {suggestionTools.map((key) => (
                     <Suggestion
                       key={key}
@@ -753,11 +872,19 @@ export function AiChatPage() {
 
         <div aria-busy={pending} className="shrink-0 px-4 pt-2 pb-4">
           <PromptInput
+            accept={
+              isMediaTool(tool) ? REFERENCE_IMAGE_TYPES.join(",") : undefined
+            }
             className="mx-auto max-w-4xl"
+            maxFiles={tool === "video" ? 9 : 10}
+            maxFileSize={MAX_REFERENCE_SIZE_BYTES}
+            multiple
             noValidate
+            onError={() => toast.error(t("invalidReference"))}
             onSubmit={(message) => submit(message)}
             uploadLabel={t("uploadFiles")}
           >
+            <ReferenceAttachments enabled={isMediaTool(tool)} />
             <PromptInputBody>
               <PromptInputTextarea
                 aria-label={tt(chatTools[tool].promptLabelKey)}
@@ -769,6 +896,9 @@ export function AiChatPage() {
             </PromptInputBody>
             <PromptInputFooter>
               <PromptInputTools>
+                {isMediaTool(tool) ? (
+                  <ReferenceAttachmentButton label={t("addReferences")} />
+                ) : null}
                 <PromptInputSelect
                   onValueChange={(value) => setTool(value as ChatTool)}
                   value={tool}

@@ -1706,6 +1706,7 @@
   },
   "aiStudio": {
     "chat": {
+      "addReferences": "Attach reference images",
       "archive": "Archive",
       "archiveFailed": "We couldn't archive the conversation.",
       "archived": "Conversation archived.",
@@ -1731,7 +1732,12 @@
       "loadFailedTitle": "AI Studio unavailable",
       "loading": "Loading AI Studio",
       "newConversation": "New conversation",
+      "invalidReference": "Use JPG, PNG or WebP images up to 30 MB.",
       "options": "Options",
+      "referenceImage": "Reference image",
+      "referenceLimit": "You can attach up to {max, number} images.",
+      "referenceUploadFailed": "We couldn't upload the reference images.",
+      "removeReference": "Remove {name}",
       "retry": "Retry",
       "retryFailed": "We couldn't retry the generation.",
       "retrySuccess": "Generation retried.",
@@ -2331,6 +2337,10 @@
         "description": "Create, research and improve content from a single place.",
         "title": "AI Studio"
       },
+      "planner": {
+        "description": "Turn a goal into a balanced editorial plan ready to produce.",
+        "title": "Smart planner"
+      },
       "repurpose": {
         "description": "Turn an existing piece into native variants for each network.",
         "title": "Repurpose content"
@@ -2342,6 +2352,14 @@
       "search": {
         "description": "Explore trends, questions and ideas with signals useful for creating content.",
         "title": "Assisted research"
+      },
+      "settings": {
+        "description": "Define the voice, language and rules that guide every generation.",
+        "title": "AI configuration"
+      },
+      "timing": {
+        "description": "Find out when to publish based on your accounts' real performance.",
+        "title": "Best time to post"
       },
       "video": {
         "description": "Design the script, the scenes and the final clip without leaving the workflow.",

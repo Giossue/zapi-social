@@ -6,21 +6,32 @@ import { Button } from "@workspace/ui/components/button"
 import { ScrollArea, ScrollBar } from "@workspace/ui/components/scroll-area"
 import { cn } from "@workspace/ui/lib/utils"
 
-export type SuggestionsProps = ComponentProps<typeof ScrollArea>
+export type SuggestionsProps = ComponentProps<typeof ScrollArea> & {
+  wrap?: boolean
+}
 
 export function Suggestions({
   className,
   children,
+  wrap = false,
   ...props
 }: SuggestionsProps) {
   return (
-    <ScrollArea className="w-full overflow-x-auto whitespace-nowrap" {...props}>
+    <ScrollArea
+      className={cn("w-full", !wrap && "overflow-x-auto whitespace-nowrap")}
+      {...props}
+    >
       <div
-        className={cn("flex w-max flex-nowrap items-center gap-2", className)}
+        className={cn(
+          wrap
+            ? "flex w-full flex-wrap items-center justify-center gap-2"
+            : "flex w-max flex-nowrap items-center gap-2",
+          className
+        )}
       >
         {children}
       </div>
-      <ScrollBar className="hidden" orientation="horizontal" />
+      {wrap ? null : <ScrollBar className="hidden" orientation="horizontal" />}
     </ScrollArea>
   )
 }
