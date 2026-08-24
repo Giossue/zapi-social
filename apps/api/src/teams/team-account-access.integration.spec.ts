@@ -501,6 +501,11 @@ describeDatabase('Team account access policy', () => {
         permissivePlanAccess(),
         fakeQueue<AiRequestJobData>(),
       );
+      await service.updateSettings(scenario.ownerSession, {
+        brandDescription: 'Workspace used by the access integration test.',
+        brandName: 'Access test',
+        brandPersonality: 'clear',
+      });
 
       const idempotent = await service.createRequest(scenario.memberSession, {
         idempotencyKey: existingKey,

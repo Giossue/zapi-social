@@ -87,6 +87,34 @@ describeDatabase('AI Studio integration', () => {
     await connection?.client.end();
   });
 
+  it('blocks generations until the required brand settings are complete', async () => {
+    await inRollbackTransaction(async (database) => {
+      const scenario = await seedWorkspace(database);
+      const databaseService = { db: database } as DatabaseService;
+      const service = new AiService(
+        databaseService,
+        new TeamAccountAccessService(databaseService),
+        { emit: () => Promise.resolve() } as unknown as AutomationEventsService,
+        new PlanAccessService(databaseService),
+        { add: () => Promise.resolve() } as never,
+      );
+
+      expect(await service.getSettings(scenario.session)).toMatchObject({
+        brandConfigured: false,
+      });
+      await expect(
+        service.createRequest(scenario.session, {
+          idempotencyKey: `brand-required-${randomUUID()}`,
+          input: {},
+          kind: 'timing',
+          prompt: 'Find the best time to publish.',
+        }),
+      ).rejects.toMatchObject({
+        code: 'AI_BRAND_CONFIGURATION_REQUIRED',
+      });
+    });
+  });
+
   it('persists workspace settings and budget without exposing provider secrets', async () => {
     await inRollbackTransaction(async (database) => {
       const scenario = await seedWorkspace(database);
@@ -108,6 +136,7 @@ describeDatabase('AI Studio integration', () => {
         requireHumanReview: true,
       });
       expect(settings).toMatchObject({
+        brandConfigured: true,
         brandName: 'Marca segura',
         brandPersonality: 'cercana',
         requireHumanReview: true,

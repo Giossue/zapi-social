@@ -1714,6 +1714,9 @@
       "backToConversations": "Back to conversations",
       "cancelled": "The generation was cancelled.",
       "clipboardUnsupported": "Your browser can't copy the result.",
+      "configurationRequiredAction": "Configure AI",
+      "configurationRequiredDescription": "Complete the brand name, personality and description before generating. If you don't manage this workspace, ask an owner or administrator to do it.",
+      "configurationRequiredTitle": "Configure your brand identity",
       "copied": "Result copied.",
       "copy": "Copy",
       "copyFailed": "We couldn't copy the result.",
@@ -2113,10 +2116,14 @@
       "researchAction": "Research",
       "settings": {
         "brandDescription": "Description",
+        "brandDescriptionPlaceholder": "E.g. We help small businesses plan and publish content for their social channels.",
         "brandIdentity": "Brand identity",
         "brandIdentityDescription": "The AI will use this information in every tool.",
         "brandName": "Brand name",
+        "brandNamePlaceholder": "E.g. Zapi Social",
+        "brandPersonalityPlaceholder": "E.g. approachable, clear and resourceful",
         "brandVoice": "Brand voice",
+        "brandVoicePlaceholder": "E.g. We speak directly and usefully, with short, approachable sentences and no hype.",
         "defaultTone": "Default tone",
         "defaults": "Default values",
         "description": "Define the voice, language and rules that guide every generation.",
@@ -2133,7 +2140,9 @@
         "title": "AI configuration",
         "warnSensitiveClaims": "Warn about sensitive claims",
         "wordsAvoid": "Words we avoid",
-        "wordsUse": "Words we do use"
+        "wordsAvoidPlaceholder": "E.g. revolutionary, guaranteed, cheap",
+        "wordsUse": "Words we do use",
+        "wordsUsePlaceholder": "E.g. clear, practical, approachable"
       },
       "timing": {
         "confidence": {
@@ -3241,6 +3250,7 @@
     "ACCOUNT_GRANT_NOT_ALLOWED": "You can't assign one or more of the selected accounts.",
     "ADMIN_ROLE_NAME_TAKEN": "A role with that name already exists.",
     "ADMIN_ROLE_NOT_FOUND": "That role does not exist.",
+    "AI_BRAND_CONFIGURATION_REQUIRED": "Complete the required AI configuration before generating content.",
     "AI_CREDITS_INSUFFICIENT": "There aren't enough credits to start this generation.",
     "AI_MODEL_ROUTE_INVALID": "The route uses an incompatible, disabled or deprecated model.",
     "AI_PROVIDER_CONFIGURATION_INVALID": "The key is invalid or hasn't been tested yet.",

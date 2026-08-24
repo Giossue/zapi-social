@@ -1955,6 +1955,7 @@ function FunctionalSettings() {
                       {t("settings.brandName")} <RequiredMark />
                     </FieldLabel>
                     <Input
+                      placeholder={t("settings.brandNamePlaceholder")}
                       value={settings.brandName}
                       onChange={(event) =>
                         update({ brandName: event.target.value })
@@ -1966,6 +1967,7 @@ function FunctionalSettings() {
                       {tt("personality")} <RequiredMark />
                     </FieldLabel>
                     <Input
+                      placeholder={t("settings.brandPersonalityPlaceholder")}
                       value={settings.brandPersonality}
                       onChange={(event) =>
                         update({ brandPersonality: event.target.value })
@@ -1978,6 +1980,7 @@ function FunctionalSettings() {
                     {t("settings.brandDescription")} <RequiredMark />
                   </FieldLabel>
                   <Textarea
+                    placeholder={t("settings.brandDescriptionPlaceholder")}
                     rows={4}
                     value={settings.brandDescription}
                     onChange={(event) =>
@@ -1988,6 +1991,7 @@ function FunctionalSettings() {
                 <Field>
                   <FieldLabel>{t("settings.brandVoice")}</FieldLabel>
                   <Textarea
+                    placeholder={t("settings.brandVoicePlaceholder")}
                     rows={3}
                     value={settings.brandVoice}
                     onChange={(event) =>
@@ -1999,6 +2003,7 @@ function FunctionalSettings() {
                   <Field>
                     <FieldLabel>{t("settings.wordsUse")}</FieldLabel>
                     <Input
+                      placeholder={t("settings.wordsUsePlaceholder")}
                       value={settings.preferredWords.join(", ")}
                       onChange={(event) =>
                         update({
@@ -2013,6 +2018,7 @@ function FunctionalSettings() {
                   <Field>
                     <FieldLabel>{t("settings.wordsAvoid")}</FieldLabel>
                     <Input
+                      placeholder={t("settings.wordsAvoidPlaceholder")}
                       value={settings.forbiddenWords.join(", ")}
                       onChange={(event) =>
                         update({

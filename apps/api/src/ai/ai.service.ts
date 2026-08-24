@@ -847,6 +847,13 @@ export class AiService {
       .limit(1)
       .then((rows) => rows[0] ?? null);
     if (existing) return this.serializeRequest(existing);
+    const workspaceSettings = await this.ensureWorkspaceSettings(session);
+    if (!this.isBrandConfigured(workspaceSettings)) {
+      throw new AppException(
+        'AI_BRAND_CONFIGURATION_REQUIRED',
+        HttpStatus.CONFLICT,
+      );
+    }
     const windowStartedAt = new Date(
       Date.now() - requestRateLimitWindowMilliseconds,
     );
@@ -1124,6 +1131,14 @@ export class AiService {
     return settings;
   }
 
+  private isBrandConfigured(settings: typeof aiWorkspaceSettings.$inferSelect) {
+    return Boolean(
+      settings.brandName.trim() &&
+      settings.brandDescription.trim() &&
+      settings.brandPersonality.trim(),
+    );
+  }
+
   private balanceDebitedUnits(
     metadata: Record<string, unknown> | undefined,
     requestCostUnits: number,
@@ -1328,6 +1343,7 @@ export class AiService {
       preferredProvider: workspace.preferredProvider,
       preferredTextModel: workspace.preferredTextModel,
       preferredImageModel: workspace.preferredImageModel,
+      brandConfigured: this.isBrandConfigured(workspace),
       brandVoice: workspace.brandVoice,
       brandName: workspace.brandName,
       brandDescription: workspace.brandDescription,

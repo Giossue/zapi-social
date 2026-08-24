@@ -401,6 +401,7 @@ export const portalAiSettingsSchema = z.object({
   preferredProvider: z.string(),
   preferredTextModel: z.string().nullable(),
   preferredImageModel: z.string().nullable(),
+  brandConfigured: z.boolean(),
   brandVoice: z.string(),
   brandName: z.string(),
   brandDescription: z.string(),

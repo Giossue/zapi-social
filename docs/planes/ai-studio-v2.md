@@ -837,3 +837,28 @@ creación confirmada por la API.
 Validación del Sheet: build y typecheck de Web correctos; typecheck de UI
 correcto; lint focal de AI Studio y `TimePicker` sin errores; auditorías de
 traducciones, texto hardcoded y Portal/Admin UI sin hallazgos.
+
+### Configuración obligatoria de marca — 24 de agosto de 2026
+
+El workspace debe completar nombre, descripción y personalidad de marca antes
+de iniciar una generación. `GET /v1/portal/ai/settings` expone
+`brandConfigured` como fuente de verdad; el chat mantiene el historial en modo
+lectura, bloquea compositor, referencias, opciones y reintentos, y dirige a
+Ajustes mientras el valor sea falso.
+
+La API aplica la misma condición antes de crear cualquier solicitud nueva, por
+lo que omitir el bloqueo visual devuelve `AI_BRAND_CONFIGURATION_REQUIRED` sin
+reservar créditos ni encolar trabajo. Un miembro sin permiso para administrar
+el Brand Kit recibe en el bloqueo la indicación de acudir a un propietario o
+administrador. La configuración continúa perteneciendo al workspace.
+
+Los campos de Voz de marca incluyen ejemplos traducidos como placeholders para
+nombre, personalidad, descripción, principios de voz y vocabulario preferido o
+prohibido; no se guardan como valores. Esta decisión endurece de forma
+intencional la referencia Laravel, que permite un Brand Kit vacío.
+
+Validación: builds de Contracts, API y Web correctos; typechecks de los tres
+correctos; lint focal sin errores; auditorías de traducciones, texto hardcoded y
+UI de Portal/Admin sin hallazgos. Las tres suites de integración focales cargan
+y compilan, pero sus doce pruebas quedan omitidas cuando no están definidas las
+URLs de las bases locales de test.

@@ -10,6 +10,7 @@ import {
   CircleAlert,
   Copy,
   ImagePlus,
+  LockKeyhole,
   MessageSquarePlus,
   RefreshCw,
   Search,
@@ -20,7 +21,7 @@ import {
 } from "lucide-react"
 
 import { ApiError, aiApi, filesApi } from "@workspace/api-client"
-import type { PortalAiRequest } from "@workspace/contracts"
+import type { PortalAiRequest, PortalAiSettings } from "@workspace/contracts"
 import {
   Attachment,
   AttachmentAction,
@@ -157,12 +158,19 @@ async function filePartToFile(part: PromptInputMessage["files"][number]) {
   })
 }
 
-function ReferenceAttachmentButton({ label }: { label: string }) {
+function ReferenceAttachmentButton({
+  disabled,
+  label,
+}: {
+  disabled?: boolean
+  label: string
+}) {
   const attachments = usePromptInputAttachments()
 
   return (
     <PromptInputButton
       aria-label={label}
+      disabled={disabled}
       onClick={attachments.openFileDialog}
       tooltip={label}
       type="button"
@@ -464,11 +472,14 @@ export function AiChatPage() {
       ) as Record<ChatTool, Record<string, unknown>>
   )
   const [requests, setRequests] = useState<PortalAiRequest[]>([])
+  const [settings, setSettings] = useState<PortalAiSettings | null>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [query, setQuery] = useState("")
   const [prompt, setPrompt] = useState("")
   const [isLoading, setIsLoading] = useState(true)
+  const [settingsLoading, setSettingsLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
+  const [settingsError, setSettingsError] = useState(false)
   const [pending, setPending] = useState(false)
   const [optionsSheetOpen, setOptionsSheetOpen] = useState(false)
   const [showThread, setShowThread] = useState(false)
@@ -494,10 +505,34 @@ export function AiChatPage() {
     }
   }, [query, router])
 
+  const loadSettings = useCallback(async () => {
+    setSettingsLoading(true)
+    setSettingsError(false)
+    try {
+      setSettings(await aiApi.getSettings())
+    } catch (error) {
+      if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
+        router.replace(loginPath())
+        return
+      }
+      console.error("AI settings request failed", error)
+      setSettingsError(true)
+    } finally {
+      setSettingsLoading(false)
+    }
+  }, [router])
+
   useEffect(() => {
     const timer = setTimeout(() => void load(), query ? 300 : 0)
     return () => clearTimeout(timer)
   }, [load, query])
+
+  useEffect(() => {
+    const timer = setTimeout(() => void loadSettings(), 0)
+    return () => clearTimeout(timer)
+  }, [loadSettings])
+
+  const brandConfigured = settings?.brandConfigured === true
 
   const selected = useMemo(
     () => requests.find((request) => request.id === selectedId) ?? null,
@@ -528,6 +563,10 @@ export function AiChatPage() {
   }
 
   async function submit(message: PromptInputMessage) {
+    if (!brandConfigured) {
+      toast.error(t("configurationRequiredTitle"))
+      throw new Error("AI_BRAND_CONFIGURATION_REQUIRED")
+    }
     const nextPrompt = message.text.trim()
     if (!nextPrompt) {
       toast.error(t("emptyPrompt"))
@@ -575,6 +614,14 @@ export function AiChatPage() {
     } catch (error) {
       if (error instanceof ApiError && error.code === "AUTH_SESSION_EXPIRED") {
         router.replace(loginPath())
+      } else if (
+        error instanceof ApiError &&
+        error.code === "AI_BRAND_CONFIGURATION_REQUIRED"
+      ) {
+        setSettings((current) =>
+          current ? { ...current, brandConfigured: false } : current
+        )
+        toast.error(t("configurationRequiredTitle"))
       } else {
         console.error("AI request creation failed", error)
         toast.error(
@@ -588,6 +635,10 @@ export function AiChatPage() {
   }
 
   async function retry(request: PortalAiRequest) {
+    if (!brandConfigured) {
+      toast.error(t("configurationRequiredTitle"))
+      return
+    }
     try {
       const fresh = await aiApi.retryRequest(request.id, {
         idempotencyKey: idempotencyKey(),
@@ -629,7 +680,10 @@ export function AiChatPage() {
     }
   }
 
-  if (isLoading && !requests.length && !loadError) {
+  if (
+    (isLoading && !requests.length && !loadError) ||
+    (settingsLoading && !settingsError)
+  ) {
     return (
       <div
         className="flex h-[calc(100svh-var(--dashboard-header-height))] items-center justify-center"
@@ -640,14 +694,14 @@ export function AiChatPage() {
     )
   }
 
-  if (loadError) {
+  if (loadError || settingsError) {
     return (
       <Card variant="subtle">
         <CardContent>
           <EmptyState
             action={
               <RetryButton
-                onClick={() => void load()}
+                onClick={() => void Promise.all([load(), loadSettings()])}
                 variant="brand-secondary"
               />
             }
@@ -820,6 +874,7 @@ export function AiChatPage() {
                       </MessageAction>
                       {selected.status === "failed" ? (
                         <MessageAction
+                          disabled={!brandConfigured}
                           label={t("retry")}
                           onClick={() => void retry(selected)}
                           tooltip={t("retry")}
@@ -838,6 +893,21 @@ export function AiChatPage() {
                   </MessageContent>
                 </Message>
               </>
+            ) : !brandConfigured ? (
+              <EmptyState
+                action={
+                  <Button asChild>
+                    <Link href="/portal/ai-studio/settings">
+                      <Settings2 data-icon="inline-start" />
+                      {t("configurationRequiredAction")}
+                    </Link>
+                  </Button>
+                }
+                className="min-h-full py-0"
+                description={t("configurationRequiredDescription")}
+                icon={LockKeyhole}
+                title={t("configurationRequiredTitle")}
+              />
             ) : (
               <ConversationEmptyState className="mx-auto max-w-3xl gap-6 p-0">
                 <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
@@ -888,7 +958,7 @@ export function AiChatPage() {
             <PromptInputBody>
               <PromptInputTextarea
                 aria-label={tt(chatTools[tool].promptLabelKey)}
-                disabled={pending}
+                disabled={pending || !brandConfigured}
                 onChange={(event) => setPrompt(event.target.value)}
                 placeholder={tt(chatTools[tool].placeholderKey)}
                 value={prompt}
@@ -897,9 +967,13 @@ export function AiChatPage() {
             <PromptInputFooter>
               <PromptInputTools>
                 {isMediaTool(tool) ? (
-                  <ReferenceAttachmentButton label={t("addReferences")} />
+                  <ReferenceAttachmentButton
+                    disabled={pending || !brandConfigured}
+                    label={t("addReferences")}
+                  />
                 ) : null}
                 <PromptInputSelect
+                  disabled={pending || !brandConfigured}
                   onValueChange={(value) => setTool(value as ChatTool)}
                   value={tool}
                 >
@@ -916,6 +990,7 @@ export function AiChatPage() {
                   </PromptInputSelectContent>
                 </PromptInputSelect>
                 <PromptInputButton
+                  disabled={pending || !brandConfigured}
                   onClick={() => setOptionsSheetOpen(true)}
                   tooltip={t("showOptions")}
                 >
@@ -925,7 +1000,7 @@ export function AiChatPage() {
               </PromptInputTools>
               <PromptInputSubmit
                 aria-label={t("send")}
-                disabled={!prompt.trim() || pending}
+                disabled={!prompt.trim() || pending || !brandConfigured}
                 status={pending ? "submitted" : "ready"}
               />
             </PromptInputFooter>

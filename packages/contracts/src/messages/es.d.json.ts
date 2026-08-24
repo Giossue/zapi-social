@@ -1717,6 +1717,9 @@ declare const messages: {
       "backToConversations": "Volver a las conversaciones",
       "cancelled": "La generación se canceló.",
       "clipboardUnsupported": "Tu navegador no permite copiar el resultado.",
+      "configurationRequiredAction": "Configurar IA",
+      "configurationRequiredDescription": "Completa el nombre, la personalidad y la descripción de la marca para empezar a generar. Si no administras este workspace, pídeselo a un propietario o administrador.",
+      "configurationRequiredTitle": "Configura la identidad de marca",
       "copied": "Resultado copiado.",
       "copy": "Copiar",
       "copyFailed": "No pudimos copiar el resultado.",
@@ -2116,10 +2119,14 @@ declare const messages: {
       "researchAction": "Investigar",
       "settings": {
         "brandDescription": "Descripción",
+        "brandDescriptionPlaceholder": "Ej. Ayudamos a pequeñas empresas a planificar y publicar contenido para sus redes sociales.",
         "brandIdentity": "Identidad de la marca",
         "brandIdentityDescription": "La IA usará esta información en cada herramienta.",
         "brandName": "Nombre de marca",
+        "brandNamePlaceholder": "Ej. Zapi Social",
+        "brandPersonalityPlaceholder": "Ej. cercana, clara y resolutiva",
         "brandVoice": "Voz de marca",
+        "brandVoicePlaceholder": "Ej. Hablamos de forma directa y útil, con frases breves, cercanas y sin exageraciones.",
         "defaultTone": "Tono predeterminado",
         "defaults": "Valores predeterminados",
         "description": "Define la voz, el idioma y las reglas que guían todas las generaciones.",
@@ -2136,7 +2143,9 @@ declare const messages: {
         "title": "Configuración de IA",
         "warnSensitiveClaims": "Advertir afirmaciones sensibles",
         "wordsAvoid": "Palabras que evitamos",
-        "wordsUse": "Palabras que sí usamos"
+        "wordsAvoidPlaceholder": "Ej. revolucionario, garantizado, barato",
+        "wordsUse": "Palabras que sí usamos",
+        "wordsUsePlaceholder": "Ej. claro, práctico, cercano"
       },
       "timing": {
         "confidence": {
@@ -3244,6 +3253,7 @@ declare const messages: {
     "ACCOUNT_GRANT_NOT_ALLOWED": "No puedes asignar una o más de las cuentas seleccionadas.",
     "ADMIN_ROLE_NAME_TAKEN": "Ya existe un rol con ese nombre.",
     "ADMIN_ROLE_NOT_FOUND": "Ese rol no existe.",
+    "AI_BRAND_CONFIGURATION_REQUIRED": "Completa la configuración obligatoria de IA antes de generar contenido.",
     "AI_CREDITS_INSUFFICIENT": "No hay créditos suficientes para iniciar esta generación.",
     "AI_MODEL_ROUTE_INVALID": "La ruta usa un modelo incompatible, deshabilitado u obsoleto.",
     "AI_PROVIDER_CONFIGURATION_INVALID": "La clave no es válida o todavía no fue probada.",

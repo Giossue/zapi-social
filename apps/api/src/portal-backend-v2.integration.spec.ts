@@ -249,6 +249,11 @@ describeDatabase('Portal backend v2 database contracts', () => {
         new PlanAccessService({ db: database } as DatabaseService),
         queue,
       );
+      await service.updateSettings(owner.session, {
+        brandDescription: 'Workspace used by the portal integration test.',
+        brandName: 'Portal AI test',
+        brandPersonality: 'clear',
+      });
       const input = {
         idempotencyKey: 'portal-ai-idempotency-test',
         input: {},
