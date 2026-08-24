@@ -21,7 +21,7 @@ function copyOf(
 ): EmailTemplateCopy {
   const render = (value: string) =>
     value.replace(/\{\{(\w+)\}\}/g, (match, token: string) =>
-      token in variables ? variables[token]! : match,
+      token in variables ? variables[token] : match,
     );
   const copy = EMAIL_TEMPLATE_CATALOG[key].copy[locale];
   return {

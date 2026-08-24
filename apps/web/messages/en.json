@@ -181,6 +181,8 @@
   },
   "adminEmailTemplates": {
     "actions": "Actions",
+    "activeHint": "If you switch it off, this email uses the default texts for this language.",
+    "activeTitle": "Customization active",
     "all": "All",
     "buttonText": "Button text",
     "buttonUrlHint": "The button destination is calculated by the system.",

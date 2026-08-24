@@ -172,6 +172,7 @@ export class TokenRefreshProcessor extends WorkerHost {
             }
           : {}),
         expiresAt: token.expiresAt ?? null,
+        encryptionKeyVersion: this.encryption.keyVersion,
         rotatedAt: new Date(),
         updatedAt: new Date(),
       })

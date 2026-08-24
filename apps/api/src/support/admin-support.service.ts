@@ -302,7 +302,10 @@ export class AdminSupportService {
     return counts;
   }
 
-  private serializeTicket(row: TicketRow, commentCount: number): AdminSupportTicket {
+  private serializeTicket(
+    row: TicketRow,
+    commentCount: number,
+  ): AdminSupportTicket {
     const { ticket, category, workspace, requester } = row;
     return {
       id: ticket.id,

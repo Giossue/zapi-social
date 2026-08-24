@@ -281,6 +281,13 @@
       "when": 1787524381222,
       "tag": "0039_board_tasks",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1787537800166,
+      "tag": "0040_drop_auth_identities",
+      "breakpoints": true
     }
   ]
 }

@@ -35,10 +35,7 @@ export class AdminManualPaymentsController {
   }
 
   @Patch('settings')
-  async updateSettings(
-    @Req() request: FastifyRequest,
-    @Body() body: unknown,
-  ) {
+  async updateSettings(@Req() request: FastifyRequest, @Body() body: unknown) {
     return this.payments.updateSettings(
       await this.access.requirePlatformAdmin(request),
       body,

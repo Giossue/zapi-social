@@ -29,6 +29,8 @@ export class DecryptionFailedError extends Error {
  */
 export class Aes256GcmService {
   private readonly key: Buffer;
+  /** Versión del formato de cifrado; se sella en cada credencial escrita. */
+  readonly keyVersion = PAYLOAD_VERSION;
 
   constructor(keyBase64: string) {
     this.key = decodeKey(keyBase64);

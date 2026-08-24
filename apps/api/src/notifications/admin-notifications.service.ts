@@ -83,9 +83,7 @@ export class AdminNotificationsService {
         .where(where),
       this.metrics(),
     ]);
-    const reads = await this.readCounts(
-      rows.map((row) => row.announcement.id),
-    );
+    const reads = await this.readCounts(rows.map((row) => row.announcement.id));
     return {
       announcements: rows.map((row) =>
         this.serialize(

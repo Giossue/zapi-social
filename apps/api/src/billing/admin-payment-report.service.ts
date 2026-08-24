@@ -183,9 +183,7 @@ export class AdminPaymentReportService {
     }));
   }
 
-  private async byStatus(
-    scope: SQL,
-  ): Promise<AdminPaymentReportStatusRow[]> {
+  private async byStatus(scope: SQL): Promise<AdminPaymentReportStatusRow[]> {
     const rows = await this.database.db
       .select({
         status: billingPayments.status,

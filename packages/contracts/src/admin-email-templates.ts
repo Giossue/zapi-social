@@ -29,6 +29,11 @@ export const adminEmailTemplateCopySchema = z.object({
   notice: z.string().nullable(),
   /** Falso mientras ese idioma use los textos por defecto del código. */
   customized: z.boolean(),
+  /**
+   * Cuando está desactivado, el correo ignora esta personalización y usa los
+   * textos por defecto del código. Sin override, siempre es `true`.
+   */
+  isActive: z.boolean(),
   updatedAt: z.string().datetime().nullable(),
 })
 
@@ -53,6 +58,7 @@ export const updateAdminEmailTemplateSchema = z
     body: z.string().trim().min(1).max(2000),
     actionLabel: z.string().trim().max(120).optional(),
     notice: z.string().trim().max(2000).optional(),
+    isActive: z.boolean().default(true),
   })
   .strict()
 

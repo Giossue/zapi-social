@@ -10,7 +10,16 @@ import {
   plans,
   platformSettings,
 } from '@workspace/database';
-import { and, asc, count, desc, eq, ilike, inArray, or } from '@workspace/database/query';
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  ilike,
+  inArray,
+  or,
+} from '@workspace/database/query';
 import {
   adminAnalyticsSettingsSchema,
   adminAuthSettingsSchema,
@@ -217,7 +226,7 @@ export class PublicSiteService {
       featured: row.featured,
       trialDays: row.trialDays,
       position: row.position,
-      permissionIds: (row.permissionIds ?? []) as string[],
+      permissionIds: row.permissionIds ?? [],
     }));
   }
 

@@ -202,40 +202,6 @@ export const workspaceMembershipAuditEvents = pgTable(
   ]
 )
 
-export const authIdentities = pgTable(
-  "auth_identities",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    userId: uuid("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    provider: varchar("provider", { length: 64 }).notNull(),
-    providerSubject: varchar("provider_subject", { length: 255 }).notNull(),
-    accessTokenEncrypted: text("access_token_encrypted"),
-    refreshTokenEncrypted: text("refresh_token_encrypted"),
-    tokenExpiresAt: timestamp("token_expires_at", { withTimezone: true }),
-    scopes: jsonb("scopes")
-      .$type<string[]>()
-      .notNull()
-      .default(sql`'[]'::jsonb`),
-    metadata: jsonb("metadata")
-      .$type<Record<string, unknown>>()
-      .notNull()
-      .default(sql`'{}'::jsonb`),
-    ...timestamps,
-  },
-  (table) => [
-    uniqueIndex("auth_identities_provider_subject_unique").on(
-      table.provider,
-      table.providerSubject
-    ),
-    index("auth_identities_user_provider_index").on(
-      table.userId,
-      table.provider
-    ),
-  ]
-)
-
 export const authSessions = pgTable(
   "auth_sessions",
   {

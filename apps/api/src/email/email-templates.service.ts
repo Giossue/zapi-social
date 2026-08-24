@@ -49,6 +49,7 @@ export class EmailTemplatesService {
               actionLabel: override?.actionLabel ?? fallback.actionLabel,
               notice: override?.notice ?? fallback.notice,
               customized: Boolean(override),
+              isActive: override?.isActive ?? true,
               updatedAt: override?.updatedAt.toISOString() ?? null,
             };
           },
@@ -77,6 +78,7 @@ export class EmailTemplatesService {
         description: values.body,
         actionLabel: values.actionLabel || null,
         notice: values.notice || null,
+        isActive: values.isActive,
         updatedByUserId: session.user.id,
         createdAt: now,
         updatedAt: now,
@@ -89,6 +91,7 @@ export class EmailTemplatesService {
           description: values.body,
           actionLabel: values.actionLabel || null,
           notice: values.notice || null,
+          isActive: values.isActive,
           updatedByUserId: session.user.id,
           updatedAt: now,
         },
@@ -140,15 +143,17 @@ export class EmailTemplatesService {
         and(eq(emailTemplates.key, key), eq(emailTemplates.locale, locale)),
       )
       .limit(1);
+    /* Un override desactivado se ignora: el correo vuelve al texto del código. */
+    const active = override?.isActive ? override : undefined;
     /* La vista previa no es personalizable: sale siempre del catálogo. */
-    const copy: EmailTemplateCopy = override
+    const copy: EmailTemplateCopy = active
       ? {
           preview: entry.copy[locale].preview,
-          subject: override.subject,
-          title: override.title,
-          body: override.description,
-          actionLabel: override.actionLabel,
-          notice: override.notice,
+          subject: active.subject,
+          title: active.title,
+          body: active.description,
+          actionLabel: active.actionLabel,
+          notice: active.notice,
         }
       : entry.copy[locale];
     return {
@@ -165,7 +170,7 @@ export class EmailTemplatesService {
 
   private render(value: string, variables: Record<string, string>) {
     return value.replace(/\{\{(\w+)\}\}/g, (match, token: string) =>
-      token in variables ? variables[token]! : match,
+      token in variables ? variables[token] : match,
     );
   }
 

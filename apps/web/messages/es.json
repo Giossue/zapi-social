@@ -181,6 +181,8 @@
   },
   "adminEmailTemplates": {
     "actions": "Acciones",
+    "activeHint": "Si la desactivas, este correo usa los textos por defecto en este idioma.",
+    "activeTitle": "Personalización activa",
     "all": "Todos",
     "buttonText": "Texto del botón",
     "buttonUrlHint": "El destino del botón lo calcula el sistema.",

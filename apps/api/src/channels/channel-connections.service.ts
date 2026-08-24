@@ -560,6 +560,7 @@ export class ChannelConnectionsService {
         : null,
       expiresAt: token.expiresAt ? new Date(token.expiresAt) : null,
       scopes,
+      encryptionKeyVersion: this.encryption().keyVersion,
     };
     await this.database.db
       .insert(socialAccountCredentials)
@@ -716,6 +717,7 @@ export class ChannelConnectionsService {
           `meta:account:${account.id}`,
         ),
         scopes,
+        encryptionKeyVersion: this.encryption().keyVersion,
       })
       .onConflictDoUpdate({
         target: socialAccountCredentials.socialAccountId,
@@ -725,6 +727,7 @@ export class ChannelConnectionsService {
             `meta:account:${account.id}`,
           ),
           scopes,
+          encryptionKeyVersion: this.encryption().keyVersion,
           rotatedAt: new Date(),
           updatedAt: new Date(),
         },

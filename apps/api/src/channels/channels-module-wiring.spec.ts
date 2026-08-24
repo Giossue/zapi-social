@@ -1,4 +1,3 @@
-import { BullModule } from '@nestjs/bullmq';
 import { ConfigModule } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import { ChannelConnectionsService } from './channel-connections.service';

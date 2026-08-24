@@ -174,12 +174,30 @@ export class BillingWebhookService {
   private async orderPaid(order: PolarOrder) {
     const metadata = purchaseMetadataSchema.parse(order.metadata);
     await this.database.db.transaction(async (tx) => {
+      // Si el pago nace de una suscripción, se enlaza a la fila local para
+      // poder conciliar cobros con su suscripción. Si el webhook de la
+      // suscripción aún no llegó, queda nulo: es un enlace de mejor esfuerzo.
+      const subscriptionId = order.subscriptionId
+        ? ((
+            await tx
+              .select({ id: billingSubscriptions.id })
+              .from(billingSubscriptions)
+              .where(
+                eq(
+                  billingSubscriptions.externalSubscriptionId,
+                  order.subscriptionId,
+                ),
+              )
+              .limit(1)
+          )[0]?.id ?? null)
+        : null;
       const [payment] = await tx
         .insert(billingPayments)
         .values({
           externalOrderId: order.id,
           externalCheckoutId: order.checkoutId,
           invoiceNumber: order.invoiceNumber,
+          subscriptionId,
           workspaceId: metadata.workspaceId,
           userId: metadata.userId,
           planId: metadata.productType === 'plan' ? metadata.planId : null,

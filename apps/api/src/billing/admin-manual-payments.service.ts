@@ -13,7 +13,16 @@ import {
   workspacePlanAssignments,
   workspaces,
 } from '@workspace/database';
-import { and, asc, count, desc, eq, ilike, or, sql } from '@workspace/database/query';
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  ilike,
+  or,
+  sql,
+} from '@workspace/database/query';
 import {
   adminManualPaymentOptionsQuerySchema,
   adminManualPaymentsQuerySchema,
@@ -192,9 +201,7 @@ export class AdminManualPaymentsService {
     session: PlatformAdminAuthSession,
     input: unknown,
   ): Promise<AdminManualPayment> {
-    const values = this.parse(
-      createAdminManualPaymentSchema.safeParse(input),
-    );
+    const values = this.parse(createAdminManualPaymentSchema.safeParse(input));
     const owner = await this.workspaceOwner(values.workspaceId);
     const now = new Date();
     const [created] = await this.database.db
@@ -239,8 +246,7 @@ export class AdminManualPaymentsService {
     if (row.payment.status !== 'pending') throw this.notPending();
     const now = new Date();
     await this.database.db.transaction(async (tx) => {
-      const label =
-        row.planName ?? row.packageName ?? row.payment.reference;
+      const label = row.planName ?? row.packageName ?? row.payment.reference;
       const [payment] = await tx
         .insert(billingPayments)
         .values({

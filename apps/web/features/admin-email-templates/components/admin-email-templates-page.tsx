@@ -32,10 +32,13 @@ import { DataTableToolbar } from "@/components/data-table-toolbar"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import {
   Field,
+  FieldContent,
   FieldDescription,
   FieldGroup,
   FieldLabel,
+  FieldTitle,
 } from "@workspace/ui/components/field"
+import { Switch } from "@workspace/ui/components/switch"
 import { Input } from "@workspace/ui/components/input"
 import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
@@ -71,6 +74,7 @@ type FormValues = {
   body: string
   actionLabel: string
   notice: string
+  isActive: boolean
 }
 
 function toForm(copy: AdminEmailTemplateCopy): FormValues {
@@ -80,6 +84,7 @@ function toForm(copy: AdminEmailTemplateCopy): FormValues {
     body: copy.body,
     actionLabel: copy.actionLabel ?? "",
     notice: copy.notice ?? "",
+    isActive: copy.isActive,
   }
 }
 
@@ -118,6 +123,7 @@ function TemplateSheet({
     body: "",
     actionLabel: "",
     notice: "",
+    isActive: true,
   })
 
   /**
@@ -296,6 +302,21 @@ function TemplateSheet({
                   rows={3}
                   value={values.notice}
                 />
+              </Field>
+              <Field orientation="horizontal">
+                <Switch
+                  checked={values.isActive}
+                  id="template-active"
+                  onCheckedChange={(checked) =>
+                    setValues((current) => ({ ...current, isActive: checked }))
+                  }
+                />
+                <FieldLabel htmlFor="template-active">
+                  <FieldContent>
+                    <FieldTitle>{t("activeTitle")}</FieldTitle>
+                    <FieldDescription>{t("activeHint")}</FieldDescription>
+                  </FieldContent>
+                </FieldLabel>
               </Field>
             </FieldGroup>
           </div>
@@ -596,6 +617,7 @@ export function AdminEmailTemplatesPage() {
               body: values.body.trim(),
               actionLabel: values.actionLabel.trim() || undefined,
               notice: values.notice.trim() || undefined,
+              isActive: values.isActive,
             })
             setTemplates(response.templates)
             toast.success(t("updated"))
