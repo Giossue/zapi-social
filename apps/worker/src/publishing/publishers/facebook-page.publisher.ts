@@ -32,8 +32,6 @@ export class FacebookPagePublisher implements ChannelPublisher {
       );
     }
 
-    // Varios elementos solo funcionan con fotos: el Feed no admite un carrusel
-    // que mezcle vídeo.
     if (assets.some((asset) => !asset.mimeType.startsWith('image/'))) {
       throw new PublishingDeliveryError(
         'PUBLISHING_MEDIA_COMBINATION_UNSUPPORTED',
@@ -44,7 +42,6 @@ export class FacebookPagePublisher implements ChannelPublisher {
     const uploaded: string[] = [];
     for (const asset of assets) {
       const form = await this.meta.assetForm(asset, token);
-      // Se suben sin publicar para adjuntarlas después en una sola entrada.
       form.set('published', 'false');
       const result = await this.meta.multipart(`${externalId}/photos`, form);
       if (!result.providerRequestId) {

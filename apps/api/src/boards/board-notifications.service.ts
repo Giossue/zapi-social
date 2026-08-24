@@ -12,11 +12,6 @@ type TaskRow = {
   workspaceId: string;
 };
 
-/**
- * Avisos del tablero. La fila guarda la clave del mensaje y sus argumentos, no
- * la frase: la escribe el sistema y la API no traduce, así que el texto lo pone
- * la interfaz con el idioma de quien lo lee.
- */
 @Injectable()
 export class BoardNotificationsService {
   private readonly logger = new Logger(BoardNotificationsService.name);
@@ -27,7 +22,6 @@ export class BoardNotificationsService {
   ) {}
 
   async taskAssigned(session: PortalAuthSession, task: TaskRow) {
-    // Asignarse una tarea a uno mismo no genera aviso: ya lo sabe.
     if (!task.assigneeUserId || task.assigneeUserId === session.user.id) return;
 
     await this.record(task.assigneeUserId, task, 'board.task_assigned', {
@@ -42,27 +36,23 @@ export class BoardNotificationsService {
       .limit(1);
     if (!assignee?.email) return;
 
-    try {
-      await this.email.sendBoardTaskAssigned({
+    void this.email
+      .sendBoardTaskAssigned({
         email: assignee.email,
         memberName: assignee.name,
         actorName: session.user.displayName,
         taskTitle: task.title,
         workspaceName: session.workspace.name,
         taskUrl: this.taskUrl(task.id),
+      })
+      .catch((error: unknown) => {
+        this.logger.warn(
+          `Board assignment email failed: task=${task.id} ${String(error)}`,
+        );
       });
-    } catch (error) {
-      // El aviso de la campana ya está guardado: que falle el correo no puede
-      // deshacer la asignación.
-      this.logger.warn(
-        `Board assignment email failed: task=${task.id} ${String(error)}`,
-      );
-    }
   }
 
   async taskCommented(session: PortalAuthSession, task: TaskRow) {
-    // Solo se avisa al responsable, y no cuando comenta él mismo. Comentar cada
-    // tarjeta propia llenaría la campana de ruido.
     if (!task.assigneeUserId || task.assigneeUserId === session.user.id) return;
     await this.record(task.assigneeUserId, task, 'board.task_commented', {
       title: task.title,

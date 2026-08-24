@@ -1,13 +1,3 @@
-/**
- * Piezas compartidas por todos los publicadores: el error de entrega, la
- * lectura defensiva de la respuesta del proveedor y el criterio de qué fallo se
- * reintenta.
- *
- * Vivían dentro del procesador cuando solo había tres redes escritas a mano.
- * Con un publicador por red tienen que ser compartidas, porque la decisión de
- * «esto se reintenta» no puede depender de quién la escriba.
- */
-
 export const providerOutcomeUnknownCode = 'PUBLISHING_PROVIDER_OUTCOME_UNKNOWN';
 
 export type ProviderResult = {
@@ -47,10 +37,6 @@ export function firstString(
   return null;
 }
 
-/**
- * Solo se persisten campos de la lista blanca: la respuesta del proveedor
- * puede traer tokens, y esta fila se guarda y se enseña.
- */
 export function sanitizeProviderResponse(
   value: Record<string, unknown>,
   providerRequestId: string | null,
@@ -80,10 +66,6 @@ export function isProviderSuccess(value: Record<string, unknown>) {
   );
 }
 
-/**
- * Un 5xx o un tiempo agotado dejan el resultado en duda, así que se reintenta.
- * Un 4xx —salvo 429— es del contenido y no mejora repitiéndolo.
- */
 export function providerHttpError(status: number, code: string) {
   if (status === 408 || status >= 500) {
     return new PublishingDeliveryError(providerOutcomeUnknownCode, true);
@@ -97,7 +79,6 @@ export async function providerPost(input: string, init: RequestInit) {
   try {
     return await fetch(input, init);
   } catch {
-    // Una petición que ni sale deja el resultado en duda.
     throw new PublishingDeliveryError(providerOutcomeUnknownCode, true);
   }
 }

@@ -1,11 +1,5 @@
 import type { SupportedLocale } from '@workspace/contracts';
 
-/**
- * Textos del marco del correo: etiquetas de detalle, nombres de rol y pie.
- * No son personalizables desde Admin —eso solo cubre asunto, título, cuerpo,
- * botón y aviso—, pero sí tienen que seguir el idioma del destinatario: un
- * correo con el cuerpo en inglés y «Espacio» en español se ve roto.
- */
 export type EmailChrome = {
   space: string;
   role: string;

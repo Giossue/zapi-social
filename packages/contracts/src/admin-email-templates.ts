@@ -19,7 +19,6 @@ export const emailTemplateVariableSchema = z.object({
   description: z.string(),
 })
 
-/** Los textos de un correo en un idioma concreto. */
 export const adminEmailTemplateCopySchema = z.object({
   locale: supportedLocaleSchema,
   subject: z.string(),
@@ -27,12 +26,7 @@ export const adminEmailTemplateCopySchema = z.object({
   body: z.string(),
   actionLabel: z.string().nullable(),
   notice: z.string().nullable(),
-  /** Falso mientras ese idioma use los textos por defecto del código. */
   customized: z.boolean(),
-  /**
-   * Cuando está desactivado, el correo ignora esta personalización y usa los
-   * textos por defecto del código. Sin override, siempre es `true`.
-   */
   isActive: z.boolean(),
   updatedAt: z.string().datetime().nullable(),
 })
@@ -41,7 +35,6 @@ export const adminEmailTemplateSchema = z.object({
   key: emailTemplateKeySchema,
   name: z.string(),
   description: z.string(),
-  /** Un juego de textos por idioma soportado, siempre en el mismo orden. */
   copies: z.array(adminEmailTemplateCopySchema).min(1),
   variables: z.array(emailTemplateVariableSchema),
 })

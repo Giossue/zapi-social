@@ -19,7 +19,6 @@ const minutes = ["00", "15", "30", "45"]
 type TimePickerProps = {
   "aria-invalid"?: boolean
   "aria-required"?: boolean
-  /** Rótulos accesibles de hora y minuto; los traduce quien lo consume. */
   hourLabel: string
   minuteLabel: string
   id?: string

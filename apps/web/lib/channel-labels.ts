@@ -2,7 +2,6 @@
 
 import { useTranslations } from "next-intl"
 
-/** Los nombres de proveedor son marcas y no se traducen. */
 const providerNames = {
   meta: "Meta",
   linkedin: "LinkedIn",
@@ -29,10 +28,6 @@ function isCapabilityKey(value: string): value is ChannelCapabilityKey {
   return (capabilityKeys as readonly string[]).includes(value)
 }
 
-/**
- * El tipo de canal sí se traduce —«Página de Facebook» describe el recurso, no
- * la marca—, así que su rótulo se resuelve al renderizar.
- */
 export function useChannelLabels() {
   const t = useTranslations("channels.capability")
 

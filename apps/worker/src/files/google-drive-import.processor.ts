@@ -117,8 +117,6 @@ export class GoogleDriveImportProcessor extends WorkerHost {
         .set({ status: 'processing', updatedAt: new Date() })
         .where(eq(fileImportBatches.id, batch.id));
 
-      // Deja constancia de cada intento: sin esto, un Worker que muere a mitad
-      // del trabajo no distingue de uno que nunca recogió el job.
       await this.audit
         .write({
           workspaceId: batch.workspaceId,
@@ -676,9 +674,7 @@ export class GoogleDriveImportProcessor extends WorkerHost {
           removeOnFail: 100,
         },
       );
-    } catch {
-      // El backfill existente recupera derivados pendientes.
-    }
+    } catch {}
   }
 
   private path(storageKey: string) {

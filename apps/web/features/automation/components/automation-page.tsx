@@ -116,7 +116,6 @@ function paginate<T>(items: readonly T[], page: number) {
   return { pageCount, rangeEnd, rangeStart, safePage, visible }
 }
 
-/** El copiado recibe sus mensajes ya traducidos por quien lo invoca. */
 async function copyValue(
   value: string,
   messages: { copied: string; failed: string; unsupported: string }
@@ -205,8 +204,6 @@ function ApiKeySheet({
 
   const [wasOpen, setWasOpen] = useState(open)
 
-  // Ajustar el estado durante el render en vez de en un efecto: evita el
-  // segundo render que encadena `setState` dentro de `useEffect`.
   if (open !== wasOpen) {
     setWasOpen(open)
     if (!open) {
@@ -352,8 +349,6 @@ function WebhookSheet({
 
   const [wasOpen, setWasOpen] = useState(open)
 
-  // Ajustar el estado durante el render en vez de en un efecto: evita el
-  // segundo render que encadena `setState` dentro de `useEffect`.
   if (open !== wasOpen) {
     setWasOpen(open)
     if (open) {
@@ -563,8 +558,6 @@ export function AutomationPage() {
   }, [handleError])
 
   useEffect(() => {
-    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
-    // la carga anterior cuando el efecto se repite.
     const timer = setTimeout(() => void load(), 0)
     return () => clearTimeout(timer)
   }, [load])

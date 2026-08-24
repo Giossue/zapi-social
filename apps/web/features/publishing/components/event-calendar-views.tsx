@@ -21,9 +21,6 @@ const getShortDayCellBottomClass = (info: DayCellInfo) =>
   cn(!info.isNarrow && "min-h-0.5")
 
 const dayRowCommonClasses: CalendarOptions = {
-  /* Day Row > List-Item Event
-  ----------------------------------------------------------------------------------------------- */
-
   listItemEventClass: (info) =>
     cn(
       "mb-px rounded-sm p-px",
@@ -47,18 +44,12 @@ const dayRowCommonClasses: CalendarOptions = {
       info.timeText && "text-ellipsis"
     ),
 
-  /* Day Row > Row Event
-  ----------------------------------------------------------------------------------------------- */
-
   rowEventClass: (info) =>
     cn(
       info.isStart && (info.isNarrow ? "ms-0.5" : "ms-1"),
       info.isEnd && (info.isNarrow ? "me-0.5" : "me-1")
     ),
   rowEventInnerClass: (info) => cn(info.isNarrow ? "py-px" : "py-0.5"),
-
-  /* Day Row > More-Link
-  ----------------------------------------------------------------------------------------------- */
 
   rowMoreLinkClass: (info) =>
     cn(
@@ -72,7 +63,7 @@ const dayRowCommonClasses: CalendarOptions = {
 }
 
 export type EventCalendarViewProps = CalendarOptions &
-  Required<Pick<CalendarOptions, "popoverCloseContent">> // ensure callers define icons
+  Required<Pick<CalendarOptions, "popoverCloseContent">>
 
 export function EventCalendarViews({
   height,
@@ -82,9 +73,6 @@ export function EventCalendarViews({
   return (
     <FullCalendar
       height={height}
-
-      /* Abstract Event
-        ----------------------------------------------------------------------------------------- */
 
       eventShortHeight={50}
       eventColor="var(--primary)"
@@ -98,9 +86,6 @@ export function EventCalendarViews({
         )
       }
 
-      /* Background Event
-        ----------------------------------------------------------------------------------------- */
-
       backgroundEventColor="var(--chart-3)"
       backgroundEventClass="not-print:bg-[color-mix(in_oklab,var(--fc-event-color)_10%,transparent)] print:border-1 print:border-(--fc-event-color)"
       backgroundEventTitleClass={(info) =>
@@ -110,13 +95,7 @@ export function EventCalendarViews({
         )
       }
 
-      /* List-Item Event
-        ----------------------------------------------------------------------------------------- */
-
       listItemEventTimeClass="text-muted-foreground"
-
-      /* Block Event
-        ----------------------------------------------------------------------------------------- */
 
       blockEventClass={(info) =>
         cn(
@@ -129,9 +108,6 @@ export function EventCalendarViews({
       blockEventInnerClass="text-(--fc-event-contrast-color) print:text-black"
       blockEventTimeClass="whitespace-nowrap overflow-hidden shrink-1"
       blockEventTitleClass="whitespace-nowrap overflow-hidden shrink-100"
-
-      /* Row Event
-        ----------------------------------------------------------------------------------------- */
 
       rowEventClass={(info) =>
         cn(
@@ -166,9 +142,6 @@ export function EventCalendarViews({
       rowEventTitleClass={(info) =>
         cn(info.isNarrow ? "px-0.5" : "px-1", "font-medium")
       }
-
-      /* Column Event
-        ----------------------------------------------------------------------------------------- */
 
       columnEventClass={(info) =>
         cn(
@@ -219,18 +192,12 @@ export function EventCalendarViews({
         cn(!info.isShort && (info.isNarrow ? "py-0.5" : "py-1"), "font-medium")
       }
 
-      /* More-Link
-        ----------------------------------------------------------------------------------------- */
-
       moreLinkClass="focus-visible:outline-3 outline-ring/50"
       moreLinkInnerClass="whitespace-nowrap overflow-hidden"
       columnMoreLinkClass="my-0.5 border border-transparent print:border-black rounded-md bg-[color-mix(in_oklab,var(--foreground)_10%,var(--card))] hover:bg-[color-mix(in_oklab,var(--foreground)_13%,var(--card))] print:bg-white ring ring-card"
       columnMoreLinkInnerClass={(info) =>
         cn(info.isNarrow ? `p-0.5 ${xxsTextClass}` : "p-1 text-xs")
       }
-
-      /* Day Header
-        ----------------------------------------------------------------------------------------- */
 
       dayHeaderClass={(info) =>
         cn(
@@ -288,9 +255,6 @@ export function EventCalendarViews({
         )
       }
 
-      /* Day Cell
-        ----------------------------------------------------------------------------------------- */
-
       dayCellClass={(info) =>
         cn("border", info.isMajor && "border-foreground/20")
       }
@@ -342,14 +306,8 @@ export function EventCalendarViews({
       }
       dayCellInnerClass={(info) => cn(info.inPopover && "p-2")}
 
-      /* Popover
-        ----------------------------------------------------------------------------------------- */
-
       popoverClass="border rounded-md overflow-hidden shadow-lg m-1 bg-popover text-popover-foreground min-w-55"
       popoverCloseClass="group absolute top-1.5 end-1.5 p-0.5 rounded-sm hover:bg-foreground/5 focus-visible:outline-3 outline-ring/50"
-
-      /* Lane
-        ----------------------------------------------------------------------------------------- */
 
       dayLaneClass={(info) =>
         cn(
@@ -362,9 +320,6 @@ export function EventCalendarViews({
         info.isStack ? "m-1" : info.isNarrow ? "mx-px" : "mx-0.5"
       }
       slotLaneClass={(info) => cn("border", info.isMinor && "border-dotted")}
-
-      /* List Day
-        ----------------------------------------------------------------------------------------- */
 
       listDayClass={(info) => cn("flex flex-col", !info.isLast && "border-b")}
       listDayHeaderClass="-mb-px border-b bg-[color-mix(in_oklab,var(--foreground)_3%,var(--card))] flex flex-row items-center justify-between"
@@ -382,9 +337,6 @@ export function EventCalendarViews({
         )
       }
       listDayBodyClass="mt-px px-1.5 py-2 gap-2"
-
-      /* Single Month (in Multi-Month)
-        ----------------------------------------------------------------------------------------- */
 
       singleMonthClass={(info) =>
         cn(
@@ -405,9 +357,6 @@ export function EventCalendarViews({
         )
       }
 
-      /* Misc Table
-        ----------------------------------------------------------------------------------------- */
-
       tableBodyClass="bg-card"
       fillerClass="border opacity-50"
       dayNarrowWidth={100}
@@ -415,9 +364,6 @@ export function EventCalendarViews({
       dayRowClass="border"
       slotHeaderRowClass="border"
       slotHeaderInnerClass="text-muted-foreground"
-
-      /* Misc Content
-        ----------------------------------------------------------------------------------------- */
 
       navLinkClass="focus-visible:outline-3 outline-ring/50"
       inlineWeekNumberClass={(info) =>
@@ -433,9 +379,6 @@ export function EventCalendarViews({
       nonBusinessHoursClass="bg-foreground/3"
       nowIndicatorLineClass="-m-px border-1 border-destructive"
       nowIndicatorDotClass="-m-[6px] border-6 border-destructive size-0 rounded-full ring-2 ring-card"
-
-      /* View-Specific Options
-        ----------------------------------------------------------------------------------------- */
 
       views={{
         ...userViews,
@@ -476,9 +419,6 @@ export function EventCalendarViews({
             ),
           dayCellBottomClass: tallDayCellBottomClass,
 
-          /* TimeGrid > Week Number Header
-            ------------------------------------------------------------------------------------- */
-
           weekNumberHeaderClass: "items-center justify-end",
           weekNumberHeaderInnerClass: (info) =>
             cn(
@@ -486,9 +426,6 @@ export function EventCalendarViews({
               info.isNarrow ? "text-xs" : "text-sm",
               info.hasNavLink && "hover:bg-foreground/5"
             ),
-
-          /* TimeGrid > All-Day Header
-            ------------------------------------------------------------------------------------- */
 
           allDayHeaderClass: "items-center",
           allDayHeaderInnerClass: (info) =>
@@ -498,9 +435,6 @@ export function EventCalendarViews({
             ),
           allDayDividerClass:
             "border-b border-foreground/20 not-print:shadow-sm",
-
-          /* TimeGrid > Slot Header
-            ------------------------------------------------------------------------------------- */
 
           slotHeaderClass: "justify-end",
           slotHeaderInnerClass: (info) =>
@@ -514,9 +448,6 @@ export function EventCalendarViews({
           ...userViews?.timeGrid,
         },
         list: {
-          /* List-View > List-Item Event
-            ------------------------------------------------------------------------------------- */
-
           listItemEventClass: (info) =>
             cn(
               "group rounded-sm py-1 hover:bg-muted/50",
@@ -532,9 +463,6 @@ export function EventCalendarViews({
               "min-w-0 grow overflow-hidden px-4 py-2 text-sm whitespace-nowrap",
               info.event.url && "group-hover:underline"
             ),
-
-          /* No-Events Screen
-            ------------------------------------------------------------------------------------- */
 
           noEventsClass: "grow flex flex-col items-center justify-center",
           noEventsInnerClass: "py-15 text-muted-foreground",

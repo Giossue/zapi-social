@@ -26,10 +26,6 @@ import {
   type ChannelProviderVerifier,
 } from './channel-provider-verifier';
 
-/**
- * Proveedores que traen pantalla propia porque necesitan más que un formulario.
- * Se siguen guardando aquí, pero la interfaz respeta su tarjeta.
- */
 const customScreenProviders = new Set<PortalChannelProviderKey>([
   'meta',
   'whatsapp',
@@ -43,12 +39,6 @@ type IntegrationRow = {
   lastTestedAt: Date | null;
 };
 
-/**
- * Pantalla de integración de canal, servida desde el catálogo.
- *
- * Añadir una red es declararla en `channelProviderCatalog` y registrar su
- * verificador. Ni este servicio ni la interfaz cambian.
- */
 @Injectable()
 export class ChannelProviderIntegrationsService {
   private readonly verifiers: Map<
@@ -68,22 +58,12 @@ export class ChannelProviderIntegrationsService {
     );
   }
 
-  /**
-   * `Aes256GcmService` no es un proveedor de Nest en la API: recibe la clave,
-   * no `ConfigService`. Se construye igual que en `IntegrationsService`, que es
-   * el vecino de al lado; inyectarlo hace que la aplicación no arranque.
-   */
   private encryption(): Aes256GcmService {
     return new Aes256GcmService(
       this.config.getOrThrow<string>('PROVIDER_INTEGRATIONS_ENCRYPTION_KEY'),
     );
   }
 
-  /**
-   * Solo los proveedores sin pantalla propia. Meta y WhatsApp guardan su
-   * configuración con otra clave y bajo su propio contrato; enseñarlos aquí
-   * mostraría un formulario vacío que no es el suyo.
-   */
   async list(): Promise<ChannelProviderIntegrationsResponse> {
     const providers = await Promise.all(
       channelProviderCatalog
@@ -93,7 +73,6 @@ export class ChannelProviderIntegrationsService {
     return { providers };
   }
 
-  /** Capabilities listas para conectar, de los proveedores genéricos. */
   async readyCapabilityKeys(): Promise<string[]> {
     const { providers } = await this.list();
     return providers
@@ -127,7 +106,6 @@ export class ChannelProviderIntegrationsService {
     const secretsConfigured: ChannelProviderFieldKey[] = [];
     for (const field of definition.fields) {
       if (field.type === 'secret') {
-        // Un secreto no vuelve nunca; solo se dice si está puesto.
         if (stored?.[field.key]) secretsConfigured.push(field.key);
         continue;
       }
@@ -171,7 +149,6 @@ export class ChannelProviderIntegrationsService {
     const stored = this.decrypt(providerKey, row?.configurationCiphertext);
     const merged = this.merge(providerKey, stored, parsed.data.values);
 
-    // Solo se acepta activar capabilities del propio proveedor.
     const own = new Set(
       channelCapabilityCatalog
         .filter((capability) => capability.providerKey === providerKey)
@@ -182,8 +159,6 @@ export class ChannelProviderIntegrationsService {
     );
 
     const fingerprint = this.fingerprint(providerKey, merged);
-    // Cambiar una credencial invalida la prueba anterior: si no, un proveedor
-    // mal configurado seguiría contando como listo y el Portal abriría el canal.
     const testedConfigFingerprint =
       row?.testedConfigFingerprint === fingerprint ? fingerprint : null;
 
@@ -228,9 +203,6 @@ export class ChannelProviderIntegrationsService {
     }
 
     const verifier = this.verifiers.get(providerKey);
-    // Sin verificador la integración no puede quedar lista: dar por buenas unas
-    // credenciales sin comprobarlas abriría el canal en el Portal y el fallo
-    // aparecería al publicar.
     if (!verifier) {
       return { ok: false, issue: 'verifier_unavailable' };
     }
@@ -295,7 +267,6 @@ export class ChannelProviderIntegrationsService {
     return row;
   }
 
-  /** Un valor vacío no pisa el secreto guardado: así se puede editar el resto. */
   private merge(
     providerKey: PortalChannelProviderKey,
     stored: Record<string, string> | null,

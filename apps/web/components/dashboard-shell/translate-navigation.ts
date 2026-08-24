@@ -20,11 +20,6 @@ function translateLink(
   return { href: link.href, icon: link.icon, label: t(link.labelKey) }
 }
 
-/**
- * Convierte el catálogo de navegación —claves— en los grupos que el shell
- * pinta —texto—. El catálogo permanece estático a nivel de módulo y solo el
- * resultado traducido se recalcula cuando cambia el idioma.
- */
 export function useTranslatedNavigation(
   groups: readonly NavigationSourceGroup[],
   namespace: "navigation.portal" | "navigation.admin"

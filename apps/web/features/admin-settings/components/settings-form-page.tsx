@@ -56,7 +56,6 @@ export function SettingsFormPage<TValues extends Record<string, unknown>>({
   const [forbidden, setForbidden] = useState(false)
   const [pending, setPending] = useState(false)
 
-  /** `load` y `save` llegan como funciones nuevas en cada render del consumidor. */
   const loadRef = useRef(load)
   const saveRef = useRef(save)
 
@@ -96,8 +95,6 @@ export function SettingsFormPage<TValues extends Record<string, unknown>>({
   }, [handleError, title])
 
   useEffect(() => {
-    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
-    // la carga anterior cuando el efecto se repite.
     const timer = setTimeout(() => void refresh(), 0)
     return () => clearTimeout(timer)
   }, [refresh])

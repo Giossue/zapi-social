@@ -15,11 +15,6 @@ import {
 } from './file-imports.constants';
 
 const FILE_IMPORT_RECOVERY_INTERVAL_MS = 30_000;
-/**
- * Un lote en marcha refresca su marca de tiempo con cada archivo. Si lleva más
- * de esto sin moverse, su job quedó huérfano —el Worker cayó mientras estaba
- * activo— y hay que reencolarlo: si no, nadie vuelve a tocarlo nunca.
- */
 const FILE_IMPORT_STALE_MS = 300_000;
 
 @Injectable()

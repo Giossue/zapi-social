@@ -74,7 +74,6 @@ export const adminScheduledQueueSchema = z.enum([
 ])
 
 export const adminScheduledJobSchema = z.object({
-  /** Identifica la cola y también su rótulo: la interfaz lo traduce. */
   queue: adminScheduledQueueSchema,
   everyMinutes: z.number().int().positive().nullable(),
   nextRunAt: z.string().datetime().nullable(),

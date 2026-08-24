@@ -33,14 +33,12 @@ export const boardTaskSchema = z.object({
   title: z.string(),
   description: z.string(),
   priority: boardTaskPrioritySchema,
-  /** Fecha sin hora: el vencimiento es un día, no un instante. */
   dueDate: z.string().date().nullable(),
   progress: z.number().int().min(0).max(100),
   position: z.number().int().nonnegative(),
   assignee: boardMemberSchema.nullable(),
   createdBy: boardMemberSchema.nullable(),
   labelIds: z.array(z.uuid()),
-  /** Contados en la consulta; no se guardan denormalizados en la tarea. */
   commentCount: z.number().int().nonnegative(),
   attachmentCount: z.number().int().nonnegative(),
   completedAt: z.string().datetime().nullable(),
@@ -70,7 +68,6 @@ export const boardTaskDetailSchema = boardTaskSchema.extend({
   attachments: z.array(boardTaskAttachmentSchema),
 })
 
-/** Lo que la interfaz puede hacer, resuelto por la API a partir de permisos. */
 export const boardAbilitiesSchema = z.object({
   manageTasks: z.boolean(),
   manageColumns: z.boolean(),
@@ -131,10 +128,6 @@ export const updateBoardTaskSchema = createBoardTaskSchema
   .partial()
   .strict()
 
-/**
- * El movimiento manda columna e índice destino, no un desplazamiento: dos
- * personas arrastrando a la vez sobre un delta dejarían el orden incoherente.
- */
 export const moveBoardTaskSchema = z
   .object({
     columnId: z.uuid(),
@@ -157,7 +150,6 @@ export const createBoardLabelSchema = z
   })
   .strict()
 
-/** Estados de `publishing_posts` que el tablero de contenido pinta. */
 export const contentBoardColumnSchema = z.enum([
   "draft",
   "scheduled",

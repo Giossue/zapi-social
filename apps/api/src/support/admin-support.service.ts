@@ -46,7 +46,6 @@ type TicketRow = {
 export class AdminSupportService {
   constructor(private readonly database: DatabaseService) {}
 
-  /** Un caso espera al equipo cuando sigue abierto y su última actividad no fue leída por soporte. */
   private readonly awaitingCondition = or(
     isNull(supportTickets.supportLastReadAt),
     lt(supportTickets.supportLastReadAt, supportTickets.lastActivityAt),
@@ -107,7 +106,6 @@ export class AdminSupportService {
     };
   }
 
-  /** Abrir el detalle marca el caso como leído por soporte. */
   async get(id: string): Promise<AdminSupportTicketDetail> {
     const row = await this.find(id);
     const now = new Date();

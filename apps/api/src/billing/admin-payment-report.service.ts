@@ -46,7 +46,6 @@ export class AdminPaymentReportService {
     };
   }
 
-  /** Fecha efectiva del cobro: el pago se imputa al día en que se liquidó. */
   private get settledAt() {
     return sql`coalesce(${billingPayments.paidAt}, ${billingPayments.createdAt})`;
   }
@@ -79,7 +78,6 @@ export class AdminPaymentReportService {
     return and(...conditions)!;
   }
 
-  /** La moneda dominante del periodo encabeza la lista y es la que se agrega. */
   private async currencies(filters: AdminPaymentReportQuery, since: Date) {
     const rows = await this.database.db
       .select({ currency: billingPayments.currency, total: count() })
@@ -129,11 +127,6 @@ export class AdminPaymentReportService {
     settledScope: SQL,
     range: AdminPaymentReportQuery['range'],
   ) {
-    /**
-     * El bucket no puede viajar como parámetro: PostgreSQL trata `$1` en SELECT
-     * y `$5` en GROUP BY como expresiones distintas y rechaza la consulta. Se
-     * elige entre dos fragmentos literales de un conjunto cerrado.
-     */
     const bucket =
       range === '12m'
         ? sql<string>`to_char(date_trunc('month', ${this.settledAt}), 'YYYY-MM')`

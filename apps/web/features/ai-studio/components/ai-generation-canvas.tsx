@@ -1,12 +1,5 @@
 "use client"
 
-/**
- * Marcador de media en curso: lienzo con resplandor, insignia de resolución y
- * pie con la instrucción enviada.
- *
- * Composición tomada de `@kvnkld/image-generation` (21st.dev), reconstruida con
- * tokens del sistema porque el bloque original depende de CSS global propio.
- */
 export function AiGenerationCanvas({
   aspectRatio,
   label,

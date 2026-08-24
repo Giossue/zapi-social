@@ -1531,7 +1531,6 @@ export class AdminOperationsService {
     return { key, value: String(value) };
   }
 
-  /** El número lo formatea la interfaz con el idioma activo. */
   private metricNumber(key: string, value: number): Metric {
     return { key, value: '', numberValue: value };
   }

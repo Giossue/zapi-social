@@ -152,8 +152,6 @@ export function AuthForm({
   const [turnstileResetKey, setTurnstileResetKey] = useState(0)
   const isLogin = initialMode === "login"
 
-  // Ajustar el estado durante el render en vez de en un efecto: evita el
-  // segundo render que encadena `setState` dentro de `useEffect`.
   if (!isLogin && !timezone) setTimezone(browserTimeZone())
 
   useEffect(() => {
@@ -273,9 +271,7 @@ export function AuthForm({
         reportError(tValidation("missingArea"))
         return
       }
-      /** El idioma guardado en la cuenta manda desde el primer render. */
       syncLocaleCookie(session.user.locale)
-      /** El destino solo se respeta si pertenece al área de la sesión. */
       const areaPrefix = area === "admin" ? "/admin" : "/portal"
       const destination =
         returnTo &&

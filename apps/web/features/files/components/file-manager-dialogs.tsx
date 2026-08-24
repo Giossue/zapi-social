@@ -54,7 +54,6 @@ import type { FileAsset, FileFolder } from "@/features/files/types/files"
 
 type ManagedItem = (FileAsset | FileFolder) & { isFolder?: boolean }
 
-/** Sufijo `.ext` de un nombre, vacío si no lo tiene o si el punto abre el nombre. */
 function fileExtension(name: string) {
   const dotIndex = name.lastIndexOf(".")
   return dotIndex > 0 ? name.slice(dotIndex) : ""
@@ -327,12 +326,9 @@ export function FileRenameDialog({
 }) {
   const t = useTranslations("files")
   const [name, setName] = useState("")
-  /** La extensión identifica el formato: se conserva y queda fuera del campo editable. */
   const extension = item && "kind" in item ? fileExtension(item.name) : ""
   const [lastItemId, setLastItemId] = useState(item?.id ?? null)
 
-  // Ajustar el estado durante el render en vez de en un efecto: evita el
-  // segundo render que encadena `setState` dentro de `useEffect`.
   if ((item?.id ?? null) !== lastItemId) {
     setLastItemId(item?.id ?? null)
     setName(item ? item.name.slice(0, item.name.length - extension.length) : "")
@@ -412,8 +408,6 @@ export function FileMoveDialog({
   const [wasOpen, setWasOpen] = useState(open)
   const isBulkAction = selectedCount !== undefined
 
-  // Ajustar el estado durante el render en vez de en un efecto: evita el
-  // segundo render que encadena `setState` dentro de `useEffect`.
   if (open !== wasOpen) {
     setWasOpen(open)
     if (open) setValue("root")

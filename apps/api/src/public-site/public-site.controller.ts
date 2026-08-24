@@ -2,7 +2,6 @@ import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { PublicSiteService } from './public-site.service';
 
-/** Sin sesión: es la superficie que consume el sitio público de marketing. */
 @ApiTags('public-site')
 @Controller('v1/public/site')
 export class PublicSiteController {

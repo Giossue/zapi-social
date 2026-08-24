@@ -15,12 +15,6 @@ import {
 import { Spinner } from "@workspace/ui/components/spinner"
 import { cn } from "@workspace/ui/lib/utils"
 
-/**
- * Un aviso de espacio llega como clave y argumentos porque lo escribe el
- * sistema y la API no traduce. Cada clase se resuelve por separado en vez de
- * con una clave construida: así el tipado comprueba que los argumentos del
- * mensaje son los que realmente lleva el aviso.
- */
 function workspaceNotificationBody(
   notification: Extract<PortalNotification, { source: "workspace" }>,
   t: ReturnType<typeof useTranslations<"notificationKind">>
@@ -57,7 +51,6 @@ export function NotificationBell() {
       setUnread(response.unread)
       setUnavailable(false)
     } catch (error) {
-      /** Sin sesión Portal la campana simplemente no se muestra. */
       if (error instanceof ApiError) setUnavailable(true)
       else console.error("Notifications feed request failed", error)
     } finally {
@@ -66,8 +59,6 @@ export function NotificationBell() {
   }, [])
 
   useEffect(() => {
-    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
-    // la carga anterior cuando el efecto se repite.
     const timer = setTimeout(() => void load(), 0)
     return () => clearTimeout(timer)
   }, [load])

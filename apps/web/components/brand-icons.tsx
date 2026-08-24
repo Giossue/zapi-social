@@ -1,10 +1,5 @@
 import type { SVGProps } from "react"
 
-/**
- * Iconos de marca de los proveedores. Todos son monocromos con `currentColor`
- * para seguir el tema claro/oscuro del sistema.
- */
-
 export function BrandFacebook(props: SVGProps<SVGSVGElement>) {
   return (
     <svg

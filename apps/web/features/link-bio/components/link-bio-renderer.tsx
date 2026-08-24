@@ -53,18 +53,12 @@ function initials(title: string) {
   )
 }
 
-/**
- * Composición única de la página pública de Link in bio. La usan la ruta
- * `/b/{slug}` y la vista previa del constructor: mismo markup, mismo tema por
- * variables; solo cambian los datos y el manejo de clics.
- */
 export function LinkBioRenderer({
   page,
   placeholders = false,
   onItemClick,
 }: {
   page: LinkBioRenderData
-  /** La vista previa muestra guías en los campos vacíos; la pública no. */
   placeholders?: boolean
   onItemClick?: (
     event: MouseEvent<HTMLAnchorElement>,

@@ -19,14 +19,6 @@ import {
 
 const apiBase = 'https://open.tiktokapis.com/v2';
 
-/**
- * Publica en TikTok con la Content Posting API.
- *
- * El vídeo va por `/post/publish/video/init/` con `FILE_UPLOAD`: se sube el
- * binario al `upload_url` devuelto y se sondea `/post/publish/status/fetch/`.
- * Las fotos van por `/post/publish/content/init/`. Un cliente sin auditar solo
- * publica en privado, que es cosa del comprador, no del código.
- */
 @Injectable()
 export class TikTokPublisher implements ChannelPublisher {
   readonly capabilityKey: PortalChannelCapabilityKey = 'tiktok_profile';
@@ -106,9 +98,6 @@ export class TikTokPublisher implements ChannelPublisher {
   }
 
   private publishPhoto(): never {
-    // La foto exige que TikTok descargue la imagen de una URL pública firmada,
-    // que es la misma pieza que firma el conector de Instagram. Se aborda en su
-    // tanda; hoy el vídeo cubre el caso principal.
     throw new PublishingDeliveryError(
       'PUBLISHING_TIKTOK_PHOTO_UNSUPPORTED',
       true,

@@ -4,7 +4,6 @@ import type { FastifyRequest } from 'fastify';
 import { SessionAccessService } from '../identity/session-access.service';
 import { PlatformSettingsService } from './platform-settings.service';
 
-/** Ajustes globales, caché y tareas programadas. Solo administradores. */
 @ApiTags('admin-settings')
 @Controller('v1/admin/settings')
 export class PlatformSettingsController {

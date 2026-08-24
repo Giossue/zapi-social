@@ -43,7 +43,6 @@ type DataTableHeaderProps = {
 }
 
 type DataTableToolbarProps = {
-  /** Rótulo del plegado móvil; lo traduce quien consume el primitive. */
   filtersLabel: string
   actions?: ReactNode
   children?: ReactNode

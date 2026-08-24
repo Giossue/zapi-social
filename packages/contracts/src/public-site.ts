@@ -1,11 +1,5 @@
 import { z } from "zod"
 
-/**
- * Superficie pública del sitio: lo que un visitante sin sesión puede leer.
- * Solo expone contenido publicado y ajustes pensados para mostrarse; nunca
- * datos de clientes, credenciales ni configuración de operación.
- */
-
 export const publicSiteSettingsSchema = z.object({
   siteName: z.string(),
   siteDescription: z.string(),
@@ -15,10 +9,7 @@ export const publicSiteSettingsSchema = z.object({
   supportHours: z.string(),
   timezone: z.string(),
   dateFormat: z.string(),
-  /** Solo llega cuando Analítica está activa y marcada para rastrear visitantes. */
-  analytics: z
-    .object({ measurementId: z.string() })
-    .nullable(),
+  analytics: z.object({ measurementId: z.string() }).nullable(),
   registrationEnabled: z.boolean(),
 })
 
@@ -36,7 +27,6 @@ export const publicSitePlanSchema = z.object({
   name: z.string(),
   description: z.string(),
   currency: z.string(),
-  /** Importe en unidades menores para evitar decimales flotantes. */
   priceMinor: z.number().int().nonnegative(),
   billingType: z.enum(["monthly", "yearly"]),
   isFree: z.boolean(),
@@ -85,7 +75,6 @@ export const publicSitePostSchema = publicSitePostSummarySchema.extend({
   tags: z.array(z.string()),
 })
 
-/** Una sola llamada resuelve todo lo que la landing necesita para pintarse. */
 export const publicSiteOverviewSchema = z.object({
   settings: publicSiteSettingsSchema,
   languages: z.array(publicSiteLanguageSchema),

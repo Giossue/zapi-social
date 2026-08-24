@@ -1,6 +1,5 @@
 import { z } from "zod"
 
-/** Contratos Portal Channels V2: sin secretos, tokens, QR ni payloads de providers. */
 export const portalChannelProviderKeySchema = z.enum([
   "meta",
   "linkedin",
@@ -33,10 +32,6 @@ export const portalChannelAvailabilitySchema = z.enum([
 
 export const portalChannelStatusSchema = z.enum(["connected", "disconnected"])
 
-/**
- * Sin rótulo ni descripción: la API no traduce. La interfaz los resuelve a
- * partir de `key`, así que el mismo canal se lee en el idioma de quien mira.
- */
 export const portalChannelCapabilitySchema = z.object({
   key: portalChannelCapabilityKeySchema,
   provider: portalChannelProviderKeySchema,
@@ -83,7 +78,6 @@ export const portalChannelsQuerySchema = z
     provider: portalChannelProviderKeySchema.optional(),
     capability: portalChannelCapabilityKeySchema.optional(),
     status: portalChannelStatusSchema.optional(),
-    // Los sorts legados se mantienen con cursor específico y desempate por id.
     sort: z
       .enum(["created_at_desc", "updated_at_desc", "display_name_asc"])
       .default("created_at_desc"),
@@ -92,7 +86,6 @@ export const portalChannelsQuerySchema = z
   })
   .strict()
 
-/** Solo `display_name` se edita desde Portal; identidad y vínculo externo son read-only. */
 export const updatePortalChannelSchema = z
   .object({ displayName: z.string().trim().min(2).max(255) })
   .strict()
@@ -122,7 +115,6 @@ export const portalChannelConnectionSchema = z.object({
   expiresAt: z.string().datetime(),
 })
 
-/** Candidatos emitidos por la conexión actual; el navegador nunca aporta IDs externos arbitrarios. */
 export const portalChannelCandidateSchema = z.object({
   id: z.string().min(1).max(512),
   label: z.string().min(1).max(255),
@@ -156,7 +148,6 @@ export const whatsappStatusQrResponseSchema = z.object({
   connection: portalChannelConnectionSchema.extend({
     state: z.enum(["qr_ready", "waiting_for_scan"]),
   }),
-  /** URL interna de corta vida; nunca la URL original del conector. */
   qrEndpoint: z.string().startsWith("/v1/portal/channel-connections/"),
 })
 

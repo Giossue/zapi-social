@@ -19,7 +19,6 @@ export class DecryptionFailedError extends Error {
 @Injectable()
 export class Aes256GcmService {
   private readonly key: Buffer;
-  /** Versión del formato de cifrado; se sella en cada credencial escrita. */
   readonly keyVersion = PAYLOAD_VERSION;
 
   constructor(config: ConfigService) {

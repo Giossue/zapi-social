@@ -130,7 +130,6 @@ export function AdminSupportPage() {
   const [loadError, setLoadError] = useState(false)
   const [forbidden, setForbidden] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
-  /** Casos creados por el mock de «Nuevo caso»; viven solo en esta sesión. */
   const [localTickets, setLocalTickets] = useState<AdminSupportTicket[]>([])
   const [categoriesCatalog, setCategoriesCatalog] = useState<
     SupportCatalogItem[] | null
@@ -159,10 +158,6 @@ export function AdminSupportPage() {
       setMetrics(response.metrics)
       setTotal(response.total)
       setForbidden(false)
-      /**
-       * El catálogo mock de categorías parte del catálogo real ya expuesto por
-       * la cola; después vive en estado local hasta la mutación REST.
-       */
       setCategoriesCatalog(
         (current) =>
           current ??
@@ -435,8 +430,6 @@ export function AdminSupportPage() {
                             </TableCell>
                             <TableCell className="text-right">
                               {isLocalTicket(ticket) ? (
-                                /* El caso mock no existe en la API: el detalle
-                                   llega con la mutación real. */
                                 <Button
                                   disabled
                                   size="sm"

@@ -23,7 +23,6 @@ export class InstagramProfilePublisher implements ChannelPublisher {
     const asset = assets[0];
     const isVideo = asset.mimeType.startsWith('video/');
 
-    // Instagram descarga la media por URL en vez de recibirla subida.
     const createFields: Record<string, string> = {
       access_token: token,
       caption: post.content,

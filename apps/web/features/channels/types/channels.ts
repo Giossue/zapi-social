@@ -12,7 +12,6 @@ export type ChannelCapabilityKey =
   | "whatsapp_status"
 
 export type ChannelAvailability = "ready" | "coming_soon" | "plan_locked"
-/** Local values preserve the approved mock flow; OAuth values are returned by the Portal API. */
 export type ChannelConnectionKind =
   "picker" | "direct" | "qr" | "oauth_direct" | "oauth_picker" | "qr_device"
 export type ChannelAccountStatus = "connected" | "disconnected"
@@ -22,14 +21,12 @@ export type ChannelCandidate = {
   label: string
   description: string
   metadata?: string
-  /** OAuth candidates return this nullable field; it remains optional for approved local fixtures. */
   avatarUrl?: string | null
 }
 
 export type PortalChannelCapability = {
   key: ChannelCapabilityKey
   provider: ChannelProviderKey
-  /** El rótulo y la descripción los pone la interfaz a partir de `key`. */
   icon: ComponentType<SVGProps<SVGSVGElement>>
   availability: ChannelAvailability
   connectionKind: ChannelConnectionKind
@@ -41,7 +38,6 @@ export type PortalChannelAccount = {
   capabilityKey: ChannelCapabilityKey
   provider: ChannelProviderKey
   displayName: string
-  /** Provider identity, independent from the editable local display name. */
   externalName?: string | null
   handle?: string
   avatarUrl?: string | null

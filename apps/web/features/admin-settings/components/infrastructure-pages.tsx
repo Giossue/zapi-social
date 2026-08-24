@@ -35,7 +35,6 @@ function useAdminResource<T>(load: () => Promise<T>, label: string) {
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [forbidden, setForbidden] = useState(false)
-  /** El consumidor pasa una función nueva por render; no puede ser dependencia. */
   const loadRef = useRef(load)
 
   useEffect(() => {
@@ -65,8 +64,6 @@ function useAdminResource<T>(load: () => Promise<T>, label: string) {
   }, [label, router])
 
   useEffect(() => {
-    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
-    // la carga anterior cuando el efecto se repite.
     const timer = setTimeout(() => void refresh(), 0)
     return () => clearTimeout(timer)
   }, [refresh])

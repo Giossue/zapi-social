@@ -36,8 +36,6 @@ export class BoardsController {
     return this.boards.board(
       await this.access.requirePortalSession(request),
       filters,
-      // Los nombres de las columnas de arranque llegan en el idioma activo: la
-      // API no traduce, y a partir de ese momento son datos del usuario.
       { todo: starterTodo, doing: starterDoing, done: starterDone } as Record<
         string,
         string

@@ -1,6 +1,5 @@
 import { z } from "zod"
 
-/** Los nueve tipos que soportaba el addon Laravel. */
 export const linkBioBlockTypeSchema = z.enum([
   "links",
   "header",
@@ -13,7 +12,6 @@ export const linkBioBlockTypeSchema = z.enum([
   "embed",
 ])
 
-/** Tipos cuyos ítems se editan en lista. */
 export const linkBioItemBlockTypes = [
   "links",
   "social",
@@ -136,7 +134,6 @@ export const upsertPortalLinkBioPageSchema = z
   })
   .strict()
 
-/** Página tal como la ve un visitante: sin identificadores internos. */
 export const publicLinkBioPageSchema = z.object({
   slug: z.string(),
   title: z.string(),

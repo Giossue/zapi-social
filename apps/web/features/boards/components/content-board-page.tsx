@@ -29,10 +29,6 @@ import { loginPath } from "@/features/identity/login-redirect"
 
 type ContentBoardState = Record<ContentBoardColumn, ContentBoardCard[]>
 
-/**
- * Las columnas son los estados del dominio, no columnas configurables: quien
- * decide `processing`, `published` y `failed` es el worker.
- */
 const columnOrder: readonly ContentBoardColumn[] = [
   "draft",
   "scheduled",
@@ -41,7 +37,6 @@ const columnOrder: readonly ContentBoardColumn[] = [
   "failed",
 ]
 
-/** Solo estos dos estados se pueden cambiar arrastrando. */
 const draggableColumns = ["draft", "scheduled"] as const
 
 type DraggableColumn = (typeof draggableColumns)[number]
@@ -259,8 +254,6 @@ export function ContentBoardPage() {
     const status = columnOrder.find((column) =>
       next[column].some((card) => card.id === cardId)
     )
-    // Solo se envía lo que el dominio admite; el resto lo rechazaría la API de
-    // todos modos, y aquí evita una petición inútil.
     if (!status || !isDraggable(status)) {
       setState(stateBeforeDrag.current)
       return

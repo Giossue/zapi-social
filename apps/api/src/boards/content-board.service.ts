@@ -17,11 +17,6 @@ import { DatabaseService } from '../database/database.service';
 import { AppException } from '../platform/errors/app-exception';
 import { TeamAccountAccessService } from '../teams/team-account-access.service';
 
-/**
- * Transiciones que el tablero de contenido admite. Las demás las decide el
- * worker: una publicación no pasa a `published` porque alguien arrastre una
- * tarjeta.
- */
 const allowedTransitions: Record<string, readonly string[]> = {
   draft: ['scheduled'],
   scheduled: ['draft'],
@@ -54,9 +49,6 @@ export class ContentBoardService {
       .orderBy(asc(publishingPosts.scheduledAt))
       .limit(boardLimit);
 
-    // Un miembro con acceso restringido solo ve las publicaciones de las
-    // cuentas que tiene concedidas. Una publicación sin cuenta es un borrador
-    // suelto y la ve su autor.
     const visible = rows.filter(({ post }) =>
       post.socialAccountId
         ? this.accountAccess.allows(scope, post.socialAccountId)
@@ -112,8 +104,6 @@ export class ContentBoardService {
         throw new AppException('TEAM_ACCESS_DENIED', HttpStatus.FORBIDDEN);
       }
 
-      // La comprobación va aquí y no solo en la interfaz: bloquear el arrastre
-      // en pantalla no autoriza nada.
       const allowed = allowedTransitions[post.status] ?? [];
       if (!allowed.includes(parsed.data.status)) {
         throw new AppException(
@@ -121,7 +111,6 @@ export class ContentBoardService {
           HttpStatus.CONFLICT,
         );
       }
-      // Programar sin fecha ni cuenta dejaría al worker sin qué publicar.
       if (
         parsed.data.status === 'scheduled' &&
         (!post.scheduledAt || !post.socialAccountId)

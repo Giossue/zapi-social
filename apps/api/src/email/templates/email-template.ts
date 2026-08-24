@@ -8,7 +8,6 @@ type EmailDetail = {
 };
 
 type ZapiEmailTemplateInput = {
-  /** Idioma del destinatario: fija `lang` y el pie del correo. */
   locale: SupportedLocale;
   preview: string;
   title: string;

@@ -1,6 +1,5 @@
 import type { AIContentStudioData } from "@/features/ai-studio/types/ai-content"
 
-/** Datos sintéticos y deterministas para diseñar AI Content sin proveedor ni créditos reales. */
 export const aiContentStudioFixture: AIContentStudioData = {
   canUse: true,
   creditsAvailable: 84,

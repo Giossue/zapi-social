@@ -1,6 +1,5 @@
 import type { LinkBioBlock, LinkBioBlockType } from "@workspace/contracts"
 
-/** El texto de cada tipo vive en `messages/` bajo `linkBio.block`. */
 export const blockTypes: LinkBioBlockType[] = [
   "links",
   "header",
@@ -13,7 +12,6 @@ export const blockTypes: LinkBioBlockType[] = [
   "embed",
 ]
 
-/** Tipos cuyo contenido se edita como lista de ítems. */
 export const itemBlockTypes: LinkBioBlockType[] = [
   "links",
   "social",
@@ -38,7 +36,6 @@ export function emptyItem(): LinkBioBlock["items"][number] {
   }
 }
 
-/** El título inicial lo pone quien crea el bloque, ya traducido. */
 export function emptyBlock(type: LinkBioBlockType, title = ""): LinkBioBlock {
   return {
     buttonLabel: "",

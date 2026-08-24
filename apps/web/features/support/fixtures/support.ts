@@ -3,7 +3,6 @@ import type {
   SupportTicketDetail,
 } from "@/features/support/types/support"
 
-/** Datos locales y estables para revisar la interfaz antes de conectarla al REST. */
 export const supportCategoriesFixture: SupportCategory[] = [
   {
     id: "1ea2c1b7-3e1e-4cd1-9e8f-3d5c4b81d3d1",

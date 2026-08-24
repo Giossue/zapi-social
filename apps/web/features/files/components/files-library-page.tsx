@@ -116,7 +116,6 @@ import { useLibrarySelection } from "@/features/files/hooks/use-library-selectio
 
 type FilesView = "grid" | "list"
 
-/** Cuánto se sigue un lote de Google Drive antes de dejarlo en segundo plano. */
 const DRIVE_IMPORT_WAIT_MS = 120_000
 
 type AssetFilter = FileAssetKind | "all" | "folder"
@@ -166,8 +165,6 @@ function AssetThumbnail({
   const sourceKey = `${asset.id}:${asset.kind}:${asset.thumbnailStatus}`
   const [lastSourceKey, setLastSourceKey] = useState(sourceKey)
 
-  // Ajustar el estado durante el render en vez de en un efecto: evita el
-  // segundo render que encadena `setState` dentro de `useEffect`.
   if (sourceKey !== lastSourceKey) {
     setLastSourceKey(sourceKey)
     setImageSource(
@@ -214,7 +211,6 @@ type LibraryEntry =
   | { asset: FileAsset; id: string; type: "file" }
   | { folder: FileFolder; id: string; type: "folder" }
 
-/** `TableRow` ya pinta la selección con `data-state`; el resto viaja igual. */
 function rowSelection({
   "data-selected": selected,
   role: _role,
@@ -608,7 +604,6 @@ function formatSize(sizeBytes: number) {
     : `${(sizeBytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-/** La fecha llega ya formateada por quien conoce el idioma activo. */
 function toFolder(
   folder: PortalFilesResponse["folders"][number],
   formatDate: (value: string) => string
@@ -645,7 +640,6 @@ function toAsset(
 }
 
 const FILES_PAGE_SIZE = 24
-/** Tope del contrato: `limit` no admite más de 100 por petición. */
 const FILES_MAX_LIMIT = 100
 
 export function FilesLibraryPage() {
@@ -697,8 +691,6 @@ export function FilesLibraryPage() {
       })
     | null
   >(null)
-  // Cuántas tandas hay en pantalla. Es una referencia y no estado porque solo
-  // la leen las peticiones: renderizar no depende de su valor.
   const loadedPages = useRef(1)
   const sentinel = useRef<HTMLDivElement>(null)
 
@@ -725,8 +717,6 @@ export function FilesLibraryPage() {
 
   const loadLibrary = useCallback(async () => {
     setLoadError(false)
-    // Recarga de una vez todas las tandas visibles para que una mutación no
-    // devuelva al usuario al principio de la biblioteca.
     const limit = Math.min(
       FILES_MAX_LIMIT,
       FILES_PAGE_SIZE * loadedPages.current
@@ -766,15 +756,11 @@ export function FilesLibraryPage() {
       const nextPage = loadedPages.current + 1
       const data = await fetchFiles(nextPage, FILES_PAGE_SIZE)
       loadedPages.current = nextPage
-      // Una tanda incompleta cierra la lista aunque el total diga otra cosa:
-      // así ningún desajuste de conteo deja el cargador girando sin fin.
       setReachedEnd(data.files.length < FILES_PAGE_SIZE)
       setLibrary((current) =>
         current
           ? {
               ...current,
-              // Las carpetas también se paginan en el contrato, así que las de
-              // una tanda posterior no describen esta ubicación: se conservan.
               assets: [
                 ...current.assets,
                 ...data.files.map((asset) => toAsset(asset, formatDate)),
@@ -793,7 +779,6 @@ export function FilesLibraryPage() {
 
   useEffect(() => {
     loadedPages.current = 1
-    // El temporizador saca el primer `setState` del cuerpo del efecto.
     const timer = setTimeout(() => void loadLibrary(), 0)
     return () => clearTimeout(timer)
   }, [loadLibrary])
@@ -805,8 +790,6 @@ export function FilesLibraryPage() {
     library.assets.length < library.filesTotal
   )
 
-  // Google Drive no pagina: la siguiente tanda entra sola cuando el final de la
-  // biblioteca se acerca al viewport.
   useEffect(() => {
     const node = sentinel.current
     if (!node || !hasMoreFiles || loadingMore) return
@@ -872,8 +855,6 @@ export function FilesLibraryPage() {
       id: toastId,
     })
 
-    // Una importación que deja de progresar no puede dejar el aviso girando
-    // para siempre: se cierra explicando que continúa en segundo plano.
     if (Date.now() - driveBatchStartedAt.current > DRIVE_IMPORT_WAIT_MS) {
       notifiedDriveBatch.current = driveBatch.id
       toast.info(t("driveImportRunning"), {
@@ -955,8 +936,6 @@ export function FilesLibraryPage() {
 
   async function createFolder() {
     const name = folderName.trim()
-    // Sin este cerrojo, un segundo envío mientras el primero sigue en vuelo
-    // termina en conflicto de nombre y contradice al toast de éxito.
     if (!name || creatingFolder) return
 
     setCreatingFolder(true)
@@ -980,8 +959,6 @@ export function FilesLibraryPage() {
     }
   }
 
-  // Filtrar por «Carpetas» esconde los archivos, y filtrar por un tipo de
-  // archivo esconde las carpetas: cada opción deja en pantalla lo que nombra.
   const assets = useMemo(
     () =>
       assetFilter === "folder"
@@ -991,8 +968,6 @@ export function FilesLibraryPage() {
           ),
     [assetFilter, folderId, library?.assets, query]
   )
-  // La ruta llega resuelta desde la API: el listado solo trae las subcarpetas
-  // del nivel actual, así que no puede deducirse en cliente.
   const currentFolderPath = library?.folderPath ?? []
   const visibleFolders = useMemo(
     () =>
@@ -1006,8 +981,6 @@ export function FilesLibraryPage() {
   )
   const hasFilters = Boolean(query.trim()) || assetFilter !== "all"
 
-  // Carpetas y archivos comparten selección y recorrido, en el mismo orden en
-  // que se pintan.
   const entries = useMemo<LibraryEntry[]>(
     () => [
       ...visibleFolders.map((folder) => ({
@@ -1039,7 +1012,6 @@ export function FilesLibraryPage() {
     return getItemProps(entry as LibraryEntry)
   }
 
-  // Las acciones en lote distinguen el tipo: cada uno tiene su endpoint.
   const selectedAssetIds = useMemo(
     () => selection.filter((id) => assets.some((asset) => asset.id === id)),
     [assets, selection]
@@ -1193,8 +1165,6 @@ export function FilesLibraryPage() {
         : t("emptyFolderTitle"),
   }
 
-  // Como Drive: la ruta profunda deja a la vista la carpeta actual y su madre;
-  // el resto, raíz incluida, se recoge en el menú de la elipsis.
   const trail = [
     { id: "all", name: t("rootFolder") },
     ...currentFolderPath.map((folder) => ({

@@ -7,15 +7,9 @@ export type BoardTaskEmailInput = {
   workspaceName: string;
   taskTitle: string;
   taskUrl: string;
-  /** Fecha ya formateada en el idioma del destinatario. */
   dueLabel?: string;
 };
 
-/**
- * Sirve tanto para la asignación como para el vencimiento: el marco es el
- * mismo y lo que cambia es el texto, que viene del catálogo y es editable
- * desde Admin.
- */
 export function boardTaskEmail(
   input: BoardTaskEmailInput,
   copy: EmailCopyOverride,

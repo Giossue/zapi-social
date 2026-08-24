@@ -234,10 +234,6 @@ export class AdminManualPaymentsService {
     return this.get(created.id);
   }
 
-  /**
-   * Aprobar materializa el cobro: registra el `billing_payments` equivalente y
-   * concede el plan o los créditos con la misma lógica que el webhook de Polar.
-   */
   async approve(
     session: PlatformAdminAuthSession,
     id: string,
@@ -378,7 +374,6 @@ export class AdminManualPaymentsService {
     return this.get(row.payment.id);
   }
 
-  /** Un pago aprobado ya movió saldo o plan: no se borra, queda como historial. */
   async remove(
     session: PlatformAdminAuthSession,
     id: string,

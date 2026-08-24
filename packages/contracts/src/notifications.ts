@@ -9,7 +9,6 @@ export const adminAnnouncementSchema = z.object({
   body: z.string(),
   url: z.string().nullable(),
   audience: announcementAudienceSchema,
-  /** Nombre del espacio o persona destinataria; nulo cuando el anuncio es global. */
   targetLabel: z.string().nullable(),
   targetWorkspaceId: z.uuid().nullable(),
   targetUserId: z.uuid().nullable(),
@@ -81,13 +80,6 @@ export const adminAnnouncementTargetsSchema = z.object({
   users: z.array(z.object({ id: z.uuid(), label: z.string() })),
 })
 
-/**
- * La campana mezcla dos orígenes que no se escriben igual.
- *
- * Un anuncio lo redacta un administrador y viaja con su texto ya escrito. Un
- * aviso de espacio lo genera el sistema y viaja como clave más argumentos,
- * porque la API no traduce y el idioma es el de quien lo lee.
- */
 export const portalAnnouncementNotificationSchema = z.object({
   source: z.literal("announcement"),
   id: z.uuid(),
@@ -98,10 +90,6 @@ export const portalAnnouncementNotificationSchema = z.object({
   readAt: z.string().datetime().nullable(),
 })
 
-/**
- * Conjunto cerrado: la interfaz necesita una clave concreta para tipar su
- * traducción, y un `string` libre dejaría pasar un aviso sin texto.
- */
 export const workspaceNotificationKindSchema = z.enum([
   "board.task_assigned",
   "board.task_commented",

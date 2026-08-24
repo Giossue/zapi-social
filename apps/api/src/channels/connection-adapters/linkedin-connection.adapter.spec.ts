@@ -28,7 +28,6 @@ describe('LinkedIn connection adapter', () => {
     expect(adapter.scopesFor('linkedin_profile')).not.toContain(
       'r_organization_admin',
     );
-    // Publicar es lo que justifica la conexión: siempre está.
     expect(adapter.scopesFor('linkedin_profile')).toContain('w_member_social');
   });
 

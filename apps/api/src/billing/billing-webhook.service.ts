@@ -174,9 +174,6 @@ export class BillingWebhookService {
   private async orderPaid(order: PolarOrder) {
     const metadata = purchaseMetadataSchema.parse(order.metadata);
     await this.database.db.transaction(async (tx) => {
-      // Si el pago nace de una suscripción, se enlaza a la fila local para
-      // poder conciliar cobros con su suscripción. Si el webhook de la
-      // suscripción aún no llegó, queda nulo: es un enlace de mejor esfuerzo.
       const subscriptionId = order.subscriptionId
         ? ((
             await tx

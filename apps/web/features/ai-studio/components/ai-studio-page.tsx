@@ -148,7 +148,6 @@ function RequiredMark() {
   )
 }
 
-/** El código de la API alimenta el diccionario único de errores. */
 function errorCode(error: unknown) {
   return error instanceof ApiError ? error.code : undefined
 }
@@ -519,8 +518,6 @@ function Overview() {
   }, [])
 
   useEffect(() => {
-    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
-    // la carga anterior cuando el efecto se repite.
     const timer = setTimeout(() => void load(), 0)
     return () => clearTimeout(timer)
   }, [load])
@@ -654,7 +651,6 @@ function Overview() {
 
 type CreationView = "content" | "image" | "video" | "repurpose" | "review"
 
-/** Solo permanece el coste; los textos viven en `aiStudio.creation`. */
 const creationCostUnits: Record<CreationView, number> = {
   content: 2,
   image: 4,

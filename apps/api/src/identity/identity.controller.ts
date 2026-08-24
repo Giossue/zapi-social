@@ -158,8 +158,6 @@ export class IdentityController {
     const domain = this.config.get<string>('COOKIE_DOMAIN');
     reply.clearCookie(accessCookieName, { path: '/', domain });
     reply.clearCookie(sessionCookieName, { path: '/', domain });
-    // Una cookie emitida antes de configurar COOKIE_DOMAIN es host-only y no
-    // coincide con el borrado por dominio; se limpia también esa variante.
     if (domain) {
       reply.clearCookie(accessCookieName, { path: '/' });
       reply.clearCookie(sessionCookieName, { path: '/' });

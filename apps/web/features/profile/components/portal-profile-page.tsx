@@ -83,7 +83,6 @@ function browserTimeZone() {
   }
 }
 
-/** Devuelve la clave del mensaje; la traduce quien lo muestra. */
 function profileErrorKey(error: unknown) {
   if (!(error instanceof ApiError)) {
     return "saveFailed"
@@ -179,7 +178,6 @@ export function PortalProfilePage() {
       setLocale(nextProfile.locale ?? "")
       setTimezone(nextProfile.timezone ?? browserTimeZone())
       toast.success(t("updated"))
-      /** El idioma elegido se aplica sin salir de la pantalla. */
       if (syncLocaleCookie(nextProfile.locale)) router.refresh()
     } catch (nextError) {
       toast.error(t(profileErrorKey(nextError)))

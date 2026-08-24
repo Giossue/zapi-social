@@ -14,7 +14,6 @@ import type { FastifyRequest } from 'fastify';
 import { SessionAccessService } from '../identity/session-access.service';
 import { ContentService } from './content.service';
 
-/** Contenido global de plataforma. Solo administradores de plataforma. */
 @ApiTags('admin-content')
 @Controller('v1/admin/content')
 export class ContentController {

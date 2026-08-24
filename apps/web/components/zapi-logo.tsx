@@ -1,4 +1,3 @@
-/** Marca de Zapi: el mismo rayo del favicon, como SVG embebido. */
 export function ZapiLogo({ className }: { className?: string }) {
   return (
     <svg

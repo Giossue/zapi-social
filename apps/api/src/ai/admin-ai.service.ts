@@ -749,7 +749,6 @@ export class AdminAiService {
     );
   }
 
-  /** Registro de peticiones AI para auditar consumo por usuario, proveedor y estado. */
   async requests(query: unknown): Promise<AdminAiRequestsResponse> {
     const parsed = adminAiRequestsQuerySchema.safeParse(query ?? {});
     if (!parsed.success) throw this.invalid();
@@ -826,7 +825,6 @@ export class AdminAiService {
     };
   }
 
-  /** Consumo AI agregado por día y por proveedor dentro de un rango de fechas. */
   async report(query: unknown): Promise<AdminAiReport> {
     const parsed = adminAiReportQuerySchema.safeParse(query ?? {});
     if (!parsed.success) throw this.invalid();

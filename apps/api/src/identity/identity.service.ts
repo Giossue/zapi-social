@@ -400,10 +400,6 @@ export class IdentityService {
     return { user, area: 'portal', workspace, workspaces: availableWorkspaces };
   }
 
-  /**
-   * `users.locale` es texto libre en la columna: solo viaja en la sesión
-   * cuando corresponde a un idioma con traducción disponible.
-   */
   private supportedLocale(value: string | null): SupportedLocale | null {
     const parsed = supportedLocaleSchema.safeParse(value);
     return parsed.success ? parsed.data : null;

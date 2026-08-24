@@ -971,8 +971,6 @@ export class TeamsService {
     if (!parsed.success)
       throw new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
     const accountIds = [...new Set(parsed.data.accountIds)];
-    // Un `admin` ya los tiene todos de forma implícita: guardarlos sería una
-    // segunda fuente de verdad que se desincroniza al cambiar el catálogo.
     const permissions =
       parsed.data.role === 'member'
         ? this.permissions.sanitize(parsed.data.permissions)

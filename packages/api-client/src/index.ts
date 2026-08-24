@@ -1286,10 +1286,6 @@ export const integrationsApi = {
       method: "PATCH",
       body: JSON.stringify(input),
     }),
-  /**
-   * Proveedores de canal servidos desde el catálogo: una sola pareja de
-   * métodos para todas las redes que no traen pantalla propia.
-   */
   listChannelProviders: () =>
     request<ChannelProviderIntegrationsResponse>(
       "/v1/admin/integrations/channel-providers",
@@ -1423,7 +1419,6 @@ export const adminOperationsApi = {
     ),
 }
 
-/** Superficie sin sesión que consume el sitio público de marketing. */
 export const publicSiteApi = {
   overview: () =>
     request<PublicSiteOverview>("/v1/public/site", { method: "GET" }),
@@ -1739,11 +1734,6 @@ export const auditApi = {
     }),
 }
 
-/**
- * Los nombres de las columnas de arranque viajan en la query porque la API no
- * traduce: los crea con el idioma activo de quien abre el tablero por primera
- * vez y a partir de ahí son datos del usuario.
- */
 function boardQueryString(
   query: Partial<BoardQuery> = {},
   starterNames?: { todo: string; doing: string; done: string }

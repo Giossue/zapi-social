@@ -29,8 +29,6 @@ import {
   type ProviderResult,
 } from './publishers/publishing-provider';
 
-// Se reexporta porque la prueba de endurecimiento del worker la importa desde
-// aquí desde antes de que hubiera publicadores por red.
 export { sanitizeProviderResponse };
 
 type Account = typeof socialAccounts.$inferSelect;

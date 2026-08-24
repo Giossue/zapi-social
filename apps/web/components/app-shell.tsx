@@ -26,7 +26,6 @@ export function AppShell({ children, session }: AppShellProps) {
     ? session.workspaces
     : [session.workspace]
 
-  /** Rutas sin entrada propia en el sidebar que igual titulan el documento. */
   const documentTitleOverrides = useMemo(
     () => ({
       "/portal/profile": t("profile"),

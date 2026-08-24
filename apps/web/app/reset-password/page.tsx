@@ -11,7 +11,6 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("resetPassword") }
 }
 
-/** El fallback se renderiza de forma síncrona: recibe el texto ya traducido. */
 function ResetPasswordLoading({ label }: { label: string }) {
   return (
     <AuthShell>

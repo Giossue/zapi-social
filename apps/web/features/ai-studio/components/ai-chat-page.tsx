@@ -96,7 +96,6 @@ function idempotencyKey() {
   return `chat-${crypto.randomUUID()}`
 }
 
-/** Pasos que se muestran mientras la generación no ha terminado. */
 function traceSteps(
   request: PortalAiRequest,
   t: (key: "received" | "reserving" | "generating") => string
@@ -113,7 +112,6 @@ function traceSteps(
   ]
 }
 
-/** Renderiza el resultado tipado que devuelve cada herramienta. */
 function ResultBody({ request }: { request: PortalAiRequest }) {
   const t = useTranslations("aiStudio.chat")
 
@@ -213,7 +211,6 @@ function ResultBody({ request }: { request: PortalAiRequest }) {
   )
 }
 
-/** Traduce las claves declaradas por el catálogo de herramientas. */
 function useToolText() {
   const t = useTranslations("aiStudio.tools")
   return (key: string) => t(key as Parameters<typeof t>[0])
@@ -399,7 +396,6 @@ export function AiChatPage() {
     [requests, selectedId]
   )
 
-  /** Una generación en curso se refresca hasta terminar. */
   useEffect(() => {
     if (!selected) return
     if (selected.status !== "queued" && selected.status !== "processing") return
@@ -532,16 +528,12 @@ export function AiChatPage() {
 
   return (
     <div
-      /* El shell no fija altura, así que la pantalla se ancla al viewport menos
-         el encabezado y va a sangre para no quedar dentro de una card. */
       className="grid h-[calc(100svh-var(--dashboard-header-height))] grid-cols-1 overflow-hidden bg-background transition-[grid-template-columns] duration-300 ease-out *:min-h-0 *:min-w-0 md:grid-cols-[20rem_minmax(0,1fr)] md:*:first:border-r md:*:first:border-border lg:grid-cols-[20rem_minmax(0,1fr)_var(--options-width)]"
       data-content-padding="false"
       style={
         { "--options-width": showOptions ? "22rem" : "0rem" } as CSSProperties
       }
     >
-      {/* Bajo `md` la lista y el hilo comparten celda y se alternan con un
-         translate animado, como en la fuente de diseño. */}
       <div
         className={cn(
           "flex h-full flex-col gap-3 p-3 transition-transform duration-300 ease-out will-change-transform max-md:col-start-1 max-md:row-start-1",
@@ -806,7 +798,6 @@ export function AiChatPage() {
         />
       </div>
 
-      {/* Tablet/móvil: las opciones se abren en un Sheet lateral. */}
       {!isLg && (
         <Sheet onOpenChange={setOptionsSheetOpen} open={optionsSheetOpen}>
           <SheetContent side="right">

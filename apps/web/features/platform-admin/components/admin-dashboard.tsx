@@ -45,7 +45,6 @@ import type { AdminDashboard as AdminDashboardData } from "@workspace/contracts"
 
 type Readiness = "ready" | "incomplete" | "untested" | "disabled"
 
-/** Los proveedores son nombres de marca; solo su estado se traduce. */
 type ProviderState = {
   name: string
   readiness: Readiness
@@ -99,8 +98,6 @@ export function AdminDashboard() {
   }, [router, t])
 
   useEffect(() => {
-    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
-    // la carga anterior cuando el efecto se repite.
     const timer = setTimeout(() => void load(), 0)
     return () => clearTimeout(timer)
   }, [load])

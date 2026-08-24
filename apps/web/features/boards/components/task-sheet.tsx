@@ -65,13 +65,8 @@ export type TaskDraft = {
   labelIds: string[]
 }
 
-/** Valor del selector cuando no hay responsable: `""` no lo admite Select. */
 const unassignedValue = "none"
 
-/**
- * La fecha límite es un día, no un instante. Se ancla al mediodía para que el
- * desfase horario no la corra al día anterior al convertirla.
- */
 function dueDateValue(value: string) {
   return value ? new Date(`${value}T12:00:00`) : undefined
 }
@@ -155,8 +150,6 @@ export function TaskSheet({
   const [lastTaskId, setLastTaskId] = useState<string | null>(null)
   const [wasOpen, setWasOpen] = useState(open)
 
-  // Ajustar el estado durante el render en vez de en un efecto: la hoja parte
-  // de la tarea elegida sin encadenar un segundo render.
   const taskId = task?.id ?? null
   if (open !== wasOpen || taskId !== lastTaskId) {
     setWasOpen(open)

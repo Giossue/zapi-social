@@ -150,23 +150,6 @@ export function fileKind(mime: string) {
   return "document" as const
 }
 
-/**
- * Disposición de claves de almacenamiento de Files.
- *
- * Una clave es una ruta relativa al volumen y se guarda tal cual en
- * `file_assets.storage_key`. Las claves anteriores a esta disposición siguen
- * resolviéndose porque la ruta siempre sale de la columna, nunca se recalcula.
- *
- *   ws/<shard>/<workspaceId>/orig/<yyyy>/<mm>/<assetId>[.ext]
- *   ws/<shard>/<workspaceId>/drv/<assetId>/<nombre>
- *   tmp/<uploadId>
- *
- * El shard son los dos primeros caracteres del identificador del espacio: acota
- * la raíz a 256 entradas en vez de una por cliente. El corte por año y mes acota
- * el crecimiento dentro de un espacio activo y permite copias incrementales por
- * periodo. `orig` y `drv` se separan porque el original es irreemplazable y el
- * derivado se puede regenerar.
- */
 export const TMP_STORAGE_PREFIX = "tmp"
 
 function storageShard(workspaceId: string) {
@@ -177,7 +160,6 @@ function storageShard(workspaceId: string) {
   return shard.length === 2 ? shard : "00"
 }
 
-/** Extensión normalizada y segura para incrustar en una clave. */
 export function storageExtension(name: string | null | undefined) {
   const match = /\.([0-9a-z]{1,12})$/i.exec(name ?? "")
   return match ? `.${match[1]!.toLowerCase()}` : ""
@@ -187,7 +169,6 @@ export function workspaceStoragePrefix(workspaceId: string) {
   return `ws/${storageShard(workspaceId)}/${workspaceId}`
 }
 
-/** Clave del binario original. `at` decide la partición por año y mes. */
 export function originalStorageKey(input: {
   workspaceId: string
   assetId: string
@@ -201,7 +182,6 @@ export function originalStorageKey(input: {
   return `${workspaceStoragePrefix(input.workspaceId)}/orig/${year}/${month}/${input.assetId}${extension}`
 }
 
-/** Carpeta que agrupa todos los derivados de un asset. */
 export function derivativeStoragePrefix(workspaceId: string, assetId: string) {
   return `${workspaceStoragePrefix(workspaceId)}/drv/${assetId}`
 }
@@ -232,7 +212,6 @@ export function publishVariantStorageKey(input: {
   })
 }
 
-/** Los temporales viven fuera del árbol del cliente para que un fallo no deje basura suya. */
 export function temporaryStorageKey(uploadId: string) {
   return `${TMP_STORAGE_PREFIX}/${uploadId}`
 }

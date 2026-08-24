@@ -9,11 +9,8 @@ export const adminSupportTicketStatusSchema = z.enum([
 export const adminSupportTicketsQuerySchema = z
   .object({
     q: z.string().trim().min(1).max(255).optional(),
-    status: z
-      .enum(["all", "open", "resolved", "closed"])
-      .default("all"),
+    status: z.enum(["all", "open", "resolved", "closed"]).default("all"),
     categoryId: z.uuid().optional(),
-    /** Solo casos abiertos cuyo último mensaje viene del cliente. */
     awaitingReply: z
       .union([z.boolean(), z.enum(["true", "false"])])
       .transform((value) => value === true || value === "true")

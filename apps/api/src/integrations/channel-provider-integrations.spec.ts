@@ -15,12 +15,10 @@ describe('channel provider catalogue', () => {
       }).success,
     ).toBe(true);
 
-    // Falta un campo obligatorio.
     expect(
       schema.safeParse({ clientId: 'abc', clientSecret: 'shh' }).success,
     ).toBe(false);
 
-    // `callbackUrl` lo calcula el servidor: no se acepta desde fuera.
     expect(
       schema.safeParse({
         clientId: 'abc',
@@ -42,10 +40,7 @@ describe('channel provider catalogue', () => {
 
   it('covers every catalogued provider with a usable form', () => {
     for (const provider of channelProviderCatalog) {
-      // Sin campo obligatorio no habría nada que configurar y la integración
-      // quedaría lista sin credenciales.
       expect(provider.fields.some((field) => field.required)).toBe(true);
-      // Un secreto en claro se vería en la respuesta de la API.
       expect(
         provider.fields.some(
           (field) => field.key.toLowerCase().includes('secret') === false,

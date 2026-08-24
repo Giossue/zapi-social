@@ -15,7 +15,6 @@ import {
   TOKEN_REFRESH_THRESHOLD_MS,
 } from './token-refresh.constants';
 
-/** Solo estos proveedores caducan sus tokens; Meta y LinkedIn no lo necesitan aquí. */
 const refreshable = new Set(['x', 'tiktok']);
 
 type RefreshedToken = {
@@ -24,13 +23,6 @@ type RefreshedToken = {
   expiresAt?: Date;
 };
 
-/**
- * Renueva los tokens de X y TikTok antes de que caduquen.
- *
- * Sin esto una cuenta conectada dejaría de publicar a las pocas horas —X— o al
- * día —TikTok—, sin aviso. El barrido busca credenciales con `refresh_token` y
- * expiración cercana, y las renueva contra el proveedor.
- */
 @Injectable()
 @Processor(TOKEN_REFRESH_QUEUE)
 export class TokenRefreshProcessor extends WorkerHost {
@@ -115,7 +107,6 @@ export class TokenRefreshProcessor extends WorkerHost {
       return this.parse(response);
     }
 
-    // TikTok
     const response = await fetch(
       'https://open.tiktokapis.com/v2/oauth/token/',
       {
@@ -162,7 +153,6 @@ export class TokenRefreshProcessor extends WorkerHost {
       .update(socialAccountCredentials)
       .set({
         accessTokenCiphertext: this.encryption.encrypt(token.accessToken, aad),
-        // TikTok rota el refresh token en cada renovación; X no siempre.
         ...(token.refreshToken
           ? {
               refreshTokenCiphertext: this.encryption.encrypt(
@@ -197,7 +187,6 @@ export class TokenRefreshProcessor extends WorkerHost {
       );
       if (typeof parsed !== 'object' || parsed === null) return null;
       const record = parsed as Record<string, unknown>;
-      // TikTok llama `clientKey` a lo que X llama `clientId`.
       const clientId = record.clientId ?? record.clientKey;
       const clientSecret = record.clientSecret;
       if (typeof clientId !== 'string' || typeof clientSecret !== 'string') {

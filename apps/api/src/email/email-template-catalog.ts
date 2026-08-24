@@ -2,7 +2,6 @@ import type { EmailTemplateKey, SupportedLocale } from '@workspace/contracts';
 
 export type EmailTemplateCopy = {
   subject: string;
-  /** Línea de vista previa del cliente de correo; no editable desde Admin. */
   preview: string;
   title: string;
   body: string;
@@ -13,16 +12,10 @@ export type EmailTemplateCopy = {
 type CatalogEntry = {
   name: string;
   description: string;
-  /** Un juego de textos por idioma; `es` es el respaldo. */
   copy: Record<SupportedLocale, EmailTemplateCopy>;
   variables: { token: string; description: string }[];
 };
 
-/**
- * Textos por defecto de cada correo transaccional. Son la fuente de verdad
- * mientras un administrador no los sobrescriba, y describen qué variables
- * admite cada uno. El idioma sale de `users.locale` del destinatario.
- */
 export const EMAIL_TEMPLATE_CATALOG: Record<EmailTemplateKey, CatalogEntry> = {
   password_reset: {
     name: 'Restablecer contraseña',

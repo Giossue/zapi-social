@@ -100,10 +100,6 @@ export class EmailTemplatesService {
     return this.list();
   }
 
-  /**
-   * Restablecer borra la personalización de un idioma: ese correo vuelve al
-   * texto del código sin tocar los demás idiomas.
-   */
   async reset(
     session: PlatformAdminAuthSession,
     key: string,
@@ -125,11 +121,6 @@ export class EmailTemplatesService {
     return this.list();
   }
 
-  /**
-   * Resuelve los textos de un correo en el idioma del destinatario, aplicando
-   * la personalización guardada para ese idioma y sustituyendo las variables
-   * declaradas en el catálogo.
-   */
   async resolve(
     key: EmailTemplateKey,
     variables: Record<string, string> = {},
@@ -143,9 +134,7 @@ export class EmailTemplatesService {
         and(eq(emailTemplates.key, key), eq(emailTemplates.locale, locale)),
       )
       .limit(1);
-    /* Un override desactivado se ignora: el correo vuelve al texto del código. */
     const active = override?.isActive ? override : undefined;
-    /* La vista previa no es personalizable: sale siempre del catálogo. */
     const copy: EmailTemplateCopy = active
       ? {
           preview: entry.copy[locale].preview,

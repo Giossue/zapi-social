@@ -81,8 +81,6 @@ export class NotificationsService {
         readAt: row.readAt?.toISOString() ?? null,
       })),
     ]
-      // Las dos fuentes se ordenan juntas: en la campana el usuario ve una sola
-      // lista, no dos secciones.
       .sort((first, second) =>
         second.publishedAt.localeCompare(first.publishedAt),
       )
@@ -110,8 +108,6 @@ export class NotificationsService {
       return this.feed(session);
     }
 
-    // El identificador puede ser de cualquiera de las dos fuentes: la campana
-    // presenta una sola lista y no distingue el origen al marcar.
     const marked = await this.database.db
       .update(workspaceNotifications)
       .set({ readAt: new Date(), updatedAt: new Date() })
@@ -168,10 +164,6 @@ export class NotificationsService {
     return this.feed(session);
   }
 
-  /**
-   * Un anuncio es visible si está publicado y su audiencia alcanza al workspace
-   * activo o a la persona de la sesión. No hay lectura entre workspaces.
-   */
   private visibleCondition(session: PortalAuthSession): SQL {
     return and(
       eq(platformAnnouncements.status, 'published'),
@@ -197,11 +189,6 @@ export class NotificationsService {
     return rows.map((row) => row.id);
   }
 
-  /**
-   * Marca como leídos —y opcionalmente archiva— los anuncios indicados.
-   * `now()` se resuelve en PostgreSQL: incrustar un `Date` dentro de un
-   * fragmento `sql` rompe la serialización del driver.
-   */
   private async upsertState(
     userId: string,
     announcementIds: string[],

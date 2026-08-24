@@ -23,15 +23,6 @@ import {
 
 const restBase = 'https://api.linkedin.com/rest';
 
-/**
- * Publica en LinkedIn con la **Posts API**, no con `ugcPosts`.
- *
- * ZapiSocial usa `/v2/ugcPosts` y `/v2/assets`, que LinkedIn sustituyó y retiró
- * para integraciones nuevas en junio de 2023. Copiarlo habría dado un conector
- * que no funciona. Lo vigente es `POST /rest/posts` con dos cabeceras
- * obligatorias, y la media por la API de Images, que devuelve un `urn` que se
- * referencia en `content.media.id`.
- */
 abstract class LinkedInPublisher implements ChannelPublisher {
   abstract readonly capabilityKey: PortalChannelCapabilityKey;
 
@@ -79,7 +70,6 @@ abstract class LinkedInPublisher implements ChannelPublisher {
       throw providerHttpError(response.status, 'PUBLISHING_LINKEDIN_REJECTED');
     }
 
-    // El identificador vuelve en la cabecera, no en el cuerpo.
     const providerRequestId = response.headers.get('x-restli-id');
     if (!providerRequestId) {
       throw new PublishingDeliveryError(providerOutcomeUnknownCode, true);
@@ -94,10 +84,6 @@ abstract class LinkedInPublisher implements ChannelPublisher {
     };
   }
 
-  /**
-   * Subida en tres pasos: se pide una URL, se sube el binario y se referencia
-   * el `urn` devuelto. `registerUpload` sobre `/v2/assets` ya no se usa.
-   */
   private async uploadImage(
     asset: PreparedPublishingAsset,
     author: string,
@@ -105,7 +91,6 @@ abstract class LinkedInPublisher implements ChannelPublisher {
     apiVersion: string,
   ): Promise<string> {
     if (asset.mimeType.startsWith('video/')) {
-      // El vídeo va por la API de Videos, con su propio flujo por partes.
       throw new PublishingDeliveryError(
         'PUBLISHING_LINKEDIN_VIDEO_UNSUPPORTED',
         true,
@@ -161,7 +146,6 @@ abstract class LinkedInPublisher implements ChannelPublisher {
     };
   }
 
-  /** `urn:li:person:{id}` para un perfil, `urn:li:organization:{id}` para una página. */
   protected abstract authorPrefix(): string;
 
   private author(externalId: string | null) {
@@ -190,11 +174,6 @@ abstract class LinkedInPublisher implements ChannelPublisher {
     }
   }
 
-  /**
-   * La versión vive en la configuración del proveedor porque LinkedIn retira
-   * cada una al año. Fijarla en el código haría que el conector dejara de
-   * publicar solo, sin que nadie hubiera tocado nada.
-   */
   private async apiVersion() {
     const [integration] = await this.database.db
       .select()

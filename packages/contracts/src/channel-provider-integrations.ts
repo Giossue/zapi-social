@@ -11,16 +11,6 @@ import {
   type PortalChannelProviderKey,
 } from "./channels-v2.js"
 
-/**
- * Pantalla genérica de integración de canal.
- *
- * Hasta ahora cada proveedor tenía su schema, sus tres métodos en la API y su
- * tarjeta en la web. Con siete redes eso significa escribir la misma pantalla
- * siete veces. Aquí el formulario sale del catálogo: la API valida contra los
- * campos declarados y la interfaz los pinta sin saber de qué red se trata.
- */
-
-/** Motivos por los que una integración no está lista, o por los que falló su prueba. */
 export const channelProviderIssueSchema = z.enum([
   "configuration_required",
   "configuration_requires_test",
@@ -47,21 +37,11 @@ export const channelProviderIntegrationSchema = z.object({
   definition: channelProviderDefinitionSchema,
   enabled: z.boolean(),
   readiness: channelProviderReadinessSchema,
-  /** Claves que la interfaz traduce; nunca prosa. */
   issues: z.array(channelProviderIssueSchema),
-  /**
-   * Valores guardados de los campos no secretos. Un campo `secret` nunca
-   * vuelve: solo se dice si está puesto, en `secretsConfigured`.
-   */
   values: z.record(z.string(), z.string()),
   secretsConfigured: z.array(channelProviderFieldKeySchema),
   capabilities: z.array(channelProviderCapabilityStateSchema),
   lastTestedAt: z.string().datetime().nullable(),
-  /**
-   * Un proveedor puede traer pantalla propia cuando necesita más que un
-   * formulario —Meta edita permisos por capability, WhatsApp prueba contra un
-   * conector—. La interfaz la respeta y no pinta la genérica.
-   */
   hasCustomScreen: z.boolean(),
 })
 
@@ -83,15 +63,9 @@ export const testChannelProviderIntegrationSchema = z
 
 export const testChannelProviderIntegrationResponseSchema = z.object({
   ok: z.boolean(),
-  /** Clave de error si la prueba falló; la interfaz la traduce. */
   issue: channelProviderIssueSchema.nullable(),
 })
 
-/**
- * Construye el validador de los valores de un proveedor a partir de sus campos
- * declarados. La API no repite las reglas: las deriva del mismo catálogo que
- * la interfaz usa para pintar el formulario.
- */
 export function channelProviderValuesSchema(
   providerKey: PortalChannelProviderKey
 ) {
@@ -100,7 +74,6 @@ export function channelProviderValuesSchema(
 
   const shape: Record<string, z.ZodTypeAny> = {}
   for (const field of definition.fields) {
-    // Un campo calculado por el servidor no se acepta desde fuera.
     if (field.readOnly) continue
 
     let value = z.string().trim()

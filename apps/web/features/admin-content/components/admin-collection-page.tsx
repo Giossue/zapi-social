@@ -190,15 +190,8 @@ function CollectionSheet({
   const t = useTranslations("adminContent")
   const [values, setValues] = useState<CollectionValues>(initialValues)
 
-  /**
-   * `initialValues` se recalcula en cada render del contenedor. Sincronizar por
-   * su identidad borraría lo que el usuario está escribiendo, así que solo se
-   * copia al abrir la hoja.
-   */
   const initialValuesRef = useRef(initialValues)
 
-  // Escribir una ref durante el render rompe con render concurrente: se
-  // sincroniza en un efecto, declarado antes del que la lee.
   useEffect(() => {
     initialValuesRef.current = initialValues
   })
@@ -437,10 +430,6 @@ export function AdminCollectionPage<TRow, TResponse>({
   const [editing, setEditing] = useState<TRow | null>(null)
   const [toDelete, setToDelete] = useState<TRow | null>(null)
 
-  /**
-   * `config` se construye en cada render del consumidor, así que no puede entrar
-   * como dependencia: haría que el efecto de carga se repitiera sin fin.
-   */
   const configRef = useRef(config)
 
   useEffect(() => {

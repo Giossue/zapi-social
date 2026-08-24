@@ -106,10 +106,6 @@ type FieldValues = Record<string, string | boolean | readonly string[]>
 export type AdminSecondaryViewState =
   "normal" | "loading" | "empty" | "error" | "forbidden"
 
-/**
- * Las claves llegan del catálogo de mockups, así que el tipado de `next-intl`
- * no puede comprobarlas: se pide el traductor con una firma llana.
- */
 type Translate = (key: string, values?: Record<string, string>) => string
 
 function useMockTranslate(): Translate {
@@ -197,7 +193,6 @@ function rowWithValues(
   }
 }
 
-/** Trabaja sobre la clave, no sobre el rótulo: no depende del idioma activo. */
 function toneForStatus(statusKey: string): AdminMockTone {
   const normalized = statusKey.toLowerCase()
   if (normalized.includes("error")) return "destructive"
@@ -241,10 +236,6 @@ function StatusBadge({ label, tone }: { label: string; tone: AdminMockTone }) {
   return <Badge variant={tone}>{label}</Badge>
 }
 
-/**
- * Escalona las columnas dinámicas: la primera queda siempre visible junto a
- * Estado y Acciones; las dos siguientes aparecen desde md y el resto desde lg.
- */
 function responsiveColumnClass(index: number) {
   if (index === 0) return undefined
   return index <= 2 ? "hidden md:table-cell" : "hidden lg:table-cell"

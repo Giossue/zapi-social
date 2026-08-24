@@ -7,19 +7,6 @@ import {
   type PortalChannelProviderKey,
 } from "./channels-v2.js"
 
-/**
- * Catálogo declarativo de proveedores y capabilities.
- *
- * Hasta ahora cada integración se escribía a mano —un schema por proveedor, un
- * `if` por red en el worker—, y eso no escala a las siete redes que se quieren
- * soportar. Aquí la red se describe como datos: qué credenciales pide, qué
- * destinos admite y qué media acepta cada destino. La API y la interfaz leen el
- * mismo catálogo, así que no pueden discrepar.
- *
- * El catálogo no lleva texto. Cada entrada aporta claves y la interfaz las
- * traduce, como el resto de V2.
- */
-
 export const channelFieldTypeSchema = z.enum([
   "text",
   "secret",
@@ -29,11 +16,6 @@ export const channelFieldTypeSchema = z.enum([
 
 export const channelAccountTypeSchema = z.enum(["oauth", "manual"])
 
-/**
- * Conjunto cerrado: cada campo necesita su rótulo traducido, y un `string`
- * libre dejaría pasar uno sin texto. Añadir un campo nuevo obliga a añadirlo
- * aquí y en los catálogos de idioma, que es justo lo que se quiere.
- */
 export const channelProviderFieldKeySchema = z.enum([
   "clientId",
   "clientSecret",
@@ -50,7 +32,6 @@ export const channelProviderFieldSchema = z.object({
   key: channelProviderFieldKeySchema,
   type: channelFieldTypeSchema,
   required: z.boolean(),
-  /** Solo informativo: lo calcula el servidor y no se envía. */
   readOnly: z.boolean(),
   maxLength: z.number().int().positive().nullable(),
 })
@@ -62,17 +43,11 @@ export const channelProviderDefinitionSchema = z.object({
   fields: z.array(channelProviderFieldSchema),
 })
 
-/**
- * Reglas de media de un destino, tomadas de lo que acepta la API de la red.
- * Son declarativas para que la interfaz avise antes de guardar y la API lo
- * vuelva a comprobar antes de encolar: esconder un botón no valida nada.
- */
 export const channelMediaRuleSchema = z.object({
   destination: z.string(),
   minItems: z.number().int().nonnegative(),
   maxItems: z.number().int().nonnegative(),
   allows: z.enum(["image", "video", "both"]),
-  /** Si es `false`, no se pueden mezclar imágenes y vídeos. */
   allowsMixed: z.boolean(),
   maxVideos: z.number().int().nonnegative().nullable(),
 })
@@ -82,7 +57,6 @@ export const channelCapabilityDefinitionSchema = z.object({
   providerKey: portalChannelProviderKeySchema,
   order: z.number().int().nonnegative(),
   supportsPublishing: z.boolean(),
-  /** El primero es el destino por defecto. */
   destinations: z.array(z.string()).min(1),
   mediaRules: z.array(channelMediaRuleSchema).min(1),
 })
@@ -134,8 +108,6 @@ export const channelProviderCatalog: readonly ChannelProviderDefinition[] = [
     fields: [
       field("clientId", "text", { required: true, maxLength: 128 }),
       field("clientSecret", "secret", { required: true, maxLength: 256 }),
-      // La versión de la Posts API va en cabecera y caduca al año, así que es
-      // configurable: si quedara fija, el conector dejaría de publicar solo.
       field("apiVersion", "text", { required: true, maxLength: 6 }),
       field("callbackUrl", "text", { readOnly: true }),
     ],
@@ -172,24 +144,8 @@ export const channelProviderCatalog: readonly ChannelProviderDefinition[] = [
   },
 ]
 
-/** Un elemento de la publicación, reducido a lo que deciden las reglas. */
 export type ChannelMediaItem = { mimeType: string }
 
-/**
- * De dónde salen los límites de media, para que no parezcan arbitrarios cuando
- * alguien los cambie:
- *
- * - **Facebook e Instagram**: Graph API. El Feed rechaza mezclar foto y vídeo y
- *   admite un solo vídeo; Instagram no publica sin media.
- * - **LinkedIn**: Posts API. `content.media` referencia un único `urn`; varias
- *   imágenes exigen la MultiImage API, que es solo de imágenes.
- * - **X**: hasta cuatro imágenes, o un solo vídeo o GIF, nunca mezclados.
- * - **TikTok**: `/v2/post/publish/video/init/` para vídeo —uno— y
- *   `/v2/post/publish/content/init/` para fotos.
- *
- * Los detalles y el contraste con lo que hace ZapiSocial están en
- * `docs/planes/canales-publicacion-v2.md`.
- */
 export const channelCapabilityCatalog: readonly ChannelCapabilityDefinition[] =
   [
     {
@@ -204,8 +160,6 @@ export const channelCapabilityCatalog: readonly ChannelCapabilityDefinition[] =
           minItems: 0,
           maxItems: 10,
           allows: "both",
-          // El Feed rechaza una publicación que mezcle foto y vídeo, y solo
-          // admite un vídeo por publicación.
           allowsMixed: false,
           maxVideos: 1,
         },
@@ -220,7 +174,6 @@ export const channelCapabilityCatalog: readonly ChannelCapabilityDefinition[] =
       mediaRules: [
         {
           destination: "feed",
-          // Instagram no publica sin media.
           minItems: 1,
           maxItems: 1,
           allows: "both",
@@ -241,8 +194,6 @@ export const channelCapabilityCatalog: readonly ChannelCapabilityDefinition[] =
           minItems: 0,
           maxItems: 20,
           allows: "both",
-          // La Posts API referencia un único `urn` de media por publicación,
-          // salvo el caso MultiImage, que es solo de imágenes.
           allowsMixed: false,
           maxVideos: 1,
         },
@@ -275,7 +226,6 @@ export const channelCapabilityCatalog: readonly ChannelCapabilityDefinition[] =
         {
           destination: "feed",
           minItems: 0,
-          // X admite hasta cuatro imágenes, o un solo vídeo o GIF.
           maxItems: 4,
           allows: "both",
           allowsMixed: false,
@@ -339,7 +289,6 @@ export function channelCapability(
   return channelCapabilityCatalog.find((capability) => capability.key === key)
 }
 
-/** Claves de error que devuelve la validación de media. La interfaz las traduce. */
 export const channelMediaErrorSchema = z.enum([
   "capabilityUnsupported",
   "destinationUnsupported",
@@ -353,10 +302,6 @@ export const channelMediaErrorSchema = z.enum([
 
 export type ChannelMediaError = z.infer<typeof channelMediaErrorSchema>
 
-/**
- * Comprueba la media de una publicación contra las reglas de su destino.
- * Devuelve la clave del problema, o `null` si es válida.
- */
 export function validateChannelMedia(
   capabilityKey: PortalChannelCapabilityKey,
   destination: string,

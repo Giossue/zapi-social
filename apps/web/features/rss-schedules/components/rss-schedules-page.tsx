@@ -131,7 +131,6 @@ function clientTimezone() {
   return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"
 }
 
-/** Un fallo de validación tiene su propio texto; el resto usa el del contexto. */
 function scheduleError(
   error: unknown,
   fallback: string,
@@ -182,7 +181,6 @@ export function RssSchedulesPage() {
     let isCurrent = true
     const trimmedQuery = deferredQuery.trim()
 
-    // El temporizador saca el primer `setState` del cuerpo del efecto.
     const timer = setTimeout(() => {
       setListState({ status: "loading" })
     }, 0)

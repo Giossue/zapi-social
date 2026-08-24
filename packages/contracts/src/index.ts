@@ -65,7 +65,6 @@ export const updateAdminTurnstileConfigurationSchema = z
   })
   .strict()
 
-/** Idiomas con traducción disponible en la interfaz. */
 export { supportedLocaleSchema } from "./locale.js"
 import { supportedLocaleSchema } from "./locale.js"
 import { workspacePermissionSchema } from "./workspace-permissions.js"
@@ -104,7 +103,6 @@ export const authUserSchema = z.object({
   id: z.uuid(),
   email: z.string().email(),
   displayName: z.string(),
-  /** Idioma elegido por el usuario; `null` usa el idioma por defecto. */
   locale: supportedLocaleSchema.nullable(),
 })
 
@@ -143,10 +141,6 @@ const dashboardKpiChangeSchema = z
   })
   .nullable()
 
-/**
- * El KPI viaja como clave, no como texto: la etiqueta, su descripción y su
- * icono los resuelve la interfaz según el idioma activo.
- */
 const portalDashboardKpiSchema = z.object({
   key: z.enum(["publishedPosts", "activeChannels", "aiCredits", "newFiles"]),
   value: z.string(),
@@ -169,10 +163,6 @@ const dashboardDayCountSchema = z.object({
   count: z.number().int().nonnegative(),
 })
 
-/**
- * Los desgloses viajan por clave —proveedor, tipo de uso AI o plan— para que
- * la interfaz decida su rótulo. `none` representa el registro sin canal.
- */
 const dashboardBreakdownItemSchema = z.object({
   key: z.string(),
   count: z.number().int().nonnegative(),
@@ -284,7 +274,6 @@ export const portalFileFolderSchema = z.object({
 })
 export const portalFilesResponseSchema = z.object({
   canManage: z.boolean(),
-  /** Ruta de la carpeta consultada, de la raíz hacia dentro. */
   folderPath: z.array(z.object({ id: z.uuid(), name: z.string() })),
   folders: z.array(portalFileFolderSchema),
   files: z.array(portalFileAssetSchema),
@@ -754,7 +743,6 @@ export const runPortalRssScheduleSchema = z
 
 export const adminSystemCheckSchema = z.object({
   key: z.enum(["postgres", "redis"]),
-  /** Versión detectada; `null` cuando la dependencia no respondió. */
   version: z.string().nullable(),
   passed: z.boolean(),
 })
@@ -928,11 +916,6 @@ export const portalTeamMemberSchema = z.object({
   role: portalTeamRoleSchema,
   joinedAt: z.string().datetime(),
   accountIds: z.array(z.uuid()),
-  /**
-   * Permisos concedidos a esta membresía. `owner` y `admin` los tienen todos de
-   * forma implícita y llegan con el catálogo completo, para que la interfaz no
-   * tenga que replicar esa regla.
-   */
   permissions: z.array(workspacePermissionSchema),
 })
 export const portalTeamInvitationSchema = z.object({
@@ -990,7 +973,6 @@ export const updatePortalTeamMemberAccessSchema = z
   .object({
     role: portalTeamInvitationRoleSchema,
     accountIds: z.array(z.uuid()).max(500),
-    /** Se ignora cuando el rol es `admin`: ese rol ya los tiene todos. */
     permissions: z.array(workspacePermissionSchema).default([]),
   })
   .strict()
@@ -1060,7 +1042,6 @@ export const portalDashboardSchema = z.object({
   upcoming: z.array(
     z.object({
       content: z.string(),
-      /** Clave del proveedor, o `none` cuando la publicación no tiene canal. */
       channelKey: z.string(),
       status: portalUpcomingPostStatusSchema,
       date: z.string().nullable(),
@@ -1071,7 +1052,6 @@ export const portalDashboardSchema = z.object({
 const adminDashboardKpiSchema = z.object({
   key: z.enum(["users", "workspaces", "subscriptions", "revenue"]),
   value: z.string(),
-  /** Con moneda, `value` es el importe en unidad menor y lo formatea la web. */
   currency: z.string().nullable(),
   change: dashboardKpiChangeSchema,
   descriptionKey: z.enum([

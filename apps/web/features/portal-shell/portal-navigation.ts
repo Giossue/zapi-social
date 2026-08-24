@@ -25,18 +25,12 @@ import type {
 } from "@/components/dashboard-shell/navigation-types"
 import type messages from "@/messages/es.d.json"
 
-/** Solo se admite una clave existente en `navigation.portal`. */
 type PortalNavigationKey = keyof (typeof messages)["navigation"]["portal"]
 
 export type PortalNavigationLink = NavigationSourceLink<PortalNavigationKey>
 export type PortalNavigationItem = NavigationSourceItem<PortalNavigationKey>
 export type PortalNavigationGroup = NavigationSourceGroup<PortalNavigationKey>
 
-/**
- * Equivalencia del registro de sidebar de Laravel. Visibilidad por plan/equipo
- * todavía es mock: se muestran todas las opciones para diseñar cada módulo.
- * El texto vive en `messages/` bajo `navigation.portal`.
- */
 export const portalNavigationGroups: readonly PortalNavigationGroup[] = [
   {
     labelKey: "general",

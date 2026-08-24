@@ -192,9 +192,7 @@ export class GoogleDriveImportsService {
           removeOnFail: 100,
         },
       );
-    } catch {
-      // Estado durable: el scheduler del Worker recupera lotes pendientes.
-    }
+    } catch {}
 
     return this.batch(auth, batchId);
   }

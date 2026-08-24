@@ -5,21 +5,12 @@ import type {
   ConnectionCandidate,
 } from './channel-connection.adapter';
 
-/**
- * Conexión de cuentas de X (Twitter).
- *
- * OAuth 2.0 con PKCE obligatorio: X exige el `code_verifier` al canjear, y su
- * canje se autentica con Basic Auth del par cliente/secreto, no con los campos
- * en el cuerpo. El identificador de la cuenta sale de `/2/users/me`.
- */
 @Injectable()
 export class XConnectionAdapter implements ChannelConnectionAdapter {
   readonly providerKey = 'x';
   readonly usesPkce = true;
 
   scopesFor(): string[] {
-    // `offline.access` es lo que hace que X entregue un refresh token; sin él
-    // la cuenta se desconectaría a las dos horas.
     return ['tweet.read', 'tweet.write', 'users.read', 'offline.access'];
   }
 
@@ -43,7 +34,6 @@ export class XConnectionAdapter implements ChannelConnectionAdapter {
       redirect_uri: redirectUri,
       state,
       scope: scopes.join(' '),
-      // X exige PKCE: sin el challenge la autorización ni empieza.
       code_challenge: codeChallenge ?? '',
       code_challenge_method: 'S256',
     }).toString();

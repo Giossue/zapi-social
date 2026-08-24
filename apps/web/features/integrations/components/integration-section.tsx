@@ -1,11 +1,5 @@
 import type { ComponentType, ReactNode, SVGProps } from "react"
 
-/**
- * Bloque de una tarjeta de integración: icono, encabezado y contenido.
- *
- * Meta y WhatsApp ya lo hacían así y el resto no, cada uno a su manera. Tenerlo
- * en un componente evita que vuelva a divergir cuando se añada un proveedor.
- */
 export function IntegrationSection({
   children,
   icon: Icon,

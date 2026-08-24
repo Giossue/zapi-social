@@ -26,14 +26,12 @@ import type {
 } from "@/components/dashboard-shell/navigation-types"
 import type messages from "@/messages/es.d.json"
 
-/** Solo se admite una clave existente en `navigation.admin`. */
 type AdminNavigationKey = keyof (typeof messages)["navigation"]["admin"]
 
 export type AdminNavigationLink = NavigationSourceLink<AdminNavigationKey>
 export type AdminNavigationItem = NavigationSourceItem<AdminNavigationKey>
 export type AdminNavigationGroup = NavigationSourceGroup<AdminNavigationKey>
 
-/** El texto vive en `messages/` bajo `navigation.admin`. */
 export const adminNavigationGroups: readonly AdminNavigationGroup[] = [
   {
     labelKey: "general",

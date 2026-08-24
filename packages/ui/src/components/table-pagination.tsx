@@ -11,10 +11,6 @@ import {
 import { Separator } from "@workspace/ui/components/separator"
 
 type TablePaginationProps = {
-  /**
-   * Rango ya formateado por quien consume el primitive. `packages/ui` no
-   * traduce: no conoce el idioma activo ni debe depender de él.
-   */
   rangeLabel: string
   canGoNext: boolean
   canGoPrevious: boolean

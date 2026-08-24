@@ -21,14 +21,6 @@ import {
 
 const apiBase = 'https://api.x.com/2';
 
-/**
- * Publica en X con la API v2.
- *
- * La media se sube en tres pasos —INIT, APPEND en segmentos de menos de 5 MB,
- * FINALIZE— por `api.x.com/2/media/upload`, y luego se adjunta el `media_id` al
- * tweet en `POST /2/tweets`. Es la API vigente desde enero de 2025; la de
- * `upload.twitter.com/1.1` está retirada.
- */
 @Injectable()
 export class XPublisher implements ChannelPublisher {
   readonly capabilityKey: PortalChannelCapabilityKey = 'x_profile';
@@ -126,7 +118,6 @@ export class XPublisher implements ChannelPublisher {
   ): Promise<void> {
     const blob = await this.assets.blob(asset);
     const bytes = new Uint8Array(await blob.arrayBuffer());
-    // Menos de 5 MB por segmento es el límite de X.
     const chunkSize = 4 * 1024 * 1024;
     let segment = 0;
     for (let offset = 0; offset < bytes.length; offset += chunkSize) {
@@ -166,7 +157,6 @@ export class XPublisher implements ChannelPublisher {
     if (!response.ok) {
       throw providerHttpError(response.status, 'PUBLISHING_X_REJECTED');
     }
-    // Un vídeo puede seguir procesándose; se sondea hasta que esté listo.
     const payload = await responseJson(response);
     const data = isRecord(payload.data) ? payload.data : payload;
     const info = isRecord(data.processing_info) ? data.processing_info : null;

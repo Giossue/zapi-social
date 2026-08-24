@@ -31,8 +31,6 @@ import { IntegrationsService } from './integrations.service';
     XProviderVerifier,
     TikTokProviderVerifier,
     {
-      // Añadir una red es sumar su verificador aquí. Mientras no lo tenga, su
-      // integración se queda en «sin probar» y el Portal no abre el canal.
       provide: CHANNEL_PROVIDER_VERIFIERS,
       inject: [
         LinkedInProviderVerifier,

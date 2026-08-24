@@ -31,7 +31,6 @@ const describeDatabase = isLocalTestDatabase ? describe : describe.skip;
 const rollback = new Error('Rollback Boards integration test.');
 const connection = isLocalTestDatabase ? createDatabase(databaseUrl!) : null;
 
-/** El correo se prueba aparte; aquí solo interesa que no rompa el flujo. */
 class SilentEmailService {
   readonly sent: string[] = [];
 
@@ -157,7 +156,6 @@ describeDatabase('Board lifecycle', () => {
       ]);
       expect(first.columns.at(-1)?.isTerminal).toBe(true);
 
-      // Abrir el tablero otra vez, incluso en otro idioma, no vuelve a crearlas.
       const second = await service.board(
         scenario.ownerSession,
         {},
@@ -192,7 +190,6 @@ describeDatabase('Board lifecycle', () => {
         'WORKSPACE_PERMISSION_DENIED',
       );
 
-      // Con `boards.view` ve el tablero pero sigue sin poder tocarlo.
       await database
         .update(workspaceMemberships)
         .set({ permissions: ['boards.view'] })
@@ -235,7 +232,6 @@ describeDatabase('Board lifecycle', () => {
       }
       expect(created.map((task) => task.position)).toEqual([0, 1, 2]);
 
-      // La tercera se mueve al principio: la columna entera se renumera.
       await service.moveTask(scenario.ownerSession, created[2].id, {
         columnId: todo.id,
         position: 0,
@@ -251,7 +247,6 @@ describeDatabase('Board lifecycle', () => {
         { title: 'Segunda', position: 2 },
       ]);
 
-      // Entrar en la columna terminal sella la fecha; salir la deshace.
       const finished = await service.moveTask(
         scenario.ownerSession,
         created[0].id,
@@ -298,7 +293,6 @@ describeDatabase('Board lifecycle', () => {
         .from(workspaceNotifications)
         .where(eq(workspaceNotifications.workspaceId, scenario.workspace.id));
 
-      // Asignarse una tarea a uno mismo no genera aviso.
       expect(notifications).toEqual([
         {
           userId: scenario.member.id,
@@ -340,7 +334,6 @@ describeDatabase('Board lifecycle', () => {
         'BOARD_COLUMN_NOT_EMPTY',
       );
 
-      // Una columna vacía sí se puede borrar.
       const empty = await database
         .select({ id: boardColumns.id })
         .from(boardColumns)

@@ -5,13 +5,6 @@ import { ChannelsModule } from './channels.module';
 import { DatabaseModule } from '../database/database.module';
 import { DatabaseService } from '../database/database.service';
 
-/**
- * Compila el grafo real de `ChannelsModule` con Nest. Un servicio puede
- * pasar `typecheck` y aun así tumbar la API al arrancar si una dependencia no
- * se resuelve; ya ocurrió una vez y solo se vio como un 502 en producción.
- * Aquí se registran los tres adaptadores nuevos por `useFactory`, que es
- * justo el punto donde un `inject` mal puesto no lo caza el compilador.
- */
 describe('channels module wiring', () => {
   it('resolves the connection service with all adapters', async () => {
     const moduleRef = await Test.createTestingModule({
@@ -36,7 +29,6 @@ describe('channels module wiring', () => {
         ChannelsModule,
       ],
     })
-      // BullMQ intenta abrir Redis al construir las colas; se sustituye.
       .overrideProvider(getQueueToken('meta-profile-sync'))
       .useValue({ add: () => Promise.resolve() })
       .overrideProvider(getQueueToken('whatsapp-profile-sync'))

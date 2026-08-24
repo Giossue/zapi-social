@@ -33,8 +33,6 @@ import {
 import type { PortalChannelAccount } from "../../types/channels"
 
 declare module "@tanstack/react-table" {
-  /* TypeScript exige que una augmentación repita los parámetros con el
-     mismo nombre, aunque esta no los use. */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   interface ColumnMeta<TData extends RowData, TValue> {
     className?: string
@@ -57,7 +55,6 @@ export type ChannelTableActions = {
   pendingAccountId: string | null
 }
 
-/** El backend envía fecha sola o instante completo. */
 function connectionInstant(value: string) {
   return value.includes("T") ? new Date(value) : new Date(`${value}T12:00:00`)
 }

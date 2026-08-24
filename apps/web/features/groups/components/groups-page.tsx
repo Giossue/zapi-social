@@ -106,7 +106,6 @@ const statusVariant: Record<GroupStatus, "success" | "neutral"> = {
   inactive: "neutral",
 }
 
-/** Paleta fija para que un grupo sea reconocible de un vistazo sin abrir un selector nativo. */
 const groupColors = [
   { labelKey: "color.blue", value: "#2563eb" },
   { labelKey: "color.green", value: "#16a34a" },
@@ -162,8 +161,6 @@ function GroupSheet({
   const [draft, setDraft] = useState<GroupDraft>(emptyDraft)
   const [wasOpen, setWasOpen] = useState(open)
 
-  // Ajustar el estado durante el render en vez de en un efecto: al abrirse la
-  // hoja el borrador parte del grupo elegido sin encadenar un segundo render.
   if (open !== wasOpen) {
     setWasOpen(open)
     if (open) setDraft(group ? draftFrom(group) : emptyDraft)

@@ -103,8 +103,6 @@ export function WhatsAppStatusConnection({
   }, [reconnectAccountId, t])
 
   useEffect(() => {
-    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
-    // la carga anterior cuando el efecto se repite.
     const timer = setTimeout(() => void start(), 0)
     return () => clearTimeout(timer)
   }, [start])
@@ -114,14 +112,11 @@ export function WhatsAppStatusConnection({
 
   useEffect(() => {
     if (!connectionId || !expiresAt) {
-      // Sin conexión la cuenta atrás se limpia, pero fuera del cuerpo del
-      // efecto: si no, sería un `setState` síncrono.
       const clear = setTimeout(() => setSecondsLeft(null), 0)
       return () => clearTimeout(clear)
     }
 
     const updateCountdown = () => setSecondsLeft(remainingSeconds(expiresAt))
-    // La primera lectura también se difiere: dentro del efecto sería síncrona.
     const first = setTimeout(updateCountdown, 0)
     const timer = window.setInterval(updateCountdown, 1_000)
     return () => {

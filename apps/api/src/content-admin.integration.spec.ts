@@ -133,7 +133,6 @@ describeDatabase('Admin content service', () => {
   it('leaves a single default language when another one is promoted', async () => {
     await inRollbackTransaction(async (database) => {
       const content = serviceFor(database);
-      // El código ISO admite 12 caracteres; se usa un sufijo corto y único.
       const suffix = Date.now().toString(36).slice(-6);
       await content.saveLanguage(null, {
         code: `qa-${suffix}`,

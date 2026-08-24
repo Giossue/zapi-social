@@ -1,6 +1,5 @@
 import type { PublishingCalendarData } from "@/features/publishing/types/publishing-calendar"
 
-/** Datos sintéticos y deterministas para diseñar Publishing antes del contrato REST. */
 export const publishingCalendarFixture: PublishingCalendarData = {
   focusDate: "2026-07-31",
   canView: true,

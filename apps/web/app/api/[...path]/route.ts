@@ -19,8 +19,6 @@ async function proxy(request: NextRequest) {
   const init: RequestInit & { duplex?: "half" } = {
     method: request.method,
     headers,
-    // Do not buffer uploads in the Web container. Files can be 100 MB and the
-    // API already validates the actual maximum while writing to its volume.
     body: hasBody ? request.body : undefined,
     cache: "no-store",
   }

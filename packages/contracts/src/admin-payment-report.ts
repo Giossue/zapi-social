@@ -14,7 +14,6 @@ export const adminPaymentReportQuerySchema = z
   })
   .strict()
 
-/** Todos los importes viajan en unidades menores de la moneda (centavos). */
 export const adminPaymentReportMetricsSchema = z.object({
   grossMinor: z.number().int().nonnegative(),
   refundedMinor: z.number().int().nonnegative(),
@@ -27,7 +26,6 @@ export const adminPaymentReportMetricsSchema = z.object({
 })
 
 export const adminPaymentReportPeriodSchema = z.object({
-  /** `YYYY-MM-DD` en rangos por día, `YYYY-MM` en el rango de 12 meses. */
   period: z.string(),
   grossMinor: z.number().int().nonnegative(),
   netMinor: z.number().int(),
@@ -42,7 +40,13 @@ export const adminPaymentReportProductRowSchema = z.object({
 })
 
 export const adminPaymentReportStatusRowSchema = z.object({
-  status: z.enum(["pending", "paid", "partially_refunded", "refunded", "failed"]),
+  status: z.enum([
+    "pending",
+    "paid",
+    "partially_refunded",
+    "refunded",
+    "failed",
+  ]),
   amountMinor: z.number().int().nonnegative(),
   count: z.number().int().nonnegative(),
 })
@@ -57,7 +61,6 @@ export const adminPaymentReportWorkspaceRowSchema = z.object({
 export const adminPaymentReportSchema = z.object({
   range: adminPaymentReportRangeSchema,
   productType: adminPaymentReportProductSchema,
-  /** Moneda dominante del periodo; la respuesta agrega solo esa moneda. */
   currency: z.string(),
   currencies: z.array(z.string()),
   metrics: adminPaymentReportMetricsSchema,

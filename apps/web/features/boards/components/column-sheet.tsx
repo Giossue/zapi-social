@@ -38,7 +38,6 @@ import { toast } from "@workspace/ui/components/toast"
 
 import { useApiErrorMessage } from "@/lib/api-error-message"
 
-/** Misma paleta que Groups, para que el color signifique lo mismo en todo V2. */
 const columnColors = [
   { labelKey: "color.blue", value: "#2563eb" },
   { labelKey: "color.green", value: "#16a34a" },
@@ -89,7 +88,6 @@ export function ColumnSheet({
   const [lastColumnId, setLastColumnId] = useState<string | null>(null)
   const [wasOpen, setWasOpen] = useState(open)
 
-  // Ajustar el estado durante el render en vez de en un efecto.
   const columnId = column?.id ?? null
   if (open !== wasOpen || columnId !== lastColumnId) {
     setWasOpen(open)

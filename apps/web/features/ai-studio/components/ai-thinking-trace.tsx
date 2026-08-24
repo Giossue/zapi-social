@@ -11,13 +11,6 @@ export type TraceStep = {
   state: "done" | "active" | "pending"
 }
 
-/**
- * Traza de trabajo del modelo: encabezado plegable con etiqueta animada mientras
- * hay trabajo, y una línea de tiempo con los pasos ya conocidos.
- *
- * Composición tomada de `@theshanelevine/thinking` (21st.dev); los colores, radios
- * y tipografías se sustituyeron por los tokens del sistema y sus primitives.
- */
 export function AiThinkingTrace({
   activeLabel,
   doneLabel,

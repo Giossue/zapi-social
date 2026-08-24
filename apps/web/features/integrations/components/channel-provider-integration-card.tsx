@@ -82,11 +82,6 @@ function ProviderStatus({
   )
 }
 
-/**
- * Integración de canal pintada desde su definición, con la misma composición
- * que Meta y Polar: la tarjeta resume y la hoja lateral edita. No sabe de qué
- * red se trata, así que añadir una no toca este archivo.
- */
 export function ChannelProviderIntegrationCard({
   onSaved,
   provider,
@@ -112,8 +107,6 @@ export function ChannelProviderIntegrationCard({
   const [tested, setTested] = useState(provider.readiness === "ready")
   const [wasOpen, setWasOpen] = useState(open)
 
-  // Ajustar el estado durante el render en vez de en un efecto: al abrir la
-  // hoja el borrador parte de lo guardado sin encadenar un segundo render.
   if (open !== wasOpen) {
     setWasOpen(open)
     if (open) {
@@ -144,8 +137,6 @@ export function ChannelProviderIntegrationCard({
 
   function update(key: string, value: string) {
     setValues((current) => ({ ...current, [key]: value }))
-    // Cambiar una credencial invalida la prueba, igual que hace la API al
-    // guardar; si no, el botón diría que se puede activar cuando no.
     setTested(false)
   }
 
@@ -466,8 +457,6 @@ export function ChannelProviderIntegrationCard({
                 {tShared("cancel")}
               </Button>
               <Button
-                // Activarla sin prueba vigente abriría el canal en el Portal sin
-                // saber si las credenciales sirven.
                 disabled={pending || missingRequired || (enabled && !tested)}
                 type="submit"
               >

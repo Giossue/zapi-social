@@ -5,13 +5,6 @@ import type {
   ConnectionCandidate,
 } from './channel-connection.adapter';
 
-/**
- * Conexión de cuentas de TikTok.
- *
- * OAuth 2.0 con `client_key`/`client_secret` en el cuerpo. El perfil sale de
- * `/v2/user/info/`, que devuelve un `open_id` estable por aplicación. El token
- * caduca en 24 h y trae refresh token.
- */
 @Injectable()
 export class TikTokConnectionAdapter implements ChannelConnectionAdapter {
   readonly providerKey = 'tiktok';

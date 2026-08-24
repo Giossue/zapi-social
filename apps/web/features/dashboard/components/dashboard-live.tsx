@@ -42,8 +42,6 @@ export function LivePortalDashboard() {
   }, [router, t])
 
   useEffect(() => {
-    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
-    // la carga anterior cuando el efecto se repite.
     const timer = setTimeout(() => void loadDashboard(), 0)
     return () => clearTimeout(timer)
   }, [loadDashboard])

@@ -88,7 +88,6 @@ function toForm(copy: AdminEmailTemplateCopy): FormValues {
   }
 }
 
-/** Los textos de un idioma; `es` es el respaldo cuando el correo no lo trae. */
 function copyFor(
   template: AdminEmailTemplate,
   locale: SupportedLocale
@@ -126,15 +125,9 @@ function TemplateSheet({
     isActive: true,
   })
 
-  /**
-   * Cada idioma se edita por separado: al cambiar de pestaña se recargan sus
-   * textos, no los del anterior.
-   */
   const formKey = open && template ? `${template.key}:${locale}` : null
   const [lastFormKey, setLastFormKey] = useState(formKey)
 
-  // Ajustar el estado durante el render en vez de en un efecto: evita el
-  // segundo render que encadena `setState` dentro de `useEffect`.
   if (formKey !== lastFormKey) {
     setLastFormKey(formKey)
     if (open && template) setValues(toForm(copyFor(template, locale)))
@@ -381,8 +374,6 @@ export function AdminEmailTemplatesPage() {
   }, [])
 
   useEffect(() => {
-    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
-    // la carga anterior cuando el efecto se repite.
     const timer = setTimeout(() => void load(), 0)
     return () => clearTimeout(timer)
   }, [load])
@@ -656,8 +647,6 @@ export function AdminEmailTemplatesPage() {
                 const target = resetting
                 if (!target) return
                 setPending(true)
-                /* Restablecer devuelve el correo al texto del código en todos
-                   los idiomas que se hubieran personalizado. */
                 const customized = target.copies.filter(
                   (copy) => copy.customized
                 )

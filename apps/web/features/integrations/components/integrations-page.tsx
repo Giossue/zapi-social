@@ -77,7 +77,6 @@ import { BrandMeta } from "@/components/brand-icons"
 
 type CapabilityKey = MetaIntegration["capabilities"][number]["key"]
 type MetaScope = MetaIntegration["capabilityScopes"][CapabilityKey][number]
-/** El rótulo de cada permiso sale de `scope.<clave>` en `messages`. */
 type ScopeOption = { required: boolean; scope: MetaScope }
 
 const capabilityScopeOptions = {
@@ -107,10 +106,6 @@ type Draft = {
 }
 
 type TestState = "not-tested" | "testing" | "passed" | "failed"
-/**
- * Las cinco primeras tienen pantalla propia; el resto llega del catálogo, así
- * que la pestaña es una cadena y no una unión cerrada.
- */
 type ProviderTab = string
 
 const statusVariants = {
@@ -223,8 +218,6 @@ export function IntegrationsPage() {
   }, [t])
 
   useEffect(() => {
-    // Las redes sin pantalla propia llegan del catálogo; si la llamada falla no
-    // se rompe la página, solo faltan sus pestañas.
     const timer = setTimeout(() => {
       void integrationsApi
         .listChannelProviders()
@@ -235,8 +228,6 @@ export function IntegrationsPage() {
   }, [])
 
   useEffect(() => {
-    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
-    // la carga anterior cuando el efecto se repite.
     const timer = setTimeout(() => void load(), 0)
     return () => clearTimeout(timer)
   }, [load])

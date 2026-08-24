@@ -20,18 +20,15 @@ export type AdminMockTone =
 export type AdminMockRow = {
   id: string
   search: string
-  /** Clave del estado; también es el valor con el que filtra la tabla. */
   statusKey: string
   tone: AdminMockTone
   values: readonly { primary: string; secondary?: string; mono?: boolean }[]
 }
 
-/** Solo la clave: el rótulo sale de `messages`. */
 export type AdminPermissionOption = { key: string }
 
 export type AdminMockField = {
   kind: "text" | "textarea" | "select" | "switch" | "display" | "permissions"
-  /** Clave del rótulo dentro del espacio `adminMockups`. */
   labelKey: string
   hasDescription?: boolean
   name: string
@@ -50,7 +47,6 @@ export type AdminMockAction = {
 }
 
 type AdminMockMetric = {
-  /** Clave `<módulo>.<métrica>`; rótulo y detalle salen de `messages`. */
   key: string
   icon: LucideIcon
   value: string
@@ -59,7 +55,6 @@ type AdminMockMetric = {
 export type AdminCollectionDefinition = {
   action?: AdminMockAction
   columnKeys: readonly string[]
-  /** Claves de estado que ofrece el filtro, en orden. */
   statusKeys: readonly string[]
   icon: LucideIcon
   kind: "collection"

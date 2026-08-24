@@ -17,13 +17,6 @@ import {
   type CollectionValues,
 } from "./admin-collection-page"
 
-/**
- * Mock visual del módulo Laravel `AdminBlogs → RSS Feeds` (`blog_rss_sources`).
- * Trabaja sobre fixtures locales deterministas: el contrato REST y su backend
- * llegan con la vertical de contenido, sin tocar los endpoints actuales.
- */
-
-/** Estado local del mock; se restablece al recargar la aplicación. */
 let feedsStore: AdminBlogRssFeed[] = initialFeeds.map((feed) => ({ ...feed }))
 let feedSequence = initialFeeds.length
 

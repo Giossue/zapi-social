@@ -58,7 +58,6 @@ const views = [
   { key: "timeGridDay", messageKey: "day" },
 ] as const
 
-/** Los nombres de canal son marcas: no se traducen. */
 const channels: Array<{ key: PublishingProvider; label: string }> = [
   { key: "facebook", label: "Facebook" },
   { key: "instagram", label: "Instagram" },

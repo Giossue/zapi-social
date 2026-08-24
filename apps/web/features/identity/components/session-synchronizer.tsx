@@ -41,7 +41,6 @@ export function SessionSynchronizer() {
     if (!isProtectedPath(window.location.pathname)) return
     try {
       const session = await authApi.session()
-      /** El idioma pudo cambiar en otro dispositivo: la cuenta manda. */
       const localeChanged = syncLocaleCookie(session.user.locale)
       const area = getSessionArea(session)
       if (area) {

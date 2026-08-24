@@ -22,7 +22,6 @@ export function AdminMetricCards({ metrics }: { metrics: AdminKpi[] }) {
   const t = useTranslations("dashboard.admin.metrics")
   const format = useFormatter()
 
-  /** Con moneda, la API envía el importe en unidad menor sin formatear. */
   function metricValue(metric: AdminKpi) {
     if (!metric.currency) return metric.value
     return format.number(Number(metric.value) / 100, {

@@ -5,11 +5,6 @@ import type {
 } from '@workspace/contracts';
 import type { ChannelProviderVerifier } from '../channel-provider-verifier';
 
-/**
- * Comprueba las credenciales de X pidiendo un token de aplicación con
- * `client_credentials` y Basic Auth. No necesita que nadie autorice: si el par
- * no vale, X responde 401.
- */
 @Injectable()
 export class XProviderVerifier implements ChannelProviderVerifier {
   readonly providerKey: PortalChannelProviderKey = 'x';

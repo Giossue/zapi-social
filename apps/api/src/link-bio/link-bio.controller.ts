@@ -57,7 +57,6 @@ export class LinkBioController {
   }
 }
 
-/** Superficie pública: sin sesión, solo páginas publicadas. */
 @ApiTags('public-link-bio')
 @Controller('v1/public/link-bio')
 export class PublicLinkBioController {

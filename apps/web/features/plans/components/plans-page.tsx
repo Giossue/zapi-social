@@ -141,7 +141,6 @@ function planInput(plan: AdminPlan) {
   }
 }
 
-/** El precio se formatea con el idioma activo; «Gratis» lo pone la vista. */
 function planPrice(
   plan: AdminPlan,
   format: ReturnType<typeof useFormatter>,
@@ -360,7 +359,6 @@ function PlanEditorSheet({
         permissionIds,
       })
     } catch {
-      // El error ya se comunica desde el contenedor de la pantalla.
     } finally {
       savingLock.current = false
       setIsSaving(false)
@@ -732,8 +730,6 @@ export function PlansPage() {
   }, [billingFilter, featuredFilter, query, statusFilter, t])
 
   useEffect(() => {
-    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
-    // la carga anterior cuando el efecto se repite.
     const timer = setTimeout(() => void loadPlans(), 0)
     return () => clearTimeout(timer)
   }, [loadPlans])

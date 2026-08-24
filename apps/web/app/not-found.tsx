@@ -6,7 +6,6 @@ import { Button } from "@workspace/ui/components/button"
 
 const sessionCookieName = "zapi_session"
 
-/** Sin sesión el destino útil es el acceso, no un panel que rebotaría. */
 export default async function NotFound() {
   const t = await getTranslations("routeStates")
   const store = await cookies()

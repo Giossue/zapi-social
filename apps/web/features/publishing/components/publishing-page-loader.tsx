@@ -11,12 +11,6 @@ import { TriangleAlert } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { PublishingCalendarPage } from "@/features/publishing/components/publishing-calendar-page"
 
-/**
- * Calendario, cola y borradores son rutas hermanas, así que cambiar de pestaña
- * desmonta este loader y monta otro. Sin esta copia, cada cambio volvería a
- * empezar en blanco y el contenido ya visible parpadearía contra el spinner.
- * La respuesta se sigue revalidando al montar.
- */
 let lastResponse: PortalPublishingResponse | null = null
 
 export function PublishingPageLoader({
@@ -40,8 +34,6 @@ export function PublishingPageLoader({
         if (active) setCalendar(response)
       })
       .catch(() => {
-        // Con datos en pantalla, una revalidación fallida no los sustituye por
-        // un error: la vista sigue siendo utilizable y se reintenta al volver.
         if (active && !lastResponse) setLoadError(true)
       })
 

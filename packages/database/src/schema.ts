@@ -3170,10 +3170,6 @@ export const billingWebhookEvents = pgTable(
   ]
 )
 
-/**
- * Contenido de plataforma administrado desde Admin. No pertenece a un workspace:
- * blogs, preguntas frecuentes, idiomas y plantillas de IA son globales.
- */
 export const languages = pgTable(
   "languages",
   {
@@ -3309,7 +3305,6 @@ export const aiTemplates = pgTable(
   (table) => [uniqueIndex("ai_templates_slug_unique").on(table.slug)]
 )
 
-/** Ajustes de plataforma en clave/valor, equivalentes al OptionStore de Laravel. */
 export const platformSettings = pgTable("platform_settings", {
   key: varchar("key", { length: 120 }).primaryKey(),
   value: jsonb("value")
@@ -3321,11 +3316,6 @@ export const platformSettings = pgTable("platform_settings", {
     .notNull(),
 })
 
-/**
- * Páginas públicas de enlaces por workspace, portadas del addon Laravel
- * `AppLinkBio`. Los bloques y la apariencia viven en JSON porque su forma
- * depende del tipo de bloque y cambia sin migración.
- */
 export const linkBioPages = pgTable(
   "link_bio_pages",
   {
@@ -3376,7 +3366,6 @@ export const linkBioPages = pgTable(
   ]
 )
 
-/** Vistas y clics de una página pública. La IP se guarda solo como hash. */
 export const linkBioEvents = pgTable(
   "link_bio_events",
   {
@@ -3408,16 +3397,6 @@ export const linkBioEvents = pgTable(
   ]
 )
 
-/**
- * Anuncios manuales de plataforma, equivalentes a `notification_manual` de
- * Laravel. El estado por persona vive en `platform_announcement_reads` para que
- * un anuncio global no duplique una fila por usuario al publicarse.
- */
-/**
- * Columnas del tablero de tareas. Las define cada espacio de trabajo en vez de
- * venir fijas: el juego de la plantilla visual —`ideas`, `qa`, `shipped`— es de
- * desarrollo de software y no encaja con lo que hace un equipo de contenido.
- */
 export const boardColumns = pgTable(
   "board_columns",
   {
@@ -3428,9 +3407,7 @@ export const boardColumns = pgTable(
     name: varchar("name", { length: 60 }).notNull(),
     position: integer("position").notNull(),
     color: varchar("color", { length: 7 }).notNull().default("#2563eb"),
-    /** Columna de «hecho»: al entrar, la tarea sella `completedAt`. */
     isTerminal: boolean("is_terminal").notNull().default(false),
-    /** Aviso visual al pasarse del límite; no bloquea el movimiento. */
     wipLimit: integer("wip_limit"),
     ...timestamps,
   },
@@ -3492,16 +3469,9 @@ export const boardTasks = pgTable(
       .default("medium"),
     dueDate: date("due_date"),
     progress: integer("progress").notNull().default(0),
-    /**
-     * Orden dentro de la columna. Es entero y se renumera la columna entera al
-     * mover: un tablero tiene decenas de tarjetas, y renumerar sale más barato
-     * que arrastrar la deriva de las posiciones fraccionarias.
-     */
     position: integer("position").notNull(),
     completedAt: timestamp("completed_at", { withTimezone: true }),
-    /** Archivar saca la tarea del tablero sin borrar su historial. */
     archivedAt: timestamp("archived_at", { withTimezone: true }),
-    /** Enlace opcional con el tablero de contenido. */
     publishingPostId: uuid("publishing_post_id"),
     ...timestamps,
   },
@@ -3588,7 +3558,6 @@ export const boardTaskComments = pgTable(
   ]
 )
 
-/** Puente a `file_assets`: la tarea referencia el archivo, no lo copia. */
 export const boardTaskAttachments = pgTable(
   "board_task_attachments",
   {
@@ -3620,12 +3589,6 @@ export const boardTaskAttachments = pgTable(
   ]
 )
 
-/**
- * Aviso dirigido a una persona dentro de un espacio de trabajo. Guarda una
- * clave y sus argumentos en vez de prosa: lo escribe el sistema, y la API no
- * traduce. La campana del Portal lo une con `platform_announcements`, que sí
- * lleva texto porque lo redacta un administrador.
- */
 export const workspaceNotifications = pgTable(
   "workspace_notifications",
   {
@@ -3742,11 +3705,6 @@ export const platformAnnouncementReads = pgTable(
   ]
 )
 
-/**
- * Pagos registrados fuera de Polar (transferencia, depósito, efectivo),
- * equivalentes a `payment_manual` de Laravel. Al aprobarse se materializa un
- * `billing_payments` para que la facturación tenga una sola fuente de verdad.
- */
 export const manualPayments = pgTable(
   "manual_payments",
   {
@@ -3810,17 +3768,11 @@ export const manualPayments = pgTable(
   ]
 )
 
-/**
- * Textos editables de los correos transaccionales. Solo guarda las cadenas que
- * un administrador puede sobrescribir; la maquetación, los enlaces y los
- * detalles calculados siguen viviendo en el código del correo.
- */
 export const emailTemplates = pgTable(
   "email_templates",
   {
     id: uuid("id").defaultRandom().primaryKey(),
     key: varchar("key", { length: 96 }).notNull(),
-    /** Un override por plantilla e idioma; `es` es el respaldo del catálogo. */
     locale: varchar("locale", { length: 8 }).notNull().default("es"),
     subject: varchar("subject", { length: 250 }).notNull(),
     title: varchar("title", { length: 250 }).notNull(),

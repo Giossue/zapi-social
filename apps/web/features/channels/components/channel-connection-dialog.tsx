@@ -138,8 +138,6 @@ export function ChannelConnectionDialog({
         : null
   const [ultimaEntrada, setUltimaEntrada] = useState(entrada)
 
-  // Ajustar el estado durante el render en vez de en un efecto: el diálogo
-  // arranca ya en su paso, sin un segundo render que lo mueva después.
   if (entrada !== ultimaEntrada) {
     setUltimaEntrada(entrada)
     if (metaPickerSession && open) {
@@ -168,8 +166,6 @@ export function ChannelConnectionDialog({
 
   const [wasOpen, setWasOpen] = useState(open)
 
-  // Ajustar el estado durante el render en vez de en un efecto: evita el
-  // segundo render que encadena `setState` dentro de `useEffect`.
   if (open !== wasOpen) {
     setWasOpen(open)
     if (!open) reset()
@@ -184,8 +180,6 @@ export function ChannelConnectionDialog({
     setCapability(nextCapability)
     setCandidate(null)
 
-    // WhatsApp se vincula por QR; el resto pasa por el OAuth real del proveedor,
-    // que el backend despacha desde el mismo endpoint.
     if (nextCapability.connectionKind === "qr_device") {
       setStep("whatsapp")
       return

@@ -2,7 +2,6 @@ import { cn } from "@workspace/ui/lib/utils"
 
 import { Spinner } from "@workspace/ui/components/spinner"
 
-/** El rótulo accesible lo aporta quien consume el primitive: aquí no hay idioma. */
 function PageLoading({
   "aria-label": ariaLabel,
   className,

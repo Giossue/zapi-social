@@ -24,8 +24,6 @@ function useCapabilityDescription(capability: PortalChannelCapability) {
   const tCapability = useTranslations("channels.capabilityDescription")
 
   if (capability.availability === "plan_locked") return t("planLocked")
-  // Mientras el canal no esté configurado en Admin no se describe lo que hará:
-  // se dice que todavía no está.
   if (capability.availability !== "ready") return t("comingSoon")
   return tCapability(capability.key)
 }
@@ -46,8 +44,6 @@ function ChannelCapabilityCard({
   return (
     <Card className="h-full" variant="surface">
       <CardHeader>
-        {/* Stacked on phones so the name gets the full card width instead of
-            sharing a narrow row with the icon. */}
         <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
           <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
             <Icon aria-hidden="true" className="size-4.5" />
@@ -62,8 +58,6 @@ function ChannelCapabilityCard({
           {description}
         </p>
       </CardContent>
-      {/* An available channel is already signalled by its button, so only the
-          ones you can't connect yet need to say why. */}
       <CardFooter className="mt-auto">
         {isAvailable ? (
           <Button className="w-full" onClick={onSelect} size="sm" type="button">

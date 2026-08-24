@@ -107,7 +107,6 @@ type Confirmation =
   | { kind: "transfer"; member: PortalTeamMember }
   | { kind: "leave" }
 
-/** Orden del filtro de actividad; el rótulo sale de `activityCategory`. */
 const activityCategories: readonly PortalTeamActivityCategory[] = [
   "all",
   "invitations",
@@ -377,7 +376,6 @@ function TeamsError({ onRetry }: { onRetry: () => void }) {
   )
 }
 
-/** El código de la API alimenta el diccionario único de errores. */
 function errorCode(error: unknown) {
   return error instanceof ApiError ? error.code : undefined
 }
@@ -694,8 +692,6 @@ export function TeamsPage() {
 
   const copy = confirmationCopy(confirmation, t)
 
-  // Shared by both branches below: the tabbed view nests the card inside
-  // <Tabs>, the read-only view renders it on its own.
   const tableHeader = (
     <DataTableHeader
       action={

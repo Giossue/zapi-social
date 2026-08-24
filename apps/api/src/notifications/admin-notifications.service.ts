@@ -153,7 +153,6 @@ export class AdminNotificationsService {
         targetUserId:
           values.audience === 'user' ? (values.targetUserId ?? null) : null,
         status: values.publish ? 'published' : 'draft',
-        /** Republicar no reinicia la fecha original de publicación. */
         publishedAt: values.publish ? (current.publishedAt ?? now) : null,
         updatedAt: now,
       })
@@ -176,7 +175,6 @@ export class AdminNotificationsService {
     return { id: current.id };
   }
 
-  /** Buscador acotado para elegir destinatario sin exponer el padrón completo. */
   async targets(query: unknown): Promise<AdminAnnouncementTargets> {
     const filters = this.parse(
       adminAnnouncementTargetsQuerySchema.safeParse(query),

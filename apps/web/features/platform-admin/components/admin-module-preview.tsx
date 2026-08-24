@@ -95,14 +95,9 @@ type Row = AdminOperationView["rows"][number]
 type Cell = Row["cells"][number]
 type Action = Row["actions"][number]
 type Metric = AdminOperationView["metrics"][number] & { icon: Icon }
-/**
- * El catálogo declara claves e iconos: el texto sale de `messages` y la
- * estructura sigue siendo estática a nivel de módulo.
- */
 type Tab = {
   value: string
   columnKeys: readonly string[]
-  /** Icono por métrica, indexado con la clave que envía la API. */
   metricIcons: Record<string, Icon>
   primaryAction?: { icon: Icon; fieldKeys: readonly string[] }
 }
@@ -294,11 +289,6 @@ function StatusBadge({ label, tone }: { label: string; tone: Tone }) {
   return <Badge variant="neutral">{label}</Badge>
 }
 
-/**
- * Una celda trae dato literal o clave de clasificación, nunca ambos. La clave
- * llega de la API, así que el tipado no puede validarla: se pide el traductor
- * con una firma llana.
- */
 type Translate = (key: string, values?: Record<string, string>) => string
 type Formatter = ReturnType<typeof useFormatter>
 
@@ -312,11 +302,6 @@ function money(
   })
 }
 
-/**
- * La API manda fechas, importes y números sin formatear porque componerlos en
- * el servidor los ataría a un idioma. Con clave, el valor formateado entra en
- * el mensaje como `{value}`; sin ella, se muestra tal cual.
- */
 function cellText(t: Translate, format: Formatter, cell: Cell) {
   const value =
     cell.primaryDate !== undefined
@@ -345,10 +330,6 @@ function RequiredLabel({ children }: { children: React.ReactNode }) {
   )
 }
 
-/**
- * Escalona las columnas dinámicas: la primera queda siempre visible junto a
- * Estado y Acciones; las dos siguientes aparecen desde md y el resto desde lg.
- */
 function responsiveColumnClass(index: number) {
   if (index === 0) return undefined
   return index <= 2 ? "hidden md:table-cell" : "hidden lg:table-cell"
@@ -396,7 +377,6 @@ export function AdminModulePreview({
   moduleKey: AdminModuleKey
 }) {
   const translate = useTranslations("adminOperations")
-  /** Las claves dinámicas de la API no las puede comprobar el tipado. */
   const t = translate as unknown as Translate
   const format = useFormatter()
   const moduleConfig = modules[moduleKey]

@@ -60,12 +60,6 @@ import { TablePagination } from "@/components/table-pagination"
 import { toast } from "@workspace/ui/components/toast"
 import { useTranslations } from "next-intl"
 
-/**
- * Catálogo breve de soporte (categorías, etiquetas y tipos del módulo Laravel
- * `AdminSupport`). Mock sobre estado local: las mutaciones REST llegan con la
- * vertical de soporte.
- */
-
 export type SupportCatalogItem = {
   id: string
   name: string

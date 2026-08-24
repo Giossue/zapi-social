@@ -656,7 +656,6 @@ describeDatabase('Teams lifecycle', () => {
         db: database,
       } as DatabaseService);
 
-      // Sin nada concedido, un `member` no pasa la comprobación.
       await expect(
         permissions.allows(scenario.memberSession, 'boards.view'),
       ).resolves.toBe(false);
@@ -665,8 +664,6 @@ describeDatabase('Teams lifecycle', () => {
         'WORKSPACE_PERMISSION_DENIED',
       );
 
-      // Un permiso fuera del catálogo no se descarta en silencio: el contrato
-      // lo rechaza y quien llama se entera.
       await expectCode(
         service.updateMemberAccess(scenario.ownerSession, scenario.member.id, {
           role: 'member',
@@ -682,8 +679,6 @@ describeDatabase('Teams lifecycle', () => {
         {
           role: 'member',
           accountIds: [],
-          // `boards.delete_tasks` no se concede: comprobamos que el permiso es
-          // por clave y no un interruptor de módulo.
           permissions: ['boards.view', 'boards.manage_tasks'],
         },
       );
@@ -704,18 +699,14 @@ describeDatabase('Teams lifecycle', () => {
         'boards.manage_tasks',
       ]);
 
-      // El owner los tiene todos sin que nadie se los conceda.
       await expect(
         permissions.allows(scenario.ownerSession, 'boards.delete_tasks'),
       ).resolves.toBe(true);
 
-      // Un permiso retirado del catálogo deja de contar sin migrar la fila que
-      // todavía lo guarde.
       expect(
         permissions.effective('member', ['boards.view', 'boards.retirado']),
       ).toEqual(['boards.view']);
 
-      // Al subir a `admin` la lista se vacía: ese rol ya los tiene implícitos.
       await service.updateMemberAccess(
         scenario.ownerSession,
         scenario.member.id,

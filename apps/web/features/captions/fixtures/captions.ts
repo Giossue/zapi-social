@@ -1,6 +1,5 @@
 import type { Caption } from "@/features/captions/types/captions"
 
-/** Datos sintéticos y deterministas para la biblioteca AppCaptions. */
 export const captionsFixture: readonly Caption[] = [
   {
     id: "caption_01",

@@ -22,11 +22,6 @@ type Account = typeof socialAccounts.$inferSelect;
 
 const graphVersion = 'v22.0';
 
-/**
- * Todo lo que Facebook e Instagram comparten: el token de la cuenta, las dos
- * formas de llamar al Graph, la espera del contenedor de Instagram y la URL
- * firmada con la que Instagram descarga la media.
- */
 @Injectable()
 export class MetaGraphService {
   private readonly apiPublicOrigin: string;
@@ -95,11 +90,6 @@ export class MetaGraphService {
     return this.parseResponse(response);
   }
 
-  /**
-   * Instagram no publica el contenedor hasta que termina de procesarlo, así que
-   * hay que esperarlo. Veinte intentos de dos segundos cubren un vídeo corto;
-   * pasado eso se reintenta el trabajo entero.
-   */
   async waitForContainer(containerId: string, token: string) {
     for (let attempt = 0; attempt < 20; attempt += 1) {
       const url = new URL(
@@ -129,7 +119,6 @@ export class MetaGraphService {
     throw new PublishingDeliveryError('PUBLISHING_INSTAGRAM_CONTAINER_TIMEOUT');
   }
 
-  /** Instagram descarga la media por URL, así que se firma y caduca en 15 min. */
   publicMediaUrl(assetId: string, variant?: string) {
     if (!this.apiPublicOrigin) {
       throw new PublishingDeliveryError(

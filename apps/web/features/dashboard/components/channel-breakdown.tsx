@@ -36,7 +36,6 @@ import { useDashboardLabels } from "@/lib/dashboard-labels"
 
 type BreakdownDatum = PortalDashboard["channels"][number]
 
-/** El gráfico pinta el rótulo ya resuelto, no la clave que envía la API. */
 type BreakdownRow = { label: string; count: number }
 
 function renderValueLabel(props: LabelProps) {

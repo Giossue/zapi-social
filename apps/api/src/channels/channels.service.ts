@@ -232,12 +232,6 @@ export class ChannelsService {
     return this.serialize(account);
   }
 
-  /**
-   * La disponibilidad de un canal la decide su integración de Admin, no una
-   * constante: mientras el proveedor esté apagado, sin credenciales o sin
-   * prueba vigente, el Portal lo enseña como «Próximamente» y no deja
-   * conectarlo. Un proveedor sin pantalla de Admin todavía tampoco está listo.
-   */
   private async portalCapabilities(): Promise<PortalChannelCapability[]> {
     const ready = await this.readyCapabilityKeys();
     return capabilities.map((capability) => ({
@@ -254,8 +248,6 @@ export class ChannelsService {
 
     const ready = new Set(await this.channelProviders.readyCapabilityKeys());
     for (const integration of [meta, whatsApp]) {
-      // `readiness` ya exige credenciales guardadas y una prueba que coincida
-      // con ellas; el interruptor por capability es lo que decide cada canal.
       if (!integration.enabled || integration.readiness !== 'ready') continue;
       for (const capability of integration.capabilities) {
         if (capability.enabled) ready.add(capability.key);
@@ -288,7 +280,6 @@ export class ChannelsService {
     return and(...conditions)!;
   }
 
-  /** Only Portal-supported provider/capability pairs are ever queried or counted. */
   private capabilityScopeWhere(): Condition {
     return this.anyOf(
       capabilities.map((capability) =>
@@ -485,7 +476,6 @@ export class ChannelsService {
   }
 
   private parseId(id: string) {
-    // Validate at the boundary to avoid driver errors.
     if (
       !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
         id,

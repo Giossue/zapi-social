@@ -55,7 +55,6 @@ type InvitationPageState =
 const invitationTokenStorageKey = "zapi:team-invitation-token"
 const returnToInvite = encodeURIComponent("/invite")
 
-/** Los estados de problema se rotulan desde `messages/`. */
 const problemStates = [
   "missing",
   "invalid",

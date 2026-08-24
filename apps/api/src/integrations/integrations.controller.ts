@@ -114,10 +114,6 @@ export class GoogleDriveIntegrationsController {
   }
 }
 
-/**
- * Pantalla genérica de proveedores de canal. No hay un controlador por red: la
- * clave viaja en la ruta y el catálogo decide qué campos admite.
- */
 @ApiTags('admin-integrations')
 @Controller('v1/admin/integrations/channel-providers')
 export class ChannelProviderIntegrationsController {

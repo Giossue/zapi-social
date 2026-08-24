@@ -13,7 +13,6 @@ import {
   teamOwnershipTransferredEmail,
 } from './templates';
 
-/** Los textos del catálogo llevan `{{variables}}` que el servicio sustituye. */
 function copyOf(
   key: keyof typeof EMAIL_TEMPLATE_CATALOG,
   locale: SupportedLocale,
@@ -147,8 +146,6 @@ describe('Email templates', () => {
         const marker = copyOf(template.key, locale, variables).title;
 
         expect(html).toContain(`lang="${locale}"`);
-        /* El HTML escapa apóstrofos (`You&#x27;re`): el marcador se compara
-           contra el texto plano, que sale sin escapar. */
         expect(text.toLocaleLowerCase(locale)).toContain(
           marker.toLocaleLowerCase(locale),
         );

@@ -14,15 +14,9 @@ export type ConnectionCandidate = {
   };
 };
 
-/**
- * Lo que cambia de una red a otra al conectar una cuenta. El resto —la sesión,
- * la tabla de candidatos, la selección y el guardado— ya es común, así que vive
- * en `ChannelConnectionsService`.
- */
 export interface ChannelConnectionAdapter {
   readonly providerKey: string;
   scopesFor(capabilityKey: PortalChannelCapabilityKey): string[];
-  /** PKCE cuando el proveedor lo exige (X); LinkedIn no lo usa. */
   usesPkce?: boolean;
   buildAuthorizationUrl(input: {
     clientId: string;
@@ -53,7 +47,6 @@ export const CHANNEL_CONNECTION_ADAPTERS = Symbol(
   'CHANNEL_CONNECTION_ADAPTERS',
 );
 
-/** Resuelve el adaptador de conexión de un proveedor. */
 @Injectable()
 export class ChannelConnectionAdapterRegistry {
   private readonly byProvider: Map<string, ChannelConnectionAdapter>;

@@ -6,13 +6,6 @@ export type LibrarySelectionItem = { id: string }
 
 const ARROW_KEYS = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]
 
-/**
- * Selección y navegación de una biblioteca de archivos al modo de Drive: un
- * clic selecciona, doble clic abre, `Ctrl`/`Cmd` alterna, `Mayús` extiende y
- * las flechas recorren la rejilla. Los saltos verticales se resuelven contra la
- * geometría real del DOM, así que funcionan igual con una tabla de una columna
- * que con una rejilla que cambia de ancho al redimensionar.
- */
 export function useLibrarySelection<T extends LibrarySelectionItem>({
   items,
   onOpen,
@@ -25,8 +18,6 @@ export function useLibrarySelection<T extends LibrarySelectionItem>({
   const [selectedIds, setSelectedIds] = React.useState<readonly string[]>([])
   const [activeId, setActiveId] = React.useState<string | null>(null)
 
-  // Lo que ya no está en pantalla —borrado, filtrado o de otra carpeta— deja de
-  // contar sin necesidad de sincronizar el estado con un efecto.
   const selection = React.useMemo(
     () => selectedIds.filter((id) => items.some((item) => item.id === id)),
     [items, selectedIds]
@@ -99,8 +90,6 @@ export function useLibrarySelection<T extends LibrarySelectionItem>({
           : other.top < rect.top - 1
         if (!inTargetRow) continue
 
-        // La fila manda sobre la columna: primero la fila contigua y, dentro de
-        // ella, el elemento más cercano horizontalmente.
         const score =
           Math.abs(other.top - rect.top) * 1000 +
           Math.abs(other.left + other.width / 2 - center)
@@ -126,7 +115,6 @@ export function useLibrarySelection<T extends LibrarySelectionItem>({
     } else if (event.shiftKey) {
       setSelectedIds(rangeTo(anchorId.current, item.id))
     } else {
-      // Volver a pulsar lo único seleccionado lo deselecciona.
       const isOnlySelected = selection.length === 1 && selection[0] === item.id
       setSelectedIds(isOnlySelected ? [] : [item.id])
       anchorId.current = isOnlySelected ? null : item.id
@@ -170,11 +158,8 @@ export function useLibrarySelection<T extends LibrarySelectionItem>({
     focusItem(nextId)
   }
 
-  // Sin `role`: la rejilla lo declara como `listbox`, mientras la tabla conserva
-  // su semántica nativa y solo marca `aria-selected` en cada fila.
   const containerProps = {
     onClick: (event: React.MouseEvent) => {
-      // Un clic en el hueco entre elementos deselecciona, como en Drive.
       if (event.target === event.currentTarget) setSelectedIds([])
     },
     onKeyDown: handleKeyDown,

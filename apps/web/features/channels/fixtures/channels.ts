@@ -8,7 +8,6 @@ import {
 } from "@/components/brand-icons"
 import type { PortalChannelsDashboard } from "../types/channels"
 
-/** Datos sintéticos deterministas para el mock del Portal. */
 export const channelsFixture: PortalChannelsDashboard = {
   canView: true,
   canManage: true,

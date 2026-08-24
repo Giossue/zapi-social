@@ -40,7 +40,6 @@ import { DatabaseService } from '../database/database.service';
 import { Aes256GcmService } from '../platform/crypto/aes-256-gcm.service';
 import { AppException } from '../platform/errors/app-exception';
 
-/** Solo claves: el rótulo y la descripción los pone la interfaz. */
 const metaCapabilities = [
   { key: 'facebook_page' as const },
   { key: 'instagram_profile' as const },
@@ -52,7 +51,6 @@ export type OAuthProviderConfiguration = {
   clientId: string;
   clientSecret: string;
   capabilityScopes?: MetaCapabilityScopes;
-  /** LinkedIn: versión de la Posts API en formato YYYYMM. */
   apiVersion?: string;
 };
 
@@ -225,10 +223,6 @@ export class IntegrationsService {
     };
   }
 
-  /**
-   * Validates the draft against Meta before it is stored. Only its SHA-256
-   * fingerprint and audit timestamp are persisted; the draft itself is never logged.
-   */
   async testMeta(
     input: unknown,
     session: AuthSession,
@@ -354,10 +348,6 @@ export class IntegrationsService {
     return this.toWhatsAppStatusResponse(row);
   }
 
-  /**
-   * Calls only GOWA's read-only device listing. The remote response and draft
-   * credentials are intentionally discarded; only a fingerprint and audit time persist.
-   */
   async testWhatsAppStatus(
     input: unknown,
     session: AuthSession,
@@ -519,8 +509,6 @@ export class IntegrationsService {
     providerKey: ChannelOAuthProviderKey,
   ): Promise<OAuthProviderConfiguration> {
     if (providerKey !== metaIntegrationProviderKey) {
-      // LinkedIn, X y TikTok guardan su configuración con el servicio genérico
-      // de proveedores de canal, no con el schema de Meta.
       return this.readStoredOAuthConfiguration(providerKey);
     }
 
@@ -575,8 +563,6 @@ export class IntegrationsService {
       providerKey,
       row.configurationCiphertext,
     );
-    // TikTok llama `clientKey` a lo que el resto llama `clientId`; se unifica
-    // aquí para que la conexión no tenga que saber de esa diferencia.
     const clientId = values.clientId ?? values.clientKey;
     const clientSecret = values.clientSecret;
     if (!clientId || !clientSecret) {

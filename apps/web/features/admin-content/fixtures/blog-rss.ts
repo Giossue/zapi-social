@@ -1,8 +1,3 @@
-/**
- * Fixtures del mock de `AdminBlogs → RSS Feeds` (`blog_rss_sources`). Su
- * contenido representa registros de la base, no texto de interfaz.
- */
-
 export type AdminBlogRssFeed = {
   id: string
   name: string

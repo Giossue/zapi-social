@@ -2,10 +2,6 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { PortalChannelCapabilityKey } from '@workspace/contracts';
 import { CHANNEL_PUBLISHERS, type ChannelPublisher } from './channel-publisher';
 
-/**
- * Resuelve el publicador de una capability. Añadir una red es registrar una
- * clase más en el módulo: ni el procesador ni este registro cambian.
- */
 @Injectable()
 export class ChannelPublisherRegistry {
   private readonly byCapability: Map<

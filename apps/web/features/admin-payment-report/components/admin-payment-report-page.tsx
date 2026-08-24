@@ -69,7 +69,6 @@ export function AdminPaymentReportPage() {
   } satisfies ChartConfig
   const reportMoney = (minor: number, currency: string) =>
     format.number(minor / 100, { currency, style: "currency" })
-  /** El periodo llega como `YYYY-MM` o `YYYY-MM-DD` en UTC. */
   const periodLabel = (period: string) => {
     const [year, month, day] = period.split("-").map(Number)
     if (!year || !month) return period
@@ -107,8 +106,6 @@ export function AdminPaymentReportPage() {
   }, [productType, range])
 
   useEffect(() => {
-    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
-    // la carga anterior cuando el efecto se repite.
     const timer = setTimeout(() => void load(), 0)
     return () => clearTimeout(timer)
   }, [load])

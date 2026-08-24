@@ -20,11 +20,6 @@ const THEMES = [
 
 type ThemeMode = (typeof THEMES)[number]["value"]
 
-/**
- * Lives inside the account menu rather than the header. The menu content only
- * mounts once opened, which is always after hydration, so `useTheme` has a
- * real value by the time this renders and needs no mounted guard.
- */
 export function ThemeMenuItem() {
   const t = useTranslations("shell.theme")
   const { setTheme, theme } = useTheme()

@@ -100,8 +100,6 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
   }, [handleError, ticketId])
 
   useEffect(() => {
-    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
-    // la carga anterior cuando el efecto se repite.
     const timer = setTimeout(() => void load(), 0)
     return () => clearTimeout(timer)
   }, [load])
@@ -113,9 +111,7 @@ export function SupportTicketDetailPage({ ticketId }: { ticketId: string }) {
       .then((session) => {
         if (isCurrent) setRequesterName(session.user.displayName)
       })
-      .catch(() => {
-        // El nombre solo se usa para etiquetar la conversación.
-      })
+      .catch(() => {})
     return () => {
       isCurrent = false
     }

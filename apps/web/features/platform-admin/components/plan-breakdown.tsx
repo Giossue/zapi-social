@@ -36,7 +36,6 @@ import { useDashboardLabels } from "@/lib/dashboard-labels"
 
 type BreakdownDatum = AdminDashboard["plans"][number]
 
-/** El gráfico pinta el rótulo ya resuelto, no la clave que envía la API. */
 type BreakdownRow = { label: string; count: number }
 
 function renderValueLabel(props: LabelProps) {
@@ -125,7 +124,6 @@ export function PlanBreakdown({
 }) {
   const t = useTranslations("dashboard.admin.breakdown")
   const labels = useDashboardLabels()
-  /** El nombre del plan lo define el administrador: no se traduce. */
   const planRows = plans.map((row) => ({ count: row.count, label: row.key }))
   const toolRows = aiTools.map((row) => ({
     count: row.count,

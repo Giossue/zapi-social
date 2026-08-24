@@ -460,10 +460,6 @@ export class EmailService {
     ).toString();
   }
 
-  /**
-   * Idioma del destinatario. Una invitación puede ir a un correo sin cuenta
-   * todavía: en ese caso, y ante un valor desconocido, se usa español.
-   */
   private async localeFor(email: string): Promise<SupportedLocale> {
     const [row] = await this.database.db
       .select({ locale: users.locale })

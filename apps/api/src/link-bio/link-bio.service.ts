@@ -23,7 +23,6 @@ function slugify(value: string) {
     .slice(0, 160);
 }
 
-/** Páginas de enlaces por workspace y su registro de vistas y clics. */
 @Injectable()
 export class LinkBioService {
   constructor(private readonly database: DatabaseService) {}
@@ -112,7 +111,6 @@ export class LinkBioService {
           .set({
             ...values,
             slug,
-            // La fecha de publicación no se reescribe en cada guardado.
             publishedAt:
               values.status === 'published'
                 ? (existing.publishedAt ?? new Date())
@@ -141,8 +139,6 @@ export class LinkBioService {
         .returning();
       return this.toPortal(row, 0, 0);
     } catch (error) {
-      // `'code' in error` no estrecha el tipo a algo indexable, así que se lee
-      // explícito en vez de silenciar la regla.
       const code =
         error && typeof error === 'object'
           ? (error as { code?: unknown }).code
@@ -168,7 +164,6 @@ export class LinkBioService {
     if (!rows.length) throw this.notFound();
   }
 
-  /** Página pública: solo publicada, y sin exponer identificadores internos. */
   async publicPage(slug: string): Promise<PublicLinkBioPage> {
     const [page] = await this.database.db
       .select()
@@ -225,7 +220,6 @@ export class LinkBioService {
 
     await this.database.db.insert(linkBioEvents).values({
       blockIndex: blockIndex ?? null,
-      // La IP nunca se guarda en claro; solo su hash para separar visitantes.
       ipHash: ip ? createHash('sha256').update(ip).digest('hex') : null,
       itemIndex: itemIndex ?? null,
       pageId: page.id,

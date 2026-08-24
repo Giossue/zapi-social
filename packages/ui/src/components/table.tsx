@@ -4,11 +4,6 @@ import * as React from "react"
 
 import { cn } from "@workspace/ui/lib/utils"
 
-/**
- * Measures the native scroll so a bar can mirror it. The element keeps doing
- * the scrolling, which is why this stays smooth: the bar is a readout, not the
- * control, so there is no drag maths that can disagree with the real position.
- */
 function useScrollbar(ref: React.RefObject<HTMLElement | null>) {
   const [bar, setBar] = React.useState({ offset: 0, size: 0, visible: false })
 
@@ -28,9 +23,6 @@ function useScrollbar(ref: React.RefObject<HTMLElement | null>) {
     update()
     element.addEventListener("scroll", update, { passive: true })
     const observer = new ResizeObserver(update)
-    // The container is always full width, so watching it only catches window
-    // and sidebar resizes. What decides whether there is anything to scroll to
-    // is the table inside, which grows as rows and columns land.
     observer.observe(element)
     for (const child of element.children) observer.observe(child)
 
@@ -47,12 +39,6 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
   const scroller = React.useRef<HTMLDivElement>(null)
   const bar = useScrollbar(scroller)
 
-  /**
-   * Lleva el scroll al punto del carril donde está el puntero, centrando el
-   * pulgar bajo el cursor. La barra parece un scrollbar, así que tiene que
-   * comportarse como uno: antes solo pintaba la posición y no había forma de
-   * arrastrar, porque la nativa está oculta.
-   */
   function scrollToPointer(clientX: number, track: HTMLElement) {
     const element = scroller.current
     if (!element) return
@@ -65,13 +51,9 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
   }
 
   return (
-    // The bar is a sibling of the scroller, not a child, so it stays pinned to
-    // the visible edge instead of scrolling away with the columns.
     <div className="relative w-full">
       <div
         data-slot="table-container"
-        // The platform bar is hidden because it fades out and would sit next
-        // to ours; `pb-2` keeps the row it used to occupy.
         className="no-scrollbar w-full overflow-x-auto pb-2"
         ref={scroller}
       >
@@ -87,8 +69,6 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
       {bar.visible ? (
         <div
           aria-hidden="true"
-          // `py-1.5` agranda la zona de agarre sin engordar la barra: 1,5 px de
-          // alto es imposible de coger con el ratón.
           className="absolute inset-x-4 bottom-0 cursor-grab py-1.5 active:cursor-grabbing"
           onPointerDown={(event) => {
             event.preventDefault()

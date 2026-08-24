@@ -1,13 +1,7 @@
 import type { AiRequestKind } from "@workspace/contracts"
 
-/** Herramientas conversacionales: cada una era una ruta propia de AI Studio. */
 export type ChatTool = Exclude<AiRequestKind, "ai_publishing">
 
-/**
- * El catálogo es dato estático a nivel de módulo, así que declara la clave de
- * cada texto en vez del texto: el chat lo traduce al renderizar, igual que el
- * catálogo de navegación. Las claves viven en `messages/` bajo `aiStudio.tools`.
- */
 type ToolOption = { labelKey: string; value: string }
 
 export type ToolOptionField =
@@ -61,10 +55,6 @@ const tones = [
   { labelKey: "tone.directo", value: "directo" },
 ] as const
 
-/**
- * Cada herramienta declara los mismos campos que tenía su formulario cuando era
- * una pantalla independiente, para no perder ninguna opción al unificarlas.
- */
 export const chatTools: Record<ChatTool, ToolDefinition> = {
   content: {
     descriptionKey: "content.description",

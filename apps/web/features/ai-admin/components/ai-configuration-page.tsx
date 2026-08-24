@@ -110,7 +110,6 @@ function routeShape(kind: AiRequestKind): RouteShape {
   }
 }
 
-/** Solo icono y variante: el rótulo sale de `readiness.<clave>`. */
 const readinessCopy = {
   ready: { icon: CheckCircle2, variant: "success" as const },
   disabled: { icon: Circle, variant: "neutral" as const },
@@ -308,8 +307,6 @@ export function AiConfigurationPage() {
   }, [])
 
   useEffect(() => {
-    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
-    // la carga anterior cuando el efecto se repite.
     const timer = setTimeout(() => void load(), 0)
     return () => clearTimeout(timer)
   }, [load])

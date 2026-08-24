@@ -5,11 +5,6 @@ import type {
 } from '@workspace/contracts';
 import type { ChannelProviderVerifier } from '../channel-provider-verifier';
 
-/**
- * Comprueba las credenciales de TikTok pidiendo un token de cliente. TikTok
- * devuelve el error dentro del cuerpo aunque el HTTP sea 200, así que hay que
- * mirar `error`, no solo el estado.
- */
 @Injectable()
 export class TikTokProviderVerifier implements ChannelProviderVerifier {
   readonly providerKey: PortalChannelProviderKey = 'tiktok';
@@ -44,7 +39,6 @@ export class TikTokProviderVerifier implements ChannelProviderVerifier {
         : {};
     if (response.ok && typeof record.access_token === 'string') return null;
 
-    // TikTok pone el motivo en `error` incluso con HTTP 200.
     const error = typeof record.error === 'string' ? record.error : '';
     if (
       response.status === 400 ||

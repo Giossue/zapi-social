@@ -26,7 +26,6 @@ import type {
   PublishingProvider,
 } from "@/features/publishing/types/publishing-calendar"
 
-/** Los nombres de red son marcas: no se traducen. */
 const providerLabels: Record<PublishingProvider, string> = {
   facebook: "Facebook",
   instagram: "Instagram",

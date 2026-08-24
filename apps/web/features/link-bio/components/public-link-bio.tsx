@@ -7,15 +7,9 @@ import type { PublicLinkBioPage } from "@workspace/contracts"
 
 import { LinkBioRenderer } from "./link-bio-renderer"
 
-/**
- * Página pública. Registra la visita al montar y cada clic antes de salir,
- * usando el endpoint público que devuelve el destino ya validado.
- */
 export function PublicLinkBio({ page }: { page: PublicLinkBioPage }) {
   useEffect(() => {
-    void linkBioApi.track(page.slug, { type: "view" }).catch(() => {
-      // Una visita no registrada no debe romper la página.
-    })
+    void linkBioApi.track(page.slug, { type: "view" }).catch(() => {})
   }, [page.slug])
 
   async function openLink(
@@ -32,9 +26,7 @@ export function PublicLinkBio({ page }: { page: PublicLinkBioPage }) {
         itemIndex,
         type: "click",
       })
-    } catch {
-      // El clic se abre igual aunque no se pueda registrar.
-    }
+    } catch {}
     window.open(url, "_blank", "noreferrer")
   }
 

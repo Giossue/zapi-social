@@ -8,6 +8,7 @@
 - Tests, fixtures y mocks no sustituyen autorización, ownership, idempotencia ni validación real en Nest.
 - No añadir dependencias de producción sin justificar su responsabilidad y ubicación en el monorepo.
 - Mantener fixtures sintéticas y deterministas; nunca usar datos, tokens o credenciales de producción.
+- El código no lleva comentarios: ni de línea, ni de bloque, ni JSDoc, ni JSX. Las únicas excepciones son las directivas que cambian el comportamiento de una herramienta (`eslint-disable`, `@ts-expect-error`, `// @ts-check`, referencias triple-slash) y los marcadores generados (p. ej. `--> statement-breakpoint` en las migraciones SQL de Drizzle). Lo que necesite explicación se escribe en el documento canónico del dominio, no en el código. `bun run strip:comments` elimina los que se cuelen.
 
 ## Comandos raíz disponibles
 

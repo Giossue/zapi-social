@@ -23,13 +23,8 @@ export class DecryptionFailedError extends Error {
   }
 }
 
-/**
- * Encrypts secret values using AES-256-GCM. The caller owns key retrieval and
- * must provide the same optional authenticated context during decryption.
- */
 export class Aes256GcmService {
   private readonly key: Buffer;
-  /** Versión del formato de cifrado; se sella en cada credencial escrita. */
   readonly keyVersion = PAYLOAD_VERSION;
 
   constructor(keyBase64: string) {

@@ -483,9 +483,7 @@ export class WhatsAppStatusConnectionsService {
         ) {
           return { qrLink, durationSeconds };
         }
-      } catch {
-        // Fallback supported by legacy GOWA deployments.
-      }
+      } catch {}
     }
     throw new GoWaConnectorError();
   }

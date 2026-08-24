@@ -1,6 +1,5 @@
 import type { PortalTeamRole } from "@workspace/contracts"
 
-/** El rótulo de cada rol vive en `messages/`; aquí solo su color. */
 export const roleVariants: Record<
   PortalTeamRole,
   "neutral" | "success" | "warning"

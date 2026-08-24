@@ -1,9 +1,5 @@
 import type { LucideIcon } from "lucide-react"
 
-/**
- * El catálogo de navegación es dato estático a nivel de módulo, así que declara
- * la clave de su texto en vez del texto: el shell lo traduce al renderizar.
- */
 export type NavigationSourceLink<Key extends string = string> = {
   labelKey: Key
   href: string

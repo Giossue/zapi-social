@@ -25,7 +25,6 @@ import {
   type CollectionValues,
 } from "./admin-collection-page"
 
-/** Traductor del espacio `adminContent`; se pasa a las fábricas de config. */
 type Translate = ReturnType<typeof useTranslations<"adminContent">>
 
 function activeFilter(t: Translate) {

@@ -144,8 +144,6 @@ import { FileImportsScheduler } from './files/file-imports.scheduler';
     WhatsAppStatusPublisher,
     ChannelPublisherRegistry,
     {
-      // Añadir una red es sumar su publicador a esta lista. Ni el registro ni
-      // el procesador cambian.
       provide: CHANNEL_PUBLISHERS,
       inject: [
         FacebookPagePublisher,

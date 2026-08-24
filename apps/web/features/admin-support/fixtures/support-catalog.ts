@@ -1,11 +1,6 @@
 import type { AdminSupportUserFixture } from "../components/admin-support-new-case-sheet"
 import type { SupportCatalogItem } from "../components/support-catalog-panel"
 
-/**
- * Fixtures deterministas del mock de creación y catálogos. Equivalen a los
- * hijos Laravel `New Ticket`, `Manage Labels` y `Manage Types`; las mutaciones
- * reales llegan con la vertical de soporte.
- */
 export const fixtureUsers: readonly AdminSupportUserFixture[] = [
   {
     id: "user-1",

@@ -126,7 +126,6 @@ export const metaIntegrationReadinessSchema = z.enum([
   "disabled",
 ])
 
-/** Rótulo y descripción los pone la interfaz a partir de `key`. */
 export const metaIntegrationCapabilitySchema = z.object({
   key: metaCapabilityKeySchema,
   enabled: z.boolean(),

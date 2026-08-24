@@ -216,8 +216,6 @@ export function MemberAccessDialog({
   const [role, setRole] = useState<InvitationRole>(() =>
     member?.role === "admin" ? "admin" : "member"
   )
-  // Un `admin` llega con el catálogo completo porque los tiene implícitos. Si
-  // se parte de ahí al bajarlo a `member`, se le concederían todos sin querer.
   const [permissions, setPermissions] = useState<WorkspacePermission[]>(() =>
     member?.role === "member" ? [...member.permissions] : []
   )

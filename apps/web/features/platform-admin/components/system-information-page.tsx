@@ -25,7 +25,6 @@ import { RetryButton } from "@workspace/ui/components/retry-button"
 import { Separator } from "@workspace/ui/components/separator"
 import { loginPath } from "@/features/identity/login-redirect"
 
-/** Los nombres propios de las dependencias no se traducen. */
 const serviceNames: Record<
   AdminSystemInformation["services"][number]["key"],
   string
@@ -65,8 +64,6 @@ export function SystemInformationPage() {
   }, [router])
 
   useEffect(() => {
-    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
-    // la carga anterior cuando el efecto se repite.
     const timer = setTimeout(() => void load(), 0)
     return () => clearTimeout(timer)
   }, [load])

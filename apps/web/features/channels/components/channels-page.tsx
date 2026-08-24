@@ -371,7 +371,6 @@ export function LiveChannelsPage() {
       toast.error(t("loadFailed"))
       setHasError(true)
     } finally {
-      // Sin `return`: salir de un `finally` se traga la excepción en curso.
       if (requestId === requestSequence.current) {
         hasLoadedChannels.current = true
         setIsLoading(false)
@@ -389,8 +388,6 @@ export function LiveChannelsPage() {
   ])
 
   useEffect(() => {
-    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
-    // la carga anterior cuando el efecto se repite.
     const timer = setTimeout(() => void loadChannels(), 0)
     return () => clearTimeout(timer)
   }, [loadChannels])
@@ -446,8 +443,6 @@ export function LiveChannelsPage() {
       return
     }
 
-    // LinkedIn, X y TikTok quedan conectados en el propio retorno: no hay
-    // selector, así que basta con refrescar la lista y confirmar.
     if (searchParams.get("provider") !== "meta") {
       window.sessionStorage.removeItem(META_OAUTH_SESSION_KEY)
       toast.success(t("channelConnected"))

@@ -82,7 +82,6 @@ export class ChannelConnectionsService {
     const values = this.parse(
       startPortalChannelConnectionSchema.safeParse(input),
     );
-    // Meta conserva su camino de siempre; el resto va por adaptador.
     if (this.isMetaCapability(values.capabilityKey)) {
       return this.startMeta(session, values);
     }
@@ -157,8 +156,6 @@ export class ChannelConnectionsService {
     const scopes = adapter.scopesFor(capabilityKey);
     const expiresAt = new Date(Date.now() + lifetimeMilliseconds);
 
-    // PKCE se guarda en la propia sesión de conexión, cifrado con su
-    // identificador. Solo X lo necesita, pero generarlo siempre no cuesta nada.
     const codeVerifier = randomBytes(48).toString('base64url');
     const [connection] = await this.database.db
       .insert(channelConnectionSessions)
@@ -390,11 +387,6 @@ export class ChannelConnectionsService {
     }
   }
 
-  /**
-   * Cierre del OAuth de los proveedores por adaptador. Canjea el código,
-   * pide las cuentas y guarda las que correspondan a la capability. Redirige
-   * al Portal con el resultado, igual que Meta.
-   */
   async callbackGeneric(
     providerKey: ChannelOAuthProviderKey,
     query: unknown,
@@ -462,8 +454,6 @@ export class ChannelConnectionsService {
         return { outcome: 'failed', capabilityKey: connection.capabilityKey };
       }
 
-      // Cada candidato es una cuenta conectada. Un perfil trae uno; una página
-      // puede traer varias organizaciones administradas, y se conectan todas.
       const scopes = adapter.scopesFor(capabilityKey);
       let lastAccountId: string | null = null;
       for (const candidate of candidates) {

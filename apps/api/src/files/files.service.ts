@@ -284,10 +284,7 @@ export class FilesService {
           removeOnFail: 100,
         },
       );
-    } catch {
-      // The asset is already ready; the Worker backfill retries this pending
-      // derivative at its next boot without discarding the uploaded original.
-    }
+    } catch {}
   }
 
   async updateAsset(
@@ -305,9 +302,6 @@ export class FilesService {
     const name = parsed.data.name
       ? this.withOriginalExtension(parsed.data.name, current.extension)
       : undefined;
-    // Marcar un favorito no modifica el archivo: si tocara `updatedAt`, la
-    // fecha mostrada mentiría y el listado, ordenado por ella, lo movería al
-    // principio tanto al marcarlo como al desmarcarlo.
     const modifiesAsset =
       parsed.data.name !== undefined || parsed.data.folderId !== undefined;
     const [asset] = await this.database.db
@@ -588,11 +582,6 @@ export class FilesService {
     return descendants;
   }
 
-  /**
-   * Ruta de la carpeta consultada, de la raíz hacia dentro. El listado solo
-   * devuelve las subcarpetas del nivel actual, así que sin esto la interfaz no
-   * puede dibujar por dónde está navegando.
-   */
   private async folderPath(workspaceId: string, folderId?: string) {
     const path: Array<{ id: string; name: string }> = [];
     let currentId = folderId;
@@ -720,7 +709,6 @@ export class FilesService {
     await Promise.all(
       assets.flatMap((asset) => [
         rm(this.path(asset.storageKey), { force: true }),
-        /** Se retira la carpeta completa de derivados: miniatura y variantes de publicación. */
         rm(this.path(derivativeStoragePrefix(asset.workspaceId, asset.id)), {
           force: true,
           recursive: true,
@@ -773,11 +761,6 @@ export class FilesService {
         HttpStatus.FORBIDDEN,
       );
   }
-  /**
-   * Traduce el tipo visible a condiciones sobre el mimeType. Filtrar en memoria
-   * dejaba `filesTotal` contando archivos que la consulta ya había descartado,
-   * y la biblioteca pedía tandas sin fin creyendo que aún quedaban resultados.
-   */
   private kindFilter(kind: string): SQL {
     if (kind === 'image') return ilike(fileAssets.mimeType, 'image/%');
     if (kind === 'video') return ilike(fileAssets.mimeType, 'video/%');
@@ -786,8 +769,6 @@ export class FilesService {
       return sql`(${ilike(fileAssets.mimeType, '%spreadsheet%')} or ${ilike(fileAssets.mimeType, '%excel%')})`;
     if (kind === 'archive')
       return sql`(${ilike(fileAssets.mimeType, '%zip%')} or ${ilike(fileAssets.mimeType, '%archive%')} or ${ilike(fileAssets.mimeType, '%gzip%')} or ${ilike(fileAssets.mimeType, '%rar%')} or ${ilike(fileAssets.mimeType, '%tar%')})`;
-    // `document` es lo que la biblioteca muestra como documento: cuanto no es
-    // imagen ni vídeo, incluidos PDF, hojas de cálculo y comprimidos.
     if (kind === 'document')
       return sql`(${not(ilike(fileAssets.mimeType, 'image/%'))} and ${not(ilike(fileAssets.mimeType, 'video/%'))})`;
     return sql`false`;

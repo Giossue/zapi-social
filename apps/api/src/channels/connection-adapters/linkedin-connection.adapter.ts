@@ -8,21 +8,11 @@ import type {
 
 const restBase = 'https://api.linkedin.com/rest';
 
-/**
- * Conexión de cuentas de LinkedIn.
- *
- * Un perfil sale de `/v2/userinfo`, que es OpenID Connect y devuelve el `sub`
- * como identificador de persona. Una página sale de `organizationAcls`, que
- * lista las organizaciones donde quien autoriza es administrador aprobado; la
- * respuesta trae el rol pero no el nombre, así que hay que resolverlo aparte.
- */
 @Injectable()
 export class LinkedInConnectionAdapter implements ChannelConnectionAdapter {
   readonly providerKey = 'linkedin';
 
   scopesFor(capabilityKey: PortalChannelCapabilityKey): string[] {
-    // Publicar como persona y como página son permisos distintos, y LinkedIn
-    // obliga a aceptarlos todos de una vez: se piden solo los que hagan falta.
     return capabilityKey === 'linkedin_page'
       ? ['openid', 'profile', 'w_member_social', 'r_organization_admin']
       : ['openid', 'profile', 'w_member_social'];
@@ -75,8 +65,6 @@ export class LinkedInConnectionAdapter implements ChannelConnectionAdapter {
           code,
           client_id: clientId,
           client_secret: clientSecret,
-          // Tiene que ser idéntica a la del paso anterior o LinkedIn responde
-          // `invalid_redirect_uri`.
           redirect_uri: redirectUri,
         }),
         signal: AbortSignal.timeout(10_000),
@@ -161,8 +149,6 @@ export class LinkedInConnectionAdapter implements ChannelConnectionAdapter {
     const urns = elements.flatMap((element) => {
       if (typeof element !== 'object' || element === null) return [];
       const record = element as Record<string, unknown>;
-      // La documentación usa `organization` en unos ejemplos y
-      // `organizationTarget` en otros; se aceptan los dos.
       const urn = record.organizationTarget ?? record.organization;
       return typeof urn === 'string' ? [urn] : [];
     });
@@ -182,7 +168,6 @@ export class LinkedInConnectionAdapter implements ChannelConnectionAdapter {
     );
   }
 
-  /** Si el nombre no se puede resolver se usa el identificador: no vale fallar por eso. */
   private async organizationName(
     accessToken: string,
     apiVersion: string,

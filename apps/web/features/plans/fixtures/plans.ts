@@ -1,6 +1,5 @@
 import type { AdminPlan, PlanPermissionGroup } from "../types/plans"
 
-/** Datos sintéticos y deterministas para la UI administrativa de planes. */
 export const planPermissionGroups: readonly PlanPermissionGroup[] = [
   {
     id: "workspace",

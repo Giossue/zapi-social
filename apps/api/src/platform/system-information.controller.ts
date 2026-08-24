@@ -6,7 +6,6 @@ import { Redis } from 'ioredis';
 import { DatabaseService } from '../database/database.service';
 import { SessionAccessService } from '../identity/session-access.service';
 
-/** Estado observable de la plataforma: runtime, dependencias y migraciones aplicadas. */
 @ApiTags('admin-system')
 @Controller('v1/admin/system-information')
 export class SystemInformationController {
@@ -47,7 +46,6 @@ export class SystemInformationController {
       const [row] = await this.database.client.unsafe<{ version: string }[]>(
         'select version() as version',
       );
-      // `version()` devuelve «PostgreSQL 17.2 on x86_64…»: basta el número.
       return {
         key: 'postgres' as const,
         version: row?.version?.split(' ')[1] ?? null,

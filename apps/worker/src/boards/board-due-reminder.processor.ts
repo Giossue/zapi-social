@@ -8,14 +8,6 @@ import {
   BOARD_DUE_REMINDER_QUEUE,
 } from './boards.constants';
 
-/**
- * Avisa al responsable de una tarea que vence mañana.
- *
- * El estado de negocio vive en `board_tasks.due_date`, no en el job: si el
- * worker se cae, el barrido siguiente vuelve a encontrar la misma tarea. La
- * repetición no duplica avisos porque el `insert` descarta la tarea que ya
- * tiene su aviso de vencimiento.
- */
 @Injectable()
 @Processor(BOARD_DUE_REMINDER_QUEUE)
 export class BoardDueReminderProcessor extends WorkerHost {

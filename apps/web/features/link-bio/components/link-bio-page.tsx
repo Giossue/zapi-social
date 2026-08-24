@@ -389,8 +389,6 @@ function PageSheet({
   const [draft, setDraft] = useState<Draft>(emptyDraft)
   const [wasOpen, setWasOpen] = useState(open)
 
-  // Ajustar el estado durante el render en vez de en un efecto: evita el
-  // segundo render que encadena `setState` dentro de `useEffect`.
   if (open !== wasOpen) {
     setWasOpen(open)
     if (open) setDraft(page ? draftFrom(page) : emptyDraft)
@@ -856,8 +854,6 @@ export function LinkBioPage() {
   }, [handleError])
 
   useEffect(() => {
-    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
-    // la carga anterior cuando el efecto se repite.
     const timer = setTimeout(() => void load(), 0)
     return () => clearTimeout(timer)
   }, [load])

@@ -23,7 +23,6 @@ const groupSchemas = {
   'static-pages': adminStaticPagesSettingsSchema,
 } satisfies Record<string, ZodType>;
 
-/** El rótulo de cada cola lo pone la interfaz a partir de su nombre. */
 const scheduledQueues = [
   { queue: 'rss-schedule-dispatch' },
   { queue: 'ai-schedule-dispatch' },
@@ -36,7 +35,6 @@ const scheduledQueues = [
 
 const cachePurgeKey = 'cache:last-purged-at';
 
-/** Ajustes de plataforma y estado observable de caché y tareas programadas. */
 @Injectable()
 export class PlatformSettingsService {
   constructor(private readonly database: DatabaseService) {}
@@ -95,7 +93,6 @@ export class PlatformSettingsService {
     }
   }
 
-  /** Borra solo las claves de caché de aplicación; nunca las colas ni sus jobs. */
   async purgeCache() {
     const redis = this.redis();
     try {

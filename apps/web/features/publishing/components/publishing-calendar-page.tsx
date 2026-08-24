@@ -84,7 +84,6 @@ function ComposerActionIcon({ mode }: { mode: ComposerMode }) {
   return <CalendarDays data-icon="inline-start" />
 }
 
-/** La acción del composer cambia con el modo y con el estado pendiente. */
 function composerActionKey(mode: ComposerMode, pending: boolean) {
   if (pending) return `pending.${mode}` as const
   return `submit.${mode}` as const
@@ -445,8 +444,6 @@ export function PublishingCalendarPage({
     [posts]
   )
 
-  // Las tres secciones son rutas distintas: sin prefetch, cambiar de pestaña
-  // espera al RSC de la ruta destino y muestra su `loading.tsx` por el camino.
   useEffect(() => {
     for (const link of sectionLinks) router.prefetch(link.href)
   }, [router])

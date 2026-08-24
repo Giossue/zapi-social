@@ -2,14 +2,6 @@ import type { CSSProperties } from "react"
 
 import type { LinkBioTemplateKey } from "@workspace/contracts"
 
-/**
- * Catálogo de plantillas de Link in bio. La estructura de la página pública es
- * una sola (composición shadcn); cada plantilla aporta únicamente su tema como
- * variables CSS, que el renderer y las miniaturas consumen. Los colores viven
- * aquí y no en clases: la página pública se tematiza por plantilla, fuera del
- * sistema de tokens del producto. El nombre y la descripción de cada plantilla
- * viven en `messages/` bajo `linkBio.template`.
- */
 export type LinkBioTemplateCategory = "dark" | "light" | "color"
 
 export type LinkBioTemplate = {

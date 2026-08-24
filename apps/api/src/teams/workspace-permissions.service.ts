@@ -10,7 +10,6 @@ import {
 import { DatabaseService } from '../database/database.service';
 import { AppException } from '../platform/errors/app-exception';
 
-/** Roles que tienen todos los permisos sin que nadie se los conceda. */
 const unrestrictedRoles = new Set(['owner', 'admin']);
 
 export const allWorkspacePermissions: readonly WorkspacePermission[] =
@@ -20,11 +19,6 @@ export const allWorkspacePermissions: readonly WorkspacePermission[] =
 export class WorkspacePermissionsService {
   constructor(private readonly database: DatabaseService) {}
 
-  /**
-   * Descarta lo que no esté en el catálogo vigente y quita duplicados. Un
-   * permiso retirado del catálogo deja de contar sin necesidad de migrar las
-   * filas que aún lo guarden.
-   */
   sanitize(values: readonly unknown[]): WorkspacePermission[] {
     const parsed = values.flatMap((value) => {
       const result = workspacePermissionSchema.safeParse(value);
@@ -33,7 +27,6 @@ export class WorkspacePermissionsService {
     return [...new Set(parsed)];
   }
 
-  /** Lo que la interfaz debe pintar para una membresía concreta. */
   effective(
     role: string,
     granted: readonly unknown[],
@@ -66,10 +59,6 @@ export class WorkspacePermissionsService {
       : false;
   }
 
-  /**
-   * La comprobación vive aquí y no en la interfaz: esconder un botón no es
-   * autorizar. Ver `docs/reglas/seguridad.md`.
-   */
   async require(
     session: PortalAuthSession,
     permission: WorkspacePermission,

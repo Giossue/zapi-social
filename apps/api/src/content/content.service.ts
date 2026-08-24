@@ -40,7 +40,6 @@ import {
 import { AppException } from '../platform/errors/app-exception';
 import { DatabaseService } from '../database/database.service';
 
-/** Tope para los catálogos auxiliares que alimentan los selectores del formulario. */
 const auxiliaryLimit = 200;
 
 type TaxonomyTable = typeof blogCategories | typeof aiTemplateCategories;
@@ -64,7 +63,6 @@ function slugify(value: string) {
     .slice(0, 140);
 }
 
-/** Contenido global de plataforma: idiomas, blog, FAQs y plantillas de IA. */
 @Injectable()
 export class ContentService {
   constructor(private readonly database: DatabaseService) {}
@@ -132,8 +130,6 @@ export class ContentService {
         if (!row) throw this.notFound();
         return row;
       }
-      // La plataforma nunca debe quedarse sin idioma predeterminado: el primero
-      // que se crea lo es aunque no se marque.
       const [existing] = await tx
         .select({ total: sql<number>`count(*)::int` })
         .from(languages);
@@ -339,8 +335,6 @@ export class ContentService {
               .where(eq(blogPosts.id, id))
               .limit(1)
           : [];
-        // La fecha de publicación es historia: solo se fija al publicar por
-        // primera vez y se borra al volver a borrador.
         const publishedAt =
           values.status === 'published'
             ? (existing?.publishedAt ?? new Date())

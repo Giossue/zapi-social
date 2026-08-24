@@ -23,7 +23,6 @@ import { Progress } from "@workspace/ui/components/progress"
 import { Separator } from "@workspace/ui/components/separator"
 import { cn } from "@workspace/ui/lib/utils"
 
-/** Iniciales del nombre para el avatar; dos como mucho. */
 export function initialsOf(name: string) {
   return name
     .split(/\s+/)
@@ -66,8 +65,6 @@ export function BoardTaskCard({
   const format = useFormatter()
   const PriorityIcon = priorityIcons[task.priority]
   const taskLabels = labels.filter((label) => task.labelIds.includes(label.id))
-  // El progreso solo se pinta cuando hay algo que contar: un cero en cada
-  // tarjeta recién creada llenaría la columna de barras vacías.
   const showProgress = !isTerminal && task.progress > 0
 
   return (

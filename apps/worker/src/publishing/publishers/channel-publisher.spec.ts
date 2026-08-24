@@ -40,8 +40,6 @@ describe('channel media rules', () => {
   it('keeps every catalogued capability pointing at a known provider', () => {
     for (const capability of channelCapabilityCatalog) {
       expect(channelProvider(capability.providerKey)).toBeDefined();
-      // El primer destino es el que usa la interfaz por defecto: tiene que
-      // tener regla propia.
       expect(
         capability.mediaRules.some(
           (rule) => rule.destination === capability.destinations[0],
@@ -55,11 +53,9 @@ describe('channel media rules', () => {
     expect(
       validateChannelMedia('facebook_page', 'feed', [image, image]),
     ).toBeNull();
-    // El Feed no admite mezclar foto y vídeo…
     expect(validateChannelMedia('facebook_page', 'feed', [image, video])).toBe(
       'mixedNotAllowed',
     );
-    // …ni más de un vídeo, aunque no haya fotos de por medio.
     expect(validateChannelMedia('facebook_page', 'feed', [video, video])).toBe(
       'tooManyVideos',
     );
@@ -92,7 +88,6 @@ describe('channel media rules', () => {
 
   it('splits TikTok into a video destination and a photo one', () => {
     expect(validateChannelMedia('tiktok_profile', 'video', [video])).toBeNull();
-    // Una foto no vale para el destino de vídeo, y al revés tampoco.
     expect(validateChannelMedia('tiktok_profile', 'video', [image])).toBe(
       'imagesNotAllowed',
     );

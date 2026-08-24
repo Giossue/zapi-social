@@ -37,12 +37,6 @@ import { useTranslations } from "next-intl"
 
 import type { SupportCatalogItem } from "./support-catalog-panel"
 
-/**
- * Formulario mock del hijo Laravel `AdminSupport → New Ticket`. La creación
- * real del caso llega con la vertical de soporte; aquí solo se valida y se
- * entrega el resultado al estado local de la página.
- */
-
 export type AdminSupportUserFixture = {
   id: string
   name: string

@@ -65,8 +65,6 @@ function groupByColumn(
   const state: BoardState = {}
   for (const column of columns) state[column.id] = []
   for (const task of tasks) {
-    // Una tarea cuya columna se borró mientras se miraba el tablero no puede
-    // tumbar el render: se descarta hasta la siguiente carga.
     state[task.columnId]?.push(task)
   }
   return state
@@ -139,8 +137,6 @@ export function BoardPage() {
   }, [apiErrorMessage, assignee, priority, query, router, starterNames])
 
   useEffect(() => {
-    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
-    // la carga anterior mientras se escribe en el buscador.
     const timer = setTimeout(() => void load(), query ? 300 : 0)
     return () => clearTimeout(timer)
   }, [load, query])
@@ -188,8 +184,6 @@ export function BoardPage() {
       return
     }
 
-    // El destino se lee del estado que ya pintó `onDragOver`: la API recibe
-    // columna e índice finales, no un desplazamiento.
     const taskId = String(source.id)
     const columnId = Object.keys(board).find((id) =>
       board[id]?.some((task) => task.id === taskId)
@@ -232,8 +226,6 @@ export function BoardPage() {
         await boardsApi.createTask({
           ...input,
           columnId: targetColumnId,
-          // El enlace con una publicación se establece desde el tablero de
-          // contenido, no al crear la tarea.
           publishingPostId: null,
         })
       }

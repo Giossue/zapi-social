@@ -14,10 +14,6 @@ function integrationsStub(
   } as unknown as IntegrationsService;
 }
 
-/**
- * La disponibilidad solo depende de las integraciones, así que el resto de
- * dependencias no se usan en esta ruta y entran como nulas.
- */
 function serviceWith(
   integrations: IntegrationsService,
   generic: string[] = [],
@@ -64,7 +60,6 @@ describe('portal channel availability', () => {
           readiness: 'ready',
           capabilities: [
             { key: 'facebook_page', enabled: true },
-            // Configurado pero apagado: sigue sin estar disponible.
             { key: 'instagram_profile', enabled: false },
           ],
         },
@@ -83,7 +78,6 @@ describe('portal channel availability', () => {
     expect(availability.get('facebook_page')).toBe('ready');
     expect(availability.get('instagram_profile')).toBe('coming_soon');
     expect(availability.get('whatsapp_status')).toBe('coming_soon');
-    // Un proveedor sin pantalla de Admin todavía no puede estar listo.
     expect(availability.get('linkedin_page')).toBe('coming_soon');
   });
 

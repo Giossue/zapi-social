@@ -43,23 +43,10 @@ export const adminOperationActionKeySchema = z.enum([
   "revoke",
 ])
 
-/**
- * Una celda trae el dato de una de estas formas, nunca de dos:
- * `primary` para texto literal, `primaryKey` para clasificación traducible, o
- * uno de los valores tipados, que la interfaz formatea con el idioma activo.
- * Los tipados existen porque una fecha o un importe compuestos en el servidor
- * llevarían el formato de un idioma fijo.
- */
 export const adminOperationCellSchema = z.object({
-  /** Dato literal. Queda vacío cuando la celda se resuelve de otra forma. */
   primary: z.string(),
-  /** Clasificación o texto fijo: la interfaz lo traduce en vez de `primary`. */
   primaryKey: z.string().optional(),
   primaryArgs: z.record(z.string(), z.string()).optional(),
-  /**
-   * Valor tipado. Si además hay `primaryKey`, la interfaz lo formatea y lo
-   * pasa al mensaje como `{value}`; si no, lo muestra tal cual.
-   */
   primaryNumber: z.number().optional(),
   primaryDate: z.string().datetime().optional(),
   primaryMoney: z
@@ -71,7 +58,6 @@ export const adminOperationCellSchema = z.object({
 
 export const adminOperationActionSchema = z.object({
   key: adminOperationActionKeySchema,
-  /** Clave del rótulo: varias acciones comparten `key` con textos distintos. */
   labelKey: z.string(),
   kind: z.enum(["destructive", "success"]).optional(),
 })
@@ -79,16 +65,13 @@ export const adminOperationActionSchema = z.object({
 export const adminOperationRowSchema = z.object({
   id: z.uuid(),
   cells: z.array(adminOperationCellSchema),
-  /** Clave del estado; también es el valor con el que la cola filtra. */
   statusKey: z.string(),
   tone: adminOperationToneSchema,
   actions: z.array(adminOperationActionSchema),
 })
 
 export const adminOperationMetricSchema = z.object({
-  /** Clave `<módulo>.<pestaña>.<métrica>`; la interfaz pone rótulo y detalle. */
   key: z.string(),
-  /** Valor ya compuesto (porcentajes); vacío si viene tipado. */
   value: z.string(),
   numberValue: z.number().optional(),
   moneyValue: z

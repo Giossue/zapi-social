@@ -118,7 +118,6 @@ import type {
   WatermarkType,
 } from "@/features/watermarks/types/watermarks"
 
-/** Publicación sintética que sirve de lienzo en la vista previa del editor. */
 const previewContentSrc = "/preview/post-hamburguesa.webp"
 
 const defaultDraft: WatermarkDraft = {
@@ -140,7 +139,6 @@ const providerLabels: Record<string, string> = {
   linkedin: "LinkedIn",
 }
 
-/** «Todas» sale de `messages`; el resto son nombres propios de red. */
 const accountProviderFilters = [
   { label: null, value: "all" },
   { label: "Instagram", value: "instagram" },
@@ -189,7 +187,6 @@ const textWeightClass: Record<WatermarkTextWeight, string> = {
   bold: "font-bold",
 }
 
-/** Campos que definen la configuración; `socialAccountId` lo fija el objetivo, no el editor. */
 const DRAFT_COMPARED_KEYS = [
   "type",
   "imageFileAssetId",
@@ -219,10 +216,6 @@ function toWatermarkRule(watermark: PortalWatermark): WatermarkRule {
   }
 }
 
-/**
- * El contrato es una unión discriminada estricta: `image` no admite `text` ni al
- * revés. Devuelve `null` cuando falta el contenido obligatorio del modo activo.
- */
 function toWatermarkInput(
   draft: WatermarkDraft,
   socialAccountId: string | null
@@ -247,7 +240,6 @@ function toWatermarkInput(
   return text ? { ...shared, type: "text", text } : null
 }
 
-/** Devuelve la clave del aviso; el componente la traduce. */
 function watermarkErrorKey(error: unknown) {
   if (!(error instanceof ApiError)) return "saveFailed"
   if (error.code === "WATERMARK_TARGET_EXISTS") return "targetExists"
@@ -463,7 +455,6 @@ function WatermarkScopePicker({
   )
 }
 
-/** Imágenes del administrador de archivos, únicas candidatas a marca de agua. */
 function useLibraryImages() {
   const [assets, setAssets] = useState<WatermarkImageAsset[]>([])
   const [folders, setFolders] = useState<WatermarkLibraryFolder[]>([])
@@ -503,8 +494,6 @@ function useLibraryImages() {
   }, [folderId, starredOnly, trimmedQuery])
 
   useEffect(() => {
-    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
-    // la carga anterior cuando el efecto se repite.
     const timer = setTimeout(() => void load(), 0)
     return () => clearTimeout(timer)
   }, [load])
@@ -770,8 +759,6 @@ export function WatermarksPage() {
   }, [])
 
   useEffect(() => {
-    // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
-    // la carga anterior cuando el efecto se repite.
     const timer = setTimeout(() => void loadRules(), 0)
     return () => clearTimeout(timer)
   }, [loadRules])
@@ -788,7 +775,6 @@ export function WatermarksPage() {
     [isGlobalScope, rules, selectedAccountIds]
   )
   const hasTarget = targetAccountIds.length > 0
-  /** Configuración ya guardada del objetivo actual; línea base para detectar cambios. */
   const baselineDraft = useMemo(
     () => draftFromRule(targetRules[0] ?? null),
     [targetRules]
@@ -798,20 +784,14 @@ export function WatermarksPage() {
     [baselineDraft, draft]
   )
   const isCreating = targetRules.length === 0
-  /** Al cambiar de objetivo el editor parte de lo que ese objetivo tiene guardado. */
   const targetKey = isGlobalScope ? "global" : selectedAccountIds.join(",")
-  // `rules` entra en la clave porque el objetivo también se rebasa al recargar
-  // desde el servidor, no solo al cambiar de cuenta.
   const baselineKey = `${targetKey}:${rules.length}:${targetRules[0]?.id ?? ""}`
   const [lastBaselineKey, setLastBaselineKey] = useState(baselineKey)
 
-  // Ajustar el estado durante el render en vez de en un efecto: evita el
-  // segundo render que encadena `setState` dentro de `useEffect`.
   if (baselineKey !== lastBaselineKey) {
     setLastBaselineKey(baselineKey)
     setDraft(draftFromRule(targetRules[0] ?? null))
   }
-  /** Una marca sin contenido no se puede aplicar: imagen en modo imagen, texto en modo texto. */
   const hasContent =
     draft.type === "image"
       ? draft.imageFileAssetId !== null

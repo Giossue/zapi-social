@@ -73,9 +73,7 @@ export class PasswordResetService {
 
     try {
       await this.email.sendPasswordReset(user.email, token);
-    } catch {
-      // Deliberately preserve the generic public response and do not log email configuration or tokens.
-    }
+    } catch {}
     return genericRequestResponse;
   }
 

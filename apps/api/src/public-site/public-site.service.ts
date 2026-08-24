@@ -35,11 +35,6 @@ import {
 import { DatabaseService } from '../database/database.service';
 import { AppException } from '../platform/errors/app-exception';
 
-/**
- * Lectura pública del sitio. Sin sesión y sin datos de clientes: solo lo que el
- * Admin marca como publicado. Cada consulta filtra por estado activo/publicado,
- * de modo que un borrador nunca puede escaparse a la web pública.
- */
 @Injectable()
 export class PublicSiteService {
   constructor(private readonly database: DatabaseService) {}
@@ -173,7 +168,6 @@ export class PublicSiteService {
     const authValues = adminAuthSettingsSchema.parse(auth);
     return {
       ...generalValues,
-      /** El identificador solo sale si además se pidió rastrear visitantes. */
       analytics:
         analyticsValues.googleAnalyticsEnabled &&
         analyticsValues.trackGuests &&

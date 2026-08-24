@@ -46,11 +46,6 @@ import { AppException } from '../platform/errors/app-exception';
 import { WorkspacePermissionsService } from '../teams/workspace-permissions.service';
 import { BoardNotificationsService } from './board-notifications.service';
 
-/**
- * Columnas con las que arranca un espacio que abre el tablero por primera vez.
- * El nombre lo pone la interfaz al crearlas, porque la API no traduce; aquí
- * solo vive la forma.
- */
 const starterColumns = [
   { key: 'todo', isTerminal: false, color: '#64748b' },
   { key: 'doing', isTerminal: false, color: '#2563eb' },
@@ -184,7 +179,6 @@ export class BoardsService {
         .where(eq(boardColumns.workspaceId, session.workspace.id))
         .for('update');
       const known = new Set(existing.map(({ id }) => id));
-      // Reordenar una lista parcial dejaría huecos: se exige el tablero entero.
       if (
         parsed.data.columnIds.length !== known.size ||
         !parsed.data.columnIds.every((id) => known.has(id))
@@ -218,7 +212,6 @@ export class BoardsService {
             isNull(boardTasks.archivedAt),
           ),
         );
-      // Borrar arrastrando tarjetas perdería trabajo sin avisar.
       if (Number(tasks?.total ?? 0) > 0)
         throw new AppException('BOARD_COLUMN_NOT_EMPTY', HttpStatus.CONFLICT);
       const deleted = await tx
@@ -346,9 +339,6 @@ export class BoardsService {
         parsed.data.columnId,
       );
 
-      // Se renumera la columna entera dentro de la transacción: mover con un
-      // desplazamiento dejaría el orden incoherente si dos personas arrastran a
-      // la vez.
       const siblings = await tx
         .select({ id: boardTasks.id })
         .from(boardTasks)
@@ -368,8 +358,6 @@ export class BoardsService {
         .update(boardTasks)
         .set({
           columnId: column.id,
-          // Volver de la columna terminal a una intermedia deshace el sello: la
-          // tarea vuelve a estar en curso.
           completedAt: column.isTerminal ? (task.completedAt ?? now) : null,
           updatedAt: now,
         })
@@ -555,11 +543,6 @@ export class BoardsService {
     return { manageTasks, manageColumns, deleteTasks };
   }
 
-  /**
-   * Crea las columnas de arranque la primera vez. Los nombres los manda la
-   * interfaz en el idioma activo: desde ese momento son datos del usuario y no
-   * vuelven a cambiar aunque cambie de idioma.
-   */
   private async ensureColumns(
     session: PortalAuthSession,
     starterNames?: Record<string, string>,
@@ -840,7 +823,6 @@ export class BoardsService {
     return task;
   }
 
-  /** El responsable tiene que ser miembro activo del mismo espacio. */
   private async assertAssignee(
     tx: Transaction,
     session: PortalAuthSession,

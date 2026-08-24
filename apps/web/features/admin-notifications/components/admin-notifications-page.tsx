@@ -139,8 +139,6 @@ function AnnouncementSheet({
   const formKey = open ? (editing?.id ?? "nuevo") : null
   const [lastFormKey, setLastFormKey] = useState(formKey)
 
-  // Ajustar el estado durante el render en vez de en un efecto: evita el
-  // segundo render que encadena `setState` dentro de `useEffect`.
   if (formKey !== lastFormKey) {
     setLastFormKey(formKey)
     if (open) {
@@ -161,7 +159,6 @@ function AnnouncementSheet({
 
   useEffect(() => {
     if (!open || values.audience === "all") {
-      // Fuera del cuerpo del efecto: dentro sería un `setState` síncrono.
       const clear = setTimeout(() => setTargets([]), 0)
       return () => clearTimeout(clear)
     }
