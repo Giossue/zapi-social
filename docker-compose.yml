@@ -1,0 +1,162 @@
+name: ${COMPOSE_PROJECT_NAME:-zapi-v2}
+
+x-app-environment: &app-environment
+  NODE_ENV: production
+  DATABASE_URL: postgresql://${POSTGRES_USER:-zapi}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-zapi_v2}
+  PROVIDER_INTEGRATIONS_ENCRYPTION_KEY: ${PROVIDER_INTEGRATIONS_ENCRYPTION_KEY:?Set PROVIDER_INTEGRATIONS_ENCRYPTION_KEY in .env}
+  REDIS_HOST: redis
+  REDIS_PORT: 6379
+  REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}
+  FILES_STORAGE_PATH: /app/.data/files
+  API_PUBLIC_ORIGIN: ${API_PUBLIC_ORIGIN:-http://localhost:3001}
+
+x-app-dependencies: &app-dependencies
+  postgres:
+    condition: service_healthy
+  redis:
+    condition: service_healthy
+  migrate:
+    condition: service_completed_successfully
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-zapi_v2}
+      POSTGRES_USER: ${POSTGRES_USER:-zapi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--requirepass",
+        "${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}",
+      ]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in .env}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'redis-cli -a "$${REDIS_PASSWORD}" ping 2>/dev/null | grep -q PONG',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    volumes:
+      - redis-data:/data
+
+  migrate:
+    image: zapi-api:${ZAPI_VERSION:-local}
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    restart: "no"
+    env_file: ${ZAPI_ENV_FILE:-.env}
+    environment: *app-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ["bun", "run", "--filter", "@workspace/database", "db:migrate"]
+
+  api:
+    image: zapi-api:${ZAPI_VERSION:-local}
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    restart: unless-stopped
+    env_file: ${ZAPI_ENV_FILE:-.env}
+    environment:
+      <<: *app-environment
+      API_HOST: 0.0.0.0
+      API_PORT: 3001
+      WEB_ORIGIN: ${WEB_ORIGIN:-http://localhost:3000}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?Set JWT_ACCESS_SECRET in .env}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    depends_on: *app-dependencies
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "bun",
+          "-e",
+          "const r=await fetch('http://127.0.0.1:3001/v1/health');if(!r.ok)process.exit(1)",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    ports:
+      - 127.0.0.1:${API_PUBLIC_PORT:-3001}:3001
+    volumes:
+      - files-data:/app/.data/files
+
+  worker:
+    image: zapi-worker:${ZAPI_VERSION:-local}
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    restart: unless-stopped
+    env_file: ${ZAPI_ENV_FILE:-.env}
+    environment: *app-environment
+    depends_on: *app-dependencies
+    healthcheck:
+      test: ["CMD-SHELL", "kill -0 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    volumes:
+      - files-data:/app/.data/files
+
+  web:
+    image: zapi-web:${ZAPI_VERSION:-local}
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: 3000
+      INTERNAL_API_ORIGIN: http://api:3001
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "const r=await fetch('http://127.0.0.1:3000/login');if(!r.ok)process.exit(1)",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    ports:
+      - 127.0.0.1:${WEB_PUBLIC_PORT:-3000}:3000
+
+volumes:
+  postgres-data:
+  redis-data:
+  files-data:

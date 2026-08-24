@@ -2,7 +2,10 @@
 
 ## Estado
 
-**Investigación cerrada el 23 de agosto de 2026; implementación sin empezar.**
+**Fase 1 cerrada el 24 de agosto de 2026.** El paquete incluye Compose,
+plantilla de entorno y guías inglesas de instalación y actualización. La guía
+se ejecutó desde cero con Compose v2 sobre un motor compatible: migraciones,
+healthchecks, bootstrap, login y render autenticado de Admin y Portal pasaron.
 Bloque 4 de [`mvp-codecanyon-v2.md`](./mvp-codecanyon-v2.md): definir el
 paquete que un comprador de CodeCanyon instala y actualiza sin ayuda. Hoy la
 única documentación de despliegue es la nuestra
@@ -36,7 +39,7 @@ página de venta.
 
 **Se corrige**: V2 **sí** entrega documentación de instalación y
 actualización, **sí** versiona (migraciones Drizzle incrementales, que ya
-existen: 0000–0042), y no copia la verificación de purchase code con SSL
+existen: 0000–0046), y no copia la verificación de purchase code con SSL
 desactivado — la verificación de licencia queda fuera del MVP, como en el
 instalador de la referencia.
 
@@ -51,10 +54,10 @@ iniciales.
 ### El paquete
 
 ```text
-docker-compose.yml   # postgres, redis, api, worker, web, con healthchecks
+docker-compose.yml   # postgres, redis, migrate, api, worker, web
 .env.example         # cada variable documentada, secretos a generar
-docs/instalacion.md  # guía paso a paso (requisitos: Docker + dominio)
-docs/actualizacion.md# pull de imagen nueva + migraciones
+docs/installation.md # guía inglesa paso a paso
+docs/updating.md      # actualización, backup, verificación y rollback
 ```
 
 - Las imágenes ya existen (`Dockerfile.api|web|worker`, validadas con podman
@@ -100,11 +103,11 @@ docs/actualizacion.md# pull de imagen nueva + migraciones
 
 ### Fase 1 — Compose y guía
 
-- [ ] `docker-compose.yml` con los cinco servicios, healthchecks y servicio
+- [x] `docker-compose.yml` con servicios persistentes, healthchecks y servicio
       one-shot de migraciones.
-- [ ] `.env.example` documentado variable a variable, sin valores reales.
-- [ ] `docs/instalacion.md` y `docs/actualizacion.md` probados siguiendo la
-      guía en una máquina limpia.
+- [x] `.env.example` documentado variable a variable, sin valores reales.
+- [x] `docs/installation.md` y `docs/updating.md` probados desde una base vacía,
+      incluidos bootstrap, autenticación, salud y apagado limpio.
 
 ### Fase 2 — Setup wizard
 

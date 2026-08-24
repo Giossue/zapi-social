@@ -82,12 +82,9 @@ son las copias y el volcado de capas.
 
 Tres cambios, por orden de lo que aportaron:
 
-1. **`typescript.ignoreBuildErrors` en `next.config.ts`** — 18 s. `bun run
-   typecheck` ya cubre el monorepo entero, API y worker incluidos, antes de
-   publicar. **La contrapartida es real: si alguien publica sin pasar
-   `typecheck`, un error de tipos llega a producción.** Un error de compilación
-   o de resolución de módulo sigue rompiendo el build. Si algún día hay CI, lo
-   suyo es que ejecute `typecheck` en cada push y esto deje de ser un riesgo.
+1. **La omisión de tipos se retiró el 24 de agosto de 2026.** La distribución
+   para compradores debe fallar durante `next build` si contiene un error de
+   TypeScript, incluso cuando el operador no ejecute el gate raíz por separado.
 2. **Cachés de BuildKit** para las descargas de bun y para `.next/cache`, con
    `# syntax=docker/dockerfile:1` al principio de los tres `Dockerfile`. Ayuda
    en frío; con Turbopack la caché de Next apenas se nota.
@@ -96,10 +93,9 @@ Tres cambios, por orden de lo que aportaron:
    `package.json` sí se copian, porque `bun install` los necesita para resolver
    el workspace.
 
-Lo que **no** se tocó y sigue pendiente: no hay multi-stage ni
-`output: "standalone"`, así que la imagen final carga las 2.968 dependencias,
-incluidas las de desarrollo. No alarga el build, pero engorda la imagen y el
-arranque. Merece un cambio propio, porque altera cómo arranca el contenedor.
+Las tres imágenes usan builds multi-stage y usuarios sin privilegios. Web usa
+la salida `standalone` de Next y su imagen final solo contiene el servidor,
+estáticos y archivos públicos necesarios para producción.
 
 ## Watch Paths: desplegar solo el servicio que cambió
 

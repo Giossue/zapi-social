@@ -217,6 +217,7 @@
       "name": "@workspace/database",
       "version": "0.0.0",
       "dependencies": {
+        "drizzle-kit": "^0.31.8",
         "drizzle-orm": "^0.45.1",
         "postgres": "^3.4.7",
       },
@@ -224,7 +225,6 @@
         "@types/node": "^24",
         "@workspace/eslint-config": "workspace:*",
         "@workspace/typescript-config": "workspace:*",
-        "drizzle-kit": "^0.31.8",
         "eslint": "^9",
         "prettier": "^3.8.3",
         "typescript": "^5",

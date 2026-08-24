@@ -1,5 +1,6 @@
 import type { NextConfig } from "next"
 import createNextIntlPlugin from "next-intl/plugin"
+import { fileURLToPath } from "node:url"
 
 const withNextIntl = createNextIntlPlugin({
   experimental: {
@@ -8,8 +9,9 @@ const withNextIntl = createNextIntlPlugin({
 })
 
 const nextConfig: NextConfig = {
+  output: "standalone",
+  outputFileTracingRoot: fileURLToPath(new URL("../..", import.meta.url)),
   transpilePackages: ["@workspace/ui"],
-  typescript: { ignoreBuildErrors: true },
   async headers() {
     return [
       {

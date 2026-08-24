@@ -22,7 +22,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "typecheck": "tsc --noEmit",
     "dev": "nest start --watch",
-    "seed:users": "bun run src/scripts/seed-users.ts"
+    "seed:users": "bun run src/scripts/seed-users.ts",
+    "seed:users:prod": "node dist/scripts/seed-users.js"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1100.0",
