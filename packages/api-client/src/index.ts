@@ -30,6 +30,9 @@ import type {
   ActivateAuthWorkspaceInput,
   CreateAdminPlanInput,
   LoginInput,
+  CreateSetupAdminInput,
+  SetupResult,
+  SetupStatus,
   MetaIntegration,
   TestWhatsAppStatusIntegrationInput,
   TestWhatsAppStatusIntegrationResponse,
@@ -484,6 +487,15 @@ export const authApi = {
   session: () => request<AuthSession>("/v1/auth/session", { method: "GET" }),
   activateWorkspace: (input: ActivateAuthWorkspaceInput) =>
     request<AuthSession>("/v1/auth/workspaces/activate", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+}
+
+export const setupApi = {
+  status: () => request<SetupStatus>("/v1/setup", { method: "GET" }),
+  createAdmin: (input: CreateSetupAdminInput) =>
+    request<SetupResult>("/v1/setup", {
       method: "POST",
       body: JSON.stringify(input),
     }),

@@ -41,6 +41,7 @@ import { OnlineMediaModule } from './online-media/online-media.module';
 import { BillingModule } from './billing/billing.module';
 import { CaptchaAdminModule } from './captcha/captcha-admin.module';
 import { CaptchaModule } from './captcha/captcha.module';
+import { SetupModule } from './setup/setup.module';
 
 const pinoRedactPaths = [
   'req.headers.authorization',
@@ -168,6 +169,7 @@ const pinoRedactPaths = [
     LinkBioModule,
     PlatformSettingsModule,
     IdentityModule,
+    SetupModule,
     CaptchaAdminModule,
     BullModule.forRoot({
       connection: {

@@ -90,44 +90,25 @@ Expected state:
 Do not continue if `migrate` failed. Inspect its logs and correct the
 configuration first.
 
-## 4. Create the initial accounts
+## 4. Complete the one-time setup
 
-The current release uses a one-time CLI bootstrap. It creates a dedicated
-Platform Admin and a separate Portal workspace owner. They must use different
-email addresses.
+Open the Web URL in a browser. A new empty installation redirects `/login` to
+`/setup`. Enter the primary administrator's name, email, and a strong
+password. The setup operation can succeed only once and creates:
 
-Export the values only for this command:
+- the dedicated Platform Admin account, without a Portal workspace;
+- an editable free starter plan for new registrations;
+- an editable paid growth plan with higher limits.
 
-```bash
-export SEED_ADMIN_EMAIL=admin@example.com
-export SEED_ADMIN_DISPLAY_NAME="Platform Admin"
-read -rsp "Platform Admin password: " SEED_ADMIN_PASSWORD && export SEED_ADMIN_PASSWORD
-printf '\n'
+After setup, the browser signs in and opens Admin. To create a Portal workspace
+owner, sign out or use a private browser window and register a separate email
+at `/register`. Platform Admin and Portal users must never share an account.
 
-export SEED_MEMBER_EMAIL=owner@example.com
-export SEED_MEMBER_DISPLAY_NAME="Workspace Owner"
-export SEED_MEMBER_ROLE=owner
-read -rsp "Workspace owner password: " SEED_MEMBER_PASSWORD && export SEED_MEMBER_PASSWORD
-printf '\n'
-
-docker compose run --rm \
-  -e SEED_ADMIN_EMAIL \
-  -e SEED_ADMIN_DISPLAY_NAME \
-  -e SEED_ADMIN_PASSWORD \
-  -e SEED_MEMBER_EMAIL \
-  -e SEED_MEMBER_DISPLAY_NAME \
-  -e SEED_MEMBER_PASSWORD \
-  -e SEED_MEMBER_ROLE \
-  api bun run --filter api seed:users:prod
-
-unset SEED_ADMIN_EMAIL SEED_ADMIN_DISPLAY_NAME SEED_ADMIN_PASSWORD
-unset SEED_MEMBER_EMAIL SEED_MEMBER_DISPLAY_NAME SEED_MEMBER_PASSWORD
-unset SEED_MEMBER_ROLE
-```
-
-The success message is `PlatformAdmin and PortalUser seeds are ready.` The
-command is safe to retry with the same users, but it intentionally rejects a
-Platform Admin that already owns or belongs to a workspace.
+If setup reports that users exist but no Platform Admin is available, stop and
+inspect the database history. The public setup route intentionally refuses to
+take over a non-empty installation. Use the CLI bootstrap only during a
+controlled recovery of a database you own; never expose temporary passwords in
+shell history or support messages.
 
 ## 5. Configure HTTPS and the reverse proxy
 

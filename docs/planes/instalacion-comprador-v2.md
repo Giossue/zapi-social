@@ -2,10 +2,10 @@
 
 ## Estado
 
-**Fase 1 cerrada el 24 de agosto de 2026.** El paquete incluye Compose,
+**Fases 1 y 2 cerradas el 24 de agosto de 2026.** El paquete incluye Compose,
 plantilla de entorno y guías inglesas de instalación y actualización. La guía
 se ejecutó desde cero con Compose v2 sobre un motor compatible: migraciones,
-healthchecks, bootstrap, login y render autenticado de Admin y Portal pasaron.
+healthchecks, setup, login y render autenticado de Admin y Portal pasaron.
 Bloque 4 de [`mvp-codecanyon-v2.md`](./mvp-codecanyon-v2.md): definir el
 paquete que un comprador de CodeCanyon instala y actualiza sin ayuda. Hoy la
 única documentación de despliegue es la nuestra
@@ -69,11 +69,13 @@ docs/updating.md      # actualización, backup, verificación y rollback
 
 ### Primer arranque (setup wizard)
 
-- La API expone `GET /v1/setup/status` (público: `{ needsSetup }`, verdadero
-  mientras no exista ningún `isPlatformAdmin`).
-- Con `needsSetup`, la web redirige todo a `/setup`: un formulario que crea el
-  primer administrador (`POST /v1/setup`, válido una sola vez, idempotente y
-  auditado) y siembra planes de ejemplo y plantillas AI si la base está vacía.
+- La API expone `GET /v1/setup` (público: `{ needsSetup, state }`). Solo una
+  base sin usuarios entra en estado `required`; una base con usuarios pero sin
+  administrador queda `blocked` para impedir una toma de control pública.
+- Con `needsSetup`, la web redirige Login y Registro a `/setup`: un formulario
+  que crea el primer administrador (`POST /v1/setup`, válido una sola vez,
+  serializado con advisory lock y auditado) y siembra los planes editables
+  Gratis y Crecimiento con límites distintos.
 - Sin instalador de requisitos: los healthchecks del compose y la validación
   de entorno al arrancar cumplen ese papel y fallan con mensajes claros.
 
@@ -111,9 +113,11 @@ docs/updating.md      # actualización, backup, verificación y rollback
 
 ### Fase 2 — Setup wizard
 
-- [ ] `GET /v1/setup/status` y `POST /v1/setup` (una sola vez, auditado).
-- [ ] Pantalla `/setup` y redirección mientras `needsSetup`.
-- [ ] Seeders de planes y plantillas AI.
+- [x] `GET /v1/setup` y `POST /v1/setup` (una sola vez, auditado y seguro ante
+      concurrencia).
+- [x] Pantalla `/setup` y redirección mientras `needsSetup`.
+- [x] Planes iniciales Gratis y Crecimiento con límites distintos.
+- [ ] Plantillas AI iniciales.
 
 ### Fase 3 — Demo
 

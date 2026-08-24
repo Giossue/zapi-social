@@ -3253,6 +3253,7 @@ declare const messages: {
     "PLAN_LIMIT_REACHED": "Alcanzaste el límite de tu plan. Mejora el plan para continuar.",
     "PLAN_MODULE_DISABLED": "Tu plan no incluye este módulo.",
     "ROLE_CHANGE_NOT_ALLOWED": "Tu rol no permite completar este cambio.",
+    "SETUP_ALREADY_COMPLETED": "Esta instalación ya fue configurada.",
     "TEAM_ACCESS_DENIED": "No tienes permiso para completar esta acción.",
     "TEAM_MEMBER_ALREADY_EXISTS": "Ese correo ya pertenece al workspace.",
     "TRANSLATION_ARGUMENTS_MISMATCH": "La traducción no usa los mismos argumentos que el texto original.",
@@ -4825,6 +4826,28 @@ declare const messages: {
       "switching": "Cambiando espacio",
       "title": "Espacios de trabajo"
     }
+  },
+  "setup": {
+    "description": "Crea el administrador principal y los planes iniciales de esta instalación.",
+    "email": "Correo del administrador",
+    "emailPlaceholder": "admin@tu-dominio.com",
+    "error": {
+      "alreadyCompleted": "La instalación ya fue configurada. Continúa desde el inicio de sesión.",
+      "failed": "No pudimos completar la instalación. Revisa la configuración del servidor e inténtalo de nuevo.",
+      "passwordMismatch": "Las contraseñas no coinciden.",
+      "passwordPolicy": "La contraseña no cumple la política de seguridad.",
+      "title": "No se pudo completar la configuración",
+      "validation": "Revisa los datos y usa una contraseña segura."
+    },
+    "metadata": "Configurar Zapi Social",
+    "name": "Nombre del administrador",
+    "namePlaceholder": "Administrador principal",
+    "password": "Contraseña",
+    "passwordConfirmation": "Confirmar contraseña",
+    "passwordHint": "Usa 8 o más caracteres con mayúscula, minúscula, número y carácter especial.",
+    "submit": "Completar configuración",
+    "submitting": "Configurando…",
+    "title": "Configura Zapi Social"
   },
   "staticPages": {
     "actions": "Acciones",

@@ -3250,6 +3250,7 @@
     "PLAN_LIMIT_REACHED": "You reached your plan limit. Upgrade to continue.",
     "PLAN_MODULE_DISABLED": "Your plan does not include this module.",
     "ROLE_CHANGE_NOT_ALLOWED": "Your role can't complete this change.",
+    "SETUP_ALREADY_COMPLETED": "This installation is already configured.",
     "TEAM_ACCESS_DENIED": "You don't have permission to complete this action.",
     "TEAM_MEMBER_ALREADY_EXISTS": "That email already belongs to the workspace.",
     "TRANSLATION_ARGUMENTS_MISMATCH": "The translation does not use the same arguments as the original text.",
@@ -4822,6 +4823,28 @@
       "switching": "Switching workspace",
       "title": "Workspaces"
     }
+  },
+  "setup": {
+    "description": "Create the primary administrator and starter plans for this installation.",
+    "email": "Administrator email",
+    "emailPlaceholder": "admin@your-domain.com",
+    "error": {
+      "alreadyCompleted": "This installation is already configured. Continue from the sign-in page.",
+      "failed": "The installation could not be completed. Check the server configuration and try again.",
+      "passwordMismatch": "The passwords do not match.",
+      "passwordPolicy": "The password does not meet the security policy.",
+      "title": "Setup could not be completed",
+      "validation": "Review the details and use a secure password."
+    },
+    "metadata": "Set up Zapi Social",
+    "name": "Administrator name",
+    "namePlaceholder": "Primary administrator",
+    "password": "Password",
+    "passwordConfirmation": "Confirm password",
+    "passwordHint": "Use 8 or more characters with uppercase, lowercase, a number, and a special character.",
+    "submit": "Complete setup",
+    "submitting": "Setting up…",
+    "title": "Set up Zapi Social"
   },
   "staticPages": {
     "actions": "Actions",

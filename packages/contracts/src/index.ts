@@ -38,6 +38,20 @@ export const registerSchema = z.object({
   turnstileToken: turnstileTokenSchema.optional(),
 })
 
+export const createSetupAdminSchema = z.object({
+  email: z.string().trim().email().max(320),
+  password: passwordPolicy,
+  displayName: z.string().trim().min(2).max(160),
+  timezone: profileTimeZoneSchema,
+})
+
+export const setupStatusSchema = z.object({
+  needsSetup: z.boolean(),
+  state: z.enum(["required", "complete", "blocked"]),
+})
+
+export const setupResultSchema = z.object({ created: z.literal(true) })
+
 export const loginSchema = z.object({
   email: z.string().trim().email().max(320),
   password: z.string().min(1).max(128),
@@ -1214,6 +1228,9 @@ export const updateProviderIntegrationSchema = z
 
 export type RegisterInput = z.infer<typeof registerSchema>
 export type LoginInput = z.infer<typeof loginSchema>
+export type CreateSetupAdminInput = z.infer<typeof createSetupAdminSchema>
+export type SetupStatus = z.infer<typeof setupStatusSchema>
+export type SetupResult = z.infer<typeof setupResultSchema>
 export type PublicTurnstileConfiguration = z.infer<
   typeof publicTurnstileConfigurationSchema
 >
