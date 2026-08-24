@@ -1,4 +1,5 @@
 import {
+  Bell,
   CalendarDays,
   CreditCard,
   Droplets,
@@ -45,6 +46,12 @@ export const portalNavigationGroups: readonly PortalNavigationGroup[] = [
         labelKey: "plans",
         href: "/portal/plans",
         icon: CreditCard,
+      },
+      {
+        labelKey: "notifications",
+        href: "/portal/notifications",
+        icon: Bell,
+        indicatorKey: "notifications",
       },
     ],
   },

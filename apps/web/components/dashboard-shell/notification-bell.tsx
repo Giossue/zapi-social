@@ -19,6 +19,7 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
 
 import { PortalNotificationItem } from "@/features/notifications/components/portal-notification-item"
+import { publishNotificationUnread } from "@/features/notifications/notification-indicator"
 
 export function NotificationBell() {
   const t = useTranslations("shell.notifications")
@@ -36,6 +37,7 @@ export function NotificationBell() {
       const response = await notificationsApi.feed({ limit: 10 })
       setNotifications(response.notifications)
       setUnread(response.unread)
+      publishNotificationUnread(response.unread)
       setUnavailable(false)
     } catch (error) {
       if (error instanceof ApiError) setUnavailable(true)
@@ -65,6 +67,7 @@ export function NotificationBell() {
   function update(response: Awaited<ReturnType<typeof notificationsApi.feed>>) {
     setNotifications(response.notifications)
     setUnread(response.unread)
+    publishNotificationUnread(response.unread)
   }
 
   if (unavailable) return null

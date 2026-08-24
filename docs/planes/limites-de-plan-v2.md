@@ -88,6 +88,15 @@ diferido y la doble capa plan + módulos por workspace (la columna
 catálogo de límites en `packages/contracts` (schema Zod cerrado); añadir un
 límite nuevo es un cambio de contrato, visible en typecheck.
 
+### Composición con Teams
+
+El plan siempre se resuelve para el workspace activo. La cuenta del usuario no
+transporta su plan a otros espacios: un miembro Free puede usar un workspace
+pagado y un miembro Premium no amplía un workspace Free. Para `member`, el
+acceso final intersecta los módulos del plan y del workspace con sus permisos
+tipados y sus cuentas asignadas. Owner y admin omiten el filtro de permisos,
+pero nunca los límites contractuales del workspace.
+
 ## Datos
 
 - `plans.limits` contiene el jsonb tipado por `planLimitsSchema` y se edita
@@ -104,7 +113,11 @@ límite nuevo es un cambio de contrato, visible en typecheck.
   conteo de canales, módulos incluidos, créditos y costes).
 - **Portal**: el error de límite llega como código estable
   (`PLAN_LIMIT_REACHED` con el límite en `details`) y la interfaz lo traduce
-  con invitación a mejorar el plan. Los pickers de conexión recortan al
+  con invitación a mejorar el plan. Los módulos fuera del plan permanecen
+  visibles con un candado; su ruta muestra una superficie bloqueada, no monta
+  el módulo real y conduce a `/portal/plans`. La API conserva el rechazo
+  central con `PLAN_MODULE_DISABLED`, por lo que cambiar el DOM o invocar una
+  ruta directamente no concede acceso. Los pickers de conexión recortan al
   remanente, como en Laravel. `/portal/plans` consume el catálogo activo de
   Admin y muestra esos mismos límites antes de abrir checkout.
 
@@ -145,8 +158,8 @@ enforcement por vertical → Worker`.
       mensual primero y del saldo comprado después, con reembolso sobre el
       ledger existente. (24-08-2026)
 - [x] Módulos por plan y por workspace (`enabledModules`): guard en API y
-      Worker, visibilidad en la navegación del Portal y edición en Admin →
-      Teams. La migración 0046 preserva `null` como herencia del plan.
+      Worker, estado bloqueado visible en la navegación del Portal y edición
+      en Admin → Teams. La migración 0046 preserva `null` como herencia del plan.
       (24-08-2026)
 
 ### Fase 5 — Ciclo de vida
@@ -157,11 +170,23 @@ enforcement por vertical → Worker`.
 - [x] Expiración sin suscripción activa: caída al plan por defecto, nunca a
       "todo abierto". (24-08-2026)
 
+### Fase 6 — Acceso por miembro
+
+- [x] Catálogo cerrado de permisos Portal, enforcement central en API,
+      módulos del plan visibles pero bloqueados y navegación filtrada por
+      permiso del miembro. (24-08-2026)
+- [x] Invitaciones con permisos y cuentas preasignadas; cambio seguro al
+      workspace personal al salir o ser removido. Migración 0048. (24-08-2026)
+
 Evidencia de las fases 1–5: migraciones 0045–0047 aplicadas en
 `zapi_v2_local` y `zapi_v2` con 48 entradas Drizzle idénticas; typecheck y
 build del monorepo, 133 pruebas de API, 41 del Worker y 12 E2E de navegador
 con las integraciones de base de datos activadas, auditorías i18n y de UI en
 verde el 24-08-2026.
+
+Evidencia de la fase 6: migración 0048 aplicada en ambas bases con 49 entradas
+Drizzle idénticas; build, typecheck y lint globales correctos, 135 pruebas API
+y auditorías i18n/UI en verde el 24-08-2026.
 
 ## Fuera de alcance
 

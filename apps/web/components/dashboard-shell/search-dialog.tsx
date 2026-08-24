@@ -5,7 +5,7 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
 
-import { Search } from "lucide-react"
+import { LockKeyhole, Search } from "lucide-react"
 
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -31,6 +31,7 @@ type SearchItem = DashboardNavigationLink & {
 
 type DashboardSearchDialogProps = {
   items: readonly DashboardNavigationGroup[]
+  lockedLabel: string
 }
 
 function getSearchItems(items: readonly DashboardNavigationGroup[]) {
@@ -61,8 +62,10 @@ function groupBy(items: SearchItem[]) {
 function SearchResultGroups({
   items,
   onSelect,
+  lockedLabel,
 }: {
   items: SearchItem[]
+  lockedLabel: string
   onSelect: (item: SearchItem) => void
 }) {
   return groupBy(items).map(({ group, items: groupItems }, index) => (
@@ -82,6 +85,12 @@ function SearchResultGroups({
                 {Icon ? <Icon /> : null}
                 <span className="truncate">{item.label}</span>
               </span>
+              {item.planLocked ? (
+                <>
+                  <LockKeyhole aria-hidden="true" className="ml-auto" />
+                  <span className="sr-only"> · {lockedLabel}</span>
+                </>
+              ) : null}
             </CommandItem>
           )
         })}
@@ -90,7 +99,10 @@ function SearchResultGroups({
   ))
 }
 
-export function DashboardSearchDialog({ items }: DashboardSearchDialogProps) {
+export function DashboardSearchDialog({
+  items,
+  lockedLabel,
+}: DashboardSearchDialogProps) {
   const t = useTranslations("shell.search")
   const [open, setOpen] = React.useState(false)
   const [query, setQuery] = React.useState("")
@@ -143,6 +155,7 @@ export function DashboardSearchDialog({ items }: DashboardSearchDialogProps) {
             <CommandEmpty>{t("empty")}</CommandEmpty>
             <SearchResultGroups
               items={query ? searchItems : searchItems}
+              lockedLabel={lockedLabel}
               onSelect={handleSelect}
             />
           </CommandList>

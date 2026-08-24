@@ -37,6 +37,7 @@ import { toast } from "@workspace/ui/components/toast"
 
 import { PageLoading } from "@/components/page-loading"
 import { PortalNotificationItem } from "@/features/notifications/components/portal-notification-item"
+import { publishNotificationUnread } from "@/features/notifications/notification-indicator"
 
 const filters = ["all", "unread", "read", "archived"] as const
 const pageSize = 20
@@ -60,7 +61,9 @@ export function PortalNotificationsPage() {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      setResponse(await fetchPage())
+      const nextResponse = await fetchPage()
+      setResponse(nextResponse)
+      publishNotificationUnread(nextResponse.unread)
       setError(false)
     } catch (nextError) {
       console.error("Notifications history request failed", nextError)
@@ -83,6 +86,7 @@ export function PortalNotificationsPage() {
     try {
       await action(notification.id)
       const nextResponse = await fetchPage()
+      publishNotificationUnread(nextResponse.unread)
       if (!nextResponse.notifications.length && page > 1) setPage(page - 1)
       else setResponse(nextResponse)
     } catch (nextError) {

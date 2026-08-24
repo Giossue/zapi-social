@@ -91,6 +91,7 @@ export function WorkspaceSwitcher({
                 <div className="grid min-w-0 flex-1">
                   <span className="truncate font-medium">{workspace.name}</span>
                   <span className="text-xs text-muted-foreground">
+                    {t(`kind.${workspace.kind ?? "team"}`)} ·{" "}
                     {t(`role.${workspace.role}`)}
                   </span>
                 </div>

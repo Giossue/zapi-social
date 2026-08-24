@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 
-import { ChevronRight } from "lucide-react"
+import { ChevronRight, LockKeyhole } from "lucide-react"
 
 import {
   Collapsible,
@@ -22,6 +22,7 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
@@ -38,17 +39,26 @@ import type {
 } from "./navigation-types"
 
 type DashboardNavMainProps = {
+  activeIndicators: ReadonlySet<string>
+  indicatorLabel: string
+  lockedLabel: string
   items: readonly DashboardNavigationGroup[]
   isItemActive: (item: DashboardNavigationLink, pathname: string) => boolean
 }
 
 type NavItemProps = {
+  activeIndicators: ReadonlySet<string>
+  indicatorLabel: string
+  lockedLabel: string
   item: DashboardNavigationItem
   isItemActive: (item: DashboardNavigationLink, pathname: string) => boolean
   pathname: string
 }
 
 type NavLinkItemProps = {
+  hasIndicator: boolean
+  indicatorLabel: string
+  lockedLabel: string
   item: DashboardNavigationLink
   isActive: boolean
   onNavigate: () => void
@@ -56,6 +66,9 @@ type NavLinkItemProps = {
 }
 
 type NavDropdownItemProps = {
+  hasIndicator: boolean
+  indicatorLabel: string
+  lockedLabel: string
   item: DashboardNavigationDisclosure
   isActive: boolean
   isSubItemActive: (item: DashboardNavigationLink) => boolean
@@ -63,6 +76,9 @@ type NavDropdownItemProps = {
 }
 
 type NavCollapsibleItemProps = {
+  hasIndicator: boolean
+  indicatorLabel: string
+  lockedLabel: string
   item: DashboardNavigationDisclosure
   isActive: boolean
   defaultOpen: boolean
@@ -85,6 +101,9 @@ function CollapsedIconFallback({ title }: { title: string }) {
 }
 
 export function DashboardNavMain({
+  activeIndicators,
+  indicatorLabel,
+  lockedLabel,
   items,
   isItemActive,
 }: DashboardNavMainProps) {
@@ -104,6 +123,9 @@ export function DashboardNavMain({
               {group.items.map((item) => (
                 <NavItem
                   key={item.label}
+                  activeIndicators={activeIndicators}
+                  indicatorLabel={indicatorLabel}
+                  lockedLabel={lockedLabel}
                   isItemActive={isItemActive}
                   item={item}
                   pathname={pathname}
@@ -117,16 +139,29 @@ export function DashboardNavMain({
   )
 }
 
-function NavItem({ item, isItemActive, pathname }: NavItemProps) {
+function NavItem({
+  activeIndicators,
+  indicatorLabel,
+  lockedLabel,
+  item,
+  isItemActive,
+  pathname,
+}: NavItemProps) {
   const { isMobile, setOpenMobile, state } = useSidebar()
   const isCollapsedDesktop = state === "collapsed" && !isMobile
   const onNavigate = () => setOpenMobile(false)
   const isSubItemActive = (subItem: DashboardNavigationLink) =>
     isItemActive(subItem, pathname)
+  const hasIndicator = item.indicatorKey
+    ? activeIndicators.has(item.indicatorKey)
+    : false
 
   if (!hasSubItems(item)) {
     return (
       <NavLinkItem
+        hasIndicator={hasIndicator}
+        indicatorLabel={indicatorLabel}
+        lockedLabel={lockedLabel}
         isActive={isItemActive(item, pathname)}
         item={item}
         onNavigate={onNavigate}
@@ -140,6 +175,9 @@ function NavItem({ item, isItemActive, pathname }: NavItemProps) {
   if (isCollapsedDesktop) {
     return (
       <NavDropdownItem
+        hasIndicator={hasIndicator}
+        indicatorLabel={indicatorLabel}
+        lockedLabel={lockedLabel}
         isActive={isActive}
         isSubItemActive={isSubItemActive}
         item={item}
@@ -151,6 +189,9 @@ function NavItem({ item, isItemActive, pathname }: NavItemProps) {
   return (
     <NavCollapsibleItem
       defaultOpen={isActive}
+      hasIndicator={hasIndicator}
+      indicatorLabel={indicatorLabel}
+      lockedLabel={lockedLabel}
       isActive={isActive}
       isSubItemActive={isSubItemActive}
       item={item}
@@ -160,6 +201,9 @@ function NavItem({ item, isItemActive, pathname }: NavItemProps) {
 }
 
 function NavLinkItem({
+  hasIndicator,
+  indicatorLabel,
+  lockedLabel,
   item,
   isActive,
   onNavigate,
@@ -169,8 +213,17 @@ function NavLinkItem({
 
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton asChild isActive={isActive} tooltip={item.label}>
+      <SidebarMenuButton
+        asChild
+        isActive={isActive}
+        tooltip={
+          item.planLocked ? `${item.label} · ${lockedLabel}` : item.label
+        }
+      >
         <Link
+          aria-label={
+            item.planLocked ? `${item.label} · ${lockedLabel}` : undefined
+          }
           aria-current={isActive ? "page" : undefined}
           href={item.href}
           onClick={onNavigate}
@@ -180,13 +233,20 @@ function NavLinkItem({
             <CollapsedIconFallback title={item.label} />
           ) : null}
           <span>{item.label}</span>
+          {item.planLocked ? (
+            <LockKeyhole aria-hidden="true" className="ml-auto" />
+          ) : null}
         </Link>
       </SidebarMenuButton>
+      <NavItemIndicator label={indicatorLabel} visible={hasIndicator} />
     </SidebarMenuItem>
   )
 }
 
 function NavDropdownItem({
+  hasIndicator,
+  indicatorLabel,
+  lockedLabel,
   item,
   isActive,
   isSubItemActive,
@@ -198,11 +258,18 @@ function NavDropdownItem({
     <SidebarMenuItem>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <SidebarMenuButton isActive={isActive} tooltip={item.label}>
+          <SidebarMenuButton
+            isActive={isActive}
+            tooltip={
+              item.planLocked ? `${item.label} · ${lockedLabel}` : item.label
+            }
+          >
             {Icon ? <Icon /> : <CollapsedIconFallback title={item.label} />}
             <span>{item.label}</span>
+            {item.planLocked ? <LockKeyhole aria-hidden="true" /> : null}
           </SidebarMenuButton>
         </DropdownMenuTrigger>
+        <NavItemIndicator label={indicatorLabel} visible={hasIndicator} />
         <DropdownMenuContent
           align="start"
           className="w-48"
@@ -224,6 +291,12 @@ function NavDropdownItem({
                   >
                     {SubIcon ? <SubIcon /> : null}
                     <span>{subItem.label}</span>
+                    {subItem.planLocked ? (
+                      <>
+                        <LockKeyhole aria-hidden="true" className="ml-auto" />
+                        <span className="sr-only"> · {lockedLabel}</span>
+                      </>
+                    ) : null}
                   </Link>
                 </DropdownMenuItem>
               )
@@ -236,6 +309,9 @@ function NavDropdownItem({
 }
 
 function NavCollapsibleItem({
+  hasIndicator,
+  indicatorLabel,
+  lockedLabel,
   item,
   isActive,
   defaultOpen,
@@ -252,12 +328,19 @@ function NavCollapsibleItem({
     >
       <SidebarMenuItem>
         <CollapsibleTrigger asChild>
-          <SidebarMenuButton isActive={isActive} tooltip={item.label}>
+          <SidebarMenuButton
+            isActive={isActive}
+            tooltip={
+              item.planLocked ? `${item.label} · ${lockedLabel}` : item.label
+            }
+          >
             {Icon ? <Icon /> : null}
             <span>{item.label}</span>
+            {item.planLocked ? <LockKeyhole aria-hidden="true" /> : null}
             <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
           </SidebarMenuButton>
         </CollapsibleTrigger>
+        <NavItemIndicator label={indicatorLabel} visible={hasIndicator} />
         <CollapsibleContent>
           <SidebarMenuSub>
             {item.children.map((subItem) => {
@@ -274,6 +357,12 @@ function NavCollapsibleItem({
                     >
                       {SubIcon ? <SubIcon /> : null}
                       <span>{subItem.label}</span>
+                      {subItem.planLocked ? (
+                        <>
+                          <LockKeyhole aria-hidden="true" className="ml-auto" />
+                          <span className="sr-only"> · {lockedLabel}</span>
+                        </>
+                      ) : null}
                     </Link>
                   </SidebarMenuSubButton>
                 </SidebarMenuSubItem>
@@ -283,5 +372,21 @@ function NavCollapsibleItem({
         </CollapsibleContent>
       </SidebarMenuItem>
     </Collapsible>
+  )
+}
+
+function NavItemIndicator({
+  label,
+  visible,
+}: {
+  label: string
+  visible: boolean
+}) {
+  if (!visible) return null
+
+  return (
+    <SidebarMenuBadge className="right-2 size-2 min-w-0 rounded-full bg-destructive p-0">
+      <span className="sr-only">{label}</span>
+    </SidebarMenuBadge>
   )
 }

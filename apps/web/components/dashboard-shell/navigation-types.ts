@@ -4,11 +4,13 @@ export type NavigationSourceLink<Key extends string = string> = {
   labelKey: Key
   href: string
   icon?: LucideIcon
+  indicatorKey?: string
 }
 
 export type NavigationSourceDisclosure<Key extends string = string> = {
   labelKey: Key
   icon?: LucideIcon
+  indicatorKey?: string
   children: readonly NavigationSourceLink<Key>[]
 }
 
@@ -24,11 +26,15 @@ export type DashboardNavigationLink = {
   label: string
   href: string
   icon?: LucideIcon
+  indicatorKey?: string
+  planLocked?: boolean
 }
 
 export type DashboardNavigationDisclosure = {
   label: string
   icon?: LucideIcon
+  indicatorKey?: string
+  planLocked?: boolean
   children: readonly DashboardNavigationLink[]
 }
 

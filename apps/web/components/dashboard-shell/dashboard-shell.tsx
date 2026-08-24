@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { usePathname } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { Separator } from "@workspace/ui/components/separator"
 import {
   SidebarInset,
@@ -22,6 +23,7 @@ import type {
 import { NotificationBell } from "./notification-bell"
 import { DashboardSearchDialog } from "./search-dialog"
 import { WorkspaceSwitcher } from "./workspace-switcher"
+import { subscribeToNotificationUnread } from "@/features/notifications/notification-indicator"
 
 type DashboardShellProps = {
   areaName: "Admin" | "Portal"
@@ -67,8 +69,16 @@ export function DashboardShell({
   sidebarStorageKey,
   workspaceContext,
 }: DashboardShellProps) {
+  const t = useTranslations("shell")
   const pathname = usePathname()
   const [collapsed, setCollapsed] = usePersistedSidebarState(sidebarStorageKey)
+  const [notificationUnread, setNotificationUnread] = useState(0)
+  const activeIndicators = useMemo(
+    () => new Set(notificationUnread > 0 ? ["notifications"] : []),
+    [notificationUnread]
+  )
+
+  useEffect(() => subscribeToNotificationUnread(setNotificationUnread), [])
 
   useEffect(() => {
     const routeLabel =
@@ -87,9 +97,12 @@ export function DashboardShell({
       onOpenChange={(open) => setCollapsed(!open)}
     >
       <DashboardSidebar
+        activeIndicators={activeIndicators}
         aria-label={navigationLabel}
         collapsible="icon"
         homeHref={homeHref}
+        indicatorLabel={t("navigationIndicator")}
+        lockedLabel={t("planLocked.navigationLabel")}
         isItemActive={isItemActive}
         items={items}
         profile={profile}
@@ -118,7 +131,10 @@ export function DashboardShell({
                 className="mx-2 data-[orientation=vertical]:h-4 data-[orientation=vertical]:self-center"
                 orientation="vertical"
               />
-              <DashboardSearchDialog items={items} />
+              <DashboardSearchDialog
+                items={items}
+                lockedLabel={t("planLocked.navigationLabel")}
+              />
             </div>
             {workspaceContext ? (
               <div className="flex items-center gap-2">

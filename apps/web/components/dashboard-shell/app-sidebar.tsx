@@ -24,7 +24,10 @@ import type {
 import type { AccountProfile } from "../account-menu"
 
 type DashboardSidebarProps = React.ComponentProps<typeof Sidebar> & {
+  activeIndicators: ReadonlySet<string>
   homeHref: string
+  indicatorLabel: string
+  lockedLabel: string
   isItemActive: (item: DashboardNavigationLink, pathname: string) => boolean
   items: readonly DashboardNavigationGroup[]
   profile: AccountProfile
@@ -50,7 +53,10 @@ function DashboardSidebarHeader({ homeHref }: { homeHref: string }) {
 }
 
 export function DashboardSidebar({
+  activeIndicators,
   homeHref,
+  indicatorLabel,
+  lockedLabel,
   isItemActive,
   items,
   profile,
@@ -60,7 +66,13 @@ export function DashboardSidebar({
     <Sidebar {...props}>
       <DashboardSidebarHeader homeHref={homeHref} />
       <SidebarContent>
-        <DashboardNavMain isItemActive={isItemActive} items={items} />
+        <DashboardNavMain
+          activeIndicators={activeIndicators}
+          indicatorLabel={indicatorLabel}
+          lockedLabel={lockedLabel}
+          isItemActive={isItemActive}
+          items={items}
+        />
       </SidebarContent>
       <SidebarFooter>
         <DashboardNavUser profile={profile} />

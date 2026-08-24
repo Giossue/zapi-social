@@ -17,7 +17,12 @@ function translateLink(
   link: NavigationSourceLink,
   t: NavigationTranslator
 ): DashboardNavigationLink {
-  return { href: link.href, icon: link.icon, label: t(link.labelKey) }
+  return {
+    href: link.href,
+    icon: link.icon,
+    indicatorKey: link.indicatorKey,
+    label: t(link.labelKey),
+  }
 }
 
 export function useTranslatedNavigation(
@@ -35,6 +40,7 @@ export function useTranslatedNavigation(
         "children" in item
           ? {
               icon: item.icon,
+              indicatorKey: item.indicatorKey,
               label: translate(item.labelKey),
               children: item.children.map((child) =>
                 translateLink(child, translate)

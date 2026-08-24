@@ -19,9 +19,10 @@
 6. En móvil, el provider oficial presenta el mismo panel como drawer. Los enlaces y el trigger interno cierran el drawer sin alterar la preferencia persistida de escritorio.
 7. `SidebarContent` delega el scroll del menú a `ScrollArea` de `packages/ui`.
 8. Los disclosures AI Studio y Publicación, la ruta activa, `AccountMenu`, Bell y el asset local `apps/web/public/brand/logo-brand-dark.png` se conservan en los shells. Publicación agrupa Calendario, Cola y Borradores. Cuando varias rutas comparten prefijo, solo la coincidencia más específica queda activa; por ejemplo, `Buscar medios online` no activa también `Archivos`.
-9. Visibilidad por plan, equipo y permisos sigue mock: opciones visibles para diseñar módulos primero.
+9. Los módulos con novedades usan `SidebarMenuBadge` como un punto `destructive`, sin texto ni contador visibles. Cada entrada declara opcionalmente su `indicatorKey`; solo se muestra cuando la señal correspondiente está activa. `Notificaciones` sincroniza la señal `notifications` con el total real de no leídas tanto desde la campana como desde la página completa.
+10. El plan no oculta capacidades: los módulos no disponibles siguen visibles con candado y abren una superficie bloqueada. Los permisos del miembro sí filtran la navegación; `member` solo ve entradas con permiso `view`. API repite ambos controles y no confía en el sidebar.
 
 ## Pendiente
 
 - [ ] Diseñar cada módulo con fixtures, mocks y estados UI.
-- [ ] Aplicar visibilidad real después de contrato REST y backend.
+- [x] Aplicar visibilidad real por plan, workspace y permiso tipado.
