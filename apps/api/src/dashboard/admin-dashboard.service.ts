@@ -93,12 +93,22 @@ export class AdminDashboardService {
       db
         .select({ day: requestDay, value: count() })
         .from(aiRequests)
-        .where(gte(aiRequests.createdAt, currentStart))
+        .where(
+          and(
+            eq(aiRequests.status, 'succeeded'),
+            gte(aiRequests.createdAt, currentStart),
+          ),
+        )
         .groupBy(requestDay),
       db
         .select({ kind: aiRequests.kind, value: count() })
         .from(aiRequests)
-        .where(gte(aiRequests.createdAt, currentStart))
+        .where(
+          and(
+            eq(aiRequests.status, 'succeeded'),
+            gte(aiRequests.createdAt, currentStart),
+          ),
+        )
         .groupBy(aiRequests.kind)
         .orderBy(desc(count())),
       db

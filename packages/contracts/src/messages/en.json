@@ -3090,10 +3090,10 @@
   "dashboard": {
     "admin": {
       "aiActivity": {
-        "description": "Requests per day over the last 4 weeks.",
-        "empty": "No AI requests in the last 4 weeks.",
-        "requests": "requests",
-        "series": "Requests",
+        "description": "Completed generations per day over the last 4 weeks.",
+        "empty": "No completed AI generations in the last 4 weeks.",
+        "requests": "completed",
+        "series": "Completed",
         "title": "AI activity"
       },
       "allReadyBadge": "All good",
@@ -3104,7 +3104,7 @@
       "billingSection": "Billing and activity",
       "breakdown": {
         "aiTools": "AI tools",
-        "description": "Subscriptions by plan and AI usage by tool.",
+        "description": "Active subscriptions by plan and completed AI generations by tool.",
         "empty": "No data in the last 4 weeks.",
         "plans": "Plans",
         "series": "Total",
@@ -3193,25 +3193,25 @@
     "portal": {
       "activity": {
         "currentPeriod": "Last 4 weeks",
-        "description": "Posts per day vs. the previous period.",
+        "description": "Completed posts per day vs. the previous period.",
         "previousPeriod": "Previous period",
         "title": "Publishing activity",
-        "tooltip": "Posts",
+        "tooltip": "Published",
         "week": "Week {number, number}"
       },
       "aiUsage": {
         "creditsUsed": "credits used",
-        "description": "Requests per day over the last 4 weeks.",
-        "empty": "No AI requests in the last 4 weeks.",
-        "series": "Requests",
+        "description": "Completed generations per day over the last 4 weeks.",
+        "empty": "No completed AI generations in the last 4 weeks.",
+        "series": "Completed",
         "title": "AI usage"
       },
       "breakdown": {
         "aiTools": "AI tools",
         "channels": "Channels",
-        "description": "Last 4 weeks by channel and tool.",
-        "empty": "No data in the last 4 weeks.",
-        "series": "Posts",
+        "description": "Completed posts and generations over the last 4 weeks.",
+        "empty": "No completed activity in the last 4 weeks.",
+        "series": "Completed",
         "title": "Post distribution"
       },
       "loadFailedDescription": "Check your connection and try again.",
@@ -3221,10 +3221,10 @@
         "activeChannels": "Active channels",
         "aiCredits": "AI credits used",
         "connectedRecently": "connected in the last 4 weeks",
-        "newFiles": "New files",
+        "newFiles": "Ready files",
         "noRecentConnections": "no new connections in 4 weeks",
         "previousWeeks": "vs. the previous 4 weeks",
-        "publishedPosts": "Posts"
+        "publishedPosts": "Published posts"
       },
       "upcoming": {
         "channel": "Channel",

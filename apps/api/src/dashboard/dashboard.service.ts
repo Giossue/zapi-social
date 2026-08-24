@@ -12,8 +12,7 @@ import {
   desc,
   eq,
   gte,
-  inArray,
-  ne,
+  isNull,
   sql,
 } from '@workspace/database/query';
 import { DatabaseService } from '../database/database.service';
@@ -34,9 +33,16 @@ export class DashboardService {
     const db = this.database.db;
     const workspaceId = session.workspace.id;
     const { currentStart, previousStart } = windowStarts();
+    const now = new Date();
 
     const publishedDay = sql<string>`to_char(date_trunc('day', ${publishingPosts.publishedAt}), 'YYYY-MM-DD')`;
     const requestDay = sql<string>`to_char(date_trunc('day', ${aiRequests.createdAt}), 'YYYY-MM-DD')`;
+    const channelKey = sql<string>`case
+      when ${socialAccounts.capabilityKey} = 'facebook_page' then 'facebook'
+      when ${socialAccounts.capabilityKey} = 'instagram_profile' then 'instagram'
+      when ${socialAccounts.capabilityKey} = 'whatsapp_status' then 'whatsapp'
+      else ${socialAccounts.providerKey}
+    end`;
 
     const [
       publishedByDay,
@@ -68,6 +74,7 @@ export class DashboardService {
           and(
             eq(socialAccounts.workspaceId, workspaceId),
             eq(socialAccounts.status, 'active'),
+            isNull(socialAccounts.disconnectedAt),
           ),
         ),
       db
@@ -77,6 +84,7 @@ export class DashboardService {
           and(
             eq(socialAccounts.workspaceId, workspaceId),
             eq(socialAccounts.status, 'active'),
+            isNull(socialAccounts.disconnectedAt),
             gte(socialAccounts.connectedAt, currentStart),
           ),
         ),
@@ -100,6 +108,7 @@ export class DashboardService {
         .where(
           and(
             eq(aiRequests.workspaceId, workspaceId),
+            eq(aiRequests.status, 'succeeded'),
             gte(aiRequests.createdAt, currentStart),
           ),
         )
@@ -110,6 +119,7 @@ export class DashboardService {
         .where(
           and(
             eq(aiRequests.workspaceId, workspaceId),
+            eq(aiRequests.status, 'succeeded'),
             gte(aiRequests.createdAt, currentStart),
           ),
         )
@@ -124,13 +134,13 @@ export class DashboardService {
         .where(
           and(
             eq(fileAssets.workspaceId, workspaceId),
-            ne(fileAssets.status, 'trashed'),
+            eq(fileAssets.status, 'ready'),
             gte(fileAssets.createdAt, previousStart),
           ),
         )
         .groupBy(sql`1`),
       db
-        .select({ provider: socialAccounts.providerKey, value: count() })
+        .select({ provider: channelKey, value: count() })
         .from(publishingPosts)
         .innerJoin(
           socialAccounts,
@@ -142,15 +152,16 @@ export class DashboardService {
         .where(
           and(
             eq(publishingPosts.workspaceId, workspaceId),
-            gte(publishingPosts.createdAt, currentStart),
+            eq(publishingPosts.status, 'published'),
+            gte(publishingPosts.publishedAt, currentStart),
           ),
         )
-        .groupBy(socialAccounts.providerKey)
+        .groupBy(channelKey)
         .orderBy(desc(count())),
       db
         .select({
           content: publishingPosts.content,
-          provider: socialAccounts.providerKey,
+          provider: channelKey,
           scheduledAt: publishingPosts.scheduledAt,
         })
         .from(publishingPosts)
@@ -164,7 +175,8 @@ export class DashboardService {
         .where(
           and(
             eq(publishingPosts.workspaceId, workspaceId),
-            inArray(publishingPosts.status, ['scheduled', 'processing']),
+            eq(publishingPosts.status, 'scheduled'),
+            gte(publishingPosts.scheduledAt, now),
           ),
         )
         .orderBy(publishingPosts.scheduledAt)
@@ -172,7 +184,7 @@ export class DashboardService {
       db
         .select({
           content: publishingPosts.content,
-          provider: socialAccounts.providerKey,
+          provider: channelKey,
         })
         .from(publishingPosts)
         .leftJoin(
