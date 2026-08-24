@@ -85,7 +85,7 @@ La migración `0020_mushy_peter_parker` añade intentos, procedencia/resultados 
 
 - Calendario fuente-canónica usa FullCalendar con vistas mes/semana/día y compositor contextual.
 - Cola y borradores consumen `publishingApi`; el estado React es caché de respuesta, no fuente fixture.
-- API conserva instantes en UTC y convierte `date`, `time` y `focusDate` a la zona IANA del usuario autenticado antes de responder. Web trata `date` como fecha de calendario estable; los logs operativos permanecen en UTC.
+- API conserva instantes en UTC y convierte `date`, `time` y `focusDate` a la zona IANA del usuario autenticado antes de responder. Una publicación completada muestra `publishedAt`; las pendientes conservan su fecha programada y los borradores su creación. Web trata `date` como fecha de calendario estable; los logs operativos permanecen en UTC.
 - Cola y borradores reutilizan `MetricCard` para sus resúmenes operativos, con
   icono semántico y contexto breve por estado, igual que AI Publishing.
 - Las mutaciones confirman con toast y preservan estados loading/empty/error.
@@ -112,7 +112,7 @@ La migración `0020_mushy_peter_parker` añade intentos, procedencia/resultados 
 - [ ] Smoke real por provider y verificación de scopes/tokens en entorno de prueba.
 - [x] Google Picker conectado a Files y al compositor, con importación durable,
       polling, destino raíz y auto-selección; typecheck/build V2 aprobados.
-- [x] Fechas de Publishing serializadas con la zona IANA del usuario; prueba unitaria 3/3 cubre Guayaquil, cruce de día y fallback UTC para datos legacy inválidos. Lint y typecheck de API/Web aprobados.
+- [x] Fechas de Publishing serializadas con la zona IANA del usuario; pruebas cubren Guayaquil, cruce de día, fallback UTC y selección de la hora real de publicación. Lint y typecheck de API/Web aprobados.
 - [x] Permisos del volumen Files corregidos al arrancar API/Worker antes de bajar privilegios a `bun`; ambas imágenes construyen con Podman y el smoke con volumen nuevo confirma proceso `uid=1000`, directorio `bun:bun` y escritura efectiva.
 - [ ] Aprobaciones, campañas, labels, cuotas y autorización por `managed_account_ids`.
 - [ ] LinkedIn, X y TikTok sólo después de aprobar contratos y credenciales correspondientes.

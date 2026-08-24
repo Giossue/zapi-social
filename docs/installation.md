@@ -4,6 +4,10 @@ This guide installs Zapi Social with Docker Compose. It creates PostgreSQL,
 Redis, API, Worker, and Web containers, applies every database migration, and
 keeps database, Redis, and uploaded files in persistent volumes.
 
+API and Worker initialize ownership of the shared Files volume automatically
+and then run as the unprivileged `bun` user. Buyers do not need to run `chown`
+or any other manual filesystem-permission command.
+
 ## 1. Requirements
 
 - A Linux server with a current Docker Engine and Docker Compose v2.

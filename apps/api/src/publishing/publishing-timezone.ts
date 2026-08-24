@@ -41,3 +41,15 @@ export function formatPublishingDateTime(value: Date, timeZone: string) {
     time: `${hour}:${minute}`,
   };
 }
+
+export function publishingDisplayInstant(input: {
+  createdAt: Date;
+  publishedAt: Date | null;
+  scheduledAt: Date | null;
+  status: string;
+}) {
+  if (input.status === 'published' && input.publishedAt) {
+    return input.publishedAt;
+  }
+  return input.scheduledAt ?? input.createdAt;
+}

@@ -36,6 +36,10 @@ Keep these local files and data:
 - the `backups/` directory
 - Docker volumes (`postgres-data`, `redis-data`, and `files-data`)
 
+API and Worker repair legacy ownership of `files-data` automatically during
+startup before returning to the unprivileged `bun` user. Updates do not require
+buyers to run manual permission commands.
+
 Replace the application source with the new release archive. Compare the new
 `.env.example` with your existing `.env` and add any newly required variables.
 Never overwrite `.env` with the example file.

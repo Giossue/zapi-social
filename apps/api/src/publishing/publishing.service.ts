@@ -44,7 +44,10 @@ import {
   PUBLISHING_DELIVERY_QUEUE,
   type PublishingDeliveryJobData,
 } from './publishing.constants';
-import { formatPublishingDateTime } from './publishing-timezone';
+import {
+  formatPublishingDateTime,
+  publishingDisplayInstant,
+} from './publishing-timezone';
 
 const publishCapabilities = new Set([
   'facebook_page',
@@ -791,7 +794,7 @@ export class PublishingService {
     mediaAssetIds: string[],
     timezone: string,
   ): PortalPublishingPost {
-    const when = post.scheduledAt ?? post.createdAt;
+    const when = publishingDisplayInstant(post);
     const localDateTime = formatPublishingDateTime(when, timezone);
     const provider = this.provider(account);
     const content = post.content.trim();
