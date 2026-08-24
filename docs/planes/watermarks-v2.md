@@ -34,6 +34,9 @@ copia efímera de imágenes compatibles; nunca escribe encima del original.
   en un request sería un resultado que nadie consume. El contrato deja la regla
   durable y segura para ese worker, que debe generar un derivado temporal con
   `sharp`, nunca mutar `file_assets` original.
+- El editor Portal centra los controles frente a la vista previa y expone solo
+  crear o guardar cambios. `DELETE` permanece en el contrato para otros flujos,
+  pero esta superficie no ofrece una acción destructiva directa.
 
 ## Modelo durable propuesto
 
