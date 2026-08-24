@@ -10,9 +10,9 @@ import {
   KeyRound,
   Link2,
   LockKeyhole,
-  PlugZap,
   Save,
   Settings2,
+  ShieldCheck,
 } from "lucide-react"
 
 import { ApiError, integrationsApi } from "@workspace/api-client"
@@ -31,11 +31,8 @@ import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
   Field,
   FieldContent,
-  FieldDescription,
   FieldGroup,
   FieldLabel,
-  FieldLegend,
-  FieldSet,
   FieldTitle,
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
@@ -48,12 +45,12 @@ import {
   SheetTitle,
 } from "@workspace/ui/components/sheet"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { Switch } from "@workspace/ui/components/switch"
 import { toast } from "@workspace/ui/components/toast"
 
 import { useApiErrorMessage } from "@/lib/api-error-message"
 import { useChannelLabels } from "@/lib/channel-labels"
 
+import { IntegrationAvailabilityCard } from "./integration-availability-card"
 import { IntegrationInsetCard } from "./integration-inset-card"
 
 const statusVariants = {
@@ -344,7 +341,11 @@ export function ChannelProviderIntegrationCard({
       <Sheet onOpenChange={(next) => !pending && setOpen(next)} open={open}>
         <SheetContent className="w-full gap-0 p-0 sm:max-w-lg" side="right">
           <SheetHeader className="border-b">
-            <SheetTitle>{labels.provider(provider.providerKey)}</SheetTitle>
+            <SheetTitle>
+              {t("sheetTitle", {
+                provider: labels.provider(provider.providerKey),
+              })}
+            </SheetTitle>
             <SheetDescription>{t("sheetDescription")}</SheetDescription>
           </SheetHeader>
           <form
@@ -353,65 +354,70 @@ export function ChannelProviderIntegrationCard({
             noValidate
             onSubmit={(event) => void submit(event)}
           >
-            <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4">
-              <Field orientation="horizontal">
-                <Switch
-                  checked={enabled}
-                  disabled={pending}
-                  id={`provider-${provider.providerKey}-enabled`}
-                  onCheckedChange={setEnabled}
-                />
-                <FieldLabel
-                  htmlFor={`provider-${provider.providerKey}-enabled`}
-                >
-                  <FieldContent>
-                    <FieldTitle>{t("enabled")}</FieldTitle>
-                    <FieldDescription>{t("enabledHint")}</FieldDescription>
-                  </FieldContent>
-                </FieldLabel>
-              </Field>
+            <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto p-4">
+              <IntegrationAvailabilityCard
+                ariaLabel={t("enabled")}
+                checked={enabled}
+                description={t("enabledHint")}
+                onCheckedChange={setEnabled}
+                title={tShared("availability")}
+              />
 
-              <FieldGroup>
-                {editableFields.map((field) => {
-                  const controlId = `provider-${provider.providerKey}-${field.key}`
-                  const configured = provider.secretsConfigured.includes(
-                    field.key
-                  )
-                  return (
-                    <Field key={field.key}>
-                      <FieldLabel htmlFor={controlId}>
-                        {t(`field.${field.key}`)}
-                        {field.required ? (
-                          <span aria-hidden="true" className="text-destructive">
-                            *
-                          </span>
-                        ) : null}
-                      </FieldLabel>
-                      <Input
-                        aria-required={field.required}
-                        disabled={pending}
-                        id={controlId}
-                        maxLength={field.maxLength ?? undefined}
-                        onChange={(event) =>
-                          update(field.key, event.target.value)
-                        }
-                        placeholder={
-                          configured ? t("secretConfigured") : undefined
-                        }
-                        type={field.type === "secret" ? "password" : "text"}
-                        value={values[field.key] ?? ""}
-                      />
-                    </Field>
-                  )
-                })}
-              </FieldGroup>
+              <section className="flex flex-col gap-4 border-t border-border pt-5">
+                <h3 className="text-sm font-semibold">
+                  {t("credentials", {
+                    provider: labels.provider(provider.providerKey),
+                  })}
+                </h3>
+                <FieldGroup>
+                  {editableFields.map((field) => {
+                    const controlId = `provider-${provider.providerKey}-${field.key}`
+                    const configured = provider.secretsConfigured.includes(
+                      field.key
+                    )
+                    return (
+                      <Field key={field.key}>
+                        <FieldLabel htmlFor={controlId}>
+                          {t(`field.${field.key}`)}{" "}
+                          {field.required ? (
+                            <span
+                              aria-hidden="true"
+                              className="text-destructive"
+                            >
+                              *
+                            </span>
+                          ) : null}
+                        </FieldLabel>
+                        <Input
+                          aria-required={field.required}
+                          disabled={pending}
+                          id={controlId}
+                          maxLength={field.maxLength ?? undefined}
+                          onChange={(event) =>
+                            update(field.key, event.target.value)
+                          }
+                          placeholder={
+                            configured ? t("secretConfigured") : undefined
+                          }
+                          type={field.type === "secret" ? "password" : "text"}
+                          value={values[field.key] ?? ""}
+                        />
+                      </Field>
+                    )
+                  })}
+                </FieldGroup>
+              </section>
 
               {provider.capabilities.length ? (
-                <FieldSet data-disabled={pending}>
-                  <FieldLegend variant="label">
-                    {tShared("channelTypes")}
-                  </FieldLegend>
-                  <FieldDescription>{t("capabilitiesHint")}</FieldDescription>
+                <section className="flex flex-col gap-4 border-t border-border pt-5">
+                  <div>
+                    <h3 className="text-sm font-semibold">
+                      {tShared("channelTypes")}
+                    </h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {t("capabilitiesHint")}
+                    </p>
+                  </div>
                   <FieldGroup className="gap-3" data-slot="checkbox-group">
                     {provider.capabilities.map((capability) => {
                       const controlId = `provider-capability-${capability.key}`
@@ -442,22 +448,43 @@ export function ChannelProviderIntegrationCard({
                       )
                     })}
                   </FieldGroup>
-                </FieldSet>
+                </section>
               ) : null}
+
+              <section className="flex flex-col gap-3 border-t border-border pt-5">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h3 className="text-sm font-semibold">{t("test")}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {t("testHint")}
+                    </p>
+                  </div>
+                  <Button
+                    disabled={pending || missingRequired || tested}
+                    onClick={() => void test()}
+                    type="button"
+                    variant={tested ? "success" : "surface"}
+                  >
+                    {pending ? (
+                      <Spinner data-icon="inline-start" />
+                    ) : tested ? (
+                      <CheckCircle2 data-icon="inline-start" />
+                    ) : (
+                      <ShieldCheck data-icon="inline-start" />
+                    )}
+                    {tested ? t("testPassed") : t("test")}
+                  </Button>
+                </div>
+              </section>
             </div>
             <SheetFooter className="flex-row justify-end border-t">
               <Button
-                disabled={pending || missingRequired}
-                onClick={() => void test()}
+                disabled={pending}
+                onClick={() => setOpen(false)}
                 type="button"
                 variant="brand-secondary"
               >
-                {pending ? (
-                  <Spinner data-icon="inline-start" size={16} />
-                ) : (
-                  <PlugZap aria-hidden="true" data-icon="inline-start" />
-                )}
-                {t("test")}
+                {tShared("cancel")}
               </Button>
               <Button
                 // Activarla sin prueba vigente abriría el canal en el Portal sin
@@ -466,11 +493,11 @@ export function ChannelProviderIntegrationCard({
                 type="submit"
               >
                 {pending ? (
-                  <Spinner data-icon="inline-start" size={16} />
+                  <Spinner data-icon="inline-start" />
                 ) : (
                   <Save aria-hidden="true" data-icon="inline-start" />
                 )}
-                {t("save")}
+                {tShared("saveConfiguration")}
               </Button>
             </SheetFooter>
           </form>

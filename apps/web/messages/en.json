@@ -3529,6 +3529,7 @@
       "capabilityDisabled": "Off",
       "capabilityEnabled": "Active",
       "copyField": "Copy {label}",
+      "credentials": "{provider} configuration",
       "description": "Credentials of the app that connects this network.",
       "enabled": "Integration active",
       "enabledHint": "While it is off, the Portal shows its channels as coming soon.",
@@ -3553,7 +3554,9 @@
       "saved": "Integration saved.",
       "secretConfigured": "Saved; type to replace it",
       "sheetDescription": "Changes apply when you save. Test the credentials before switching it on.",
+      "sheetTitle": "Configure {provider}",
       "test": "Test credentials",
+      "testHint": "Check the credentials against the provider before switching it on.",
       "testPassed": "The credentials work."
     },
     "channelType": "Channel type",

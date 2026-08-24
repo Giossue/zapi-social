@@ -3532,6 +3532,7 @@ declare const messages: {
       capabilityDisabled: "Desactivada"
       capabilityEnabled: "Activa"
       copyField: "Copiar {label}"
+      credentials: "Configuración de {provider}"
       description: "Credenciales de la aplicación que conecta esta red."
       enabled: "Integración activa"
       enabledHint: "Mientras esté apagada, el Portal muestra sus canales como próximamente."
@@ -3556,7 +3557,9 @@ declare const messages: {
       saved: "Integración guardada."
       secretConfigured: "Guardado; escribe para reemplazarlo"
       sheetDescription: "Los cambios se aplican al guardar. Prueba las credenciales antes de activarla."
+      sheetTitle: "Configurar {provider}"
       test: "Probar credenciales"
+      testHint: "Comprueba las credenciales contra el proveedor antes de activarla."
       testPassed: "Las credenciales funcionan."
     }
     channelType: "Tipo de canal"
