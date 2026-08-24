@@ -44,6 +44,11 @@ const providerLabels = {
   pexels: "Pexels",
 } as const
 
+const providerHomes = {
+  unsplash: "https://unsplash.com",
+  pexels: "https://www.pexels.com",
+} as const
+
 function dimensions(result: PortalOnlineMediaResult) {
   if (!result.width || !result.height) return null
   return `${result.width} × ${result.height}`
@@ -248,14 +253,44 @@ export function OnlineMediaSearchPage() {
                     <Badge variant="neutral">{label}</Badge>
                   </div>
                   <CardDescription>
-                    {providerLabels[result.provider]}
+                    <Link
+                      className="underline-offset-4 hover:underline"
+                      href={providerHomes[result.provider]}
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      {t("providedBy", {
+                        provider: providerLabels[result.provider],
+                      })}
+                    </Link>
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    {result.authorName}
-                    {size ? ` · ${size}` : ""}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
+                    {result.authorUrl ? (
+                      <Link
+                        className="underline-offset-4 hover:underline"
+                        href={result.authorUrl}
+                        rel="noopener noreferrer"
+                        target="_blank"
+                      >
+                        {t("byAuthor", { author: result.authorName })}
+                      </Link>
+                    ) : (
+                      <span>
+                        {t("byAuthor", { author: result.authorName })}
+                      </span>
+                    )}
+                    {size ? <span>{size}</span> : null}
+                    <Link
+                      className="underline-offset-4 hover:underline"
+                      href={result.sourceUrl}
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      {t("viewSource")}
+                    </Link>
+                  </div>
                 </CardContent>
                 <CardFooter className="justify-between">
                   <span className="text-xs text-muted-foreground">

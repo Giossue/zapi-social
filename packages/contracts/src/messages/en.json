@@ -3360,6 +3360,7 @@
     "online": {
       "available": "Available",
       "backToFiles": "Back to files",
+      "byAuthor": "By {author}",
       "emptyDescription": "Type what you need and we'll search the connected providers.",
       "emptyTitle": "Search for media to get started",
       "import": "Import",
@@ -3371,6 +3372,7 @@
       "noResultsTitle": "No media found",
       "notConfiguredDescription": "No media provider is configured for this platform. An administrator must connect one before searching.",
       "notConfiguredTitle": "Online search not configured",
+      "providedBy": "Content provided by {provider}",
       "savedToLibrary": "“{title}” was saved to your library.",
       "searchFailedDescription": "We couldn't complete the search.",
       "searchFailedTitle": "Search unavailable",
@@ -3380,7 +3382,8 @@
       "type": {
         "image": "Image",
         "video": "Video"
-      }
+      },
+      "viewSource": "View source"
     },
     "openingDrive": "Opening Google",
     "order": "Order",
@@ -3683,6 +3686,28 @@
       "unavailableTitle": "Meta integration unavailable"
     },
     "notConfigured": "Not configured",
+    "pexels": {
+      "apiKey": "API Key",
+      "apiKeyConfigured": "Key configured",
+      "apiKeyConfiguredHint": "Leave this blank to keep the current key or enter a new one to replace it.",
+      "apiKeyHint": "Paste the key generated in your Pexels developer account.",
+      "apiKeyRequired": "The Pexels API Key is required.",
+      "availabilityHint": "Allows users to search and import Pexels content from Files.",
+      "content": "Content",
+      "description": "Search and import free images and videos for Files.",
+      "enableAria": "Enable Pexels",
+      "imagesAndVideos": "Images and videos",
+      "loadFailed": "The Pexels configuration could not be loaded.",
+      "saveFailed": "We could not save the Pexels configuration.",
+      "saved": "Pexels configuration saved.",
+      "sheetDescription": "Set the key that enables free media search in the Portal.",
+      "sheetTitle": "Configure Pexels",
+      "testDraft": "Test draft",
+      "testDraftHint": "Verify the key directly with Pexels before enabling it.",
+      "testFailed": "Pexels rejected the key or did not respond. Check the configuration.",
+      "testOk": "Pexels validated the key. You can now save and enable the integration.",
+      "unavailable": "Pexels unavailable"
+    },
     "polar": {
       "allowDiscountCodes": "Allow discount codes",
       "availabilityHint": "Once enabled, Polar processes checkouts and subscriptions.",
@@ -3794,7 +3819,8 @@
     },
     "statusLabel": "Status",
     "tab": {
-      "email": "SMTP email"
+      "email": "SMTP email",
+      "pexels": "Pexels"
     },
     "testBeforeEnable": "Test this configuration before enabling it.",
     "testBeforeSave": "Test this configuration before saving it.",

@@ -23,7 +23,6 @@ const schema = z.object({
     .default('info'),
   FILES_STORAGE_PATH: z.string().min(1).default('./.data/files'),
   UNSPLASH_ACCESS_KEY: z.string().min(1).optional(),
-  PEXELS_API_KEY: z.string().min(1).optional(),
 });
 
 export type Env = z.infer<typeof schema>;

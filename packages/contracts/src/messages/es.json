@@ -3360,6 +3360,7 @@
     "online": {
       "available": "Disponible",
       "backToFiles": "Volver a archivos",
+      "byAuthor": "Por {author}",
       "emptyDescription": "Escribe qué necesitas y buscaremos en los proveedores conectados.",
       "emptyTitle": "Busca un medio para empezar",
       "import": "Importar",
@@ -3371,6 +3372,7 @@
       "noResultsTitle": "No encontramos medios",
       "notConfiguredDescription": "Ningún proveedor de medios está configurado para esta plataforma. Un administrador debe conectarlo antes de buscar.",
       "notConfiguredTitle": "Búsqueda online no configurada",
+      "providedBy": "Contenido proporcionado por {provider}",
       "savedToLibrary": "«{title}» se guardó en tu biblioteca.",
       "searchFailedDescription": "No pudimos completar la búsqueda.",
       "searchFailedTitle": "Búsqueda no disponible",
@@ -3380,7 +3382,8 @@
       "type": {
         "image": "Imagen",
         "video": "Video"
-      }
+      },
+      "viewSource": "Ver fuente"
     },
     "openingDrive": "Abriendo Google",
     "order": "Orden",
@@ -3683,6 +3686,28 @@
       "unavailableTitle": "Integración Meta no disponible"
     },
     "notConfigured": "Sin configurar",
+    "pexels": {
+      "apiKey": "API Key",
+      "apiKeyConfigured": "Clave configurada",
+      "apiKeyConfiguredHint": "Déjalo vacío para conservar la clave actual o escribe una nueva para reemplazarla.",
+      "apiKeyHint": "Copia aquí la clave generada en tu cuenta de desarrollador de Pexels.",
+      "apiKeyRequired": "La API Key de Pexels es obligatoria.",
+      "availabilityHint": "Permite buscar e importar contenido de Pexels desde Files.",
+      "content": "Contenido",
+      "description": "Búsqueda e importación de imágenes y videos gratuitos para Files.",
+      "enableAria": "Habilitar Pexels",
+      "imagesAndVideos": "Imágenes y videos",
+      "loadFailed": "No fue posible cargar la configuración de Pexels.",
+      "saveFailed": "No pudimos guardar la configuración de Pexels.",
+      "saved": "Configuración de Pexels guardada.",
+      "sheetDescription": "Define la clave que habilita la búsqueda de contenido gratuito en el Portal.",
+      "sheetTitle": "Configurar Pexels",
+      "testDraft": "Probar borrador",
+      "testDraftHint": "Comprueba la clave directamente con Pexels antes de habilitarla.",
+      "testFailed": "Pexels rechazó la clave o no respondió. Revisa la configuración.",
+      "testOk": "Pexels validó la clave. Ya puedes guardar y habilitar la integración.",
+      "unavailable": "Pexels no disponible"
+    },
     "polar": {
       "allowDiscountCodes": "Permitir códigos de descuento",
       "availabilityHint": "Al habilitarla, Polar procesa checkouts y suscripciones.",
@@ -3794,7 +3819,8 @@
     },
     "statusLabel": "Estado",
     "tab": {
-      "email": "Correo SMTP"
+      "email": "Correo SMTP",
+      "pexels": "Pexels"
     },
     "testBeforeEnable": "Prueba esta configuración antes de habilitarla.",
     "testBeforeSave": "Prueba esta configuración antes de guardarla.",

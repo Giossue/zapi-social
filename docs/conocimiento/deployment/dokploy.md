@@ -212,7 +212,6 @@ PROVIDER_INTEGRATIONS_ENCRYPTION_KEY=BASE64_32_BYTE_KEY
 FILES_STORAGE_PATH=/var/lib/zapi/files
 # Opcionales para Online Media:
 UNSPLASH_ACCESS_KEY=UNSPLASH_SECRET
-PEXELS_API_KEY=PEXELS_SECRET
 ```
 
 Notas:
@@ -227,7 +226,7 @@ Notas:
 - `DATABASE_URL`, JWT, Redis y clave de cifrado son secretos de Dokploy: nunca se versionan ni se copian a documentación, issues o chat.
 - `PROVIDER_INTEGRATIONS_ENCRYPTION_KEY` debe mantenerse estable. Rotarla requiere un proceso explícito de re-cifrado de configuraciones OAuth existentes.
 - Redis autenticado usa `REDIS_HOST`, `REDIS_PORT`, `REDIS_USERNAME` y `REDIS_PASSWORD` separados. No usar una URL Redis como valor de `REDIS_HOST`.
-- `UNSPLASH_ACCESS_KEY` y `PEXELS_API_KEY` se configuran sólo en API; nunca en Web. Puede habilitarse uno o ambos proveedores.
+- `UNSPLASH_ACCESS_KEY` permanece como configuración de API. Pexels se administra cifrado desde Admin → Integraciones y no usa variables de entorno.
 
 ## Volumen Files compartido
 

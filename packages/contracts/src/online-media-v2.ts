@@ -1,5 +1,41 @@
 import { z } from "zod"
 
+export const pexelsIntegrationProviderKey = "pexels" as const
+
+export const pexelsIntegrationConfigurationSchema = z
+  .object({ apiKey: z.string().trim().min(1).max(4096) })
+  .strict()
+
+const pexelsIntegrationConfigurationDraftSchema = z
+  .object({ apiKey: z.string().trim().min(1).max(4096).optional() })
+  .strict()
+
+export const pexelsIntegrationSchema = z.object({
+  providerKey: z.literal(pexelsIntegrationProviderKey),
+  label: z.literal("Pexels"),
+  enabled: z.boolean(),
+  readiness: z.enum(["ready", "incomplete", "untested", "disabled"]),
+  apiKeyConfigured: z.boolean(),
+  lastTestedAt: z.string().datetime().nullable(),
+})
+
+export const testPexelsIntegrationSchema = z
+  .object({
+    configuration: pexelsIntegrationConfigurationDraftSchema.optional(),
+  })
+  .strict()
+
+export const testPexelsIntegrationResponseSchema = z.object({
+  testedAt: z.string().datetime(),
+})
+
+export const updatePexelsIntegrationSchema = z
+  .object({
+    enabled: z.boolean(),
+    configuration: pexelsIntegrationConfigurationDraftSchema.optional(),
+  })
+  .strict()
+
 export const onlineMediaProviderSchema = z.enum(["auto", "unsplash", "pexels"])
 export const onlineMediaTypeSchema = z.enum(["image", "video"])
 export const portalOnlineMediaSearchQuerySchema = z
@@ -51,6 +87,19 @@ export const importedPortalOnlineMediaSchema = z.object({
 
 export type PortalOnlineMediaSearchQuery = z.infer<
   typeof portalOnlineMediaSearchQuerySchema
+>
+export type PexelsIntegration = z.infer<typeof pexelsIntegrationSchema>
+export type PexelsIntegrationConfiguration = z.infer<
+  typeof pexelsIntegrationConfigurationSchema
+>
+export type TestPexelsIntegrationInput = z.infer<
+  typeof testPexelsIntegrationSchema
+>
+export type TestPexelsIntegrationResponse = z.infer<
+  typeof testPexelsIntegrationResponseSchema
+>
+export type UpdatePexelsIntegrationInput = z.infer<
+  typeof updatePexelsIntegrationSchema
 >
 export type PortalOnlineMediaResult = z.infer<
   typeof portalOnlineMediaResultSchema

@@ -115,6 +115,33 @@ export class GoogleDriveIntegrationsController {
 }
 
 @ApiTags('admin-integrations')
+@Controller('v1/admin/integrations/pexels')
+export class PexelsIntegrationsController {
+  constructor(
+    private readonly access: SessionAccessService,
+    private readonly integrations: IntegrationsService,
+  ) {}
+
+  @Get()
+  async get(@Req() request: FastifyRequest) {
+    await this.access.requirePlatformAdmin(request);
+    return this.integrations.getPexels();
+  }
+
+  @Post('test')
+  async test(@Body() input: unknown, @Req() request: FastifyRequest) {
+    const session = await this.access.requirePlatformAdmin(request);
+    return this.integrations.testPexels(input, session);
+  }
+
+  @Patch()
+  async save(@Body() input: unknown, @Req() request: FastifyRequest) {
+    const session = await this.access.requirePlatformAdmin(request);
+    return this.integrations.savePexels(input, session);
+  }
+}
+
+@ApiTags('admin-integrations')
 @Controller('v1/admin/integrations/channel-providers')
 export class ChannelProviderIntegrationsController {
   constructor(

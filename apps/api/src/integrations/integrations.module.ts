@@ -11,6 +11,7 @@ import {
   EmailSmtpIntegrationsController,
   GoogleDriveIntegrationsController,
   IntegrationsController,
+  PexelsIntegrationsController,
   WhatsAppStatusIntegrationsController,
 } from './integrations.controller';
 import { IntegrationsService } from './integrations.service';
@@ -22,6 +23,7 @@ import { IntegrationsService } from './integrations.service';
     WhatsAppStatusIntegrationsController,
     EmailSmtpIntegrationsController,
     GoogleDriveIntegrationsController,
+    PexelsIntegrationsController,
     ChannelProviderIntegrationsController,
   ],
   providers: [

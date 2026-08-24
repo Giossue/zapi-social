@@ -32,6 +32,13 @@ import {
   type GoogleDriveIntegrationConfiguration,
   type PortalGoogleDriveConfiguration,
   type TestGoogleDriveIntegrationResponse,
+  pexelsIntegrationConfigurationSchema,
+  pexelsIntegrationProviderKey,
+  testPexelsIntegrationSchema,
+  updatePexelsIntegrationSchema,
+  type PexelsIntegration,
+  type PexelsIntegrationConfiguration,
+  type TestPexelsIntegrationResponse,
 } from '@workspace/contracts';
 import { providerIntegrations } from '@workspace/database';
 import { eq } from '@workspace/database/query';
@@ -71,6 +78,8 @@ type GoogleDriveRow = Pick<
   | 'lastTestedAt'
 > & { readiness?: string };
 
+type PexelsRow = GoogleDriveRow;
+
 @Injectable()
 export class IntegrationsService {
   constructor(
@@ -85,6 +94,165 @@ export class IntegrationsService {
 
   async getGoogleDrive(): Promise<GoogleDriveIntegration> {
     return this.toGoogleDriveResponse(await this.googleDriveRow());
+  }
+
+  async getPexels(): Promise<PexelsIntegration> {
+    return this.toPexelsResponse(await this.pexelsRow());
+  }
+
+  async testPexels(
+    input: unknown,
+    session: AuthSession,
+  ): Promise<TestPexelsIntegrationResponse> {
+    const parsed = testPexelsIntegrationSchema.safeParse(input);
+    if (!parsed.success) {
+      throw new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
+    }
+
+    const row = await this.pexelsRow();
+    const configuration = this.resolvePexelsDraftConfiguration(
+      parsed.data.configuration,
+      row,
+    );
+    await this.verifyPexelsConfiguration(configuration);
+
+    const testedAt = new Date();
+    const fingerprint = this.pexelsConfigurationFingerprint(configuration);
+    await this.database.db
+      .insert(providerIntegrations)
+      .values({
+        providerKey: pexelsIntegrationProviderKey,
+        enabled: row?.enabled ?? false,
+        readiness: this.readiness(
+          row?.enabled ?? false,
+          Boolean(row?.configurationCiphertext),
+          false,
+        ),
+        capabilities: ['image_search', 'video_search'],
+        enabledCapabilityKeys: row?.enabled
+          ? ['image_search', 'video_search']
+          : [],
+        configurationCiphertext: row?.configurationCiphertext ?? null,
+        testedConfigFingerprint: fingerprint,
+        lastTestedAt: testedAt,
+        lastTestedByPlatformAdminId: session.user.id,
+        updatedByUserId: row ? undefined : session.user.id,
+      })
+      .onConflictDoUpdate({
+        target: providerIntegrations.providerKey,
+        set: {
+          testedConfigFingerprint: fingerprint,
+          lastTestedAt: testedAt,
+          lastTestedByPlatformAdminId: session.user.id,
+          updatedAt: testedAt,
+        },
+      });
+
+    return { testedAt: testedAt.toISOString() };
+  }
+
+  async savePexels(
+    input: unknown,
+    session: AuthSession,
+  ): Promise<PexelsIntegration> {
+    const parsed = updatePexelsIntegrationSchema.safeParse(input);
+    if (!parsed.success) {
+      throw new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
+    }
+
+    const row = await this.pexelsRow();
+    const configuration = parsed.data.configuration
+      ? this.resolvePexelsDraftConfiguration(parsed.data.configuration, row)
+      : this.decryptPexelsConfiguration(row?.configurationCiphertext);
+    const fingerprint = configuration
+      ? this.pexelsConfigurationFingerprint(configuration)
+      : null;
+    const tested = Boolean(
+      fingerprint && row?.testedConfigFingerprint === fingerprint,
+    );
+    if (parsed.data.enabled && (!configuration || !tested)) {
+      throw new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
+    }
+
+    const configurationCiphertext = configuration
+      ? this.encryption().encrypt(
+          JSON.stringify(configuration),
+          pexelsIntegrationProviderKey,
+        )
+      : null;
+    const readiness = this.readiness(
+      parsed.data.enabled,
+      Boolean(configuration),
+      tested,
+    );
+    const now = new Date();
+
+    await this.database.db
+      .insert(providerIntegrations)
+      .values({
+        providerKey: pexelsIntegrationProviderKey,
+        enabled: parsed.data.enabled,
+        readiness,
+        capabilities: ['image_search', 'video_search'],
+        enabledCapabilityKeys: parsed.data.enabled
+          ? ['image_search', 'video_search']
+          : [],
+        configurationCiphertext,
+        readinessIssues: this.readinessIssues(
+          parsed.data.enabled,
+          Boolean(configuration),
+          tested,
+        ),
+        testedConfigFingerprint: row?.testedConfigFingerprint ?? null,
+        lastTestedAt: row?.lastTestedAt ?? null,
+        updatedByUserId: session.user.id,
+      })
+      .onConflictDoUpdate({
+        target: providerIntegrations.providerKey,
+        set: {
+          enabled: parsed.data.enabled,
+          readiness,
+          enabledCapabilityKeys: parsed.data.enabled
+            ? ['image_search', 'video_search']
+            : [],
+          configurationCiphertext,
+          readinessIssues: this.readinessIssues(
+            parsed.data.enabled,
+            Boolean(configuration),
+            tested,
+          ),
+          updatedByUserId: session.user.id,
+          updatedAt: now,
+        },
+      });
+
+    return this.toPexelsResponse({
+      enabled: parsed.data.enabled,
+      readiness,
+      configurationCiphertext,
+      testedConfigFingerprint: row?.testedConfigFingerprint ?? null,
+      lastTestedAt: row?.lastTestedAt ?? null,
+    });
+  }
+
+  async readPexelsConfiguration(): Promise<PexelsIntegrationConfiguration | null> {
+    const row = await this.pexelsRow();
+    const configuration = this.decryptPexelsConfiguration(
+      row?.configurationCiphertext,
+    );
+    const fingerprint = configuration
+      ? this.pexelsConfigurationFingerprint(configuration)
+      : null;
+    if (
+      !row?.enabled ||
+      row.readiness !== 'ready' ||
+      !configuration ||
+      !fingerprint ||
+      row.testedConfigFingerprint !== fingerprint
+    ) {
+      return null;
+    }
+    return configuration;
   }
 
   async testGoogleDrive(
@@ -631,6 +799,113 @@ export class IntegrationsService {
       )
       .limit(1);
     return row;
+  }
+
+  private async pexelsRow(): Promise<PexelsRow | undefined> {
+    const [row] = await this.database.db
+      .select({
+        enabled: providerIntegrations.enabled,
+        readiness: providerIntegrations.readiness,
+        configurationCiphertext: providerIntegrations.configurationCiphertext,
+        testedConfigFingerprint: providerIntegrations.testedConfigFingerprint,
+        lastTestedAt: providerIntegrations.lastTestedAt,
+      })
+      .from(providerIntegrations)
+      .where(eq(providerIntegrations.providerKey, pexelsIntegrationProviderKey))
+      .limit(1);
+    return row;
+  }
+
+  private toPexelsResponse(row: PexelsRow | undefined): PexelsIntegration {
+    const configuration = this.decryptPexelsConfiguration(
+      row?.configurationCiphertext,
+    );
+    const fingerprint = configuration
+      ? this.pexelsConfigurationFingerprint(configuration)
+      : null;
+    const tested = Boolean(
+      fingerprint && row?.testedConfigFingerprint === fingerprint,
+    );
+    const enabled = row?.enabled ?? false;
+    return {
+      providerKey: pexelsIntegrationProviderKey,
+      label: 'Pexels',
+      enabled,
+      readiness: this.readiness(enabled, Boolean(configuration), tested),
+      apiKeyConfigured: Boolean(configuration),
+      lastTestedAt: row?.lastTestedAt?.toISOString() ?? null,
+    };
+  }
+
+  private resolvePexelsDraftConfiguration(
+    configuration: { apiKey?: string } | undefined,
+    row: PexelsRow | undefined,
+  ): PexelsIntegrationConfiguration {
+    const stored = this.decryptPexelsConfiguration(
+      row?.configurationCiphertext,
+    );
+    const parsed = pexelsIntegrationConfigurationSchema.safeParse({
+      apiKey: configuration?.apiKey ?? stored?.apiKey,
+    });
+    if (!parsed.success) {
+      throw new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
+    }
+    return parsed.data;
+  }
+
+  private decryptPexelsConfiguration(
+    ciphertext: string | null | undefined,
+  ): PexelsIntegrationConfiguration | null {
+    if (!ciphertext) return null;
+    try {
+      const parsed = pexelsIntegrationConfigurationSchema.safeParse(
+        JSON.parse(
+          this.encryption().decrypt(ciphertext, pexelsIntegrationProviderKey),
+        ),
+      );
+      return parsed.success ? parsed.data : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private pexelsConfigurationFingerprint(
+    configuration: PexelsIntegrationConfiguration,
+  ): string {
+    return createHash('sha256').update(configuration.apiKey).digest('hex');
+  }
+
+  private async verifyPexelsConfiguration(
+    configuration: PexelsIntegrationConfiguration,
+  ): Promise<void> {
+    const url = new URL('https://api.pexels.com/v1/search');
+    url.search = new URLSearchParams({
+      query: 'nature',
+      page: '1',
+      per_page: '1',
+    }).toString();
+    try {
+      const response = await fetch(url, {
+        headers: { authorization: configuration.apiKey },
+        redirect: 'error',
+        signal: AbortSignal.timeout(10_000),
+      });
+      const body: unknown = await response.json().catch(() => null);
+      if (
+        !response.ok ||
+        !body ||
+        typeof body !== 'object' ||
+        !('photos' in body) ||
+        !Array.isArray(body.photos)
+      ) {
+        throw new Error('Pexels API probe failed.');
+      }
+    } catch {
+      throw new AppException(
+        'ONLINE_MEDIA_PROVIDER_FAILED',
+        HttpStatus.BAD_GATEWAY,
+      );
+    }
   }
 
   private toGoogleDriveResponse(

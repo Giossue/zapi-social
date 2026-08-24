@@ -11,6 +11,7 @@ import { IntegrationCardLoading } from "./integration-card-loading"
 import { IntegrationInsetCard } from "./integration-inset-card"
 import { PolarIntegrationPreview } from "./polar-integration-card"
 import { GoogleDriveIntegrationCard } from "./google-drive-integration-card"
+import { PexelsIntegrationCard } from "./pexels-integration-card"
 import { ChannelProviderIntegrationCard } from "./channel-provider-integration-card"
 import type { MetaIntegration } from "@workspace/contracts"
 import { Badge } from "@workspace/ui/components/badge"
@@ -395,6 +396,7 @@ export function IntegrationsPage() {
             aria-label={t("providerTabs")}
             className="flex h-auto flex-wrap"
           >
+            <TabsTrigger value="pexels">{t("tab.pexels")}</TabsTrigger>
             <TabsTrigger value="meta">Meta</TabsTrigger>
             <TabsTrigger value="whatsapp">WhatsApp Status</TabsTrigger>
             <TabsTrigger value="email">{t("tab.email")}</TabsTrigger>
@@ -435,6 +437,7 @@ export function IntegrationsPage() {
             aria-label={t("providerTabs")}
             className="flex h-auto flex-wrap"
           >
+            <TabsTrigger value="pexels">{t("tab.pexels")}</TabsTrigger>
             <TabsTrigger value="meta">Meta</TabsTrigger>
             <TabsTrigger value="whatsapp">WhatsApp Status</TabsTrigger>
             <TabsTrigger value="email">{t("tab.email")}</TabsTrigger>
@@ -498,6 +501,7 @@ export function IntegrationsPage() {
           aria-label={t("providerTabs")}
           className="flex h-auto flex-wrap"
         >
+          <TabsTrigger value="pexels">{t("tab.pexels")}</TabsTrigger>
           <TabsTrigger value="meta">Meta</TabsTrigger>
           <TabsTrigger value="whatsapp">WhatsApp Status</TabsTrigger>
           <TabsTrigger value="email">{t("tab.email")}</TabsTrigger>
@@ -664,6 +668,8 @@ export function IntegrationsPage() {
         <EmailSmtpIntegrationCard />
       ) : activeProvider === "google-drive" ? (
         <GoogleDriveIntegrationCard />
+      ) : activeProvider === "pexels" ? (
+        <PexelsIntegrationCard />
       ) : activeChannelProvider ? (
         <ChannelProviderIntegrationCard
           key={activeChannelProvider.providerKey}

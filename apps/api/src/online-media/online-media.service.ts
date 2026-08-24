@@ -22,6 +22,7 @@ import {
   temporaryStorageKey,
 } from '@workspace/file-ingestion';
 import { DatabaseService } from '../database/database.service';
+import { IntegrationsService } from '../integrations/integrations.service';
 import { AppException } from '../platform/errors/app-exception';
 
 const maximumImportBytes = 25 * 1024 * 1024;
@@ -32,16 +33,15 @@ const allowedDownloadHosts: Record<'pexels' | 'unsplash', string[]> = {
 
 @Injectable()
 export class OnlineMediaService {
-  private readonly pexelsKey?: string;
   private readonly storageRoot: string;
   private readonly unsplashKey?: string;
 
   constructor(
     private readonly database: DatabaseService,
+    private readonly integrations: IntegrationsService,
     @InjectQueue('file-derivatives') private readonly derivatives: Queue,
     config: ConfigService,
   ) {
-    this.pexelsKey = config.get<string>('PEXELS_API_KEY');
     this.unsplashKey = config.get<string>('UNSPLASH_ACCESS_KEY');
     this.storageRoot = resolve(config.getOrThrow<string>('FILES_STORAGE_PATH'));
   }
@@ -52,7 +52,11 @@ export class OnlineMediaService {
   ): Promise<PortalOnlineMediaSearchResponse> {
     const parsed = portalOnlineMediaSearchQuerySchema.safeParse(query);
     if (!parsed.success) throw this.invalid();
-    const configuredProviders = this.configuredProviders();
+    const pexelsConfiguration =
+      await this.integrations.readPexelsConfiguration();
+    const configuredProviders = this.configuredProviders(
+      Boolean(pexelsConfiguration),
+    );
     const selected =
       parsed.data.provider === 'auto'
         ? configuredProviders
@@ -64,7 +68,7 @@ export class OnlineMediaService {
       selected.map((provider) =>
         provider === 'unsplash'
           ? this.searchUnsplash(parsed.data)
-          : this.searchPexels(parsed.data),
+          : this.searchPexels(parsed.data, pexelsConfiguration!.apiKey),
       ),
     );
     const merged = results.flatMap((result) => result.results);
@@ -245,15 +249,18 @@ export class OnlineMediaService {
     };
   }
 
-  private async searchPexels(input: {
-    page: number;
-    perPage: number;
-    q: string;
-    type: 'image' | 'video';
-  }) {
+  private async searchPexels(
+    input: {
+      page: number;
+      perPage: number;
+      q: string;
+      type: 'image' | 'video';
+    },
+    apiKey: string,
+  ) {
     const url = new URL(
       input.type === 'video'
-        ? 'https://api.pexels.com/videos/search'
+        ? 'https://api.pexels.com/v1/videos/search'
         : 'https://api.pexels.com/v1/search',
     );
     url.search = new URLSearchParams({
@@ -262,7 +269,7 @@ export class OnlineMediaService {
       per_page: String(input.perPage),
     }).toString();
     const response = await fetch(url, {
-      headers: { authorization: this.pexelsKey ?? '' },
+      headers: { authorization: apiKey },
       signal: AbortSignal.timeout(12_000),
     });
     const payload = await providerJson(response);
@@ -317,10 +324,10 @@ export class OnlineMediaService {
     }
   }
 
-  private configuredProviders() {
+  private configuredProviders(pexelsReady: boolean) {
     const providers: Array<'pexels' | 'unsplash'> = [];
     if (this.unsplashKey) providers.push('unsplash');
-    if (this.pexelsKey) providers.push('pexels');
+    if (pexelsReady) providers.push('pexels');
     return providers;
   }
   private invalid() {

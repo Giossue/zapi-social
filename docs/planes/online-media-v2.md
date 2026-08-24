@@ -2,7 +2,7 @@
 
 ## Estado
 
-El backend de búsqueda e importación desde Unsplash/Pexels está implementado. La superficie Web todavía debe conectar `onlineMediaApi` y presentar atribución/enlaces del proveedor.
+El backend y la superficie Web de búsqueda e importación desde Unsplash/Pexels están implementados. Pexels se configura desde Admin y sus credenciales se guardan cifradas.
 
 ## REST
 
@@ -28,13 +28,16 @@ Base: `/v1/portal/online-media`, con sesión Portal.
 
 - La importación devuelve `fileAssetId`, marca el archivo `ready` y encola `generate-thumbnail` en `file-derivatives` con job estable `thumbnail-<assetId>`.
 - API y Worker deben montar el mismo volumen en la misma ruta `FILES_STORAGE_PATH`.
-- API: `UNSPLASH_ACCESS_KEY` y/o `PEXELS_API_KEY`. Si ninguno está configurado, búsqueda responde con error público de proveedor no configurado.
+- Unsplash conserva `UNSPLASH_ACCESS_KEY` en API. Pexels se activa desde `/admin/integrations`, exige una prueba real y guarda su API Key cifrada en `provider_integrations`.
+- `GET/POST test/PATCH /v1/admin/integrations/pexels` permiten leer el estado redactado, probar el borrador y guardar o desactivar la integración.
+- Si ningún proveedor está listo, la búsqueda responde con el error público de proveedor no configurado.
 - Nunca enviar estas claves al navegador ni versionarlas.
 
 ## Evidencia y pendientes
 
 - [x] Contratos, API, cliente y metadata Drizzle incluidos en `0020_mushy_peter_parker`.
 - [x] Migración local aplicada; existe `file_assets.metadata` y pasan typechecks de Database, Contracts, API Client y API.
-- [ ] Conectar Web a `onlineMediaApi`, mostrar atribución y retirar fixtures.
+- [x] Web conectado a `onlineMediaApi`, sin fixtures y con enlaces visibles de atribución, autor y fuente.
+- [x] Pexels configurable desde Admin, con prueba previa, secreto cifrado y respuesta redactada.
 - [ ] Añadir pruebas de proveedor simulado para redirecciones, límite, firma MIME y limpieza ante fallo.
 - [ ] Definir idempotencia/deduplicación si el mismo resultado se importa más de una vez.

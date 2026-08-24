@@ -210,6 +210,10 @@ import type {
   PortalCommerceReturn,
   PortalOnlineMediaSearchQuery,
   PortalOnlineMediaSearchResponse,
+  PexelsIntegration,
+  TestPexelsIntegrationInput,
+  TestPexelsIntegrationResponse,
+  UpdatePexelsIntegrationInput,
   RequestPortalAffiliateWithdrawalInput,
   UpdatePortalCommerceOrderInput,
   UpdatePortalCommerceProductInput,
@@ -1313,6 +1317,20 @@ export const channelConnectionsApi = {
 }
 
 export const integrationsApi = {
+  getPexels: () =>
+    request<PexelsIntegration>("/v1/admin/integrations/pexels", {
+      method: "GET",
+    }),
+  testPexels: (input: TestPexelsIntegrationInput) =>
+    request<TestPexelsIntegrationResponse>(
+      "/v1/admin/integrations/pexels/test",
+      { method: "POST", body: JSON.stringify(input) }
+    ),
+  savePexels: (input: UpdatePexelsIntegrationInput) =>
+    request<PexelsIntegration>("/v1/admin/integrations/pexels", {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
   getGoogleDrive: () =>
     request<GoogleDriveIntegration>("/v1/admin/integrations/google-drive", {
       method: "GET",
