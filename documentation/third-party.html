@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Zapi Social Third-party Credits</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+        line-height: 1.6;
+      }
+      body {
+        margin: 0;
+        background: #0f0f10;
+        color: #e7e7e8;
+      }
+      main {
+        width: min(900px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 64px 0 96px;
+      }
+      h1,
+      h2 {
+        color: #fff;
+        line-height: 1.2;
+      }
+      h2 {
+        margin-top: 40px;
+        border-top: 1px solid #2d2d30;
+        padding-top: 28px;
+      }
+      a {
+        color: #8ab4ff;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th,
+      td {
+        border-bottom: 1px solid #303034;
+        padding: 10px;
+        text-align: left;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p><a href="index.html">← Documentation</a></p>
+      <h1>Third-party credits</h1>
+      <p>
+        Zapi Social uses open-source software installed from the locked package
+        manifest. The release archive does not include
+        <code>node_modules</code>; Docker installs the exact dependency graph
+        from <code>bun.lock</code>. Copyright and license files are supplied by
+        each installed package.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Role</th>
+            <th>License</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <a href="https://nextjs.org/">Next.js</a> and
+              <a href="https://react.dev/">React</a>
+            </td>
+            <td>Web application</td>
+            <td>MIT</td>
+          </tr>
+          <tr>
+            <td>
+              <a href="https://nestjs.com/">NestJS</a> and
+              <a href="https://fastify.dev/">Fastify</a>
+            </td>
+            <td>REST API and Worker</td>
+            <td>MIT</td>
+          </tr>
+          <tr>
+            <td><a href="https://orm.drizzle.team/">Drizzle ORM</a></td>
+            <td>Database schema and queries</td>
+            <td>Apache-2.0</td>
+          </tr>
+          <tr>
+            <td>
+              <a href="https://tailwindcss.com/">Tailwind CSS</a> and
+              <a href="https://ui.shadcn.com/">shadcn/ui</a>
+            </td>
+            <td>Interface styling and primitives</td>
+            <td>MIT</td>
+          </tr>
+          <tr>
+            <td><a href="https://lucide.dev/">Lucide</a></td>
+            <td>Interface icons</td>
+            <td>ISC</td>
+          </tr>
+          <tr>
+            <td><a href="https://recharts.org/">Recharts</a></td>
+            <td>Dashboard charts</td>
+            <td>MIT</td>
+          </tr>
+          <tr>
+            <td><a href="https://docs.bullmq.io/">BullMQ</a></td>
+            <td>Background queues</td>
+            <td>MIT</td>
+          </tr>
+          <tr>
+            <td><a href="https://zod.dev/">Zod</a></td>
+            <td>Runtime validation</td>
+            <td>MIT</td>
+          </tr>
+          <tr>
+            <td><a href="https://next-intl.dev/">next-intl</a></td>
+            <td>Internationalization</td>
+            <td>MIT</td>
+          </tr>
+          <tr>
+            <td><a href="https://polar.sh/">Polar SDK</a></td>
+            <td>Optional billing integration</td>
+            <td>MIT</td>
+          </tr>
+        </tbody>
+      </table>
+      <h2>Brand and provider names</h2>
+      <p>
+        Names and marks for Facebook, Instagram, LinkedIn, TikTok, X, WhatsApp,
+        Google Drive, Polar, Unsplash, and Pexels identify optional compatible
+        services. They remain the property of their respective owners. No
+        provider credentials, customer media, stock photos, or paid third-party
+        assets are included in the release archive.
+      </p>
+    </main>
+  </body>
+</html>

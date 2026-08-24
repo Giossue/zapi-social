@@ -2,10 +2,11 @@
 
 ## Estado
 
-**Fases 1 y 2 cerradas el 24 de agosto de 2026.** El paquete incluye Compose,
-plantilla de entorno y guías inglesas de instalación y actualización. La guía
-se ejecutó desde cero con Compose v2 sobre un motor compatible: migraciones,
-healthchecks, setup, login y render autenticado de Admin y Portal pasaron.
+**Fases 1–3 cerradas el 24 de agosto de 2026.** El paquete incluye Compose,
+plantilla de entorno, documentación HTML inglesa, modo demo seguro y un
+generador reproducible del ZIP para CodeCanyon. La guía se ejecutó desde cero
+con Compose v2 sobre un motor compatible: migraciones, healthchecks, setup,
+login y render autenticado de Admin y Portal pasaron.
 Bloque 4 de [`mvp-codecanyon-v2.md`](./mvp-codecanyon-v2.md): definir el
 paquete que un comprador de CodeCanyon instala y actualiza sin ayuda. Hoy la
 única documentación de despliegue es la nuestra
@@ -58,6 +59,8 @@ docker-compose.yml   # postgres, redis, migrate, api, worker, web
 .env.example         # cada variable documentada, secretos a generar
 docs/installation.md # guía inglesa paso a paso
 docs/updating.md      # actualización, backup, verificación y rollback
+documentation/       # manual HTML y créditos listo para compradores
+scripts/build-codecanyon-release.sh # ZIP limpio desde el commit actual
 ```
 
 - Las imágenes ya existen (`Dockerfile.api|web|worker`, validadas con podman
@@ -130,3 +133,11 @@ docs/updating.md      # actualización, backup, verificación y rollback
       aviso global en la interfaz.
 - [x] Datos demo sembrables, idempotentes y sin credenciales externas para la
       página de venta.
+
+### Evidencia de cierre
+
+- Build, lint, typecheck, auditorías i18n y prueba focal del guard en verde.
+- Seeder ejecutado dos veces contra PostgreSQL migrado desde cero: mantuvo 2
+  canales, 9 posts, 3 tareas y 2 notificaciones sin duplicar registros.
+- El ZIP se construye solo desde `git archive`, excluye `.env`, datos locales,
+  instrucciones internas y carpetas de agentes, e incluye checksum SHA-256.

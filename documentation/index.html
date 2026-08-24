@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Zapi Social Documentation</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+        line-height: 1.6;
+      }
+      body {
+        margin: 0;
+        background: #0f0f10;
+        color: #e7e7e8;
+      }
+      main {
+        width: min(900px, calc(100% - 40px));
+        margin: 0 auto;
+        padding: 64px 0 96px;
+      }
+      h1,
+      h2,
+      h3 {
+        color: #fff;
+        line-height: 1.2;
+      }
+      h1 {
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        margin: 0 0 12px;
+      }
+      h2 {
+        margin-top: 48px;
+        border-top: 1px solid #2d2d30;
+        padding-top: 32px;
+      }
+      a {
+        color: #8ab4ff;
+      }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      }
+      pre {
+        overflow-x: auto;
+        border: 1px solid #303034;
+        border-radius: 10px;
+        padding: 16px;
+        background: #19191b;
+      }
+      .lead {
+        color: #a9a9ad;
+        font-size: 1.1rem;
+        max-width: 700px;
+      }
+      .note {
+        border-left: 3px solid #3b82f6;
+        padding: 12px 16px;
+        background: #181d29;
+      }
+      .warning {
+        border-left-color: #f59e0b;
+        background: #251f14;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th,
+      td {
+        border-bottom: 1px solid #303034;
+        padding: 10px;
+        text-align: left;
+        vertical-align: top;
+      }
+      nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 18px;
+        margin: 28px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Zapi Social</h1>
+      <p class="lead">
+        Installation, operation, demo, update, and troubleshooting guide for the
+        self-hosted social publishing platform.
+      </p>
+      <nav>
+        <a href="#requirements">Requirements</a>
+        <a href="#install">Installation</a>
+        <a href="#setup">First setup</a>
+        <a href="#demo">Demo mode</a>
+        <a href="#update">Updates</a>
+        <a href="#support">Support</a>
+        <a href="third-party.html">Third-party credits</a>
+      </nav>
+
+      <h2 id="requirements">1. Requirements</h2>
+      <ul>
+        <li>
+          Linux server with a current Docker Engine and Docker Compose v2.
+        </li>
+        <li>
+          Recommended minimum: 4 CPU cores, 8 GB RAM, and 20 GB free disk space.
+        </li>
+        <li>Two HTTPS hosts: one for Web and one for API.</li>
+        <li>
+          Outbound HTTPS access for configured social, billing, email, and media
+          providers.
+        </li>
+      </ul>
+      <p class="note warning">
+        Shared hosting without Docker is not supported. PostgreSQL and Redis
+        must not be exposed to the public internet.
+      </p>
+
+      <h2 id="install">2. Installation</h2>
+      <p>
+        Extract the purchased archive, enter the application directory, and
+        create the private environment file.
+      </p>
+      <pre><code>cp .env.example .env
+chmod 600 .env
+openssl rand -hex 32
+openssl rand -base64 32</code></pre>
+      <p>
+        Replace every <code>CHANGE_ME</code> value. Generate independent values
+        for PostgreSQL, Redis, JWT, and the provider encryption key. The
+        provider key must be exactly 32 random bytes encoded as canonical
+        Base64.
+      </p>
+      <pre><code>WEB_ORIGIN=https://app.example.com
+API_PUBLIC_ORIGIN=https://api.example.com
+COOKIE_SECURE=true</code></pre>
+      <p>Validate, build, and start the stack:</p>
+      <pre><code>docker compose config --quiet
+docker compose build --pull
+docker compose up -d
+docker compose ps
+docker compose logs migrate</code></pre>
+      <p>
+        The expected result is healthy PostgreSQL, Redis, API, Worker, and Web
+        services. The one-shot <code>migrate</code> service must exit
+        successfully.
+      </p>
+
+      <h2 id="setup">3. First setup</h2>
+      <p>
+        Open the Web URL. An empty installation redirects to
+        <code>/setup</code>. Create the Platform Admin with a unique email and
+        strong password. The operation is serialized, audited, and can succeed
+        only once.
+      </p>
+      <p>
+        Sign out after setup and register a different account at
+        <code>/register</code> to create the first Portal workspace. A Platform
+        Admin intentionally has no customer workspace.
+      </p>
+      <p>Complete these checks before going live:</p>
+      <ol>
+        <li>
+          Configure plans, email, CAPTCHA, billing, languages, and providers in
+          Admin.
+        </li>
+        <li>Register exact OAuth callback URLs from Admin in each provider.</li>
+        <li>
+          Test email, billing webhooks, and each enabled provider with
+          non-customer credentials.
+        </li>
+        <li>
+          Verify <code>/v1/health</code> through the public HTTPS API host.
+        </li>
+      </ol>
+
+      <h2 id="demo">4. Read-only marketplace demo</h2>
+      <p>
+        Prepare demo accounts while <code>DEMO_MODE=false</code>: complete
+        setup, then register the Portal owner. Seed synthetic data by passing
+        that owner's email only to the one-shot command:
+      </p>
+      <pre><code>docker compose run --rm \
+  -e DEMO_OWNER_EMAIL=owner@example.com \
+  api node apps/api/dist/scripts/seed-demo.js</code></pre>
+      <p>
+        The command is idempotent. It creates synthetic channels without tokens,
+        historical posts, drafts, board tasks, and notifications. It does not
+        connect to external providers.
+      </p>
+      <p>
+        Then set <code>DEMO_MODE=true</code> in <code>.env</code> and recreate
+        the public services:
+      </p>
+      <pre><code>docker compose up -d --force-recreate api worker web</code></pre>
+      <p>
+        Safe reads and session operations remain available. Product mutations
+        return HTTP 403 with <code>DEMO_MODE_READONLY</code>, and Web displays a
+        read-only notice.
+      </p>
+      <p class="note warning">
+        Never reuse demo passwords or demo data in a customer installation. Keep
+        the demo on an isolated database and rotate its account passwords
+        regularly.
+      </p>
+
+      <h2 id="update">5. Updates and backups</h2>
+      <p>
+        Before every update, verify the current system and create matching
+        PostgreSQL and uploaded-file backups. Store them encrypted outside the
+        server.
+      </p>
+      <pre><code>docker compose ps
+mkdir -p backups
+docker compose exec -T postgres sh -c \
+  'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' \
+  &gt; "backups/database-$(date +%Y%m%d-%H%M%S).sql"
+docker compose exec -T api \
+  tar -C /app/.data -czf - files \
+  &gt; "backups/files-$(date +%Y%m%d-%H%M%S).tar.gz"</code></pre>
+      <p>
+        Keep <code>.env</code>, backups, and Docker volumes. Replace application
+        files with the new release, compare the new <code>.env.example</code>,
+        then run:
+      </p>
+      <pre><code>docker compose config --quiet
+docker compose build --pull
+docker compose run --rm migrate
+docker compose up -d --remove-orphans
+docker compose logs --tail=200 migrate api worker web</code></pre>
+      <p>
+        Do not reverse migrations automatically. If rollback is required, stop
+        the application and restore the matching database and file backups in a
+        maintenance window.
+      </p>
+
+      <h2 id="troubleshooting">6. Troubleshooting</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Problem</th>
+            <th>Check</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>A service is unhealthy</td>
+            <td>
+              Run
+              <code
+                >docker compose logs --tail=200 postgres redis migrate api
+                worker web</code
+              >. Check secrets, origins, ports, and memory.
+            </td>
+          </tr>
+          <tr>
+            <td>Login fails behind HTTPS</td>
+            <td>
+              Confirm exact <code>WEB_ORIGIN</code> and
+              <code>API_PUBLIC_ORIGIN</code>, then use
+              <code>COOKIE_SECURE=true</code>.
+            </td>
+          </tr>
+          <tr>
+            <td>OAuth callback is rejected</td>
+            <td>
+              Compare the provider callback character-for-character with the URL
+              shown by Admin.
+            </td>
+          </tr>
+          <tr>
+            <td>Uploaded files disappear</td>
+            <td>
+              Confirm API and Worker share the <code>files-data</code> volume.
+              Never delete volumes during a routine restart.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2 id="support">7. Support package</h2>
+      <p>
+        When requesting support, include the application version from
+        <code>RELEASE.txt</code>, browser and server versions, the failing
+        route, reproduction steps, and redacted service logs.
+      </p>
+      <p class="note warning">
+        Never send <code>.env</code>, passwords, cookies, JWTs, OAuth tokens,
+        SMTP credentials, provider secrets, customer data, or database backups.
+      </p>
+      <p>
+        Detailed Markdown references are also included at
+        <code>docs/installation.md</code> and <code>docs/updating.md</code>.
+      </p>
+    </main>
+  </body>
+</html>

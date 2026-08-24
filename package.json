@@ -12,6 +12,7 @@
     "audit:i18n": "python3 scripts/audit_i18n_messages.py",
     "audit:i18n-hardcoded": "python3 scripts/audit_i18n_hardcoded.py",
     "audit:schema": "python3 scripts/audit_schema_usage.py",
+    "release:codecanyon": "bash scripts/build-codecanyon-release.sh",
     "strip:comments": "bun scripts/strip_comments.ts"
   },
   "devDependencies": {
