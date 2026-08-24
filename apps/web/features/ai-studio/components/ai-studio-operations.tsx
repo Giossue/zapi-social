@@ -7,7 +7,7 @@ import {
   Clock3,
   Coins,
   Download,
-  EllipsisVertical,
+  MoreHorizontal,
   Play,
   Plus,
   RefreshCw,
@@ -557,21 +557,8 @@ function AiAutomationSurface({
   if (hasFilters) emptyDescription = t("automation.emptyFilteredDescription")
 
   return (
-    <div className="flex flex-col gap-6">
-      <OperationsHeader
-        actions={
-          canManage ? (
-            <Button
-              className="hidden sm:inline-flex"
-              disabled={state !== "ready"}
-              onClick={onToggleForm}
-              type="button"
-            >
-              <Plus aria-hidden="true" data-icon="inline-start" />
-              {t("automation.create")}
-            </Button>
-          ) : undefined
-        }
+    <div className="flex flex-col gap-4">
+      <CollectionHeader
         description={t("automation.pageDescription")}
         title={t("automation.pageTitle")}
       />
@@ -677,6 +664,20 @@ function AiAutomationSurface({
 
       <Card variant="subtle">
         <DataTableHeader
+          action={
+            canManage ? (
+              <Button
+                className="hidden sm:inline-flex"
+                disabled={state !== "ready"}
+                onClick={onToggleForm}
+                size="sm"
+                type="button"
+              >
+                <Plus aria-hidden="true" data-icon="inline-start" />
+                {t("automation.create")}
+              </Button>
+            ) : undefined
+          }
           search={{
             ariaLabel: t("automation.searchLabel"),
             onChange: onQueryChange,
@@ -763,13 +764,16 @@ function AiAutomationSurface({
                                 {busy ? (
                                   <Spinner aria-label={t("processing")} />
                                 ) : (
-                                  <EllipsisVertical aria-hidden="true" />
+                                  <MoreHorizontal aria-hidden="true" />
                                 )}
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
+                            <DropdownMenuContent align="end" size="compact">
                               <DropdownMenuGroup>
-                                <DropdownMenuItem onSelect={() => onRun(row)}>
+                                <DropdownMenuItem
+                                  onSelect={() => onRun(row)}
+                                  size="compact"
+                                >
                                   <Play aria-hidden="true" />
                                   {t("runNow")}
                                 </DropdownMenuItem>
@@ -778,6 +782,7 @@ function AiAutomationSurface({
                               <DropdownMenuGroup>
                                 <DropdownMenuItem
                                   onSelect={() => onRequestDelete(row)}
+                                  size="compact"
                                   variant="destructive"
                                 >
                                   <Trash2 aria-hidden="true" />
@@ -793,7 +798,7 @@ function AiAutomationSurface({
                 })}
                 {rows.length === 0 ? (
                   <TableEmptyRow
-                    colSpan={5}
+                    colSpan={canManage ? 5 : 4}
                     action={
                       hasFilters ? (
                         <Button
@@ -827,7 +832,7 @@ function AiAutomationSurface({
       {canManage ? (
         <FloatingActionButton
           disabled={state !== "ready"}
-          label={t("automation.createTitle")}
+          label={t("automation.create")}
           onClick={onToggleForm}
         />
       ) : null}
