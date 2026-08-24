@@ -89,7 +89,7 @@ export function NotificationBell() {
           aria-label={unread ? t("unreadLabel", { unread }) : t("title")}
           className="relative"
           size="icon-sm"
-          variant="brand-secondary"
+          variant="ghost"
         >
           <Bell />
           {unread ? (

@@ -2,11 +2,7 @@
 
 import { ApiError, portalBillingApi } from "@workspace/api-client"
 import type { PortalPlan, PortalPlansResponse } from "@workspace/contracts"
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@workspace/ui/components/alert"
+import { Alert, AlertTitle } from "@workspace/ui/components/alert"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -27,18 +23,13 @@ import {
 } from "@workspace/ui/components/empty"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@workspace/ui/components/toggle-group"
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/tabs"
 import { toast } from "@workspace/ui/components/toast"
-import {
-  CalendarClock,
-  Check,
-  CircleAlert,
-  CreditCard,
-  ShieldCheck,
-  Sparkles,
-} from "lucide-react"
+import { Check, CircleAlert, CreditCard, Sparkles } from "lucide-react"
 import { useFormatter, useTranslations } from "next-intl"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
@@ -89,12 +80,18 @@ export function PortalPlansPage() {
     void load()
   }
 
-  const visiblePlans = useMemo(
-    () =>
-      catalog?.plans.filter(
-        (plan) => plan.isFree || plan.billingType === interval
-      ) ?? [],
-    [catalog, interval]
+  const plansByInterval = useMemo(
+    () => ({
+      monthly:
+        catalog?.plans.filter(
+          (plan) => plan.isFree || plan.billingType === "monthly"
+        ) ?? [],
+      yearly:
+        catalog?.plans.filter(
+          (plan) => plan.isFree || plan.billingType === "yearly"
+        ) ?? [],
+    }),
+    [catalog]
   )
 
   if (loading) return <PlansLoading />
@@ -196,198 +193,20 @@ export function PortalPlansPage() {
     let variant: "success" | "warning" | "neutral" = "neutral"
     if (status === "active" || status === "trialing") variant = "success"
     if (status === "past_due" || status === "unpaid") variant = "warning"
-    return (
-      <Badge variant={variant}>
-        {t(`subscriptionStatus.${status}`)}
-      </Badge>
-    )
+    return <Badge variant={variant}>{t(`subscriptionStatus.${status}`)}</Badge>
   }
 
-  return (
-    <div className="flex flex-col gap-4">
-      <header className="flex flex-col gap-1">
-        <h1 className="font-semibold text-2xl tracking-tight">
-          {t("pageTitle")}
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          {t("pageDescription")}
-        </p>
-      </header>
+  const billingNotice = !activeCatalog.canManageBilling
+    ? t("ownerTitle")
+    : !activeCatalog.checkoutAvailable
+      ? t("billingUnavailableTitle")
+      : subscriptionActive
+        ? t("changeUnavailableTitle")
+        : null
 
-      {currentPlan ? (
-        <Card variant="subtle">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CreditCard aria-hidden="true" />
-              {t("currentPlan")}
-            </CardTitle>
-            <CardDescription>
-              {t("currentPlanDescription", { plan: currentPlan.name })}
-            </CardDescription>
-            <CardAction>{subscriptionBadge()}</CardAction>
-          </CardHeader>
-          <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="flex items-start gap-2">
-              <CalendarClock className="mt-0.5" aria-hidden="true" />
-              <div className="grid gap-0.5">
-                <span className="font-medium">{t("renewalTitle")}</span>
-                <span className="text-muted-foreground text-xs">
-                  {renewalValue()}
-                </span>
-              </div>
-            </div>
-            <div className="flex items-start gap-2">
-              <ShieldCheck className="mt-0.5" aria-hidden="true" />
-              <div className="grid gap-0.5">
-                <span className="font-medium">{t("workspaceTitle")}</span>
-                <span className="text-muted-foreground text-xs">
-                  {t("workspaceDescription")}
-                </span>
-              </div>
-            </div>
-            <div className="flex items-start gap-2">
-              <Sparkles className="mt-0.5" aria-hidden="true" />
-              <div className="grid gap-0.5">
-                <span className="font-medium">{t("creditsTitle")}</span>
-                <span className="text-muted-foreground text-xs">
-                  {t("creditsDescription")}
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      ) : null}
-
-      {!activeCatalog.canManageBilling ? (
-        <Alert>
-          <CircleAlert aria-hidden="true" />
-          <AlertTitle>{t("ownerTitle")}</AlertTitle>
-          <AlertDescription>{t("ownerDescription")}</AlertDescription>
-        </Alert>
-      ) : null}
-
-      {!activeCatalog.checkoutAvailable ? (
-        <Alert>
-          <CircleAlert aria-hidden="true" />
-          <AlertTitle>{t("billingUnavailableTitle")}</AlertTitle>
-          <AlertDescription>
-            {t("billingUnavailableDescription")}
-          </AlertDescription>
-        </Alert>
-      ) : null}
-
-      {subscriptionActive ? (
-        <Alert>
-          <CircleAlert aria-hidden="true" />
-          <AlertTitle>{t("changeUnavailableTitle")}</AlertTitle>
-          <AlertDescription>
-            {t("changeUnavailableDescription")}
-          </AlertDescription>
-        </Alert>
-      ) : null}
-
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div className="flex flex-col gap-1">
-          <h2 className="font-medium text-lg">{t("plansAvailable")}</h2>
-          <p className="text-muted-foreground text-sm">
-            {t("plansDescription")}
-          </p>
-        </div>
-        <ToggleGroup
-          aria-label={t("periodLabel")}
-          onValueChange={(value) =>
-            value && setInterval(value as BillingInterval)
-          }
-          type="single"
-          value={interval}
-          variant="outline"
-        >
-          <ToggleGroupItem value="monthly">{t("monthly")}</ToggleGroupItem>
-          <ToggleGroupItem value="yearly">{t("annual")}</ToggleGroupItem>
-        </ToggleGroup>
-      </div>
-
-      {visiblePlans.length > 0 ? (
-        <div className="grid gap-3 lg:grid-cols-3">
-          {visiblePlans.map((plan) => {
-            const isCurrent = plan.id === activeCatalog.currentPlanId
-            const price = plan.isFree
-              ? t("free")
-              : format.number(plan.priceMinor / 100, {
-                  style: "currency",
-                  currency: plan.currency,
-                  maximumFractionDigits: 0,
-                })
-
-            return (
-              <Card
-                data-selected={plan.featured || undefined}
-                key={plan.id}
-                variant="subtle"
-              >
-                <CardHeader>
-                  <CardTitle>{plan.name}</CardTitle>
-                  <CardDescription>{plan.description}</CardDescription>
-                  <CardAction>
-                    {isCurrent ? (
-                      <Badge variant="success">{t("planCurrent")}</Badge>
-                    ) : null}
-                    {!isCurrent && plan.featured ? (
-                      <Badge variant="secondary">
-                        <Sparkles aria-hidden="true" />
-                        {t("recommended")}
-                      </Badge>
-                    ) : null}
-                  </CardAction>
-                </CardHeader>
-                <CardContent className="flex flex-1 flex-col gap-4">
-                  <div className="flex items-end gap-1">
-                    <span className="font-semibold text-3xl tracking-tight">
-                      {price}
-                    </span>
-                    {!plan.isFree ? (
-                      <span className="pb-1 text-muted-foreground text-sm">
-                        {t(`pricePeriod.${plan.billingType}`)}
-                      </span>
-                    ) : null}
-                  </div>
-                  {plan.trialDays > 0 ? (
-                    <Badge variant="outline">
-                      {t("trialDays", { count: plan.trialDays })}
-                    </Badge>
-                  ) : null}
-                  <ul className="flex flex-col gap-2">
-                    {planFeatures(plan).map((feature) => (
-                      <li className="flex items-start gap-2" key={feature}>
-                        <Check
-                          className="mt-0.5 text-primary"
-                          aria-hidden="true"
-                        />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-                <CardFooter>
-                  <Button
-                    className="w-full"
-                    disabled={actionDisabled(plan)}
-                    onClick={() => void checkout(plan)}
-                    variant={plan.featured ? "default" : "brand-secondary"}
-                  >
-                    {pendingPlanId === plan.id ? (
-                      <Spinner data-icon="inline-start" />
-                    ) : null}
-                    {pendingPlanId === plan.id
-                      ? t("checkoutPending")
-                      : actionLabel(plan)}
-                  </Button>
-                </CardFooter>
-              </Card>
-            )
-          })}
-        </div>
-      ) : (
+  function planGrid(plans: PortalPlan[]) {
+    if (!plans.length) {
+      return (
         <Card variant="subtle">
           <Empty>
             <EmptyHeader>
@@ -399,7 +218,129 @@ export function PortalPlansPage() {
             </EmptyHeader>
           </Empty>
         </Card>
-      )}
+      )
+    }
+
+    return (
+      <div className="flex flex-wrap justify-center gap-3">
+        {plans.map((plan) => {
+          const price = format.number(plan.priceMinor / 100, {
+            style: "currency",
+            currency: plan.currency,
+            maximumFractionDigits: 0,
+          })
+
+          return (
+            <Card
+              className="w-full sm:max-w-sm"
+              data-selected={plan.featured || undefined}
+              key={plan.id}
+              variant="subtle"
+            >
+              <CardHeader>
+                <CardTitle>{plan.name}</CardTitle>
+                {plan.featured ? (
+                  <CardAction>
+                    <Badge variant="secondary">
+                      <Sparkles aria-hidden="true" />
+                      {t("recommended")}
+                    </Badge>
+                  </CardAction>
+                ) : null}
+              </CardHeader>
+              <CardContent className="flex flex-1 flex-col gap-4 text-sm">
+                {!plan.isFree ? (
+                  <div className="flex items-end gap-1">
+                    <span className="text-3xl font-semibold tracking-tight">
+                      {price}
+                    </span>
+                    <span className="pb-1 text-sm text-muted-foreground">
+                      {t(`pricePeriod.${plan.billingType}`)}
+                    </span>
+                  </div>
+                ) : null}
+                {plan.trialDays > 0 ? (
+                  <Badge variant="outline">
+                    {t("trialDays", { count: plan.trialDays })}
+                  </Badge>
+                ) : null}
+                <ul className="flex flex-col gap-2">
+                  {planFeatures(plan).map((feature) => (
+                    <li className="flex items-start gap-2" key={feature}>
+                      <Check
+                        aria-hidden="true"
+                        className="mt-0.5 size-4 shrink-0 text-primary"
+                      />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <Button
+                  className="w-full"
+                  disabled={actionDisabled(plan)}
+                  onClick={() => void checkout(plan)}
+                  variant={plan.featured ? "default" : "brand-secondary"}
+                >
+                  {pendingPlanId === plan.id ? (
+                    <Spinner data-icon="inline-start" />
+                  ) : null}
+                  {pendingPlanId === plan.id
+                    ? t("checkoutPending")
+                    : actionLabel(plan)}
+                </Button>
+              </CardFooter>
+            </Card>
+          )
+        })}
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <header>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {t("pageTitle")}
+        </h1>
+      </header>
+
+      {currentPlan ? (
+        <Card variant="subtle">
+          <CardHeader>
+            <CardTitle>{currentPlan.name}</CardTitle>
+            <CardDescription>
+              {t("currentPlan")} · {renewalValue()}
+            </CardDescription>
+            <CardAction>{subscriptionBadge()}</CardAction>
+          </CardHeader>
+        </Card>
+      ) : null}
+
+      {billingNotice ? (
+        <Alert>
+          <CircleAlert aria-hidden="true" />
+          <AlertTitle>{billingNotice}</AlertTitle>
+        </Alert>
+      ) : null}
+
+      <Tabs
+        className="gap-4"
+        onValueChange={(value) => setInterval(value as BillingInterval)}
+        value={interval}
+      >
+        <TabsList aria-label={t("periodLabel")} className="mx-auto">
+          <TabsTrigger value="monthly">{t("monthly")}</TabsTrigger>
+          <TabsTrigger value="yearly">{t("annual")}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="monthly">
+          {planGrid(plansByInterval.monthly)}
+        </TabsContent>
+        <TabsContent value="yearly">
+          {planGrid(plansByInterval.yearly)}
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }
