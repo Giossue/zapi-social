@@ -13,6 +13,7 @@ import {
 } from '@workspace/database';
 import {
   activateAuthWorkspaceSchema,
+  effectiveWorkspacePermissions,
   loginSchema,
   registerSchema,
   localeCodeSchema,
@@ -277,13 +278,14 @@ export class IdentityService {
       ({ id }) => id === session.activeWorkspaceId,
     );
     if (!workspace) return null;
+    const moduleAccess = await this.planAccess.moduleAccessFor(workspace.id);
     return {
       user,
       area: 'portal' as const,
       workspace,
       workspaces: availableWorkspaces,
       impersonator: await this.impersonatorFor(session.impersonatorUserId),
-      enabledModules: await this.enabledModulesFor(workspace.id),
+      ...moduleAccess,
     };
   }
 
@@ -422,17 +424,14 @@ export class IdentityService {
         HttpStatus.FORBIDDEN,
       );
     }
+    const moduleAccess = await this.planAccess.moduleAccessFor(workspace.id);
     return {
       user,
       area: 'portal',
       workspace,
       workspaces: availableWorkspaces,
-      enabledModules: await this.enabledModulesFor(workspace.id),
+      ...moduleAccess,
     };
-  }
-
-  private async enabledModulesFor(workspaceId: string) {
-    return this.planAccess.modulesFor(workspaceId);
   }
 
   private localeCode(value: string | null): string | null {
@@ -585,7 +584,9 @@ export class IdentityService {
     const rows = await this.database.db
       .select({
         id: workspaces.id,
+        kind: workspaces.kind,
         name: workspaces.name,
+        permissions: workspaceMemberships.permissions,
         slug: workspaces.slug,
         role: workspaceMemberships.role,
       })
@@ -604,7 +605,11 @@ export class IdentityService {
 
     return rows.map((workspace) => ({
       ...workspace,
+      kind: workspace.kind as ActiveWorkspace['kind'],
       role: workspace.role as ActiveWorkspace['role'],
+      permissions: [
+        ...effectiveWorkspacePermissions(workspace.role, workspace.permissions),
+      ],
     }));
   }
 

@@ -11,6 +11,7 @@ import {
 import type { PortalAuthSession } from '@workspace/contracts';
 import { DatabaseService } from './database/database.service';
 import { AppException } from './platform/errors/app-exception';
+import { TeamAccountAccessService } from './teams/team-account-access.service';
 import { SupportService } from './support/support.service';
 import { WatermarksService } from './watermarks/watermarks.service';
 
@@ -101,9 +102,11 @@ describeDatabase('Support and Watermarks database contracts', () => {
         updatedAt: now,
       });
       const support = new SupportService({ db: database } as DatabaseService);
-      const watermarks = new WatermarksService({
-        db: database,
-      } as DatabaseService);
+      const databaseService = { db: database } as DatabaseService;
+      const watermarks = new WatermarksService(
+        databaseService,
+        new TeamAccountAccessService(databaseService),
+      );
       const ownerSession = portalSession(owner.userId, {
         id: owner.workspaceId,
         name: 'Support workspace owner',
@@ -160,9 +163,11 @@ describeDatabase('Support and Watermarks database contracts', () => {
         name: 'Support workspace watermark',
         slug: 'support-watermark',
       });
-      const service = new WatermarksService({
-        db: database,
-      } as DatabaseService);
+      const databaseService = { db: database } as DatabaseService;
+      const service = new WatermarksService(
+        databaseService,
+        new TeamAccountAccessService(databaseService),
+      );
 
       await expect(
         service.create(session, { imageFileAssetId: assetId, type: 'image' }),

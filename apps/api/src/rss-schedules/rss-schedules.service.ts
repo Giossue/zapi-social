@@ -17,6 +17,7 @@ import {
   ilike,
   inArray,
   isNull,
+  sql,
 } from '@workspace/database/query';
 import {
   createPortalRssScheduleSchema,
@@ -27,6 +28,7 @@ import {
   runPortalRssScheduleSchema,
   updatePortalRssScheduleSchema,
   validatePortalRssFeedSchema,
+  workspacePermissionMatches,
   type PortalAuthSession,
   type PortalRssFeedValidation,
   type PortalRssSchedule,
@@ -37,6 +39,7 @@ import {
 } from '@workspace/contracts';
 import { DatabaseService } from '../database/database.service';
 import { AppException } from '../platform/errors/app-exception';
+import { TeamAccountAccessService } from '../teams/team-account-access.service';
 import { RssFeedValidationService } from './rss-feed-validation.service';
 import {
   RSS_SCHEDULE_RUN_JOB,
@@ -69,6 +72,7 @@ export class RssSchedulesService {
   constructor(
     private readonly database: DatabaseService,
     private readonly feedValidation: RssFeedValidationService,
+    private readonly accountAccess: TeamAccountAccessService,
     @InjectQueue(RSS_SCHEDULE_RUN_QUEUE)
     private readonly runQueue: Queue<RssScheduleRunJobData>,
   ) {}
@@ -129,7 +133,17 @@ export class RssSchedulesService {
       const search = `%${filters.q}%`;
       conditions.push(and(ilike(rssSchedules.name, search))!);
     }
-    const where = and(...conditions)!;
+    const matchingIds = await this.database.db
+      .select({ id: rssSchedules.id })
+      .from(rssSchedules)
+      .where(and(...conditions));
+    const visibleIds = await this.visibleScheduleIds(
+      session,
+      matchingIds.map(({ id }) => id),
+    );
+    const where = visibleIds.length
+      ? and(...conditions, inArray(rssSchedules.id, visibleIds))!
+      : and(...conditions, sql`false`)!;
     const offset = (filters.page - 1) * filters.limit;
     const [rows, totalRows] = await Promise.all([
       this.database.db
@@ -170,7 +184,7 @@ export class RssSchedulesService {
     session: PortalAuthSession,
     id: string,
   ): Promise<PortalRssSchedule> {
-    const schedule = await this.findForWorkspace(session.workspace.id, id);
+    const schedule = await this.findForWorkspace(session, id);
     return this.detail(session.workspace.id, schedule);
   }
 
@@ -180,10 +194,7 @@ export class RssSchedulesService {
   ): Promise<PortalRssSchedule> {
     this.requireManage(session);
     const values = this.parse(createPortalRssScheduleSchema.safeParse(input));
-    await this.assertTargetAccounts(
-      session.workspace.id,
-      values.targetSocialAccountIds,
-    );
+    await this.assertTargetAccounts(session, values.targetSocialAccountIds);
     const now = new Date();
     const [schedule] = await this.database.db.transaction(async (tx) => {
       const [created] = await tx
@@ -239,15 +250,9 @@ export class RssSchedulesService {
     const scheduleId = this.parseId(id);
     const values = this.parse(updatePortalRssScheduleSchema.safeParse(input));
     const { targetSocialAccountIds, ...scheduleValues } = values;
-    const existing = await this.findForWorkspace(
-      session.workspace.id,
-      scheduleId,
-    );
+    const existing = await this.findForWorkspace(session, scheduleId);
     if (targetSocialAccountIds)
-      await this.assertTargetAccounts(
-        session.workspace.id,
-        targetSocialAccountIds,
-      );
+      await this.assertTargetAccounts(session, targetSocialAccountIds);
 
     const startDate =
       values.startDate === undefined ? existing.startDate : values.startDate;
@@ -304,7 +309,7 @@ export class RssSchedulesService {
     id: string,
   ): Promise<PortalRssSchedule> {
     this.requireManage(session);
-    const schedule = await this.findForWorkspace(session.workspace.id, id);
+    const schedule = await this.findForWorkspace(session, id);
     const status = schedule.status === 'active' ? 'paused' : 'active';
     const [updated] = await this.database.db.transaction(async (tx) => {
       const [next] = await tx
@@ -334,7 +339,7 @@ export class RssSchedulesService {
     input: unknown,
   ): Promise<PortalRssScheduleRun> {
     this.requireManage(session);
-    const schedule = await this.findForWorkspace(session.workspace.id, id);
+    const schedule = await this.findForWorkspace(session, id);
     const values = this.parse(runPortalRssScheduleSchema.safeParse(input));
     const now = new Date();
     const run = await this.database.db.transaction(async (tx) => {
@@ -422,7 +427,7 @@ export class RssSchedulesService {
 
   async remove(session: PortalAuthSession, id: string): Promise<void> {
     this.requireManage(session);
-    const schedule = await this.findForWorkspace(session.workspace.id, id);
+    const schedule = await this.findForWorkspace(session, id);
     await this.database.db.transaction(async (tx) => {
       await tx.delete(rssSchedules).where(eq(rssSchedules.id, schedule.id));
       await tx.insert(apiAuditLogs).values({
@@ -442,7 +447,7 @@ export class RssSchedulesService {
     id: string,
     query: unknown,
   ): Promise<PortalRssScheduleHistoriesResponse> {
-    const schedule = await this.findForWorkspace(session.workspace.id, id);
+    const schedule = await this.findForWorkspace(session, id);
     const filters = this.parse(
       portalRssScheduleHistoryQuerySchema.safeParse(query),
     );
@@ -502,7 +507,7 @@ export class RssSchedulesService {
     id: string,
     query: unknown,
   ): Promise<PortalRssScheduleRunsResponse> {
-    const schedule = await this.findForWorkspace(session.workspace.id, id);
+    const schedule = await this.findForWorkspace(session, id);
     const filters = this.parse(
       portalRssScheduleRunsQuerySchema.safeParse(query),
     );
@@ -590,7 +595,12 @@ export class RssSchedulesService {
     return counts;
   }
 
-  private async assertTargetAccounts(workspaceId: string, ids: string[]) {
+  private async assertTargetAccounts(
+    session: PortalAuthSession,
+    ids: string[],
+  ) {
+    const scope = await this.accountAccess.resolve(session);
+    if (!this.accountAccess.allowsAll(scope, ids)) throw this.invalid();
     const accounts = await this.database.db
       .select({
         capabilityKey: socialAccounts.capabilityKey,
@@ -599,7 +609,7 @@ export class RssSchedulesService {
       .from(socialAccounts)
       .where(
         and(
-          eq(socialAccounts.workspaceId, workspaceId),
+          eq(socialAccounts.workspaceId, session.workspace.id),
           eq(socialAccounts.status, 'active'),
           isNull(socialAccounts.disconnectedAt),
           inArray(socialAccounts.id, ids),
@@ -614,7 +624,25 @@ export class RssSchedulesService {
       throw this.invalid();
   }
 
-  private async findForWorkspace(workspaceId: string, id: string) {
+  private async visibleScheduleIds(
+    session: PortalAuthSession,
+    scheduleIds: string[],
+  ) {
+    if (!scheduleIds.length) return [];
+    const scope = await this.accountAccess.resolve(session);
+    if (scope.unrestricted) return scheduleIds;
+    const targets = await this.targetsFor(session.workspace.id, scheduleIds);
+    return scheduleIds.filter((scheduleId) => {
+      const accountIds = (targets.get(scheduleId) ?? []).map(
+        ({ account }) => account.id,
+      );
+      return (
+        accountIds.length > 0 && this.accountAccess.allowsAll(scope, accountIds)
+      );
+    });
+  }
+
+  private async findForWorkspace(session: PortalAuthSession, id: string) {
     const scheduleId = this.parseId(id);
     const [schedule] = await this.database.db
       .select()
@@ -622,11 +650,13 @@ export class RssSchedulesService {
       .where(
         and(
           eq(rssSchedules.id, scheduleId),
-          eq(rssSchedules.workspaceId, workspaceId),
+          eq(rssSchedules.workspaceId, session.workspace.id),
         ),
       )
       .limit(1);
     if (!schedule) throw this.notFound();
+    if (!(await this.visibleScheduleIds(session, [schedule.id])).length)
+      throw this.notFound();
     return schedule;
   }
 
@@ -703,7 +733,13 @@ export class RssSchedulesService {
   }
 
   private canManage(session: PortalAuthSession) {
-    return managerRoles.has(session.workspace.role);
+    return (
+      managerRoles.has(session.workspace.role) ||
+      workspacePermissionMatches(
+        session.workspace.permissions,
+        'rss-schedules.manage',
+      )
+    );
   }
 
   private requireManage(session: PortalAuthSession) {

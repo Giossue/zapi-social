@@ -82,7 +82,10 @@ export const updateAdminTurnstileConfigurationSchema = z
 export { supportedLocaleSchema } from "./locale.js"
 import { localeCodeSchema } from "./languages.js"
 import { portalModuleKeySchema } from "./plan-limits.js"
-import { workspacePermissionSchema } from "./workspace-permissions.js"
+import {
+  defaultWorkspaceMemberPermissions,
+  workspacePermissionSchema,
+} from "./workspace-permissions.js"
 
 export const portalProfileSchema = z.object({
   id: z.uuid(),
@@ -125,7 +128,9 @@ export const activeWorkspaceSchema = z.object({
   id: z.uuid(),
   name: z.string(),
   slug: z.string(),
+  kind: z.enum(["personal", "team"]).optional(),
   role: z.enum(["owner", "admin", "member"]),
+  permissions: z.array(workspacePermissionSchema).optional(),
 })
 
 export const activateAuthWorkspaceSchema = z
@@ -147,6 +152,7 @@ export const portalAuthSessionSchema = z.object({
     .nullable()
     .optional(),
   enabledModules: z.array(portalModuleKeySchema).optional(),
+  planModules: z.array(portalModuleKeySchema).optional(),
 })
 
 export const authSessionSchema = z.discriminatedUnion("area", [
@@ -947,6 +953,8 @@ export const portalTeamInvitationSchema = z.object({
   lastSentAt: z.string().datetime().nullable(),
   expiresAt: z.string().datetime(),
   deliveryStatus: portalTeamInvitationDeliveryStatusSchema,
+  accountIds: z.array(z.uuid()),
+  permissions: z.array(workspacePermissionSchema),
 })
 export const previewPortalTeamInvitationSchema = z
   .object({ token: z.string().min(32).max(512) })
@@ -973,6 +981,7 @@ export const portalTeamsResponseSchema = z.object({
   currentUserId: z.uuid(),
   currentUserRole: portalTeamRoleSchema,
   invitations: z.array(portalTeamInvitationSchema),
+  availablePermissions: z.array(workspacePermissionSchema),
   members: z.array(portalTeamMemberSchema),
   seatUsage: portalTeamSeatUsageSchema,
   workspace: z.object({
@@ -984,6 +993,10 @@ export const createPortalTeamInvitationSchema = z
   .object({
     email: z.string().trim().email().max(320),
     role: portalTeamInvitationRoleSchema.default("member"),
+    accountIds: z.array(z.uuid()).max(500).default([]),
+    permissions: z
+      .array(workspacePermissionSchema)
+      .default([...defaultWorkspaceMemberPermissions]),
   })
   .strict()
 export const updatePortalTeamMemberRoleSchema = z

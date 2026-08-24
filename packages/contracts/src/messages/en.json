@@ -4115,6 +4115,7 @@
       "library": "Library",
       "linkBio": "Link in bio",
       "onlineMedia": "Search online media",
+      "notifications": "Notifications",
       "overview": "Overview",
       "plans": "Plans",
       "publishing": "Publishing",
@@ -4242,7 +4243,7 @@
         "watermarks": "Watermarks"
       },
       "modules": "Included modules",
-      "modulesHint": "Unchecked modules do not appear in this plan's Portal.",
+      "modulesHint": "Unchecked modules appear locked in the Portal and the API rejects their use.",
       "title": "Plan limits"
     },
     "loadFailed": "We couldn't load the plans. Please try again.",
@@ -4331,14 +4332,14 @@
     "billingUnavailableTitle": "Plan changes are unavailable",
     "cancelBack": "Back to plans",
     "cancelDescription": "No charge was made and the workspace plan was not changed.",
-    "cancelTitle": "Checkout cancelled",
-    "changeUnavailableDescription": "To prevent duplicate charges, changes between active subscriptions are handled by support.",
-    "changeUnavailableTitle": "Your subscription is already active",
-    "changeLimitedTitle": "Changes between paid plans require support.",
-    "changeWithSupport": "Change through support",
     "cancelScheduled": "Keep current plan",
     "cancelScheduledPending": "Cancelling change",
     "cancelScheduledSuccess": "The plan change was cancelled.",
+    "cancelTitle": "Checkout cancelled",
+    "changeLimitedTitle": "Changes between paid plans require support.",
+    "changeUnavailableDescription": "To prevent duplicate charges, changes between active subscriptions are handled by support.",
+    "changeUnavailableTitle": "Your subscription is already active",
+    "changeWithSupport": "Change through support",
     "checkoutFailed": "We couldn't open checkout. Please try again.",
     "checkoutPending": "Opening secure checkout",
     "creditsDescription": "The monthly allowance is used before purchased balance.",
@@ -4367,9 +4368,9 @@
     "pageDescription": "Compare available capacity and choose the right plan for this workspace.",
     "pageTitle": "Plans and billing",
     "periodLabel": "Billing period",
-    "planCurrent": "Current plan",
     "planChangeScheduled": "Scheduled change",
-    "planChangeScheduledValue": "{plan} from {date}",
+    "planChangeScheduledValue": "{plan} starting {date}",
+    "planCurrent": "Current plan",
     "plansAvailable": "Available plans",
     "plansDescription": "Prices and limits are managed from the platform.",
     "pricePeriod": {
@@ -4383,10 +4384,10 @@
     "renewalTitle": "Renewal",
     "renewalValue": "Renews on {date}",
     "retry": "Retry",
-    "selectPlan": "Choose plan",
     "scheduleFree": "Change at period end",
     "schedulePending": "Scheduling change",
     "scheduleSuccess": "Change to {plan} scheduled.",
+    "selectPlan": "Choose plan",
     "subscriptionStatus": {
       "active": "Active",
       "canceled": "Cancelled",
@@ -4805,6 +4806,18 @@
       "profile": "My profile"
     },
     "adminNavigationLabel": "Platform main navigation",
+    "navigationIndicator": "Has updates",
+    "planLocked": {
+      "description": "This workspace doesn't include {module}. Compare plans to unlock it.",
+      "memberDescription": "This workspace doesn't include {module}. Ask the owner to change the plan.",
+      "moduleFallback": "This module",
+      "navigationLabel": "Unavailable",
+      "planAction": "View plans",
+      "previewDescription": "Content unavailable in this workspace.",
+      "title": "Module locked",
+      "workspaceAction": "Contact support",
+      "workspaceDescription": "{module} is disabled for this workspace. Contact support to review its configuration."
+    },
     "notifications": {
       "empty": "You have no notifications.",
       "loading": "Loading",
@@ -4829,6 +4842,10 @@
     },
     "workspaces": {
       "activationFailed": "We couldn't switch the workspace.",
+      "kind": {
+        "personal": "Personal",
+        "team": "Team"
+      },
       "role": {
         "admin": "Administrator",
         "member": "Member",
@@ -5060,6 +5077,7 @@
     "adminAllPermissions": "An admin has every workspace permission.",
     "adminHint": "Accesses every account and can manage members, except other administrators.",
     "allAccounts": "All accounts",
+    "allPermissions": "All permissions",
     "assignedAccounts": "Assigned accounts",
     "availableAccounts": "Available accounts",
     "availableAccountsDescription": "You can only work with these active accounts.",
@@ -5069,10 +5087,10 @@
     "close": "Close",
     "confirm": {
       "leaveAction": "Leave workspace",
-      "leaveDescription": "You'll lose access to its accounts and your active sessions will be closed.",
+      "leaveDescription": "You'll lose access to this workspace and return to your personal workspace.",
       "leaveTitle": "Leave the workspace?",
       "removeAction": "Remove member",
-      "removeDescription": "{name} will lose access to the workspace and their active sessions will be closed.",
+      "removeDescription": "{name} will lose access to this workspace and return to another active workspace.",
       "removeTitle": "Remove member?",
       "revokeAction": "Revoke invitation",
       "revokeDescription": "The invitation for {email} will stop being valid.",
@@ -5191,6 +5209,7 @@
     "myAccessTitle": "My access",
     "noActiveAccounts": "There are no active accounts to assign.",
     "noAssignedAccounts": "You don't have assigned accounts yet.",
+    "noPlanPermissions": "The current plan doesn't enable additional permissions.",
     "noSeats": "No seats left",
     "notSentYet": "Not sent yet",
     "ownershipTransferred": "Ownership transferred.",
@@ -5199,16 +5218,77 @@
     "performedBy": "Performed by",
     "performedByName": "Performed by {name}",
     "permission": {
+      "ai-publishing": {
+        "manage": "Manage AI automations",
+        "view": "View AI automations"
+      },
+      "ai-studio": {
+        "manage": "Use and configure AI Studio",
+        "view": "View AI Studio"
+      },
+      "automation": {
+        "manage": "Manage automations and API",
+        "view": "View automations"
+      },
       "boards": {
         "delete_tasks": "Delete cards",
         "manage_columns": "Configure columns",
         "manage_tasks": "Create and edit cards",
         "view": "View the board"
+      },
+      "bulk-posts": {
+        "manage": "Create and manage bulk uploads",
+        "view": "View bulk uploads"
+      },
+      "captions": {
+        "manage": "Create and manage captions",
+        "view": "View captions"
+      },
+      "channels": {
+        "manage": "Connect and manage channels",
+        "view": "View channels"
+      },
+      "files": {
+        "manage": "Upload and manage files",
+        "view": "View files"
+      },
+      "groups": {
+        "manage": "Create and manage groups",
+        "view": "View groups"
+      },
+      "link-bio": {
+        "manage": "Create and manage Link Bio pages",
+        "view": "View Link Bio pages"
+      },
+      "publishing": {
+        "manage": "Create and manage posts",
+        "view": "View posts"
+      },
+      "rss-schedules": {
+        "manage": "Create and manage RSS schedules",
+        "view": "View RSS schedules"
+      },
+      "watermarks": {
+        "manage": "Create and manage watermarks",
+        "view": "View watermarks"
       }
     },
     "permissionModule": {
-      "boards": "Boards"
+      "ai-publishing": "AI automations",
+      "ai-studio": "AI Studio",
+      "automation": "Automation",
+      "boards": "Boards",
+      "bulk-posts": "Bulk posts",
+      "captions": "Captions",
+      "channels": "Channels",
+      "files": "Files",
+      "groups": "Groups",
+      "link-bio": "Link Bio",
+      "publishing": "Publishing",
+      "rss-schedules": "RSS schedules",
+      "watermarks": "Watermarks"
     },
+    "permissionCount": "{count, plural, one {# permission} other {# permissions}}",
     "permissions": "Permissions",
     "person": "Person",
     "processing": "Processing...",

@@ -9,6 +9,7 @@ import { and, desc, eq, ilike, isNull } from '@workspace/database/query';
 import {
   createPortalWatermarkSchema,
   updatePortalWatermarkSchema,
+  workspacePermissionMatches,
   type PortalAuthSession,
   type PortalWatermark,
   type PortalWatermarkAccount,
@@ -16,6 +17,7 @@ import {
 } from '@workspace/contracts';
 import { DatabaseService } from '../database/database.service';
 import { AppException } from '../platform/errors/app-exception';
+import { TeamAccountAccessService } from '../teams/team-account-access.service';
 
 const managerRoles = new Set(['owner', 'admin']);
 const publishingCapabilities = new Set([
@@ -28,10 +30,13 @@ type Watermark = typeof publishingWatermarks.$inferSelect;
 
 @Injectable()
 export class WatermarksService {
-  constructor(private readonly database: DatabaseService) {}
+  constructor(
+    private readonly database: DatabaseService,
+    private readonly accountAccess: TeamAccountAccessService,
+  ) {}
 
   async list(session: PortalAuthSession): Promise<PortalWatermarksResponse> {
-    const [rules, accounts] = await Promise.all([
+    const [rules, accounts, scope] = await Promise.all([
       this.database.db
         .select()
         .from(publishingWatermarks)
@@ -40,19 +45,25 @@ export class WatermarksService {
           desc(publishingWatermarks.updatedAt),
           desc(publishingWatermarks.id),
         ),
-      this.accountsForWorkspace(session.workspace.id),
+      this.accountsForWorkspace(session),
+      this.accountAccess.resolve(session),
     ]);
     return {
       canManage: this.canManage(session),
       accounts,
-      watermarks: rules.map((rule) => this.serialize(rule)),
+      watermarks: rules
+        .filter(
+          (rule) =>
+            scope.unrestricted ||
+            (rule.socialAccountId !== null &&
+              this.accountAccess.allows(scope, rule.socialAccountId)),
+        )
+        .map((rule) => this.serialize(rule)),
     };
   }
 
   async get(session: PortalAuthSession, id: string): Promise<PortalWatermark> {
-    return this.serialize(
-      await this.findForWorkspace(session.workspace.id, id),
-    );
+    return this.serialize(await this.findForWorkspace(session, id));
   }
 
   async create(
@@ -62,7 +73,7 @@ export class WatermarksService {
     this.requireManage(session);
     const values = this.parse(createPortalWatermarkSchema.safeParse(input));
     const socialAccountId = values.socialAccountId ?? null;
-    await this.assertTargetAccount(session.workspace.id, socialAccountId);
+    await this.assertTargetAccount(session, socialAccountId);
     if (values.type === 'image')
       await this.assertImageAsset(
         session.workspace.id,
@@ -118,10 +129,10 @@ export class WatermarksService {
     input: unknown,
   ): Promise<PortalWatermark> {
     this.requireManage(session);
-    const current = await this.findForWorkspace(session.workspace.id, id);
+    const current = await this.findForWorkspace(session, id);
     const values = this.parse(updatePortalWatermarkSchema.safeParse(input));
     const socialAccountId = values.socialAccountId ?? null;
-    await this.assertTargetAccount(session.workspace.id, socialAccountId);
+    await this.assertTargetAccount(session, socialAccountId);
     if (values.type === 'image')
       await this.assertImageAsset(
         session.workspace.id,
@@ -180,7 +191,7 @@ export class WatermarksService {
 
   async remove(session: PortalAuthSession, id: string): Promise<void> {
     this.requireManage(session);
-    const current = await this.findForWorkspace(session.workspace.id, id);
+    const current = await this.findForWorkspace(session, id);
     await this.database.db.transaction(async (tx) => {
       const [removed] = await tx
         .delete(publishingWatermarks)
@@ -204,20 +215,25 @@ export class WatermarksService {
     });
   }
 
-  private async accountsForWorkspace(workspaceId: string) {
+  private async accountsForWorkspace(session: PortalAuthSession) {
+    const scope = await this.accountAccess.resolve(session);
     const rows = await this.database.db
       .select()
       .from(socialAccounts)
       .where(
         and(
-          eq(socialAccounts.workspaceId, workspaceId),
+          eq(socialAccounts.workspaceId, session.workspace.id),
           eq(socialAccounts.status, 'active'),
           isNull(socialAccounts.disconnectedAt),
         ),
       )
       .orderBy(socialAccounts.displayName);
     return rows
-      .filter((account) => publishingCapabilities.has(account.capabilityKey))
+      .filter(
+        (account) =>
+          publishingCapabilities.has(account.capabilityKey) &&
+          this.accountAccess.allows(scope, account.id),
+      )
       .map((account): PortalWatermarkAccount => ({
         id: account.id,
         displayName: account.displayName,
@@ -227,10 +243,16 @@ export class WatermarksService {
   }
 
   private async assertTargetAccount(
-    workspaceId: string,
+    session: PortalAuthSession,
     socialAccountId: string | null,
   ) {
-    if (!socialAccountId) return;
+    const scope = await this.accountAccess.resolve(session);
+    if (!socialAccountId) {
+      if (scope.unrestricted) return;
+      throw this.invalid();
+    }
+    if (!this.accountAccess.allows(scope, socialAccountId))
+      throw this.invalid();
     const [account] = await this.database.db
       .select({
         id: socialAccounts.id,
@@ -240,7 +262,7 @@ export class WatermarksService {
       .where(
         and(
           eq(socialAccounts.id, socialAccountId),
-          eq(socialAccounts.workspaceId, workspaceId),
+          eq(socialAccounts.workspaceId, session.workspace.id),
           eq(socialAccounts.status, 'active'),
           isNull(socialAccounts.disconnectedAt),
         ),
@@ -285,7 +307,7 @@ export class WatermarksService {
     if (existing && existing.id !== excludingId) throw this.targetExists();
   }
 
-  private async findForWorkspace(workspaceId: string, id: string) {
+  private async findForWorkspace(session: PortalAuthSession, id: string) {
     if (!this.isUuid(id)) throw this.notFound();
     const [watermark] = await this.database.db
       .select()
@@ -293,11 +315,18 @@ export class WatermarksService {
       .where(
         and(
           eq(publishingWatermarks.id, id),
-          eq(publishingWatermarks.workspaceId, workspaceId),
+          eq(publishingWatermarks.workspaceId, session.workspace.id),
         ),
       )
       .limit(1);
     if (!watermark) throw this.notFound();
+    const scope = await this.accountAccess.resolve(session);
+    if (
+      !scope.unrestricted &&
+      (watermark.socialAccountId === null ||
+        !this.accountAccess.allows(scope, watermark.socialAccountId))
+    )
+      throw this.notFound();
     return watermark;
   }
 
@@ -320,7 +349,13 @@ export class WatermarksService {
   }
 
   private canManage(session: PortalAuthSession) {
-    return managerRoles.has(session.workspace.role);
+    return (
+      managerRoles.has(session.workspace.role) ||
+      workspacePermissionMatches(
+        session.workspace.permissions,
+        'watermarks.manage',
+      )
+    );
   }
 
   private requireManage(session: PortalAuthSession) {

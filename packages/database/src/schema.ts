@@ -127,6 +127,14 @@ export const workspaceInvitations = pgTable(
       .references(() => users.id, { onDelete: "restrict" }),
     emailNormalized: varchar("email_normalized", { length: 320 }).notNull(),
     role: varchar("role", { length: 24 }).notNull().default("member"),
+    accountIds: jsonb("account_ids")
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    permissions: jsonb("permissions")
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
     tokenHash: varchar("token_hash", { length: 128 }).notNull(),
     status: varchar("status", { length: 24 }).notNull().default("pending"),
     deliveryStatus: varchar("delivery_status", { length: 24 })

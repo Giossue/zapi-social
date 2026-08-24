@@ -79,7 +79,10 @@ export class PlanAccessService {
     return fallback ? this.parseLimits(fallback.limits) : restrictivePlanLimits;
   }
 
-  async modulesFor(workspaceId: string): Promise<PortalModuleKey[]> {
+  async moduleAccessFor(workspaceId: string): Promise<{
+    enabledModules: PortalModuleKey[];
+    planModules: PortalModuleKey[];
+  }> {
     const [limits, workspace] = await Promise.all([
       this.limitsFor(workspaceId),
       this.database.db
@@ -89,15 +92,25 @@ export class PlanAccessService {
         .limit(1)
         .then((rows) => rows[0] ?? null),
     ]);
-    if (!workspace) return [];
-    if (workspace.enabledModules === null) return limits.enabledModules;
+    const planModules = limits.enabledModules;
+    if (!workspace) return { enabledModules: [], planModules };
+    if (workspace.enabledModules === null) {
+      return { enabledModules: planModules, planModules };
+    }
     const parsed = portalModuleKeySchema
       .array()
       .safeParse(workspace.enabledModules);
-    if (!parsed.success) return [];
-    return limits.enabledModules.filter((module) =>
-      parsed.data.includes(module),
-    );
+    if (!parsed.success) return { enabledModules: [], planModules };
+    return {
+      enabledModules: planModules.filter((module) =>
+        parsed.data.includes(module),
+      ),
+      planModules,
+    };
+  }
+
+  async modulesFor(workspaceId: string): Promise<PortalModuleKey[]> {
+    return (await this.moduleAccessFor(workspaceId)).enabledModules;
   }
 
   async aiCostFor(workspaceId: string, kind: AiRequestKind) {

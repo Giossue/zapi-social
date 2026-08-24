@@ -1,10 +1,10 @@
 # Plan — Teams y Members V2
 
-## Estado al 2026-08-09
+## Estado al 2026-08-24
 
-**Fases 1 a 30 implementadas y validadas localmente.** `/portal/teams` consume REST real y ya no contiene fixtures ni repositorios mock. La UI, los contratos Zod, Nest y Drizzle comparten miembros, roles, grants, invitaciones, cupos, actividad, transferencia y abandono. El ingreso público por `/invite`, la continuidad de login/registro y el selector de workspace también están conectados a REST real. Publishing, AI Publishing y Channels consumen la política central `TeamAccountAccessService`. El correo transaccional suma seis plantillas centralizadas: una de autenticación y cinco de Teams.
+**Fases 1 a 31 implementadas.** `/portal/teams` consume REST real y administra miembros, roles, permisos tipados, grants de cuentas, invitaciones, cupos, actividad, transferencia y abandono. La invitación ya lleva el acceso que tendrá el miembro al aceptarla. API y navegación aplican la intersección entre plan, módulos del workspace, permisos del miembro y cuentas asignadas.
 
-Las migraciones `0023_mature_whizzer.sql` y `0024_teams-invitation-backfill.sql` están aplicadas y verificadas en `zapi_v2_local` y en la base remota. Ambas registran 25 migraciones Drizzle y comparten columnas, constraints e índice parcial de invitaciones pendientes.
+La migración `0048_nifty_union_jack.sql` está aplicada y verificada en `zapi_v2_local` y `zapi_v2`; ambas bases registran 49 migraciones Drizzle y exponen `workspace_invitations.account_ids` y `workspace_invitations.permissions` sin valores nulos.
 
 ## Objetivo de producto
 
@@ -52,13 +52,22 @@ Teams no será un chat ni un gestor de publicaciones. Esta frontera evita repeti
 | Actividad de membresía                            | **Añadir**              | V2 ya persiste auditoría, pero falta una superficie consultable.                                                     |
 | Perfil básico del workspace                       | **Diferir**             | Nombre/icono pueden vivir luego en Settings; no bloquean la gestión del equipo.                                      |
 | Selector de workspace                             | **Añadir**              | Aceptar una invitación crea membresía en un segundo workspace; el usuario necesita ver y cambiar el contexto activo. |
-| Permisos JSON por persona                         | **Descartar**           | Duplica roles y genera privilegios implícitos difíciles de auditar.                                                  |
+| Permisos por persona                              | **Tomar y cerrar**      | V2 usa un catálogo tipado y auditable; no admite strings registrados dinámicamente por módulos.                     |
 | Links abiertos, código corto y QR                 | **Descartar**           | Aumentan el riesgo de canje por una identidad distinta al correo invitado.                                           |
 | Módulos habilitados manualmente                   | **Descartar por ahora** | Las capacidades deben derivarse del producto/plan, no de flags libres en Teams.                                      |
 | Chat interno                                      | **Descartar**           | No se reconstruirá Slack dentro de Zapi; no pertenece al objetivo del módulo.                                        |
 | Aprobaciones y comentarios                        | **Mover a Publishing**  | El contexto y el ciclo de vida pertenecen al contenido que se revisa.                                                |
 
 ## Decisiones V2
+
+### Referencias de mercado
+
+- Slack separa owner/admin/member y limita a los invitados a recursos concretos.
+- Notion distingue owner, membership y acceso como guest a páginas concretas.
+- Linear mantiene miembros y facturación independientes por workspace.
+- GitHub combina roles base con permisos de repositorio y roles personalizados en planes empresariales.
+
+V2 adopta el patrón común sin copiar su complejidad empresarial: tres roles estables, permisos granulares para `member` y cuentas sociales asignadas como alcance de datos.
 
 ### Roles y autorización
 
@@ -77,12 +86,22 @@ Roles canónicos: `owner`, `admin`, `member`. No existe `editor`.
 | Transferir ownership                   |                            Sí |    No |     No |
 | Abandonar workspace                    | Sí, tras transferir ownership |    Sí |     Sí |
 
-- El rol define capabilities; Portal no editará una bolsa libre de permisos JSON.
+- El rol define la frontera administrativa. Portal edita permisos de un catálogo cerrado para `member`; no acepta claves libres.
 - Owner y admin alcanzan todas las cuentas activas del workspace.
 - Member solo alcanza cuentas asociadas a su `workspace_membership` mediante `social_account_memberships`.
-- API y Worker deben validar sesión, workspace, rol, grant/cuenta y estado del canal en cada operación.
-- Al remover un miembro se eliminan sus grants, se invalidan sus sesiones de workspace y se conserva la autoría histórica.
+- El acceso efectivo es `plan del workspace ∩ módulos habilitados ∩ permisos del miembro ∩ cuentas asignadas`.
+- API valida sesión, workspace, plan, permiso y grant/cuenta en cada operación; ocultar el menú nunca sustituye esa validación.
+- Conectar o eliminar canales, administrar claves API/webhooks, billing, miembros y ownership permanece reservado a owner/admin. Los permisos de `member` cubren trabajo operativo sobre recursos asignados, no configuración estructural del workspace.
+- Al remover un miembro se eliminan sus grants y sus sesiones activas cambian a otro workspace disponible, priorizando el personal. Solo se revocan si no existe alternativa.
 - Nunca se puede eliminar o degradar al último owner. La transferencia de ownership es explícita y exclusiva del owner.
+
+### Plan personal y plan del equipo
+
+- El plan pertenece al workspace, no a la identidad global del usuario.
+- Una cuenta Free puede colaborar dentro de un workspace pagado usando los límites y módulos de ese workspace.
+- Una cuenta con plan pagado personal no traslada ese beneficio al workspace Free de otra persona.
+- Cada usuario conserva su workspace personal. El selector cambia el contexto activo; al volver al personal vuelven a aplicar su propio plan, créditos, cuentas y límites.
+- Solo el owner compra o cambia el plan del workspace. Admin administra operación y miembros, pero no billing ni ownership.
 
 ### Invitaciones
 
@@ -90,6 +109,7 @@ Roles canónicos: `owner`, `admin`, `member`. No existe `editor`.
 - El token se guarda exclusivamente como hash, expira y se invalida al aceptar, revocar o reenviar.
 - La aceptación exige una sesión con el mismo correo. El registro conserva el flujo sin exponer el token en logs.
 - Admin solo invita `member`; owner puede invitar `admin` o `member`.
+- Una invitación de `member` guarda sus permisos y cuentas asignadas; la aceptación crea membresía y grants en una sola transacción.
 - Reenviar invalida el token anterior, actualiza el último envío y no crea dos cupos pendientes para el mismo correo.
 - Invitar falla antes del envío si no quedan cupos o ya existe una membresía/invitación pendiente para el correo.
 - Los estados canónicos serán `pending`, `accepted`, `revoked` y `expired`; el estado de entrega de correo se modelará aparte para no confundir membresía con transporte.
@@ -114,7 +134,7 @@ La base conserva `workspaces`, `workspace_memberships`, `social_account_membersh
 ```text
 workspace_invitations
   id, workspace_id, invited_by_user_id
-  email_normalized, role
+  email_normalized, role, account_ids, permissions
   token_hash, status: pending | accepted | revoked | expired
   delivery_status: pending | sent | failed, last_sent_at nullable
   expires_at, accepted_by_user_id nullable, accepted_at nullable
@@ -127,7 +147,7 @@ workspace_membership_audit_events
 
 `workspaces.member_limit` es nullable: `null` significa sin límite contractual. Aceptar la primera colaboración convierte el workspace de `personal` a `team`; la transferencia también garantiza ese tipo para no colisionar con el workspace personal del nuevo owner.
 
-`workspace_memberships.permissions` permanece temporalmente por compatibilidad, pero no es fuente de autorización para Teams/Publishing nuevos. Solo se retirará al comprobar que no quedan consumidores.
+`workspace_memberships.permissions` es la fuente de autorización granular para `member`. Owner y admin reciben el catálogo efectivo completo por rol. El schema Zod descarta cualquier permiso fuera del catálogo.
 
 ## Superficie mock objetivo
 
@@ -148,7 +168,7 @@ Columnas: miembro, rol, alcance, fecha de incorporación y acciones.
 
 Menú según permisos del actor:
 
-1. **Gestionar acceso**: rol permitido y cuentas asignadas.
+1. **Gestionar acceso**: rol permitido, cuentas asignadas y permisos por módulo disponibles en el plan.
 2. **Transferir propiedad**: solo owner, únicamente sobre un admin elegible y con confirmación explícita.
 3. Separador.
 4. **Eliminar miembro**: confirmación destructiva y restricciones para owner/último owner.
@@ -176,7 +196,7 @@ Menú:
 3. Separador.
 4. **Revocar invitación** con confirmación.
 
-El detalle muestra datos de negocio, no el token ni enlaces internos. El estado vencido deja de ser una invitación pendiente accionable; puede ofrecer una nueva invitación prellenada en vez de reutilizar el token.
+El formulario de invitación define rol, cuentas y permisos antes del envío. El detalle muestra ese alcance y datos de negocio, no el token ni enlaces internos. El estado vencido deja de ser una invitación pendiente accionable.
 
 ### Actividad
 
@@ -231,7 +251,7 @@ POST   /v1/portal/teams/leave
 POST   /v1/portal/teams/ownership/transfer
 ```
 
-Nest valida workspace y rol en cada operación. Las mutaciones sensibles bloquean el workspace para serializar cupos, cambios de rol, eliminación, abandono y transferencia. Reenviar rota el token; aceptar condiciona la escritura al hash vigente. Revocar no puede sobrescribir una invitación ya aceptada. La entrega SMTP actualiza un estado separado y nunca expone token/hash en REST o auditoría.
+Nest valida workspace, plan, rol, permiso y alcance de cuenta en cada operación. Las mutaciones sensibles bloquean el workspace para serializar cupos, cambios de rol, eliminación, abandono y transferencia. Reenviar rota el token; aceptar condiciona la escritura al hash vigente y aplica el acceso preconfigurado. Revocar no puede sobrescribir una invitación ya aceptada. La entrega SMTP actualiza un estado separado y nunca expone token/hash en REST o auditoría.
 
 El endpoint de actividad filtra por categoría y texto, pagina en servidor y solo está disponible para owner/admin. `PUT /members/:userId/access` actualiza rol y grants en una sola transacción; los endpoints anteriores se conservan por compatibilidad.
 
@@ -314,7 +334,7 @@ La invitación siempre pertenece a un **workspace**. Teams es la superficie que 
 
 - chat, salas, menciones o mensajes directos;
 - aprobación y comentarios de publicaciones dentro de Teams;
-- permisos libres por usuario;
+- roles personalizados y permisos fuera del catálogo cerrado;
 - enlaces públicos, códigos cortos o QR de invitación;
 - grupos de acceso y aprobadores externos;
 - SSO, SCIM, dominio verificado, MFA obligatoria y administración corporativa de sesiones;
@@ -350,9 +370,13 @@ La invitación siempre pertenece a un **workspace**. Teams es la superficie que 
 16. [x] Sustituir fixtures por cliente REST y cubrir loading/error/pending con estado real.
 17. [x] Conectar Publishing, AI Publishing y Channels a la política central de roles/grants sin duplicarla.
 18. [x] Actualizar superficie Swagger/Nest, cliente, documentación y evidencia de cierre local.
+31. [x] Extender permisos a todos los módulos Portal, configurarlos en la invitación y conservar el workspace personal al salir o ser removido.
 
 ## Evidencia de cierre local
 
+- Cierre de permisos del 2026-08-24: la migración `0048_nifty_union_jack` fue probada con `BEGIN/ROLLBACK` y aplicada en `zapi_v2_local` y `zapi_v2`; ambas bases registran 49 migraciones, las dos columnas nuevas y cero invitaciones con valores nulos.
+- Build, typecheck y lint del monorepo correctos; **35 suites y 135 pruebas API** pasan con las nueve integraciones PostgreSQL activadas. Las auditorías i18n, texto hardcoded y UI Portal/Admin no reportan hallazgos.
+- Las pruebas cubren permisos normalizados, invitación con cuentas/permisos, aceptación transaccional y retorno de la sesión al workspace personal. RSS, grupos, cargas masivas y marcas de agua cruzan además el alcance de cuentas asignadas.
 - Ajuste de tablas del 2026-08-12: la fuente navegable `/dashboard/teams` pasó Biome focal y `tsc --noEmit`; el consumidor Portal pasó Prettier, ESLint focal, typecheck Web y `git diff --check`. La aprobación visual sigue a cargo del usuario.
 - `0023` y `0024` aplicadas en `zapi_v2_local`: 25 migraciones registradas, índice parcial presente, cero duplicados pendientes y cero entregas heredadas en `pending`.
 - Pruebas de integración de Teams y política de acceso: **10 pass, 0 fail, 73 assertions**. Cubren privacidad, permisos por rol, cupos/duplicados, rotación de token, aceptación, revocación posterior inocua, ownership, workspace personal del destinatario, abandono, actividad y filtros de Publishing/AI/Channels.

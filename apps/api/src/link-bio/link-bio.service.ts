@@ -5,6 +5,7 @@ import { and, desc, eq, inArray, sql } from '@workspace/database/query';
 import {
   trackPublicLinkBioEventSchema,
   upsertPortalLinkBioPageSchema,
+  workspacePermissionMatches,
   type PortalAuthSession,
   type PortalLinkBioPage,
   type PortalLinkBioPagesResponse,
@@ -62,7 +63,12 @@ export class LinkBioService {
     });
 
     return {
-      canManage: ['owner', 'admin'].includes(session.workspace.role),
+      canManage:
+        ['owner', 'admin'].includes(session.workspace.role) ||
+        workspacePermissionMatches(
+          session.workspace.permissions,
+          'link-bio.manage',
+        ),
       pages: rows,
       metrics: {
         total: rows.length,
@@ -275,7 +281,13 @@ export class LinkBioService {
   }
 
   private requireManager(session: PortalAuthSession) {
-    if (!['owner', 'admin'].includes(session.workspace.role)) {
+    if (
+      !['owner', 'admin'].includes(session.workspace.role) &&
+      !workspacePermissionMatches(
+        session.workspace.permissions,
+        'link-bio.manage',
+      )
+    ) {
       throw new AppException('LINK_BIO_FORBIDDEN', HttpStatus.FORBIDDEN);
     }
   }

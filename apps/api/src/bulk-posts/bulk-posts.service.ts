@@ -9,11 +9,12 @@ import {
   fileAssets,
   socialAccounts,
 } from '@workspace/database';
-import { and, count, desc, eq, inArray } from '@workspace/database/query';
+import { and, count, desc, eq, inArray, sql } from '@workspace/database/query';
 import {
   createPortalBulkPostBatchSchema,
   portalBulkPostBatchesQuerySchema,
   portalBulkPostRowsQuerySchema,
+  workspacePermissionMatches,
   type PortalAuthSession,
   type PortalBulkPostBatch,
   type PortalBulkPostBatchDetail,
@@ -22,6 +23,7 @@ import {
 import type { Queue } from 'bullmq';
 import { DatabaseService } from '../database/database.service';
 import { AppException } from '../platform/errors/app-exception';
+import { TeamAccountAccessService } from '../teams/team-account-access.service';
 import {
   BULK_POST_BATCH_JOB,
   BULK_POST_BATCH_QUEUE,
@@ -35,6 +37,7 @@ const maximumCsvBytes = 10 * 1024 * 1024;
 export class BulkPostsService {
   constructor(
     private readonly database: DatabaseService,
+    private readonly accountAccess: TeamAccountAccessService,
     @InjectQueue(BULK_POST_BATCH_QUEUE)
     private readonly queue: Queue<BulkPostBatchJobData>,
   ) {}
@@ -49,7 +52,17 @@ export class BulkPostsService {
     if (parsed.data.status) {
       conditions.push(eq(bulkPostBatches.status, parsed.data.status));
     }
-    const where = and(...conditions)!;
+    const matchingIds = await this.database.db
+      .select({ id: bulkPostBatches.id })
+      .from(bulkPostBatches)
+      .where(and(...conditions));
+    const visibleIds = await this.visibleBatchIds(
+      session,
+      matchingIds.map(({ id }) => id),
+    );
+    const where = visibleIds.length
+      ? and(...conditions, inArray(bulkPostBatches.id, visibleIds))!
+      : and(...conditions, sql`false`)!;
     const offset = (parsed.data.page - 1) * parsed.data.limit;
     const [rows, totals] = await Promise.all([
       this.database.db
@@ -90,6 +103,7 @@ export class BulkPostsService {
     const parsed = portalBulkPostRowsQuerySchema.safeParse(query);
     if (!parsed.success) throw this.invalid();
     const { batch, fileName } = await this.find(session.workspace.id, batchId);
+    await this.requireBatchAccess(session, batchId);
     const rowConditions = [eq(bulkPostRows.batchId, batchId)];
     if (parsed.data.status) {
       rowConditions.push(eq(bulkPostRows.status, parsed.data.status));
@@ -147,6 +161,14 @@ export class BulkPostsService {
     this.requireManage(session);
     const parsed = createPortalBulkPostBatchSchema.safeParse(input);
     if (!parsed.success) throw this.invalid();
+    const scope = await this.accountAccess.resolve(session);
+    if (
+      !this.accountAccess.allowsAll(scope, parsed.data.targetSocialAccountIds)
+    )
+      throw new AppException(
+        'BULK_POST_TARGET_NOT_AVAILABLE',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
     const [file] = await this.database.db
       .select()
       .from(fileAssets)
@@ -261,6 +283,7 @@ export class BulkPostsService {
     this.requireManage(session);
     const batchId = this.parseId(id);
     const { batch } = await this.find(session.workspace.id, batchId);
+    await this.requireBatchAccess(session, batchId);
     if (!['queued', 'processing'].includes(batch.status)) {
       throw new AppException(
         'BULK_POST_BATCH_NOT_CANCELLABLE',
@@ -325,6 +348,30 @@ export class BulkPostsService {
     return output;
   }
 
+  private async visibleBatchIds(
+    session: PortalAuthSession,
+    batchIds: string[],
+  ) {
+    if (!batchIds.length) return [];
+    const scope = await this.accountAccess.resolve(session);
+    if (scope.unrestricted) return batchIds;
+    const targets = await this.targetsByBatch(batchIds);
+    return batchIds.filter((batchId) => {
+      const accountIds = targets.get(batchId) ?? [];
+      return (
+        accountIds.length > 0 && this.accountAccess.allowsAll(scope, accountIds)
+      );
+    });
+  }
+
+  private async requireBatchAccess(
+    session: PortalAuthSession,
+    batchId: string,
+  ) {
+    if ((await this.visibleBatchIds(session, [batchId])).length) return;
+    throw new AppException('BULK_POST_BATCH_NOT_FOUND', HttpStatus.NOT_FOUND);
+  }
+
   private serialize(
     batch: typeof bulkPostBatches.$inferSelect,
     sourceFileName: string,
@@ -351,7 +398,13 @@ export class BulkPostsService {
   }
 
   private requireManage(session: PortalAuthSession) {
-    if (!managerRoles.has(session.workspace.role)) {
+    if (
+      !managerRoles.has(session.workspace.role) &&
+      !workspacePermissionMatches(
+        session.workspace.permissions,
+        'bulk-posts.manage',
+      )
+    ) {
       throw new AppException(
         'BULK_POST_MANAGE_FORBIDDEN',
         HttpStatus.FORBIDDEN,

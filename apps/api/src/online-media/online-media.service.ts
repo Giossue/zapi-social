@@ -11,6 +11,7 @@ import { and, eq } from '@workspace/database/query';
 import {
   importPortalOnlineMediaSchema,
   portalOnlineMediaSearchQuerySchema,
+  workspacePermissionMatches,
   type PortalAuthSession,
   type PortalOnlineMediaResult,
   type PortalOnlineMediaSearchResponse,
@@ -76,7 +77,10 @@ export class OnlineMediaService {
   }
 
   async import(session: PortalAuthSession, input: unknown) {
-    if (!['owner', 'admin'].includes(session.workspace.role)) {
+    if (
+      !['owner', 'admin'].includes(session.workspace.role) &&
+      !workspacePermissionMatches(session.workspace.permissions, 'files.manage')
+    ) {
       throw new AppException(
         'ONLINE_MEDIA_IMPORT_FORBIDDEN',
         HttpStatus.FORBIDDEN,

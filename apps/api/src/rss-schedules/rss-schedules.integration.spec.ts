@@ -14,6 +14,7 @@ import {
 import type { PortalAuthSession } from '@workspace/contracts';
 import { DatabaseService } from '../database/database.service';
 import { AppException } from '../platform/errors/app-exception';
+import { TeamAccountAccessService } from '../teams/team-account-access.service';
 import { RssFeedValidationService } from './rss-feed-validation.service';
 import type { RssScheduleRunJobData } from './rss-schedules.constants';
 import { RssSchedulesService } from './rss-schedules.service';
@@ -133,6 +134,7 @@ describeDatabase('RSS schedules database contracts', () => {
       const service = new RssSchedulesService(
         { db: database } as DatabaseService,
         {} as RssFeedValidationService,
+        new TeamAccountAccessService({ db: database } as DatabaseService),
         {} as Queue<RssScheduleRunJobData>,
       );
 

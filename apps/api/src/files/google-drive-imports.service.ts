@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import {
   createGoogleDriveImportBatchSchema,
   googleDriveIntegrationProviderKey,
+  workspacePermissionMatches,
   type GoogleDriveImportBatch,
   type PortalAuthSession,
 } from '@workspace/contracts';
@@ -243,7 +244,11 @@ export class GoogleDriveImportsService {
   }
 
   private requireManage(auth: PortalAuthSession) {
-    if (auth.workspace.role !== 'owner' && auth.workspace.role !== 'admin') {
+    if (
+      auth.workspace.role !== 'owner' &&
+      auth.workspace.role !== 'admin' &&
+      !workspacePermissionMatches(auth.workspace.permissions, 'files.manage')
+    ) {
       throw new AppException(
         'AUTH_PORTAL_ACCESS_REQUIRED',
         HttpStatus.FORBIDDEN,

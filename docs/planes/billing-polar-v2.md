@@ -128,6 +128,10 @@ POST  /v1/webhooks/polar
 - El catálogo Portal expone solo planes activos y no filtra secretos, IDs de
   producto ni permisos internos de Admin. Solo el propietario puede crear un
   checkout; precio, producto, prueba y metadata se reconstruyen en API.
+- La suscripción y los créditos pertenecen al workspace. Cambiar de workspace
+  cambia el plan efectivo; un plan personal no se comparte con equipos ajenos
+  y un miembro Free sí aprovecha el plan del workspace pagado al que fue
+  invitado.
 - Una suscripción activa bloquea un segundo checkout para evitar cobros
   duplicados. El propietario puede programar el cambio a un plan gratuito al
   final del periodo y cancelarlo antes de esa fecha; API sincroniza

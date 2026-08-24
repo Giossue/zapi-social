@@ -12,6 +12,7 @@ import {
   createPortalAccountGroupSchema,
   portalGroupsQuerySchema,
   updatePortalAccountGroupSchema,
+  workspacePermissionMatches,
   type PortalAccountGroup,
   type PortalAuthSession,
   type PortalGroupsResponse,
@@ -81,9 +82,27 @@ export class GroupsService {
       ids.push(membership.socialAccountId);
       accountIdsByGroup.set(membership.groupId, ids);
     }
+    const visibleGroupIds = new Set(
+      allMemberships
+        .filter((membership) =>
+          visibleAccountIds.has(membership.socialAccountId),
+        )
+        .map((membership) => membership.groupId),
+    );
+    const visibleGroups = managerRoles.has(session.workspace.role)
+      ? groups
+      : groups.filter((group) => visibleGroupIds.has(group.id));
+    const visibleAllGroups = managerRoles.has(session.workspace.role)
+      ? allGroups
+      : allGroups.filter((group) => visibleGroupIds.has(group.id));
 
     return {
-      canManage: managerRoles.has(session.workspace.role),
+      canManage:
+        managerRoles.has(session.workspace.role) ||
+        workspacePermissionMatches(
+          session.workspace.permissions,
+          'groups.manage',
+        ),
       accounts: accounts.map((account) => ({
         id: account.id,
         displayName: account.displayName,
@@ -91,14 +110,16 @@ export class GroupsService {
         capabilityKey: account.capabilityKey,
         avatarUrl: account.avatarUrl,
       })),
-      groups: groups.map((group) =>
+      groups: visibleGroups.map((group) =>
         this.toGroup(group, accountIdsByGroup.get(group.id) ?? []),
       ),
       metrics: {
-        total: allGroups.length,
-        active: allGroups.filter((group) => group.status === 'active').length,
-        inactive: allGroups.filter((group) => group.status === 'inactive')
+        total: visibleAllGroups.length,
+        active: visibleAllGroups.filter((group) => group.status === 'active')
           .length,
+        inactive: visibleAllGroups.filter(
+          (group) => group.status === 'inactive',
+        ).length,
         reachedAccounts: new Set(
           allMemberships
             .map((membership) => membership.socialAccountId)
@@ -115,7 +136,7 @@ export class GroupsService {
     this.requireManage(session);
     const parsed = createPortalAccountGroupSchema.safeParse(input);
     if (!parsed.success) throw this.validationError();
-    await this.requireAccounts(session.workspace.id, parsed.data.accountIds);
+    await this.requireAccounts(session, parsed.data.accountIds);
     const now = new Date();
     const slug = await this.uniqueSlug(session.workspace.id, parsed.data.name);
     const group = await this.database.db.transaction(async (tx) => {
@@ -167,9 +188,9 @@ export class GroupsService {
     const groupId = this.parseId(id);
     const parsed = updatePortalAccountGroupSchema.safeParse(input);
     if (!parsed.success) throw this.validationError();
-    const existing = await this.find(session.workspace.id, groupId);
+    const existing = await this.findForSession(session, groupId);
     if (parsed.data.accountIds) {
-      await this.requireAccounts(session.workspace.id, parsed.data.accountIds);
+      await this.requireAccounts(session, parsed.data.accountIds);
     }
     const slug = parsed.data.name
       ? await this.uniqueSlug(session.workspace.id, parsed.data.name, groupId)
@@ -227,6 +248,7 @@ export class GroupsService {
   async remove(session: PortalAuthSession, id: string): Promise<void> {
     this.requireManage(session);
     const groupId = this.parseId(id);
+    await this.findForSession(session, groupId);
     await this.database.db.transaction(async (tx) => {
       const [removed] = await tx
         .delete(accountGroups)
@@ -284,24 +306,55 @@ export class GroupsService {
       .orderBy(socialAccounts.displayName);
   }
 
-  private async requireAccounts(workspaceId: string, ids: string[]) {
-    if (!ids.length) return;
-    const rows = await this.database.db
-      .select({ id: socialAccounts.id })
-      .from(socialAccounts)
-      .where(
-        and(
-          eq(socialAccounts.workspaceId, workspaceId),
-          eq(socialAccounts.status, 'active'),
-          inArray(socialAccounts.id, ids),
-        ),
-      );
-    if (rows.length !== ids.length) {
+  private async requireAccounts(session: PortalAuthSession, ids: string[]) {
+    if (!ids.length) {
+      if (managerRoles.has(session.workspace.role)) return;
       throw new AppException(
         'GROUP_ACCOUNT_NOT_AVAILABLE',
         HttpStatus.UNPROCESSABLE_ENTITY,
       );
     }
+    const rows = await this.database.db
+      .select({ id: socialAccounts.id })
+      .from(socialAccounts)
+      .where(
+        and(
+          eq(socialAccounts.workspaceId, session.workspace.id),
+          eq(socialAccounts.status, 'active'),
+          inArray(socialAccounts.id, ids),
+        ),
+      );
+    const accessibleIds = new Set(
+      (await this.accessibleAccounts(session)).map(({ id }) => id),
+    );
+    if (
+      rows.length !== ids.length ||
+      rows.some(({ id }) => !accessibleIds.has(id))
+    ) {
+      throw new AppException(
+        'GROUP_ACCOUNT_NOT_AVAILABLE',
+        HttpStatus.UNPROCESSABLE_ENTITY,
+      );
+    }
+  }
+
+  private async findForSession(session: PortalAuthSession, id: string) {
+    const group = await this.find(session.workspace.id, id);
+    if (managerRoles.has(session.workspace.role)) return group;
+    const [memberships, accounts] = await Promise.all([
+      this.database.db
+        .select({ id: accountGroupSocialAccounts.socialAccountId })
+        .from(accountGroupSocialAccounts)
+        .where(eq(accountGroupSocialAccounts.groupId, id)),
+      this.accessibleAccounts(session),
+    ]);
+    const accessibleIds = new Set(accounts.map((account) => account.id));
+    if (
+      !memberships.length ||
+      memberships.some(({ id: accountId }) => !accessibleIds.has(accountId))
+    )
+      throw this.notFound();
+    return group;
   }
 
   private async find(workspaceId: string, id: string) {
@@ -371,7 +424,13 @@ export class GroupsService {
   }
 
   private requireManage(session: PortalAuthSession) {
-    if (!managerRoles.has(session.workspace.role)) {
+    if (
+      !managerRoles.has(session.workspace.role) &&
+      !workspacePermissionMatches(
+        session.workspace.permissions,
+        'groups.manage',
+      )
+    ) {
       throw new AppException('GROUP_MANAGE_FORBIDDEN', HttpStatus.FORBIDDEN);
     }
   }

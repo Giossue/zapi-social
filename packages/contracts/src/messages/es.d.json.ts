@@ -4118,6 +4118,7 @@ declare const messages: {
       "library": "Biblioteca",
       "linkBio": "Link in bio",
       "onlineMedia": "Buscar medios online",
+      "notifications": "Notificaciones",
       "overview": "Resumen",
       "plans": "Planes",
       "publishing": "Publicación",
@@ -4245,7 +4246,7 @@ declare const messages: {
         "watermarks": "Marcas de agua"
       },
       "modules": "Módulos incluidos",
-      "modulesHint": "Los módulos sin marcar no aparecen en el Portal de este plan.",
+      "modulesHint": "Los módulos sin marcar aparecen bloqueados en el Portal y la API rechaza su uso.",
       "title": "Límites del plan"
     },
     "loadFailed": "No pudimos cargar los planes. Inténtalo de nuevo.",
@@ -4334,14 +4335,14 @@ declare const messages: {
     "billingUnavailableTitle": "Los cambios de plan no están disponibles",
     "cancelBack": "Volver a los planes",
     "cancelDescription": "No se realizó ningún cobro ni se cambió el plan del workspace.",
+    "cancelScheduled": "Mantener el plan actual",
+    "cancelScheduledPending": "Cancelando el cambio",
+    "cancelScheduledSuccess": "Se canceló el cambio de plan.",
     "cancelTitle": "Checkout cancelado",
+    "changeLimitedTitle": "Los cambios entre planes de pago requieren soporte.",
     "changeUnavailableDescription": "Para evitar cobros duplicados, los cambios entre suscripciones activas se gestionan por soporte.",
     "changeUnavailableTitle": "Tu suscripción ya está activa",
-    "changeLimitedTitle": "Los cambios entre planes pagos requieren soporte.",
     "changeWithSupport": "Cambio por soporte",
-    "cancelScheduled": "Conservar plan actual",
-    "cancelScheduledPending": "Cancelando cambio",
-    "cancelScheduledSuccess": "Se canceló el cambio de plan.",
     "checkoutFailed": "No pudimos abrir el checkout. Inténtalo de nuevo.",
     "checkoutPending": "Abriendo checkout seguro",
     "creditsDescription": "La franquicia mensual se consume antes del saldo comprado.",
@@ -4370,9 +4371,9 @@ declare const messages: {
     "pageDescription": "Compara la capacidad disponible y elige el plan adecuado para este workspace.",
     "pageTitle": "Planes y facturación",
     "periodLabel": "Periodo de facturación",
-    "planCurrent": "Plan actual",
     "planChangeScheduled": "Cambio programado",
-    "planChangeScheduledValue": "{plan} desde el {date}",
+    "planChangeScheduledValue": "{plan} a partir del {date}",
+    "planCurrent": "Plan actual",
     "plansAvailable": "Planes disponibles",
     "plansDescription": "Los precios y límites se administran desde la plataforma.",
     "pricePeriod": {
@@ -4386,10 +4387,10 @@ declare const messages: {
     "renewalTitle": "Renovación",
     "renewalValue": "Renueva el {date}",
     "retry": "Reintentar",
-    "selectPlan": "Elegir plan",
-    "scheduleFree": "Cambiar al finalizar",
-    "schedulePending": "Programando cambio",
+    "scheduleFree": "Cambiar al finalizar el periodo",
+    "schedulePending": "Programando el cambio",
     "scheduleSuccess": "Cambio a {plan} programado.",
+    "selectPlan": "Elegir plan",
     "subscriptionStatus": {
       "active": "Activo",
       "canceled": "Cancelado",
@@ -4808,6 +4809,18 @@ declare const messages: {
       "profile": "Mi perfil"
     },
     "adminNavigationLabel": "Navegación principal de la plataforma",
+    "navigationIndicator": "Tiene novedades",
+    "planLocked": {
+      "description": "Este espacio de trabajo no incluye {module}. Compara los planes para habilitarlo.",
+      "memberDescription": "Este espacio de trabajo no incluye {module}. Pide al propietario que cambie el plan.",
+      "moduleFallback": "Este módulo",
+      "navigationLabel": "No disponible",
+      "planAction": "Ver planes",
+      "previewDescription": "Contenido no disponible en este espacio de trabajo.",
+      "title": "Módulo bloqueado",
+      "workspaceAction": "Contactar soporte",
+      "workspaceDescription": "{module} está desactivado para este espacio de trabajo. Contacta a soporte para revisar su configuración."
+    },
     "notifications": {
       "empty": "No tienes notificaciones.",
       "loading": "Cargando",
@@ -4832,6 +4845,10 @@ declare const messages: {
     },
     "workspaces": {
       "activationFailed": "No pudimos cambiar el espacio de trabajo.",
+      "kind": {
+        "personal": "Personal",
+        "team": "Equipo"
+      },
       "role": {
         "admin": "Administrador",
         "member": "Miembro",
@@ -5063,6 +5080,7 @@ declare const messages: {
     "adminAllPermissions": "Un administrador tiene todos los permisos del espacio de trabajo.",
     "adminHint": "Accede a todas las cuentas y puede administrar miembros, excepto otros administradores.",
     "allAccounts": "Todas las cuentas",
+    "allPermissions": "Todos los permisos",
     "assignedAccounts": "Cuentas asignadas",
     "availableAccounts": "Cuentas disponibles",
     "availableAccountsDescription": "Solo puedes trabajar con estas cuentas activas.",
@@ -5072,10 +5090,10 @@ declare const messages: {
     "close": "Cerrar",
     "confirm": {
       "leaveAction": "Abandonar workspace",
-      "leaveDescription": "Perderás el acceso a sus cuentas y se cerrarán tus sesiones activas.",
+      "leaveDescription": "Perderás el acceso a este workspace y volverás a tu espacio personal.",
       "leaveTitle": "¿Abandonar el workspace?",
       "removeAction": "Eliminar miembro",
-      "removeDescription": "{name} perderá el acceso al workspace y sus sesiones activas se cerrarán.",
+      "removeDescription": "{name} perderá el acceso a este workspace y volverá a otro espacio activo.",
       "removeTitle": "¿Eliminar miembro?",
       "revokeAction": "Revocar invitación",
       "revokeDescription": "La invitación para {email} dejará de ser válida.",
@@ -5194,6 +5212,7 @@ declare const messages: {
     "myAccessTitle": "Mi acceso",
     "noActiveAccounts": "No hay cuentas activas para asignar.",
     "noAssignedAccounts": "Aún no tienes cuentas asignadas.",
+    "noPlanPermissions": "El plan actual no habilita permisos adicionales.",
     "noSeats": "No quedan cupos disponibles",
     "notSentYet": "Aún no enviado",
     "ownershipTransferred": "Propiedad transferida.",
@@ -5202,16 +5221,77 @@ declare const messages: {
     "performedBy": "Realizada por",
     "performedByName": "Realizada por {name}",
     "permission": {
+      "ai-publishing": {
+        "manage": "Administrar automatizaciones de IA",
+        "view": "Ver automatizaciones de IA"
+      },
+      "ai-studio": {
+        "manage": "Usar y configurar AI Studio",
+        "view": "Ver AI Studio"
+      },
+      "automation": {
+        "manage": "Administrar automatizaciones y API",
+        "view": "Ver automatizaciones"
+      },
       "boards": {
         "delete_tasks": "Borrar tarjetas",
         "manage_columns": "Configurar las columnas",
         "manage_tasks": "Crear y editar tarjetas",
         "view": "Ver el tablero"
+      },
+      "bulk-posts": {
+        "manage": "Crear y administrar cargas masivas",
+        "view": "Ver cargas masivas"
+      },
+      "captions": {
+        "manage": "Crear y administrar pies de foto",
+        "view": "Ver pies de foto"
+      },
+      "channels": {
+        "manage": "Conectar y administrar canales",
+        "view": "Ver canales"
+      },
+      "files": {
+        "manage": "Subir y administrar archivos",
+        "view": "Ver archivos"
+      },
+      "groups": {
+        "manage": "Crear y administrar grupos",
+        "view": "Ver grupos"
+      },
+      "link-bio": {
+        "manage": "Crear y administrar páginas Link Bio",
+        "view": "Ver páginas Link Bio"
+      },
+      "publishing": {
+        "manage": "Crear y administrar publicaciones",
+        "view": "Ver publicaciones"
+      },
+      "rss-schedules": {
+        "manage": "Crear y administrar programaciones RSS",
+        "view": "Ver programaciones RSS"
+      },
+      "watermarks": {
+        "manage": "Crear y administrar marcas de agua",
+        "view": "Ver marcas de agua"
       }
     },
     "permissionModule": {
-      "boards": "Tableros"
+      "ai-publishing": "Automatizaciones de IA",
+      "ai-studio": "AI Studio",
+      "automation": "Automatización",
+      "boards": "Tableros",
+      "bulk-posts": "Publicaciones masivas",
+      "captions": "Pies de foto",
+      "channels": "Canales",
+      "files": "Archivos",
+      "groups": "Grupos",
+      "link-bio": "Link Bio",
+      "publishing": "Publicación",
+      "rss-schedules": "Programaciones RSS",
+      "watermarks": "Marcas de agua"
     },
+    "permissionCount": "{count, plural, one {# permiso} other {# permisos}}",
     "permissions": "Permisos",
     "person": "Persona",
     "processing": "Procesando...",

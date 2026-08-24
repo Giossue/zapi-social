@@ -45,6 +45,7 @@ import {
   updatePortalAiBudgetSchema,
   updatePortalAiSettingsSchema,
   usePortalAiRequestAsDraftSchema,
+  workspacePermissionMatches,
   type AiRequestKind,
   type PortalAiPublishingSchedule,
   type PortalAiRequest,
@@ -489,7 +490,11 @@ export class AiService {
     ] as const;
     if (
       workspaceFields.some((field) => parsed.data[field] !== undefined) &&
-      !managerRoles.has(session.workspace.role)
+      !managerRoles.has(session.workspace.role) &&
+      !workspacePermissionMatches(
+        session.workspace.permissions,
+        'ai-studio.manage',
+      )
     ) {
       throw new AppException(
         'AI_SETTINGS_MANAGE_FORBIDDEN',
@@ -1384,7 +1389,13 @@ export class AiService {
   }
 
   private requireManage(session: PortalAuthSession) {
-    if (!managerRoles.has(session.workspace.role)) {
+    if (
+      !managerRoles.has(session.workspace.role) &&
+      !workspacePermissionMatches(
+        session.workspace.permissions,
+        'ai-publishing.manage',
+      )
+    ) {
       throw new AppException(
         'AI_PUBLISHING_MANAGE_FORBIDDEN',
         HttpStatus.FORBIDDEN,

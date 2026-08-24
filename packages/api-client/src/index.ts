@@ -156,6 +156,7 @@ import type {
   UpdatePortalTeamMemberAccessInput,
   UpdatePortalTeamMemberRoleInput,
   TransferPortalTeamOwnershipInput,
+  WorkspacePermission,
   CreatePortalAiPublishingScheduleInput,
   CreatePortalAiRequestInput,
   AdminAiConfiguration,
@@ -1216,6 +1217,7 @@ export const teamsApi = {
       id: string
       role: "admin" | "member"
       accountIds: string[]
+      permissions: WorkspacePermission[]
     }>(`/v1/portal/teams/members/${userId}/access`, {
       method: "PUT",
       body: JSON.stringify(input),
@@ -1230,7 +1232,10 @@ export const teamsApi = {
       { method: "GET" }
     ),
   leaveWorkspace: () =>
-    request<{ left: true }>("/v1/portal/teams/leave", { method: "POST" }),
+    request<{ fallbackWorkspaceId: string | null; left: true }>(
+      "/v1/portal/teams/leave",
+      { method: "POST" }
+    ),
   transferOwnership: (input: TransferPortalTeamOwnershipInput) =>
     request<{ ownerUserId: string }>("/v1/portal/teams/ownership/transfer", {
       method: "POST",

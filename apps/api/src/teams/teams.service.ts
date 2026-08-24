@@ -20,10 +20,12 @@ import {
   inArray,
   isNull,
   lte,
+  ne,
   sql,
 } from '@workspace/database/query';
 import {
   acceptPortalTeamInvitationSchema,
+  allWorkspacePermissions,
   createPortalTeamInvitationSchema,
   portalTeamActivityQuerySchema,
   previewPortalTeamInvitationSchema,
@@ -31,6 +33,7 @@ import {
   transferPortalTeamOwnershipSchema,
   updatePortalTeamMemberAccessSchema,
   updatePortalTeamMemberRoleSchema,
+  workspacePermissionModuleFor,
   type PortalAuthSession,
   type PortalTeamActivityCategory,
   type PortalTeamActivityEventType,
@@ -203,6 +206,10 @@ export class TeamsService {
     const allAccountIds = allAccounts.map(({ id }) => id);
     const pendingInvitations = Number(pendingInvitationRows[0]?.total ?? 0);
 
+    const availablePermissions = await this.availablePermissionsForWorkspace(
+      session.workspace.id,
+    );
+
     return {
       canManage,
       canInviteAdmin: session.workspace.role === 'owner',
@@ -243,6 +250,7 @@ export class TeamsService {
       invitations: invitationRows.map(({ invitation, inviter }) =>
         this.serializeInvitation(invitation, inviter.displayName),
       ),
+      availablePermissions,
     };
   }
 
@@ -258,6 +266,17 @@ export class TeamsService {
       throw new AppException('ROLE_CHANGE_NOT_ALLOWED', HttpStatus.FORBIDDEN);
 
     const email = parsed.data.email.toLocaleLowerCase('en-US');
+    const accountIds =
+      parsed.data.role === 'member' ? [...new Set(parsed.data.accountIds)] : [];
+    const availablePermissions = await this.availablePermissionsForWorkspace(
+      session.workspace.id,
+    );
+    const permissions =
+      parsed.data.role === 'member'
+        ? this.permissions
+            .sanitize(parsed.data.permissions)
+            .filter((permission) => availablePermissions.includes(permission))
+        : [];
     const token = randomBytes(32).toString('base64url');
     const now = new Date();
     const expiresAt = new Date(now.getTime() + invitationLifetimeMilliseconds);
@@ -375,6 +394,26 @@ export class TeamsService {
       }
       await this.planAccess.requireInvitationSlot(session.workspace.id);
 
+      if (accountIds.length) {
+        const accounts = await tx
+          .select({ id: socialAccounts.id })
+          .from(socialAccounts)
+          .where(
+            and(
+              eq(socialAccounts.workspaceId, session.workspace.id),
+              eq(socialAccounts.status, 'active'),
+              isNull(socialAccounts.disconnectedAt),
+              inArray(socialAccounts.id, accountIds),
+            ),
+          );
+        if (accounts.length !== accountIds.length) {
+          throw new AppException(
+            'ACCOUNT_GRANT_NOT_ALLOWED',
+            HttpStatus.FORBIDDEN,
+          );
+        }
+      }
+
       const [created] = await tx
         .insert(workspaceInvitations)
         .values({
@@ -382,6 +421,8 @@ export class TeamsService {
           invitedByUserId: session.user.id,
           emailNormalized: email,
           role: parsed.data.role,
+          accountIds,
+          permissions,
           tokenHash: this.hash(token),
           deliveryStatus: 'pending',
           expiresAt,
@@ -774,6 +815,10 @@ export class TeamsService {
         )
         .limit(1);
       let membershipId: string;
+      const permissions =
+        invitation.role === 'member'
+          ? this.permissions.sanitize(invitation.permissions)
+          : [];
       if (existing?.status === 'active')
         throw new AppException('INVITATION_ALREADY_USED', HttpStatus.CONFLICT);
       await this.planAccess.requireMemberSlot(invitation.workspaceId);
@@ -782,6 +827,7 @@ export class TeamsService {
           .update(workspaceMemberships)
           .set({
             role: invitation.role,
+            permissions,
             status: 'active',
             joinedAt: now,
             updatedAt: now,
@@ -795,6 +841,7 @@ export class TeamsService {
             workspaceId: invitation.workspaceId,
             userId: session.user.id,
             role: invitation.role,
+            permissions,
             status: 'active',
             joinedAt: now,
             createdAt: now,
@@ -804,6 +851,34 @@ export class TeamsService {
         if (!created)
           throw new AppException('REQUEST_FAILED', HttpStatus.CONFLICT);
         membershipId = created.id;
+      }
+      await tx
+        .delete(socialAccountMemberships)
+        .where(
+          eq(socialAccountMemberships.workspaceMembershipId, membershipId),
+        );
+      if (invitation.role === 'member' && invitation.accountIds.length) {
+        const accounts = await tx
+          .select({ id: socialAccounts.id })
+          .from(socialAccounts)
+          .where(
+            and(
+              eq(socialAccounts.workspaceId, invitation.workspaceId),
+              eq(socialAccounts.status, 'active'),
+              isNull(socialAccounts.disconnectedAt),
+              inArray(socialAccounts.id, invitation.accountIds),
+            ),
+          );
+        if (accounts.length) {
+          await tx.insert(socialAccountMemberships).values(
+            accounts.map(({ id: socialAccountId }) => ({
+              socialAccountId,
+              workspaceMembershipId: membershipId,
+              createdAt: now,
+              updatedAt: now,
+            })),
+          );
+        }
       }
       const [consumed] = await tx
         .update(workspaceInvitations)
@@ -975,9 +1050,14 @@ export class TeamsService {
     if (!parsed.success)
       throw new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
     const accountIds = [...new Set(parsed.data.accountIds)];
+    const availablePermissions = await this.availablePermissionsForWorkspace(
+      session.workspace.id,
+    );
     const permissions =
       parsed.data.role === 'member'
-        ? this.permissions.sanitize(parsed.data.permissions)
+        ? this.permissions
+            .sanitize(parsed.data.permissions)
+            .filter((permission) => availablePermissions.includes(permission))
         : [];
     const now = new Date();
     await this.database.db.transaction(async (tx) => {
@@ -1116,6 +1196,7 @@ export class TeamsService {
       id: userId,
       role: parsed.data.role,
       accountIds: parsed.data.role === 'member' ? accountIds : [],
+      permissions,
     };
   }
 
@@ -1301,15 +1382,48 @@ export class TeamsService {
         .update(workspaceMemberships)
         .set({ status: 'revoked', updatedAt: now })
         .where(eq(workspaceMemberships.id, member.id));
-      await tx
-        .update(authSessions)
-        .set({ revokedAt: now, updatedAt: now })
+      const [fallback] = await tx
+        .select({ id: workspaces.id })
+        .from(workspaceMemberships)
+        .innerJoin(
+          workspaces,
+          eq(workspaceMemberships.workspaceId, workspaces.id),
+        )
         .where(
           and(
-            eq(authSessions.userId, userId),
-            eq(authSessions.activeWorkspaceId, session.workspace.id),
+            eq(workspaceMemberships.userId, userId),
+            eq(workspaceMemberships.status, 'active'),
+            ne(workspaceMemberships.workspaceId, session.workspace.id),
           ),
-        );
+        )
+        .orderBy(
+          sql`case when ${workspaces.kind} = 'personal' then 0 else 1 end`,
+          workspaceMemberships.joinedAt,
+        )
+        .limit(1);
+      if (fallback) {
+        await tx
+          .update(authSessions)
+          .set({ activeWorkspaceId: fallback.id, updatedAt: now })
+          .where(
+            and(
+              eq(authSessions.userId, userId),
+              eq(authSessions.activeWorkspaceId, session.workspace.id),
+              isNull(authSessions.revokedAt),
+            ),
+          );
+      } else {
+        await tx
+          .update(authSessions)
+          .set({ revokedAt: now, updatedAt: now })
+          .where(
+            and(
+              eq(authSessions.userId, userId),
+              eq(authSessions.activeWorkspaceId, session.workspace.id),
+              isNull(authSessions.revokedAt),
+            ),
+          );
+      }
       await Promise.all([
         tx.insert(apiAuditLogs).values({
           workspaceId: session.workspace.id,
@@ -1347,6 +1461,7 @@ export class TeamsService {
 
   async leaveWorkspace(session: PortalAuthSession) {
     const now = new Date();
+    let fallbackWorkspaceId: string | null = null;
     await this.database.db.transaction(async (tx) => {
       const [workspace] = await tx
         .select({ id: workspaces.id })
@@ -1383,15 +1498,49 @@ export class TeamsService {
         .update(workspaceMemberships)
         .set({ status: 'revoked', updatedAt: now })
         .where(eq(workspaceMemberships.id, membership.id));
-      await tx
-        .update(authSessions)
-        .set({ revokedAt: now, updatedAt: now })
+      const [fallback] = await tx
+        .select({ id: workspaces.id })
+        .from(workspaceMemberships)
+        .innerJoin(
+          workspaces,
+          eq(workspaceMemberships.workspaceId, workspaces.id),
+        )
         .where(
           and(
-            eq(authSessions.userId, session.user.id),
-            eq(authSessions.activeWorkspaceId, session.workspace.id),
+            eq(workspaceMemberships.userId, session.user.id),
+            eq(workspaceMemberships.status, 'active'),
+            ne(workspaceMemberships.workspaceId, session.workspace.id),
           ),
-        );
+        )
+        .orderBy(
+          sql`case when ${workspaces.kind} = 'personal' then 0 else 1 end`,
+          workspaceMemberships.joinedAt,
+        )
+        .limit(1);
+      fallbackWorkspaceId = fallback?.id ?? null;
+      if (fallback) {
+        await tx
+          .update(authSessions)
+          .set({ activeWorkspaceId: fallback.id, updatedAt: now })
+          .where(
+            and(
+              eq(authSessions.userId, session.user.id),
+              eq(authSessions.activeWorkspaceId, session.workspace.id),
+              isNull(authSessions.revokedAt),
+            ),
+          );
+      } else {
+        await tx
+          .update(authSessions)
+          .set({ revokedAt: now, updatedAt: now })
+          .where(
+            and(
+              eq(authSessions.userId, session.user.id),
+              eq(authSessions.activeWorkspaceId, session.workspace.id),
+              isNull(authSessions.revokedAt),
+            ),
+          );
+      }
       await Promise.all([
         tx.insert(apiAuditLogs).values({
           workspaceId: session.workspace.id,
@@ -1411,7 +1560,7 @@ export class TeamsService {
         }),
       ]);
     });
-    return { left: true as const };
+    return { fallbackWorkspaceId, left: true as const };
   }
 
   async transferOwnership(session: PortalAuthSession, input: unknown) {
@@ -1717,6 +1866,8 @@ export class TeamsService {
       id: invitation.id,
       email: invitation.emailNormalized,
       role: invitation.role as 'admin' | 'member',
+      accountIds: invitation.accountIds,
+      permissions: this.permissions.sanitize(invitation.permissions),
       invitedByName,
       createdAt: invitation.createdAt.toISOString(),
       lastSentAt: invitation.lastSentAt?.toISOString() ?? null,
@@ -1736,6 +1887,14 @@ export class TeamsService {
   private requireManage(session: PortalAuthSession) {
     if (!managerRoles.has(session.workspace.role))
       throw new AppException('TEAM_ACCESS_DENIED', HttpStatus.FORBIDDEN);
+  }
+
+  private async availablePermissionsForWorkspace(workspaceId: string) {
+    const enabledModules = await this.planAccess.modulesFor(workspaceId);
+    return allWorkspacePermissions.filter((permission) => {
+      const module = workspacePermissionModuleFor(permission);
+      return module === 'channels' || enabledModules.includes(module);
+    });
   }
 
   private hash(value: string) {

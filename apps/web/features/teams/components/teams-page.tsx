@@ -569,7 +569,9 @@ export function TeamsPage() {
   }
 
   async function submitInvitation(input: {
+    accountIds: string[]
     email: string
+    permissions: WorkspacePermission[]
     role: "admin" | "member"
   }) {
     setPendingAction("invite")
@@ -640,7 +642,7 @@ export function TeamsPage() {
         toast.success(t("ownershipTransferred"))
       } else {
         await teamsApi.leaveWorkspace()
-        window.location.assign("/login")
+        window.location.assign("/portal/dashboard")
         return
       }
       setConfirmation(null)
@@ -884,6 +886,8 @@ export function TeamsPage() {
       ) : null}
 
       <InviteDialog
+        accounts={teams.accounts}
+        availablePermissions={teams.availablePermissions}
         canInviteAdmin={teams.canInviteAdmin}
         error={dialogError}
         key={inviteOpen ? "invite-open" : "invite-closed"}
@@ -900,6 +904,7 @@ export function TeamsPage() {
       <MemberAccessDialog
         accounts={teams.accounts}
         actorRole={teams.currentUserRole}
+        availablePermissions={teams.availablePermissions}
         error={dialogError}
         key={selectedMember?.id ?? "no-member"}
         member={selectedMember}

@@ -3,6 +3,8 @@ import {
   adminPermissionFor,
   adminPermissionMatches,
   portalModuleForPath,
+  workspacePermissionForPortalRequest,
+  workspacePermissionMatches,
   type PlatformAdminAuthSession,
   type PortalAuthSession,
 } from '@workspace/contracts';
@@ -51,6 +53,20 @@ export class SessionAccessService {
     const module = portalModuleForPath(request.url);
     if (module) {
       await this.planAccess.requireModule(session.workspace.id, module);
+    }
+    const permission = workspacePermissionForPortalRequest(
+      request.url,
+      request.method,
+    );
+    if (
+      permission &&
+      session.workspace.role === 'member' &&
+      !workspacePermissionMatches(session.workspace.permissions, permission)
+    ) {
+      throw new AppException(
+        'WORKSPACE_PERMISSION_DENIED',
+        HttpStatus.FORBIDDEN,
+      );
     }
     return session;
   }

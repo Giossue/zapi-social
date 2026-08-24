@@ -28,11 +28,7 @@ import { DatabaseService } from '../database/database.service';
 import { AppException } from '../platform/errors/app-exception';
 import { BillingPolarService } from './billing-polar.service';
 
-type CurrentPlanSource =
-  | 'signup'
-  | 'admin'
-  | 'subscription'
-  | 'fallback';
+type CurrentPlanSource = 'signup' | 'admin' | 'subscription' | 'fallback';
 
 @Injectable()
 export class PortalBillingService {
@@ -87,12 +83,7 @@ export class PortalBillingService {
     const [plan] = await this.database.db
       .select()
       .from(plans)
-      .where(
-        and(
-          eq(plans.id, parsed.data.planId),
-          eq(plans.status, 'active'),
-        ),
-      )
+      .where(and(eq(plans.id, parsed.data.planId), eq(plans.status, 'active')))
       .limit(1);
     if (!plan || plan.isFree || Number(plan.price) <= 0) {
       throw new AppException('BILLING_PLAN_NOT_FOUND', HttpStatus.NOT_FOUND);
@@ -204,9 +195,7 @@ export class PortalBillingService {
     const [fallback] = await this.database.db
       .select({ planId: plans.id })
       .from(plans)
-      .where(
-        and(eq(plans.isDefaultSignup, true), eq(plans.status, 'active')),
-      )
+      .where(and(eq(plans.isDefaultSignup, true), eq(plans.status, 'active')))
       .limit(1);
     return fallback
       ? { planId: fallback.planId, source: 'fallback' as const }

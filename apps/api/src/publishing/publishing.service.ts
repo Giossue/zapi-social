@@ -26,6 +26,7 @@ import {
   createPortalPublishingPostsSchema,
   portalPublishingQuerySchema,
   updatePortalPublishingPostSchema,
+  workspacePermissionMatches,
   type PortalAuthSession,
   type PortalPublishingPost,
   type PortalPublishingResponse,
@@ -811,7 +812,12 @@ export class PublishingService {
   }
   private canManage(session: PortalAuthSession) {
     return (
-      session.workspace.role === 'owner' || session.workspace.role === 'admin'
+      session.workspace.role === 'owner' ||
+      session.workspace.role === 'admin' ||
+      workspacePermissionMatches(
+        session.workspace.permissions,
+        'publishing.manage',
+      )
     );
   }
   private requireManage(session: PortalAuthSession) {

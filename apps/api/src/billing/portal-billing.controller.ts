@@ -14,16 +14,11 @@ export class PortalBillingController {
 
   @Get('plans')
   async plans(@Req() request: FastifyRequest) {
-    return this.billing.plans(
-      await this.access.requirePortalSession(request),
-    );
+    return this.billing.plans(await this.access.requirePortalSession(request));
   }
 
   @Post('checkout')
-  async checkout(
-    @Req() request: FastifyRequest,
-    @Body() body: unknown,
-  ) {
+  async checkout(@Req() request: FastifyRequest, @Body() body: unknown) {
     return this.billing.checkout(
       await this.access.requirePortalSession(request),
       body,

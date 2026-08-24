@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import {
+  authSessions,
   createDatabase,
   socialAccountMemberships,
   socialAccounts,
@@ -139,6 +140,7 @@ async function seedTeam(database: Database, suffix: string, memberLimit = 5) {
   );
   await database.insert(workspaces).values({
     ...workspace,
+    kind: 'team',
     ownerUserId: owner.id,
     memberLimit,
     createdAt: now,
@@ -215,6 +217,7 @@ function serviceFor(database: Database, email = new CapturingEmailService()) {
       email as unknown as EmailService,
       new WorkspacePermissionsService({ db: database } as DatabaseService),
       {
+        modulesFor: () => Promise.resolve(['boards', 'publishing']),
         requireInvitationSlot: () => Promise.resolve(),
         requireMemberSlot: () => Promise.resolve(),
       } as unknown as PlanAccessService,
@@ -313,11 +316,18 @@ describeDatabase('Teams lifecycle', () => {
       });
       const { email, service } = serviceFor(database);
       const invitation = await service.createInvitation(scenario.ownerSession, {
+        accountIds: [scenario.accounts[0].id],
         email: invitedUser.email,
+        permissions: ['channels.view', 'publishing.view'],
         role: 'member',
       });
       const originalToken = email.deliveries[0]?.token;
       expect(invitation.deliveryStatus).toBe('sent');
+      expect(invitation.accountIds).toEqual([scenario.accounts[0].id]);
+      expect(invitation.permissions).toEqual([
+        'channels.view',
+        'publishing.view',
+      ]);
       expect(originalToken).toBeTruthy();
       expect(email.deliveries[0]).toMatchObject({
         email: invitedUser.email,
@@ -397,6 +407,17 @@ describeDatabase('Teams lifecycle', () => {
           ),
         );
       expect(membership?.status).toBe('active');
+      expect(membership?.permissions).toEqual([
+        'channels.view',
+        'publishing.view',
+      ]);
+      const accountGrants = await database
+        .select({ accountId: socialAccountMemberships.socialAccountId })
+        .from(socialAccountMemberships)
+        .where(
+          eq(socialAccountMemberships.workspaceMembershipId, membership.id),
+        );
+      expect(accountGrants).toEqual([{ accountId: scenario.accounts[0].id }]);
       const [acceptedInvitation] = await database
         .select()
         .from(workspaceInvitations)
@@ -528,13 +549,36 @@ describeDatabase('Teams lifecycle', () => {
       const scenario = await seedTeam(database, 'ownership');
       const { email, service } = serviceFor(database);
 
-      await database.insert(workspaces).values({
-        name: 'Admin personal workspace',
-        slug: `admin-personal-${randomUUID().slice(0, 8)}`,
-        ownerUserId: scenario.admin.id,
+      const [personalWorkspace] = await database
+        .insert(workspaces)
+        .values({
+          name: 'Admin personal workspace',
+          slug: `admin-personal-${randomUUID().slice(0, 8)}`,
+          ownerUserId: scenario.owner.id,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning();
+      await database.insert(workspaceMemberships).values({
+        workspaceId: personalWorkspace.id,
+        userId: scenario.owner.id,
+        role: 'owner',
+        status: 'active',
+        joinedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
       });
+      const [storedSession] = await database
+        .insert(authSessions)
+        .values({
+          userId: scenario.owner.id,
+          tokenHash: randomUUID(),
+          activeWorkspaceId: scenario.workspace.id,
+          expiresAt: new Date(Date.now() + 60_000),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .returning();
 
       await expectCode(
         service.leaveWorkspace(scenario.ownerSession),
@@ -580,7 +624,10 @@ describeDatabase('Teams lifecycle', () => {
           ...scenario.ownerSession,
           workspace: { ...scenario.ownerSession.workspace, role: 'admin' },
         }),
-      ).resolves.toEqual({ left: true });
+      ).resolves.toEqual({
+        fallbackWorkspaceId: personalWorkspace.id,
+        left: true,
+      });
       const [formerOwner] = await database
         .select()
         .from(workspaceMemberships)
@@ -591,6 +638,12 @@ describeDatabase('Teams lifecycle', () => {
           ),
         );
       expect(formerOwner?.status).toBe('revoked');
+      const [reassignedSession] = await database
+        .select()
+        .from(authSessions)
+        .where(eq(authSessions.id, storedSession.id));
+      expect(reassignedSession?.activeWorkspaceId).toBe(personalWorkspace.id);
+      expect(reassignedSession?.revokedAt).toBeNull();
     });
   });
 

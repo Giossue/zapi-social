@@ -120,6 +120,16 @@ describeDatabase('Plan access lifecycle', () => {
         'publishing',
         'automation',
       ]);
+      await expect(service.moduleAccessFor(workspaceId)).resolves.toEqual({
+        enabledModules: ['publishing', 'automation'],
+        planModules: ['publishing', 'automation'],
+      });
+      await expect(
+        service.requireModule(workspaceId, 'automation'),
+      ).resolves.toBeUndefined();
+      await expect(
+        service.requireModule(workspaceId, 'files'),
+      ).rejects.toMatchObject({ code: 'PLAN_MODULE_DISABLED' });
 
       await database
         .update(workspaces)
@@ -128,6 +138,13 @@ describeDatabase('Plan access lifecycle', () => {
       await expect(service.modulesFor(workspaceId)).resolves.toEqual([
         'automation',
       ]);
+      await expect(service.moduleAccessFor(workspaceId)).resolves.toEqual({
+        enabledModules: ['automation'],
+        planModules: ['publishing', 'automation'],
+      });
+      await expect(
+        service.requireModule(workspaceId, 'publishing'),
+      ).rejects.toMatchObject({ code: 'PLAN_MODULE_DISABLED' });
 
       await database
         .update(workspacePlanAssignments)

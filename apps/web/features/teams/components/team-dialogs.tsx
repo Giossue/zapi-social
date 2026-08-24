@@ -8,7 +8,10 @@ import type {
   PortalTeamsResponse,
   WorkspacePermission,
 } from "@workspace/contracts"
-import { workspacePermissionCatalog } from "@workspace/contracts"
+import {
+  defaultWorkspaceMemberPermissions,
+  workspacePermissionCatalog,
+} from "@workspace/contracts"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,7 +65,120 @@ import { roleVariants } from "./team-utils"
 
 type InvitationRole = Exclude<PortalTeamRole, "owner">
 
+function MemberAccessFields({
+  accounts,
+  accountIds,
+  availablePermissions,
+  controlPrefix,
+  onAccountChange,
+  onPermissionChange,
+  pending,
+  permissions,
+  role,
+}: {
+  accounts: PortalTeamsResponse["accounts"]
+  accountIds: string[]
+  availablePermissions: WorkspacePermission[]
+  controlPrefix: string
+  onAccountChange: (accountId: string, checked: boolean) => void
+  onPermissionChange: (
+    permission: WorkspacePermission,
+    checked: boolean
+  ) => void
+  pending: boolean
+  permissions: WorkspacePermission[]
+  role: InvitationRole
+}) {
+  const t = useTranslations("teams")
+  const available = new Set(availablePermissions)
+  const permissionGroups = workspacePermissionCatalog.flatMap((group) => {
+    const permissions = group.permissions.filter((permission) =>
+      available.has(permission)
+    )
+    return permissions.length ? [{ ...group, permissions }] : []
+  })
+
+  return (
+    <>
+      <FieldSet data-disabled={role === "admin" || pending}>
+        <FieldLegend variant="label">{t("assignedAccounts")}</FieldLegend>
+        {role === "admin" ? (
+          <FieldDescription>{t("adminAllAccounts")}</FieldDescription>
+        ) : accounts.length ? (
+          <FieldGroup data-slot="checkbox-group" className="gap-3">
+            {accounts.map((account) => {
+              const controlId = `${controlPrefix}-account-${account.id}`
+              return (
+                <Field key={account.id} orientation="horizontal">
+                  <Checkbox
+                    checked={accountIds.includes(account.id)}
+                    disabled={pending}
+                    id={controlId}
+                    onCheckedChange={(value) =>
+                      onAccountChange(account.id, value === true)
+                    }
+                  />
+                  <FieldLabel htmlFor={controlId}>
+                    <FieldContent>
+                      <FieldTitle>{account.name}</FieldTitle>
+                      <FieldDescription>{account.detail}</FieldDescription>
+                    </FieldContent>
+                  </FieldLabel>
+                </Field>
+              )
+            })}
+          </FieldGroup>
+        ) : (
+          <FieldDescription>{t("noActiveAccounts")}</FieldDescription>
+        )}
+      </FieldSet>
+      <FieldSet data-disabled={role === "admin" || pending}>
+        <FieldLegend variant="label">{t("permissions")}</FieldLegend>
+        {role === "admin" ? (
+          <FieldDescription>{t("adminAllPermissions")}</FieldDescription>
+        ) : permissionGroups.length ? (
+          permissionGroups.map((group) => (
+            <FieldGroup
+              key={group.module}
+              className="gap-3"
+              data-slot="checkbox-group"
+            >
+              <FieldDescription>
+                {t(`permissionModule.${group.module}`)}
+              </FieldDescription>
+              {group.permissions.map((permission) => {
+                const controlId = `${controlPrefix}-permission-${permission}`
+                return (
+                  <Field key={permission} orientation="horizontal">
+                    <Checkbox
+                      checked={permissions.includes(permission)}
+                      disabled={pending}
+                      id={controlId}
+                      onCheckedChange={(value) =>
+                        onPermissionChange(permission, value === true)
+                      }
+                    />
+                    <FieldLabel htmlFor={controlId}>
+                      <FieldContent>
+                        <FieldTitle>{t(`permission.${permission}`)}</FieldTitle>
+                      </FieldContent>
+                    </FieldLabel>
+                  </Field>
+                )
+              })}
+            </FieldGroup>
+          ))
+        ) : (
+          <FieldDescription>{t("noPlanPermissions")}</FieldDescription>
+        )}
+      </FieldSet>
+    </>
+  )
+}
+
 export function InviteDialog({
+  accounts,
+  availablePermissions,
   canInviteAdmin,
   error,
   onOpenChange,
@@ -70,22 +186,51 @@ export function InviteDialog({
   open,
   pending,
 }: {
+  accounts: PortalTeamsResponse["accounts"]
+  availablePermissions: WorkspacePermission[]
   canInviteAdmin: boolean
   error: string | null
   onOpenChange: (open: boolean) => void
-  onSubmit: (input: { email: string; role: InvitationRole }) => void
+  onSubmit: (input: {
+    accountIds: string[]
+    email: string
+    permissions: WorkspacePermission[]
+    role: InvitationRole
+  }) => void
   open: boolean
   pending: boolean
 }) {
   const t = useTranslations("teams")
   const [email, setEmail] = useState("")
   const [role, setRole] = useState<InvitationRole>("member")
+  const [accountIds, setAccountIds] = useState<string[]>([])
+  const [permissions, setPermissions] = useState<WorkspacePermission[]>(() =>
+    defaultWorkspaceMemberPermissions.filter((permission) =>
+      availablePermissions.includes(permission)
+    )
+  )
   const normalizedEmail = email.trim().toLowerCase()
   const validEmail = /^\S+@\S+\.\S+$/.test(normalizedEmail)
 
   useEffect(() => {
     if (open && error) toast.error(error)
   }, [error, open])
+
+  function toggleAccount(accountId: string, checked: boolean) {
+    setAccountIds((current) =>
+      checked
+        ? [...new Set([...current, accountId])]
+        : current.filter((id) => id !== accountId)
+    )
+  }
+
+  function togglePermission(permission: WorkspacePermission, checked: boolean) {
+    setPermissions((current) =>
+      checked
+        ? [...new Set([...current, permission])]
+        : current.filter((value) => value !== permission)
+    )
+  }
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -94,7 +239,7 @@ export function InviteDialog({
       return
     }
     if (pending) return
-    onSubmit({ email: normalizedEmail, role })
+    onSubmit({ accountIds, email: normalizedEmail, permissions, role })
   }
 
   return (
@@ -162,6 +307,17 @@ export function InviteDialog({
                   {role === "admin" ? t("adminHint") : t("memberHint")}
                 </FieldDescription>
               </Field>
+              <MemberAccessFields
+                accounts={accounts}
+                accountIds={accountIds}
+                availablePermissions={availablePermissions}
+                controlPrefix="team-invite"
+                onAccountChange={toggleAccount}
+                onPermissionChange={togglePermission}
+                pending={pending}
+                permissions={permissions}
+                role={role}
+              />
             </FieldGroup>
           </div>
           <SheetActions>
@@ -191,6 +347,7 @@ export function InviteDialog({
 export function MemberAccessDialog({
   accounts,
   actorRole,
+  availablePermissions,
   error,
   member,
   onOpenChange,
@@ -199,6 +356,7 @@ export function MemberAccessDialog({
 }: {
   accounts: PortalTeamsResponse["accounts"]
   actorRole: PortalTeamRole
+  availablePermissions: WorkspacePermission[]
   error: string | null
   member: PortalTeamMember | null
   onOpenChange: (open: boolean) => void
@@ -217,7 +375,11 @@ export function MemberAccessDialog({
     member?.role === "admin" ? "admin" : "member"
   )
   const [permissions, setPermissions] = useState<WorkspacePermission[]>(() =>
-    member?.role === "member" ? [...member.permissions] : []
+    member?.role === "member"
+      ? member.permissions.filter((permission) =>
+          availablePermissions.includes(permission)
+        )
+      : []
   )
 
   useEffect(() => {
@@ -292,84 +454,17 @@ export function MemberAccessDialog({
                   </Badge>
                 )}
               </Field>
-              <FieldSet data-disabled={role === "admin" || pending}>
-                <FieldLegend variant="label">
-                  {t("assignedAccounts")}
-                </FieldLegend>
-                {role === "admin" ? (
-                  <FieldDescription>{t("adminAllAccounts")}</FieldDescription>
-                ) : accounts.length ? (
-                  <FieldGroup data-slot="checkbox-group" className="gap-3">
-                    {accounts.map((account) => {
-                      const controlId = `team-account-${account.id}`
-                      return (
-                        <Field key={account.id} orientation="horizontal">
-                          <Checkbox
-                            checked={accountIds.includes(account.id)}
-                            disabled={pending}
-                            id={controlId}
-                            onCheckedChange={(value) =>
-                              toggleAccount(account.id, value === true)
-                            }
-                          />
-                          <FieldLabel htmlFor={controlId}>
-                            <FieldContent>
-                              <FieldTitle>{account.name}</FieldTitle>
-                              <FieldDescription>
-                                {account.detail}
-                              </FieldDescription>
-                            </FieldContent>
-                          </FieldLabel>
-                        </Field>
-                      )
-                    })}
-                  </FieldGroup>
-                ) : (
-                  <FieldDescription>{t("noActiveAccounts")}</FieldDescription>
-                )}
-              </FieldSet>
-              <FieldSet data-disabled={role === "admin" || pending}>
-                <FieldLegend variant="label">{t("permissions")}</FieldLegend>
-                {role === "admin" ? (
-                  <FieldDescription>
-                    {t("adminAllPermissions")}
-                  </FieldDescription>
-                ) : (
-                  workspacePermissionCatalog.map((group) => (
-                    <FieldGroup
-                      key={group.module}
-                      className="gap-3"
-                      data-slot="checkbox-group"
-                    >
-                      <FieldDescription>
-                        {t(`permissionModule.${group.module}`)}
-                      </FieldDescription>
-                      {group.permissions.map((permission) => {
-                        const controlId = `team-permission-${permission}`
-                        return (
-                          <Field key={permission} orientation="horizontal">
-                            <Checkbox
-                              checked={permissions.includes(permission)}
-                              disabled={pending}
-                              id={controlId}
-                              onCheckedChange={(value) =>
-                                togglePermission(permission, value === true)
-                              }
-                            />
-                            <FieldLabel htmlFor={controlId}>
-                              <FieldContent>
-                                <FieldTitle>
-                                  {t(`permission.${permission}`)}
-                                </FieldTitle>
-                              </FieldContent>
-                            </FieldLabel>
-                          </Field>
-                        )
-                      })}
-                    </FieldGroup>
-                  ))
-                )}
-              </FieldSet>
+              <MemberAccessFields
+                accounts={accounts}
+                accountIds={accountIds}
+                availablePermissions={availablePermissions}
+                controlPrefix="team-member"
+                onAccountChange={toggleAccount}
+                onPermissionChange={togglePermission}
+                pending={pending}
+                permissions={permissions}
+                role={role}
+              />
             </FieldGroup>
           </div>
           <SheetActions>
@@ -428,6 +523,20 @@ export function InvitationDetailSheet({
           {[
             [t("email"), invitation.email],
             [t("roleColumn"), t(`role.${invitation.role}`)],
+            [
+              t("assignedAccounts"),
+              invitation.role === "admin"
+                ? t("allAccounts")
+                : t("accountCount", { count: invitation.accountIds.length }),
+            ],
+            [
+              t("permissions"),
+              invitation.role === "admin"
+                ? t("allPermissions")
+                : t("permissionCount", {
+                    count: invitation.permissions.length,
+                  }),
+            ],
             [t("invitedBy"), invitation.invitedByName],
             [t("created"), teamDate(invitation.createdAt)],
             [t("lastSent"), teamDate(invitation.lastSentAt)],

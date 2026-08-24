@@ -2,38 +2,32 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { workspaceMemberships } from '@workspace/database';
 import { and, eq } from '@workspace/database/query';
 import {
+  allWorkspacePermissions,
+  effectiveWorkspacePermissions,
+  sanitizeWorkspacePermissions,
   type PortalAuthSession,
   type WorkspacePermission,
-  workspacePermissionCatalog,
-  workspacePermissionSchema,
 } from '@workspace/contracts';
 import { DatabaseService } from '../database/database.service';
 import { AppException } from '../platform/errors/app-exception';
 
 const unrestrictedRoles = new Set(['owner', 'admin']);
 
-export const allWorkspacePermissions: readonly WorkspacePermission[] =
-  workspacePermissionCatalog.flatMap((group) => [...group.permissions]);
+export { allWorkspacePermissions };
 
 @Injectable()
 export class WorkspacePermissionsService {
   constructor(private readonly database: DatabaseService) {}
 
   sanitize(values: readonly unknown[]): WorkspacePermission[] {
-    const parsed = values.flatMap((value) => {
-      const result = workspacePermissionSchema.safeParse(value);
-      return result.success ? [result.data] : [];
-    });
-    return [...new Set(parsed)];
+    return sanitizeWorkspacePermissions(values);
   }
 
   effective(
     role: string,
     granted: readonly unknown[],
   ): readonly WorkspacePermission[] {
-    return unrestrictedRoles.has(role)
-      ? allWorkspacePermissions
-      : this.sanitize(granted);
+    return effectiveWorkspacePermissions(role, granted);
   }
 
   async allows(

@@ -34,6 +34,7 @@ import {
   startPortalFileUploadSchema,
   updatePortalFileAssetSchema,
   updatePortalFileFolderSchema,
+  workspacePermissionMatches,
   type PortalAuthSession,
 } from '@workspace/contracts';
 import {
@@ -758,7 +759,11 @@ export class FilesService {
     return path;
   }
   private canManage(auth: PortalAuthSession) {
-    return auth.workspace.role === 'owner' || auth.workspace.role === 'admin';
+    return (
+      auth.workspace.role === 'owner' ||
+      auth.workspace.role === 'admin' ||
+      workspacePermissionMatches(auth.workspace.permissions, 'files.manage')
+    );
   }
   private requireManage(auth: PortalAuthSession) {
     if (!this.canManage(auth))
