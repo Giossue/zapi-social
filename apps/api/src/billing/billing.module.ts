@@ -12,6 +12,8 @@ import { BillingWebhookController } from './billing-webhook.controller';
 import { BillingWebhookService } from './billing-webhook.service';
 import { PortalBillingController } from './portal-billing.controller';
 import { PortalBillingService } from './portal-billing.service';
+import { PortalPlanChangesController } from './portal-plan-changes.controller';
+import { PortalPlanChangesService } from './portal-plan-changes.service';
 
 @Module({
   imports: [IdentityModule],
@@ -22,6 +24,7 @@ import { PortalBillingService } from './portal-billing.service';
     BillingPolarController,
     BillingWebhookController,
     PortalBillingController,
+    PortalPlanChangesController,
   ],
   providers: [
     AdminOperationsService,
@@ -30,6 +33,7 @@ import { PortalBillingService } from './portal-billing.service';
     BillingPolarService,
     BillingWebhookService,
     PortalBillingService,
+    PortalPlanChangesService,
   ],
   exports: [BillingPolarService],
 })

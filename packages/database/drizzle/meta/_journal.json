@@ -330,6 +330,13 @@
       "when": 1787550522929,
       "tag": "0046_nifty_lorna_dane",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1787568731348,
+      "tag": "0047_silky_the_fury",
+      "breakpoints": true
     }
   ]
 }

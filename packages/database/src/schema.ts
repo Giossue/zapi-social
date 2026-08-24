@@ -2815,6 +2815,9 @@ export const workspacePlanAssignments = pgTable(
     planId: uuid("plan_id")
       .notNull()
       .references(() => plans.id, { onDelete: "restrict" }),
+    nextPlanId: uuid("next_plan_id").references(() => plans.id, {
+      onDelete: "set null",
+    }),
     source: varchar("source", { length: 24 })
       .$type<"signup" | "admin" | "subscription">()
       .notNull()
@@ -2829,6 +2832,7 @@ export const workspacePlanAssignments = pgTable(
       table.workspaceId
     ),
     index("workspace_plan_assignments_plan_index").on(table.planId),
+    index("workspace_plan_assignments_next_plan_index").on(table.nextPlanId),
     check(
       "workspace_plan_assignments_source_check",
       sql`${table.source} in ('signup', 'admin', 'subscription')`

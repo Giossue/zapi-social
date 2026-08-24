@@ -2,11 +2,11 @@
 
 ## Estado
 
-**Fases 1–4 implementadas el 24 de agosto de 2026; ciclo de vida pendiente de
-downgrade diferido.** Los planes vendidos y asignados por
+**Fases 1–5 implementadas el 24 de agosto de 2026.** Los planes vendidos y asignados por
 [`billing-polar-v2.md`](./billing-polar-v2.md) ya limitan API, Worker,
-navegación y créditos. La expiración cae al plan de alta; falta aplicar
-`nextPlanId` al vencer el periodo para cerrar el bloque 3 de
+navegación y créditos. La expiración cae al plan de alta y el downgrade a un
+plan gratuito se programa en `nextPlanId` para aplicarse al vencer el periodo,
+cerrando el bloque 3 de
 [`mvp-codecanyon-v2.md`](./mvp-codecanyon-v2.md).
 
 ## Cómo lo hace ZapiSocial (hechos observados)
@@ -151,15 +151,17 @@ enforcement por vertical → Worker`.
 
 ### Fase 5 — Ciclo de vida
 
-- [ ] Downgrade diferido (`nextPlanId` en la asignación) aplicado por el
-      Worker al vencer el periodo.
+- [x] Downgrade diferido (`nextPlanId` en la asignación) aplicado de forma
+      atómica e idempotente por el Worker al vencer el periodo. El propietario
+      puede programarlo o cancelarlo desde Portal. (24-08-2026)
 - [x] Expiración sin suscripción activa: caída al plan por defecto, nunca a
       "todo abierto". (24-08-2026)
 
-Evidencia de las fases 1–4: migraciones 0045–0046 aplicadas en
-`zapi_v2_local` y `zapi_v2` con 47 entradas Drizzle idénticas; typecheck y
-build del monorepo, 107 pruebas de API y 40 del Worker con las integraciones
-de base de datos activadas, auditorías i18n y de UI en verde el 24-08-2026.
+Evidencia de las fases 1–5: migraciones 0045–0047 aplicadas en
+`zapi_v2_local` y `zapi_v2` con 48 entradas Drizzle idénticas; typecheck y
+build del monorepo, 133 pruebas de API, 41 del Worker y 12 E2E de navegador
+con las integraciones de base de datos activadas, auditorías i18n y de UI en
+verde el 24-08-2026.
 
 ## Fuera de alcance
 

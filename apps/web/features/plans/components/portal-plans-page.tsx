@@ -1,7 +1,11 @@
 "use client"
 
 import { ApiError, portalBillingApi } from "@workspace/api-client"
-import type { PortalPlan, PortalPlansResponse } from "@workspace/contracts"
+import type {
+  PortalPlan,
+  PortalPlanChangeState,
+  PortalPlansResponse,
+} from "@workspace/contracts"
 import { Alert, AlertTitle } from "@workspace/ui/components/alert"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -53,11 +57,19 @@ export function PortalPlansPage() {
   const [loading, setLoading] = useState(true)
   const [interval, setInterval] = useState<BillingInterval>("monthly")
   const [pendingPlanId, setPendingPlanId] = useState<string | null>(null)
+  const [planChange, setPlanChange] = useState<PortalPlanChangeState | null>(
+    null
+  )
+  const [cancelChangePending, setCancelChangePending] = useState(false)
 
   const load = useCallback(async () => {
     try {
-      const nextCatalog = await portalBillingApi.plans()
+      const [nextCatalog, nextPlanChange] = await Promise.all([
+        portalBillingApi.plans(),
+        portalBillingApi.planChange(),
+      ])
       setCatalog(nextCatalog)
+      setPlanChange(nextPlanChange)
       const current = nextCatalog.plans.find(
         (plan) => plan.id === nextCatalog.currentPlanId
       )
@@ -119,6 +131,9 @@ export function PortalPlansPage() {
   const subscriptionActive =
     activeCatalog.subscription?.status === "active" ||
     activeCatalog.subscription?.status === "trialing"
+  const nextPlan = activeCatalog.plans.find(
+    (plan) => plan.id === planChange?.nextPlanId
+  )
 
   function limitValue(value: number) {
     return value < 0 ? t("unlimited") : format.number(value)
@@ -145,8 +160,11 @@ export function PortalPlansPage() {
 
   function actionLabel(plan: PortalPlan) {
     if (plan.id === activeCatalog.currentPlanId) return t("planCurrent")
-    if (plan.isFree || subscriptionActive) return t("changeWithSupport")
+    if (plan.id === planChange?.nextPlanId) return t("planChangeScheduled")
     if (!activeCatalog.canManageBilling) return t("ownerOnly")
+    if (subscriptionActive && plan.isFree) return t("scheduleFree")
+    if (subscriptionActive) return t("changeWithSupport")
+    if (plan.isFree) return t("unavailable")
     if (!activeCatalog.checkoutAvailable) return t("unavailable")
     return t("selectPlan")
   }
@@ -154,18 +172,43 @@ export function PortalPlansPage() {
   function actionDisabled(plan: PortalPlan) {
     return (
       plan.id === activeCatalog.currentPlanId ||
-      plan.isFree ||
-      subscriptionActive ||
+      plan.id === planChange?.nextPlanId ||
+      Boolean(planChange?.nextPlanId) ||
+      (subscriptionActive && !plan.isFree) ||
+      (!subscriptionActive && plan.isFree) ||
       !activeCatalog.canManageBilling ||
-      !activeCatalog.checkoutAvailable ||
+      (!subscriptionActive && !activeCatalog.checkoutAvailable) ||
+      (subscriptionActive &&
+        (!activeCatalog.subscription?.currentPeriodEndsAt ||
+          !activeCatalog.checkoutAvailable)) ||
       pendingPlanId !== null
     )
   }
 
-  async function checkout(plan: PortalPlan) {
+  async function selectPlan(plan: PortalPlan) {
     if (actionDisabled(plan)) return
     setPendingPlanId(plan.id)
     try {
+      if (subscriptionActive && plan.isFree) {
+        const nextChange = await portalBillingApi.scheduleChange({
+          planId: plan.id,
+        })
+        setPlanChange(nextChange)
+        setCatalog((current) =>
+          current?.subscription
+            ? {
+                ...current,
+                subscription: {
+                  ...current.subscription,
+                  cancelAtPeriodEnd: true,
+                },
+              }
+            : current
+        )
+        toast.success(t("scheduleSuccess", { plan: plan.name }))
+        setPendingPlanId(null)
+        return
+      }
       const response = await portalBillingApi.checkout({ planId: plan.id })
       window.location.assign(response.checkoutUrl)
     } catch (nextError) {
@@ -175,6 +218,35 @@ export function PortalPlansPage() {
           : t("checkoutFailed")
       toast.error(message)
       setPendingPlanId(null)
+    }
+  }
+
+  async function cancelScheduledChange() {
+    if (!planChange?.nextPlanId || cancelChangePending) return
+    setCancelChangePending(true)
+    try {
+      await portalBillingApi.cancelScheduledChange()
+      setPlanChange({ nextPlanId: null, effectiveAt: null })
+      setCatalog((current) =>
+        current?.subscription
+          ? {
+              ...current,
+              subscription: {
+                ...current.subscription,
+                cancelAtPeriodEnd: false,
+              },
+            }
+          : current
+      )
+      toast.success(t("cancelScheduledSuccess"))
+    } catch (nextError) {
+      toast.error(
+        nextError instanceof ApiError
+          ? apiErrorMessage(nextError.code)
+          : t("checkoutFailed")
+      )
+    } finally {
+      setCancelChangePending(false)
     }
   }
 
@@ -200,8 +272,8 @@ export function PortalPlansPage() {
     ? t("ownerTitle")
     : !activeCatalog.checkoutAvailable
       ? t("billingUnavailableTitle")
-      : subscriptionActive
-        ? t("changeUnavailableTitle")
+      : subscriptionActive && !nextPlan
+        ? t("changeLimitedTitle")
         : null
 
   function planGrid(plans: PortalPlan[]) {
@@ -280,14 +352,16 @@ export function PortalPlansPage() {
                 <Button
                   className="w-full"
                   disabled={actionDisabled(plan)}
-                  onClick={() => void checkout(plan)}
+                  onClick={() => void selectPlan(plan)}
                   variant={plan.featured ? "default" : "brand-secondary"}
                 >
                   {pendingPlanId === plan.id ? (
                     <Spinner data-icon="inline-start" />
                   ) : null}
                   {pendingPlanId === plan.id
-                    ? t("checkoutPending")
+                    ? subscriptionActive && plan.isFree
+                      ? t("schedulePending")
+                      : t("checkoutPending")
                     : actionLabel(plan)}
                 </Button>
               </CardFooter>
@@ -315,6 +389,32 @@ export function PortalPlansPage() {
             </CardDescription>
             <CardAction>{subscriptionBadge()}</CardAction>
           </CardHeader>
+          {nextPlan && planChange?.effectiveAt ? (
+            <CardFooter className="justify-between border-t">
+              <span className="text-sm text-muted-foreground">
+                {t("planChangeScheduledValue", {
+                  plan: nextPlan.name,
+                  date: format.dateTime(
+                    new Date(planChange.effectiveAt),
+                    "date"
+                  ),
+                })}
+              </span>
+              <Button
+                disabled={cancelChangePending}
+                onClick={() => void cancelScheduledChange()}
+                size="sm"
+                variant="brand-secondary"
+              >
+                {cancelChangePending ? (
+                  <Spinner data-icon="inline-start" />
+                ) : null}
+                {cancelChangePending
+                  ? t("cancelScheduledPending")
+                  : t("cancelScheduled")}
+              </Button>
+            </CardFooter>
+          ) : null}
         </Card>
       ) : null}
 

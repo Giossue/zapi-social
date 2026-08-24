@@ -71,6 +71,9 @@ import { WhatsAppStatusPublisher } from './publishing/publishers/whatsapp-status
 import { FILE_IMPORTS_QUEUE } from './files/file-imports.constants';
 import { GoogleDriveImportProcessor } from './files/google-drive-import.processor';
 import { FileImportsScheduler } from './files/file-imports.scheduler';
+import { PLAN_TRANSITIONS_QUEUE } from './plans/plan-transitions.constants';
+import { PlanTransitionsProcessor } from './plans/plan-transitions.processor';
+import { PlanTransitionsScheduler } from './plans/plan-transitions.scheduler';
 
 @Module({
   imports: [
@@ -102,6 +105,7 @@ import { FileImportsScheduler } from './files/file-imports.scheduler';
       { name: FILE_IMPORTS_QUEUE },
       { name: BOARD_DUE_REMINDER_QUEUE },
       { name: TOKEN_REFRESH_QUEUE },
+      { name: PLAN_TRANSITIONS_QUEUE },
     ),
   ],
   providers: [
@@ -115,6 +119,8 @@ import { FileImportsScheduler } from './files/file-imports.scheduler';
     BoardDueReminderProcessor,
     TokenRefreshScheduler,
     TokenRefreshProcessor,
+    PlanTransitionsScheduler,
+    PlanTransitionsProcessor,
     WhatsAppProfileSyncScheduler,
     WhatsAppProfileScheduleProcessor,
     WhatsAppProfileSyncProcessor,

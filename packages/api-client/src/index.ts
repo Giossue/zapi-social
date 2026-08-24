@@ -222,6 +222,8 @@ import type {
   UpdatePolarIntegrationInput,
   AdminPaymentReport,
   CreatePortalPlanCheckoutInput,
+  SchedulePortalPlanChangeInput,
+  PortalPlanChangeState,
   PortalPlanCheckoutResponse,
   PortalPlansResponse,
   AdminPaymentReportQuery,
@@ -1426,6 +1428,19 @@ export const portalBillingApi = {
     request<PortalPlanCheckoutResponse>("/v1/portal/billing/checkout", {
       method: "POST",
       body: JSON.stringify(input),
+    }),
+  planChange: () =>
+    request<PortalPlanChangeState>("/v1/portal/billing/plan-change", {
+      method: "GET",
+    }),
+  scheduleChange: (input: SchedulePortalPlanChangeInput) =>
+    request<PortalPlanChangeState>("/v1/portal/billing/plan-change", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  cancelScheduledChange: () =>
+    request<void>("/v1/portal/billing/plan-change", {
+      method: "DELETE",
     }),
 }
 

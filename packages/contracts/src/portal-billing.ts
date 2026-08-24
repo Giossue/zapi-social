@@ -51,6 +51,15 @@ export const portalPlanCheckoutResponseSchema = z.object({
   checkoutUrl: z.string().url(),
 })
 
+export const schedulePortalPlanChangeSchema = z
+  .object({ planId: z.uuid() })
+  .strict()
+
+export const portalPlanChangeStateSchema = z.object({
+  nextPlanId: z.uuid().nullable(),
+  effectiveAt: z.string().datetime().nullable(),
+})
+
 export type PortalPlan = z.infer<typeof portalPlanSchema>
 export type PortalBillingSubscription = z.infer<
   typeof portalBillingSubscriptionSchema
@@ -62,3 +71,7 @@ export type CreatePortalPlanCheckoutInput = z.infer<
 export type PortalPlanCheckoutResponse = z.infer<
   typeof portalPlanCheckoutResponseSchema
 >
+export type SchedulePortalPlanChangeInput = z.infer<
+  typeof schedulePortalPlanChangeSchema
+>
+export type PortalPlanChangeState = z.infer<typeof portalPlanChangeStateSchema>

@@ -1,0 +1,3 @@
+ALTER TABLE "workspace_plan_assignments" ADD COLUMN "next_plan_id" uuid;--> statement-breakpoint
+ALTER TABLE "workspace_plan_assignments" ADD CONSTRAINT "workspace_plan_assignments_next_plan_id_plans_id_fk" FOREIGN KEY ("next_plan_id") REFERENCES "public"."plans"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "workspace_plan_assignments_next_plan_index" ON "workspace_plan_assignments" USING btree ("next_plan_id");

@@ -42,20 +42,20 @@ No se recuperan Stripe, PayPal, pagos manuales ni ningún otro gateway eliminado
 
 ## Superficies
 
-| Ruta                   | Alcance del mockup                                                              |
-| ---------------------- | ------------------------------------------------------------------------------- |
-| `/admin/integrations`  | Configuración Polar: estado, ambiente, credenciales, productos y checkout.      |
-| `/admin/users`         | Cuentas Portal, acceso, plan, workspace y estado.                               |
-| `/admin/plans`         | Catálogo operativo con métricas, filtros, tabla paginada, permisos y CRUD real. |
-| `/admin/credits`       | Tabs Paquetes, Movimientos y Uso.                                               |
-| `/admin/affiliate`     | Tabs Afiliados, Comisiones y Retiros.                                           |
-| `/admin/coupons`       | Descuentos, límites, planes y vigencia.                                         |
-| `/admin/payments`      | Historial exclusivo de Polar, detalle, sincronización y reembolsos.             |
-| `/admin/subscriptions` | Renovaciones, mora, cancelación al final y revocación inmediata.                |
-| `/admin/payment-report` | Reporte agregado del periodo: bruto, neto, reembolsos, ticket medio, evolución, producto, estado y espacios. |
-| `/admin/manual-payments` | Cobros fuera de Polar: registro, aprobación, rechazo y configuración de instrucciones. |
-| `/portal/plans` | Catálogo activo de Admin, plan vigente, límites y checkout para el propietario. |
-| `/portal/billing/success` y `/portal/billing/cancel` | Retornos del checkout; la activación sigue dependiendo del webhook. |
+| Ruta                                                 | Alcance del mockup                                                                                           |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `/admin/integrations`                                | Configuración Polar: estado, ambiente, credenciales, productos y checkout.                                   |
+| `/admin/users`                                       | Cuentas Portal, acceso, plan, workspace y estado.                                                            |
+| `/admin/plans`                                       | Catálogo operativo con métricas, filtros, tabla paginada, permisos y CRUD real.                              |
+| `/admin/credits`                                     | Tabs Paquetes, Movimientos y Uso.                                                                            |
+| `/admin/affiliate`                                   | Tabs Afiliados, Comisiones y Retiros.                                                                        |
+| `/admin/coupons`                                     | Descuentos, límites, planes y vigencia.                                                                      |
+| `/admin/payments`                                    | Historial exclusivo de Polar, detalle, sincronización y reembolsos.                                          |
+| `/admin/subscriptions`                               | Renovaciones, mora, cancelación al final y revocación inmediata.                                             |
+| `/admin/payment-report`                              | Reporte agregado del periodo: bruto, neto, reembolsos, ticket medio, evolución, producto, estado y espacios. |
+| `/admin/manual-payments`                             | Cobros fuera de Polar: registro, aprobación, rechazo y configuración de instrucciones.                       |
+| `/portal/plans`                                      | Catálogo activo de Admin, plan vigente, límites y checkout para el propietario.                              |
+| `/portal/billing/success` y `/portal/billing/cancel` | Retornos del checkout; la activación sigue dependiendo del webhook.                                          |
 
 ## Fuente visual
 
@@ -103,6 +103,9 @@ POST /v1/admin/operations/:module/:tab/:id/actions
 
 GET  /v1/portal/billing/plans
 POST /v1/portal/billing/checkout
+GET  /v1/portal/billing/plan-change
+POST /v1/portal/billing/plan-change
+DELETE /v1/portal/billing/plan-change
 
 GET   /v1/admin/integrations/polar
 POST  /v1/admin/integrations/polar/test
@@ -126,9 +129,12 @@ POST  /v1/webhooks/polar
   producto ni permisos internos de Admin. Solo el propietario puede crear un
   checkout; precio, producto, prueba y metadata se reconstruyen en API.
 - Una suscripción activa bloquea un segundo checkout para evitar cobros
-  duplicados. El cambio entre planes pagos y el downgrade diferido siguen el
-  ciclo pendiente documentado en
-  [`limites-de-plan-v2.md`](./limites-de-plan-v2.md).
+  duplicados. El propietario puede programar el cambio a un plan gratuito al
+  final del periodo y cancelarlo antes de esa fecha; API sincroniza
+  `cancelAtPeriodEnd` con Polar y el Worker aplica `nextPlanId` de forma
+  atómica e idempotente. Los cambios entre planes pagos siguen pasando por
+  soporte porque los productos genéricos actuales usan precio dinámico y no
+  permiten reconstruir de forma segura el importe de una suscripción viva.
 
 ## Persistencia
 
@@ -146,6 +152,8 @@ affiliate_commissions.external_reference
 ```
 
 La migración `0031_plans_currency_usd_only` reduce `plans_currency_check` a `currency = 'USD'`.
+La migración `0047_silky_the_fury` añade
+`workspace_plan_assignments.next_plan_id` y su índice para el cambio diferido.
 
 Importes se guardan en unidad menor e ISO-4217. Pagos y reembolsos no se borran; se actualizan mediante estados y auditoría HTTP.
 
@@ -207,10 +215,10 @@ Importes se guardan en unidad menor e ISO-4217. Pagos y reembolsos no se borran;
   importa ni renderiza diálogos de configuración.
 - Los scopes de Meta se muestran como checkboxes persistentes y adaptables;
   los obligatorios se identifican únicamente con un asterisco rojo, sin badge.
-- Cada sheet usa `SheetContent` como única región de scroll vertical, sin
-  contenedores desplazables anidados, para alcanzar todos los campos y
-  acciones en formularios largos. Todos los campos obligatorios muestran el
-  asterisco semántico rojo definido por la regla UI.
+- Cada sheet mantiene encabezado y `SheetActions` fuera de la región central
+  desplazable. Las acciones usan siempre el mismo separador y permanecen
+  visibles al bajar en formularios largos. Todos los campos obligatorios
+  muestran el asterisco semántico rojo definido por la regla UI.
 - Polar conserva el contrato `GET/PATCH /v1/admin/integrations/polar`; el cambio
   añade `POST /test`, mantiene secretos write-only e impide guardar una
   configuración activa sin comprobación vigente.
