@@ -1,6 +1,9 @@
 import { z } from 'zod';
 
 const schema = z.object({
+  NODE_ENV: z
+    .enum(['development', 'test', 'production'])
+    .default('development'),
   API_HOST: z.string().default('127.0.0.1'),
   API_PORT: z.coerce.number().int().positive().default(3001),
   API_PUBLIC_ORIGIN: z.string().url().default('http://127.0.0.1:3001'),
@@ -14,6 +17,9 @@ const schema = z.object({
   REDIS_PORT: z.coerce.number().int().positive().default(6379),
   REDIS_USERNAME: z.string().min(1).optional(),
   REDIS_PASSWORD: z.string().min(1).optional(),
+  LOG_LEVEL: z
+    .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace'])
+    .default('info'),
   FILES_STORAGE_PATH: z.string().min(1).default('./.data/files'),
   UNSPLASH_ACCESS_KEY: z.string().min(1).optional(),
   PEXELS_API_KEY: z.string().min(1).optional(),

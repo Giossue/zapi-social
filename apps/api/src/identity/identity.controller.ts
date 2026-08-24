@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
+import { Throttle } from '@nestjs/throttler';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { IdentityService } from './identity.service';
 import { PasswordResetService } from './password-reset.service';
@@ -27,6 +28,7 @@ export class IdentityController {
   ) {}
 
   @Post('register')
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   async register(
     @Body() body: unknown,
     @Req() request: FastifyRequest,
@@ -43,6 +45,7 @@ export class IdentityController {
 
   @Post('login')
   @HttpCode(200)
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
   async login(
     @Body() body: unknown,
     @Req() request: FastifyRequest,
@@ -77,12 +80,14 @@ export class IdentityController {
 
   @Post('password-reset/request')
   @HttpCode(202)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   async requestPasswordReset(@Body() body: unknown) {
     return this.passwordReset.request(body);
   }
 
   @Post('password-reset/confirm')
   @HttpCode(204)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   async confirmPasswordReset(@Body() body: unknown) {
     await this.passwordReset.confirm(body);
   }

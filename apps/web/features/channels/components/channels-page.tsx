@@ -446,7 +446,7 @@ export function LiveChannelsPage() {
     if (searchParams.get("provider") !== "meta") {
       window.sessionStorage.removeItem(META_OAUTH_SESSION_KEY)
       toast.success(t("channelConnected"))
-      void loadChannels()
+      window.setTimeout(() => void loadChannels(), 0)
       return
     }
 
@@ -481,7 +481,7 @@ export function LiveChannelsPage() {
         toast.error(t("metaAccountsFailed"))
       }
     })()
-  }, [capabilities, router, searchParams, t])
+  }, [capabilities, loadChannels, router, searchParams, t])
 
   function addAccount(account: PortalChannelAccount) {
     setAccounts((current) => [

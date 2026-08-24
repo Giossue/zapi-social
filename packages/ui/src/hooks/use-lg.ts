@@ -1,19 +1,18 @@
 import * as React from "react"
 
 const LG_BREAKPOINT = 1024
+const LG_QUERY = `(min-width: ${LG_BREAKPOINT}px)`
+
+function subscribe(onStoreChange: () => void) {
+  const mediaQuery = window.matchMedia(LG_QUERY)
+  mediaQuery.addEventListener("change", onStoreChange)
+  return () => mediaQuery.removeEventListener("change", onStoreChange)
+}
+
+function getSnapshot() {
+  return window.matchMedia(LG_QUERY).matches
+}
 
 export function useIsLg() {
-  const [isLg, setIsLg] = React.useState<boolean | undefined>(undefined)
-
-  React.useEffect(() => {
-    const mql = window.matchMedia(`(min-width: ${LG_BREAKPOINT}px)`)
-    const onChange = () => {
-      setIsLg(window.innerWidth >= LG_BREAKPOINT)
-    }
-    mql.addEventListener("change", onChange)
-    setIsLg(window.innerWidth >= LG_BREAKPOINT)
-    return () => mql.removeEventListener("change", onChange)
-  }, [])
-
-  return !!isLg
+  return React.useSyncExternalStore(subscribe, getSnapshot, () => false)
 }

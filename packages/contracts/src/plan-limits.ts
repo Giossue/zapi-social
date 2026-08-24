@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { aiRequestKindSchema, type AiRequestKind } from "./ai-v2.js"
+import type { AiRequestKind } from "./ai-v2.js"
 
 export const portalModuleKeySchema = z.enum([
   "publishing",

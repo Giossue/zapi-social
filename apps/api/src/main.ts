@@ -1,4 +1,5 @@
 import fastifyCookie from '@fastify/cookie';
+import fastifyHelmet from '@fastify/helmet';
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -13,10 +14,19 @@ import { AuditService } from './audit/audit.service';
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
-    new FastifyAdapter(),
+    new FastifyAdapter({
+      trustProxy: [
+        '127.0.0.1',
+        '::1',
+        '10.0.0.0/8',
+        '172.16.0.0/12',
+        '192.168.0.0/16',
+      ],
+    }),
     { rawBody: true },
   );
 
+  await app.register(fastifyHelmet, { contentSecurityPolicy: false });
   await app.register(fastifyCookie);
   app
     .getHttpAdapter()
@@ -25,13 +35,17 @@ async function bootstrap() {
       'application/octet-stream',
       (_request, _payload, done) => done(null),
     );
-  const webOrigins = Array.from(
-    new Set([
-      process.env.WEB_ORIGIN ?? 'http://localhost:3000',
-      'http://localhost:3000',
-      'http://127.0.0.1:3000',
-    ]),
-  );
+  const webOrigin = process.env.WEB_ORIGIN ?? 'http://localhost:3000';
+  const webOrigins =
+    process.env.NODE_ENV === 'production'
+      ? [webOrigin]
+      : Array.from(
+          new Set([
+            webOrigin,
+            'http://localhost:3000',
+            'http://127.0.0.1:3000',
+          ]),
+        );
 
   app.enableCors({
     origin: webOrigins,

@@ -66,7 +66,6 @@ export const updateAdminTurnstileConfigurationSchema = z
   .strict()
 
 export { supportedLocaleSchema } from "./locale.js"
-import { supportedLocaleSchema } from "./locale.js"
 import { localeCodeSchema } from "./languages.js"
 import { portalModuleKeySchema } from "./plan-limits.js"
 import { workspacePermissionSchema } from "./workspace-permissions.js"

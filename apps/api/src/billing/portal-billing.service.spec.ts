@@ -6,6 +6,12 @@ const planId = '00000000-0000-4000-8000-000000000010';
 const workspaceId = '00000000-0000-4000-8000-000000000020';
 const userId = '00000000-0000-4000-8000-000000000030';
 
+type CheckoutInput = {
+  products: string[];
+  prices: Record<string, unknown>;
+  metadata: Record<string, string>;
+};
+
 function session(role: PortalAuthSession['workspace']['role']) {
   return {
     area: 'portal',
@@ -42,8 +48,12 @@ function serviceForCheckout() {
   };
   query.from.mockReturnValue(query);
   query.where.mockReturnValue(query);
-  const create = jest.fn().mockResolvedValue({
-    url: 'https://sandbox.polar.sh/checkout/test',
+  let checkoutMetadata: unknown;
+  const create = jest.fn((input: CheckoutInput) => {
+    checkoutMetadata = input.metadata;
+    return Promise.resolve({
+      url: 'https://sandbox.polar.sh/checkout/test',
+    });
   });
   const polar = {
     configuration: jest.fn().mockResolvedValue({
@@ -56,7 +66,9 @@ function serviceForCheckout() {
     client: jest.fn().mockResolvedValue({ checkouts: { create } }),
   };
   const service = new PortalBillingService(
-    { getOrThrow: jest.fn().mockReturnValue('https://app.example.test') } as never,
+    {
+      getOrThrow: jest.fn().mockReturnValue('https://app.example.test'),
+    } as never,
     { db: { select: jest.fn().mockReturnValue(query) } } as never,
     polar as never,
   );
@@ -69,16 +81,18 @@ function serviceForCheckout() {
     source: 'signup',
   });
   jest.spyOn(internals, 'activeSubscription').mockResolvedValue(null);
-  return { create, service };
+  return { create, getCheckoutMetadata: () => checkoutMetadata, service };
 }
 
 describe('PortalBillingService', () => {
   it('creates a server-priced Polar checkout for the workspace owner', async () => {
-    const { create, service } = serviceForCheckout();
+    const { create, getCheckoutMetadata, service } = serviceForCheckout();
 
-    await expect(service.checkout(session('owner'), { planId })).resolves.toEqual(
-      { checkoutUrl: 'https://sandbox.polar.sh/checkout/test' },
-    );
+    await expect(
+      service.checkout(session('owner'), { planId }),
+    ).resolves.toEqual({
+      checkoutUrl: 'https://sandbox.polar.sh/checkout/test',
+    });
     expect(create).toHaveBeenCalledWith(
       expect.objectContaining({
         products: ['product_monthly'],
@@ -91,14 +105,14 @@ describe('PortalBillingService', () => {
             },
           ],
         },
-        metadata: expect.objectContaining({
-          planId,
-          productType: 'plan',
-          userId,
-          workspaceId,
-        }),
       }),
     );
+    expect(getCheckoutMetadata()).toMatchObject({
+      planId,
+      productType: 'plan',
+      userId,
+      workspaceId,
+    });
   });
 
   it('rejects billing changes from non-owners', async () => {

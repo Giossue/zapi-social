@@ -272,8 +272,8 @@ import type {
 
 const apiBaseUrl =
   typeof window === "undefined"
-    ? (process.env.INTERNAL_API_URL ?? "http://127.0.0.1:3001")
-    : (process.env.NEXT_PUBLIC_API_ORIGIN ?? "/api")
+    ? (process.env.INTERNAL_API_ORIGIN ?? "http://127.0.0.1:3001")
+    : "/api"
 
 export class ApiError extends Error {
   constructor(
