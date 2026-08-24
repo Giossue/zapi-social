@@ -1,5 +1,5 @@
-import { LanguagesCollection } from "@/features/admin-content/components/collections"
+import { AdminLanguagesPage } from "@/features/admin-languages/components/admin-languages-page"
 
-export default function LanguagesRoutePage() {
-  return <LanguagesCollection />
+export default function AdminLanguagesRoutePage() {
+  return <AdminLanguagesPage />
 }

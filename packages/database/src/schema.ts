@@ -3792,3 +3792,26 @@ export const emailTemplates = pgTable(
     ),
   ]
 )
+
+export const platformTranslations = pgTable(
+  "platform_translations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    languageCode: varchar("language_code", { length: 12 })
+      .notNull()
+      .references(() => languages.code, { onDelete: "cascade" }),
+    key: varchar("key", { length: 512 }).notNull(),
+    value: text("value").notNull(),
+    updatedByUserId: uuid("updated_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("platform_translations_language_key_unique").on(
+      table.languageCode,
+      table.key
+    ),
+    index("platform_translations_language_index").on(table.languageCode),
+  ]
+)

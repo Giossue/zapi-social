@@ -23,7 +23,7 @@ import type {
   NavigationSourceItem,
   NavigationSourceLink,
 } from "@/components/dashboard-shell/navigation-types"
-import type messages from "@/messages/es.d.json"
+import type messages from "../../../../packages/contracts/src/messages/es.d.json"
 
 type PortalNavigationKey = keyof (typeof messages)["navigation"]["portal"]
 

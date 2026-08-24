@@ -85,7 +85,6 @@ import type {
   AdminBlogTagsResponse,
   AdminFaqsResponse,
   AdminGeneralSettings,
-  AdminLanguagesResponse,
   AdminScheduledJobs,
   AdminStaticPagesSettings,
   AdminSystemInformation,
@@ -99,7 +98,6 @@ import type {
   UpsertAdminBlogPostInput,
   UpsertAdminBlogTagInput,
   UpsertAdminFaqInput,
-  UpsertAdminLanguageInput,
   UpsertAdminTaxonomyInput,
   CreatePortalRssScheduleInput,
   PortalRssSchedule,
@@ -239,6 +237,16 @@ import type {
   ManualPaymentSettings,
   UpdateManualPaymentSettingsInput,
   AdminEmailTemplatesResponse,
+  AdminPlatformLanguagesResponse,
+  AdminTranslationsResponse,
+  CreateAdminPlatformLanguageInput,
+  ExportAdminTranslationsResponse,
+  ImportAdminTranslationsInput,
+  ImportAdminTranslationsResult,
+  ListAdminTranslationsQuery,
+  PublicLanguagesResponse,
+  SaveAdminTranslationInput,
+  UpdateAdminPlatformLanguageInput,
   ResetAdminEmailTemplateInput,
   UpdateAdminEmailTemplateInput,
   PublicSiteOverview,
@@ -1433,6 +1441,59 @@ export const publicSiteApi = {
     request<PublicSitePage>(`/v1/public/site/pages/${slug}`, { method: "GET" }),
 }
 
+export const i18nApi = {
+  languages: () =>
+    request<PublicLanguagesResponse>("/v1/i18n/languages", { method: "GET" }),
+}
+
+export const adminLanguagesApi = {
+  list: () =>
+    request<AdminPlatformLanguagesResponse>("/v1/admin/languages", {
+      method: "GET",
+    }),
+  create: (input: CreateAdminPlatformLanguageInput) =>
+    request<AdminPlatformLanguagesResponse>("/v1/admin/languages", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  update: (code: string, input: UpdateAdminPlatformLanguageInput) =>
+    request<AdminPlatformLanguagesResponse>(`/v1/admin/languages/${code}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  remove: (code: string) =>
+    request<AdminPlatformLanguagesResponse>(`/v1/admin/languages/${code}`, {
+      method: "DELETE",
+    }),
+  translations: (code: string, query: Partial<ListAdminTranslationsQuery>) => {
+    const params = new URLSearchParams()
+    if (query.q) params.set("q", query.q)
+    if (query.missing) params.set("missing", "true")
+    if (query.offset) params.set("offset", String(query.offset))
+    if (query.limit) params.set("limit", String(query.limit))
+    const suffix = params.size ? `?${params.toString()}` : ""
+    return request<AdminTranslationsResponse>(
+      `/v1/admin/languages/${code}/translations${suffix}`,
+      { method: "GET" }
+    )
+  },
+  saveTranslation: (code: string, input: SaveAdminTranslationInput) =>
+    request<AdminTranslationsResponse>(
+      `/v1/admin/languages/${code}/translations`,
+      { method: "PUT", body: JSON.stringify(input) }
+    ),
+  importTranslations: (code: string, input: ImportAdminTranslationsInput) =>
+    request<ImportAdminTranslationsResult>(
+      `/v1/admin/languages/${code}/translations/import`,
+      { method: "POST", body: JSON.stringify(input) }
+    ),
+  exportTranslations: (code: string) =>
+    request<ExportAdminTranslationsResponse>(
+      `/v1/admin/languages/${code}/translations/export`,
+      { method: "GET" }
+    ),
+}
+
 export const adminEmailTemplatesApi = {
   list: () =>
     request<AdminEmailTemplatesResponse>("/v1/admin/email-templates", {
@@ -1613,10 +1674,6 @@ function adminContentResource<TList, TInput>(path: string) {
 }
 
 export const adminContentApi = {
-  languages: adminContentResource<
-    AdminLanguagesResponse,
-    UpsertAdminLanguageInput
-  >("languages"),
   blogCategories: adminContentResource<
     AdminTaxonomiesResponse,
     UpsertAdminTaxonomyInput

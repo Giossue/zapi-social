@@ -22,7 +22,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-MESSAGES = ROOT / "apps/web/messages"
+MESSAGES = ROOT / "packages/contracts/src/messages"
 WEB = ROOT / "apps/web"
 SOURCE_LOCALE = "es"
 

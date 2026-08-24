@@ -1,6 +1,6 @@
 "use client"
 
-import { ApiError, profileApi } from "@workspace/api-client"
+import { ApiError, i18nApi, profileApi } from "@workspace/api-client"
 import {
   Alert,
   AlertDescription,
@@ -48,7 +48,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useMemo, useState, type FormEvent } from "react"
 import { announceSessionLogout } from "@/features/identity/components/session-synchronizer"
 import { syncLocaleCookie } from "@/i18n/locale-cookie"
-import type { PortalProfile } from "@workspace/contracts"
+import type { PortalProfile, PublicLanguage } from "@workspace/contracts"
 
 const supportedTimeZones =
   typeof Intl.supportedValuesOf === "function"
@@ -112,7 +112,8 @@ export function PortalProfilePage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [savingPreferences, setSavingPreferences] = useState(false)
-  const [locale, setLocale] = useState<"" | "es" | "en">("")
+  const [locale, setLocale] = useState("")
+  const [languages, setLanguages] = useState<PublicLanguage[]>([])
   const [displayName, setDisplayName] = useState("")
   const [timezone, setTimezone] = useState("")
   const [savingPassword, setSavingPassword] = useState(false)
@@ -122,6 +123,12 @@ export function PortalProfilePage() {
 
   useEffect(() => {
     let active = true
+    void i18nApi
+      .languages()
+      .then((response) => {
+        if (active) setLanguages(response.languages)
+      })
+      .catch(() => {})
     void profileApi
       .get()
       .then((nextProfile) => {
@@ -325,9 +332,7 @@ export function PortalProfilePage() {
                     <Select
                       disabled={savingPreferences}
                       onValueChange={(value) => {
-                        setLocale(
-                          value === "system" ? "" : (value as "es" | "en")
-                        )
+                        setLocale(value === "system" ? "" : value)
                       }}
                       value={locale || "system"}
                     >
@@ -339,8 +344,14 @@ export function PortalProfilePage() {
                           <SelectItem value="system">
                             {t("usePortalLanguage")}
                           </SelectItem>
-                          <SelectItem value="es">{tCommon("es")}</SelectItem>
-                          <SelectItem value="en">{tCommon("en")}</SelectItem>
+                          {languages.map((language) => (
+                            <SelectItem
+                              key={language.code}
+                              value={language.code}
+                            >
+                              {language.nativeName}
+                            </SelectItem>
+                          ))}
                         </SelectGroup>
                       </SelectContent>
                     </Select>

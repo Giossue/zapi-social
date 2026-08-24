@@ -1,15 +1,25 @@
+import type sourceMessages from "../../../packages/contracts/src/messages/es.d.json"
 import { cookies } from "next/headers"
 import { getRequestConfig } from "next-intl/server"
 
-import { localeCookieName, resolveLocale } from "./locales"
+import { fetchActiveLanguages, messagesFor } from "./dynamic-messages"
+import { defaultLocale, isLocaleCode, localeCookieName } from "./locales"
 
 export default getRequestConfig(async () => {
   const store = await cookies()
-  const locale = resolveLocale(store.get(localeCookieName)?.value)
+  const requested = store.get(localeCookieName)?.value
+  const languages = await fetchActiveLanguages()
+  const fallback =
+    languages.find((language) => language.isDefault)?.code ?? defaultLocale
+  const locale =
+    isLocaleCode(requested) &&
+    languages.some((language) => language.code === requested)
+      ? requested
+      : fallback
 
   return {
     locale,
-    messages: (await import(`../messages/${locale}.json`)).default,
+    messages: (await messagesFor(locale)) as unknown as typeof sourceMessages,
     formats,
   }
 })

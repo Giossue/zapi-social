@@ -288,6 +288,20 @@
       "when": 1787537800166,
       "tag": "0040_drop_auth_identities",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1787541092391,
+      "tag": "0041_platform_languages",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1787541251495,
+      "tag": "0042_platform_translations_on_languages",
+      "breakpoints": true
     }
   ]
 }

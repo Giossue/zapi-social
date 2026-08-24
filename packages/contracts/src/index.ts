@@ -67,6 +67,7 @@ export const updateAdminTurnstileConfigurationSchema = z
 
 export { supportedLocaleSchema } from "./locale.js"
 import { supportedLocaleSchema } from "./locale.js"
+import { localeCodeSchema } from "./languages.js"
 import { workspacePermissionSchema } from "./workspace-permissions.js"
 
 export const portalProfileSchema = z.object({
@@ -75,7 +76,7 @@ export const portalProfileSchema = z.object({
   email: z.string().email(),
   username: z.string().nullable(),
   emailVerifiedAt: z.string().datetime().nullable(),
-  locale: supportedLocaleSchema.nullable(),
+  locale: localeCodeSchema.nullable(),
   timezone: profileTimeZoneSchema.nullable(),
   createdAt: z.string().datetime(),
 })
@@ -83,7 +84,7 @@ export const portalProfileSchema = z.object({
 export const updatePortalProfileSchema = z
   .object({
     displayName: z.string().trim().min(2).max(160),
-    locale: supportedLocaleSchema.nullable(),
+    locale: localeCodeSchema.nullable(),
     timezone: profileTimeZoneSchema,
   })
   .strict()
@@ -103,7 +104,7 @@ export const authUserSchema = z.object({
   id: z.uuid(),
   email: z.string().email(),
   displayName: z.string(),
-  locale: supportedLocaleSchema.nullable(),
+  locale: localeCodeSchema.nullable(),
 })
 
 export const activeWorkspaceSchema = z.object({
@@ -1647,3 +1648,5 @@ export * from "./ai-v2.js"
 export * from "./commerce-v2.js"
 
 export * from "./online-media-v2.js"
+export * from "./messages.js"
+export * from "./languages.js"

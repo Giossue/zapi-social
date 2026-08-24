@@ -21,29 +21,6 @@ export const adminContentListQuerySchema = z
   })
   .strict()
 
-export const adminLanguageSchema = z.object({
-  id: z.uuid(),
-  code: z.string(),
-  name: z.string(),
-  nativeName: z.string(),
-  direction: z.enum(["ltr", "rtl"]),
-  isDefault: z.boolean(),
-  isActive: z.boolean(),
-  sortOrder: z.number().int(),
-  createdAt: z.string().datetime(),
-})
-export const upsertAdminLanguageSchema = z
-  .object({
-    code: z.string().trim().toLowerCase().min(2).max(12),
-    name: z.string().trim().min(1).max(120),
-    nativeName: z.string().trim().min(1).max(120),
-    direction: z.enum(["ltr", "rtl"]).default("ltr"),
-    isDefault: z.boolean().default(false),
-    isActive: z.boolean().default(true),
-    sortOrder: z.number().int().min(0).max(9999).default(0),
-  })
-  .strict()
-
 export const adminTaxonomySchema = z.object({
   id: z.uuid(),
   slug: z.string(),
@@ -154,10 +131,6 @@ const pageFields = {
   total: z.number().int().nonnegative(),
 }
 
-export const adminLanguagesResponseSchema = z.object({
-  languages: z.array(adminLanguageSchema),
-  ...pageFields,
-})
 export const adminTaxonomiesResponseSchema = z.object({
   items: z.array(adminTaxonomySchema),
   ...pageFields,
@@ -183,8 +156,6 @@ export const adminAiTemplatesResponseSchema = z.object({
 })
 
 export type AdminContentListQuery = z.infer<typeof adminContentListQuerySchema>
-export type AdminLanguage = z.infer<typeof adminLanguageSchema>
-export type UpsertAdminLanguageInput = z.infer<typeof upsertAdminLanguageSchema>
 export type AdminTaxonomy = z.infer<typeof adminTaxonomySchema>
 export type UpsertAdminTaxonomyInput = z.infer<typeof upsertAdminTaxonomySchema>
 export type AdminBlogTag = z.infer<typeof adminBlogTagSchema>
@@ -197,9 +168,6 @@ export type UpsertAdminFaqInput = z.infer<typeof upsertAdminFaqSchema>
 export type AdminAiTemplate = z.infer<typeof adminAiTemplateSchema>
 export type UpsertAdminAiTemplateInput = z.infer<
   typeof upsertAdminAiTemplateSchema
->
-export type AdminLanguagesResponse = z.infer<
-  typeof adminLanguagesResponseSchema
 >
 export type AdminTaxonomiesResponse = z.infer<
   typeof adminTaxonomiesResponseSchema

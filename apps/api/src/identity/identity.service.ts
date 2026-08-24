@@ -14,12 +14,11 @@ import {
   activateAuthWorkspaceSchema,
   loginSchema,
   registerSchema,
-  supportedLocaleSchema,
+  localeCodeSchema,
   type ActiveWorkspace,
   type AuthSession,
   type PlatformAdminAuthSession,
   type PortalAuthSession,
-  type SupportedLocale,
 } from '@workspace/contracts';
 import { and, eq, gt, isNull, sql } from '@workspace/database/query';
 import argon2 from 'argon2';
@@ -150,7 +149,7 @@ export class IdentityService {
       }
 
       return {
-        user: { ...user, locale: this.supportedLocale(user.locale) },
+        user: { ...user, locale: this.localeCode(user.locale) },
         area: 'portal' as const,
         workspace: { ...workspace, role: 'owner' as const },
         workspaces: [{ ...workspace, role: 'owner' as const }],
@@ -204,7 +203,7 @@ export class IdentityService {
       id: user.id,
       email: user.email,
       displayName: user.displayName,
-      locale: this.supportedLocale(user.locale),
+      locale: this.localeCode(user.locale),
     };
     const session: AuthSession = user.isPlatformAdmin
       ? { user: userSession, area: 'admin' }
@@ -258,7 +257,7 @@ export class IdentityService {
       id: session.userId,
       email: session.email,
       displayName: session.displayName,
-      locale: this.supportedLocale(session.locale),
+      locale: this.localeCode(session.locale),
     };
     if (session.isPlatformAdmin) {
       return { user, area: 'admin' };
@@ -333,7 +332,7 @@ export class IdentityService {
         id: storedSession.userId,
         email: storedSession.email,
         displayName: storedSession.displayName,
-        locale: this.supportedLocale(storedSession.locale),
+        locale: this.localeCode(storedSession.locale),
       },
       area: 'portal',
       workspace,
@@ -400,8 +399,8 @@ export class IdentityService {
     return { user, area: 'portal', workspace, workspaces: availableWorkspaces };
   }
 
-  private supportedLocale(value: string | null): SupportedLocale | null {
-    const parsed = supportedLocaleSchema.safeParse(value);
+  private localeCode(value: string | null): string | null {
+    const parsed = localeCodeSchema.safeParse(value);
     return parsed.success ? parsed.data : null;
   }
 

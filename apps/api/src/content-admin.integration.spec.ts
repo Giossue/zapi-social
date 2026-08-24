@@ -1,9 +1,4 @@
-import {
-  blogPosts,
-  createDatabase,
-  languages,
-  type Database,
-} from '@workspace/database';
+import { blogPosts, createDatabase, type Database } from '@workspace/database';
 import { eq } from '@workspace/database/query';
 import { DatabaseService } from './database/database.service';
 import { ContentService } from './content/content.service';
@@ -104,60 +99,6 @@ describeDatabase('Admin content service', () => {
         .from(blogPosts)
         .where(eq(blogPosts.id, created.id));
       expect(row?.publishedAt).toBeNull();
-    });
-  });
-
-  it('promotes the first language to default even without asking', async () => {
-    await inRollbackTransaction(async (database) => {
-      await database.delete(languages);
-      const content = serviceFor(database);
-      const suffix = Date.now().toString(36).slice(-6);
-      await content.saveLanguage(null, {
-        code: `qz-${suffix}`,
-        direction: 'ltr',
-        isActive: true,
-        isDefault: false,
-        name: 'Primer idioma',
-        nativeName: 'Primer idioma',
-        sortOrder: 0,
-      });
-
-      const defaults = await database
-        .select({ id: languages.id })
-        .from(languages)
-        .where(eq(languages.isDefault, true));
-      expect(defaults).toHaveLength(1);
-    });
-  });
-
-  it('leaves a single default language when another one is promoted', async () => {
-    await inRollbackTransaction(async (database) => {
-      const content = serviceFor(database);
-      const suffix = Date.now().toString(36).slice(-6);
-      await content.saveLanguage(null, {
-        code: `qa-${suffix}`,
-        direction: 'ltr',
-        isActive: true,
-        isDefault: true,
-        name: 'Idioma uno',
-        nativeName: 'Idioma uno',
-        sortOrder: 0,
-      });
-      await content.saveLanguage(null, {
-        code: `qb-${suffix}`,
-        direction: 'ltr',
-        isActive: true,
-        isDefault: true,
-        name: 'Idioma dos',
-        nativeName: 'Idioma dos',
-        sortOrder: 1,
-      });
-
-      const defaults = await database
-        .select({ id: languages.id })
-        .from(languages)
-        .where(eq(languages.isDefault, true));
-      expect(defaults).toHaveLength(1);
     });
   });
 });

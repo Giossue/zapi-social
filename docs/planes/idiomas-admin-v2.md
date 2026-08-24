@@ -2,11 +2,30 @@
 
 ## Estado
 
-**Investigación cerrada el 23 de agosto de 2026; implementación sin empezar.**
-Hoy V2 resuelve los idiomas con archivos JSON tipados y el catálogo cerrado en
-`packages/contracts` ([`conocimiento/i18n.md`](../conocimiento/i18n.md)). Añadir
-ruso exige tocar siete sitios del código. Para un producto que se vende, el
-comprador tiene que poder hacerlo desde el panel.
+**Fases 1 y 2 implementadas el 23 de agosto de 2026; pendientes la traducción
+automática (F3) y RTL (F4).** Un administrador añade un idioma del catálogo
+mundial, lo traduce desde el panel (o importa/exporta JSON) y lo activa, sin
+tocar código. El mecanismo está descrito en
+[`conocimiento/i18n.md`](../conocimiento/i18n.md).
+
+Divergencias respecto al diseño original de este plan:
+
+- Se reutilizó la tabla `languages` ya existente (era el CRUD genérico de
+  Admin → Contenido) en vez de crear `platform_languages`; la colección
+  genérica se retiró y `/admin/languages` es ahora la pantalla dedicada, con
+  progreso, catálogo mundial y editor de traducciones. Solo queda
+  `platform_translations` como tabla nueva (migraciones 0041–0042).
+- El catálogo `es/en` se movió de `apps/web/messages/` a
+  `packages/contracts/src/messages/`: la API lo necesita para el progreso, la
+  pantalla de traducciones y la validación ICU al guardar, y contracts es el
+  único paquete que comparten web y API.
+- `SupportedLocale` sigue existiendo solo para correos (es/en); el locale de
+  sesión, perfil y cookie pasó a `localeCodeSchema` (código validado contra los
+  idiomas activos al guardarlo). Un usuario con idioma dinámico recibe los
+  correos en `es`.
+- La traducción automática se hará con proveedor configurable; **el raspado del
+  endpoint público de Google Translate queda descartado** por decisión del
+  23-08-2026.
 
 ## Cómo lo hace ZapiSocial
 
@@ -164,21 +183,40 @@ a mano.
 
 ### Fase 1 — Datos y fusión
 
-- [ ] `platform_languages` y `platform_translations` con su migración.
-- [ ] Endpoint de catálogo de idiomas activos, público, cacheado.
-- [ ] `i18n/request.ts` fusionando base + overrides, con caché en Redis.
-- [ ] Selector de idioma del perfil alimentado por la API en vez de por la
-      unión fija `"es" | "en"`.
+- [x] `platform_translations` con su migración (0041–0042); `languages` se
+      reutiliza y las migraciones la siembran con `es`/`en`. (23-08-2026)
+- [x] `GET /v1/i18n/languages` y `GET /v1/i18n/messages/:code`, públicos y
+      cacheados en Redis con invalidación al guardar y respaldo a PostgreSQL si
+      Redis falla. (23-08-2026)
+- [x] `i18n/request.ts` fusiona base + overrides (revalidate 300 s el catálogo,
+      60 s los mensajes; respaldo al catálogo base si la API no responde).
+      (23-08-2026)
+- [x] Selector del perfil alimentado por `GET /v1/i18n/languages`; la API
+      valida al guardar que el código esté activo. (23-08-2026)
 
 ### Fase 2 — Admin
 
-- [ ] Pantalla de idiomas con el catálogo mundial de 133.
-- [ ] Pantalla de traducciones con buscador, edición y filtro de faltantes.
-- [ ] Validación de argumentos ICU al guardar, con el mismo criterio que el
-      auditor.
-- [ ] Importar y exportar JSON.
+- [x] `/admin/languages`: catálogo mundial (109 códigos ISO-639-1, nombres por
+      `Intl.DisplayNames`, RTL marcado), progreso por idioma, activar,
+      por defecto y eliminar con guardas (base y por defecto no se borran).
+      (23-08-2026)
+- [x] `/admin/languages/[code]`: buscador servidor, original vs traducción,
+      edición en hoja lateral, filtro «sin traducir» y paginación. (23-08-2026)
+- [x] Validación ICU al guardar y al importar, con el mismo criterio que
+      `audit:i18n` (`icuMismatch` + spec de 6 casos); rechaza con
+      `TRANSLATION_ARGUMENTS_MISMATCH`. (23-08-2026)
+- [x] Importar JSON (parcial con rechazadas contadas) y exportar el idioma
+      fusionado. (23-08-2026)
+
+Evidencia F1+F2: typecheck y build del monorepo, lint de las tres apps, 51
+pruebas de API (ICU + cableado del módulo incluidos), `audit:i18n` (4.181
+claves), `audit:i18n-hardcoded`, `audit:portal-admin-ui` y las tres imágenes
+podman, todo en verde el 23-08-2026. Pendiente la aprobación visual del
+usuario.
 
 ### Fase 3 — Traducción automática
+
+Sin raspado de Google Translate (descartado); solo proveedor con contrato.
 
 - [ ] Proveedor configurable, con la clave cifrada como el resto.
 - [ ] Traducción por lotes protegiendo los marcadores ICU.

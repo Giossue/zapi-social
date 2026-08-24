@@ -7,7 +7,6 @@ import {
   blogPosts,
   blogTags,
   faqs,
-  languages,
 } from '@workspace/database';
 import {
   and,
@@ -16,7 +15,6 @@ import {
   eq,
   ilike,
   inArray,
-  ne,
   or,
   sql,
   type SQL,
@@ -28,13 +26,11 @@ import {
   upsertAdminBlogPostSchema,
   upsertAdminBlogTagSchema,
   upsertAdminFaqSchema,
-  upsertAdminLanguageSchema,
   upsertAdminTaxonomySchema,
   type AdminAiTemplatesResponse,
   type AdminBlogPostsResponse,
   type AdminBlogTagsResponse,
   type AdminFaqsResponse,
-  type AdminLanguagesResponse,
   type AdminTaxonomiesResponse,
 } from '@workspace/contracts';
 import { AppException } from '../platform/errors/app-exception';
@@ -50,8 +46,7 @@ type ContentTable =
   | typeof blogCategories
   | typeof blogPosts
   | typeof blogTags
-  | typeof faqs
-  | typeof languages;
+  | typeof faqs;
 
 function slugify(value: string) {
   return value
@@ -66,94 +61,6 @@ function slugify(value: string) {
 @Injectable()
 export class ContentService {
   constructor(private readonly database: DatabaseService) {}
-
-  async listLanguages(query: unknown): Promise<AdminLanguagesResponse> {
-    const { page, limit, q, status } = this.listQuery(query);
-    const where = this.combine(
-      status === 'all'
-        ? undefined
-        : eq(languages.isActive, status === 'active'),
-      q
-        ? or(ilike(languages.name, `%${q}%`), ilike(languages.code, `%${q}%`))
-        : undefined,
-    );
-    const [rows, total] = await Promise.all([
-      this.database.db
-        .select()
-        .from(languages)
-        .where(where)
-        .orderBy(
-          desc(languages.isDefault),
-          asc(languages.sortOrder),
-          asc(languages.name),
-        )
-        .limit(limit)
-        .offset((page - 1) * limit),
-      this.count(languages, where),
-    ]);
-    return {
-      languages: rows.map((row) => ({
-        id: row.id,
-        code: row.code,
-        name: row.name,
-        nativeName: row.nativeName,
-        direction: row.direction,
-        isDefault: row.isDefault,
-        isActive: row.isActive,
-        sortOrder: row.sortOrder,
-        createdAt: row.createdAt.toISOString(),
-      })),
-      page,
-      limit,
-      total,
-    };
-  }
-
-  async saveLanguage(id: string | null, input: unknown) {
-    const parsed = upsertAdminLanguageSchema.safeParse(input);
-    if (!parsed.success) throw this.invalid();
-    const values = parsed.data;
-
-    return this.database.db.transaction(async (tx) => {
-      if (values.isDefault) {
-        await tx
-          .update(languages)
-          .set({ isDefault: false, updatedAt: new Date() })
-          .where(id ? ne(languages.id, id) : sql`true`);
-      }
-      if (id) {
-        const [row] = await tx
-          .update(languages)
-          .set({ ...values, updatedAt: new Date() })
-          .where(eq(languages.id, id))
-          .returning();
-        if (!row) throw this.notFound();
-        return row;
-      }
-      const [existing] = await tx
-        .select({ total: sql<number>`count(*)::int` })
-        .from(languages);
-      const isFirst = (existing?.total ?? 0) === 0;
-      const [row] = await tx
-        .insert(languages)
-        .values({ ...values, isDefault: values.isDefault || isFirst })
-        .returning();
-      return row;
-    });
-  }
-
-  async removeLanguage(id: string) {
-    const [row] = await this.database.db
-      .select({ isDefault: languages.isDefault })
-      .from(languages)
-      .where(eq(languages.id, id))
-      .limit(1);
-    if (!row) throw this.notFound();
-    if (row.isDefault) {
-      throw new AppException('VALIDATION_FAILED', HttpStatus.CONFLICT);
-    }
-    await this.database.db.delete(languages).where(eq(languages.id, id));
-  }
 
   listBlogCategories(query: unknown) {
     return this.listTaxonomy(blogCategories, query);

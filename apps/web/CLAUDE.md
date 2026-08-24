@@ -11,7 +11,7 @@ Rutas Next de Portal y Admin, layouts y composición de interfaz. Consume REST m
   `IntegrationInsetCard` y `IntegrationAvailabilityCard`. Un proveedor nuevo las
   reutiliza en vez de rehacer el bloque: es lo que hizo que Drive, SMTP y Polar
   divergieran de Meta.
-- Textos e idiomas: [`docs/conocimiento/i18n.md`](../../docs/conocimiento/i18n.md) explica cómo añadir una clave, un argumento ICU o un idioma; [`docs/planes/i18n-v2.md`](../../docs/planes/i18n-v2.md) tiene la decisión y el alcance. Toda la interfaz lee su texto de `messages/` con clave semántica.
+- Textos e idiomas: [`docs/conocimiento/i18n.md`](../../docs/conocimiento/i18n.md) explica cómo añadir una clave, un argumento ICU o un idioma; [`docs/planes/i18n-v2.md`](../../docs/planes/i18n-v2.md) tiene la decisión y el alcance. Toda la interfaz lee su texto del catálogo de `packages/contracts/src/messages/` con clave semántica; los idiomas añadidos desde Admin se fusionan encima en `i18n/request.ts`.
 
 ## Antes de cerrar
 

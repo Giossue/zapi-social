@@ -12,8 +12,6 @@ import type {
   AdminBlogTagsResponse,
   AdminFaq,
   AdminFaqsResponse,
-  AdminLanguage,
-  AdminLanguagesResponse,
   AdminTaxonomy,
   AdminTaxonomiesResponse,
 } from "@workspace/contracts"
@@ -140,112 +138,6 @@ function taxonomyInput(values: CollectionValues) {
     name: String(values.name ?? ""),
     sortOrder: Number(values.sortOrder ?? 0) || 0,
   }
-}
-
-export function LanguagesCollection() {
-  const t = useTranslations("adminContent")
-  const config: AdminCollectionConfig<AdminLanguage, AdminLanguagesResponse> = {
-    columns: [
-      {
-        key: "name",
-        label: t("languages.column"),
-        render: (row) => primary(row.name, `${row.nativeName} · ${row.code}`),
-      },
-      {
-        key: "direction",
-        label: t("languages.directionColumn"),
-        hideBelow: "lg",
-        render: (row) =>
-          row.direction === "rtl" ? t("languages.rtl") : t("languages.ltr"),
-      },
-      {
-        key: "status",
-        label: t("statusColumn"),
-        render: (row) => (
-          <div className="flex flex-wrap gap-1">
-            <ActiveBadge isActive={row.isActive} t={t} />
-            {row.isDefault ? (
-              <Badge variant="info">{t("languages.default")}</Badge>
-            ) : null}
-          </div>
-        ),
-      },
-    ],
-    createLabel: t("languages.create"),
-    description: t("languages.description"),
-    emptyDescription: t("languages.emptyDescription"),
-    emptyTitle: t("languages.emptyTitle"),
-    fields: () => [
-      { kind: "text", label: t("field.name"), name: "name", required: true },
-      {
-        kind: "text",
-        label: t("languages.nativeName"),
-        name: "nativeName",
-        placeholder: t("languages.nativeNamePlaceholder"),
-        required: true,
-      },
-      {
-        kind: "text",
-        label: t("languages.code"),
-        name: "code",
-        description: t("languages.codeHint"),
-        required: true,
-      },
-      {
-        kind: "select",
-        label: t("languages.direction"),
-        name: "direction",
-        options: [
-          { label: t("languages.ltr"), value: "ltr" },
-          { label: t("languages.rtl"), value: "rtl" },
-        ],
-      },
-      { kind: "number", label: t("field.order"), name: "sortOrder" },
-      { kind: "switch", label: t("field.active"), name: "isActive" },
-      {
-        kind: "switch",
-        label: t("languages.default"),
-        name: "isDefault",
-        description: t("languages.defaultHint"),
-      },
-    ],
-    filter: activeFilter(t),
-    formDescription: t("languages.formDescription"),
-    itemLabel: t("languages.itemLabel"),
-    load: (query) => adminContentApi.languages.list(query),
-    remove: (row) => adminContentApi.languages.remove(row.id),
-    rowId: (row) => row.id,
-    rowName: (row) => row.name,
-    rows: (response) => response.languages,
-    save: async (id, values) => {
-      const input = {
-        code: String(values.code ?? ""),
-        direction: (values.direction === "rtl" ? "rtl" : "ltr") as
-          "ltr" | "rtl",
-        isActive: Boolean(values.isActive),
-        isDefault: Boolean(values.isDefault),
-        name: String(values.name ?? ""),
-        nativeName: String(values.nativeName ?? ""),
-        sortOrder: Number(values.sortOrder ?? 0) || 0,
-      }
-      if (id) await adminContentApi.languages.update(id, input)
-      else await adminContentApi.languages.create(input)
-    },
-    searchPlaceholder: t("languages.searchPlaceholder"),
-    title: t("languages.title"),
-    toValues: (row) => ({
-      code: row?.code ?? "",
-      direction: row?.direction ?? "ltr",
-      isActive: row?.isActive ?? true,
-      isDefault: row?.isDefault ?? false,
-      name: row?.name ?? "",
-      nativeName: row?.nativeName ?? "",
-      sortOrder: row?.sortOrder ?? 0,
-    }),
-    total: (response) => response.total,
-  }
-
-  return <AdminCollectionPage config={config} />
 }
 
 export function BlogCategoriesCollection() {

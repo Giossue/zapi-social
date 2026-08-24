@@ -5,7 +5,12 @@ import {
   type PortalAuthSession,
   type PortalProfile,
 } from '@workspace/contracts';
-import { apiAuditLogs, authSessions, users } from '@workspace/database';
+import {
+  apiAuditLogs,
+  authSessions,
+  languages,
+  users,
+} from '@workspace/database';
 import { and, eq, isNull } from '@workspace/database/query';
 import argon2 from 'argon2';
 import { DatabaseService } from '../database/database.service';
@@ -27,6 +32,21 @@ export class PortalProfileService {
     const parsed = updatePortalProfileSchema.safeParse(input);
     if (!parsed.success)
       throw new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
+
+    if (parsed.data.locale) {
+      const [language] = await this.database.db
+        .select({ code: languages.code })
+        .from(languages)
+        .where(
+          and(
+            eq(languages.code, parsed.data.locale),
+            eq(languages.isActive, true),
+          ),
+        )
+        .limit(1);
+      if (!language)
+        throw new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
+    }
 
     const [user] = await this.database.db
       .update(users)

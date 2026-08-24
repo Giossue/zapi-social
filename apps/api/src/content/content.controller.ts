@@ -22,37 +22,6 @@ export class ContentController {
     private readonly content: ContentService,
   ) {}
 
-  @Get('languages')
-  async languages(@Req() request: FastifyRequest, @Query() query: unknown) {
-    await this.access.requirePlatformAdmin(request);
-    return this.content.listLanguages(query);
-  }
-
-  @Post('languages')
-  async createLanguage(@Req() request: FastifyRequest, @Body() body: unknown) {
-    await this.access.requirePlatformAdmin(request);
-    return this.content.saveLanguage(null, body);
-  }
-
-  @Patch('languages/:id')
-  async updateLanguage(
-    @Req() request: FastifyRequest,
-    @Param('id') id: string,
-    @Body() body: unknown,
-  ) {
-    await this.access.requirePlatformAdmin(request);
-    return this.content.saveLanguage(id, body);
-  }
-
-  @Delete('languages/:id')
-  async removeLanguage(
-    @Req() request: FastifyRequest,
-    @Param('id') id: string,
-  ) {
-    await this.access.requirePlatformAdmin(request);
-    await this.content.removeLanguage(id);
-  }
-
   @Get('blog-categories')
   async blogCategories(
     @Req() request: FastifyRequest,

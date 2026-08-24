@@ -28,7 +28,7 @@ import audit_i18n_hardcoded as audit  # noqa: E402
 
 
 ROOT = Path(__file__).resolve().parents[1]
-MESSAGES = ROOT / "apps/web/messages"
+MESSAGES = ROOT / "packages/contracts/src/messages"
 
 NAMESPACE = re.compile(r'const (\w+) = useTranslations\("([^"]+)"\)')
 

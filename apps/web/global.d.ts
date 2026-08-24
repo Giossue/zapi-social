@@ -1,6 +1,5 @@
-import type messages from "./messages/es.d.json"
+import type messages from "../../packages/contracts/src/messages/es.d.json"
 import type { formats } from "./i18n/request"
-import type { supportedLocales } from "./i18n/locales"
 
 /**
  * Tipa claves, argumentos y formatos a partir del idioma fuente: una clave que
@@ -9,7 +8,7 @@ import type { supportedLocales } from "./i18n/locales"
  */
 declare module "next-intl" {
   interface AppConfig {
-    Locale: (typeof supportedLocales)[number]
+    Locale: string
     Messages: typeof messages
     Formats: typeof formats
   }
