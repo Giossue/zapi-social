@@ -14,7 +14,6 @@ import type { AccountProfile } from "@/components/account-menu"
 import type { ActiveWorkspace } from "@workspace/contracts"
 import { usePersistedSidebarState } from "@/hooks/use-persisted-sidebar-state"
 
-import { AccountMenu } from "../account-menu"
 import { DashboardSidebar } from "./app-sidebar"
 import type {
   DashboardNavigationGroup,
@@ -93,6 +92,7 @@ export function DashboardShell({
         homeHref={homeHref}
         isItemActive={isItemActive}
         items={items}
+        profile={profile}
         variant="inset"
       />
       <SidebarInset
@@ -120,15 +120,12 @@ export function DashboardShell({
               />
               <DashboardSearchDialog items={items} />
             </div>
-            <div className="flex items-center gap-2">
-              {workspaceContext ? (
-                <>
-                  <NotificationBell />
-                  <WorkspaceSwitcher {...workspaceContext} />
-                </>
-              ) : null}
-              <AccountMenu profile={profile} />
-            </div>
+            {workspaceContext ? (
+              <div className="flex items-center gap-2">
+                <NotificationBell />
+                <WorkspaceSwitcher {...workspaceContext} />
+              </div>
+            ) : null}
           </div>
         </header>
         <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden p-4 has-data-[content-padding=false]:p-0 md:p-6 md:has-data-[content-padding=false]:p-0">

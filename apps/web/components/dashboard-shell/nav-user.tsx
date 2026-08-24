@@ -25,6 +25,7 @@ import {
   type AccountProfile,
   useSessionLogout,
 } from "@/components/account-menu"
+import { ThemeMenuItem } from "@/components/dashboard-shell/theme-switcher"
 
 type DashboardNavUserProps = {
   profile: AccountProfile
@@ -94,6 +95,7 @@ export function DashboardNavUser({ profile }: DashboardNavUserProps) {
                   {t("myProfile")}
                 </Link>
               </DropdownMenuItem>
+              <ThemeMenuItem />
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem

@@ -7,6 +7,7 @@ import { ZapiLogo } from "@/components/zapi-logo"
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -15,15 +16,18 @@ import {
 } from "@workspace/ui/components/sidebar"
 
 import { DashboardNavMain } from "./nav-main"
+import { DashboardNavUser } from "./nav-user"
 import type {
   DashboardNavigationGroup,
   DashboardNavigationLink,
 } from "./navigation-types"
+import type { AccountProfile } from "../account-menu"
 
 type DashboardSidebarProps = React.ComponentProps<typeof Sidebar> & {
   homeHref: string
   isItemActive: (item: DashboardNavigationLink, pathname: string) => boolean
   items: readonly DashboardNavigationGroup[]
+  profile: AccountProfile
 }
 
 function DashboardSidebarHeader({ homeHref }: { homeHref: string }) {
@@ -49,6 +53,7 @@ export function DashboardSidebar({
   homeHref,
   isItemActive,
   items,
+  profile,
   ...props
 }: DashboardSidebarProps) {
   return (
@@ -57,6 +62,9 @@ export function DashboardSidebar({
       <SidebarContent>
         <DashboardNavMain isItemActive={isItemActive} items={items} />
       </SidebarContent>
+      <SidebarFooter>
+        <DashboardNavUser profile={profile} />
+      </SidebarFooter>
     </Sidebar>
   )
 }
