@@ -3,10 +3,10 @@
 ## Estado
 
 **Candidato técnico auditado el 24 de agosto de 2026.** Instalación, setup,
-modo demo, documentación inglesa y empaquetado ya están implementados. La
-revisión de [`qa-codecanyon-2026-08-24.md`](./qa-codecanyon-2026-08-24.md)
-mantiene el lanzamiento bloqueado hasta cerrar el downgrade diferido, la
-validación visual/navegador y las pruebas reales de proveedores.
+modo demo, documentación inglesa, empaquetado, downgrade diferido y QA de
+navegador responsive están implementados. La revisión de
+[`qa-codecanyon-2026-08-24.md`](./qa-codecanyon-2026-08-24.md) mantiene como
+gate externo las pruebas con cuentas reales o sandbox de proveedores.
 
 ## Qué ya está al nivel (o por encima) de ZapiSocial
 

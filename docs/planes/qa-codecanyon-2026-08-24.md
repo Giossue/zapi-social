@@ -3,9 +3,9 @@
 ## Veredicto
 
 El candidato es instalable, compila, migra desde cero, pasa las suites locales
-y ya tiene setup, demo de solo lectura, documentación inglesa y ZIP limpio.
-No se declara todavía listo para subir como versión 1.0: quedan tres cierres
-de producto que no pueden ocultarse con pruebas unitarias.
+y de navegador, y ya tiene setup, demo de solo lectura, documentación inglesa
+y ZIP limpio. El cierre interno está completo; antes de publicar la versión
+1.0 queda el gate externo de validar proveedores con cuentas reales o sandbox.
 
 ## Matriz ejecutada
 
@@ -13,15 +13,16 @@ de producto que no pueden ocultarse con pruebas unitarias.
 | ------------ | --------------------------------------------------------- | -------------------------------------------------------------------- |
 | Dependencias | `bun install --frozen-lockfile`, `bun audit`              | Lock reproducible; 0 vulnerabilidades conocidas                      |
 | Estática     | `bun run lint`, `bun run typecheck`, `bun run build`      | Verde en los 10 workspaces; Web generó 89 rutas                      |
-| API          | PostgreSQL local migrado, suite completa `--runInBand`    | 34 suites, 131 pruebas, 0 skips, 0 fallos                            |
-| Worker       | Misma base local, suite completa `--runInBand`            | 8 suites, 40 pruebas, 0 skips, 0 fallos                              |
+| API          | PostgreSQL local migrado, suite completa `--runInBand`    | 35 suites, 133 pruebas, 0 skips, 0 fallos                            |
+| Worker       | Misma base local, suite completa `--runInBand`            | 9 suites, 41 pruebas, 0 skips, 0 fallos                              |
 | UI           | Auditor `--fail-on-findings`, lint, typecheck y build Web | Sin hallazgos después de corregir Setup                              |
-| i18n         | Sincronización y cadenas hardcoded                        | 4372 claves sincronizadas; 0 textos de UI en código                  |
-| Schema       | Auditor de 96 tablas y 1066 columnas                      | 4 muertas, 10 dudosas y 3 solo-schema registradas como deuda         |
+| Navegador    | Playwright Chromium, escritorio y móvil                   | 12 flujos: auth, Admin, Portal, sheets, notificaciones y tema oscuro |
+| i18n         | Sincronización y cadenas hardcoded                        | 4381 claves sincronizadas; 0 textos de UI en código                  |
+| Schema       | Auditor de 96 tablas y 1067 columnas                      | 4 muertas, 10 dudosas y 3 solo-schema registradas como deuda         |
 | Runtime demo | API y Web de producción contra PostgreSQL y Redis         | Health OK; escritura 403; login permitido; aviso visible             |
 | Seeder demo  | Dos ejecuciones consecutivas                              | 2 canales, 9 posts, 3 tareas y 2 notificaciones, sin duplicados      |
 | Contenedores | Build API y Web; inspección de runtime                    | Imágenes correctas; usuarios finales `bun` y `node`; seeder incluido |
-| Instalación  | Compose limpio ejecutado durante el cierre                | 47 migraciones, setup, login, Admin, Portal y apagado limpio         |
+| Instalación  | Compose limpio ejecutado durante el cierre                | 48 migraciones, setup, login, Admin, Portal y apagado limpio         |
 | Distribución | `release:codecanyon -- 1.0.0-qa`                          | ZIP válido de 2.2 MB; checksum reproducible; exclusiones verificadas |
 
 ## Seguridad revisada
@@ -51,20 +52,20 @@ de producto que no pueden ocultarse con pruebas unitarias.
 - Demo de solo lectura con error estable, aviso global y datos sintéticos.
 - Formulario Setup sin validación nativa, errores por toast y submit bloqueado
   mientras falten campos.
+- Downgrade a plan gratuito programable y cancelable, con sincronización
+  `cancelAtPeriodEnd` y transición idempotente en Worker.
+- Todos los sheets usan una sola barra de acciones persistente, separador
+  uniforme y scroll central; el auditor impide regresiones del patrón.
+- Suite Playwright reproducible en escritorio y móvil. El build real detectó
+  y corrigió la necesidad de compilar Database antes de arrancar API.
 - Documentación HTML inglesa, créditos y empaquetador reproducible.
 
-## Bloqueos antes de publicar 1.0
+## Gate antes de publicar 1.0
 
-1. **Ciclo de vida de planes:** falta aplicar el downgrade diferido al vencer
-   el periodo (`nextPlanId`), ya registrado en
-   [`limites-de-plan-v2.md`](./limites-de-plan-v2.md). Hoy la expiración sí cae
-   al plan gratuito, pero no existe el cambio diferido elegido por el usuario.
-2. **QA visual y navegador:** no existe suite browser E2E ejecutable ni acta de
-   aprobación visual responsive/claro/oscuro para las superficies críticas de
-   Admin, Portal, checkout, notificaciones y setup.
-3. **Proveedores reales:** OAuth, publicación, SMTP, Turnstile y webhooks de
-   Polar necesitan cuentas sandbox/reales. Las pruebas locales cubren fallos y
-   contratos, pero no certifican cambios externos de cada proveedor.
+**Proveedores reales:** OAuth, publicación, SMTP, Turnstile y webhooks de
+Polar necesitan cuentas sandbox/reales. Las pruebas locales cubren fallos,
+contratos, retornos de checkout y estados de UI, pero no certifican cambios
+externos de cada proveedor.
 
 ## Riesgos y deuda no bloqueante
 
