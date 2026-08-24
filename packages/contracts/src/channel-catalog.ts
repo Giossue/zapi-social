@@ -29,8 +29,25 @@ export const channelFieldTypeSchema = z.enum([
 
 export const channelAccountTypeSchema = z.enum(["oauth", "manual"])
 
+/**
+ * Conjunto cerrado: cada campo necesita su rótulo traducido, y un `string`
+ * libre dejaría pasar uno sin texto. Añadir un campo nuevo obliga a añadirlo
+ * aquí y en los catálogos de idioma, que es justo lo que se quiere.
+ */
+export const channelProviderFieldKeySchema = z.enum([
+  "clientId",
+  "clientSecret",
+  "clientKey",
+  "apiVersion",
+  "graphVersion",
+  "callbackUrl",
+  "baseUrl",
+  "basicAuthUsername",
+  "basicAuthPassword",
+])
+
 export const channelProviderFieldSchema = z.object({
-  key: z.string(),
+  key: channelProviderFieldKeySchema,
   type: channelFieldTypeSchema,
   required: z.boolean(),
   /** Solo informativo: lo calcula el servidor y no se envía. */
@@ -71,6 +88,9 @@ export const channelCapabilityDefinitionSchema = z.object({
 })
 
 export type ChannelFieldType = z.infer<typeof channelFieldTypeSchema>
+export type ChannelProviderFieldKey = z.infer<
+  typeof channelProviderFieldKeySchema
+>
 export type ChannelAccountType = z.infer<typeof channelAccountTypeSchema>
 export type ChannelProviderField = z.infer<typeof channelProviderFieldSchema>
 export type ChannelProviderDefinition = z.infer<
@@ -82,7 +102,7 @@ export type ChannelCapabilityDefinition = z.infer<
 >
 
 function field(
-  key: string,
+  key: ChannelProviderFieldKey,
   type: ChannelFieldType,
   options: { required?: boolean; readOnly?: boolean; maxLength?: number } = {}
 ): ChannelProviderField {

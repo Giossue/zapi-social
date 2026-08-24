@@ -3,6 +3,7 @@ import { z } from "zod"
 import {
   channelProvider,
   channelProviderDefinitionSchema,
+  channelProviderFieldKeySchema,
 } from "./channel-catalog.js"
 import {
   portalChannelCapabilityKeySchema,
@@ -18,6 +19,16 @@ import {
  * siete veces. Aquí el formulario sale del catálogo: la API valida contra los
  * campos declarados y la interfaz los pinta sin saber de qué red se trata.
  */
+
+/** Motivos por los que una integración no está lista, o por los que falló su prueba. */
+export const channelProviderIssueSchema = z.enum([
+  "configuration_required",
+  "configuration_requires_test",
+  "verifier_unavailable",
+  "invalid_credentials",
+  "provider_unreachable",
+  "unknown",
+])
 
 export const channelProviderReadinessSchema = z.enum([
   "disabled",
@@ -37,13 +48,13 @@ export const channelProviderIntegrationSchema = z.object({
   enabled: z.boolean(),
   readiness: channelProviderReadinessSchema,
   /** Claves que la interfaz traduce; nunca prosa. */
-  issues: z.array(z.string()),
+  issues: z.array(channelProviderIssueSchema),
   /**
    * Valores guardados de los campos no secretos. Un campo `secret` nunca
    * vuelve: solo se dice si está puesto, en `secretsConfigured`.
    */
   values: z.record(z.string(), z.string()),
-  secretsConfigured: z.array(z.string()),
+  secretsConfigured: z.array(channelProviderFieldKeySchema),
   capabilities: z.array(channelProviderCapabilityStateSchema),
   lastTestedAt: z.string().datetime().nullable(),
   /**
@@ -73,7 +84,7 @@ export const testChannelProviderIntegrationSchema = z
 export const testChannelProviderIntegrationResponseSchema = z.object({
   ok: z.boolean(),
   /** Clave de error si la prueba falló; la interfaz la traduce. */
-  issue: z.string().nullable(),
+  issue: channelProviderIssueSchema.nullable(),
 })
 
 /**
@@ -102,6 +113,7 @@ export function channelProviderValuesSchema(
   return z.object(shape).strict()
 }
 
+export type ChannelProviderIssue = z.infer<typeof channelProviderIssueSchema>
 export type ChannelProviderReadiness = z.infer<
   typeof channelProviderReadinessSchema
 >

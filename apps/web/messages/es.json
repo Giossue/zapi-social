@@ -3522,6 +3522,36 @@
       }
     },
     "cardForbidden": "Tu cuenta no puede administrar esta integración.",
+    "channelProvider": {
+      "capabilities": "Canales",
+      "capabilitiesHint": "Solo los marcados se pueden conectar desde el Portal.",
+      "description": "Credenciales de la aplicación que conecta esta red.",
+      "enabled": "Integración activa",
+      "enabledHint": "Mientras esté apagada, el Portal muestra sus canales como próximamente.",
+      "field": {
+        "apiVersion": "Versión de la API",
+        "baseUrl": "URL del conector",
+        "basicAuthPassword": "Contraseña",
+        "basicAuthUsername": "Usuario",
+        "callbackUrl": "URL de retorno",
+        "clientId": "Client ID",
+        "clientKey": "Client Key",
+        "clientSecret": "Client Secret",
+        "graphVersion": "Versión del Graph"
+      },
+      "readOnlyHint": "Lo calcula el servidor. Cópialo en la consola del proveedor.",
+      "readiness": {
+        "disabled": "Apagada",
+        "incomplete": "Falta configuración",
+        "ready": "Lista",
+        "untested": "Sin probar"
+      },
+      "save": "Guardar",
+      "saved": "Integración guardada.",
+      "secretConfigured": "Guardado; escribe para reemplazarlo",
+      "test": "Probar credenciales",
+      "testPassed": "Las credenciales funcionan."
+    },
     "channelType": "Tipo de canal",
     "channelTypes": "Tipos de canal",
     "configurationSummary": "Resumen de configuración",
@@ -3560,6 +3590,14 @@
       "testPicker": "Probar selector",
       "testPickerHint": "Elige una imagen o video; la prueba no lo importa.",
       "unavailable": "Google Drive no disponible"
+    },
+    "issue": {
+      "configuration_required": "Faltan credenciales por completar.",
+      "configuration_requires_test": "Prueba las credenciales antes de activarla.",
+      "invalid_credentials": "El proveedor rechazó estas credenciales.",
+      "provider_unreachable": "No pudimos contactar con el proveedor.",
+      "unknown": "No pudimos completar la prueba.",
+      "verifier_unavailable": "Esta red todavía no se puede probar, así que no puede activarse."
     },
     "meta": {
       "checkCredentials": "Revisa el ID y el secreto de la aplicación.",

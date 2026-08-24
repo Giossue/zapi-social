@@ -4,7 +4,9 @@ import { ConfigService } from '@nestjs/config';
 import { providerIntegrations } from '@workspace/database';
 import { eq } from '@workspace/database/query';
 import {
+  type ChannelProviderFieldKey,
   type ChannelProviderIntegration,
+  type ChannelProviderIssue,
   type ChannelProviderIntegrationsResponse,
   type PortalChannelProviderKey,
   type TestChannelProviderIntegrationResponse,
@@ -112,7 +114,7 @@ export class ChannelProviderIntegrationsService {
     const enabledCapabilityKeys = new Set(row?.enabledCapabilityKeys ?? []);
 
     const values: Record<string, string> = {};
-    const secretsConfigured: string[] = [];
+    const secretsConfigured: ChannelProviderFieldKey[] = [];
     for (const field of definition.fields) {
       if (field.type === 'secret') {
         // Un secreto no vuelve nunca; solo se dice si está puesto.
@@ -365,7 +367,7 @@ export class ChannelProviderIntegrationsService {
     configured: boolean,
     tested: boolean,
     providerKey: PortalChannelProviderKey,
-  ): string[] {
+  ): ChannelProviderIssue[] {
     if (!enabled) return [];
     if (!configured) return ['configuration_required'];
     if (!this.verifiers.has(providerKey)) return ['verifier_unavailable'];

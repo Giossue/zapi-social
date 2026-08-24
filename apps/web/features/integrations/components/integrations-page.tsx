@@ -1,6 +1,9 @@
 "use client"
 
 import { ApiError, integrationsApi } from "@workspace/api-client"
+import type { ChannelProviderIntegration } from "@workspace/contracts"
+
+import { useChannelLabels } from "@/lib/channel-labels"
 import { WhatsAppStatusIntegrationCard } from "./whatsapp-status-integration-card"
 import { EmailSmtpIntegrationCard } from "./email-smtp-integration-card"
 import { IntegrationAvailabilityCard } from "./integration-availability-card"
@@ -8,6 +11,7 @@ import { IntegrationCardLoading } from "./integration-card-loading"
 import { IntegrationInsetCard } from "./integration-inset-card"
 import { PolarIntegrationPreview } from "./polar-integration-card"
 import { GoogleDriveIntegrationCard } from "./google-drive-integration-card"
+import { ChannelProviderIntegrationCard } from "./channel-provider-integration-card"
 import type { MetaIntegration } from "@workspace/contracts"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -103,7 +107,11 @@ type Draft = {
 }
 
 type TestState = "not-tested" | "testing" | "passed" | "failed"
-type ProviderTab = "meta" | "whatsapp" | "email" | "polar" | "google-drive"
+/**
+ * Las cinco primeras tienen pantalla propia; el resto llega del catálogo, así
+ * que la pestaña es una cadena y no una unión cerrada.
+ */
+type ProviderTab = string
 
 const statusVariants = {
   ready: "success" as const,
@@ -185,6 +193,13 @@ export function IntegrationsPage() {
   const [forbidden, setForbidden] = useState(false)
   const [saving, setSaving] = useState(false)
   const [activeProvider, setActiveProvider] = useState<ProviderTab>("meta")
+  const [channelProviders, setChannelProviders] = useState<
+    ChannelProviderIntegration[]
+  >([])
+  const labels = useChannelLabels()
+  const activeChannelProvider = channelProviders.find(
+    (provider) => provider.providerKey === activeProvider
+  )
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -206,6 +221,18 @@ export function IntegrationsPage() {
       setLoading(false)
     }
   }, [t])
+
+  useEffect(() => {
+    // Las redes sin pantalla propia llegan del catálogo; si la llamada falla no
+    // se rompe la página, solo faltan sus pestañas.
+    const timer = setTimeout(() => {
+      void integrationsApi
+        .listChannelProviders()
+        .then((response) => setChannelProviders(response.providers))
+        .catch(() => setChannelProviders([]))
+    }, 0)
+    return () => clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     // El temporizador saca el primer `setState` del cuerpo del efecto y cancela
@@ -382,6 +409,16 @@ export function IntegrationsPage() {
             <TabsTrigger value="email">{t("tab.email")}</TabsTrigger>
             <TabsTrigger value="polar">Polar.sh</TabsTrigger>
             <TabsTrigger value="google-drive">Google Drive</TabsTrigger>
+          {channelProviders.map((provider) => (
+            <TabsTrigger key={provider.providerKey} value={provider.providerKey}>
+              {labels.provider(provider.providerKey)}
+            </TabsTrigger>
+          ))}
+            {channelProviders.map((provider) => (
+              <TabsTrigger key={provider.providerKey} value={provider.providerKey}>
+                {labels.provider(provider.providerKey)}
+              </TabsTrigger>
+            ))}
           </TabsList>
         </Tabs>
         <IntegrationCardLoading />
@@ -406,6 +443,16 @@ export function IntegrationsPage() {
             <TabsTrigger value="email">{t("tab.email")}</TabsTrigger>
             <TabsTrigger value="polar">Polar.sh</TabsTrigger>
             <TabsTrigger value="google-drive">Google Drive</TabsTrigger>
+          {channelProviders.map((provider) => (
+            <TabsTrigger key={provider.providerKey} value={provider.providerKey}>
+              {labels.provider(provider.providerKey)}
+            </TabsTrigger>
+          ))}
+            {channelProviders.map((provider) => (
+              <TabsTrigger key={provider.providerKey} value={provider.providerKey}>
+                {labels.provider(provider.providerKey)}
+              </TabsTrigger>
+            ))}
           </TabsList>
         </Tabs>
         <Card variant="subtle">
@@ -453,6 +500,11 @@ export function IntegrationsPage() {
           <TabsTrigger value="email">{t("tab.email")}</TabsTrigger>
           <TabsTrigger value="polar">Polar.sh</TabsTrigger>
           <TabsTrigger value="google-drive">Google Drive</TabsTrigger>
+          {channelProviders.map((provider) => (
+            <TabsTrigger key={provider.providerKey} value={provider.providerKey}>
+              {labels.provider(provider.providerKey)}
+            </TabsTrigger>
+          ))}
         </TabsList>
       </Tabs>
 
@@ -606,6 +658,18 @@ export function IntegrationsPage() {
         <EmailSmtpIntegrationCard />
       ) : activeProvider === "google-drive" ? (
         <GoogleDriveIntegrationCard />
+      ) : activeChannelProvider ? (
+        <ChannelProviderIntegrationCard
+          key={activeChannelProvider.providerKey}
+          onSaved={(saved) =>
+            setChannelProviders((current) =>
+              current.map((provider) =>
+                provider.providerKey === saved.providerKey ? saved : provider
+              )
+            )
+          }
+          provider={activeChannelProvider}
+        />
       ) : (
         <PolarIntegrationPreview />
       )}

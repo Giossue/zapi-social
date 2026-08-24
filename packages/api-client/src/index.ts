@@ -1,5 +1,10 @@
 import type {
   AdminDashboard,
+  ChannelProviderIntegration,
+  ChannelProviderIntegrationsResponse,
+  SaveChannelProviderIntegrationInput,
+  TestChannelProviderIntegrationInput,
+  TestChannelProviderIntegrationResponse,
   BoardColumn,
   BoardLabel,
   BoardQuery,
@@ -1281,6 +1286,31 @@ export const integrationsApi = {
       method: "PATCH",
       body: JSON.stringify(input),
     }),
+  /**
+   * Proveedores de canal servidos desde el catálogo: una sola pareja de
+   * métodos para todas las redes que no traen pantalla propia.
+   */
+  listChannelProviders: () =>
+    request<ChannelProviderIntegrationsResponse>(
+      "/v1/admin/integrations/channel-providers",
+      { method: "GET" }
+    ),
+  testChannelProvider: (
+    providerKey: string,
+    input: TestChannelProviderIntegrationInput
+  ) =>
+    request<TestChannelProviderIntegrationResponse>(
+      `/v1/admin/integrations/channel-providers/${providerKey}/test`,
+      { method: "POST", body: JSON.stringify(input) }
+    ),
+  saveChannelProvider: (
+    providerKey: string,
+    input: SaveChannelProviderIntegrationInput
+  ) =>
+    request<ChannelProviderIntegration>(
+      `/v1/admin/integrations/channel-providers/${providerKey}`,
+      { method: "PATCH", body: JSON.stringify(input) }
+    ),
   getMeta: () =>
     request<MetaIntegration>("/v1/admin/integrations/meta", { method: "GET" }),
   testMeta: (input: TestMetaIntegrationInput) =>

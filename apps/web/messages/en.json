@@ -3522,6 +3522,36 @@
       }
     },
     "cardForbidden": "Your account can't manage this integration.",
+    "channelProvider": {
+      "capabilities": "Channels",
+      "capabilitiesHint": "Only the ticked ones can be connected from the Portal.",
+      "description": "Credentials of the app that connects this network.",
+      "enabled": "Integration active",
+      "enabledHint": "While it is off, the Portal shows its channels as coming soon.",
+      "field": {
+        "apiVersion": "API version",
+        "baseUrl": "Connector URL",
+        "basicAuthPassword": "Password",
+        "basicAuthUsername": "Username",
+        "callbackUrl": "Callback URL",
+        "clientId": "Client ID",
+        "clientKey": "Client Key",
+        "clientSecret": "Client Secret",
+        "graphVersion": "Graph version"
+      },
+      "readOnlyHint": "The server computes it. Copy it into the provider console.",
+      "readiness": {
+        "disabled": "Off",
+        "incomplete": "Configuration missing",
+        "ready": "Ready",
+        "untested": "Untested"
+      },
+      "save": "Save",
+      "saved": "Integration saved.",
+      "secretConfigured": "Saved; type to replace it",
+      "test": "Test credentials",
+      "testPassed": "The credentials work."
+    },
     "channelType": "Channel type",
     "channelTypes": "Channel types",
     "configurationSummary": "Configuration summary",
@@ -3560,6 +3590,14 @@
       "testPicker": "Test picker",
       "testPickerHint": "Choose an image or video; the test doesn't import it.",
       "unavailable": "Google Drive unavailable"
+    },
+    "issue": {
+      "configuration_required": "Some credentials are still missing.",
+      "configuration_requires_test": "Test the credentials before switching it on.",
+      "invalid_credentials": "The provider rejected these credentials.",
+      "provider_unreachable": "We could not reach the provider.",
+      "unknown": "We could not complete the test.",
+      "verifier_unavailable": "This network cannot be tested yet, so it cannot be switched on."
     },
     "meta": {
       "checkCredentials": "Check the app ID and secret.",

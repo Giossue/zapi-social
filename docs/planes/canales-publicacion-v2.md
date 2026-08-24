@@ -141,6 +141,11 @@ Falta lo que hace que añadir una red sea barato:
    configuración bajo otra clave y con su propio contrato: Meta se almacena como
    `facebook`, no como `meta`.
 
+   La tarjeta genérica vive en
+   `apps/web/features/integrations/components/channel-provider-integration-card.tsx`
+   y se pinta desde la definición: campos, tipos y capabilities. Añadir una red
+   no la toca.
+
    Un proveedor **no llega a `ready` sin verificador**. Dar por buenas unas
    credenciales sin comprobarlas abriría el canal en el Portal y el fallo
    aparecería al publicar, que es el peor momento. Por eso añadir una red es:
@@ -151,7 +156,10 @@ Falta lo que hace que añadir una red sea barato:
    `channelCapabilityCatalog`, con `validateChannelMedia()` en contratos para
    que la interfaz avise antes de guardar y la API lo compruebe antes de
    encolar. Falta engancharlas al formulario de Publishing.
-4. **Refresco de token.** X, TikTok y LinkedIn caducan sus tokens; Meta usa
+4. **Los verificadores y el flujo OAuth de cada red.** Sin verificador, su
+   integración se queda en «sin probar» y el Portal no abre el canal, que es el
+   comportamiento correcto pero no sirve todavía para conectar.
+5. **Refresco de token.** X, TikTok y LinkedIn caducan sus tokens; Meta usa
    tokens de larga duración. V2 ya tiene `channel_sync_runs` y schedulers en el
    worker, así que es el sitio natural.
 
