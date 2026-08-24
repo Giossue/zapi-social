@@ -2,11 +2,11 @@
 
 ## Estado
 
-**Hoja de ruta definida el 23 de agosto de 2026.** Este plan no implementa
-nada: ordena lo que falta para que V2 se venda en CodeCanyon como producto
-igual o mejor que ZapiSocial, y enlaza el plan propio de cada bloque. Cada
-bloque se marca aquí solo cuando su plan declara la vertical cerrada con
-evidencia.
+**Candidato técnico auditado el 24 de agosto de 2026.** Instalación, setup,
+modo demo, documentación inglesa y empaquetado ya están implementados. La
+revisión de [`qa-codecanyon-2026-08-24.md`](./qa-codecanyon-2026-08-24.md)
+mantiene el lanzamiento bloqueado hasta cerrar el downgrade diferido, la
+validación visual/navegador y las pruebas reales de proveedores.
 
 ## Qué ya está al nivel (o por encima) de ZapiSocial
 

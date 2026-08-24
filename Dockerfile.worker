@@ -15,8 +15,6 @@ COPY packages/file-ingestion/package.json packages/file-ingestion/package.json
 COPY packages/typescript-config/package.json packages/typescript-config/package.json
 COPY packages/database/package.json packages/database/package.json
 
-# La caché de descargas de bun sobrevive entre builds: `bun install` solo vuelve
-# a resolver lo que cambió en el lockfile en vez de bajarlo todo otra vez.
 RUN --mount=type=cache,target=/root/.bun/install/cache \
   bun install --frozen-lockfile
 
