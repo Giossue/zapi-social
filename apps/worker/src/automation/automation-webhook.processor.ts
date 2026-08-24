@@ -11,7 +11,7 @@ import {
   automationWebhookDeliveries,
   automationWebhooks,
 } from '@workspace/database';
-import { and, eq, inArray, or, sql } from '@workspace/database/query';
+import { and, eq, inArray, lte, or, sql } from '@workspace/database/query';
 import type { Job, Queue } from 'bullmq';
 import { Aes256GcmService } from '../platform/crypto/aes-256-gcm.service';
 import { DatabaseService } from '../database/database.service';
@@ -75,11 +75,11 @@ export class AutomationWebhookProcessor extends WorkerHost {
           or(
             and(
               inArray(automationWebhookDeliveries.status, ['queued', 'failed']),
-              sql`${automationWebhookDeliveries.nextAttemptAt} <= ${now}`,
+              lte(automationWebhookDeliveries.nextAttemptAt, now),
             ),
             and(
               eq(automationWebhookDeliveries.status, 'processing'),
-              sql`${automationWebhookDeliveries.updatedAt} <= ${staleBefore}`,
+              lte(automationWebhookDeliveries.updatedAt, staleBefore),
             ),
           ),
         ),
@@ -117,11 +117,11 @@ export class AutomationWebhookProcessor extends WorkerHost {
           or(
             and(
               inArray(automationWebhookDeliveries.status, ['queued', 'failed']),
-              sql`${automationWebhookDeliveries.nextAttemptAt} <= ${now}`,
+              lte(automationWebhookDeliveries.nextAttemptAt, now),
             ),
             and(
               eq(automationWebhookDeliveries.status, 'processing'),
-              sql`${automationWebhookDeliveries.updatedAt} <= ${staleBefore}`,
+              lte(automationWebhookDeliveries.updatedAt, staleBefore),
             ),
           ),
         ),

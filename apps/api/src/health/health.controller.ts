@@ -16,12 +16,17 @@ export class HealthController {
       port: Number(process.env.REDIS_PORT),
       username: process.env.REDIS_USERNAME,
       password: process.env.REDIS_PASSWORD,
+      lazyConnect: true,
+      connectTimeout: 1_500,
+      maxRetriesPerRequest: 0,
+      retryStrategy: () => null,
     });
+    redis.on('error', () => undefined);
 
     try {
       await Promise.all([
         this.database.client.unsafe('select 1'),
-        redis.ping(),
+        redis.connect().then(() => redis.ping()),
       ]);
       return {
         status: 'ok' as const,
@@ -33,7 +38,7 @@ export class HealthController {
         'Infrastructure dependency unavailable',
       );
     } finally {
-      await redis.quit();
+      redis.disconnect();
     }
   }
 }

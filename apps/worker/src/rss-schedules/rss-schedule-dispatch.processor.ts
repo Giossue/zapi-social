@@ -1,7 +1,7 @@
 import { InjectQueue, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
 import { rssScheduleRuns, rssSchedules } from '@workspace/database';
-import { and, eq, isNull, or, sql } from '@workspace/database/query';
+import { and, eq, isNull, lte, or } from '@workspace/database/query';
 import type { Job, Queue } from 'bullmq';
 import { WorkerAuditService } from '../audit/worker-audit.service';
 import { DatabaseService } from '../database/database.service';
@@ -41,10 +41,7 @@ export class RssScheduleDispatchProcessor extends WorkerHost {
       .where(
         and(
           eq(rssSchedules.status, 'active'),
-          or(
-            isNull(rssSchedules.nextRunAt),
-            sql`${rssSchedules.nextRunAt} <= ${now}`,
-          ),
+          or(isNull(rssSchedules.nextRunAt), lte(rssSchedules.nextRunAt, now)),
         ),
       )
       .limit(dispatchBatchSize);
@@ -114,7 +111,7 @@ export class RssScheduleDispatchProcessor extends WorkerHost {
             eq(rssSchedules.id, schedule.id),
             eq(rssSchedules.workspaceId, schedule.workspaceId),
             eq(rssSchedules.status, 'active'),
-            sql`${rssSchedules.nextRunAt} <= ${now}`,
+            lte(rssSchedules.nextRunAt, now),
           ),
         )
         .returning();

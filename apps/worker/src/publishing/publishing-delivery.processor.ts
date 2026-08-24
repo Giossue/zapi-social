@@ -7,7 +7,7 @@ import {
   publishingPosts,
   socialAccounts,
 } from '@workspace/database';
-import { and, asc, eq, or, sql } from '@workspace/database/query';
+import { and, asc, eq, lte, or, sql } from '@workspace/database/query';
 import type { Job, Queue } from 'bullmq';
 import { WorkerAuditService } from '../audit/worker-audit.service';
 import { AutomationWebhookEventsService } from '../automation/automation-webhook-events.service';
@@ -129,7 +129,7 @@ export class PublishingDeliveryProcessor extends WorkerHost {
           eq(publishingPosts.status, 'processing'),
           and(
             eq(publishingPosts.status, 'scheduled'),
-            sql`${publishingPosts.scheduledAt} <= ${now}`,
+            lte(publishingPosts.scheduledAt, now),
           ),
         ),
       )
@@ -261,7 +261,7 @@ export class PublishingDeliveryProcessor extends WorkerHost {
         and(
           eq(publishingPostAttempts.status, 'processing'),
           eq(publishingPosts.status, 'processing'),
-          sql`${publishingPostAttempts.updatedAt} <= ${staleBefore}`,
+          lte(publishingPostAttempts.updatedAt, staleBefore),
         ),
       )
       .limit(200);
@@ -281,7 +281,7 @@ export class PublishingDeliveryProcessor extends WorkerHost {
               and(
                 eq(publishingPostAttempts.id, row.attempt.id),
                 eq(publishingPostAttempts.status, 'processing'),
-                sql`${publishingPostAttempts.updatedAt} <= ${staleBefore}`,
+                lte(publishingPostAttempts.updatedAt, staleBefore),
               ),
             )
             .returning({ id: publishingPostAttempts.id });

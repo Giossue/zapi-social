@@ -28,6 +28,7 @@ import {
   and,
   desc,
   eq,
+  gte,
   ilike,
   inArray,
   or,
@@ -959,7 +960,10 @@ export class AiRequestProcessor extends WorkerHost {
     const conditions = [
       eq(publishingPosts.workspaceId, request.workspaceId),
       eq(publishingPosts.status, 'published'),
-      sql`${publishingPosts.publishedAt} >= ${new Date(Date.now() - historyDays * 86_400_000)}`,
+      gte(
+        publishingPosts.publishedAt,
+        new Date(Date.now() - historyDays * 86_400_000),
+      ),
     ];
     if (accountIds.length) {
       conditions.push(inArray(publishingPosts.socialAccountId, accountIds));

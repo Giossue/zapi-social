@@ -7,7 +7,15 @@ import {
   creditLedgerEntries,
   workspaceCreditAccounts,
 } from '@workspace/database';
-import { and, eq, inArray, isNull, or, sql } from '@workspace/database/query';
+import {
+  and,
+  eq,
+  inArray,
+  isNull,
+  lte,
+  or,
+  sql,
+} from '@workspace/database/query';
 import { splitAiCreditCharge } from '@workspace/contracts';
 import type { Job, Queue } from 'bullmq';
 import { WorkerAuditService } from '../audit/worker-audit.service';
@@ -61,7 +69,7 @@ export class AiScheduleDispatchProcessor extends WorkerHost {
           eq(aiPublishingSchedules.status, 'active'),
           or(
             isNull(aiPublishingSchedules.nextRunAt),
-            sql`${aiPublishingSchedules.nextRunAt} <= ${now}`,
+            lte(aiPublishingSchedules.nextRunAt, now),
           ),
         ),
       )
