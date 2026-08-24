@@ -90,9 +90,13 @@ docs/updating.md      # actualización, backup, verificación y rollback
 
 ### Demo para la página de venta
 
-- `DEMO_MODE=true`: la API rechaza mutaciones destructivas con un código
-  estable (`DEMO_MODE_READONLY`) y la web muestra el aviso. Seeders de datos
-  demo (usuarios, posts, tablero) solo para esta modalidad.
+- `DEMO_MODE=true`: la API rechaza mutaciones de producto con un código
+  estable (`DEMO_MODE_READONLY`) y la web muestra el aviso. El seeder
+  idempotente crea canales sin credenciales, posts, borradores, tablero y
+  notificaciones sintéticos en el workspace demo existente.
+- La instalación se prepara primero con `DEMO_MODE=false`: setup crea el Admin
+  y Registro crea el owner del Portal. Después se ejecuta `seed:demo` con el
+  correo de ese owner y recién entonces se activa `DEMO_MODE=true`.
 
 ## Fuera de alcance
 
@@ -121,5 +125,8 @@ docs/updating.md      # actualización, backup, verificación y rollback
 
 ### Fase 3 — Demo
 
-- [ ] `DEMO_MODE` con bloqueo de mutaciones y aviso en la interfaz.
-- [ ] Datos demo sembrables para la página de venta.
+- [x] `DEMO_MODE` bloquea mutaciones de producto en la API con
+      `DEMO_MODE_READONLY`, conserva solo operaciones de sesión y muestra un
+      aviso global en la interfaz.
+- [x] Datos demo sembrables, idempotentes y sin credenciales externas para la
+      página de venta.

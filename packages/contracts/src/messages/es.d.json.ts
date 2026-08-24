@@ -3211,6 +3211,10 @@ declare const messages: {
       }
     }
   },
+  "demoMode": {
+    "description": "Puedes explorar los datos, pero los cambios están deshabilitados.",
+    "title": "Modo demo de solo lectura"
+  },
   "errors": {
     "ACCOUNT_GRANT_NOT_ALLOWED": "No puedes asignar una o más de las cuentas seleccionadas.",
     "ADMIN_ROLE_NAME_TAKEN": "Ya existe un rol con ese nombre.",
@@ -3243,6 +3247,7 @@ declare const messages: {
     "BOARD_POST_NOT_SCHEDULABLE": "Elige cuenta y fecha antes de programarla.",
     "BOARD_TASK_NOT_FOUND": "Esa tarea ya no existe.",
     "BOARD_TRANSITION_NOT_ALLOWED": "Ese estado lo decide la publicación, no el tablero.",
+    "DEMO_MODE_READONLY": "El modo demo no permite modificar datos.",
     "INVITATION_ALREADY_PENDING": "Ya existe una invitación pendiente para ese correo.",
     "INVITATION_RESEND_NOT_ALLOWED": "Esta invitación ya no se puede reenviar.",
     "LANGUAGE_DEFAULT_REQUIRED": "El idioma por defecto no se puede desactivar. Elige antes otro por defecto.",

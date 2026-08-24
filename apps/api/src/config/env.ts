@@ -12,6 +12,7 @@ const schema = z.object({
   JWT_ACCESS_SECRET: z.string().min(32),
   PROVIDER_INTEGRATIONS_ENCRYPTION_KEY: z.string().min(1),
   COOKIE_SECURE: z.enum(['true', 'false']).default('false'),
+  DEMO_MODE: z.enum(['true', 'false']).default('false'),
   COOKIE_DOMAIN: z.string().min(1).optional(),
   REDIS_HOST: z.string().default('127.0.0.1'),
   REDIS_PORT: z.coerce.number().int().positive().default(6379),

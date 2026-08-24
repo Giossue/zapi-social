@@ -3208,6 +3208,10 @@
       }
     }
   },
+  "demoMode": {
+    "description": "You can explore the data, but changes are disabled.",
+    "title": "Read-only demo mode"
+  },
   "errors": {
     "ACCOUNT_GRANT_NOT_ALLOWED": "You can't assign one or more of the selected accounts.",
     "ADMIN_ROLE_NAME_TAKEN": "A role with that name already exists.",
@@ -3240,6 +3244,7 @@
     "BOARD_POST_NOT_SCHEDULABLE": "Choose an account and a date before scheduling it.",
     "BOARD_TASK_NOT_FOUND": "That task no longer exists.",
     "BOARD_TRANSITION_NOT_ALLOWED": "That state is decided by publishing, not by the board.",
+    "DEMO_MODE_READONLY": "Demo mode does not allow data changes.",
     "INVITATION_ALREADY_PENDING": "There's already a pending invitation for that email.",
     "INVITATION_RESEND_NOT_ALLOWED": "This invitation can't be resent anymore.",
     "LANGUAGE_DEFAULT_REQUIRED": "The default language cannot be deactivated. Pick another default first.",

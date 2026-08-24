@@ -42,6 +42,7 @@ import { BillingModule } from './billing/billing.module';
 import { CaptchaAdminModule } from './captcha/captcha-admin.module';
 import { CaptchaModule } from './captcha/captcha.module';
 import { SetupModule } from './setup/setup.module';
+import { DemoModeGuard } from './platform/demo-mode.guard';
 
 const pinoRedactPaths = [
   'req.headers.authorization',
@@ -181,6 +182,9 @@ const pinoRedactPaths = [
     }),
   ],
   controllers: [HealthController, SystemInformationController],
-  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
+  providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: DemoModeGuard },
+  ],
 })
 export class AppModule {}
