@@ -2,7 +2,11 @@
 
 import * as React from "react"
 import { useFormatter, useTranslations } from "next-intl"
-import { adminOperationsApi, ApiError } from "@workspace/api-client"
+import {
+  adminImpersonationApi,
+  adminOperationsApi,
+  ApiError,
+} from "@workspace/api-client"
 import type {
   AdminOperationActionKey,
   AdminOperationView,
@@ -388,6 +392,13 @@ export function AdminModulePreview({
   const pageSize = 10
   const [dialogOpen, setDialogOpen] = React.useState(false)
   const [editingRowId, setEditingRowId] = React.useState<string | null>(null)
+  const [fieldAction, setFieldAction] = React.useState<{
+    key: AdminOperationActionKey
+    labelKey: string
+    fieldKeys: string[]
+    rowId: string
+  } | null>(null)
+  const [fieldActionValues, setFieldActionValues] = React.useState<string[]>([])
   const [detailRow, setDetailRow] = React.useState<Row | null>(null)
   const [formValues, setFormValues] = React.useState<string[]>([])
   const [remote, setRemote] = React.useState<Awaited<
@@ -692,6 +703,31 @@ export function AdminModulePreview({
                                     setDetailRow(row)
                                     return
                                   }
+                                  if (action.fieldKeys?.length) {
+                                    setFieldAction({
+                                      key: action.key,
+                                      labelKey: action.labelKey,
+                                      fieldKeys: [...action.fieldKeys],
+                                      rowId: row.id,
+                                    })
+                                    setFieldActionValues(
+                                      action.fieldKeys.map(() => "")
+                                    )
+                                    return
+                                  }
+                                  if (action.key === "impersonate") {
+                                    setSaving(true)
+                                    void adminImpersonationApi
+                                      .start(row.id)
+                                      .then(() => {
+                                        window.location.assign("/portal")
+                                      })
+                                      .catch(() =>
+                                        toast.error(t("actionFailed"))
+                                      )
+                                      .finally(() => setSaving(false))
+                                    return
+                                  }
                                   if (action.key === "edit" && primaryAction) {
                                     setEditingRowId(row.id)
                                     setFormValues(
@@ -776,6 +812,86 @@ export function AdminModulePreview({
         />
       ) : null}
 
+      <Sheet
+        onOpenChange={(open) => {
+          if (!saving && !open) setFieldAction(null)
+        }}
+        open={Boolean(fieldAction)}
+      >
+        <SheetContent className="w-full gap-0 p-0 sm:max-w-md">
+          <form
+            className="flex min-h-0 flex-1 flex-col"
+            noValidate
+            onSubmit={(event) => {
+              event.preventDefault()
+              if (!fieldAction) return
+              if (fieldActionValues.some((value) => !value.trim())) {
+                toast.error(t("missingFields"))
+                return
+              }
+              setSaving(true)
+              void adminOperationsApi
+                .action(
+                  moduleKey,
+                  activeTab,
+                  fieldAction.rowId,
+                  fieldAction.key,
+                  fieldActionValues
+                )
+                .then((result) => {
+                  setFieldAction(null)
+                  toast.success(t(`message.${result.messageKey}`))
+                  setRefreshKey((current) => current + 1)
+                })
+                .catch(() => toast.error(t("saveFailed")))
+                .finally(() => setSaving(false))
+            }}
+          >
+            <SheetHeader className="border-b pr-12">
+              <SheetTitle>
+                {fieldAction ? t(`rowAction.${fieldAction.labelKey}`) : ""}
+              </SheetTitle>
+              <SheetDescription>{t("fieldActionHint")}</SheetDescription>
+            </SheetHeader>
+            <div className="min-h-0 flex-1 overflow-y-auto p-4">
+              <FieldGroup>
+                {fieldAction?.fieldKeys.map((field, index) => (
+                  <Field key={field}>
+                    <RequiredLabel>{t(`field.${field}`)}</RequiredLabel>
+                    <Input
+                      aria-required="true"
+                      name={`action-field-${index}`}
+                      onChange={(event) =>
+                        setFieldActionValues((current) =>
+                          current.map((value, valueIndex) =>
+                            valueIndex === index ? event.target.value : value
+                          )
+                        )
+                      }
+                      placeholder={t(`field.${field}`)}
+                      value={fieldActionValues[index] ?? ""}
+                    />
+                  </Field>
+                ))}
+              </FieldGroup>
+            </div>
+            <SheetFooter className="flex-row justify-end border-t">
+              <Button
+                disabled={saving}
+                onClick={() => setFieldAction(null)}
+                type="button"
+                variant="brand-secondary"
+              >
+                {t("cancel")}
+              </Button>
+              <Button disabled={saving} type="submit">
+                {saving ? <Spinner data-icon="inline-start" /> : null}
+                {t("apply")}
+              </Button>
+            </SheetFooter>
+          </form>
+        </SheetContent>
+      </Sheet>
       {primaryAction ? (
         <Sheet
           onOpenChange={(open) => {

@@ -12,6 +12,7 @@ import { AutomationEventsService } from '../automation/automation-events.service
 import { DatabaseService } from '../database/database.service';
 import { TeamAccountAccessService } from '../teams/team-account-access.service';
 import { AdminAiService } from './admin-ai.service';
+import { PlanAccessService } from '../plans/plan-access.service';
 import { AiService } from './ai.service';
 
 const databaseUrl = process.env.DATABASE_URL;
@@ -94,6 +95,7 @@ describeDatabase('AI Studio integration', () => {
         databaseService,
         new TeamAccountAccessService(databaseService),
         { emit: () => Promise.resolve() } as unknown as AutomationEventsService,
+        new PlanAccessService(databaseService),
         { add: () => Promise.resolve() } as never,
       );
 

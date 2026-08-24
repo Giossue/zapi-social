@@ -25,6 +25,7 @@ import type {
   AdminPlansList,
   AdminTurnstileConfiguration,
   AuthSession,
+  PortalAuthSession,
   ActiveWorkspace,
   ActivateAuthWorkspaceInput,
   CreateAdminPlanInput,
@@ -238,6 +239,15 @@ import type {
   UpdateManualPaymentSettingsInput,
   AdminEmailTemplatesResponse,
   AdminPlatformLanguagesResponse,
+  AdminRoleCandidatesResponse,
+  AdminRoleMembersResponse,
+  AdminRolesResponse,
+  AdminTeamsResponse,
+  AdminUserReportResponse,
+  ListAdminTeamsQuery,
+  UpdateAdminTeamModulesInput,
+  AssignAdminRoleInput,
+  UpsertAdminRoleInput,
   AdminTranslationsResponse,
   CreateAdminPlatformLanguageInput,
   ExportAdminTranslationsResponse,
@@ -1491,6 +1501,79 @@ export const adminLanguagesApi = {
     request<ExportAdminTranslationsResponse>(
       `/v1/admin/languages/${code}/translations/export`,
       { method: "GET" }
+    ),
+}
+
+export const adminReportsApi = {
+  userReport: () =>
+    request<AdminUserReportResponse>("/v1/admin/user-report", {
+      method: "GET",
+    }),
+  teams: (query: Partial<ListAdminTeamsQuery>) => {
+    const params = new URLSearchParams()
+    if (query.q) params.set("q", query.q)
+    if (query.offset) params.set("offset", String(query.offset))
+    if (query.limit) params.set("limit", String(query.limit))
+    const suffix = params.size ? `?${params.toString()}` : ""
+    return request<AdminTeamsResponse>(`/v1/admin/teams${suffix}`, {
+      method: "GET",
+    })
+  },
+  updateTeamModules: (id: string, input: UpdateAdminTeamModulesInput) =>
+    request<{
+      id: string
+      enabledModules: AdminTeamsResponse["teams"][number]["enabledModules"]
+      availableModules: AdminTeamsResponse["teams"][number]["availableModules"]
+    }>(`/v1/admin/teams/${id}/modules`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+}
+
+export const adminImpersonationApi = {
+  start: (userId: string) =>
+    request<PortalAuthSession>(`/v1/admin/users/${userId}/impersonate`, {
+      method: "POST",
+    }),
+  leave: () =>
+    request<AuthSession>("/v1/auth/impersonation/leave", { method: "POST" }),
+}
+
+export const adminRolesApi = {
+  list: () =>
+    request<AdminRolesResponse>("/v1/admin/user-roles", { method: "GET" }),
+  create: (input: UpsertAdminRoleInput) =>
+    request<AdminRolesResponse>("/v1/admin/user-roles", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  update: (id: string, input: UpsertAdminRoleInput) =>
+    request<AdminRolesResponse>(`/v1/admin/user-roles/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  remove: (id: string) =>
+    request<AdminRolesResponse>(`/v1/admin/user-roles/${id}`, {
+      method: "DELETE",
+    }),
+  members: (id: string) =>
+    request<AdminRoleMembersResponse>(`/v1/admin/user-roles/${id}/members`, {
+      method: "GET",
+    }),
+  candidates: (q: string) =>
+    request<AdminRoleCandidatesResponse>(
+      `/v1/admin/user-roles/candidates/search${q ? `?q=${encodeURIComponent(q)}` : ""}`,
+      { method: "GET" }
+    ),
+  assign: (id: string, input: AssignAdminRoleInput) =>
+    request<AdminRoleMembersResponse>(`/v1/admin/user-roles/${id}/members`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  unassign: (id: string, userId: string) =>
+    request<AdminRoleMembersResponse>(
+      `/v1/admin/user-roles/${id}/members/${userId}`,
+      { method: "DELETE" }
     ),
 }
 

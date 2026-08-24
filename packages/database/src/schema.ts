@@ -41,6 +41,10 @@ export const users = pgTable(
     emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
     status: varchar("status", { length: 24 }).notNull().default("active"),
     isPlatformAdmin: boolean("is_platform_admin").notNull().default(false),
+    adminRoleId: uuid("admin_role_id").references(
+      (): AnyPgColumn => adminRoles.id,
+      { onDelete: "set null" }
+    ),
     ...timestamps,
   },
   (table) => [
@@ -63,10 +67,7 @@ export const workspaces = pgTable(
     slug: varchar("slug", { length: 96 }).notNull(),
     kind: varchar("kind", { length: 24 }).notNull().default("personal"),
     memberLimit: integer("member_limit"),
-    enabledModules: jsonb("enabled_modules")
-      .$type<string[]>()
-      .notNull()
-      .default(sql`'[]'::jsonb`),
+    enabledModules: jsonb("enabled_modules").$type<string[] | null>(),
     ...timestamps,
   },
   (table) => [
@@ -209,6 +210,10 @@ export const authSessions = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    impersonatorUserId: uuid("impersonator_user_id").references(
+      () => users.id,
+      { onDelete: "cascade" }
+    ),
     tokenHash: varchar("token_hash", { length: 128 }).notNull(),
     activeWorkspaceId: uuid("active_workspace_id").references(
       () => workspaces.id,
@@ -804,6 +809,10 @@ export const plans = pgTable(
       .$type<string[]>()
       .notNull()
       .default(sql`'[]'::jsonb`),
+    limits: jsonb("limits")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default(sql`'{}'::jsonb`),
     createdByUserId: uuid("created_by_user_id")
       .notNull()
       .references(() => users.id, { onDelete: "restrict" }),
@@ -2039,7 +2048,7 @@ export const aiWorkspaceSettings = pgTable(
       .notNull()
       .default("cercano"),
     language: varchar("language", { length: 16 }).notNull().default("es"),
-    enforceCredits: boolean("enforce_credits").notNull().default(false),
+    enforceCredits: boolean("enforce_credits").notNull().default(true),
     ...timestamps,
   },
   (table) => [
@@ -3814,4 +3823,19 @@ export const platformTranslations = pgTable(
     ),
     index("platform_translations_language_index").on(table.languageCode),
   ]
+)
+
+export const adminRoles = pgTable(
+  "admin_roles",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: varchar("name", { length: 120 }).notNull(),
+    description: varchar("description", { length: 500 }).notNull().default(""),
+    permissions: jsonb("permissions")
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    ...timestamps,
+  },
+  (table) => [uniqueIndex("admin_roles_name_unique").on(table.name)]
 )

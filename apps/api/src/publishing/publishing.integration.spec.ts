@@ -21,6 +21,7 @@ import { DatabaseService } from '../database/database.service';
 import { AppException } from '../platform/errors/app-exception';
 import { TeamAccountAccessService } from '../teams/team-account-access.service';
 import type { PublishingDeliveryJobData } from './publishing.constants';
+import type { PlanAccessService } from '../plans/plan-access.service';
 import { PublishingService } from './publishing.service';
 
 const databaseUrl = process.env.PUBLISHING_TEST_DATABASE_URL;
@@ -59,6 +60,12 @@ function queueThatFails(): Queue<PublishingDeliveryJobData> {
   return {
     add: () => Promise.reject(new Error('Queue unavailable in test.')),
   } as unknown as Queue<PublishingDeliveryJobData>;
+}
+
+function permissivePlanAccess(): PlanAccessService {
+  return {
+    requirePostSlot: () => Promise.resolve(),
+  } as unknown as PlanAccessService;
 }
 
 async function inRollbackTransaction(
@@ -167,6 +174,7 @@ function publishingService(database: Database) {
     databaseService,
     new TeamAccountAccessService(databaseService),
     new AutomationEventsService(databaseService),
+    permissivePlanAccess(),
     queueThatFails(),
     new ConfigService({
       FILES_STORAGE_PATH: '/tmp',

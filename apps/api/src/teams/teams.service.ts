@@ -40,6 +40,7 @@ import {
   type PublicPortalTeamInvitationPreview,
 } from '@workspace/contracts';
 import { DatabaseService } from '../database/database.service';
+import { PlanAccessService } from '../plans/plan-access.service';
 import { EmailService } from '../email/email.service';
 import { AppException } from '../platform/errors/app-exception';
 import { WorkspacePermissionsService } from './workspace-permissions.service';
@@ -87,6 +88,7 @@ export class TeamsService {
     private readonly database: DatabaseService,
     private readonly email: EmailService,
     private readonly permissions: WorkspacePermissionsService,
+    private readonly planAccess: PlanAccessService,
   ) {}
 
   async list(session: PortalAuthSession): Promise<PortalTeamsResponse> {
@@ -371,6 +373,7 @@ export class TeamsService {
       if (workspace.memberLimit !== null && used >= workspace.memberLimit) {
         throw new AppException('MEMBER_LIMIT_REACHED', HttpStatus.CONFLICT);
       }
+      await this.planAccess.requireInvitationSlot(session.workspace.id);
 
       const [created] = await tx
         .insert(workspaceInvitations)
@@ -773,6 +776,7 @@ export class TeamsService {
       let membershipId: string;
       if (existing?.status === 'active')
         throw new AppException('INVITATION_ALREADY_USED', HttpStatus.CONFLICT);
+      await this.planAccess.requireMemberSlot(invitation.workspaceId);
       if (existing) {
         await tx
           .update(workspaceMemberships)

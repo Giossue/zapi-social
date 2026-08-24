@@ -17,6 +17,7 @@ import type { FastifyRequest } from 'fastify';
 import { DatabaseService } from '../database/database.service';
 import { AppException } from '../platform/errors/app-exception';
 import { AutomationEventsService } from './automation-events.service';
+import type { PlanAccessService } from '../plans/plan-access.service';
 import { AutomationService } from './automation.service';
 
 const databaseUrl = process.env.PORTAL_AUTOMATION_TEST_DATABASE_URL;
@@ -65,7 +66,15 @@ function services(database: Database) {
   const config = new ConfigService({
     PROVIDER_INTEGRATIONS_ENCRYPTION_KEY: encryptionKey,
   });
-  const automation = new AutomationService(databaseService, events, config);
+  const automation = new AutomationService(
+    databaseService,
+    events,
+    {
+      requireModule: () => Promise.resolve(),
+      requirePostSlot: () => Promise.resolve(),
+    } as unknown as PlanAccessService,
+    config,
+  );
   return { automation, events };
 }
 

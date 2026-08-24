@@ -46,6 +46,7 @@ import {
   temporaryStorageKey,
 } from '@workspace/file-ingestion';
 import { DatabaseService } from '../database/database.service';
+import { PlanAccessService } from '../plans/plan-access.service';
 import { AppException } from '../platform/errors/app-exception';
 
 @Injectable()
@@ -54,6 +55,7 @@ export class FilesService {
 
   constructor(
     private readonly database: DatabaseService,
+    private readonly planAccess: PlanAccessService,
     config: ConfigService,
     @InjectQueue('file-derivatives') private readonly derivatives: Queue,
   ) {
@@ -194,6 +196,10 @@ export class FilesService {
       assetId,
       extension: name,
     });
+    await this.planAccess.requireFileSize(
+      auth.workspace.id,
+      parsed.data.sizeBytes,
+    );
     const [asset] = await this.database.db
       .insert(fileAssets)
       .values({

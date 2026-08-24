@@ -14,6 +14,7 @@ import type { PortalAuthSession } from '@workspace/contracts';
 import { DatabaseService } from '../database/database.service';
 import { EmailService } from '../email/email.service';
 import { AppException } from '../platform/errors/app-exception';
+import type { PlanAccessService } from '../plans/plan-access.service';
 import { TeamsService } from './teams.service';
 import { WorkspacePermissionsService } from './workspace-permissions.service';
 
@@ -213,6 +214,10 @@ function serviceFor(database: Database, email = new CapturingEmailService()) {
       { db: database } as DatabaseService,
       email as unknown as EmailService,
       new WorkspacePermissionsService({ db: database } as DatabaseService),
+      {
+        requireInvitationSlot: () => Promise.resolve(),
+        requireMemberSlot: () => Promise.resolve(),
+      } as unknown as PlanAccessService,
     ),
   };
 }

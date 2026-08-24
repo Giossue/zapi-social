@@ -173,6 +173,10 @@ export class AdminOperationsService {
           ? [
               this.actionItem('view', 'viewUser'),
               this.actionItem('edit', 'editUser'),
+              this.actionItem('impersonate', 'impersonate'),
+              this.actionItem('grant_credits', 'grantCredits', undefined, [
+                'creditUnits',
+              ]),
               this.actionItem('deactivate', 'deactivate', 'destructive'),
             ]
           : [
@@ -1032,6 +1036,44 @@ export class AdminOperationsService {
     action: AdminOperationActionKey,
     values?: string[],
   ) {
+    if (action === 'grant_credits') {
+      const units = Number(values?.[0]);
+      if (!Number.isInteger(units) || units <= 0 || units > 1_000_000) {
+        throw new BadRequestException('Invalid credit amount');
+      }
+      const [membership] = await this.database.db
+        .select({ workspaceId: workspaceMemberships.workspaceId })
+        .from(workspaceMemberships)
+        .where(eq(workspaceMemberships.userId, id))
+        .orderBy(asc(workspaceMemberships.createdAt))
+        .limit(1);
+      if (!membership) throw new NotFoundException();
+      await this.database.db.transaction(async (tx) => {
+        await tx
+          .insert(workspaceCreditAccounts)
+          .values({
+            workspaceId: membership.workspaceId,
+            balanceUnits: units,
+          })
+          .onConflictDoUpdate({
+            target: workspaceCreditAccounts.workspaceId,
+            set: {
+              balanceUnits: sql`${workspaceCreditAccounts.balanceUnits} + ${units}`,
+              updatedAt: new Date(),
+            },
+          });
+        await tx.insert(creditLedgerEntries).values({
+          workspaceId: membership.workspaceId,
+          actorUserId: session.user.id,
+          type: 'grant',
+          action: 'credits.admin_grant',
+          units,
+          idempotencyKey: `admin-grant-${randomUUID()}`,
+          metadata: { grantedToUserId: id },
+        });
+      });
+      return;
+    }
     if (action === 'edit') {
       const [name, rawEmail, planSearch] = values ?? [];
       if (!name || !rawEmail?.includes('@') || !planSearch) {
@@ -1543,8 +1585,9 @@ export class AdminOperationsService {
     key: AdminOperationActionKey,
     labelKey: string,
     kind?: 'destructive' | 'success',
+    fieldKeys?: string[],
   ) {
-    return { key, labelKey, kind };
+    return { key, labelKey, kind, ...(fieldKeys ? { fieldKeys } : {}) };
   }
 
   private shortId(value: string) {

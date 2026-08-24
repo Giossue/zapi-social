@@ -2,18 +2,25 @@ import { randomUUID } from 'node:crypto';
 import type { Queue } from 'bullmq';
 import {
   aiRequests,
+  aiModelRoutes,
   commerceInventoryLevels,
   createDatabase,
   creditLedgerEntries,
+  plans,
   socialAccounts,
   users,
   workspaceCreditAccounts,
+  workspacePlanAssignments,
   workspaces,
   type Database,
 } from '@workspace/database';
 import { and, eq } from '@workspace/database/query';
-import type { PortalAuthSession } from '@workspace/contracts';
+import {
+  defaultPlanLimits,
+  type PortalAuthSession,
+} from '@workspace/contracts';
 import type { AiRequestJobData } from './ai/ai.constants';
+import { PlanAccessService } from './plans/plan-access.service';
 import { AiService } from './ai/ai.service';
 import { AutomationEventsService } from './automation/automation-events.service';
 import { CommerceService } from './commerce/commerce.service';
@@ -199,6 +206,36 @@ describeDatabase('Portal backend v2 database contracts', () => {
         unlimited: false,
         workspaceId: owner.workspaceId,
       });
+      const [plan] = await database
+        .insert(plans)
+        .values({
+          createdByUserId: owner.userId,
+          limits: {
+            ...defaultPlanLimits,
+            creditsPerMonth: 0,
+            aiActionCosts: {
+              ...defaultPlanLimits.aiActionCosts,
+              timing: 2,
+            },
+          },
+          name: `Portal AI ${randomUUID()}`,
+          slug: `portal-ai-${randomUUID()}`,
+          updatedByUserId: owner.userId,
+        })
+        .returning({ id: plans.id });
+      if (!plan) throw new Error('AI test plan was not created.');
+      await database.insert(workspacePlanAssignments).values({
+        planId: plan.id,
+        source: 'admin',
+        workspaceId: owner.workspaceId,
+      });
+      await database
+        .insert(aiModelRoutes)
+        .values({ kind: 'timing', enabled: true })
+        .onConflictDoUpdate({
+          target: aiModelRoutes.kind,
+          set: { enabled: true },
+        });
       const queue = {
         add: () => Promise.resolve({ id: 'test-ai-job' }),
       } as unknown as Queue<AiRequestJobData>;
@@ -209,17 +246,19 @@ describeDatabase('Portal backend v2 database contracts', () => {
         { db: database } as DatabaseService,
         new TeamAccountAccessService({ db: database } as DatabaseService),
         events,
+        new PlanAccessService({ db: database } as DatabaseService),
         queue,
       );
       const input = {
         idempotencyKey: 'portal-ai-idempotency-test',
         input: {},
-        kind: 'content',
+        kind: 'timing',
         prompt: 'Create a short integration test caption.',
       };
 
       const first = await service.createRequest(owner.session, input);
       const second = await service.createRequest(owner.session, input);
+      const credits = await service.credits(owner.session);
       const [account] = await database
         .select()
         .from(workspaceCreditAccounts)
@@ -239,7 +278,8 @@ describeDatabase('Portal backend v2 database contracts', () => {
         );
 
       expect(second.id).toBe(first.id);
-      expect(account?.balanceUnits).toBe(9);
+      expect(account?.balanceUnits).toBe(8);
+      expect(credits).toMatchObject({ balanceUnits: 8, usedUnits: 2 });
       expect(requests).toHaveLength(1);
       expect(ledger).toHaveLength(1);
     });

@@ -103,6 +103,12 @@ import { useFormatter, useTranslations } from "next-intl"
 import { planPermissionGroups } from "../fixtures/plans"
 import { ApiError, plansApi } from "@workspace/api-client"
 
+import {
+  aiRequestKindSchema,
+  defaultPlanLimits,
+  portalModuleKeys,
+} from "@workspace/contracts"
+import type { PlanLimits } from "@workspace/contracts"
 import type { AdminPlan, PlanBillingType, PlanStatus } from "../types/plans"
 
 const emptyPlan: AdminPlan = {
@@ -121,6 +127,7 @@ const emptyPlan: AdminPlan = {
   description: "",
   subscriberCount: 0,
   permissionIds: ["workspace.view", "publishing.create"],
+  limits: defaultPlanLimits,
 }
 
 function planInput(plan: AdminPlan) {
@@ -138,6 +145,7 @@ function planInput(plan: AdminPlan) {
     position: plan.position,
     description: plan.description,
     permissionIds: [...plan.permissionIds],
+    limits: plan.limits,
   }
 }
 
@@ -271,6 +279,7 @@ function PlanEditorSheet({
   const [featured, setFeatured] = useState(plan.featured)
   const [isDefaultSignup, setIsDefaultSignup] = useState(plan.isDefaultSignup)
   const [permissionIds, setPermissionIds] = useState([...plan.permissionIds])
+  const [limits, setLimits] = useState<PlanLimits>(plan.limits)
   const [name, setName] = useState(plan.name)
   const [slug, setSlug] = useState(plan.slug)
   const [price, setPrice] = useState(String(plan.price))
@@ -357,6 +366,7 @@ function PlanEditorSheet({
         description: String(formData.get("description") ?? "").trim(),
         subscriberCount: plan.subscriberCount,
         permissionIds,
+        limits,
       })
     } catch {
     } finally {
@@ -578,6 +588,149 @@ function PlanEditorSheet({
                 />
               </Field>
             </FieldGroup>
+            <FieldGroup>
+              <Field>
+                <FieldLabel>{t("limits.title")}</FieldLabel>
+                <FieldDescription>{t("limits.hint")}</FieldDescription>
+              </Field>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {(
+                  [
+                    ["maxChannels", "limits.maxChannels"],
+                    ["maxPostsPerMonth", "limits.maxPostsPerMonth"],
+                    ["maxTeamMembers", "limits.maxTeamMembers"],
+                    ["maxStorageMb", "limits.maxStorageMb"],
+                    ["maxFileSizeMb", "limits.maxFileSizeMb"],
+                    ["aiVideoMaxSeconds", "limits.aiVideoMaxSeconds"],
+                    ["creditsPerMonth", "limits.creditsPerMonth"],
+                  ] as const
+                ).map(([key, labelKey]) => (
+                  <Field data-disabled={isSaving || undefined} key={key}>
+                    <FieldLabel htmlFor={`plan-limit-${key}`}>
+                      {t(labelKey)}
+                    </FieldLabel>
+                    <Input
+                      disabled={isSaving}
+                      id={`plan-limit-${key}`}
+                      inputMode="numeric"
+                      onChange={(event) => {
+                        const parsed = Number(event.target.value)
+                        setLimits((current) => ({
+                          ...current,
+                          [key]: Number.isInteger(parsed) ? parsed : -1,
+                        }))
+                      }}
+                      type="number"
+                      value={String(limits[key])}
+                    />
+                  </Field>
+                ))}
+                <Field data-disabled={isSaving || undefined}>
+                  <FieldLabel htmlFor="plan-limit-mode">
+                    {t("limits.channelCountMode")}
+                  </FieldLabel>
+                  <Select
+                    disabled={isSaving}
+                    onValueChange={(value) =>
+                      setLimits((current) => ({
+                        ...current,
+                        channelCountMode:
+                          value === "per_network" ? "per_network" : "total",
+                      }))
+                    }
+                    value={limits.channelCountMode}
+                  >
+                    <SelectTrigger className="w-full" id="plan-limit-mode">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="total">
+                          {t("limits.modeTotal")}
+                        </SelectItem>
+                        <SelectItem value="per_network">
+                          {t("limits.modePerNetwork")}
+                        </SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </div>
+            </FieldGroup>
+            <FieldSet disabled={isSaving}>
+              <FieldLegend variant="label">
+                {t("limits.actionCosts")}
+              </FieldLegend>
+              <FieldDescription>{t("limits.actionCostsHint")}</FieldDescription>
+              <FieldGroup className="grid sm:grid-cols-2">
+                {aiRequestKindSchema.options.map((action) => (
+                  <Field data-disabled={isSaving || undefined} key={action}>
+                    <FieldLabel htmlFor={`plan-ai-cost-${action}`}>
+                      {t(`limits.action.${action}` as never)}
+                    </FieldLabel>
+                    <Input
+                      disabled={isSaving}
+                      id={`plan-ai-cost-${action}`}
+                      inputMode="numeric"
+                      min="0"
+                      onChange={(event) => {
+                        const parsed = Number(event.target.value)
+                        setLimits((current) => ({
+                          ...current,
+                          aiActionCosts: {
+                            ...current.aiActionCosts,
+                            [action]:
+                              Number.isInteger(parsed) && parsed >= 0
+                                ? parsed
+                                : 0,
+                          },
+                        }))
+                      }}
+                      type="number"
+                      value={String(limits.aiActionCosts[action])}
+                    />
+                  </Field>
+                ))}
+              </FieldGroup>
+            </FieldSet>
+            <FieldSet disabled={isSaving}>
+              <FieldLegend variant="label">{t("limits.modules")}</FieldLegend>
+              <FieldDescription>{t("limits.modulesHint")}</FieldDescription>
+              <FieldGroup className="grid sm:grid-cols-2">
+                {portalModuleKeys.map((moduleKey) => (
+                  <Field
+                    data-disabled={isSaving || undefined}
+                    key={moduleKey}
+                    orientation="horizontal"
+                  >
+                    <Checkbox
+                      checked={limits.enabledModules.includes(moduleKey)}
+                      disabled={isSaving}
+                      id={`plan-module-${moduleKey}`}
+                      onCheckedChange={(checked) =>
+                        setLimits((current) => ({
+                          ...current,
+                          enabledModules:
+                            checked === true
+                              ? [
+                                  ...new Set([
+                                    ...current.enabledModules,
+                                    moduleKey,
+                                  ]),
+                                ]
+                              : current.enabledModules.filter(
+                                  (item) => item !== moduleKey
+                                ),
+                        }))
+                      }
+                    />
+                    <FieldLabel htmlFor={`plan-module-${moduleKey}`}>
+                      {t(`limits.module.${moduleKey}` as never)}
+                    </FieldLabel>
+                  </Field>
+                ))}
+              </FieldGroup>
+            </FieldSet>
             <PermissionGroups
               disabled={isSaving}
               selectedIds={permissionIds}

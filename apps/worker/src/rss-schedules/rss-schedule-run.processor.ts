@@ -14,6 +14,7 @@ import type { Job } from 'bullmq';
 import { WorkerAuditService } from '../audit/worker-audit.service';
 import { AutomationWebhookEventsService } from '../automation/automation-webhook-events.service';
 import { DatabaseService } from '../database/database.service';
+import { PlanAccessService } from '../plans/plan-access.service';
 import {
   RSS_SCHEDULE_RUN_CONCURRENCY,
   RSS_SCHEDULE_RUN_JOB,
@@ -49,6 +50,7 @@ export class RssScheduleRunProcessor extends WorkerHost {
     private readonly audit: WorkerAuditService,
     private readonly feeds: RssFeedReaderService,
     private readonly events: AutomationWebhookEventsService,
+    private readonly planAccess: PlanAccessService,
   ) {
     super();
   }
@@ -68,6 +70,14 @@ export class RssScheduleRunProcessor extends WorkerHost {
     }
 
     try {
+      if (
+        !(await this.planAccess.moduleAvailable(
+          schedule.workspaceId,
+          'rss-schedules',
+        ))
+      ) {
+        throw new Error('PLAN_MODULE_DISABLED');
+      }
       const [items, targets] = await Promise.all([
         this.feeds.read(schedule.feedUrl),
         this.targetsFor(schedule),
@@ -143,7 +153,9 @@ export class RssScheduleRunProcessor extends WorkerHost {
       const errorCode =
         error instanceof RssFeedReadError
           ? error.code
-          : 'RSS_SCHEDULE_PROCESSING_FAILED';
+          : error instanceof Error && error.message === 'PLAN_MODULE_DISABLED'
+            ? 'PLAN_MODULE_DISABLED'
+            : 'RSS_SCHEDULE_PROCESSING_FAILED';
       const now = new Date();
       await this.database.db
         .update(rssSchedules)
@@ -294,6 +306,9 @@ export class RssScheduleRunProcessor extends WorkerHost {
           })
           .returning();
         if (!history) throw new Error('RSS_HISTORY_CREATE_FAILED');
+        if (!(await this.planAccess.postSlotAvailable(schedule.workspaceId))) {
+          throw new Error('PLAN_LIMIT_REACHED');
+        }
         const [post] = await tx
           .insert(publishingPosts)
           .values({

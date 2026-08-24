@@ -43,6 +43,7 @@ import sharp from 'sharp';
 import { WorkerAuditService } from '../audit/worker-audit.service';
 import { AutomationWebhookEventsService } from '../automation/automation-webhook-events.service';
 import { DatabaseService } from '../database/database.service';
+import { PlanAccessService } from '../plans/plan-access.service';
 import { Aes256GcmService } from '../platform/crypto/aes-256-gcm.service';
 import {
   AI_REQUEST_JOB,
@@ -91,6 +92,7 @@ export class AiRequestProcessor extends WorkerHost {
     private readonly audit: WorkerAuditService,
     private readonly events: AutomationWebhookEventsService,
     private readonly encryption: Aes256GcmService,
+    private readonly planAccess: PlanAccessService,
     config: ConfigService,
   ) {
     super();
@@ -129,6 +131,13 @@ export class AiRequestProcessor extends WorkerHost {
     if (!request) return;
     const startedAt = Date.now();
     try {
+      const module =
+        request.kind === 'ai_publishing' ? 'ai-publishing' : 'ai-studio';
+      if (
+        !(await this.planAccess.moduleAvailable(request.workspaceId, module))
+      ) {
+        throw new AiProcessingError('PLAN_MODULE_DISABLED', true);
+      }
       const execution = await this.resolveExecution(request);
       const outcome = await this.generate(request, execution);
       const resultSchema = aiRequestResultSchemas[request.kind];
@@ -1098,6 +1107,9 @@ export class AiRequestProcessor extends WorkerHost {
         ids.push(existing.id);
         continue;
       }
+      if (!(await this.planAccess.postSlotAvailable(request.workspaceId))) {
+        throw new Error('PLAN_LIMIT_REACHED');
+      }
       const [post] = await this.database.db
         .insert(publishingPosts)
         .values({
@@ -1193,11 +1205,15 @@ export class AiRequestProcessor extends WorkerHost {
           .limit(1),
       ]);
       if (existing) return;
-      if (account && debit?.metadata.balanceDebited === true) {
+      const balanceDebitedUnits = this.balanceDebitedUnits(
+        debit?.metadata,
+        request.costUnits,
+      );
+      if (account && balanceDebitedUnits > 0) {
         await tx
           .update(workspaceCreditAccounts)
           .set({
-            balanceUnits: sql`${workspaceCreditAccounts.balanceUnits} + ${request.costUnits}`,
+            balanceUnits: sql`${workspaceCreditAccounts.balanceUnits} + ${balanceDebitedUnits}`,
             updatedAt: now,
           })
           .where(eq(workspaceCreditAccounts.id, account.id));
@@ -1236,6 +1252,17 @@ export class AiRequestProcessor extends WorkerHost {
       return null;
     }
     return null;
+  }
+
+  private balanceDebitedUnits(
+    metadata: Record<string, unknown> | undefined,
+    requestCostUnits: number,
+  ) {
+    const value = metadata?.balanceDebitedUnits;
+    if (typeof value === 'number' && Number.isInteger(value) && value > 0) {
+      return Math.min(value, requestCostUnits);
+    }
+    return metadata?.balanceDebited === true ? requestCostUnits : 0;
   }
 
   private supportedProviderKey(value: string): 'openai' | 'atlascloud' {

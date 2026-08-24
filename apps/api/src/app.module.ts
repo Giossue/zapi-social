@@ -11,6 +11,8 @@ import { HealthController } from './health/health.controller';
 import { SystemInformationController } from './platform/system-information.controller';
 import { ContentModule } from './content/content.module';
 import { LanguagesModule } from './languages/languages.module';
+import { AdminRolesModule } from './admin-roles/admin-roles.module';
+import { AdminReportsModule } from './admin-reports/admin-reports.module';
 import { LinkBioModule } from './link-bio/link-bio.module';
 import { PlatformSettingsModule } from './settings/platform-settings.module';
 import { IdentityModule } from './identity/identity.module';
@@ -158,6 +160,8 @@ const pinoRedactPaths = [
     AuditModule,
     ContentModule,
     LanguagesModule,
+    AdminRolesModule,
+    AdminReportsModule,
     LinkBioModule,
     PlatformSettingsModule,
     IdentityModule,

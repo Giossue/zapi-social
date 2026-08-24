@@ -11,6 +11,11 @@ export type AppErrorCode =
   | 'EMAIL_SMTP_NOT_READY'
   | 'AUTH_SESSION_EXPIRED'
   | 'AUTH_ADMIN_ACCESS_REQUIRED'
+  | 'AUTH_ADMIN_PERMISSION_REQUIRED'
+  | 'ADMIN_ROLE_NOT_FOUND'
+  | 'ADMIN_ROLE_NAME_TAKEN'
+  | 'PLAN_LIMIT_REACHED'
+  | 'PLAN_MODULE_DISABLED'
   | 'AUTH_PORTAL_ACCESS_REQUIRED'
   | 'AUTH_WORKSPACE_UNAVAILABLE'
   | 'CAPTION_CREATE_FAILED'
@@ -152,7 +157,8 @@ export class AppException extends HttpException {
   constructor(
     readonly code: AppErrorCode,
     status: HttpStatus,
+    details?: Record<string, unknown>,
   ) {
-    super({ code }, status);
+    super(details ? { code, details } : { code }, status);
   }
 }

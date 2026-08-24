@@ -33,6 +33,7 @@ import {
 } from '@workspace/contracts';
 import { publishVariantStorageKey } from '@workspace/file-ingestion';
 import { DatabaseService } from '../database/database.service';
+import { PlanAccessService } from '../plans/plan-access.service';
 import { AutomationEventsService } from '../automation/automation-events.service';
 import { AppException } from '../platform/errors/app-exception';
 import { TeamAccountAccessService } from '../teams/team-account-access.service';
@@ -60,6 +61,7 @@ export class PublishingService {
     private readonly database: DatabaseService,
     private readonly accountAccess: TeamAccountAccessService,
     private readonly events: AutomationEventsService,
+    private readonly planAccess: PlanAccessService,
     @InjectQueue(PUBLISHING_DELIVERY_QUEUE)
     private readonly deliveryQueue: Queue<PublishingDeliveryJobData>,
     config: ConfigService,
@@ -341,6 +343,10 @@ export class PublishingService {
       orderedAccounts,
     );
     if (!created.length) {
+      await this.planAccess.requirePostSlot(
+        session.workspace.id,
+        orderedAccounts.length,
+      );
       try {
         created = await this.database.db.transaction(async (tx) => {
           const result: Array<{ post: Post; account: Account }> = [];

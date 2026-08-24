@@ -2,6 +2,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { IdentityModule } from '../identity/identity.module';
 import { IntegrationsModule } from '../integrations/integrations.module';
+import { PlanAccessModule } from '../plans/plan-access.module';
 import { TeamsModule } from '../teams/teams.module';
 import { ChannelConnectionsService } from './channel-connections.service';
 import {
@@ -33,6 +34,7 @@ const WHATSAPP_PROFILE_SYNC_QUEUE = 'whatsapp-profile-sync';
   imports: [
     IdentityModule,
     IntegrationsModule,
+    PlanAccessModule,
     TeamsModule,
     BullModule.registerQueue(
       { name: META_PROFILE_SYNC_QUEUE },

@@ -1,5 +1,5 @@
-import { AdminSecondaryModuleMockup } from "@/features/platform-admin-mockups/components/admin-secondary-module-mockup"
+import { AdminRolesPage } from "@/features/admin-roles/components/admin-roles-page"
 
 export default function AdminUserRolesPage() {
-  return <AdminSecondaryModuleMockup moduleKey="user-roles" />
+  return <AdminRolesPage />
 }

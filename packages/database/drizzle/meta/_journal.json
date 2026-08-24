@@ -302,6 +302,34 @@
       "when": 1787541251495,
       "tag": "0042_platform_translations_on_languages",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1787544497243,
+      "tag": "0043_admin_roles",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1787544963191,
+      "tag": "0044_impersonation",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1787546121595,
+      "tag": "0045_plan_limits",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1787550522929,
+      "tag": "0046_nifty_lorna_dane",
+      "breakpoints": true
     }
   ]
 }

@@ -29,6 +29,7 @@ import {
 } from '@workspace/contracts';
 import { and, eq, gt } from '@workspace/database/query';
 import { DatabaseService } from '../database/database.service';
+import { PlanAccessService } from '../plans/plan-access.service';
 import { IntegrationsService } from '../integrations/integrations.service';
 import { Aes256GcmService } from '../platform/crypto/aes-256-gcm.service';
 import { ChannelConnectionAdapterRegistry } from './connection-adapters/channel-connection.adapter';
@@ -75,6 +76,7 @@ export class ChannelConnectionsService {
     private readonly integrations: IntegrationsService,
     private readonly oauth: ChannelOAuthService,
     private readonly adapters: ChannelConnectionAdapterRegistry,
+    private readonly planAccess: PlanAccessService,
   ) {}
 
   async start(session: PortalAuthSession, input: unknown) {
@@ -520,6 +522,12 @@ export class ChannelConnectionsService {
       disconnectedAt: null,
       updatedAt: new Date(),
     };
+    if (!existing) {
+      await this.planAccess.requireChannelSlot(
+        connection.workspaceId,
+        connection.capabilityKey,
+      );
+    }
     const account = existing
       ? (
           await this.database.db
@@ -677,6 +685,12 @@ export class ChannelConnectionsService {
       disconnectedAt: null,
       updatedAt: new Date(),
     };
+    if (!existing) {
+      await this.planAccess.requireChannelSlot(
+        connection.workspaceId,
+        connection.capabilityKey,
+      );
+    }
     const account = existing
       ? (
           await this.database.db

@@ -7,10 +7,12 @@ import {
   creditLedgerEntries,
   workspaceCreditAccounts,
 } from '@workspace/database';
-import { and, eq, isNull, or, sql } from '@workspace/database/query';
+import { and, eq, inArray, isNull, or, sql } from '@workspace/database/query';
+import { splitAiCreditCharge } from '@workspace/contracts';
 import type { Job, Queue } from 'bullmq';
 import { WorkerAuditService } from '../audit/worker-audit.service';
 import { DatabaseService } from '../database/database.service';
+import { PlanAccessService } from '../plans/plan-access.service';
 import { nextRssScheduleRun } from '../rss-schedules/rss-schedule-time';
 import {
   AI_REQUEST_JOB,
@@ -22,7 +24,6 @@ import {
 } from './ai.constants';
 
 const batchSize = 50;
-const aiPublishingCostUnits = 2;
 const allWeekdays = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 const shortWeekday: Record<string, string> = {
   monday: 'mon',
@@ -42,6 +43,7 @@ export class AiScheduleDispatchProcessor extends WorkerHost {
   constructor(
     private readonly database: DatabaseService,
     private readonly audit: WorkerAuditService,
+    private readonly planAccess: PlanAccessService,
     @InjectQueue(AI_REQUEST_QUEUE)
     private readonly requests: Queue<AiRequestJobData>,
   ) {
@@ -81,6 +83,20 @@ export class AiScheduleDispatchProcessor extends WorkerHost {
   }
 
   private async dispatch(schedule: Schedule, now: Date) {
+    if (
+      !(await this.planAccess.moduleAvailable(
+        schedule.workspaceId,
+        'ai-publishing',
+      ))
+    ) {
+      await this.database.db
+        .update(aiPublishingSchedules)
+        .set({ status: 'paused', nextRunAt: null, updatedAt: now })
+        .where(eq(aiPublishingSchedules.id, schedule.id));
+      return;
+    }
+    const limits = await this.planAccess.limitsFor(schedule.workspaceId);
+    const aiPublishingCostUnits = limits.aiActionCosts.ai_publishing;
     const nextRunAt = this.nextRun(schedule, now);
     if (!schedule.nextRunAt) {
       await this.database.db
@@ -115,6 +131,18 @@ export class AiScheduleDispatchProcessor extends WorkerHost {
         .returning({ id: aiPublishingSchedules.id });
       if (!claimed) return null;
 
+      const [existing] = await tx
+        .select({ id: aiRequests.id, workspaceId: aiRequests.workspaceId })
+        .from(aiRequests)
+        .where(
+          and(
+            eq(aiRequests.workspaceId, schedule.workspaceId),
+            eq(aiRequests.idempotencyKey, idempotencyKey),
+          ),
+        )
+        .limit(1);
+      if (existing) return existing;
+
       await tx
         .insert(workspaceCreditAccounts)
         .values({
@@ -123,23 +151,44 @@ export class AiScheduleDispatchProcessor extends WorkerHost {
           updatedAt: now,
         })
         .onConflictDoNothing();
+      await tx.execute(
+        sql`select pg_advisory_xact_lock(hashtextextended(${schedule.workspaceId}, 0))`,
+      );
       const [creditAccount] = await tx
         .select()
         .from(workspaceCreditAccounts)
         .where(eq(workspaceCreditAccounts.workspaceId, schedule.workspaceId))
         .limit(1);
       if (!creditAccount) throw new Error('AI_CREDIT_ACCOUNT_MISSING');
-      if (!creditAccount.unlimited) {
+      const [used] = await tx
+        .select({
+          total: sql<number>`greatest(coalesce(-sum(${creditLedgerEntries.units}), 0), 0)::int`,
+        })
+        .from(creditLedgerEntries)
+        .where(
+          and(
+            eq(creditLedgerEntries.workspaceId, schedule.workspaceId),
+            inArray(creditLedgerEntries.type, ['debit', 'refund']),
+            sql`${creditLedgerEntries.createdAt} >= date_trunc('month', now())`,
+          ),
+        );
+      const { allowanceUnits, balanceDebitedUnits } = splitAiCreditCharge({
+        accountUnlimited: creditAccount.unlimited,
+        costUnits: aiPublishingCostUnits,
+        creditsPerMonth: limits.creditsPerMonth,
+        usedPlanUnits: used?.total ?? 0,
+      });
+      if (balanceDebitedUnits > 0) {
         const [debited] = await tx
           .update(workspaceCreditAccounts)
           .set({
-            balanceUnits: sql`${workspaceCreditAccounts.balanceUnits} - ${aiPublishingCostUnits}`,
+            balanceUnits: sql`${workspaceCreditAccounts.balanceUnits} - ${balanceDebitedUnits}`,
             updatedAt: now,
           })
           .where(
             and(
               eq(workspaceCreditAccounts.id, creditAccount.id),
-              sql`${workspaceCreditAccounts.balanceUnits} >= ${aiPublishingCostUnits}`,
+              sql`${workspaceCreditAccounts.balanceUnits} >= ${balanceDebitedUnits}`,
             ),
           )
           .returning({ id: workspaceCreditAccounts.id });
@@ -181,7 +230,12 @@ export class AiScheduleDispatchProcessor extends WorkerHost {
         action: 'ai.ai_publishing',
         units: -aiPublishingCostUnits,
         idempotencyKey: `ai-debit-${request.id}`,
-        metadata: { scheduled: true, unlimited: creditAccount.unlimited },
+        metadata: {
+          scheduled: true,
+          unlimited: creditAccount.unlimited,
+          allowanceUnits,
+          balanceDebitedUnits,
+        },
       });
       return request;
     });
@@ -233,16 +287,29 @@ export class AiScheduleDispatchProcessor extends WorkerHost {
         )
         .returning();
       if (!request) return;
-      const [account] = await tx
-        .select()
-        .from(workspaceCreditAccounts)
-        .where(eq(workspaceCreditAccounts.workspaceId, workspaceId))
-        .limit(1);
-      if (account && !account.unlimited) {
+      const [[account], [debit]] = await Promise.all([
+        tx
+          .select()
+          .from(workspaceCreditAccounts)
+          .where(eq(workspaceCreditAccounts.workspaceId, workspaceId))
+          .limit(1),
+        tx
+          .select({ metadata: creditLedgerEntries.metadata })
+          .from(creditLedgerEntries)
+          .where(
+            eq(creditLedgerEntries.idempotencyKey, `ai-debit-${aiRequestId}`),
+          )
+          .limit(1),
+      ]);
+      const balanceDebitedUnits = this.balanceDebitedUnits(
+        debit?.metadata,
+        request.costUnits,
+      );
+      if (account && balanceDebitedUnits > 0) {
         await tx
           .update(workspaceCreditAccounts)
           .set({
-            balanceUnits: sql`${workspaceCreditAccounts.balanceUnits} + ${request.costUnits}`,
+            balanceUnits: sql`${workspaceCreditAccounts.balanceUnits} + ${balanceDebitedUnits}`,
             updatedAt: now,
           })
           .where(eq(workspaceCreditAccounts.id, account.id));
@@ -288,5 +355,16 @@ export class AiScheduleDispatchProcessor extends WorkerHost {
       },
       reference,
     );
+  }
+
+  private balanceDebitedUnits(
+    metadata: Record<string, unknown> | undefined,
+    requestCostUnits: number,
+  ) {
+    const value = metadata?.balanceDebitedUnits;
+    if (typeof value === 'number' && Number.isInteger(value) && value > 0) {
+      return Math.min(value, requestCostUnits);
+    }
+    return metadata?.balanceDebited === true ? requestCostUnits : 0;
   }
 }

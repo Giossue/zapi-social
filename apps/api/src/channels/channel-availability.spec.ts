@@ -1,6 +1,7 @@
 import { ChannelsService } from './channels.service';
 import type { ChannelProviderIntegrationsService } from '../integrations/channel-provider-integrations.service';
 import type { IntegrationsService } from '../integrations/integrations.service';
+import type { PlanAccessService } from '../plans/plan-access.service';
 
 type Capability = { key: string; enabled: boolean };
 
@@ -17,6 +18,7 @@ function integrationsStub(
 function serviceWith(
   integrations: IntegrationsService,
   generic: string[] = [],
+  available: string[] | null = null,
 ) {
   const service = new ChannelsService(
     null as never,
@@ -26,9 +28,15 @@ function serviceWith(
     } as unknown as ChannelProviderIntegrationsService,
     null as never,
     null as never,
+    {
+      availableChannelCapabilities: (_workspaceId: string, keys: string[]) =>
+        Promise.resolve(new Set(available ?? keys)),
+    } as unknown as PlanAccessService,
   );
   return service as unknown as {
-    portalCapabilities(): Promise<{ key: string; availability: string }[]>;
+    portalCapabilities(
+      workspaceId?: string,
+    ): Promise<{ key: string; availability: string }[]>;
   };
 }
 
@@ -116,5 +124,27 @@ describe('portal channel availability', () => {
       capabilities.find((capability) => capability.key === 'facebook_page')
         ?.availability,
     ).toBe('coming_soon');
+  });
+
+  it('locks ready capabilities when the plan has no remaining slot', async () => {
+    const service = serviceWith(
+      integrationsStub(
+        {
+          enabled: true,
+          readiness: 'ready',
+          capabilities: [{ key: 'facebook_page', enabled: true }],
+        },
+        offline,
+      ),
+      [],
+      [],
+    );
+
+    const capabilities = await service.portalCapabilities('workspace-id');
+
+    expect(
+      capabilities.find((capability) => capability.key === 'facebook_page')
+        ?.availability,
+    ).toBe('plan_locked');
   });
 });

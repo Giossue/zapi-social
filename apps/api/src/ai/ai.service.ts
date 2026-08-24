@@ -34,6 +34,9 @@ import {
   createPortalAiPublishingScheduleSchema,
   createPortalAiRequestSchema,
   aiRequestInputSchemas,
+  aiRequestKindSchema,
+  isUnlimited,
+  splitAiCreditCharge,
   archivePortalAiRequestSchema,
   portalAiRequestsQuerySchema,
   renamePortalAiRequestSchema,
@@ -52,6 +55,7 @@ import {
 } from '@workspace/contracts';
 import type { Queue } from 'bullmq';
 import { DatabaseService } from '../database/database.service';
+import { PlanAccessService } from '../plans/plan-access.service';
 import { AutomationEventsService } from '../automation/automation-events.service';
 import {
   AppException,
@@ -73,6 +77,7 @@ export class AiService {
     private readonly database: DatabaseService,
     private readonly accountAccess: TeamAccountAccessService,
     private readonly events: AutomationEventsService,
+    private readonly planAccess: PlanAccessService,
     @InjectQueue(AI_REQUEST_QUEUE)
     private readonly queue: Queue<AiRequestJobData>,
   ) {}
@@ -141,7 +146,7 @@ export class AiService {
     const cycleStart = new Date();
     cycleStart.setUTCDate(1);
     cycleStart.setUTCHours(0, 0, 0, 0);
-    const [credits, requests, settings, providers, draftCount, requestStats] =
+    const [credits, requests, providers, draftCount, requestStats] =
       await Promise.all([
         this.credits(session),
         this.database.db
@@ -156,7 +161,6 @@ export class AiService {
           )
           .orderBy(desc(aiRequests.createdAt))
           .limit(8),
-        this.ensureWorkspaceSettings(session),
         this.database.db
           .select({
             enabled: providerIntegrations.enabled,
@@ -202,7 +206,7 @@ export class AiService {
         (provider) => provider.enabled && provider.readiness === 'ready',
       ),
       credits: {
-        unlimited: credits.unlimited || !settings.enforceCredits,
+        unlimited: credits.unlimited,
         balanceUnits: credits.balanceUnits,
         usedUnits: credits.usedUnits,
       },
@@ -404,6 +408,7 @@ export class AiService {
           ids.push(existing.id);
           continue;
         }
+        await this.planAccess.requirePostSlot(session.workspace.id);
         const [post] = await tx
           .insert(publishingPosts)
           .values({
@@ -554,7 +559,7 @@ export class AiService {
 
   async credits(session: PortalAuthSession): Promise<PortalCreditsResponse> {
     const account = await this.ensureCreditAccount(session.workspace.id);
-    const [entries, routes] = await Promise.all([
+    const [entries, usage, limits] = await Promise.all([
       this.database.db
         .select()
         .from(creditLedgerEntries)
@@ -562,18 +567,34 @@ export class AiService {
         .orderBy(desc(creditLedgerEntries.createdAt))
         .limit(100),
       this.database.db
-        .select({ kind: aiModelRoutes.kind, units: aiModelRoutes.costUnits })
-        .from(aiModelRoutes)
-        .orderBy(aiModelRoutes.kind),
+        .select({
+          total: sql<number>`greatest(coalesce(-sum(${creditLedgerEntries.units}), 0), 0)::int`,
+        })
+        .from(creditLedgerEntries)
+        .where(
+          and(
+            eq(creditLedgerEntries.workspaceId, session.workspace.id),
+            inArray(creditLedgerEntries.type, ['debit', 'refund']),
+            sql`${creditLedgerEntries.createdAt} >= date_trunc('month', now())`,
+          ),
+        )
+        .then((rows) => rows[0]?.total ?? 0),
+      this.planAccess.limitsFor(session.workspace.id),
     ]);
+    const remainingAllowance = isUnlimited(limits.creditsPerMonth)
+      ? 0
+      : Math.max(limits.creditsPerMonth - usage, 0);
+    const cycleStartedAt = new Date();
+    cycleStartedAt.setUTCDate(1);
+    cycleStartedAt.setUTCHours(0, 0, 0, 0);
+    const cycleEndsAt = new Date(cycleStartedAt);
+    cycleEndsAt.setUTCMonth(cycleEndsAt.getUTCMonth() + 1);
     return {
-      unlimited: account.unlimited,
-      balanceUnits: account.balanceUnits,
-      usedUnits: entries
-        .filter((entry) => entry.type === 'debit')
-        .reduce((total, entry) => total + Math.abs(entry.units), 0),
-      cycleStartedAt: account.cycleStartedAt?.toISOString() ?? null,
-      cycleEndsAt: account.cycleEndsAt?.toISOString() ?? null,
+      unlimited: account.unlimited || isUnlimited(limits.creditsPerMonth),
+      balanceUnits: account.balanceUnits + remainingAllowance,
+      usedUnits: usage,
+      cycleStartedAt: cycleStartedAt.toISOString(),
+      cycleEndsAt: cycleEndsAt.toISOString(),
       entries: entries.map((entry) => ({
         id: entry.id,
         type: entry.type,
@@ -582,7 +603,10 @@ export class AiService {
         aiRequestId: entry.aiRequestId,
         createdAt: entry.createdAt.toISOString(),
       })),
-      costs: routes,
+      costs: aiRequestKindSchema.options.map((kind) => ({
+        kind,
+        units: limits.aiActionCosts[kind],
+      })),
       budget: {
         monthlyMicrousd: account.monthlyBudgetMicrousd,
         alertPercent: account.budgetAlertPercent,
@@ -837,29 +861,65 @@ export class AiService {
         HttpStatus.TOO_MANY_REQUESTS,
       );
     }
-    const execution = await this.resolveExecution(values.kind, values.input);
-    const costUnits = execution.costUnits;
-    const [account, workspaceSettings] = await Promise.all([
-      this.ensureCreditAccount(session.workspace.id),
-      this.ensureWorkspaceSettings(session),
+    const [execution, limits] = await Promise.all([
+      this.resolveExecution(values.kind, values.input),
+      this.planAccess.limitsFor(session.workspace.id),
     ]);
-    const balanceDebited =
-      workspaceSettings.enforceCredits && !account.unlimited && costUnits > 0;
+    if (
+      values.kind === 'video' &&
+      typeof values.input.durationSeconds === 'number' &&
+      !isUnlimited(limits.aiVideoMaxSeconds) &&
+      values.input.durationSeconds > limits.aiVideoMaxSeconds
+    ) {
+      throw new AppException('PLAN_LIMIT_REACHED', HttpStatus.FORBIDDEN, {
+        limit: 'aiVideoMaxSeconds',
+        value: limits.aiVideoMaxSeconds,
+      });
+    }
+    const costUnits = limits.aiActionCosts[values.kind];
+    await this.ensureCreditAccount(session.workspace.id);
     const now = new Date();
     let request: typeof aiRequests.$inferSelect;
     try {
       request = await this.database.db.transaction(async (tx) => {
-        if (balanceDebited) {
+        await tx.execute(
+          sql`select pg_advisory_xact_lock(hashtextextended(${session.workspace.id}, 0))`,
+        );
+        const [account] = await tx
+          .select()
+          .from(workspaceCreditAccounts)
+          .where(eq(workspaceCreditAccounts.workspaceId, session.workspace.id))
+          .limit(1);
+        if (!account) throw this.failed();
+        const [used] = await tx
+          .select({
+            total: sql<number>`greatest(coalesce(-sum(${creditLedgerEntries.units}), 0), 0)::int`,
+          })
+          .from(creditLedgerEntries)
+          .where(
+            and(
+              eq(creditLedgerEntries.workspaceId, session.workspace.id),
+              inArray(creditLedgerEntries.type, ['debit', 'refund']),
+              sql`${creditLedgerEntries.createdAt} >= date_trunc('month', now())`,
+            ),
+          );
+        const { allowanceUnits, balanceDebitedUnits } = splitAiCreditCharge({
+          accountUnlimited: account.unlimited,
+          costUnits,
+          creditsPerMonth: limits.creditsPerMonth,
+          usedPlanUnits: used?.total ?? 0,
+        });
+        if (balanceDebitedUnits > 0) {
           const [debited] = await tx
             .update(workspaceCreditAccounts)
             .set({
-              balanceUnits: sql`${workspaceCreditAccounts.balanceUnits} - ${costUnits}`,
+              balanceUnits: sql`${workspaceCreditAccounts.balanceUnits} - ${balanceDebitedUnits}`,
               updatedAt: now,
             })
             .where(
               and(
                 eq(workspaceCreditAccounts.id, account.id),
-                gte(workspaceCreditAccounts.balanceUnits, costUnits),
+                gte(workspaceCreditAccounts.balanceUnits, balanceDebitedUnits),
               ),
             )
             .returning({ id: workspaceCreditAccounts.id });
@@ -901,8 +961,9 @@ export class AiService {
             idempotencyKey: `ai-debit-${created.id}`,
             metadata: {
               unlimited: account.unlimited,
-              enforcementEnabled: workspaceSettings.enforceCredits,
-              balanceDebited,
+              enforcementEnabled: true,
+              allowanceUnits,
+              balanceDebitedUnits,
             },
           });
         }
@@ -1012,11 +1073,15 @@ export class AiService {
         )
         .limit(1),
     ]);
-    if (account && debit?.metadata.balanceDebited === true) {
+    const balanceDebitedUnits = this.balanceDebitedUnits(
+      debit?.metadata,
+      request.costUnits,
+    );
+    if (account && balanceDebitedUnits > 0) {
       await tx
         .update(workspaceCreditAccounts)
         .set({
-          balanceUnits: sql`${workspaceCreditAccounts.balanceUnits} + ${request.costUnits}`,
+          balanceUnits: sql`${workspaceCreditAccounts.balanceUnits} + ${balanceDebitedUnits}`,
           updatedAt: new Date(),
         })
         .where(eq(workspaceCreditAccounts.id, account.id));
@@ -1052,6 +1117,17 @@ export class AiService {
       .limit(1);
     if (!settings) throw this.failed();
     return settings;
+  }
+
+  private balanceDebitedUnits(
+    metadata: Record<string, unknown> | undefined,
+    requestCostUnits: number,
+  ) {
+    const value = metadata?.balanceDebitedUnits;
+    if (typeof value === 'number' && Number.isInteger(value) && value > 0) {
+      return Math.min(value, requestCostUnits);
+    }
+    return metadata?.balanceDebited === true ? requestCostUnits : 0;
   }
 
   private async ensureCreditAccount(workspaceId: string) {

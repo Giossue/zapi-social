@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Investigación cerrada el 23 de agosto de 2026; implementación sin empezar.**
+**Investigación cerrada y fases definidas el 23 de agosto de 2026; implementación sin empezar.**
 V2 tiene una sola pasarela, Polar.sh, con su vertical Admin operativa
 ([`billing-polar-v2.md`](./billing-polar-v2.md)). ZapiSocial tiene catorce.
 
@@ -49,15 +49,15 @@ interface PaymentGateway
 
 Tres objetos de intercambio, todos inmutables:
 
-| Objeto                  | Lleva                                                                                   |
-| ----------------------- | --------------------------------------------------------------------------------------- |
-| `PaymentCheckout`       | `gateway`, `gatewayType`, `userId`, `planId`, `amount`, `currency`, `returnUrl`, `cancelUrl`, `meta` |
-| `PaymentStartResult`    | `redirectUrl` y `meta` que se guarda para el retorno                                     |
+| Objeto                  | Lleva                                                                                                                             |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `PaymentCheckout`       | `gateway`, `gatewayType`, `userId`, `planId`, `amount`, `currency`, `returnUrl`, `cancelUrl`, `meta`                              |
+| `PaymentStartResult`    | `redirectUrl` y `meta` que se guarda para el retorno                                                                              |
 | `PaymentCallbackResult` | `status` (`success`/`pending`/`failed`), `transactionId`, `amount`, `currency`, `message`, `subscriptionId`, `customerId`, `meta` |
 
 `PaymentGatewayDefinition` describe la pasarela sin código: `key`, `title`,
 `type` (`one_time` o `recurring`), `capabilities`, `callbacks`, `sort` y un
-`enabled` que es un *closure* leyendo las opciones guardadas. Así el checkout
+`enabled` que es un _closure_ leyendo las opciones guardadas. Así el checkout
 solo ofrece las pasarelas configuradas de verdad.
 
 ### El flujo
@@ -71,22 +71,22 @@ CheckoutPage → PaymentCheckoutStore (sesión) → gateway->start()
 
 ### Las catorce, con lo que pide cada una
 
-| Módulo             | Claves                        | Credenciales                                            |
-| ------------------ | ----------------------------- | ------------------------------------------------------- |
-| PaymentStripe      | `stripe`, `stripe_recurring`  | publishable key, secret key, webhook secret             |
-| PaymentPaypal      | `paypal`, `paypal_recurring`  | client id, client secret                                |
-| PaymentRazorpay    | `razorpay`, `razorpay_recurring` | key id, key secret, webhook secret                   |
-| PaymentPaystack    | `paystack`                    | public key, secret key                                  |
-| PaymentFlutterwave | `flutterwave`                 | public key, secret key, encryption key                  |
-| PaymentPayU        | `payu`                        | merchant key, salt                                      |
-| PaymentPaytm       | `paytm`                       | merchant id, merchant key                               |
-| PaymentPayTR       | `paytr`                       | merchant id, merchant key, merchant salt                |
-| PaymentIyzico      | `iyzico`                      | api key, secret key                                     |
-| PaymentInstamojo   | `instamojo`                   | client id, client secret, salt                          |
-| PaymentSslCommerz  | `sslcommerz`                  | store id, store password                                |
-| PaymentCCAvenue    | `ccavenue`                    | merchant id, access code, working key                   |
-| Payment2Checkout   | `2checkout`                   | seller id, secret key                                   |
-| PaymentYooMoney    | `yoomoney`                    | shop id, secret key                                     |
+| Módulo             | Claves                           | Credenciales                                |
+| ------------------ | -------------------------------- | ------------------------------------------- |
+| PaymentStripe      | `stripe`, `stripe_recurring`     | publishable key, secret key, webhook secret |
+| PaymentPaypal      | `paypal`, `paypal_recurring`     | client id, client secret                    |
+| PaymentRazorpay    | `razorpay`, `razorpay_recurring` | key id, key secret, webhook secret          |
+| PaymentPaystack    | `paystack`                       | public key, secret key                      |
+| PaymentFlutterwave | `flutterwave`                    | public key, secret key, encryption key      |
+| PaymentPayU        | `payu`                           | merchant key, salt                          |
+| PaymentPaytm       | `paytm`                          | merchant id, merchant key                   |
+| PaymentPayTR       | `paytr`                          | merchant id, merchant key, merchant salt    |
+| PaymentIyzico      | `iyzico`                         | api key, secret key                         |
+| PaymentInstamojo   | `instamojo`                      | client id, client secret, salt              |
+| PaymentSslCommerz  | `sslcommerz`                     | store id, store password                    |
+| PaymentCCAvenue    | `ccavenue`                       | merchant id, access code, working key       |
+| Payment2Checkout   | `2checkout`                      | seller id, secret key                       |
+| PaymentYooMoney    | `yoomoney`                       | shop id, secret key                         |
 
 Solo tres soportan recurrencia —Stripe, PayPal y Razorpay—, y las tres declaran
 `capabilities: ['user_cancel_recurring', 'system_cancel_recurring']` con un
@@ -137,9 +137,15 @@ con las capabilities de canales.
 export interface PaymentGateway {
   start(checkout: PaymentCheckout): Promise<PaymentStartResult>
   /** Solo mejora la experiencia; no acredita. */
-  complete(query: Record<string, string>, checkout: PaymentCheckout): Promise<PaymentCallbackResult>
+  complete(
+    query: Record<string, string>,
+    checkout: PaymentCheckout
+  ): Promise<PaymentCallbackResult>
   /** La fuente de verdad. Verifica la firma y devuelve el efecto. */
-  webhook(raw: Buffer, headers: Record<string, string>): Promise<PaymentWebhookResult>
+  webhook(
+    raw: Buffer,
+    headers: Record<string, string>
+  ): Promise<PaymentWebhookResult>
 }
 ```
 
@@ -175,7 +181,34 @@ Cada una entra con su prueba de integración de firma de webhook. Es lo único
 que se puede verificar sin una cuenta real de la pasarela, y es justo la parte
 donde un error cuesta dinero.
 
+## Fases
+
+### Fase 1 — Contrato y registry
+
+- [ ] Contrato `PaymentGateway` en API (checkout, webhook con cuerpo crudo,
+      efectos tipados idempotentes) y registry con `useFactory`, mismo patrón
+      que los publishers de canales.
+- [ ] Generalizar `provider_integrations` para credenciales de pasarela
+      cifradas y columna de pasarela en `billing_payments` y
+      `billing_subscriptions` (verificar antes si hoy asumen Polar).
+- [ ] Polar reescrito como primera pasarela del registry: prueba de que el
+      contrato aguanta sin tocar el resto del billing.
+
+### Fase 2 — Stripe y PayPal
+
+- [ ] Stripe: checkout único y recurrente, webhook firmado, pantalla Admin con
+      credenciales cifradas y estado `configured`/`ready`.
+- [ ] PayPal: mismas piezas.
+- [ ] Selector de pasarela en el checkout del Portal según lo configurado.
+- [ ] Prueba de integración de firma de webhook por pasarela.
+
+### Fase 3 — Mercados de compradores
+
+- [ ] Razorpay y Paystack.
+- [ ] Flutterwave, PayU, Iyzico según demanda.
+
 ## Fuera de alcance
 
 - Reembolsos automáticos desde el panel para pasarelas que no los expongan.
 - Migrar pagos históricos de ZapiSocial.
+- Raspar endpoints no documentados de ninguna pasarela.

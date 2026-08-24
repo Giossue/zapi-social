@@ -2,6 +2,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { Module } from '@nestjs/common';
 import { AutomationModule } from '../automation/automation.module';
 import { IdentityModule } from '../identity/identity.module';
+import { PlanAccessModule } from '../plans/plan-access.module';
 import { TeamsModule } from '../teams/teams.module';
 import {
   PublicPublishingMediaController,
@@ -14,6 +15,7 @@ import { PublishingService } from './publishing.service';
   imports: [
     AutomationModule,
     IdentityModule,
+    PlanAccessModule,
     TeamsModule,
     BullModule.registerQueue({ name: PUBLISHING_DELIVERY_QUEUE }),
   ],

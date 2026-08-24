@@ -1,5 +1,5 @@
-import { AdminSecondaryModuleMockup } from "@/features/platform-admin-mockups/components/admin-secondary-module-mockup"
+import { AdminUserReportPage } from "@/features/admin-reports/components/admin-user-report-page"
 
-export default function AdminUserReportPage() {
-  return <AdminSecondaryModuleMockup moduleKey="user-report" />
+export default function AdminUserReportRoutePage() {
+  return <AdminUserReportPage />
 }

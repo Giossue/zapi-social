@@ -19,6 +19,7 @@ import { DatabaseService } from './database/database.service';
 import { CaptchaService } from './captcha/captcha.service';
 import { IdentityService } from './identity/identity.service';
 import { AppException } from './platform/errors/app-exception';
+import { PlanAccessService } from './plans/plan-access.service';
 
 const databaseUrl = process.env.PORTAL_BACKEND_TEST_DATABASE_URL;
 const isLocalTestDatabase = (() => {
@@ -267,6 +268,7 @@ describeDatabase('Commerce and affiliate data integrity', () => {
         { db: connection.db } as DatabaseService,
         new JwtService({ secret: 'identity-integrity-test-secret' }),
         captchaDisabled,
+        new PlanAccessService({ db: connection.db } as DatabaseService),
       );
 
       const registrations = await Promise.all([

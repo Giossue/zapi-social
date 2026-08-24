@@ -1,5 +1,5 @@
-import { AdminSecondaryModuleMockup } from "@/features/platform-admin-mockups/components/admin-secondary-module-mockup"
+import { AdminTeamsPage } from "@/features/admin-reports/components/admin-teams-page"
 
-export default function AdminTeamsPage() {
-  return <AdminSecondaryModuleMockup moduleKey="teams" />
+export default function AdminTeamsRoutePage() {
+  return <AdminTeamsPage />
 }

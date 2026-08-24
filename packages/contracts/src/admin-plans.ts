@@ -1,5 +1,7 @@
 import { z } from "zod"
 
+import { planLimitsSchema } from "./plan-limits.js"
+
 export const adminPlanStatusSchema = z.enum(["active", "inactive"])
 export const adminPlanCurrencySchema = z.enum(["USD"])
 export const adminPlanBillingTypeSchema = z.enum(["monthly", "yearly"])
@@ -24,6 +26,7 @@ const adminPlanValuesSchema = z
     position: z.number().int().positive().max(1_000_000),
     description: z.string().trim().max(500),
     permissionIds: z.array(z.string().trim().min(1).max(128)).min(1).max(100),
+    limits: planLimitsSchema.default(planLimitsSchema.parse({})),
   })
   .strict()
   .superRefine((plan, context) => {

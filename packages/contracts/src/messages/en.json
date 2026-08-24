@@ -375,172 +375,6 @@
     },
     "workspace": "Workspace"
   },
-  "adminMockups": {
-    "action": {
-      "teams": {
-        "description": "Update the workspace name and description.",
-        "editTitle": "Edit · Edit team",
-        "executed": "Edit team: action recorded.",
-        "label": "Edit team",
-        "saved": "Edit team: mockup saved."
-      },
-      "user-report": {
-        "description": "Record a sample entry in the report.",
-        "editTitle": "Edit record",
-        "executed": "User report: action recorded.",
-        "label": "New record",
-        "saved": "User report: mockup saved."
-      },
-      "user-roles": {
-        "description": "Group panel permissions and reuse them across administrative users.",
-        "editTitle": "Edit · Create role",
-        "executed": "Create role: action recorded.",
-        "label": "Create role",
-        "saved": "Create role: mockup saved."
-      }
-    },
-    "actions": "Actions",
-    "allStatuses": "All statuses",
-    "cancel": "Cancel",
-    "close": "Close",
-    "column": {
-      "members": "Members",
-      "owner": "Owner",
-      "permissions": "Permissions",
-      "plan": "Plan",
-      "role": "Role",
-      "signup": "Signup",
-      "slug": "Slug",
-      "team": "Team",
-      "user": "User",
-      "users": "Users"
-    },
-    "delete": "Delete",
-    "deleteDescription": "“{name}” will be removed from the mockup.",
-    "deleteFallback": "Confirm the deletion of the record.",
-    "deleteTitle": "Delete record",
-    "detail": "Detail",
-    "detailDescription": "Information recorded in this administrative section.",
-    "edit": "Edit",
-    "emptyDescription": "New records will show up in this table.",
-    "emptyTitle": "No records yet",
-    "field": {
-      "description": "Description",
-      "name": "Name",
-      "permissions": "Permissions",
-      "permissionsHint": "Check the actions allowed per panel module."
-    },
-    "fieldNumber": "Field {index}",
-    "filterStatus": "Filter by status",
-    "forbiddenDescription": "Your account doesn't have permission to manage this section of the platform.",
-    "forbiddenTitle": "Restricted access",
-    "itemLabel": "results",
-    "loadFailed": "The information for this section could not be loaded.",
-    "loadFailedTitle": "We couldn't load this section",
-    "metric": {
-      "teams": {
-        "averageSize": {
-          "description": "Members per team",
-          "label": "Average size"
-        },
-        "teams": {
-          "description": "Current workspaces",
-          "label": "Teams"
-        },
-        "withOwner": {
-          "description": "Teams with an assigned owner",
-          "label": "With owner"
-        },
-        "withoutOwner": {
-          "description": "Need an owner reassigned",
-          "label": "Without owner"
-        }
-      },
-      "user-report": {
-        "growth": {
-          "description": "86 signups in the period",
-          "label": "30-day growth"
-        },
-        "twoFactor": {
-          "description": "474 protected accounts",
-          "label": "Two-factor"
-        },
-        "users": {
-          "description": "Registered identities",
-          "label": "Users"
-        },
-        "verified": {
-          "description": "1,023 verified accounts",
-          "label": "Verified email"
-        }
-      },
-      "user-roles": {
-        "assigned": {
-          "description": "Accounts with an active role",
-          "label": "Assigned users"
-        },
-        "permissions": {
-          "description": "Keys covered by the roles",
-          "label": "Permissions"
-        },
-        "roles": {
-          "description": "Available permission groups",
-          "label": "Roles"
-        }
-      }
-    },
-    "missingFields": "Fill in every required field.",
-    "module": {
-      "teams": {
-        "description": "Workspaces with their owner and assigned members.",
-        "searchPlaceholder": "Search teams...",
-        "title": "Teams"
-      },
-      "user-report": {
-        "description": "Growth, account security and the latest signups.",
-        "searchPlaceholder": "Search the user report...",
-        "title": "User report"
-      },
-      "user-roles": {
-        "description": "Reusable permission groups for panel access.",
-        "searchPlaceholder": "Search user roles...",
-        "title": "User roles"
-      }
-    },
-    "moduleColumn": "Module",
-    "noResults": "No results",
-    "noResultsDescription": "Adjust the search or the status filter.",
-    "permissionAction": {
-      "create": "Create",
-      "delete": "Delete",
-      "edit": "Edit",
-      "view": "View"
-    },
-    "permissionGroup": {
-      "content": "Content",
-      "payments": "Payments",
-      "plans": "Plans",
-      "roles": "Roles and teams",
-      "settings": "Settings",
-      "users": "Users"
-    },
-    "recordDeleted": "Item deleted.",
-    "rowActions": "Actions for {row}",
-    "saveChanges": "Save changes",
-    "searchAria": "Search in {section}",
-    "status": {
-      "attention": "Needs attention",
-      "inUse": "In use",
-      "unused": "No users",
-      "unverified": "Unverified",
-      "verified": "Verified",
-      "withOwner": "With owner",
-      "withoutOwner": "Without owner"
-    },
-    "statusColumn": "Status",
-    "thisRecord": "this record",
-    "view": "View"
-  },
   "adminNotifications": {
     "actions": "Actions",
     "all": "All",
@@ -625,6 +459,7 @@
     "actionsColumn": "Actions",
     "allPayments": "All payments",
     "allStatuses": "All statuses",
+    "apply": "Apply",
     "applying": "Applying...",
     "cancel": "Cancel",
     "close": "Close",
@@ -754,6 +589,7 @@
     "emptyFilteredDescription": "Try another term or reset the filters.",
     "field": {
       "code": "Code",
+      "creditUnits": "Credits to grant",
       "credits": "Credits",
       "discountValue": "Discount value",
       "displayName": "Display name",
@@ -762,6 +598,7 @@
       "plan": "Plan",
       "price": "Price"
     },
+    "fieldActionHint": "Fill in the fields to run the action.",
     "fieldNumber": "Field {index}",
     "filterStatus": "Filter by status",
     "forbiddenDescription": "Your account doesn't have permission to manage this section of the platform.",
@@ -1044,6 +881,8 @@
       "editCoupon": "Edit coupon",
       "editPack": "Edit pack",
       "editUser": "Edit user",
+      "grantCredits": "Grant credits",
+      "impersonate": "View as user",
       "markPaid": "Mark paid",
       "reactivate": "Reactivate",
       "refund": "Refund",
@@ -1186,6 +1025,78 @@
     "trend": "Trend",
     "trendDescription": "Net settled amount · {range}",
     "workspace": "Workspace"
+  },
+  "adminRoles": {
+    "actionsColumn": "Actions",
+    "allPermissions": "All permissions",
+    "cancel": "Cancel",
+    "candidateSearchPlaceholder": "Search user by name or email…",
+    "createRole": "New role",
+    "deleteDescription": "The role {name} will be deleted. Its members will lose access to the admin panel.",
+    "deleteRole": "Delete",
+    "deleteTitle": "Delete role?",
+    "deleted": "Role deleted.",
+    "description": "Description",
+    "editRole": "Edit role",
+    "emptyDescription": "Create a role to grant partial access to the admin panel.",
+    "emptyTitle": "No roles",
+    "forbiddenDescription": "Your account does not have access to administrator roles.",
+    "forbiddenTitle": "Restricted access",
+    "loadFailedDescription": "Roles could not be loaded. Try again.",
+    "loadFailedTitle": "Load failed",
+    "loading": "Loading roles…",
+    "manage": "Manage",
+    "manageMembers": "Members",
+    "memberAssigned": "Role assigned.",
+    "memberCount": "{count, plural, one {# member} other {# members}}",
+    "memberUnassigned": "Role removed.",
+    "membersColumn": "Members",
+    "membersHint": "Whoever holds this role enters the admin panel with their permissions only.",
+    "membersTitle": "Members of {name}",
+    "modules": {
+      "affiliate": "Affiliates",
+      "ai": "AI",
+      "audit-events": "Audit",
+      "content": "Content",
+      "coupons": "Coupons",
+      "credits": "Credits",
+      "dashboard": "Dashboard",
+      "email-templates": "Email templates",
+      "integrations": "Integrations",
+      "languages": "Languages",
+      "manual-payments": "Manual payments",
+      "notifications": "Notifications",
+      "payment-report": "Payment report",
+      "payments": "Payments",
+      "plans": "Plans",
+      "settings": "Settings",
+      "subscriptions": "Subscriptions",
+      "support": "Support",
+      "system-information": "System",
+      "teams": "Teams",
+      "user-report": "User report",
+      "user-roles": "Administrator roles",
+      "users": "Users"
+    },
+    "name": "Name",
+    "nameRequired": "The role needs a name.",
+    "noCandidates": "No user matches that search.",
+    "noMembers": "This role has no members yet.",
+    "pageDescription": "Roles with partial permissions over the admin panel.",
+    "pageTitle": "Administrator roles",
+    "permissionCount": "{count, plural, one {# permission} other {# permissions}}",
+    "permissions": "Permissions",
+    "permissionsColumn": "Permissions",
+    "permissionsHint": "View opens the module; Manage changes it.",
+    "removeMember": "Remove {name}",
+    "roleColumn": "Role",
+    "rowActions": "Actions for {name}",
+    "save": "Save",
+    "saved": "Role saved.",
+    "searchLabel": "Search roles",
+    "searchPlaceholder": "Search by name…",
+    "sheetDescription": "The role defines which modules its holder can view and manage.",
+    "view": "View"
   },
   "adminSettings": {
     "analytics": {
@@ -1385,6 +1296,80 @@
     "unanswered": "Awaiting reply",
     "viewCase": "View case",
     "workspaceColumn": "Workspace"
+  },
+  "adminTeams": {
+    "accountsColumn": "Accounts",
+    "actionsColumn": "Actions",
+    "actionsFor": "Actions for {name}",
+    "averageMembers": "Average members",
+    "averageMembersHint": "Members per workspace.",
+    "connectedAccounts": "Connected accounts",
+    "connectedAccountsHint": "Social accounts connected in total.",
+    "cancel": "Cancel",
+    "createdColumn": "Created",
+    "emptyDescription": "No workspace matches the search.",
+    "emptyTitle": "No results",
+    "forbiddenDescription": "Your account does not have access to teams.",
+    "forbiddenTitle": "Restricted access",
+    "itemLabel": "workspaces",
+    "loadFailedDescription": "Teams could not be loaded. Try again.",
+    "loadFailedTitle": "Load failed",
+    "loading": "Loading teams…",
+    "manageModules": "Manage modules",
+    "membersColumn": "Members",
+    "noPlan": "No plan",
+    "moduleNotInPlan": "Not included in the plan",
+    "modulesDescription": "Choose which tools {name} can use.",
+    "modulesHint": "The plan sets the available maximum; modules can be disabled here for this workspace.",
+    "modulesLabel": "Enabled modules",
+    "modulesTitle": "Modules · {name}",
+    "modulesUpdated": "Workspace modules updated.",
+    "ownerColumn": "Owner",
+    "pageDescription": "Platform workspaces with their owner, plan and size.",
+    "pageTitle": "Teams",
+    "personal": "Personal",
+    "planColumn": "Plan",
+    "searchLabel": "Search teams",
+    "searchPlaceholder": "Search by name, slug or owner…",
+    "saveModules": "Save changes",
+    "savingModules": "Saving…",
+    "teamColumn": "Workspace",
+    "teamWorkspaces": "Team kind",
+    "teamWorkspacesHint": "Workspaces that are not personal.",
+    "totalWorkspaces": "Workspaces",
+    "totalWorkspacesHint": "All platform workspaces.",
+    "workspaceFallback": "this workspace"
+  },
+  "adminUserReport": {
+    "byLocale": "Users by language",
+    "byMonth": "Signups by month",
+    "byPlan": "Workspaces by plan",
+    "forbiddenDescription": "Your account does not have access to the user report.",
+    "forbiddenTitle": "Restricted access",
+    "growth": "30-day growth",
+    "growthHint": "Versus the previous 30 days.",
+    "growthValue": "{value, number}%",
+    "loadFailedDescription": "The report could not be loaded. Try again.",
+    "loadFailedTitle": "Load failed",
+    "loading": "Loading report…",
+    "newUsers": "New (30 days)",
+    "newUsersHint": "Signups in the last 30 days.",
+    "noData": "No data yet.",
+    "noPlan": "No plan",
+    "pageDescription": "Signups, languages, plans and verification across platform users.",
+    "pageTitle": "User report",
+    "percentValue": "{value, number}%",
+    "planColumn": "Plan",
+    "recentTitle": "Latest signups",
+    "signupColumn": "Signed up",
+    "statusColumn": "Status",
+    "totalUsers": "Users",
+    "totalUsersHint": "Registered users excluding administrators.",
+    "unverifiedBadge": "Unverified",
+    "userColumn": "User",
+    "verified": "Verified",
+    "verifiedBadge": "Verified",
+    "verifiedHint": "With a verified email."
   },
   "affiliate": {
     "activateFailed": "We couldn't activate the programme. Please try again.",
@@ -3225,11 +3210,14 @@
   },
   "errors": {
     "ACCOUNT_GRANT_NOT_ALLOWED": "You can't assign one or more of the selected accounts.",
+    "ADMIN_ROLE_NAME_TAKEN": "A role with that name already exists.",
+    "ADMIN_ROLE_NOT_FOUND": "That role does not exist.",
     "AI_CREDITS_INSUFFICIENT": "There aren't enough credits to start this generation.",
     "AI_MODEL_ROUTE_INVALID": "The route uses an incompatible, disabled or deprecated model.",
     "AI_PROVIDER_CONFIGURATION_INVALID": "The key is invalid or hasn't been tested yet.",
     "AI_PROVIDER_NOT_READY": "The administrator hasn't enabled a model for this tool yet.",
     "AI_REQUEST_RATE_LIMITED": "Too many requests. Wait a moment and try again.",
+    "AUTH_ADMIN_PERMISSION_REQUIRED": "Your role does not have permission for this section.",
     "AUTH_CAPTCHA_INVALID": "Complete the security check and try again.",
     "AUTH_CAPTCHA_UNAVAILABLE": "We couldn't verify security. Please try again.",
     "AUTH_EMAIL_ALREADY_REGISTERED": "An account with this email already exists.",
@@ -3254,6 +3242,8 @@
     "LANGUAGE_NOT_REMOVABLE": "Base languages and the default language cannot be deleted.",
     "LAST_OWNER_PROTECTED": "Transfer ownership before leaving the workspace.",
     "MEMBER_LIMIT_REACHED": "There are no seats left in this workspace.",
+    "PLAN_LIMIT_REACHED": "You reached your plan limit. Upgrade to continue.",
+    "PLAN_MODULE_DISABLED": "Your plan does not include this module.",
     "ROLE_CHANGE_NOT_ALLOWED": "Your role can't complete this change.",
     "TEAM_ACCESS_DENIED": "You don't have permission to complete this action.",
     "TEAM_MEMBER_ALREADY_EXISTS": "That email already belongs to the workspace.",
@@ -3500,6 +3490,11 @@
     },
     "unavailable": "Groups unavailable",
     "updated": "Updated"
+  },
+  "impersonation": {
+    "leave": "Back to admin",
+    "leaveFailed": "Could not leave the user view.",
+    "viewingAs": "You are viewing the Portal as {name}."
   },
   "infrastructure": {
     "cache": {
@@ -4195,6 +4190,49 @@
     "invalidPrice": "Enter a valid price of zero or more.",
     "invalidSlug": "The slug uses lowercase letters, numbers and hyphens, no spaces.",
     "itemLabel": "plans",
+    "limits": {
+      "action": {
+        "ai_publishing": "AI Publishing",
+        "content": "Content",
+        "image": "Image",
+        "planner": "Planner",
+        "repurpose": "Repurpose",
+        "review": "Review",
+        "search": "Search",
+        "timing": "Best timing",
+        "video": "Video"
+      },
+      "actionCosts": "Credit cost per action",
+      "actionCostsHint": "These credits are charged after the monthly allowance.",
+      "aiVideoMaxSeconds": "Maximum AI video (seconds)",
+      "channelCountMode": "Account counting",
+      "creditsPerMonth": "AI credits per month",
+      "hint": "-1 means unlimited. Limits apply per workspace.",
+      "maxChannels": "Connected accounts",
+      "maxFileSizeMb": "File size (MB)",
+      "maxPostsPerMonth": "Posts per month",
+      "maxStorageMb": "Storage (MB)",
+      "maxTeamMembers": "Team members",
+      "modePerNetwork": "Per network",
+      "modeTotal": "Total across all networks",
+      "module": {
+        "ai-publishing": "AI Publishing",
+        "ai-studio": "AI Studio",
+        "automation": "Automation",
+        "boards": "Boards",
+        "bulk-posts": "Bulk posts",
+        "captions": "Captions",
+        "files": "Files",
+        "groups": "Groups",
+        "link-bio": "Link in bio",
+        "publishing": "Publishing",
+        "rss-schedules": "RSS",
+        "watermarks": "Watermarks"
+      },
+      "modules": "Included modules",
+      "modulesHint": "Unchecked modules do not appear in this plan's Portal.",
+      "title": "Plan limits"
+    },
     "loadFailed": "We couldn't load the plans. Please try again.",
     "loadFailedDescription": "We couldn't retrieve the plan configuration.",
     "loadFailedTitle": "The plans couldn't load",

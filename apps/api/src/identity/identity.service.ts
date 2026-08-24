@@ -1,6 +1,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import {
+  apiAuditLogs,
   authSessions,
   affiliateProfiles,
   affiliateReferrals,
@@ -25,6 +26,7 @@ import argon2 from 'argon2';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { DatabaseService } from '../database/database.service';
 import { AppException } from '../platform/errors/app-exception';
+import { PlanAccessService } from '../plans/plan-access.service';
 import { CaptchaService } from '../captcha/captcha.service';
 
 const rememberedSessionLifetimeSeconds = 60 * 60 * 24 * 30;
@@ -36,6 +38,7 @@ export class IdentityService {
     private readonly database: DatabaseService,
     private readonly jwt: JwtService,
     private readonly captcha: CaptchaService,
+    private readonly planAccess: PlanAccessService,
   ) {}
 
   async register(input: unknown, remoteIp?: string) {
@@ -179,6 +182,7 @@ export class IdentityService {
         passwordHash: users.passwordHash,
         status: users.status,
         isPlatformAdmin: users.isPlatformAdmin,
+        adminRoleId: users.adminRoleId,
       })
       .from(users)
       .where(eq(sql`lower(${users.email})`, email))
@@ -205,9 +209,10 @@ export class IdentityService {
       displayName: user.displayName,
       locale: this.localeCode(user.locale),
     };
-    const session: AuthSession = user.isPlatformAdmin
-      ? { user: userSession, area: 'admin' }
-      : await this.portalSessionForUser(user.id, userSession);
+    const session: AuthSession =
+      user.isPlatformAdmin || user.adminRoleId
+        ? { user: userSession, area: 'admin' }
+        : await this.portalSessionForUser(user.id, userSession);
 
     const sessionToken = this.createSessionToken();
     await this.database.db.insert(authSessions).values({
@@ -237,7 +242,9 @@ export class IdentityService {
         displayName: users.displayName,
         locale: users.locale,
         isPlatformAdmin: users.isPlatformAdmin,
+        adminRoleId: users.adminRoleId,
         activeWorkspaceId: authSessions.activeWorkspaceId,
+        impersonatorUserId: authSessions.impersonatorUserId,
       })
       .from(authSessions)
       .innerJoin(users, eq(authSessions.userId, users.id))
@@ -259,7 +266,7 @@ export class IdentityService {
       displayName: session.displayName,
       locale: this.localeCode(session.locale),
     };
-    if (session.isPlatformAdmin) {
+    if (session.isPlatformAdmin || session.adminRoleId) {
       return { user, area: 'admin' };
     }
     if (!session.activeWorkspaceId) return null;
@@ -275,7 +282,21 @@ export class IdentityService {
       area: 'portal' as const,
       workspace,
       workspaces: availableWorkspaces,
+      impersonator: await this.impersonatorFor(session.impersonatorUserId),
+      enabledModules: await this.enabledModulesFor(workspace.id),
     };
+  }
+
+  private async impersonatorFor(
+    impersonatorUserId: string | null,
+  ): Promise<{ id: string; displayName: string } | null> {
+    if (!impersonatorUserId) return null;
+    const [admin] = await this.database.db
+      .select({ id: users.id, displayName: users.displayName })
+      .from(users)
+      .where(eq(users.id, impersonatorUserId))
+      .limit(1);
+    return admin ?? null;
   }
 
   async activateWorkspace(sessionToken: string | undefined, input: unknown) {
@@ -293,6 +314,7 @@ export class IdentityService {
         displayName: users.displayName,
         locale: users.locale,
         isPlatformAdmin: users.isPlatformAdmin,
+        adminRoleId: users.adminRoleId,
         remembered: authSessions.remembered,
       })
       .from(authSessions)
@@ -306,7 +328,11 @@ export class IdentityService {
         ),
       )
       .limit(1);
-    if (!storedSession || storedSession.isPlatformAdmin) {
+    if (
+      !storedSession ||
+      storedSession.isPlatformAdmin ||
+      storedSession.adminRoleId
+    ) {
       throw new AppException('AUTH_SESSION_EXPIRED', HttpStatus.UNAUTHORIZED);
     }
 
@@ -396,12 +422,139 @@ export class IdentityService {
         HttpStatus.FORBIDDEN,
       );
     }
-    return { user, area: 'portal', workspace, workspaces: availableWorkspaces };
+    return {
+      user,
+      area: 'portal',
+      workspace,
+      workspaces: availableWorkspaces,
+      enabledModules: await this.enabledModulesFor(workspace.id),
+    };
+  }
+
+  private async enabledModulesFor(workspaceId: string) {
+    return this.planAccess.modulesFor(workspaceId);
   }
 
   private localeCode(value: string | null): string | null {
     const parsed = localeCodeSchema.safeParse(value);
     return parsed.success ? parsed.data : null;
+  }
+
+  async impersonate(adminUserId: string, targetUserId: string) {
+    const [target] = await this.database.db
+      .select({
+        id: users.id,
+        email: users.email,
+        displayName: users.displayName,
+        locale: users.locale,
+        status: users.status,
+        isPlatformAdmin: users.isPlatformAdmin,
+        adminRoleId: users.adminRoleId,
+      })
+      .from(users)
+      .where(eq(users.id, targetUserId))
+      .limit(1);
+    if (
+      !target ||
+      target.status !== 'active' ||
+      target.isPlatformAdmin ||
+      target.adminRoleId
+    ) {
+      throw new AppException('VALIDATION_FAILED', HttpStatus.BAD_REQUEST);
+    }
+    const userSession = {
+      id: target.id,
+      email: target.email,
+      displayName: target.displayName,
+      locale: this.localeCode(target.locale),
+    };
+    const session = await this.portalSessionForUser(target.id, userSession);
+    const sessionToken = this.createSessionToken();
+    await this.database.db.insert(authSessions).values({
+      userId: target.id,
+      impersonatorUserId: adminUserId,
+      activeWorkspaceId: session.workspace.id,
+      tokenHash: this.hashSessionToken(sessionToken),
+      remembered: false,
+      expiresAt: this.sessionExpiry(false),
+    });
+    await this.database.db.insert(apiAuditLogs).values({
+      actorUserId: adminUserId,
+      event: 'admin.impersonation_started',
+      subjectType: 'user',
+      summary: target.email,
+      metadata: { targetUserId: target.id },
+    });
+    return this.buildAuthentication(session, sessionToken);
+  }
+
+  async leaveImpersonation(sessionToken: string | undefined) {
+    if (!sessionToken)
+      throw new AppException('AUTH_SESSION_EXPIRED', HttpStatus.UNAUTHORIZED);
+    const tokenHash = this.hashSessionToken(sessionToken);
+    const [stored] = await this.database.db
+      .select({
+        id: authSessions.id,
+        userId: authSessions.userId,
+        impersonatorUserId: authSessions.impersonatorUserId,
+      })
+      .from(authSessions)
+      .where(
+        and(
+          eq(authSessions.tokenHash, tokenHash),
+          isNull(authSessions.revokedAt),
+          gt(authSessions.expiresAt, new Date()),
+        ),
+      )
+      .limit(1);
+    if (!stored?.impersonatorUserId)
+      throw new AppException('AUTH_SESSION_EXPIRED', HttpStatus.UNAUTHORIZED);
+    const [admin] = await this.database.db
+      .select({
+        id: users.id,
+        email: users.email,
+        displayName: users.displayName,
+        locale: users.locale,
+        status: users.status,
+        isPlatformAdmin: users.isPlatformAdmin,
+        adminRoleId: users.adminRoleId,
+      })
+      .from(users)
+      .where(eq(users.id, stored.impersonatorUserId))
+      .limit(1);
+    if (
+      !admin ||
+      admin.status !== 'active' ||
+      (!admin.isPlatformAdmin && !admin.adminRoleId)
+    ) {
+      throw new AppException('AUTH_SESSION_EXPIRED', HttpStatus.UNAUTHORIZED);
+    }
+    await this.database.db
+      .update(authSessions)
+      .set({ revokedAt: new Date() })
+      .where(eq(authSessions.id, stored.id));
+    const userSession = {
+      id: admin.id,
+      email: admin.email,
+      displayName: admin.displayName,
+      locale: this.localeCode(admin.locale),
+    };
+    const session: AuthSession = { user: userSession, area: 'admin' };
+    const newToken = this.createSessionToken();
+    await this.database.db.insert(authSessions).values({
+      userId: admin.id,
+      tokenHash: this.hashSessionToken(newToken),
+      remembered: false,
+      expiresAt: this.sessionExpiry(false),
+    });
+    await this.database.db.insert(apiAuditLogs).values({
+      actorUserId: admin.id,
+      event: 'admin.impersonation_ended',
+      subjectType: 'user',
+      summary: String(stored.userId),
+      metadata: { targetUserId: stored.userId },
+    });
+    return this.buildAuthentication(session, newToken);
   }
 
   private async buildAuthentication(

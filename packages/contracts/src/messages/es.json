@@ -375,172 +375,6 @@
     },
     "workspace": "Espacio"
   },
-  "adminMockups": {
-    "action": {
-      "teams": {
-        "description": "Actualiza el nombre y la descripción del espacio de trabajo.",
-        "editTitle": "Editar · Editar equipo",
-        "executed": "Editar equipo: acción registrada.",
-        "label": "Editar equipo",
-        "saved": "Editar equipo: mockup guardado."
-      },
-      "user-report": {
-        "description": "Registra una entrada de ejemplo en el reporte.",
-        "editTitle": "Editar registro",
-        "executed": "Reporte de usuarios: acción registrada.",
-        "label": "Nuevo registro",
-        "saved": "Reporte de usuarios: mockup guardado."
-      },
-      "user-roles": {
-        "description": "Agrupa permisos del panel y reutilízalos entre usuarios administrativos.",
-        "editTitle": "Editar · Crear rol",
-        "executed": "Crear rol: acción registrada.",
-        "label": "Crear rol",
-        "saved": "Crear rol: mockup guardado."
-      }
-    },
-    "actions": "Acciones",
-    "allStatuses": "Todos los estados",
-    "cancel": "Cancelar",
-    "close": "Cerrar",
-    "column": {
-      "members": "Miembros",
-      "owner": "Propietario",
-      "permissions": "Permisos",
-      "plan": "Plan",
-      "role": "Rol",
-      "signup": "Registro",
-      "slug": "Slug",
-      "team": "Equipo",
-      "user": "Usuario",
-      "users": "Usuarios"
-    },
-    "delete": "Eliminar",
-    "deleteDescription": "Se eliminará “{name}” del mockup.",
-    "deleteFallback": "Confirma la eliminación del registro.",
-    "deleteTitle": "Eliminar registro",
-    "detail": "Detalle",
-    "detailDescription": "Información registrada en esta sección administrativa.",
-    "edit": "Editar",
-    "emptyDescription": "Los nuevos registros aparecerán en esta tabla.",
-    "emptyTitle": "Aún no hay registros",
-    "field": {
-      "description": "Descripción",
-      "name": "Nombre",
-      "permissions": "Permisos",
-      "permissionsHint": "Marca las acciones permitidas por módulo del panel."
-    },
-    "fieldNumber": "Campo {index}",
-    "filterStatus": "Filtrar por estado",
-    "forbiddenDescription": "Tu cuenta no tiene permisos para administrar esta sección de la plataforma.",
-    "forbiddenTitle": "Acceso restringido",
-    "itemLabel": "resultados",
-    "loadFailed": "No fue posible cargar la información de esta sección.",
-    "loadFailedTitle": "No pudimos cargar esta sección",
-    "metric": {
-      "teams": {
-        "averageSize": {
-          "description": "Miembros por equipo",
-          "label": "Tamaño medio"
-        },
-        "teams": {
-          "description": "Espacios de trabajo actuales",
-          "label": "Equipos"
-        },
-        "withOwner": {
-          "description": "Equipos con dueño asignado",
-          "label": "Con propietario"
-        },
-        "withoutOwner": {
-          "description": "Requieren reasignar dueño",
-          "label": "Sin propietario"
-        }
-      },
-      "user-report": {
-        "growth": {
-          "description": "86 altas en el período",
-          "label": "Crecimiento 30 días"
-        },
-        "twoFactor": {
-          "description": "474 cuentas protegidas",
-          "label": "Dos factores"
-        },
-        "users": {
-          "description": "Identidades registradas",
-          "label": "Usuarios"
-        },
-        "verified": {
-          "description": "1.023 cuentas verificadas",
-          "label": "Correo verificado"
-        }
-      },
-      "user-roles": {
-        "assigned": {
-          "description": "Cuentas con un rol activo",
-          "label": "Usuarios asignados"
-        },
-        "permissions": {
-          "description": "Claves cubiertas por los roles",
-          "label": "Permisos"
-        },
-        "roles": {
-          "description": "Grupos de permisos disponibles",
-          "label": "Roles"
-        }
-      }
-    },
-    "missingFields": "Completa todos los campos obligatorios.",
-    "module": {
-      "teams": {
-        "description": "Espacios de trabajo con su propietario y miembros asignados.",
-        "searchPlaceholder": "Buscar en equipos...",
-        "title": "Equipos"
-      },
-      "user-report": {
-        "description": "Crecimiento, seguridad de cuentas y últimas altas registradas.",
-        "searchPlaceholder": "Buscar en el reporte de usuarios...",
-        "title": "Reporte de usuarios"
-      },
-      "user-roles": {
-        "description": "Grupos de permisos reutilizables para el acceso al panel.",
-        "searchPlaceholder": "Buscar en roles de usuario...",
-        "title": "Roles de usuario"
-      }
-    },
-    "moduleColumn": "Módulo",
-    "noResults": "Sin resultados",
-    "noResultsDescription": "Ajusta la búsqueda o el filtro de estado.",
-    "permissionAction": {
-      "create": "Crear",
-      "delete": "Eliminar",
-      "edit": "Editar",
-      "view": "Ver"
-    },
-    "permissionGroup": {
-      "content": "Contenido",
-      "payments": "Pagos",
-      "plans": "Planes",
-      "roles": "Roles y equipos",
-      "settings": "Ajustes",
-      "users": "Usuarios"
-    },
-    "recordDeleted": "Elemento eliminado.",
-    "rowActions": "Acciones para {row}",
-    "saveChanges": "Guardar cambios",
-    "searchAria": "Buscar en {section}",
-    "status": {
-      "attention": "Atención",
-      "inUse": "En uso",
-      "unused": "Sin usuarios",
-      "unverified": "Sin verificar",
-      "verified": "Verificada",
-      "withOwner": "Con propietario",
-      "withoutOwner": "Sin propietario"
-    },
-    "statusColumn": "Estado",
-    "thisRecord": "este registro",
-    "view": "Ver"
-  },
   "adminNotifications": {
     "actions": "Acciones",
     "all": "Todos",
@@ -625,6 +459,7 @@
     "actionsColumn": "Acciones",
     "allPayments": "Todos los pagos",
     "allStatuses": "Todos los estados",
+    "apply": "Aplicar",
     "applying": "Aplicando...",
     "cancel": "Cancelar",
     "close": "Cerrar",
@@ -754,6 +589,7 @@
     "emptyFilteredDescription": "Prueba con otro término o restablece los filtros.",
     "field": {
       "code": "Código",
+      "creditUnits": "Créditos a conceder",
       "credits": "Créditos",
       "discountValue": "Valor del descuento",
       "displayName": "Nombre visible",
@@ -762,6 +598,7 @@
       "plan": "Plan",
       "price": "Precio"
     },
+    "fieldActionHint": "Completa los campos para ejecutar la acción.",
     "fieldNumber": "Campo {index}",
     "filterStatus": "Filtrar por estado",
     "forbiddenDescription": "Tu cuenta no tiene permisos para administrar esta sección de la plataforma.",
@@ -1044,6 +881,8 @@
       "editCoupon": "Editar cupón",
       "editPack": "Editar paquete",
       "editUser": "Editar usuario",
+      "grantCredits": "Conceder créditos",
+      "impersonate": "Ver como el usuario",
       "markPaid": "Marcar pagado",
       "reactivate": "Reactivar",
       "refund": "Reembolsar",
@@ -1186,6 +1025,78 @@
     "trend": "Evolución",
     "trendDescription": "Importe neto liquidado · {range}",
     "workspace": "Espacio de trabajo"
+  },
+  "adminRoles": {
+    "actionsColumn": "Acciones",
+    "allPermissions": "Todos los permisos",
+    "cancel": "Cancelar",
+    "candidateSearchPlaceholder": "Buscar usuario por nombre o correo…",
+    "createRole": "Nuevo rol",
+    "deleteDescription": "Se eliminará el rol {name}. Sus miembros perderán el acceso al panel de administración.",
+    "deleteRole": "Eliminar",
+    "deleteTitle": "¿Eliminar rol?",
+    "deleted": "Rol eliminado.",
+    "description": "Descripción",
+    "editRole": "Editar rol",
+    "emptyDescription": "Crea un rol para dar acceso parcial al panel de administración.",
+    "emptyTitle": "Sin roles",
+    "forbiddenDescription": "Tu cuenta no tiene acceso a los roles de administrador.",
+    "forbiddenTitle": "Acceso restringido",
+    "loadFailedDescription": "No se pudieron cargar los roles. Inténtalo de nuevo.",
+    "loadFailedTitle": "Error al cargar",
+    "loading": "Cargando roles…",
+    "manage": "Gestionar",
+    "manageMembers": "Miembros",
+    "memberAssigned": "Rol asignado.",
+    "memberCount": "{count, plural, one {# miembro} other {# miembros}}",
+    "memberUnassigned": "Rol retirado.",
+    "membersColumn": "Miembros",
+    "membersHint": "Quien tenga este rol entra al panel de administración solo con sus permisos.",
+    "membersTitle": "Miembros de {name}",
+    "modules": {
+      "affiliate": "Afiliados",
+      "ai": "IA",
+      "audit-events": "Auditoría",
+      "content": "Contenido",
+      "coupons": "Cupones",
+      "credits": "Créditos",
+      "dashboard": "Dashboard",
+      "email-templates": "Plantillas de correo",
+      "integrations": "Integraciones",
+      "languages": "Idiomas",
+      "manual-payments": "Pagos manuales",
+      "notifications": "Notificaciones",
+      "payment-report": "Reporte de pagos",
+      "payments": "Pagos",
+      "plans": "Planes",
+      "settings": "Ajustes",
+      "subscriptions": "Suscripciones",
+      "support": "Soporte",
+      "system-information": "Sistema",
+      "teams": "Equipos",
+      "user-report": "Reporte de usuarios",
+      "user-roles": "Roles de administrador",
+      "users": "Usuarios"
+    },
+    "name": "Nombre",
+    "nameRequired": "El rol necesita un nombre.",
+    "noCandidates": "Ningún usuario coincide con esa búsqueda.",
+    "noMembers": "Este rol aún no tiene miembros.",
+    "pageDescription": "Roles con permisos parciales sobre el panel de administración.",
+    "pageTitle": "Roles de administrador",
+    "permissionCount": "{count, plural, one {# permiso} other {# permisos}}",
+    "permissions": "Permisos",
+    "permissionsColumn": "Permisos",
+    "permissionsHint": "Ver permite abrir el módulo; Gestionar permite cambiarlo.",
+    "removeMember": "Quitar a {name}",
+    "roleColumn": "Rol",
+    "rowActions": "Acciones de {name}",
+    "save": "Guardar",
+    "saved": "Rol guardado.",
+    "searchLabel": "Buscar roles",
+    "searchPlaceholder": "Buscar por nombre…",
+    "sheetDescription": "El rol define qué módulos puede ver y gestionar quien lo tenga.",
+    "view": "Ver"
   },
   "adminSettings": {
     "analytics": {
@@ -1385,6 +1296,80 @@
     "unanswered": "Sin responder",
     "viewCase": "Ver caso",
     "workspaceColumn": "Espacio"
+  },
+  "adminTeams": {
+    "accountsColumn": "Cuentas",
+    "actionsColumn": "Acciones",
+    "actionsFor": "Acciones para {name}",
+    "averageMembers": "Miembros promedio",
+    "averageMembersHint": "Miembros por workspace.",
+    "connectedAccounts": "Cuentas conectadas",
+    "connectedAccountsHint": "Cuentas sociales conectadas en total.",
+    "cancel": "Cancelar",
+    "createdColumn": "Creado",
+    "emptyDescription": "Ningún workspace coincide con la búsqueda.",
+    "emptyTitle": "Sin resultados",
+    "forbiddenDescription": "Tu cuenta no tiene acceso a los equipos.",
+    "forbiddenTitle": "Acceso restringido",
+    "itemLabel": "workspaces",
+    "loadFailedDescription": "No se pudieron cargar los equipos. Inténtalo de nuevo.",
+    "loadFailedTitle": "Error al cargar",
+    "loading": "Cargando equipos…",
+    "manageModules": "Administrar módulos",
+    "membersColumn": "Miembros",
+    "noPlan": "Sin plan",
+    "moduleNotInPlan": "No incluido en el plan",
+    "modulesDescription": "Define qué herramientas puede usar {name}.",
+    "modulesHint": "El plan fija el máximo disponible; aquí puedes desactivar módulos para este workspace.",
+    "modulesLabel": "Módulos habilitados",
+    "modulesTitle": "Módulos · {name}",
+    "modulesUpdated": "Módulos del workspace actualizados.",
+    "ownerColumn": "Propietario",
+    "pageDescription": "Workspaces de la plataforma con su dueño, plan y tamaño.",
+    "pageTitle": "Equipos",
+    "personal": "Personal",
+    "planColumn": "Plan",
+    "searchLabel": "Buscar equipos",
+    "searchPlaceholder": "Buscar por nombre, slug o dueño…",
+    "saveModules": "Guardar cambios",
+    "savingModules": "Guardando…",
+    "teamColumn": "Workspace",
+    "teamWorkspaces": "De equipo",
+    "teamWorkspacesHint": "Workspaces que no son personales.",
+    "totalWorkspaces": "Workspaces",
+    "totalWorkspacesHint": "Todos los workspaces de la plataforma.",
+    "workspaceFallback": "este workspace"
+  },
+  "adminUserReport": {
+    "byLocale": "Usuarios por idioma",
+    "byMonth": "Altas por mes",
+    "byPlan": "Workspaces por plan",
+    "forbiddenDescription": "Tu cuenta no tiene acceso al reporte de usuarios.",
+    "forbiddenTitle": "Acceso restringido",
+    "growth": "Crecimiento 30 días",
+    "growthHint": "Frente a los 30 días anteriores.",
+    "growthValue": "{value, number}%",
+    "loadFailedDescription": "No se pudo cargar el reporte. Inténtalo de nuevo.",
+    "loadFailedTitle": "Error al cargar",
+    "loading": "Cargando reporte…",
+    "newUsers": "Nuevos (30 días)",
+    "newUsersHint": "Altas de los últimos 30 días.",
+    "noData": "Sin datos todavía.",
+    "noPlan": "Sin plan",
+    "pageDescription": "Altas, idiomas, planes y verificación de los usuarios de la plataforma.",
+    "pageTitle": "Reporte de usuarios",
+    "percentValue": "{value, number}%",
+    "planColumn": "Plan",
+    "recentTitle": "Últimos registros",
+    "signupColumn": "Alta",
+    "statusColumn": "Estado",
+    "totalUsers": "Usuarios",
+    "totalUsersHint": "Usuarios registrados sin contar administradores.",
+    "unverifiedBadge": "Sin verificar",
+    "userColumn": "Usuario",
+    "verified": "Verificados",
+    "verifiedBadge": "Verificado",
+    "verifiedHint": "Con el correo verificado."
   },
   "affiliate": {
     "activateFailed": "No pudimos activar el programa. Inténtalo de nuevo.",
@@ -3225,11 +3210,14 @@
   },
   "errors": {
     "ACCOUNT_GRANT_NOT_ALLOWED": "No puedes asignar una o más de las cuentas seleccionadas.",
+    "ADMIN_ROLE_NAME_TAKEN": "Ya existe un rol con ese nombre.",
+    "ADMIN_ROLE_NOT_FOUND": "Ese rol no existe.",
     "AI_CREDITS_INSUFFICIENT": "No hay créditos suficientes para iniciar esta generación.",
     "AI_MODEL_ROUTE_INVALID": "La ruta usa un modelo incompatible, deshabilitado u obsoleto.",
     "AI_PROVIDER_CONFIGURATION_INVALID": "La clave no es válida o todavía no fue probada.",
     "AI_PROVIDER_NOT_READY": "El administrador todavía no habilitó un modelo para esta herramienta.",
     "AI_REQUEST_RATE_LIMITED": "Hay demasiadas solicitudes. Espera un momento e inténtalo otra vez.",
+    "AUTH_ADMIN_PERMISSION_REQUIRED": "Tu rol no tiene permiso para esta sección.",
     "AUTH_CAPTCHA_INVALID": "Completa la verificación de seguridad e inténtalo de nuevo.",
     "AUTH_CAPTCHA_UNAVAILABLE": "No pudimos verificar la seguridad. Inténtalo nuevamente.",
     "AUTH_EMAIL_ALREADY_REGISTERED": "Ya existe una cuenta con este correo.",
@@ -3254,6 +3242,8 @@
     "LANGUAGE_NOT_REMOVABLE": "Los idiomas base y el idioma por defecto no se pueden eliminar.",
     "LAST_OWNER_PROTECTED": "Transfiere la propiedad antes de abandonar el workspace.",
     "MEMBER_LIMIT_REACHED": "No quedan cupos disponibles en este workspace.",
+    "PLAN_LIMIT_REACHED": "Alcanzaste el límite de tu plan. Mejora el plan para continuar.",
+    "PLAN_MODULE_DISABLED": "Tu plan no incluye este módulo.",
     "ROLE_CHANGE_NOT_ALLOWED": "Tu rol no permite completar este cambio.",
     "TEAM_ACCESS_DENIED": "No tienes permiso para completar esta acción.",
     "TEAM_MEMBER_ALREADY_EXISTS": "Ese correo ya pertenece al workspace.",
@@ -3500,6 +3490,11 @@
     },
     "unavailable": "Grupos no disponibles",
     "updated": "Actualizado"
+  },
+  "impersonation": {
+    "leave": "Volver al panel",
+    "leaveFailed": "No se pudo salir de la vista de usuario.",
+    "viewingAs": "Estás viendo el Portal como {name}."
   },
   "infrastructure": {
     "cache": {
@@ -4195,6 +4190,49 @@
     "invalidPrice": "Indica un precio válido de cero o mayor.",
     "invalidSlug": "El slug usa minúsculas, números y guiones, sin espacios.",
     "itemLabel": "planes",
+    "limits": {
+      "action": {
+        "ai_publishing": "AI Publishing",
+        "content": "Contenido",
+        "image": "Imagen",
+        "planner": "Planificador",
+        "repurpose": "Reutilización",
+        "review": "Revisión",
+        "search": "Búsqueda",
+        "timing": "Mejor horario",
+        "video": "Vídeo"
+      },
+      "actionCosts": "Coste de créditos por acción",
+      "actionCostsHint": "Estos créditos se descuentan después de la franquicia mensual.",
+      "aiVideoMaxSeconds": "Vídeo AI máximo (segundos)",
+      "channelCountMode": "Conteo de cuentas",
+      "creditsPerMonth": "Créditos de IA al mes",
+      "hint": "-1 significa ilimitado. Los límites se aplican por workspace.",
+      "maxChannels": "Cuentas conectadas",
+      "maxFileSizeMb": "Tamaño por archivo (MB)",
+      "maxPostsPerMonth": "Posts al mes",
+      "maxStorageMb": "Almacenamiento (MB)",
+      "maxTeamMembers": "Miembros del equipo",
+      "modePerNetwork": "Por cada red",
+      "modeTotal": "Total entre todas las redes",
+      "module": {
+        "ai-publishing": "AI Publishing",
+        "ai-studio": "AI Studio",
+        "automation": "Automatización",
+        "boards": "Tableros",
+        "bulk-posts": "Bulk posts",
+        "captions": "Captions",
+        "files": "Archivos",
+        "groups": "Grupos",
+        "link-bio": "Link in bio",
+        "publishing": "Publishing",
+        "rss-schedules": "RSS",
+        "watermarks": "Marcas de agua"
+      },
+      "modules": "Módulos incluidos",
+      "modulesHint": "Los módulos sin marcar no aparecen en el Portal de este plan.",
+      "title": "Límites del plan"
+    },
     "loadFailed": "No pudimos cargar los planes. Inténtalo de nuevo.",
     "loadFailedDescription": "No pudimos consultar la configuración de planes.",
     "loadFailedTitle": "No se pudieron cargar los planes",

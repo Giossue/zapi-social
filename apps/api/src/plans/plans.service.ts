@@ -7,6 +7,7 @@ import {
 import {
   adminPlansQuerySchema,
   createAdminPlanSchema,
+  planLimitsFrom,
   updateAdminPlanSchema,
   type AdminPlan,
   type AdminPlansList,
@@ -180,6 +181,7 @@ export class PlansService {
       position: plan.position,
       description: plan.description,
       permissionIds: plan.permissionIds,
+      limits: planLimitsFrom(plan.limits),
       subscriberCount,
       createdAt: plan.createdAt.toISOString(),
       updatedAt: plan.updatedAt.toISOString(),

@@ -18,6 +18,7 @@ import { and, eq } from '@workspace/database/query';
 import { randomUUID } from 'node:crypto';
 import { Redis } from 'ioredis';
 import { DatabaseService } from '../database/database.service';
+import { PlanAccessService } from '../plans/plan-access.service';
 import { IntegrationsService } from '../integrations/integrations.service';
 import { Aes256GcmService } from '../platform/crypto/aes-256-gcm.service';
 
@@ -54,6 +55,7 @@ export class WhatsAppStatusConnectionsService {
     private readonly config: ConfigService,
     private readonly database: DatabaseService,
     private readonly integrations: IntegrationsService,
+    private readonly planAccess: PlanAccessService,
   ) {}
 
   async start(session: PortalAuthSession, input: unknown) {
@@ -361,6 +363,10 @@ export class WhatsAppStatusConnectionsService {
           .returning()
       )[0];
     }
+    await this.planAccess.requireChannelSlot(
+      connection.workspaceId,
+      capabilityKey,
+    );
     return (
       await this.database.db
         .insert(socialAccounts)

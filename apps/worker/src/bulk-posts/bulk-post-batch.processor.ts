@@ -17,6 +17,7 @@ import type { Job } from 'bullmq';
 import { WorkerAuditService } from '../audit/worker-audit.service';
 import { AutomationWebhookEventsService } from '../automation/automation-webhook-events.service';
 import { DatabaseService } from '../database/database.service';
+import { PlanAccessService } from '../plans/plan-access.service';
 import {
   BULK_POST_BATCH_JOB,
   BULK_POST_BATCH_QUEUE,
@@ -36,6 +37,7 @@ export class BulkPostBatchProcessor extends WorkerHost {
     private readonly database: DatabaseService,
     private readonly audit: WorkerAuditService,
     private readonly events: AutomationWebhookEventsService,
+    private readonly planAccess: PlanAccessService,
     config: ConfigService,
   ) {
     super();
@@ -75,6 +77,14 @@ export class BulkPostBatchProcessor extends WorkerHost {
       .where(eq(bulkPostBatches.id, record.batch.id));
 
     try {
+      if (
+        !(await this.planAccess.moduleAvailable(
+          record.batch.workspaceId,
+          'bulk-posts',
+        ))
+      ) {
+        throw new BulkPostError('PLAN_MODULE_DISABLED');
+      }
       const sourcePath = resolve(this.storageRoot, record.file.storageKey);
       const raw = await readFile(sourcePath, 'utf8');
       const parsedRows = parseCsv(raw);
@@ -260,6 +270,9 @@ export class BulkPostBatchProcessor extends WorkerHost {
       )
       .limit(1);
     if (existing) return;
+    if (!(await this.planAccess.postSlotAvailable(input.workspaceId))) {
+      throw new BulkPostError('PLAN_LIMIT_REACHED');
+    }
     const createdPostId = await this.database.db.transaction(async (tx) => {
       const mode = input.mode?.trim().toLowerCase();
       const [post] = await tx

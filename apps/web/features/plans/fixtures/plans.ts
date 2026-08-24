@@ -1,3 +1,4 @@
+import { defaultPlanLimits } from "@workspace/contracts"
 import type { AdminPlan, PlanPermissionGroup } from "../types/plans"
 
 export const planPermissionGroups: readonly PlanPermissionGroup[] = [
@@ -89,6 +90,7 @@ export const adminPlansFixture: readonly AdminPlan[] = [
       "Un punto de partida sencillo para equipos que están conociendo Zapi.",
     subscriberCount: 1842,
     permissionIds: ["workspace.view", "publishing.create", "reporting.view"],
+    limits: defaultPlanLimits,
   },
   {
     id: "plan-pro",
@@ -115,6 +117,7 @@ export const adminPlansFixture: readonly AdminPlan[] = [
       "rss_schedules.manage",
       "reporting.view",
     ],
+    limits: defaultPlanLimits,
   },
   {
     id: "plan-business",
@@ -144,6 +147,7 @@ export const adminPlansFixture: readonly AdminPlan[] = [
       "reporting.view",
       "reporting.export",
     ],
+    limits: defaultPlanLimits,
   },
   {
     id: "plan-annual",
@@ -170,5 +174,6 @@ export const adminPlansFixture: readonly AdminPlan[] = [
       "rss_schedules.manage",
       "reporting.view",
     ],
+    limits: defaultPlanLimits,
   },
 ]

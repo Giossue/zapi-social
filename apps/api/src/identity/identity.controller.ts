@@ -58,6 +58,23 @@ export class IdentityController {
     return authentication.session;
   }
 
+  @Post('impersonation/leave')
+  async leaveImpersonation(
+    @Req() request: FastifyRequest,
+    @Res({ passthrough: true }) reply: FastifyReply,
+  ) {
+    const authentication = await this.identity.leaveImpersonation(
+      request.cookies[sessionCookieName],
+    );
+    this.setAuthenticationCookies(
+      reply,
+      authentication.accessToken,
+      authentication.sessionToken,
+      false,
+    );
+    return authentication.session;
+  }
+
   @Post('password-reset/request')
   @HttpCode(202)
   async requestPasswordReset(@Body() body: unknown) {

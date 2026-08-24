@@ -29,6 +29,7 @@ import {
 import { DatabaseService } from '../database/database.service';
 import { ChannelProviderIntegrationsService } from '../integrations/channel-provider-integrations.service';
 import { IntegrationsService } from '../integrations/integrations.service';
+import { PlanAccessService } from '../plans/plan-access.service';
 import { TeamAccountAccessService } from '../teams/team-account-access.service';
 import { WhatsAppStatusConnectionsService } from './whatsapp-status-connections.service';
 
@@ -89,6 +90,7 @@ export class ChannelsService {
     private readonly channelProviders: ChannelProviderIntegrationsService,
     private readonly whatsapp: WhatsAppStatusConnectionsService,
     private readonly accountAccess: TeamAccountAccessService,
+    private readonly planAccess: PlanAccessService,
   ) {}
 
   async list(
@@ -140,7 +142,9 @@ export class ChannelsService {
     const connected = Number(connectedTotals[0]?.connected ?? 0);
     const lastAccount = pageRows.at(-1);
 
-    const portalCapabilities = await this.portalCapabilities();
+    const portalCapabilities = await this.portalCapabilities(
+      session.workspace.id,
+    );
 
     return {
       canManage: this.canManage(session),
@@ -232,11 +236,23 @@ export class ChannelsService {
     return this.serialize(account);
   }
 
-  private async portalCapabilities(): Promise<PortalChannelCapability[]> {
+  private async portalCapabilities(
+    workspaceId?: string,
+  ): Promise<PortalChannelCapability[]> {
     const ready = await this.readyCapabilityKeys();
+    const withinPlan = workspaceId
+      ? await this.planAccess.availableChannelCapabilities(
+          workspaceId,
+          capabilities.map(({ key }) => key),
+        )
+      : new Set(capabilities.map(({ key }) => key));
     return capabilities.map((capability) => ({
       ...capability,
-      availability: ready.has(capability.key) ? 'ready' : 'coming_soon',
+      availability: !ready.has(capability.key)
+        ? 'coming_soon'
+        : withinPlan.has(capability.key)
+          ? 'ready'
+          : 'plan_locked',
     }));
   }
 

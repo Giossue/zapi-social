@@ -26,6 +26,7 @@ import {
 } from '@workspace/contracts';
 import type { FastifyRequest } from 'fastify';
 import { DatabaseService } from '../database/database.service';
+import { PlanAccessService } from '../plans/plan-access.service';
 import {
   AppException,
   type AppErrorCode,
@@ -43,6 +44,7 @@ export class AutomationService {
   constructor(
     private readonly database: DatabaseService,
     private readonly events: AutomationEventsService,
+    private readonly planAccess: PlanAccessService,
     config: ConfigService,
   ) {
     this.encryption = new Aes256GcmService(
@@ -421,6 +423,7 @@ export class AutomationService {
             .limit(1);
           if (existing) return existing;
         }
+        await this.planAccess.requirePostSlot(auth.key.workspaceId);
         const [inserted] = await tx
           .insert(publishingPosts)
           .values({
@@ -487,6 +490,7 @@ export class AutomationService {
     if (!key || (key.expiresAt && key.expiresAt <= new Date())) {
       throw this.unauthorized();
     }
+    await this.planAccess.requireModule(key.workspaceId, 'automation');
     const permissions = key.permissions as AutomationPermission[];
     if (permission && !permissions.includes(permission)) {
       throw new AppException(

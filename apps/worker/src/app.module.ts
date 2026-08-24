@@ -44,6 +44,7 @@ import {
   AI_SCHEDULE_DISPATCH_QUEUE,
 } from './ai/ai.constants';
 import { AiRequestProcessor } from './ai/ai-request.processor';
+import { PlanAccessService } from './plans/plan-access.service';
 import { AiScheduleDispatchProcessor } from './ai/ai-schedule-dispatch.processor';
 import { AiScheduleDispatchScheduler } from './ai/ai-schedule-dispatch.scheduler';
 import { AUTOMATION_WEBHOOK_QUEUE } from './automation/automation.constants';
@@ -122,6 +123,7 @@ import { FileImportsScheduler } from './files/file-imports.scheduler';
     RssFeedReaderService,
     RssScheduleDispatchScheduler,
     RssScheduleDispatchProcessor,
+    PlanAccessService,
     RssScheduleRunProcessor,
     BulkPostBatchProcessor,
     AiRequestProcessor,

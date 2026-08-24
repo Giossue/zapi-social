@@ -3,6 +3,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { EmailModule } from '../email/email.module';
 import { CaptchaModule } from '../captcha/captcha.module';
+import { PlanAccessModule } from '../plans/plan-access.module';
+import { AdminImpersonationController } from './admin-impersonation.controller';
 import { IdentityController } from './identity.controller';
 import { IdentityService } from './identity.service';
 import { PasswordResetService } from './password-reset.service';
@@ -14,6 +16,7 @@ import { SessionAccessService } from './session-access.service';
   imports: [
     EmailModule,
     CaptchaModule,
+    PlanAccessModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
@@ -22,7 +25,11 @@ import { SessionAccessService } from './session-access.service';
       }),
     }),
   ],
-  controllers: [IdentityController, PortalProfileController],
+  controllers: [
+    AdminImpersonationController,
+    IdentityController,
+    PortalProfileController,
+  ],
   providers: [
     IdentityService,
     PasswordResetService,

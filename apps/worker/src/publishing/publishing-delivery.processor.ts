@@ -12,6 +12,7 @@ import type { Job, Queue } from 'bullmq';
 import { WorkerAuditService } from '../audit/worker-audit.service';
 import { AutomationWebhookEventsService } from '../automation/automation-webhook-events.service';
 import { DatabaseService } from '../database/database.service';
+import { PlanAccessService } from '../plans/plan-access.service';
 import { Aes256GcmService } from '../platform/crypto/aes-256-gcm.service';
 import {
   PUBLISHING_DELIVERY_JOB,
@@ -45,6 +46,7 @@ export class PublishingDeliveryProcessor extends WorkerHost {
     private readonly encryption: Aes256GcmService,
     private readonly audit: WorkerAuditService,
     private readonly events: AutomationWebhookEventsService,
+    private readonly planAccess: PlanAccessService,
     private readonly mediaPreparation: PublishingMediaPreparationService,
     private readonly publishers: ChannelPublisherRegistry,
     @InjectQueue(PUBLISHING_DELIVERY_QUEUE)
@@ -68,6 +70,14 @@ export class PublishingDeliveryProcessor extends WorkerHost {
     if (!context) return;
     let result: ProviderResult;
     try {
+      if (
+        !(await this.planAccess.moduleAvailable(
+          context.post.workspaceId,
+          'publishing',
+        ))
+      ) {
+        throw new PublishingDeliveryError('PLAN_MODULE_DISABLED', true);
+      }
       result = await this.publish(
         context.post,
         context.account,

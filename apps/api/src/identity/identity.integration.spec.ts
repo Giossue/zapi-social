@@ -11,6 +11,7 @@ import {
 import { eq } from '@workspace/database/query';
 import { DatabaseService } from '../database/database.service';
 import { AppException } from '../platform/errors/app-exception';
+import { PlanAccessService } from '../plans/plan-access.service';
 import { CaptchaService } from '../captcha/captcha.service';
 import { IdentityService } from './identity.service';
 
@@ -65,6 +66,7 @@ describeDatabase('Identity workspace context', () => {
         { db: database } as DatabaseService,
         new JwtService({ secret: 'identity-timezone-test-secret' }),
         captchaDisabled,
+        new PlanAccessService({ db: database } as DatabaseService),
       );
       const email = `timezone-user-${randomUUID()}@example.test`;
 
@@ -187,6 +189,7 @@ describeDatabase('Identity workspace context', () => {
         { db: database } as DatabaseService,
         new JwtService({ secret: 'identity-workspace-test-secret' }),
         captchaDisabled,
+        new PlanAccessService({ db: database } as DatabaseService),
       );
       const initial = await service.getSession(sessionToken);
       expect(initial?.area).toBe('portal');

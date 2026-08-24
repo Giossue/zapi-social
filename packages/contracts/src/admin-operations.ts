@@ -29,6 +29,8 @@ export const adminOperationToneSchema = z.enum([
 export const adminOperationActionKeySchema = z.enum([
   "view",
   "edit",
+  "impersonate",
+  "grant_credits",
   "deactivate",
   "reactivate",
   "duplicate",
@@ -60,6 +62,7 @@ export const adminOperationActionSchema = z.object({
   key: adminOperationActionKeySchema,
   labelKey: z.string(),
   kind: z.enum(["destructive", "success"]).optional(),
+  fieldKeys: z.array(z.string()).optional(),
 })
 
 export const adminOperationRowSchema = z.object({

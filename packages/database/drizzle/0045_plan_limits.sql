@@ -1,0 +1,1 @@
+ALTER TABLE "plans" ADD COLUMN "limits" jsonb DEFAULT '{}'::jsonb NOT NULL;

@@ -16,7 +16,10 @@ import {
   type Database,
 } from '@workspace/database';
 import { eq } from '@workspace/database/query';
-import type { PortalAuthSession } from '@workspace/contracts';
+import {
+  defaultPlanLimits,
+  type PortalAuthSession,
+} from '@workspace/contracts';
 import type { AiRequestJobData } from '../ai/ai.constants';
 import { AiService } from '../ai/ai.service';
 import { AutomationEventsService } from '../automation/automation-events.service';
@@ -28,6 +31,7 @@ import { IntegrationsService } from '../integrations/integrations.service';
 import { AppException } from '../platform/errors/app-exception';
 import type { PublishingDeliveryJobData } from '../publishing/publishing.constants';
 import { PublishingService } from '../publishing/publishing.service';
+import { PlanAccessService } from '../plans/plan-access.service';
 import { TeamAccountAccessService } from './team-account-access.service';
 
 const databaseUrl = process.env.TEAM_ACCOUNT_ACCESS_TEST_DATABASE_URL;
@@ -76,14 +80,25 @@ function fakeQueue<T>(): Queue<T> {
 }
 
 function fakeIntegrations(): IntegrationsService {
+  const offline = {
+    enabled: false,
+    readiness: 'not_configured',
+    capabilities: [],
+  };
   return {
-    getWhatsAppStatus: () =>
-      Promise.resolve({
-        enabled: false,
-        readiness: 'not_configured',
-        capabilities: [],
-      }),
+    getMeta: () => Promise.resolve(offline),
+    getWhatsAppStatus: () => Promise.resolve(offline),
   } as unknown as IntegrationsService;
+}
+
+function permissivePlanAccess(): PlanAccessService {
+  return {
+    availableChannelCapabilities: (_workspaceId: string, keys: string[]) =>
+      Promise.resolve(new Set(keys)),
+    limitsFor: () => Promise.resolve(defaultPlanLimits),
+    requireModule: () => Promise.resolve(),
+    requirePostSlot: () => Promise.resolve(),
+  } as unknown as PlanAccessService;
 }
 
 async function inRollbackTransaction(
@@ -254,6 +269,7 @@ describeDatabase('Team account access policy', () => {
         databaseService,
         access,
         fakeEvents(),
+        permissivePlanAccess(),
         fakeQueue<PublishingDeliveryJobData>(),
         new ConfigService({
           FILES_STORAGE_PATH: '/tmp',
@@ -290,6 +306,7 @@ describeDatabase('Team account access policy', () => {
         } as unknown as ChannelProviderIntegrationsService,
         {} as WhatsAppStatusConnectionsService,
         access,
+        permissivePlanAccess(),
       );
 
       const memberView = await service.list(scenario.memberSession, {});
@@ -355,6 +372,7 @@ describeDatabase('Team account access policy', () => {
         databaseService,
         new TeamAccountAccessService(databaseService),
         fakeEvents(),
+        permissivePlanAccess(),
         fakeQueue<AiRequestJobData>(),
       );
 
@@ -432,6 +450,7 @@ describeDatabase('Team account access policy', () => {
         databaseService,
         new TeamAccountAccessService(databaseService),
         fakeEvents(),
+        permissivePlanAccess(),
         fakeQueue<AiRequestJobData>(),
       );
 
@@ -479,6 +498,7 @@ describeDatabase('Team account access policy', () => {
         databaseService,
         new TeamAccountAccessService(databaseService),
         fakeEvents(),
+        permissivePlanAccess(),
         fakeQueue<AiRequestJobData>(),
       );
 

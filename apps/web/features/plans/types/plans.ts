@@ -1,3 +1,5 @@
+import type { PlanLimits } from "@workspace/contracts"
+
 export type PlanStatus = "active" | "inactive"
 export type PlanBillingType = "monthly" | "yearly"
 
@@ -29,4 +31,5 @@ export type AdminPlan = {
   description: string
   subscriberCount: number
   permissionIds: readonly string[]
+  limits: PlanLimits
 }

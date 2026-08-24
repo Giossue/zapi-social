@@ -68,6 +68,7 @@ export const updateAdminTurnstileConfigurationSchema = z
 export { supportedLocaleSchema } from "./locale.js"
 import { supportedLocaleSchema } from "./locale.js"
 import { localeCodeSchema } from "./languages.js"
+import { portalModuleKeySchema } from "./plan-limits.js"
 import { workspacePermissionSchema } from "./workspace-permissions.js"
 
 export const portalProfileSchema = z.object({
@@ -128,6 +129,11 @@ export const portalAuthSessionSchema = z.object({
   area: z.literal("portal"),
   workspace: activeWorkspaceSchema,
   workspaces: z.array(activeWorkspaceSchema).min(1),
+  impersonator: z
+    .object({ id: z.uuid(), displayName: z.string() })
+    .nullable()
+    .optional(),
+  enabledModules: z.array(portalModuleKeySchema).optional(),
 })
 
 export const authSessionSchema = z.discriminatedUnion("area", [
@@ -1650,3 +1656,6 @@ export * from "./commerce-v2.js"
 export * from "./online-media-v2.js"
 export * from "./messages.js"
 export * from "./languages.js"
+export * from "./admin-roles.js"
+export * from "./admin-reports.js"
+export * from "./plan-limits.js"
