@@ -2449,6 +2449,7 @@ function OperationalAutomation() {
       onDeleteOpenChange={(open) => {
         if (!open && !deleting) setPendingDelete(null)
       }}
+      onFormOpenChange={setShowForm}
       onNameChange={setName}
       onNextPage={() => setPage((current) => current + 1)}
       onPreviousPage={() => setPage((current) => Math.max(1, current - 1))}
@@ -2467,7 +2468,6 @@ function OperationalAutomation() {
       onSubmit={create}
       onTimeChange={setTime}
       onToggle={(row, checked) => void toggle(row, checked)}
-      onToggleForm={() => setShowForm((current) => !current)}
       page={page}
       pageSize={AI_TABLE_PAGE_SIZE}
       pendingCreate={pendingCreate}

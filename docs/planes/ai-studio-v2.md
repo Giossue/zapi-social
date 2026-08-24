@@ -827,3 +827,13 @@ y Portal/Admin UI sin hallazgos.
 Validación: build y typecheck de Web correctos; lint focal de AI Studio y
 Suggestions sin errores; auditorías de traducciones, texto hardcoded y UI de
 Portal/Admin sin hallazgos; `git diff --check` correcto.
+
+En Automatizaciones, la creación se abre en el `Sheet` canónico del sistema. La
+cabecera conserva título y descripción; los campos se desplazan dentro del panel
+y `SheetActions` mantiene Cancelar y Guardar visibles al fondo. El panel no se
+cierra durante la mutación y solo se descarta automáticamente después de una
+creación confirmada por la API.
+
+Validación del Sheet: build y typecheck de Web correctos; typecheck de UI
+correcto; lint focal de AI Studio y `TimePicker` sin errores; auditorías de
+traducciones, texto hardcoded y Portal/Admin UI sin hallazgos.

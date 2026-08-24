@@ -71,6 +71,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
+import {
+  Sheet,
+  SheetActions,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@workspace/ui/components/sheet"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Switch } from "@workspace/ui/components/switch"
 import {
@@ -498,7 +506,7 @@ type AiAutomationSurfaceProps = PaginationProps & {
   onSubmit: (event: FormEvent<HTMLFormElement>) => void
   onTimeChange: (value: string) => void
   onToggle: (row: AiAutomationRow, checked: boolean) => void
-  onToggleForm: () => void
+  onFormOpenChange: (open: boolean) => void
   pendingCreate: boolean
   pendingDelete: AiAutomationRow | null
   prompt: string
@@ -534,7 +542,7 @@ function AiAutomationSurface({
   onSubmit,
   onTimeChange,
   onToggle,
-  onToggleForm,
+  onFormOpenChange,
   page,
   pageSize,
   pendingCreate,
@@ -563,31 +571,42 @@ function AiAutomationSurface({
         title={t("automation.pageTitle")}
       />
 
-      {formOpen && canManage ? (
-        <form className="flex flex-col gap-3" noValidate onSubmit={onSubmit}>
-          <Card variant="subtle">
-            <CardHeader>
-              <CardTitle>{t("automation.createTitle")}</CardTitle>
-              <CardDescription>
-                {t("automation.createDescription")}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+      <Sheet
+        onOpenChange={(open) => {
+          if (!pendingCreate) onFormOpenChange(open)
+        }}
+        open={formOpen && canManage}
+      >
+        <SheetContent className="w-full gap-0 p-0 sm:max-w-xl" side="right">
+          <SheetHeader className="border-b">
+            <SheetTitle>{t("automation.createTitle")}</SheetTitle>
+            <SheetDescription>
+              {t("automation.createDescription")}
+            </SheetDescription>
+          </SheetHeader>
+          <form
+            aria-busy={pendingCreate}
+            className="flex min-h-0 flex-1 flex-col"
+            noValidate
+            onSubmit={onSubmit}
+          >
+            <div className="min-h-0 flex-1 overflow-y-auto p-4">
               <FieldGroup>
-                <FieldGroup className="grid gap-4 md:grid-cols-2">
-                  <Field>
+                <FieldGroup className="grid gap-4 sm:grid-cols-2">
+                  <Field data-disabled={pendingCreate || undefined}>
                     <FieldLabel htmlFor="automation-name">
                       {t("name")}
                       <RequiredMark />
                     </FieldLabel>
                     <Input
                       aria-required="true"
+                      disabled={pendingCreate}
                       id="automation-name"
                       onChange={(event) => onNameChange(event.target.value)}
                       value={name}
                     />
                   </Field>
-                  <Field>
+                  <Field data-disabled={pendingCreate || undefined}>
                     <FieldLabel htmlFor="automation-time">
                       {t("timeColumn")} <RequiredMark />
                     </FieldLabel>
@@ -595,29 +614,35 @@ function AiAutomationSurface({
                       hourLabel={tCommon("hour")}
                       minuteLabel={tCommon("minute")}
                       aria-required={true}
+                      disabled={pendingCreate}
                       id="automation-time"
                       onValueChange={onTimeChange}
                       value={time}
                     />
                   </Field>
                 </FieldGroup>
-                <Field>
+                <Field data-disabled={pendingCreate || undefined}>
                   <FieldLabel htmlFor="automation-prompt">
                     {t("automation.prompt")} <RequiredMark />
                   </FieldLabel>
                   <Textarea
                     aria-required="true"
+                    disabled={pendingCreate}
                     id="automation-prompt"
                     onChange={(event) => onPromptChange(event.target.value)}
                     rows={4}
                     value={prompt}
                   />
                 </Field>
-                <Field>
+                <Field data-disabled={pendingCreate || undefined}>
                   <FieldLabel htmlFor="automation-account">
                     {t("automation.targetAccount")} <RequiredMark />
                   </FieldLabel>
-                  <Select onValueChange={onAccountIdChange} value={accountId}>
+                  <Select
+                    disabled={pendingCreate}
+                    onValueChange={onAccountIdChange}
+                    value={accountId}
+                  >
                     <SelectTrigger
                       aria-required="true"
                       className="w-full"
@@ -644,23 +669,31 @@ function AiAutomationSurface({
                   ) : null}
                 </Field>
               </FieldGroup>
-            </CardContent>
-          </Card>
-          <div className="flex justify-end">
-            <Button disabled={pendingCreate || !canSubmit} type="submit">
-              {pendingCreate ? (
-                <Spinner
-                  aria-label={t("automation.saving")}
-                  data-icon="inline-start"
-                />
-              ) : (
-                <Save aria-hidden="true" data-icon="inline-start" />
-              )}
-              {pendingCreate ? t("saving") : t("automation.save")}
-            </Button>
-          </div>
-        </form>
-      ) : null}
+            </div>
+            <SheetActions>
+              <Button
+                disabled={pendingCreate}
+                onClick={() => onFormOpenChange(false)}
+                type="button"
+                variant="brand-secondary"
+              >
+                {t("cancel")}
+              </Button>
+              <Button disabled={pendingCreate || !canSubmit} type="submit">
+                {pendingCreate ? (
+                  <Spinner
+                    aria-label={t("automation.saving")}
+                    data-icon="inline-start"
+                  />
+                ) : (
+                  <Save aria-hidden="true" data-icon="inline-start" />
+                )}
+                {pendingCreate ? t("saving") : t("automation.save")}
+              </Button>
+            </SheetActions>
+          </form>
+        </SheetContent>
+      </Sheet>
 
       <Card variant="subtle">
         <DataTableHeader
@@ -669,7 +702,7 @@ function AiAutomationSurface({
               <Button
                 className="hidden sm:inline-flex"
                 disabled={state !== "ready"}
-                onClick={onToggleForm}
+                onClick={() => onFormOpenChange(true)}
                 size="sm"
                 type="button"
               >
@@ -833,7 +866,7 @@ function AiAutomationSurface({
         <FloatingActionButton
           disabled={state !== "ready"}
           label={t("automation.create")}
-          onClick={onToggleForm}
+          onClick={() => onFormOpenChange(true)}
         />
       ) : null}
 

@@ -19,6 +19,7 @@ const minutes = ["00", "15", "30", "45"]
 type TimePickerProps = {
   "aria-invalid"?: boolean
   "aria-required"?: boolean
+  disabled?: boolean
   hourLabel: string
   minuteLabel: string
   id?: string
@@ -29,6 +30,7 @@ type TimePickerProps = {
 function TimePicker({
   "aria-invalid": ariaInvalid,
   "aria-required": ariaRequired,
+  disabled,
   hourLabel,
   minuteLabel,
   id,
@@ -40,6 +42,7 @@ function TimePicker({
   return (
     <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
       <Select
+        disabled={disabled}
         onValueChange={(nextHour) => onValueChange(`${nextHour}:${minute}`)}
         value={hour}
       >
@@ -63,6 +66,7 @@ function TimePicker({
       </Select>
       <Clock3 aria-hidden="true" className="text-muted-foreground" />
       <Select
+        disabled={disabled}
         onValueChange={(nextMinute) => onValueChange(`${hour}:${nextMinute}`)}
         value={minute}
       >
