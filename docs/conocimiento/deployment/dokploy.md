@@ -66,6 +66,41 @@ copia `dist`. La primera importación de un valor —un catálogo, un schema Zod
 rompe el build con `Module not found`, y solo se ve al desplegar, porque en
 local `dist` ya existe de una compilación anterior.
 
+## Qué tarda en un despliegue, y por qué
+
+Medido con Podman en agosto de 2026, sobre la web:
+
+| Escenario                       | Antes    | Ahora    |
+| ------------------------------- | -------- | -------- |
+| Build en frío                   | 1 m 36 s | 1 m 30 s |
+| Cambio pequeño, con caché       | 39 s     | **22 s** |
+
+El desglose de los 39 s originales sorprende: compilar la web eran 28 s, y de
+esos **solo 7 eran compilar**. Los otros 21 se iban en que `next build` vuelve a
+comprobar los tipos por su cuenta. Compilar los contratos son 2,8 s; el resto
+son las copias y el volcado de capas.
+
+Tres cambios, por orden de lo que aportaron:
+
+1. **`typescript.ignoreBuildErrors` en `next.config.ts`** — 18 s. `bun run
+   typecheck` ya cubre el monorepo entero, API y worker incluidos, antes de
+   publicar. **La contrapartida es real: si alguien publica sin pasar
+   `typecheck`, un error de tipos llega a producción.** Un error de compilación
+   o de resolución de módulo sigue rompiendo el build. Si algún día hay CI, lo
+   suyo es que ejecute `typecheck` en cada push y esto deje de ser un riesgo.
+2. **Cachés de BuildKit** para las descargas de bun y para `.next/cache`, con
+   `# syntax=docker/dockerfile:1` al principio de los tres `Dockerfile`. Ayuda
+   en frío; con Turbopack la caché de Next apenas se nota.
+3. **`Dockerfile.web` dejó de copiar** `packages/database`, `file-ingestion` y
+   `eslint-config`: la web depende de `ui`, `contracts` y `api-client`. Sus
+   `package.json` sí se copian, porque `bun install` los necesita para resolver
+   el workspace.
+
+Lo que **no** se tocó y sigue pendiente: no hay multi-stage ni
+`output: "standalone"`, así que la imagen final carga las 2.968 dependencias,
+incluidas las de desarrollo. No alarga el build, pero engorda la imagen y el
+arranque. Merece un cambio propio, porque altera cómo arranca el contenedor.
+
 ## Watch Paths: desplegar solo el servicio que cambió
 
 Un push desplegaba los tres servicios. Eso no solo gasta tiempo de build:
