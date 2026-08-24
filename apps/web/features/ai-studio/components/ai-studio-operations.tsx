@@ -556,7 +556,6 @@ function AiAutomationSurface({
   total,
 }: AiAutomationSurfaceProps) {
   const t = useTranslations("aiStudio.operations")
-  const tCommon = useTranslations("common")
   const canSubmit = Boolean(name.trim() && prompt.trim() && time && accountId)
   let emptyDescription = t("automation.needsAccount")
 
@@ -611,8 +610,6 @@ function AiAutomationSurface({
                       {t("timeColumn")} <RequiredMark />
                     </FieldLabel>
                     <TimePicker
-                      hourLabel={tCommon("hour")}
-                      minuteLabel={tCommon("minute")}
                       aria-required={true}
                       disabled={pendingCreate}
                       id="automation-time"

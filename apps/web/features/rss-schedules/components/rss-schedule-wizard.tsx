@@ -93,7 +93,6 @@ export function RssScheduleWizard({
   open,
 }: RssScheduleWizardProps) {
   const t = useTranslations("rssSchedules.wizard")
-  const tCommon = useTranslations("common")
   const initialTargetIds = accounts.slice(0, 2).map(({ id }) => id)
   const [step, setStep] = useState(0)
   const [name, setName] = useState("")
@@ -417,8 +416,6 @@ export function RssScheduleWizard({
                       </span>
                     </FieldLabel>
                     <TimePicker
-                      hourLabel={tCommon("hour")}
-                      minuteLabel={tCommon("minute")}
                       aria-required={true}
                       id="rss-time"
                       onValueChange={setPreferredTime}

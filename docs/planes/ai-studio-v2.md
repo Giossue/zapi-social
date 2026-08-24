@@ -382,9 +382,9 @@ eliminar draft y ver ejecuciones.
 hasta existir aprobación explícita, permisos y política de conciliación.
 
 **Control horario:** reutiliza literalmente el `TimePicker` canónico de
-Publishing: un único `Select` con icono de reloj y opciones `HH:mm` en intervalos
-de 15 minutos. No se usa el picker nativo del navegador ni se divide la hora en
-dos controles visibles.
+Publishing: el `Input type="time"` compacto del ejemplo oficial de shadcn/ui,
+adaptado al contrato `HH:mm` con precisión de un minuto. No genera una lista de
+combinaciones ni divide la hora en dos controles visibles.
 
 ### 12. Ajustes AI
 
@@ -839,11 +839,15 @@ Validación del Sheet: build y typecheck de Web correctos; typecheck de UI
 correcto; lint focal de AI Studio y `TimePicker` sin errores; auditorías de
 traducciones, texto hardcoded y Portal/Admin UI sin hallazgos.
 
-Corrección del control horario: la fuente y V2 muestran un solo selector
-`HH:mm`; build y typecheck de Web, typecheck de UI, lint focal y auditorías
-correctos. El check focal del template no presenta errores; su build completo
-permanece bloqueado por dos errores TypeScript ajenos en
-`chart-area-interactive.tsx` y `store-traffic.tsx`.
+Corrección inicial del control horario: la fuente y V2 llegaron a mostrar un
+`Select` único `HH:mm`, pero la lista de 96 combinaciones resultó impropia para
+este campo. Se sustituyó por el `Input type="time"` del ejemplo oficial de
+shadcn/ui, con precisión de un minuto y sin desplegable generado.
+
+Validación del reemplazo: typecheck de UI y Web correctos; lint focal y
+auditorías de UI, paridad i18n y texto hardcoded sin hallazgos. El check focal de
+la fuente no presenta errores; su typecheck completo conserva únicamente dos
+errores ajenos en gráficos legacy.
 
 ### Configuración obligatoria de marca — 24 de agosto de 2026
 

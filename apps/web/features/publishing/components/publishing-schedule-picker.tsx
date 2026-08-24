@@ -36,7 +36,6 @@ export function PublishingSchedulePicker({
   time,
 }: PublishingSchedulePickerProps) {
   const t = useTranslations("publishing.schedule")
-  const tCommon = useTranslations("common")
   const selectedDate = new Date(`${date}T12:00:00`)
 
   return (
@@ -88,8 +87,6 @@ export function PublishingSchedulePicker({
           ) : null}
         </FieldLabel>
         <TimePicker
-          hourLabel={tCommon("hour")}
-          minuteLabel={tCommon("minute")}
           aria-required={isRequired}
           id="publishing-scheduled-time"
           onValueChange={onTimeChange}

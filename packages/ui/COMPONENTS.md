@@ -43,7 +43,7 @@ Este inventario refleja los módulos reales de `packages/ui/src/components/`. No
 | `Slider`       | `@workspace/ui/components/slider`        | Selección continua o de rango.                                                   |
 | `Switch`       | `@workspace/ui/components/switch`        | Ajustes binarios inmediatos.                                                     |
 | `Textarea`     | `@workspace/ui/components/textarea`      | Entrada multilínea; usa `background` dentro de superficies agrupadas.            |
-| `TimePicker`   | `@workspace/ui/components/time-picker`   | Hora y minutos compartidos por Publishing y programaciones.                      |
+| `TimePicker`   | `@workspace/ui/components/time-picker`   | Hora y minutos compartidos por Publishing y programaciones; adapta el `Input type="time"` oficial y conserva el contrato `HH:mm`. |
 
 ## Superficies, datos y contenido
 
@@ -84,10 +84,10 @@ de `packages/ui`; su uso queda acotado a interfaces de agentes y generación AI.
 ## Texto en los primitives
 
 `packages/ui` no depende de `next-intl` ni conoce el idioma activo: cualquier
-rótulo visible llega por props desde `apps/web`. Los primitives que mostraban
-texto propio —`TablePagination`, `PageLoading`, `TimePicker` y el plegado de
-filtros de `DataTableToolbar`— lo reciben ahora de fuera, y las rutas importan
-sus envoltorios de `@/components/` en vez del primitive.
+rótulo visible llega por props desde `apps/web`. Los primitives que muestran
+texto propio —`TablePagination`, `PageLoading` y el plegado de filtros de
+`DataTableToolbar`— lo reciben desde fuera. `TimePicker` usa la etiqueta externa
+del formulario y no contiene texto traducible.
 
 Los rótulos accesibles que shadcn/ui trae en su código (`Close`, `Toggle
 Sidebar`, `Go to next page`) se conservan literales por la regla source-first;

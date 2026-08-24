@@ -67,10 +67,13 @@ Antes de crear markup o un componente, ejecutar `codebase-memory` para comprobar
 - No usar `Button` con `variant="ghost"` en producto. Las acciones secundarias, incluidas cancelar, cerrar e iconos, usan `variant="brand-secondary"`. La variante `ghost` permanece solo por compatibilidad interna hasta eliminarla de `packages/ui`.
 - Formularios usan primitives/Field actuales; no inputs estilizados locales.
 - No usar pickers nativos visibles del navegador (`input` con `type="date"`,
-  `time`, `datetime-local`, `month`, `week` o `color`) ni `NativeSelect` en
+  `datetime-local`, `month`, `week` o `color`) ni `NativeSelect` directamente en
   superficies de producto. Componer la selección con `Select`, `Popover`,
-  `Calendar` u otros primitives de `packages/ui`; un `input type="file"` oculto
-  puede permanecer detrás de un botón accesible del sistema.
+  `Calendar` u otros primitives de `packages/ui`. La hora reutiliza el
+  `TimePicker` compartido, cuya implementación sigue el ejemplo oficial de
+  shadcn/ui con `Input type="time"`; ninguna feature declara ese input por su
+  cuenta. Un `input type="file"` oculto puede permanecer detrás de un botón
+  accesible del sistema.
 - Todo formulario de producto usa `noValidate`: nunca mostrar globos, mensajes o validación visual nativa del navegador. Los errores de campos y de envío se comunican con `toast.error`; `Alert` queda para estados persistentes de página, no para validación del formulario.
 - La acción principal de un formulario permanece deshabilitada hasta que todos sus campos obligatorios tengan valor. Después del submit, reglas como formato, coincidencia o política se validan en aplicación y sus errores se muestran por toast.
 - Todo campo obligatorio muestra `*` dentro de `FieldLabel` con `aria-hidden="true"` y `text-destructive`; el control usa `aria-required="true"`. Este marcador es composición simple, no un componente compartido.
