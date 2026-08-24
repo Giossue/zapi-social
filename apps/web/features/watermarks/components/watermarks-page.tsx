@@ -28,21 +28,10 @@ import {
   Search,
   Sparkles,
   Star,
-  Trash2,
   TriangleAlert,
   X,
 } from "lucide-react"
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@workspace/ui/components/alert-dialog"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
@@ -730,7 +719,6 @@ export function WatermarksPage() {
   const [isGlobalScope, setIsGlobalScope] = useState(true)
   const [selectedAccountIds, setSelectedAccountIds] = useState<string[]>([])
   const [imagePickerOpen, setImagePickerOpen] = useState(false)
-  const [deleteOpen, setDeleteOpen] = useState(false)
   const library = useLibraryImages()
   const [draft, setDraft] = useState<WatermarkDraft>(() => ({
     ...defaultDraft,
@@ -833,24 +821,6 @@ export function WatermarksPage() {
     }
   }
 
-  async function remove() {
-    if (!targetRules.length || pending) return
-
-    setPending(true)
-    try {
-      await Promise.all(
-        targetRules.map((rule) => watermarksApi.remove(rule.id))
-      )
-      await loadRules()
-      setDeleteOpen(false)
-      toast.success(t("deleted", { count: targetRules.length }))
-    } catch (error) {
-      toast.error(t(`error.${watermarkErrorKey(error)}`))
-    } finally {
-      setPending(false)
-    }
-  }
-
   const selectedImage =
     library.assets.find(({ id }) => id === draft.imageFileAssetId) ?? null
 
@@ -893,19 +863,7 @@ export function WatermarksPage() {
   return (
     <>
       <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-          <CollectionHeader description={t("description")} title={t("title")} />
-          {targetRules.length ? (
-            <Button
-              onClick={() => setDeleteOpen(true)}
-              size="sm"
-              type="button"
-              variant="destructive"
-            >
-              <Trash2 /> {t("delete")}
-            </Button>
-          ) : null}
-        </div>
+        <CollectionHeader description={t("description")} title={t("title")} />
         <form
           className="flex flex-col gap-3"
           noValidate
@@ -916,7 +874,7 @@ export function WatermarksPage() {
         >
           <Card variant="subtle">
             <CardContent className="grid gap-6 p-4 lg:grid-cols-[minmax(0,1fr)_21rem] lg:p-6">
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-6 lg:self-center">
                 <Field>
                   <FieldLabel>
                     Aplicar en{" "}
@@ -1229,34 +1187,6 @@ export function WatermarksPage() {
         open={imagePickerOpen}
         selectedId={draft.imageFileAssetId}
       />
-      <AlertDialog onOpenChange={setDeleteOpen} open={deleteOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {t("deleteTitle", { count: targetRules.length })}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {t("deleteDescription")}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={pending}>
-              {t("cancel")}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              disabled={pending}
-              onClick={(event) => {
-                event.preventDefault()
-                void remove()
-              }}
-              variant="destructive"
-            >
-              {pending ? <Spinner data-icon="inline-start" /> : null}
-              {pending ? t("deleting") : t("deleteConfirm")}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   )
 }
