@@ -770,26 +770,26 @@ listado es ahora la columna de conversaciones.
 vistas. Sus vistas de generación quedan sin ruta que las alcance y se retirarán cuando esas
 tres superficies se muevan a componentes propios.
 
-### Bloques 21st integrados
+### Migración a AI Elements — 24 de agosto de 2026
 
-La primera versión del chat mezclaba primitives sin una composición de referencia y se veía
-inconsistente. Se recuperaron bloques por MCP y se extrajo únicamente su composición:
+El hilo usa el registry oficial de Vercel AI Elements sobre la composición de tres columnas
+del template canónico. `Conversation` controla el scroll y su retorno al final; `Message`
+separa usuario y asistente; `MessageActions` conserva copiar, reintentar y archivar;
+`Reasoning` representa el trabajo en cola o proceso; `PromptInput` aporta el compositor y el
+selector de las ocho herramientas. La traza 21st anterior se retiró.
 
-| Bloque                     | Qué se tomó                                                                        |
-| -------------------------- | ---------------------------------------------------------------------------------- |
-| `@theshanelevine/chat`     | Encabezado con pestañas, burbuja solo del lado del usuario y compositor enfocable. |
-| `@theshanelevine/thinking` | Traza plegable con etiqueta animada, línea de tiempo y pasos escalonados.          |
-| `@kvnkld/image-generation` | Lienzo de media en curso con resplandor, insignia de resolución y pie con prompt.  |
+Los componentes viven como código auditable en `apps/web/components/ai-elements` y reutilizan
+los primitives de `packages/ui`; el registry no sobrescribió ninguno. El lienzo de generación
+de imagen y video se conserva como renderer de dominio dentro de `MessageContent`, porque AI
+Elements permite componer resultados propios y la API todavía no entrega un asset visible
+mientras el trabajo está en curso.
 
-Los tres traían tokens propios (`--ink`, `bg-surface`, `rounded-card`), SVG en línea y estado
-simulado como arquitectura. Nada de eso se integró: se sustituyó por los tokens semánticos
-del sistema, iconos de `lucide-react` y los primitives de `packages/ui`. Las tres animaciones
-necesarias —`shimmer-text`, `fade-up` y `generation-glow`— se añadieron a
-`packages/ui/src/styles/globals.css`, que es el único lugar donde pueden vivir, y respetan
-`prefers-reduced-motion`.
+La migración no añade una segunda frontera de datos: el chat sigue usando
+`aiApi.listRequests`, `createRequest`, `getRequest`, `retryRequest` y `archiveRequest`, con
+polling durable y autorización del Portal. No se habilita `useChat`, una ruta Next paralela,
+AI Gateway ni secretos de proveedor en Web; adoptar streaming requerirá primero un contrato
+Nest equivalente que mantenga créditos, jobs, ownership y resultados persistentes.
 
-Quedan sin integrar `@educalvolpz/ai-context-meter` y `@educalvolpz/ai-sources`: el medidor
-de contexto necesita el consumo por conversación, que la API aún no expone por solicitud, y
-el listado de fuentes aplica a la herramienta de investigación, cuyos resultados hoy son
-internos y no citas externas. Ambos quedan anotados aquí en lugar de rellenarse con datos
-inventados.
+El medidor de contexto y las fuentes externas siguen fuera de alcance: la API no expone
+consumo por conversación y la herramienta de investigación actual retorna coincidencias
+internas, no citas externas. No se muestran datos simulados para llenar esos componentes.

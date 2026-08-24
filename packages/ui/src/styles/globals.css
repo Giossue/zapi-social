@@ -5,6 +5,7 @@
 @source "../../../apps/**/*.{ts,tsx}";
 @source "../../../components/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
+@source "../../../../node_modules/streamdown/dist/*.js";
 
 /* Theme preset styles: these override CSS variables based on the selected data-theme-preset */
 @import "./presets/brutalist.css";
@@ -346,18 +347,6 @@ html {
   }
   to {
     background-position: -200% 0;
-  }
-}
-
-/* Entrada escalonada de filas en trazas y resultados de IA. */
-@keyframes fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 

@@ -6,11 +6,11 @@ import {
   useMemo,
   useState,
   type CSSProperties,
-  type FormEvent,
 } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import {
+  Archive,
   ArrowLeft,
   CircleAlert,
   Copy,
@@ -19,10 +19,8 @@ import {
   PanelRightOpen,
   RefreshCw,
   Search,
-  Send,
   Settings2,
   Sparkles,
-  Trash2,
   Zap,
 } from "lucide-react"
 
@@ -45,7 +43,6 @@ import {
   InputGroupInput,
 } from "@workspace/ui/components/input-group"
 import { Input } from "@workspace/ui/components/input"
-import { Textarea } from "@workspace/ui/components/textarea"
 import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import {
@@ -64,15 +61,47 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/components/sheet"
-import { Spinner } from "@workspace/ui/components/spinner"
 import { Switch } from "@workspace/ui/components/switch"
 import { toast } from "@workspace/ui/components/toast"
 import { useFormatter, useTranslations } from "next-intl"
 import { useIsLg } from "@workspace/ui/hooks/use-lg"
 import { cn } from "@workspace/ui/lib/utils"
 
+import {
+  Conversation,
+  ConversationContent,
+  ConversationEmptyState,
+  ConversationScrollButton,
+} from "@/components/ai-elements/conversation"
+import {
+  Message,
+  MessageAction,
+  MessageActions,
+  MessageContent,
+  MessageResponse,
+} from "@/components/ai-elements/message"
+import {
+  PromptInput,
+  PromptInputBody,
+  PromptInputFooter,
+  type PromptInputMessage,
+  PromptInputSelect,
+  PromptInputSelectContent,
+  PromptInputSelectItem,
+  PromptInputSelectTrigger,
+  PromptInputSelectValue,
+  PromptInputSubmit,
+  PromptInputTextarea,
+  PromptInputTools,
+} from "@/components/ai-elements/prompt-input"
+import {
+  Reasoning,
+  ReasoningContent,
+  ReasoningTrigger,
+} from "@/components/ai-elements/reasoning"
+import { Shimmer } from "@/components/ai-elements/shimmer"
+
 import { AiGenerationCanvas } from "./ai-generation-canvas"
-import { AiThinkingTrace, type TraceStep } from "./ai-thinking-trace"
 import {
   chatToolKeys,
   chatTools,
@@ -96,20 +125,19 @@ function idempotencyKey() {
   return `chat-${crypto.randomUUID()}`
 }
 
-function traceSteps(
+function traceSummary(
   request: PortalAiRequest,
   t: (key: "received" | "reserving" | "generating") => string
-): TraceStep[] {
+): string {
   const queued = request.status === "queued"
-  return [
-    { label: t("received"), state: "done" },
-    { label: t("reserving"), state: queued ? "active" : "done" },
-    {
-      detail: request.model ?? undefined,
-      label: t("generating"),
-      state: queued ? "pending" : "active",
-    },
+  const steps = [
+    t("received"),
+    t("reserving"),
+    `${t("generating")}${request.model ? ` · ${request.model}` : ""}`,
   ]
+  return steps
+    .map((step, index) => `${index === 2 && queued ? "○" : "✓"} ${step}`)
+    .join("\n\n")
 }
 
 function ResultBody({ request }: { request: PortalAiRequest }) {
@@ -129,12 +157,18 @@ function ResultBody({ request }: { request: PortalAiRequest }) {
     const media = request.kind === "image" || request.kind === "video"
     return (
       <div className="flex flex-col gap-3">
-        <AiThinkingTrace
-          activeLabel={media ? t("generatingMedia") : t("thinking")}
-          doneLabel={t("workDone")}
-          steps={traceSteps(request, (key) => t(`trace.${key}`))}
-          working
-        />
+        <Reasoning className="mb-0" isStreaming>
+          <ReasoningTrigger
+            getThinkingMessage={() => (
+              <Shimmer duration={1}>
+                {media ? t("generatingMedia") : t("thinking")}
+              </Shimmer>
+            )}
+          />
+          <ReasoningContent>
+            {traceSummary(request, (key) => t(`trace.${key}`))}
+          </ReasoningContent>
+        </Reasoning>
         {media ? (
           <AiGenerationCanvas
             aspectRatio={String(
@@ -163,8 +197,8 @@ function ResultBody({ request }: { request: PortalAiRequest }) {
 
   return (
     <div className="flex flex-col gap-4">
-      {summary ? <p className="text-sm leading-relaxed">{summary}</p> : null}
-      {strategy ? <p className="text-sm leading-relaxed">{strategy}</p> : null}
+      {summary ? <MessageResponse>{summary}</MessageResponse> : null}
+      {strategy ? <MessageResponse>{strategy}</MessageResponse> : null}
       {variants.map((variant, index) => {
         const item = variant as Record<string, unknown>
         const platform =
@@ -189,11 +223,7 @@ function ResultBody({ request }: { request: PortalAiRequest }) {
             {typeof item.hook === "string" && item.hook ? (
               <span className="text-sm font-medium">{item.hook}</span>
             ) : null}
-            {body ? (
-              <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                {body}
-              </p>
-            ) : null}
+            {body ? <MessageResponse>{body}</MessageResponse> : null}
             {hashtags.length ? (
               <span className="text-sm text-muted-foreground">
                 {hashtags.map((tag) => `#${String(tag)}`).join(" ")}
@@ -203,9 +233,7 @@ function ResultBody({ request }: { request: PortalAiRequest }) {
         )
       })}
       {!summary && !strategy && !variants.length ? (
-        <pre className="overflow-x-auto rounded-lg bg-muted p-3 text-xs">
-          {JSON.stringify(request.result, null, 2)}
-        </pre>
+        <MessageResponse>{`\`\`\`json\n${JSON.stringify(request.result, null, 2)}\n\`\`\``}</MessageResponse>
       ) : null}
     </div>
   )
@@ -419,9 +447,9 @@ export function AiChatPage() {
     }))
   }
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (!prompt.trim()) {
+  async function submit(message: PromptInputMessage) {
+    const nextPrompt = message.text.trim()
+    if (!nextPrompt) {
       toast.error(t("emptyPrompt"))
       return
     }
@@ -436,7 +464,7 @@ export function AiChatPage() {
         idempotencyKey: idempotencyKey(),
         input,
         kind: tool,
-        prompt: prompt.trim(),
+        prompt: nextPrompt,
       })
       setRequests((current) => [created, ...current])
       setSelectedId(created.id)
@@ -663,119 +691,120 @@ export function AiChatPage() {
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4">
-          {selected ? (
-            <div className="mx-auto flex w-full max-w-3xl flex-col gap-5">
-              <div className="flex justify-end pl-14">
-                <div className="rounded-xl bg-muted px-3 py-2 text-sm leading-relaxed">
-                  {selected.prompt}
-                </div>
-              </div>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span className="font-medium text-foreground">
-                    {chatTools[selected.kind as ChatTool]
-                      ? tt(chatTools[selected.kind as ChatTool].labelKey)
-                      : selected.kind}
-                  </span>
-                  <span>·</span>
-                  <span>
-                    {format.dateTime(new Date(selected.createdAt), {
-                      dateStyle: "short",
-                      timeStyle: "short",
-                    })}
-                  </span>
-                  {selected.model ? (
-                    <>
+        <Conversation className="min-h-0">
+          <ConversationContent className="mx-auto w-full max-w-3xl gap-6 p-4">
+            {selected ? (
+              <>
+                <Message from="user">
+                  <MessageContent>{selected.prompt}</MessageContent>
+                </Message>
+                <Message from="assistant">
+                  <MessageContent className="w-full">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span className="font-medium text-foreground">
+                        {chatTools[selected.kind as ChatTool]
+                          ? tt(chatTools[selected.kind as ChatTool].labelKey)
+                          : selected.kind}
+                      </span>
                       <span>·</span>
-                      <span className="font-mono">{selected.model}</span>
-                    </>
-                  ) : null}
-                </div>
-                <ResultBody request={selected} />
-                <div className="flex flex-wrap items-center gap-2 pt-1">
-                  <Button
-                    onClick={() => void copyResult(selected)}
-                    size="sm"
-                    variant="brand-secondary"
-                  >
-                    <Copy data-icon="inline-start" /> {t("copy")}
-                  </Button>
-                  {selected.status === "failed" ? (
-                    <Button
-                      onClick={() => void retry(selected)}
-                      size="sm"
-                      variant="brand-secondary"
-                    >
-                      <RefreshCw data-icon="inline-start" /> {t("retry")}
-                    </Button>
-                  ) : null}
-                  <Button
-                    onClick={() => void archive(selected)}
-                    size="sm"
-                    variant="brand-secondary"
-                  >
-                    <Trash2 data-icon="inline-start" /> {t("archive")}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="m-auto flex max-w-md flex-col items-center gap-4 text-center">
-              <EmptyState
+                      <span>
+                        {format.dateTime(new Date(selected.createdAt), {
+                          dateStyle: "short",
+                          timeStyle: "short",
+                        })}
+                      </span>
+                      {selected.model ? (
+                        <>
+                          <span>·</span>
+                          <span className="font-mono">{selected.model}</span>
+                        </>
+                      ) : null}
+                    </div>
+                    <ResultBody request={selected} />
+                    <MessageActions>
+                      <MessageAction
+                        label={t("copy")}
+                        onClick={() => void copyResult(selected)}
+                        tooltip={t("copy")}
+                      >
+                        <Copy />
+                      </MessageAction>
+                      {selected.status === "failed" ? (
+                        <MessageAction
+                          label={t("retry")}
+                          onClick={() => void retry(selected)}
+                          tooltip={t("retry")}
+                        >
+                          <RefreshCw />
+                        </MessageAction>
+                      ) : null}
+                      <MessageAction
+                        label={t("archive")}
+                        onClick={() => void archive(selected)}
+                        tooltip={t("archive")}
+                      >
+                        <Archive />
+                      </MessageAction>
+                    </MessageActions>
+                  </MessageContent>
+                </Message>
+              </>
+            ) : (
+              <ConversationEmptyState
                 description={t("emptyDescription")}
-                icon={Sparkles}
+                icon={<Sparkles className="size-6" />}
                 title={t("emptyTitle")}
               />
-            </div>
-          )}
-        </div>
+            )}
+          </ConversationContent>
+          <ConversationScrollButton
+            aria-label={t("scrollToBottom")}
+            size="icon-sm"
+          />
+        </Conversation>
 
-        <form
-          aria-busy={pending}
-          className="shrink-0 p-3"
-          noValidate
-          onSubmit={(event) => void submit(event)}
-        >
-          <div className="mx-auto flex w-full max-w-3xl flex-col gap-2 rounded-xl border border-border bg-background p-2.5 transition-colors focus-within:border-ring">
-            <Textarea
-              aria-label={tt(chatTools[tool].promptLabelKey)}
-              className="min-h-16 resize-none border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
-              disabled={pending}
-              onChange={(event) => setPrompt(event.target.value)}
-              placeholder={tt(chatTools[tool].placeholderKey)}
-              value={prompt}
-            />
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex flex-wrap items-center gap-1">
-                {chatToolKeys.map((key) => (
-                  <button
-                    aria-pressed={tool === key}
-                    className={cn(
-                      "rounded-md px-2 py-1 text-sm transition-colors",
-                      tool === key
-                        ? "bg-muted font-medium text-foreground"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                    key={key}
-                    onClick={() => setTool(key)}
-                    type="button"
-                  >
-                    {tt(chatTools[key].labelKey)}
-                  </button>
-                ))}
-              </div>
-              <Button
+        <div aria-busy={pending} className="shrink-0 p-3">
+          <PromptInput
+            className="mx-auto max-w-3xl"
+            onSubmit={(message) => submit(message)}
+            uploadLabel={t("uploadFiles")}
+          >
+            <PromptInputBody>
+              <PromptInputTextarea
+                aria-label={tt(chatTools[tool].promptLabelKey)}
+                disabled={pending}
+                onChange={(event) => setPrompt(event.target.value)}
+                placeholder={tt(chatTools[tool].placeholderKey)}
+                value={prompt}
+              />
+            </PromptInputBody>
+            <PromptInputFooter>
+              <PromptInputTools>
+                <PromptInputSelect
+                  onValueChange={(value) => setTool(value as ChatTool)}
+                  value={tool}
+                >
+                  <PromptInputSelectTrigger aria-label={t("toolSelector")}>
+                    <Sparkles />
+                    <PromptInputSelectValue />
+                  </PromptInputSelectTrigger>
+                  <PromptInputSelectContent>
+                    {chatToolKeys.map((key) => (
+                      <PromptInputSelectItem key={key} value={key}>
+                        {tt(chatTools[key].labelKey)}
+                      </PromptInputSelectItem>
+                    ))}
+                  </PromptInputSelectContent>
+                </PromptInputSelect>
+              </PromptInputTools>
+              <PromptInputSubmit
                 aria-label={t("send")}
                 disabled={!prompt.trim() || pending}
-                size="icon-sm"
-                type="submit"
-              >
-                {pending ? <Spinner /> : <Send />}
-              </Button>
-            </div>
-          </div>
-        </form>
+                status={pending ? "submitted" : "ready"}
+              />
+            </PromptInputFooter>
+          </PromptInput>
+        </div>
       </div>
 
       <div

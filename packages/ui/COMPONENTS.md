@@ -73,6 +73,14 @@ Este inventario refleja los módulos reales de `packages/ui/src/components/`. No
 | `DataTableHeader` / `DataTableToolbar` / `DataTableFilter` | `@workspace/ui/components/data-table-controls` | Composición canónica de tablas operativas: contexto opcional, búsqueda/acción y filtros adaptables; sin contexto, búsqueda queda a la izquierda y acción al extremo derecho; nunca muestra conteos. Bajo `md`, `DataTableToolbar` pliega sus filtros tras un botón «Filtros» con estado expandido accesible. |
 | `TablePagination`                                          | `@workspace/ui/components/table-pagination`    | Único lugar para el total de resultados y único footer de tablas: rango a la izquierda y navegación anterior/siguiente a la derecha. Recibe `rangeLabel` ya formateado: los primitives no traducen.                                                                                                          |
 
+### AI Elements en Web
+
+AI Studio compone `Conversation`, `Message`, `PromptInput`, `Reasoning` y
+`Shimmer` desde `@/components/ai-elements`. Son código del registry oficial de
+AI Elements adaptado únicamente a los aliases y primitives compartidos de este
+monorepo. No sustituyen los componentes genéricos `Message` y `MessageScroller`
+de `packages/ui`; su uso queda acotado a interfaces de agentes y generación AI.
+
 ## Texto en los primitives
 
 `packages/ui` no depende de `next-intl` ni conoce el idioma activo: cualquier

@@ -12,7 +12,6 @@ import {
   Plus,
   RefreshCw,
   Save,
-  ShieldCheck,
   ShieldX,
   Sparkles,
   Trash2,
@@ -30,11 +29,6 @@ import { FloatingActionButton } from "@workspace/ui/components/floating-action-b
 import { MetricCard } from "@workspace/ui/components/metric-card"
 import { PageLoading } from "@/components/page-loading"
 import { TablePagination } from "@/components/table-pagination"
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@workspace/ui/components/alert"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -681,11 +675,6 @@ function AiAutomationSurface({
         </form>
       ) : null}
 
-      <CollectionHeader
-        description={t("automation.rulesDescription")}
-        level="h2"
-        title={t("automation.rulesTitle")}
-      />
       <Card variant="subtle">
         <DataTableHeader
           search={{
@@ -834,14 +823,6 @@ function AiAutomationSurface({
           </CollectionState>
         </CardContent>
       </Card>
-
-      <Alert>
-        <ShieldCheck aria-hidden="true" />
-        <AlertTitle>{t("automation.humanApproval")}</AlertTitle>
-        <AlertDescription>
-          {t("automation.humanApprovalDescription")}
-        </AlertDescription>
-      </Alert>
 
       {canManage ? (
         <FloatingActionButton
