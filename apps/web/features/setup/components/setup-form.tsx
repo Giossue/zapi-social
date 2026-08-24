@@ -3,14 +3,8 @@
 import { useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
-import { AlertCircle } from "lucide-react"
 import { createSetupAdminSchema } from "@workspace/contracts"
 import { ApiError, authApi, setupApi } from "@workspace/api-client"
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@workspace/ui/components/alert"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
@@ -28,35 +22,38 @@ import {
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { toast } from "@workspace/ui/components/toast"
 
 export function SetupForm() {
   const t = useTranslations("setup")
   const router = useRouter()
-  const [error, setError] = useState<string | null>(null)
+  const [displayName, setDisplayName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [passwordConfirmation, setPasswordConfirmation] = useState("")
   const [submitting, setSubmitting] = useState(false)
+  const complete = Boolean(
+    displayName.trim() && email.trim() && password && passwordConfirmation
+  )
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const form = new FormData(event.currentTarget)
-    const password = String(form.get("password") ?? "")
-    const passwordConfirmation = String(form.get("passwordConfirmation") ?? "")
     if (password !== passwordConfirmation) {
-      setError(t("error.passwordMismatch"))
+      toast.error(t("error.passwordMismatch"))
       return
     }
     const input = {
-      displayName: String(form.get("displayName") ?? "").trim(),
-      email: String(form.get("email") ?? "").trim(),
+      displayName: displayName.trim(),
+      email: email.trim(),
       password,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
     }
     if (!createSetupAdminSchema.safeParse(input).success) {
-      setError(t("error.validation"))
+      toast.error(t("error.validation"))
       return
     }
 
     setSubmitting(true)
-    setError(null)
     try {
       await setupApi.createAdmin(input)
       await authApi.login({
@@ -71,14 +68,14 @@ export function SetupForm() {
         caught instanceof ApiError &&
         caught.code === "SETUP_ALREADY_COMPLETED"
       ) {
-        setError(t("error.alreadyCompleted"))
+        toast.error(t("error.alreadyCompleted"))
       } else if (
         caught instanceof ApiError &&
         caught.code === "AUTH_PASSWORD_POLICY_NOT_MET"
       ) {
-        setError(t("error.passwordPolicy"))
+        toast.error(t("error.passwordPolicy"))
       } else {
-        setError(t("error.failed"))
+        toast.error(t("error.failed"))
       }
     } finally {
       setSubmitting(false)
@@ -86,20 +83,13 @@ export function SetupForm() {
   }
 
   return (
-    <form className="w-full max-w-md" onSubmit={submit}>
+    <form className="w-full max-w-md" noValidate onSubmit={submit}>
       <Card>
         <CardHeader>
           <CardTitle>{t("title")}</CardTitle>
           <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-6">
-          {error ? (
-            <Alert variant="destructive">
-              <AlertCircle />
-              <AlertTitle>{t("error.title")}</AlertTitle>
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          ) : null}
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="setup-name">{t("name")}</FieldLabel>
@@ -108,7 +98,9 @@ export function SetupForm() {
                 name="displayName"
                 autoComplete="name"
                 placeholder={t("namePlaceholder")}
+                onChange={(event) => setDisplayName(event.target.value)}
                 required
+                value={displayName}
               />
             </Field>
             <Field>
@@ -119,7 +111,9 @@ export function SetupForm() {
                 type="email"
                 autoComplete="email"
                 placeholder={t("emailPlaceholder")}
+                onChange={(event) => setEmail(event.target.value)}
                 required
+                value={email}
               />
             </Field>
             <Field>
@@ -130,7 +124,9 @@ export function SetupForm() {
                 type="password"
                 autoComplete="new-password"
                 minLength={8}
+                onChange={(event) => setPassword(event.target.value)}
                 required
+                value={password}
               />
               <FieldDescription>{t("passwordHint")}</FieldDescription>
             </Field>
@@ -144,13 +140,21 @@ export function SetupForm() {
                 type="password"
                 autoComplete="new-password"
                 minLength={8}
+                onChange={(event) =>
+                  setPasswordConfirmation(event.target.value)
+                }
                 required
+                value={passwordConfirmation}
               />
             </Field>
           </FieldGroup>
         </CardContent>
         <CardFooter>
-          <Button className="w-full" disabled={submitting} type="submit">
+          <Button
+            className="w-full"
+            disabled={!complete || submitting}
+            type="submit"
+          >
             {submitting ? <Spinner data-icon="inline-start" /> : null}
             {submitting ? t("submitting") : t("submit")}
           </Button>
