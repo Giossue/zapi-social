@@ -366,9 +366,10 @@ export function PublishingPostsTable({
                   </p>
                 </TableCell>
                 <TableCell className="hidden whitespace-nowrap text-muted-foreground lg:table-cell">
-                  {format.dateTime(new Date(`${post.date}T12:00:00`), {
+                  {format.dateTime(new Date(`${post.date}T12:00:00Z`), {
                     day: "numeric",
                     month: "short",
+                    timeZone: "UTC",
                   })}{" "}
                   · {post.time === "now" ? t("now") : post.time}
                 </TableCell>

@@ -69,7 +69,7 @@ La migración `0020_mushy_peter_parker` añade intentos, procedencia/resultados 
 - Antes de enviar, el Worker elige primero una regla específica de la cuenta y después la global.
 - Imágenes se transforman con `sharp`; vídeos con `ffprobe` + `ffmpeg`.
 - La transformación usa un archivo efímero `<storageKey>.publish-<postId>` y nunca modifica el original. El archivo se limpia tras éxito o fallo.
-- API y Worker deben montar el mismo volumen en la misma ruta `FILES_STORAGE_PATH`.
+- API y Worker deben montar el mismo volumen en la misma ruta `FILES_STORAGE_PATH`; el entrypoint compartido corrige la propiedad inicial del volumen y ejecuta ambos servicios como `bun`, porque watermarks y derivados requieren escritura además de lectura.
 - Worker requiere `ffmpeg` y `ffprobe`. Instagram requiere `API_PUBLIC_ORIGIN` accesible por Meta.
 - API y Worker comparten `PROVIDER_INTEGRATIONS_ENCRYPTION_KEY`; no cambiarla sin rotar/re-encriptar credenciales existentes.
 
@@ -85,6 +85,7 @@ La migración `0020_mushy_peter_parker` añade intentos, procedencia/resultados 
 
 - Calendario fuente-canónica usa FullCalendar con vistas mes/semana/día y compositor contextual.
 - Cola y borradores consumen `publishingApi`; el estado React es caché de respuesta, no fuente fixture.
+- API conserva instantes en UTC y convierte `date`, `time` y `focusDate` a la zona IANA del usuario autenticado antes de responder. Web trata `date` como fecha de calendario estable; los logs operativos permanecen en UTC.
 - Cola y borradores reutilizan `MetricCard` para sus resúmenes operativos, con
   icono semántico y contexto breve por estado, igual que AI Publishing.
 - Las mutaciones confirman con toast y preservan estados loading/empty/error.
@@ -111,5 +112,7 @@ La migración `0020_mushy_peter_parker` añade intentos, procedencia/resultados 
 - [ ] Smoke real por provider y verificación de scopes/tokens en entorno de prueba.
 - [x] Google Picker conectado a Files y al compositor, con importación durable,
       polling, destino raíz y auto-selección; typecheck/build V2 aprobados.
+- [x] Fechas de Publishing serializadas con la zona IANA del usuario; prueba unitaria 3/3 cubre Guayaquil, cruce de día y fallback UTC para datos legacy inválidos. Lint y typecheck de API/Web aprobados.
+- [x] Permisos del volumen Files corregidos al arrancar API/Worker antes de bajar privilegios a `bun`; ambas imágenes construyen con Podman y el smoke con volumen nuevo confirma proceso `uid=1000`, directorio `bun:bun` y escritura efectiva.
 - [ ] Aprobaciones, campañas, labels, cuotas y autorización por `managed_account_ids`.
 - [ ] LinkedIn, X y TikTok sólo después de aprobar contratos y credenciales correspondientes.

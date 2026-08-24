@@ -12,6 +12,7 @@ import {
   publishingPostMedia,
   publishingPosts,
   socialAccounts,
+  users,
 } from '@workspace/database';
 import {
   and,
@@ -43,6 +44,7 @@ import {
   PUBLISHING_DELIVERY_QUEUE,
   type PublishingDeliveryJobData,
 } from './publishing.constants';
+import { formatPublishingDateTime } from './publishing-timezone';
 
 const publishCapabilities = new Set([
   'facebook_page',
@@ -230,21 +232,23 @@ export class PublishingService {
       eq(fileAssets.status, 'ready'),
       sql`(${fileAssets.mimeType} like 'image/%' or ${fileAssets.mimeType} like 'video/%')`,
     )!;
-    const [accounts, posts, postsTotal, media, mediaTotal] = await Promise.all([
-      accountsPromise,
-      postsPromise,
-      postsTotalPromise,
-      this.database.db
-        .select()
-        .from(fileAssets)
-        .where(mediaWhere)
-        .orderBy(desc(fileAssets.updatedAt))
-        .limit(parsed.data.mediaLimit),
-      this.database.db
-        .select({ total: count() })
-        .from(fileAssets)
-        .where(mediaWhere),
-    ]);
+    const [accounts, posts, postsTotal, media, mediaTotal, timezone] =
+      await Promise.all([
+        accountsPromise,
+        postsPromise,
+        postsTotalPromise,
+        this.database.db
+          .select()
+          .from(fileAssets)
+          .where(mediaWhere)
+          .orderBy(desc(fileAssets.updatedAt))
+          .limit(parsed.data.mediaLimit),
+        this.database.db
+          .select({ total: count() })
+          .from(fileAssets)
+          .where(mediaWhere),
+        this.timezoneForUser(session.user.id),
+      ]);
     const postIds = posts.map(({ post }) => post.id);
     const mediaByPost = new Map<string, string[]>();
     if (postIds.length) {
@@ -261,12 +265,17 @@ export class PublishingService {
     return {
       canView: true,
       canManage: this.canManage(session),
-      focusDate: new Date().toISOString().slice(0, 10),
+      focusDate: formatPublishingDateTime(now, timezone).date,
       accounts: accounts
         .filter((account) => publishCapabilities.has(account.capabilityKey))
         .map((account) => this.serializeAccount(account)),
       posts: posts.map(({ post, account }) =>
-        this.serializePost(post, account, mediaByPost.get(post.id) ?? []),
+        this.serializePost(
+          post,
+          account,
+          mediaByPost.get(post.id) ?? [],
+          timezone,
+        ),
       ),
       media: media
         .map((asset) => {
@@ -418,11 +427,17 @@ export class PublishingService {
           ),
         ),
     );
-    const mediaByPost = await this.mediaByPostIds(
-      created.map(({ post }) => post.id),
-    );
+    const [mediaByPost, timezone] = await Promise.all([
+      this.mediaByPostIds(created.map(({ post }) => post.id)),
+      this.timezoneForUser(session.user.id),
+    ]);
     return created.map(({ post, account }) =>
-      this.serializePost(post, account, mediaByPost.get(post.id) ?? []),
+      this.serializePost(
+        post,
+        account,
+        mediaByPost.get(post.id) ?? [],
+        timezone,
+      ),
     );
   }
 
@@ -513,11 +528,11 @@ export class PublishingService {
         () => undefined,
       );
     }
-    return this.serializePost(
-      post,
-      existing.account,
-      mediaIds ?? (await this.postMediaIds(post.id)),
-    );
+    const [postMediaIds, timezone] = await Promise.all([
+      mediaIds ? Promise.resolve(mediaIds) : this.postMediaIds(post.id),
+      this.timezoneForUser(session.user.id),
+    ]);
+    return this.serializePost(post, existing.account, postMediaIds, timezone);
   }
 
   async remove(session: PortalAuthSession, id: string) {
@@ -573,11 +588,11 @@ export class PublishingService {
     await this.enqueue(post.id, session.workspace.id, post.updatedAt).catch(
       () => undefined,
     );
-    return this.serializePost(
-      post,
-      existing.account,
-      await this.postMediaIds(post.id),
-    );
+    const [postMediaIds, timezone] = await Promise.all([
+      this.postMediaIds(post.id),
+      this.timezoneForUser(session.user.id),
+    ]);
+    return this.serializePost(post, existing.account, postMediaIds, timezone);
   }
 
   private async portalOperation(
@@ -761,23 +776,33 @@ export class PublishingService {
     };
   }
 
+  private async timezoneForUser(userId: string) {
+    const [row] = await this.database.db
+      .select({ timezone: users.timezone })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    return row?.timezone ?? 'UTC';
+  }
+
   private serializePost(
     post: Post,
     account: Account,
     mediaAssetIds: string[],
+    timezone: string,
   ): PortalPublishingPost {
     const when = post.scheduledAt ?? post.createdAt;
-    const date = when.toISOString().slice(0, 10);
+    const localDateTime = formatPublishingDateTime(when, timezone);
     const provider = this.provider(account);
     const content = post.content.trim();
     return {
       id: post.id,
       socialAccountId: account.id,
-      date,
+      date: localDateTime.date,
       time:
         post.status === 'processing' && !post.scheduledAt
           ? 'now'
-          : when.toISOString().slice(11, 16),
+          : localDateTime.time,
       title: content.length > 54 ? `${content.slice(0, 51)}…` : content,
       content: post.content,
       channel: `${account.displayName} · ${provider === 'facebook' ? 'Facebook' : provider === 'instagram' ? 'Instagram' : 'WhatsApp'}`,

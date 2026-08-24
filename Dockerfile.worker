@@ -35,7 +35,7 @@ FROM docker.io/oven/bun:1.3.14 AS runtime
 WORKDIR /app
 
 RUN apt-get update \
-  && apt-get install --no-install-recommends -y ffmpeg \
+  && apt-get install --no-install-recommends -y ffmpeg gosu \
   && rm -rf /var/lib/apt/lists/*
 
 COPY package.json bun.lock ./
@@ -57,11 +57,13 @@ COPY --from=build --chown=bun:bun /app/apps/worker/dist apps/worker/dist
 COPY --from=build --chown=bun:bun /app/packages/contracts/dist packages/contracts/dist
 COPY --from=build --chown=bun:bun /app/packages/database/dist packages/database/dist
 COPY --from=build --chown=bun:bun /app/packages/file-ingestion/dist packages/file-ingestion/dist
+COPY --chmod=755 infra/docker/files-storage-entrypoint.sh /usr/local/bin/files-storage-entrypoint
 
 RUN mkdir -p /app/.data/files && chown -R bun:bun /app/.data
 
 ENV NODE_ENV=production
 
-USER bun
+USER root
 
+ENTRYPOINT ["files-storage-entrypoint"]
 CMD ["node", "apps/worker/dist/main.js"]

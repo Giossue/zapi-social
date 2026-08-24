@@ -23,7 +23,7 @@ Ambos servicios usan:
 
 ```text
 Repositorio: Giossue/zapi-social
-Rama: master
+Rama: main
 Build path: /
 Trigger: On Push
 Submódulos: desactivados
@@ -70,10 +70,10 @@ local `dist` ya existe de una compilación anterior.
 
 Medido con Podman en agosto de 2026, sobre la web:
 
-| Escenario                       | Antes    | Ahora    |
-| ------------------------------- | -------- | -------- |
-| Build en frío                   | 1 m 36 s | 1 m 30 s |
-| Cambio pequeño, con caché       | 39 s     | **22 s** |
+| Escenario                 | Antes    | Ahora    |
+| ------------------------- | -------- | -------- |
+| Build en frío             | 1 m 36 s | 1 m 30 s |
+| Cambio pequeño, con caché | 39 s     | **22 s** |
 
 El desglose de los 39 s originales sorprende: compilar la web eran 28 s, y de
 esos **solo 7 eran compilar**. Los otros 21 se iban en que `next build` vuelve a
@@ -111,20 +111,18 @@ deja esa aplicación sin desplegarse nunca, en silencio.
 Las rutas **no son por carpeta, son por dependencia**, según las que declara
 [`ARCHITECTURE.md`](../../../ARCHITECTURE.md):
 
-| Servicio | Rutas vigiladas                                                             |
-| -------- | --------------------------------------------------------------------------- |
-| Web      | `apps/web/**`, `packages/{ui,contracts,api-client}/**`, `Dockerfile.web`     |
-| API      | `apps/api/**`, `packages/{contracts,database,file-ingestion}/**`, `Dockerfile.api` |
-| Worker   | `apps/worker/**`, `packages/{contracts,database,file-ingestion}/**`, `Dockerfile.worker` |
+| Servicio | Rutas vigiladas                                                                                             |
+| -------- | ----------------------------------------------------------------------------------------------------------- |
+| Web      | `apps/web/**`, `packages/{ui,contracts,api-client}/**`, `Dockerfile.web`                                    |
+| API      | `apps/api/**`, `packages/{contracts,database,file-ingestion}/**`, `infra/docker/**`, `Dockerfile.api`       |
+| Worker   | `apps/worker/**`, `packages/{contracts,database,file-ingestion}/**`, `infra/docker/**`, `Dockerfile.worker` |
 
 Las tres añaden además `packages/{typescript-config,eslint-config}/**`,
 `package.json`, `bun.lock`, `turbo.json` y `tsconfig.json`.
 
-**El error que importa es olvidar `packages/contracts/**` en la web.** No rompe
+**El error que importa es olvidar `packages/contracts/**`en la web.** No rompe
 el build —se despliega y parece que todo va bien—, deja la web hablando un
-contrato distinto al de la API. Por eso la comprobación que vale es tocar
-`packages/contracts/` y ver que arrancan los tres servicios; que un cambio en
-`docs/` no despliegue nada es la comprobación fácil.
+contrato distinto al de la API. Por eso la comprobación que vale es tocar`packages/contracts/`y ver que arrancan los tres servicios; que un cambio en`docs/` no despliegue nada es la comprobación fácil.
 
 Autodeploy se queda encendido: Watch Paths filtra dentro de él, no lo sustituye.
 El botón **Deploy** de cada aplicación sigue ignorando las rutas.
@@ -240,6 +238,8 @@ FILES_STORAGE_PATH=/var/lib/zapi/files
 ```
 
 Un volumen con el mismo nombre pero datos independientes, o rutas internas distintas, rompe thumbnails, Bulk Posts, AI Images, Publishing y watermarks. Después de cambiar un mount se redeployan ambos servicios. El volumen no se monta en Web.
+
+Los volúmenes nuevos se montan inicialmente como `root:root`, aunque la imagen haya creado la ruta con otro propietario. API y Worker arrancan mediante `files-storage-entrypoint`: corrige una vez la propiedad del volumen a `bun:bun` cuando sea necesario y después ejecuta Nest como el usuario sin privilegios `bun`. El smoke operativo debe confirmar lectura y escritura desde ambos contenedores; que los archivos sean legibles no basta para generar thumbnails, importaciones ni variantes temporales de watermarks.
 
 ## Base de datos y migraciones
 

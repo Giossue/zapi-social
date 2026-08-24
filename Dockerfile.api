@@ -34,6 +34,10 @@ FROM docker.io/oven/bun:1.3.14 AS runtime
 
 WORKDIR /app
 
+RUN apt-get update \
+  && apt-get install --no-install-recommends -y gosu \
+  && rm -rf /var/lib/apt/lists/*
+
 COPY package.json bun.lock ./
 COPY apps/api/package.json apps/api/package.json
 COPY apps/web/package.json apps/web/package.json
@@ -55,6 +59,7 @@ COPY --from=build --chown=bun:bun /app/packages/database/dist packages/database/
 COPY --from=build --chown=bun:bun /app/packages/database/drizzle packages/database/drizzle
 COPY --from=build --chown=bun:bun /app/packages/database/drizzle.config.ts packages/database/drizzle.config.ts
 COPY --from=build --chown=bun:bun /app/packages/file-ingestion/dist packages/file-ingestion/dist
+COPY --chmod=755 infra/docker/files-storage-entrypoint.sh /usr/local/bin/files-storage-entrypoint
 
 RUN mkdir -p /app/.data/files && chown -R bun:bun /app/.data
 
@@ -62,6 +67,7 @@ ENV NODE_ENV=production
 
 EXPOSE 3001
 
-USER bun
+USER root
 
+ENTRYPOINT ["files-storage-entrypoint"]
 CMD ["node", "apps/api/dist/main.js"]
