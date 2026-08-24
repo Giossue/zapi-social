@@ -66,6 +66,38 @@ copia `dist`. La primera importación de un valor —un catálogo, un schema Zod
 rompe el build con `Module not found`, y solo se ve al desplegar, porque en
 local `dist` ya existe de una compilación anterior.
 
+## Watch Paths: desplegar solo el servicio que cambió
+
+Un push desplegaba los tres servicios. Eso no solo gasta tiempo de build:
+**reiniciaba el worker por un cambio de documentación**, y el worker puede estar
+entregando publicaciones en ese momento.
+
+Cada aplicación de Dokploy tiene un campo **Watch Paths** en su pestaña General,
+bajo Provider. Se añade una ruta por entrada con el botón `+`; pegarlas todas
+juntas separadas por espacios crea un solo patrón que no coincide con nada y
+deja esa aplicación sin desplegarse nunca, en silencio.
+
+Las rutas **no son por carpeta, son por dependencia**, según las que declara
+[`ARCHITECTURE.md`](../../../ARCHITECTURE.md):
+
+| Servicio | Rutas vigiladas                                                             |
+| -------- | --------------------------------------------------------------------------- |
+| Web      | `apps/web/**`, `packages/{ui,contracts,api-client}/**`, `Dockerfile.web`     |
+| API      | `apps/api/**`, `packages/{contracts,database,file-ingestion}/**`, `Dockerfile.api` |
+| Worker   | `apps/worker/**`, `packages/{contracts,database,file-ingestion}/**`, `Dockerfile.worker` |
+
+Las tres añaden además `packages/{typescript-config,eslint-config}/**`,
+`package.json`, `bun.lock`, `turbo.json` y `tsconfig.json`.
+
+**El error que importa es olvidar `packages/contracts/**` en la web.** No rompe
+el build —se despliega y parece que todo va bien—, deja la web hablando un
+contrato distinto al de la API. Por eso la comprobación que vale es tocar
+`packages/contracts/` y ver que arrancan los tres servicios; que un cambio en
+`docs/` no despliegue nada es la comprobación fácil.
+
+Autodeploy se queda encendido: Watch Paths filtra dentro de él, no lo sustituye.
+El botón **Deploy** de cada aplicación sigue ignorando las rutas.
+
 ## Perfil operativo actual
 
 Los valores sensibles permanecen únicamente en Dokploy. En esta guía, `configurado en Dokploy` significa que el servicio tiene el valor real sin exponerlo en el repositorio.
