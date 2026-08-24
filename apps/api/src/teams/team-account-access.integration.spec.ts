@@ -20,6 +20,7 @@ import type { PortalAuthSession } from '@workspace/contracts';
 import type { AiRequestJobData } from '../ai/ai.constants';
 import { AiService } from '../ai/ai.service';
 import { AutomationEventsService } from '../automation/automation-events.service';
+import type { ChannelProviderIntegrationsService } from '../integrations/channel-provider-integrations.service';
 import { ChannelsService } from '../channels/channels.service';
 import { WhatsAppStatusConnectionsService } from '../channels/whatsapp-status-connections.service';
 import { DatabaseService } from '../database/database.service';
@@ -284,6 +285,9 @@ describeDatabase('Team account access policy', () => {
       const service = new ChannelsService(
         databaseService,
         fakeIntegrations(),
+        {
+          readyCapabilityKeys: () => Promise.resolve([]),
+        } as unknown as ChannelProviderIntegrationsService,
         {} as WhatsAppStatusConnectionsService,
         access,
       );

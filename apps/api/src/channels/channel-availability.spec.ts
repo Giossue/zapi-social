@@ -1,4 +1,5 @@
 import { ChannelsService } from './channels.service';
+import type { ChannelProviderIntegrationsService } from '../integrations/channel-provider-integrations.service';
 import type { IntegrationsService } from '../integrations/integrations.service';
 
 type Capability = { key: string; enabled: boolean };
@@ -17,10 +18,16 @@ function integrationsStub(
  * La disponibilidad solo depende de las integraciones, así que el resto de
  * dependencias no se usan en esta ruta y entran como nulas.
  */
-function serviceWith(integrations: IntegrationsService) {
+function serviceWith(
+  integrations: IntegrationsService,
+  generic: string[] = [],
+) {
   const service = new ChannelsService(
     null as never,
     integrations,
+    {
+      readyCapabilityKeys: () => Promise.resolve(generic),
+    } as unknown as ChannelProviderIntegrationsService,
     null as never,
     null as never,
   );
@@ -78,6 +85,23 @@ describe('portal channel availability', () => {
     expect(availability.get('whatsapp_status')).toBe('coming_soon');
     // Un proveedor sin pantalla de Admin todavía no puede estar listo.
     expect(availability.get('linkedin_page')).toBe('coming_soon');
+  });
+
+  it('opens a channel configured through the generic provider screen', async () => {
+    const service = serviceWith(integrationsStub(offline, offline), [
+      'linkedin_page',
+    ]);
+
+    const capabilities = await service.portalCapabilities();
+    const availability = new Map(
+      capabilities.map((capability) => [
+        capability.key,
+        capability.availability,
+      ]),
+    );
+
+    expect(availability.get('linkedin_page')).toBe('ready');
+    expect(availability.get('linkedin_profile')).toBe('coming_soon');
   });
 
   it('keeps a channel closed when the integration is ready but switched off', async () => {

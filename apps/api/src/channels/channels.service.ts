@@ -27,6 +27,7 @@ import {
   sql,
 } from '@workspace/database/query';
 import { DatabaseService } from '../database/database.service';
+import { ChannelProviderIntegrationsService } from '../integrations/channel-provider-integrations.service';
 import { IntegrationsService } from '../integrations/integrations.service';
 import { TeamAccountAccessService } from '../teams/team-account-access.service';
 import { WhatsAppStatusConnectionsService } from './whatsapp-status-connections.service';
@@ -85,6 +86,7 @@ export class ChannelsService {
   constructor(
     private readonly database: DatabaseService,
     private readonly integrations: IntegrationsService,
+    private readonly channelProviders: ChannelProviderIntegrationsService,
     private readonly whatsapp: WhatsAppStatusConnectionsService,
     private readonly accountAccess: TeamAccountAccessService,
   ) {}
@@ -250,7 +252,7 @@ export class ChannelsService {
       this.integrations.getWhatsAppStatus(),
     ]);
 
-    const ready = new Set<string>();
+    const ready = new Set(await this.channelProviders.readyCapabilityKeys());
     for (const integration of [meta, whatsApp]) {
       // `readiness` ya exige credenciales guardadas y una prueba que coincida
       // con ellas; el interruptor por capability es lo que decide cada canal.

@@ -1,8 +1,9 @@
-import { Body, Controller, Get, Patch, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { FastifyRequest } from 'fastify';
 import { EmailService } from '../email/email.service';
 import { SessionAccessService } from '../identity/session-access.service';
+import { ChannelProviderIntegrationsService } from './channel-provider-integrations.service';
 import { IntegrationsService } from './integrations.service';
 
 @ApiTags('admin-integrations')
@@ -110,5 +111,44 @@ export class GoogleDriveIntegrationsController {
   async save(@Body() input: unknown, @Req() request: FastifyRequest) {
     const session = await this.access.requirePlatformAdmin(request);
     return this.integrations.saveGoogleDrive(input, session);
+  }
+}
+
+/**
+ * Pantalla genérica de proveedores de canal. No hay un controlador por red: la
+ * clave viaja en la ruta y el catálogo decide qué campos admite.
+ */
+@ApiTags('admin-integrations')
+@Controller('v1/admin/integrations/channel-providers')
+export class ChannelProviderIntegrationsController {
+  constructor(
+    private readonly access: SessionAccessService,
+    private readonly providers: ChannelProviderIntegrationsService,
+  ) {}
+
+  @Get()
+  async list(@Req() request: FastifyRequest) {
+    await this.access.requirePlatformAdmin(request);
+    return this.providers.list();
+  }
+
+  @Post(':providerKey/test')
+  async test(
+    @Param('providerKey') providerKey: string,
+    @Body() input: unknown,
+    @Req() request: FastifyRequest,
+  ) {
+    await this.access.requirePlatformAdmin(request);
+    return this.providers.test(providerKey, input);
+  }
+
+  @Patch(':providerKey')
+  async save(
+    @Param('providerKey') providerKey: string,
+    @Body() input: unknown,
+    @Req() request: FastifyRequest,
+  ) {
+    await this.access.requirePlatformAdmin(request);
+    return this.providers.save(providerKey, input);
   }
 }

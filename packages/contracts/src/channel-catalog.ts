@@ -101,15 +101,48 @@ export const channelProviderCatalog: readonly ChannelProviderDefinition[] = [
     order: 10,
     accountTypes: ["oauth"],
     fields: [
-      field("appId", "text", { required: true, maxLength: 64 }),
-      field("appSecret", "secret", { required: true, maxLength: 128 }),
+      field("clientId", "text", { required: true, maxLength: 128 }),
+      field("clientSecret", "secret", { required: true, maxLength: 256 }),
       field("graphVersion", "text", { maxLength: 8 }),
       field("callbackUrl", "text", { readOnly: true }),
     ],
   },
   {
-    key: "whatsapp",
+    key: "linkedin",
     order: 20,
+    accountTypes: ["oauth"],
+    fields: [
+      field("clientId", "text", { required: true, maxLength: 128 }),
+      field("clientSecret", "secret", { required: true, maxLength: 256 }),
+      // La versión de la Posts API va en cabecera y caduca al año, así que es
+      // configurable: si quedara fija, el conector dejaría de publicar solo.
+      field("apiVersion", "text", { required: true, maxLength: 6 }),
+      field("callbackUrl", "text", { readOnly: true }),
+    ],
+  },
+  {
+    key: "x",
+    order: 30,
+    accountTypes: ["oauth"],
+    fields: [
+      field("clientId", "text", { required: true, maxLength: 128 }),
+      field("clientSecret", "secret", { required: true, maxLength: 256 }),
+      field("callbackUrl", "text", { readOnly: true }),
+    ],
+  },
+  {
+    key: "tiktok",
+    order: 40,
+    accountTypes: ["oauth"],
+    fields: [
+      field("clientKey", "text", { required: true, maxLength: 128 }),
+      field("clientSecret", "secret", { required: true, maxLength: 256 }),
+      field("callbackUrl", "text", { readOnly: true }),
+    ],
+  },
+  {
+    key: "whatsapp",
+    order: 50,
     accountTypes: ["manual"],
     fields: [
       field("baseUrl", "text", { required: true, maxLength: 2048 }),
@@ -158,6 +191,85 @@ export const channelCapabilityCatalog: readonly ChannelCapabilityDefinition[] =
           allows: "both",
           allowsMixed: false,
           maxVideos: 1,
+        },
+      ],
+    },
+    {
+      key: "linkedin_page",
+      providerKey: "linkedin",
+      order: 40,
+      supportsPublishing: true,
+      destinations: ["feed"],
+      mediaRules: [
+        {
+          destination: "feed",
+          minItems: 0,
+          maxItems: 20,
+          allows: "both",
+          // La Posts API referencia un único `urn` de media por publicación,
+          // salvo el caso MultiImage, que es solo de imágenes.
+          allowsMixed: false,
+          maxVideos: 1,
+        },
+      ],
+    },
+    {
+      key: "linkedin_profile",
+      providerKey: "linkedin",
+      order: 50,
+      supportsPublishing: true,
+      destinations: ["feed"],
+      mediaRules: [
+        {
+          destination: "feed",
+          minItems: 0,
+          maxItems: 20,
+          allows: "both",
+          allowsMixed: false,
+          maxVideos: 1,
+        },
+      ],
+    },
+    {
+      key: "x_profile",
+      providerKey: "x",
+      order: 60,
+      supportsPublishing: true,
+      destinations: ["feed"],
+      mediaRules: [
+        {
+          destination: "feed",
+          minItems: 0,
+          // X admite hasta cuatro imágenes, o un solo vídeo o GIF.
+          maxItems: 4,
+          allows: "both",
+          allowsMixed: false,
+          maxVideos: 1,
+        },
+      ],
+    },
+    {
+      key: "tiktok_profile",
+      providerKey: "tiktok",
+      order: 70,
+      supportsPublishing: true,
+      destinations: ["video", "photo"],
+      mediaRules: [
+        {
+          destination: "video",
+          minItems: 1,
+          maxItems: 1,
+          allows: "video",
+          allowsMixed: false,
+          maxVideos: 1,
+        },
+        {
+          destination: "photo",
+          minItems: 1,
+          maxItems: 35,
+          allows: "image",
+          allowsMixed: false,
+          maxVideos: 0,
         },
       ],
     },

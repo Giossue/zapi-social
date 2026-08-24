@@ -132,16 +132,25 @@ credenciales cifradas, `channel_oauth_states`, `channel_connection_sessions`,
 
 Falta lo que hace que añadir una red sea barato:
 
-1. **Un registro de providers en la API**, hoy inexistente. Los contratos de
-   integraciones están escritos a mano por proveedor
-   (`z.literal(metaIntegrationProviderKey)`). Con siete redes eso no escala:
-   hace falta un catálogo de definiciones y un schema derivado de sus campos.
-2. **El contrato del publicador**, equivalente a `PostPublisher`, con su
-   registro por capability en el worker.
-3. **Las reglas de media por destino**, equivalentes a
-   `PublishingMediaValidationRegistry`. En V2 deben vivir en
-   `packages/contracts` para que la interfaz avise **antes** de guardar y la API
-   lo vuelva a comprobar antes de encolar.
+1. ~~Un registro de providers en la API~~ **hecho el 23 de agosto de 2026.**
+   `channelProviderCatalog` declara los campos de cada red y
+   `channelProviderValuesSchema()` deriva de ahí su validación;
+   `ChannelProviderIntegrationsService` sirve la pantalla genérica en
+   `/v1/admin/integrations/channel-providers`. Meta y WhatsApp conservan su
+   pantalla propia —lo declaran con `hasCustomScreen`— porque guardan su
+   configuración bajo otra clave y con su propio contrato: Meta se almacena como
+   `facebook`, no como `meta`.
+
+   Un proveedor **no llega a `ready` sin verificador**. Dar por buenas unas
+   credenciales sin comprobarlas abriría el canal en el Portal y el fallo
+   aparecería al publicar, que es el peor momento. Por eso añadir una red es:
+   entrada en el catálogo, verificador, flujo OAuth y publicador.
+2. ~~El contrato del publicador~~ **hecho.** `ChannelPublisher` y
+   `ChannelPublisherRegistry` en el worker, con Meta y WhatsApp migrados encima.
+3. ~~Las reglas de media por destino~~ **declaradas** en
+   `channelCapabilityCatalog`, con `validateChannelMedia()` en contratos para
+   que la interfaz avise antes de guardar y la API lo compruebe antes de
+   encolar. Falta engancharlas al formulario de Publishing.
 4. **Refresco de token.** X, TikTok y LinkedIn caducan sus tokens; Meta usa
    tokens de larga duración. V2 ya tiene `channel_sync_runs` y schedulers en el
    worker, así que es el sitio natural.
