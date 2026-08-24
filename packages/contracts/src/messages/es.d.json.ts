@@ -1719,6 +1719,7 @@ declare const messages: {
       "copied": "Resultado copiado.",
       "copy": "Copiar",
       "copyFailed": "No pudimos copiar el resultado.",
+      "conversations": "Conversaciones",
       "emptyDescription": "Elige una herramienta, ajusta sus opciones y describe lo que necesitas.",
       "emptyHistory": "Aún no tienes generaciones. Escribe abajo para empezar.",
       "emptyPrompt": "Escribe qué necesitas antes de enviar.",
@@ -1733,6 +1734,7 @@ declare const messages: {
       "loadFailedTitle": "AI Studio no disponible",
       "loading": "Cargando AI Studio",
       "newConversation": "Nueva conversación",
+      "options": "Opciones",
       "retry": "Reintentar",
       "retryFailed": "No pudimos reintentar la generación.",
       "retrySuccess": "Generación reintentada.",
@@ -1749,6 +1751,12 @@ declare const messages: {
         "processing": "Generando",
         "queued": "En cola",
         "succeeded": "Listo"
+      },
+      "suggestions": {
+        "content": "Crea una campaña para lanzar un producto",
+        "image": "Genera una imagen promocional para Instagram",
+        "planner": "Planifica una semana de contenido",
+        "video": "Crea un video vertical para presentar un producto"
       },
       "thinking": "Pensando",
       "toolSelector": "Elegir herramienta de AI Studio",

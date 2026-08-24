@@ -448,7 +448,7 @@ export interface PromptInputMessage {
 }
 
 export type PromptInputProps = Omit<
-  HTMLAttributes<HTMLFormElement>,
+  ComponentProps<"form">,
   "onSubmit" | "onError"
 > & {
   accept?: string

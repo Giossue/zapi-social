@@ -700,16 +700,19 @@ ella; ninguna entrada, salida ni acción del inventario de módulos se elimina.
 
 `../template-shadcn-superdashboard` contiene una superficie de chat completa en
 `src/app/(main)/chat/_components`: lista de conversaciones, hilo y panel lateral de detalle
-en una rejilla de tres columnas con colapso responsive. Es la fuente a copiar; V2 solo
-adapta datos, acciones y permisos. No se diseña un chat nuevo.
+en una rejilla de tres columnas con colapso responsive. Aporta la lista y el hilo base. Por
+decisión posterior de producto, el compositor y la experiencia conversacional usan el
+registry oficial de AI Elements; el panel de detalle del template se sustituye por un
+`Sheet` contextual porque las opciones pertenecen a la próxima generación, no al resultado
+seleccionado.
 
 ### Superficie objetivo
 
 ```text
 /portal/ai-studio
-├── Columna 1  Conversaciones   historial de solicitudes AI, con búsqueda y filtros
-├── Columna 2  Hilo             mensajes, resultados tipados y acciones por resultado
-└── Columna 3  Opciones         herramienta activa y sus ajustes; colapsable
+├── Área 1  Conversaciones   historial de solicitudes AI, con búsqueda y filtros
+├── Área 2  Hilo             mensajes, resultados tipados y acciones por resultado
+└── Sheet   Opciones         herramienta activa y sus ajustes desde el compositor
 ```
 
 - **Herramienta activa**: selector en el compositor con las ocho capacidades de generación
@@ -717,7 +720,8 @@ adapta datos, acciones y permisos. No se diseña un chat nuevo.
   Cambiar de herramienta cambia el panel de opciones, no de pantalla.
 - **Opciones por herramienta**: las mismas del inventario de módulos —tono, plataformas,
   idioma, variantes, ratio, resolución, duración, fuente de reutilización, rango de fechas—
-  viven en la tercera columna como campos y toggles, no repartidas por rutas.
+  se abren desde el compositor en un `Sheet`; no ocupan permanentemente un tercio del
+  lienzo ni vuelven a repartirse por rutas.
 - **Conversaciones**: cada solicitud AI existente es una conversación. Sustituye a las
   vistas Historial y Búsqueda semántica, que aportaban lista y filtros sobre los mismos
   datos.
@@ -752,8 +756,9 @@ registra aquí antes de recortarla; no se elimina una acción por simplificar la
 
 ### Estado de la consolidación
 
-Implementado. `/portal/ai-studio` es el chat de tres columnas y la navegación pasa de trece
-entradas a cuatro: Chat, Automatizaciones, Ajustes AI y Créditos.
+Implementado. `/portal/ai-studio` conserva conversaciones e hilo como dos áreas y mueve
+las opciones al `Sheet` contextual del compositor. La navegación pasa de trece entradas a
+cuatro: Chat, Automatizaciones, Ajustes AI y Créditos.
 
 Las ocho herramientas de generación viven en el selector del compositor y conservan sus
 opciones completas en el panel lateral: objetivo, tono, idioma, plataformas, variantes,
@@ -772,8 +777,8 @@ tres superficies se muevan a componentes propios.
 
 ### Migración a AI Elements — 24 de agosto de 2026
 
-El hilo usa el registry oficial de Vercel AI Elements sobre la composición de tres columnas
-del template canónico. `Conversation` controla el scroll y su retorno al final; `Message`
+El hilo usa el registry oficial de Vercel AI Elements sobre la composición funcional del
+template canónico. `Conversation` controla el scroll y su retorno al final; `Message`
 separa usuario y asistente; `MessageActions` conserva copiar, reintentar y archivar;
 `Reasoning` representa el trabajo en cola o proceso; `PromptInput` aporta el compositor y el
 selector de las ocho herramientas. La traza 21st anterior se retiró.
@@ -793,3 +798,14 @@ Nest equivalente que mantenga créditos, jobs, ownership y resultados persistent
 El medidor de contexto y las fuentes externas siguen fuera de alcance: la API no expone
 consumo por conversación y la herramienta de investigación actual retorna coincidencias
 internas, no citas externas. No se muestran datos simulados para llenar esos componentes.
+
+La primera migración sustituyó el hilo y el compositor por primitives de AI Elements, pero
+conservó completa la carcasa visual anterior y dejó el cambio prácticamente invisible. La
+corrección posterior adopta también su composición de producto: conversación centrada,
+sugerencias iniciales, compositor como acción principal y opciones contextuales. El
+historial, las ocho herramientas, los ajustes por herramienta y las rutas operativas se
+mantienen; solo se retira el panel lateral permanente que competía con el hilo.
+
+Validación de la corrección: build y typecheck de Web correctos; lint focal de
+AI Studio y AI Elements sin errores; auditorías de traducciones, texto hardcoded
+y Portal/Admin UI sin hallazgos.

@@ -1,12 +1,6 @@
 "use client"
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  type CSSProperties,
-} from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import {
@@ -15,11 +9,10 @@ import {
   CircleAlert,
   Copy,
   MessageSquarePlus,
-  PanelRightClose,
-  PanelRightOpen,
   RefreshCw,
   Search,
   Settings2,
+  SlidersHorizontal,
   Sparkles,
   Zap,
 } from "lucide-react"
@@ -29,14 +22,8 @@ import type { PortalAiRequest } from "@workspace/contracts"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
-import { Checkbox } from "@workspace/ui/components/checkbox"
 import { EmptyState } from "@workspace/ui/components/empty-state"
-import {
-  Field,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-} from "@workspace/ui/components/field"
+import { Field, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
 import {
   InputGroup,
   InputGroupAddon,
@@ -53,7 +40,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import { Separator } from "@workspace/ui/components/separator"
 import {
   Sheet,
   SheetContent,
@@ -62,9 +48,12 @@ import {
   SheetTitle,
 } from "@workspace/ui/components/sheet"
 import { Switch } from "@workspace/ui/components/switch"
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@workspace/ui/components/toggle-group"
 import { toast } from "@workspace/ui/components/toast"
 import { useFormatter, useTranslations } from "next-intl"
-import { useIsLg } from "@workspace/ui/hooks/use-lg"
 import { cn } from "@workspace/ui/lib/utils"
 
 import {
@@ -83,6 +72,7 @@ import {
 import {
   PromptInput,
   PromptInputBody,
+  PromptInputButton,
   PromptInputFooter,
   type PromptInputMessage,
   PromptInputSelect,
@@ -100,6 +90,7 @@ import {
   ReasoningTrigger,
 } from "@/components/ai-elements/reasoning"
 import { Shimmer } from "@/components/ai-elements/shimmer"
+import { Suggestion, Suggestions } from "@/components/ai-elements/suggestion"
 
 import { AiGenerationCanvas } from "./ai-generation-canvas"
 import {
@@ -120,6 +111,8 @@ const statusVariants: Record<
   failed: "destructive",
   cancelled: "neutral",
 }
+
+const suggestionTools = ["content", "image", "video", "planner"] as const
 
 function idempotencyKey() {
   return `chat-${crypto.randomUUID()}`
@@ -279,30 +272,21 @@ function ToolOptions({
           return (
             <Field key={field.name}>
               <FieldLabel>{tt(field.labelKey)}</FieldLabel>
-              <FieldGroup className="gap-2" data-slot="checkbox-group">
+              <ToggleGroup
+                className="flex-wrap justify-start"
+                onValueChange={(next) => onChange(field.name, next)}
+                type="multiple"
+                value={selected}
+                variant="outline"
+              >
                 {field.options.map((option) => {
-                  const optionId = `${controlId}-${option.value}`
                   return (
-                    <Field key={option.value} orientation="horizontal">
-                      <Checkbox
-                        checked={selected.includes(option.value)}
-                        id={optionId}
-                        onCheckedChange={(checked) =>
-                          onChange(
-                            field.name,
-                            checked === true
-                              ? [...selected, option.value]
-                              : selected.filter((item) => item !== option.value)
-                          )
-                        }
-                      />
-                      <FieldLabel htmlFor={optionId}>
-                        {tt(option.labelKey)}
-                      </FieldLabel>
-                    </Field>
+                    <ToggleGroupItem key={option.value} value={option.value}>
+                      {tt(option.labelKey)}
+                    </ToggleGroupItem>
                   )
                 })}
-              </FieldGroup>
+              </ToggleGroup>
             </Field>
           )
         }
@@ -388,10 +372,8 @@ export function AiChatPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
   const [pending, setPending] = useState(false)
-  const [showOptions, setShowOptions] = useState(true)
   const [optionsSheetOpen, setOptionsSheetOpen] = useState(false)
   const [showThread, setShowThread] = useState(false)
-  const isLg = useIsLg()
 
   const load = useCallback(async () => {
     setIsLoading(true)
@@ -556,30 +538,17 @@ export function AiChatPage() {
 
   return (
     <div
-      className="grid h-[calc(100svh-var(--dashboard-header-height))] grid-cols-1 overflow-hidden bg-background transition-[grid-template-columns] duration-300 ease-out *:min-h-0 *:min-w-0 md:grid-cols-[20rem_minmax(0,1fr)] md:*:first:border-r md:*:first:border-border lg:grid-cols-[20rem_minmax(0,1fr)_var(--options-width)]"
+      className="grid h-[calc(100svh-var(--dashboard-header-height))] grid-cols-1 overflow-hidden bg-background *:min-h-0 *:min-w-0 md:grid-cols-[18rem_minmax(0,1fr)] md:*:first:border-r md:*:first:border-border"
       data-content-padding="false"
-      style={
-        { "--options-width": showOptions ? "22rem" : "0rem" } as CSSProperties
-      }
     >
       <div
         className={cn(
-          "flex h-full flex-col gap-3 p-3 transition-transform duration-300 ease-out will-change-transform max-md:col-start-1 max-md:row-start-1",
+          "flex h-full flex-col gap-3 bg-muted/20 p-3 transition-transform duration-300 ease-out will-change-transform max-md:col-start-1 max-md:row-start-1",
           showThread && "max-md:pointer-events-none max-md:-translate-x-full"
         )}
       >
-        <div className="flex shrink-0 items-center gap-2">
-          <InputGroup>
-            <InputGroupAddon>
-              <Search />
-            </InputGroupAddon>
-            <InputGroupInput
-              aria-label={t("searchLabel")}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder={t("searchPlaceholder")}
-              value={query}
-            />
-          </InputGroup>
+        <div className="flex shrink-0 items-center justify-between gap-2 px-1">
+          <span className="text-sm font-medium">{t("conversations")}</span>
           <Button
             aria-label={t("newConversation")}
             onClick={() => {
@@ -593,6 +562,19 @@ export function AiChatPage() {
             <MessageSquarePlus />
           </Button>
         </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <InputGroup>
+            <InputGroupAddon>
+              <Search />
+            </InputGroupAddon>
+            <InputGroupInput
+              aria-label={t("searchLabel")}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={t("searchPlaceholder")}
+              value={query}
+            />
+          </InputGroup>
+        </div>
         <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto">
           {requests.length ? (
             requests.map((request) => (
@@ -604,6 +586,7 @@ export function AiChatPage() {
                 key={request.id}
                 onClick={() => {
                   setSelectedId(request.id)
+                  if (isChatTool(request.kind)) setTool(request.kind)
                   setShowThread(true)
                 }}
                 type="button"
@@ -640,7 +623,7 @@ export function AiChatPage() {
             : "max-md:pointer-events-none max-md:translate-x-full"
         )}
       >
-        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border p-3">
+        <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-4 py-3">
           <div className="flex min-w-0 items-center gap-2">
             <Button
               aria-label={t("backToConversations")}
@@ -651,14 +634,10 @@ export function AiChatPage() {
             >
               <ArrowLeft />
             </Button>
-            <div className="flex min-w-0 flex-col">
-              <span className="truncate font-medium">
-                {selected ? selected.title : t("newConversation")}
-              </span>
-              <span className="text-sm text-muted-foreground">
-                {tt(chatTools[tool].descriptionKey)}
-              </span>
-            </div>
+            <span className="truncate font-medium">
+              {selected ? selected.title : t("newConversation")}
+            </span>
+            <Badge variant="neutral">{tt(chatTools[tool].labelKey)}</Badge>
           </div>
           <div className="flex items-center gap-1">
             <Button asChild size="sm" variant="brand-secondary">
@@ -674,25 +653,16 @@ export function AiChatPage() {
                 <Settings2 />
               </Link>
             </Button>
-            <Button
-              aria-label={
-                isLg && showOptions ? t("hideOptions") : t("showOptions")
-              }
-              onClick={() =>
-                isLg
-                  ? setShowOptions((current) => !current)
-                  : setOptionsSheetOpen(true)
-              }
-              size="icon-sm"
-              variant="brand-secondary"
-            >
-              {isLg && showOptions ? <PanelRightClose /> : <PanelRightOpen />}
-            </Button>
           </div>
         </div>
 
         <Conversation className="min-h-0">
-          <ConversationContent className="mx-auto w-full max-w-3xl gap-6 p-4">
+          <ConversationContent
+            className={cn(
+              "mx-auto w-full max-w-4xl gap-8 px-4 py-6",
+              !selected && "min-h-full justify-center"
+            )}
+          >
             {selected ? (
               <>
                 <Message from="user">
@@ -750,11 +720,29 @@ export function AiChatPage() {
                 </Message>
               </>
             ) : (
-              <ConversationEmptyState
-                description={t("emptyDescription")}
-                icon={<Sparkles className="size-6" />}
-                title={t("emptyTitle")}
-              />
+              <ConversationEmptyState className="mx-auto max-w-3xl gap-6 p-0">
+                <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                  <Sparkles />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <h2 className="text-lg font-medium">{t("emptyTitle")}</h2>
+                  <p className="text-sm text-muted-foreground">
+                    {t("emptyDescription")}
+                  </p>
+                </div>
+                <Suggestions className="mx-auto">
+                  {suggestionTools.map((key) => (
+                    <Suggestion
+                      key={key}
+                      onClick={(suggestion) => {
+                        setTool(key)
+                        setPrompt(suggestion)
+                      }}
+                      suggestion={t(`suggestions.${key}`)}
+                    />
+                  ))}
+                </Suggestions>
+              </ConversationEmptyState>
             )}
           </ConversationContent>
           <ConversationScrollButton
@@ -763,9 +751,10 @@ export function AiChatPage() {
           />
         </Conversation>
 
-        <div aria-busy={pending} className="shrink-0 p-3">
+        <div aria-busy={pending} className="shrink-0 px-4 pt-2 pb-4">
           <PromptInput
-            className="mx-auto max-w-3xl"
+            className="mx-auto max-w-4xl"
+            noValidate
             onSubmit={(message) => submit(message)}
             uploadLabel={t("uploadFiles")}
           >
@@ -796,6 +785,13 @@ export function AiChatPage() {
                     ))}
                   </PromptInputSelectContent>
                 </PromptInputSelect>
+                <PromptInputButton
+                  onClick={() => setOptionsSheetOpen(true)}
+                  tooltip={t("showOptions")}
+                >
+                  <SlidersHorizontal data-icon="inline-start" />
+                  {t("options")}
+                </PromptInputButton>
               </PromptInputTools>
               <PromptInputSubmit
                 aria-label={t("send")}
@@ -807,45 +803,23 @@ export function AiChatPage() {
         </div>
       </div>
 
-      <div
-        className={cn(
-          "hidden h-full flex-col overflow-y-auto border-l border-border p-4 lg:flex",
-          !showOptions && "lg:hidden"
-        )}
-      >
-        <div className="flex flex-col gap-1 pb-3">
-          <span className="font-medium">
-            {t("toolOptions", { tool: tt(chatTools[tool].labelKey) })}
-          </span>
-          <FieldDescription>{t("toolOptionsHint")}</FieldDescription>
-        </div>
-        <Separator className="mb-4" />
-        <ToolOptions
-          onChange={updateOption}
-          tool={tool}
-          values={options[tool]}
-        />
-      </div>
-
-      {!isLg && (
-        <Sheet onOpenChange={setOptionsSheetOpen} open={optionsSheetOpen}>
-          <SheetContent side="right">
-            <SheetHeader className="pb-0">
-              <SheetTitle>
-                {t("toolOptions", { tool: tt(chatTools[tool].labelKey) })}
-              </SheetTitle>
-              <SheetDescription>{t("toolOptionsHint")}</SheetDescription>
-            </SheetHeader>
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-              <ToolOptions
-                onChange={updateOption}
-                tool={tool}
-                values={options[tool]}
-              />
-            </div>
-          </SheetContent>
-        </Sheet>
-      )}
+      <Sheet onOpenChange={setOptionsSheetOpen} open={optionsSheetOpen}>
+        <SheetContent className="sm:max-w-md" side="right">
+          <SheetHeader className="pb-0">
+            <SheetTitle>
+              {t("toolOptions", { tool: tt(chatTools[tool].labelKey) })}
+            </SheetTitle>
+            <SheetDescription>{t("toolOptionsHint")}</SheetDescription>
+          </SheetHeader>
+          <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
+            <ToolOptions
+              onChange={updateOption}
+              tool={tool}
+              values={options[tool]}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }

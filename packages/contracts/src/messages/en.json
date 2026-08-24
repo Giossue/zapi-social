@@ -1716,6 +1716,7 @@
       "copied": "Result copied.",
       "copy": "Copy",
       "copyFailed": "We couldn't copy the result.",
+      "conversations": "Conversations",
       "emptyDescription": "Pick a tool, adjust its options and describe what you need.",
       "emptyHistory": "You don't have generations yet. Type below to start.",
       "emptyPrompt": "Write what you need before sending.",
@@ -1730,6 +1731,7 @@
       "loadFailedTitle": "AI Studio unavailable",
       "loading": "Loading AI Studio",
       "newConversation": "New conversation",
+      "options": "Options",
       "retry": "Retry",
       "retryFailed": "We couldn't retry the generation.",
       "retrySuccess": "Generation retried.",
@@ -1746,6 +1748,12 @@
         "processing": "Generating",
         "queued": "Queued",
         "succeeded": "Ready"
+      },
+      "suggestions": {
+        "content": "Create a campaign to launch a product",
+        "image": "Generate a promotional image for Instagram",
+        "planner": "Plan a week of content",
+        "video": "Create a vertical video to present a product"
       },
       "thinking": "Thinking",
       "toolSelector": "Choose an AI Studio tool",
