@@ -9,7 +9,6 @@ import {
   Pencil,
   Plus,
   Save,
-  ShieldCheck,
   ShieldX,
   Trash2,
   UserPlus,
@@ -418,7 +417,7 @@ export function AdminRolesPage() {
               <div className="px-6">
                 <EmptyState
                   description={t("emptyDescription")}
-                  icon={ShieldCheck}
+                  icon={CircleAlert}
                   title={t("emptyTitle")}
                 />
               </div>
