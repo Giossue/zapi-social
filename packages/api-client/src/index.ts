@@ -543,6 +543,20 @@ export const profileApi = {
     }),
 }
 
+export const adminProfileApi = {
+  get: () => request<PortalProfile>("/v1/admin/profile", { method: "GET" }),
+  update: (input: UpdatePortalProfileInput) =>
+    request<PortalProfile>("/v1/admin/profile", {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  changePassword: (input: ChangePortalPasswordInput) =>
+    request<void>("/v1/admin/profile/password", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+}
+
 function portalCaptionsQueryString(query: Partial<PortalCaptionsQuery> = {}) {
   const params = new URLSearchParams()
   if (query.q) params.set("q", query.q)

@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { EmailModule } from '../email/email.module';
 import { CaptchaModule } from '../captcha/captcha.module';
 import { PlanAccessModule } from '../plans/plan-access.module';
+import { AdminProfileController } from './admin-profile.controller';
 import { AdminImpersonationController } from './admin-impersonation.controller';
 import { IdentityController } from './identity.controller';
 import { IdentityService } from './identity.service';
@@ -26,6 +27,7 @@ import { SessionAccessService } from './session-access.service';
     }),
   ],
   controllers: [
+    AdminProfileController,
     AdminImpersonationController,
     IdentityController,
     PortalProfileController,

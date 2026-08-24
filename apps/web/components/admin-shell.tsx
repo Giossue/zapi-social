@@ -1,6 +1,7 @@
 "use client"
 
 import { useTranslations } from "next-intl"
+import { useMemo } from "react"
 
 import { DashboardShell } from "@/components/dashboard-shell/dashboard-shell"
 import { useTranslatedNavigation } from "@/components/dashboard-shell/translate-navigation"
@@ -20,10 +21,15 @@ export function AdminShell({ children, profile }: AdminShellProps) {
     adminNavigationGroups,
     "navigation.admin"
   )
+  const documentTitleOverrides = useMemo(
+    () => ({ "/admin/profile": t("profile") }),
+    [t]
+  )
 
   return (
     <DashboardShell
       areaName="Admin"
+      documentTitleOverrides={documentTitleOverrides}
       homeHref="/admin/dashboard"
       isItemActive={(item, pathname) =>
         isAdminNavigationItemActive(item.href, pathname)

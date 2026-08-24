@@ -112,6 +112,7 @@ export const changePortalPasswordSchema = z
     newPassword: passwordPolicy,
     passwordConfirmation: z.string().min(1).max(128),
   })
+  .strict()
   .refine((input) => input.newPassword === input.passwordConfirmation, {
     message: "Las contraseñas no coinciden.",
     path: ["passwordConfirmation"],

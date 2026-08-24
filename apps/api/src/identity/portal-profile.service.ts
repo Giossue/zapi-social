@@ -2,6 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import {
   changePortalPasswordSchema,
   updatePortalProfileSchema,
+  type PlatformAdminAuthSession,
   type PortalAuthSession,
   type PortalProfile,
 } from '@workspace/contracts';
@@ -20,13 +21,15 @@ import { AppException } from '../platform/errors/app-exception';
 export class PortalProfileService {
   constructor(private readonly database: DatabaseService) {}
 
-  async getProfile(session: PortalAuthSession): Promise<PortalProfile> {
+  async getProfile(
+    session: PlatformAdminAuthSession | PortalAuthSession,
+  ): Promise<PortalProfile> {
     const user = await this.findUser(session.user.id);
     return this.toProfile(user);
   }
 
   async updateProfile(
-    session: PortalAuthSession,
+    session: PlatformAdminAuthSession | PortalAuthSession,
     input: unknown,
   ): Promise<PortalProfile> {
     const parsed = updatePortalProfileSchema.safeParse(input);
@@ -63,7 +66,7 @@ export class PortalProfileService {
       throw new AppException('AUTH_SESSION_EXPIRED', HttpStatus.UNAUTHORIZED);
 
     await this.database.db.insert(apiAuditLogs).values({
-      workspaceId: session.workspace.id,
+      workspaceId: session.area === 'portal' ? session.workspace.id : null,
       actorUserId: session.user.id,
       event: 'profile.updated',
       subjectType: 'user',
@@ -77,7 +80,7 @@ export class PortalProfileService {
   }
 
   async changePassword(
-    session: PortalAuthSession,
+    session: PlatformAdminAuthSession | PortalAuthSession,
     input: unknown,
   ): Promise<void> {
     const parsed = changePortalPasswordSchema.safeParse(input);
@@ -128,7 +131,7 @@ export class PortalProfileService {
         );
 
       await tx.insert(apiAuditLogs).values({
-        workspaceId: session.workspace.id,
+        workspaceId: session.area === 'portal' ? session.workspace.id : null,
         actorUserId: session.user.id,
         event: 'profile.password_updated',
         subjectType: 'user',
@@ -174,7 +177,7 @@ export class PortalProfileService {
       email: user.email,
       username: user.username,
       emailVerifiedAt: user.emailVerifiedAt?.toISOString() ?? null,
-      locale: user.locale === 'es' || user.locale === 'en' ? user.locale : null,
+      locale: user.locale,
       timezone: user.timezone,
       createdAt: user.createdAt.toISOString(),
     };

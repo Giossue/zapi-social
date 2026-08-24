@@ -28,9 +28,13 @@ import { ThemeMenuItem } from "@/components/dashboard-shell/theme-switcher"
 
 type DashboardNavUserProps = {
   profile: AccountProfile
+  profileHref: string
 }
 
-export function DashboardNavUser({ profile }: DashboardNavUserProps) {
+export function DashboardNavUser({
+  profile,
+  profileHref,
+}: DashboardNavUserProps) {
   const t = useTranslations("navigation.user")
   const { isMobile, setOpenMobile } = useSidebar()
   const logout = useSessionLogout()
@@ -68,10 +72,7 @@ export function DashboardNavUser({ profile }: DashboardNavUserProps) {
           >
             <DropdownMenuGroup>
               <DropdownMenuItem asChild>
-                <Link
-                  href="/portal/profile"
-                  onClick={() => setOpenMobile(false)}
-                >
+                <Link href={profileHref} onClick={() => setOpenMobile(false)}>
                   <CircleUser />
                   {t("myProfile")}
                 </Link>

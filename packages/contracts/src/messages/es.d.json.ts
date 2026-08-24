@@ -4453,7 +4453,7 @@ declare const messages: {
     "passwordPolicy": "La nueva contraseña no cumple los requisitos.",
     "passwordTitle": "Cambiar contraseña",
     "passwordUpdated": "Contraseña actualizada. Inicia sesión de nuevo para continuar.",
-    "personalDescription": "Administra cómo apareces y tus preferencias del Portal.",
+    "personalDescription": "Administra cómo apareces y tus preferencias de cuenta.",
     "personalTitle": "Información personal",
     "preferredLanguage": "Idioma preferido",
     "saveFailed": "No pudimos guardar los cambios. Inténtalo de nuevo.",
@@ -4470,7 +4470,7 @@ declare const messages: {
     "unverified": "Sin verificar",
     "updatePassword": "Actualizar contraseña",
     "updated": "Perfil actualizado.",
-    "usePortalLanguage": "Usar idioma del Portal",
+    "usePortalLanguage": "Usar idioma de la interfaz",
     "validationFailed": "Revisa nombre, idioma y zona horaria.",
     "verified": "Verificado"
   },

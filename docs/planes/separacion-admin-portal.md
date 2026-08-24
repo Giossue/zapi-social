@@ -155,6 +155,7 @@ username
 
 ```text
 /admin
+/admin/profile
 /admin/integrations
 /admin/users                 # operativo
 /admin/workspaces            # futuro
@@ -259,6 +260,7 @@ No forma parte de la primera migración de separación.
 - [x] Redirigir PortalUser autenticado de `/admin/*` a `/portal/dashboard`.
 - [x] Ajustar `AppShell` para no cargar navegación Portal bajo sesión Admin.
 - [x] Mantener layout Admin independiente y tokens compartidos.
+- [x] Crear `/admin/profile` con API propia y guard de sesión Admin, sin reutilizar `/v1/portal/profile`.
 - [x] Crear estados loading/error/sin permiso para ambas áreas.
 - [x] Sincronizar el título de pestaña con la ruta activa en Admin y Portal.
 

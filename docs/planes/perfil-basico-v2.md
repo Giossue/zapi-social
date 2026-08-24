@@ -13,6 +13,21 @@ PATCH /v1/portal/profile
 POST  /v1/portal/profile/password
 ```
 
+La misma cuenta personal se administra desde Admin mediante una frontera de
+sesión independiente:
+
+```text
+Ruta Admin: /admin/profile
+GET   /v1/admin/profile
+PATCH /v1/admin/profile
+POST  /v1/admin/profile/password
+```
+
+Admin reutiliza el contrato y la composición visual del perfil, pero cada
+handler exige `requirePlatformAdmin`; una sesión Admin no puede usar la ruta
+Portal ni una sesión Portal la ruta Admin. Los eventos de auditoría del perfil
+Admin no se atribuyen a un workspace.
+
 | Acción                                                                       | Estado objetivo |
 | ---------------------------------------------------------------------------- | --------------- |
 | Ver nombre, correo y fecha de registro                                       | incluido        |
@@ -59,6 +74,10 @@ AppProfile/Routes/web.php
 Laravel permite nombre, username, email, locale, timezone y avatar; username/email dependen de políticas Admin. Para este vertical V2 solo se replica comportamiento no condicionado por esas políticas: nombre, locale, timezone y password.
 
 Laravel exige autenticación y correo verificado para abrir Perfil. V2 conserva sesión Portal activa; la política de verificación de correo se debe decidir en Identity antes de bloquear la ruta.
+
+Laravel permite que una cuenta administrativa abra el perfil compartido porque
+su sesión mezcla Admin y Portal. V2 conserva las mismas acciones personales,
+pero las publica en `/admin/profile` para respetar la separación de áreas.
 
 ## Estado V2 observado
 
@@ -170,11 +189,18 @@ Evidencia local: Biome valida los dos archivos nuevos de la fuente; Playwright c
 - [x] Migración Drizzle aditiva `0007_conscious_rictor.sql` para `users.locale` y `users.timezone`.
 - [x] Schemas Zod, DTOs y cliente `@workspace/api-client`.
 - [x] API con sesión Portal y updates por `session.user.id`.
+- [x] Ruta y API de perfil Admin con `requirePlatformAdmin`, reutilizando el mismo contrato por `session.user.id`.
 - [x] Auditoría `profile.updated` y `profile.password_updated`, sin contraseñas ni hashes.
 - [x] Validación de typecheck y build para contracts, database, API y Web.
 - [x] Migración aplicada y registrada en BD remota: `users.locale` y `users.timezone`.
 - [ ] Desplegar API/Web y probar flujo real autenticado; el cambio de contraseña ahora revoca todas las sesiones activas y redirige al login.
-- [ ] Añadir tests de servicio/API cuando se habilite suite de tests del módulo.
+- [ ] Añadir cobertura de integración del servicio sobre PostgreSQL para ambos tipos de sesión.
+
+Evidencia de la extensión Admin: build Web incluye `/admin/profile`; typecheck
+de Contracts, API Client y API pasa; el test focal del controlador confirma que
+lectura, edición y cambio de contraseña ejecutan el guard de plataforma. Build
+y lint de API, lint/typecheck/build Web, lint/build de Contracts, lint del API
+Client y auditorías de UI e i18n terminan sin hallazgos.
 
 ## Criterio de cierre
 

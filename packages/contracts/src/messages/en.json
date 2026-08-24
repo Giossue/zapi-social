@@ -4450,7 +4450,7 @@
     "passwordPolicy": "The new password doesn't meet the requirements.",
     "passwordTitle": "Change password",
     "passwordUpdated": "Password updated. Sign in again to continue.",
-    "personalDescription": "Manage how you appear and your Portal preferences.",
+    "personalDescription": "Manage how you appear and your account preferences.",
     "personalTitle": "Personal information",
     "preferredLanguage": "Preferred language",
     "saveFailed": "We couldn't save the changes. Please try again.",
@@ -4467,7 +4467,7 @@
     "unverified": "Unverified",
     "updatePassword": "Update password",
     "updated": "Profile updated.",
-    "usePortalLanguage": "Use the Portal language",
+    "usePortalLanguage": "Use the interface language",
     "validationFailed": "Check the name, language and time zone.",
     "verified": "Verified"
   },

@@ -1,6 +1,11 @@
 "use client"
 
-import { ApiError, i18nApi, profileApi } from "@workspace/api-client"
+import {
+  adminProfileApi,
+  ApiError,
+  i18nApi,
+  profileApi,
+} from "@workspace/api-client"
 import {
   Alert,
   AlertDescription,
@@ -103,11 +108,14 @@ function ProfileLoading({ label }: { label: string }) {
   return <PageLoading aria-label={label} />
 }
 
-export function PortalProfilePage() {
+type AccountProfileArea = "admin" | "portal"
+
+function AccountProfilePage({ area }: { area: AccountProfileArea }) {
   const t = useTranslations("profile")
   const tCommon = useTranslations("common.language")
   const format = useFormatter()
   const router = useRouter()
+  const accountProfileApi = area === "admin" ? adminProfileApi : profileApi
   const [profile, setProfile] = useState<PortalProfile | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -129,7 +137,7 @@ export function PortalProfilePage() {
         if (active) setLanguages(response.languages)
       })
       .catch(() => {})
-    void profileApi
+    void accountProfileApi
       .get()
       .then((nextProfile) => {
         if (!active) return
@@ -149,7 +157,7 @@ export function PortalProfilePage() {
     return () => {
       active = false
     }
-  }, [t])
+  }, [accountProfileApi, t])
 
   const availableTimeZones = useMemo(() => {
     const values = new Set([
@@ -175,7 +183,7 @@ export function PortalProfilePage() {
 
     setSavingPreferences(true)
     try {
-      const nextProfile = await profileApi.update({
+      const nextProfile = await accountProfileApi.update({
         displayName,
         locale: locale || null,
         timezone: timezone.trim(),
@@ -206,7 +214,7 @@ export function PortalProfilePage() {
 
     setSavingPassword(true)
     try {
-      await profileApi.changePassword({
+      await accountProfileApi.changePassword({
         currentPassword,
         newPassword,
         passwordConfirmation,
@@ -497,4 +505,12 @@ export function PortalProfilePage() {
       </TabsContent>
     </Tabs>
   )
+}
+
+export function PortalProfilePage() {
+  return <AccountProfilePage area="portal" />
+}
+
+export function AdminProfilePage() {
+  return <AccountProfilePage area="admin" />
 }

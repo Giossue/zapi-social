@@ -106,6 +106,9 @@ export function DashboardShell({
         isItemActive={isItemActive}
         items={items}
         profile={profile}
+        profileHref={
+          areaName === "Admin" ? "/admin/profile" : "/portal/profile"
+        }
         variant="inset"
       />
       <SidebarInset
