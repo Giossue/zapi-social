@@ -30,7 +30,6 @@ export type PortalChannelCapability = {
   icon: ComponentType<SVGProps<SVGSVGElement>>
   availability: ChannelAvailability
   connectionKind: ChannelConnectionKind
-  candidates?: readonly ChannelCandidate[]
 }
 
 export type PortalChannelAccount = {

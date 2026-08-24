@@ -19,20 +19,6 @@ export const channelsFixture: PortalChannelsDashboard = {
       icon: BrandFacebook,
       availability: "ready",
       connectionKind: "picker",
-      candidates: [
-        {
-          id: "facebook-northstar",
-          label: "Northstar Studio",
-          description: "Página de Facebook",
-          metadata: "42,8 mil seguidores",
-        },
-        {
-          id: "facebook-garden",
-          label: "Digital Garden",
-          description: "Página de Facebook",
-          metadata: "8,3 mil seguidores",
-        },
-      ],
     },
     {
       key: "instagram_profile",
@@ -40,14 +26,6 @@ export const channelsFixture: PortalChannelsDashboard = {
       icon: BrandInstagram,
       availability: "ready",
       connectionKind: "picker",
-      candidates: [
-        {
-          id: "instagram-northstar",
-          label: "@northstar.studio",
-          description: "Perfil de Creator",
-          metadata: "18,2 mil seguidores",
-        },
-      ],
     },
     {
       key: "whatsapp_status",

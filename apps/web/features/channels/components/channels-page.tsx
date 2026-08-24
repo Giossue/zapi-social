@@ -110,7 +110,7 @@ function metaOAuthPickerCapability(
     (item) => item.key === capabilityKey
   )
   if (!reference || reference.provider !== "meta") return null
-  return { ...reference, connectionKind: "oauth_picker", candidates: undefined }
+  return { ...reference, connectionKind: "oauth_picker" }
 }
 
 function clearMetaOAuthReturnUrl() {

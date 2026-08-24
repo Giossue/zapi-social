@@ -51,11 +51,13 @@ contrastó con su documentación vigente, no con ZapiSocial:
       `PUBLISHING_TIKTOK_PHOTO_UNSUPPORTED`. El vídeo cubre el caso principal.
 - [ ] **Vídeo en LinkedIn**: falta la API de Videos con su subida por partes.
       Hoy falla con `PUBLISHING_LINKEDIN_VIDEO_UNSUPPORTED`.
-- [ ] **Limpieza del mock en el diálogo del Portal**: `authorizeMock`,
-      `finishMockConnection` y el paso `authorizing` quedaron inalcanzables al
-      pasar todos los proveedores al OAuth real. No se borraron para no tocar el
-      picker de Meta al final de la sesión; el lint no los marca porque siguen
-      referenciados. Merece una pasada propia.
+- [x] **Limpieza del mock en el diálogo del Portal** (23-08-2026): borrados
+      `authorizeMock`, `finishMockConnection`, los pasos `authorizing` y
+      `connected`, el fixture `channel-connection.ts` con su tipo, los
+      `candidates` de mentira del fixture de capacidades y sus seis claves
+      i18n. El picker queda solo para Meta, que es el único proveedor que lo
+      usa; el resto se auto-persiste en el callback. Evidencia: typecheck,
+      lint, build y auditorías i18n en verde tras el borrado.
 
 
 **Investigación cerrada el 23 de agosto de 2026.** V2 declara seis capabilities

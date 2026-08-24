@@ -14,7 +14,7 @@ import {
 } from "@workspace/ui/components/sheet"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
-import { CheckCircle2, ShieldCheck } from "lucide-react"
+import { CheckCircle2 } from "lucide-react"
 import { type FormEvent, useState } from "react"
 import { useTranslations } from "next-intl"
 
@@ -27,16 +27,7 @@ import type {
 import { ChannelCapabilityGrid } from "./channel-capability-picker"
 import { WhatsAppStatusConnection } from "./whatsapp-status-connection"
 
-type DialogStep =
-  "capabilities" | "authorizing" | "picker" | "whatsapp" | "connected"
-
-const providerLabels = {
-  meta: "Meta",
-  linkedin: "LinkedIn",
-  x: "X",
-  tiktok: "TikTok",
-  whatsapp: "WhatsApp",
-} as const
+type DialogStep = "capabilities" | "picker" | "whatsapp"
 
 export type MetaPickerSession = {
   capability: PortalChannelCapability
@@ -200,38 +191,6 @@ export function ChannelConnectionDialog({
     }
   }
 
-  function finishMockConnection(selected: ChannelCandidate) {
-    if (!capability || capability.provider === "meta") return
-    onConnected({
-      id: `mock-${capability.key}-${selected.id}`,
-      capabilityKey: capability.key,
-      provider: capability.provider,
-      displayName: selected.label,
-      handle: selected.label.startsWith("@")
-        ? selected.label.slice(1)
-        : undefined,
-      status: "connected",
-      connectedAt: "2026-07-31",
-    })
-    setStep("connected")
-    toast.success(
-      t("mockConnected", { channel: labels.capability(capability.key) })
-    )
-  }
-
-  function authorizeMock() {
-    if (!capability || capability.provider === "meta") return
-    if (capability.connectionKind === "picker") {
-      setStep("picker")
-      return
-    }
-    finishMockConnection({
-      id: `${capability.key}-direct`,
-      label: t("accountOf", { provider: providerLabels[capability.provider] }),
-      description: labels.capability(capability.key),
-    })
-  }
-
   async function selectMetaCandidate() {
     if (!candidate || !metaPickerSession) return
     setIsSelecting(true)
@@ -258,26 +217,24 @@ export function ChannelConnectionDialog({
   }
 
   async function cancelPicker() {
-    if (capability?.provider === "meta") {
-      if (!metaPickerSession) return
-      setIsSelecting(true)
-      try {
-        await channelConnectionsApi.cancel(metaPickerSession.connectionId)
-        onMetaConnectionCancelled()
-        reset()
-        onOpenChange(false)
-        toast.success(t("cancelled"))
-      } catch (error) {
-        console.error("Meta connection cancellation failed", error)
-        toast.error(t("cancelFailed"))
-      } finally {
-        setIsSelecting(false)
-      }
+    if (!metaPickerSession) {
+      reset()
+      onOpenChange(false)
       return
     }
-
-    reset()
-    onOpenChange(false)
+    setIsSelecting(true)
+    try {
+      await channelConnectionsApi.cancel(metaPickerSession.connectionId)
+      onMetaConnectionCancelled()
+      reset()
+      onOpenChange(false)
+      toast.success(t("cancelled"))
+    } catch (error) {
+      console.error("Meta connection cancellation failed", error)
+      toast.error(t("cancelFailed"))
+    } finally {
+      setIsSelecting(false)
+    }
   }
 
   function submitCandidate(event: FormEvent<HTMLFormElement>) {
@@ -286,26 +243,17 @@ export function ChannelConnectionDialog({
       toast.error(t("pickAccount"))
       return
     }
-
-    if (capability.provider === "meta") {
-      if (!metaPickerSession) {
-        toast.error(t("sessionLost"))
-        return
-      }
-      void selectMetaCandidate()
+    if (!metaPickerSession) {
+      toast.error(t("sessionLost"))
       return
     }
-
-    finishMockConnection(candidate)
+    void selectMetaCandidate()
   }
 
   const title = capability
     ? t("connectChannel", { channel: labels.capability(capability.key) })
     : t("connectAnyChannel")
-  const isMetaPicker = capability?.provider === "meta"
-  const pickerCandidates = isMetaPicker
-    ? (metaPickerSession?.candidates ?? [])
-    : (capability?.candidates ?? [])
+  const pickerCandidates = metaPickerSession?.candidates ?? []
 
   return (
     <Sheet onOpenChange={handleOpenChange} open={open}>
@@ -337,35 +285,6 @@ export function ChannelConnectionDialog({
                   {t("preparing")}
                 </CardContent>
               </Card>
-            ) : null}
-
-            {step === "authorizing" && capability ? (
-              <div className="grid gap-5">
-                <Card variant="inset">
-                  <CardContent className="flex items-start gap-3 py-5">
-                    <ShieldCheck
-                      aria-hidden="true"
-                      className="mt-0.5 size-5 text-primary"
-                    />
-                    <div className="grid gap-1">
-                      <p className="font-medium">
-                        {t("mockAuthorization", {
-                          provider: providerLabels[capability.provider],
-                        })}
-                      </p>
-                      <p className="text-sm leading-relaxed text-muted-foreground">
-                        {t("mockAuthorizationHint")}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-                <div className="flex justify-end">
-                  <Button onClick={authorizeMock} type="button">
-                    <ShieldCheck data-icon="inline-start" />
-                    {t("simulateAuth")}
-                  </Button>
-                </div>
-              </div>
             ) : null}
 
             {step === "picker" && capability ? (
@@ -453,27 +372,6 @@ export function ChannelConnectionDialog({
                   onOpenChange(false)
                 }}
               />
-            ) : null}
-
-            {step === "connected" && capability ? (
-              <Card variant="inset">
-                <CardContent className="flex items-start gap-3 py-5">
-                  <CheckCircle2
-                    aria-hidden="true"
-                    className="mt-0.5 size-5 text-success"
-                  />
-                  <div className="grid gap-1">
-                    <p className="font-medium">
-                      {t("connected", {
-                        channel: labels.capability(capability.key),
-                      })}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {t("connectedHint")}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
             ) : null}
           </div>
         </div>
