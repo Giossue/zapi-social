@@ -52,6 +52,8 @@ export type OAuthProviderConfiguration = {
   clientId: string;
   clientSecret: string;
   capabilityScopes?: MetaCapabilityScopes;
+  /** LinkedIn: versión de la Posts API en formato YYYYMM. */
+  apiVersion?: string;
 };
 
 type MetaRow = Pick<
@@ -517,10 +519,9 @@ export class IntegrationsService {
     providerKey: ChannelOAuthProviderKey,
   ): Promise<OAuthProviderConfiguration> {
     if (providerKey !== metaIntegrationProviderKey) {
-      throw new AppException(
-        'OAUTH_PROVIDER_NOT_READY',
-        HttpStatus.SERVICE_UNAVAILABLE,
-      );
+      // LinkedIn, X y TikTok guardan su configuración con el servicio genérico
+      // de proveedores de canal, no con el schema de Meta.
+      return this.readStoredOAuthConfiguration(providerKey);
     }
 
     const row = await this.metaRow();
@@ -570,17 +571,42 @@ export class IntegrationsService {
       );
     }
 
-    const configuration = this.decryptConfiguration(
+    const values = this.decryptChannelProviderValues(
+      providerKey,
       row.configurationCiphertext,
     );
-    if (!configuration) {
+    // TikTok llama `clientKey` a lo que el resto llama `clientId`; se unifica
+    // aquí para que la conexión no tenga que saber de esa diferencia.
+    const clientId = values.clientId ?? values.clientKey;
+    const clientSecret = values.clientSecret;
+    if (!clientId || !clientSecret) {
       throw new AppException(
         'OAUTH_PROVIDER_CONFIGURATION_INVALID',
         HttpStatus.SERVICE_UNAVAILABLE,
       );
     }
 
-    return configuration;
+    return { clientId, clientSecret, apiVersion: values.apiVersion };
+  }
+
+  private decryptChannelProviderValues(
+    providerKey: string,
+    ciphertext: string | null,
+  ): Record<string, string> {
+    if (!ciphertext) return {};
+    try {
+      const parsed: unknown = JSON.parse(
+        this.encryption().decrypt(ciphertext, providerKey),
+      );
+      if (typeof parsed !== 'object' || parsed === null) return {};
+      const values: Record<string, string> = {};
+      for (const [key, value] of Object.entries(parsed)) {
+        if (typeof value === 'string') values[key] = value;
+      }
+      return values;
+    } catch {
+      return {};
+    }
   }
 
   private async whatsAppStatusRow(): Promise<MetaRow | undefined> {

@@ -1113,7 +1113,12 @@ export const adminDashboardSchema = z.object({
 
 export const channelStatusSchema = z.enum(["active", "paused"])
 
-export const channelOAuthProviderKeySchema = z.enum(["facebook", "linkedin"])
+export const channelOAuthProviderKeySchema = z.enum([
+  "facebook",
+  "linkedin",
+  "x",
+  "tiktok",
+])
 
 export const channelAccountSchema = z.object({
   id: z.uuid(),

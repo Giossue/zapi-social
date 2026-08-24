@@ -2,6 +2,62 @@
 
 ## Estado
 
+**Canales cerrado el 24 de agosto de 2026.** LinkedIn, X y TikTok están
+conectados de punta a punta: verificador de credenciales en Admin, flujo OAuth
+real desde el Portal, publicador, y refresco de tokens en el worker. Meta y
+WhatsApp siguen intactos. Falta lo anotado abajo, que son casos secundarios.
+
+### Resumen por proveedor
+
+| Proveedor | Admin | Conexión | Publicación | Refresco token |
+| --------- | ----- | -------- | ----------- | -------------- |
+| Meta (FB/IG) | ✅ propia | ✅ picker | ✅ | tokens largos |
+| WhatsApp | ✅ propia | ✅ QR | ✅ | — |
+| LinkedIn | ✅ genérica | ✅ perfil y páginas | ✅ imagen y texto | tokens de 60 días |
+| X | ✅ genérica | ✅ PKCE | ✅ imagen y vídeo | ✅ |
+| TikTok | ✅ genérica | ✅ | ✅ vídeo | ✅ |
+
+### Arquitectura
+
+- **Conexión por adaptador.** `ChannelConnectionsService` conserva el camino de
+  Meta y despacha el resto por `ChannelConnectionAdapterRegistry`. Cada adaptador
+  aporta scopes, URL de autorización, canje de código y descubrimiento de
+  cuentas; la sesión, el picker y el guardado ya eran comunes. Cubierto por
+  `channels-module-wiring.spec.ts`, que compila el módulo real de Nest.
+- **PKCE** vive en la sesión de conexión, cifrado con su identificador. Solo X
+  lo exige; se genera siempre porque no cuesta.
+- **Publicadores** registrados por capability en el worker, como Meta.
+- **Refresco** en `apps/worker/src/token-refresh/`: barrido cada 30 min que
+  renueva lo que caduca en menos de 6 h. TikTok rota el refresh token en cada
+  renovación; X no siempre. El esquema ya traía las columnas, sin migración.
+
+### Verificado desde la documentación oficial (agosto de 2026)
+
+Ninguna de estas redes se pudo probar con cuenta real; cada endpoint se
+contrastó con su documentación vigente, no con ZapiSocial:
+
+- **LinkedIn**: `POST /oauth/v2/accessToken`, perfil por `/v2/userinfo` (`sub`),
+  páginas por `/rest/organizationAcls?q=roleAssignee`. La `ugcPosts` de
+  ZapiSocial está retirada; se usa `POST /rest/posts`.
+- **X**: OAuth2 con PKCE, canje con Basic Auth, `offline.access` para el refresh
+  token, subida de media en tres pasos (INIT/APPEND/FINALIZE) y `POST /2/tweets`.
+- **TikTok**: `/v2/oauth/token/`, perfil por `/v2/user/info/` (`open_id`), vídeo
+  por `/post/publish/video/init/` con sondeo de estado.
+
+### Pendiente (casos secundarios)
+
+- [ ] **Foto en TikTok**: exige que TikTok descargue la imagen de una URL
+      pública firmada, la misma pieza del conector de Instagram. Hoy falla con
+      `PUBLISHING_TIKTOK_PHOTO_UNSUPPORTED`. El vídeo cubre el caso principal.
+- [ ] **Vídeo en LinkedIn**: falta la API de Videos con su subida por partes.
+      Hoy falla con `PUBLISHING_LINKEDIN_VIDEO_UNSUPPORTED`.
+- [ ] **Limpieza del mock en el diálogo del Portal**: `authorizeMock`,
+      `finishMockConnection` y el paso `authorizing` quedaron inalcanzables al
+      pasar todos los proveedores al OAuth real. No se borraron para no tocar el
+      picker de Meta al final de la sesión; el lint no los marca porque siguen
+      referenciados. Merece una pasada propia.
+
+
 **Investigación cerrada el 23 de agosto de 2026.** V2 declara seis capabilities
 en `packages/contracts/src/channels-v2.ts` pero solo tiene conectores reales de
 **Meta** y **WhatsApp Status**. ZapiSocial publica en siete redes.

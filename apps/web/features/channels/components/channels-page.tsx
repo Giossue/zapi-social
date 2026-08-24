@@ -446,6 +446,15 @@ export function LiveChannelsPage() {
       return
     }
 
+    // LinkedIn, X y TikTok quedan conectados en el propio retorno: no hay
+    // selector, así que basta con refrescar la lista y confirmar.
+    if (searchParams.get("provider") !== "meta") {
+      window.sessionStorage.removeItem(META_OAUTH_SESSION_KEY)
+      toast.success(t("channelConnected"))
+      void loadChannels()
+      return
+    }
+
     const session = readMetaOAuthSession()
     if (!session) {
       return

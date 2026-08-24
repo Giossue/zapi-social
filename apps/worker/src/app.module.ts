@@ -20,6 +20,9 @@ import { WhatsAppProfileScheduleProcessor } from './whatsapp-profile-sync/whatsa
 import { BoardDueReminderProcessor } from './boards/board-due-reminder.processor';
 import { BoardDueReminderScheduler } from './boards/board-due-reminder.scheduler';
 import { BOARD_DUE_REMINDER_QUEUE } from './boards/boards.constants';
+import { TOKEN_REFRESH_QUEUE } from './token-refresh/token-refresh.constants';
+import { TokenRefreshProcessor } from './token-refresh/token-refresh.processor';
+import { TokenRefreshScheduler } from './token-refresh/token-refresh.scheduler';
 import { WhatsAppProfileSyncProcessor } from './whatsapp-profile-sync/whatsapp-profile-sync.processor';
 import { WhatsAppProfileSyncScheduler } from './whatsapp-profile-sync/whatsapp-profile-sync.scheduler';
 import { FILE_DERIVATIVES_QUEUE } from './files/file-derivatives.constants';
@@ -59,6 +62,8 @@ import {
   LinkedInPagePublisher,
   LinkedInProfilePublisher,
 } from './publishing/publishers/linkedin.publisher';
+import { TikTokPublisher } from './publishing/publishers/tiktok.publisher';
+import { XPublisher } from './publishing/publishers/x.publisher';
 import { MetaGraphService } from './publishing/publishers/meta-graph.service';
 import { PublishingAssetReader } from './publishing/publishers/publishing-asset-reader.service';
 import { WhatsAppStatusPublisher } from './publishing/publishers/whatsapp-status.publisher';
@@ -95,6 +100,7 @@ import { FileImportsScheduler } from './files/file-imports.scheduler';
       { name: PUBLISHING_DELIVERY_QUEUE },
       { name: FILE_IMPORTS_QUEUE },
       { name: BOARD_DUE_REMINDER_QUEUE },
+      { name: TOKEN_REFRESH_QUEUE },
     ),
   ],
   providers: [
@@ -106,6 +112,8 @@ import { FileImportsScheduler } from './files/file-imports.scheduler';
     MetaProfileSyncProcessor,
     BoardDueReminderScheduler,
     BoardDueReminderProcessor,
+    TokenRefreshScheduler,
+    TokenRefreshProcessor,
     WhatsAppProfileSyncScheduler,
     WhatsAppProfileScheduleProcessor,
     WhatsAppProfileSyncProcessor,
@@ -131,6 +139,8 @@ import { FileImportsScheduler } from './files/file-imports.scheduler';
     InstagramProfilePublisher,
     LinkedInPagePublisher,
     LinkedInProfilePublisher,
+    XPublisher,
+    TikTokPublisher,
     WhatsAppStatusPublisher,
     ChannelPublisherRegistry,
     {

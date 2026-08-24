@@ -184,28 +184,26 @@ export function ChannelConnectionDialog({
     setCapability(nextCapability)
     setCandidate(null)
 
-    if (nextCapability.provider === "meta") {
-      setIsAuthorizing(true)
-      try {
-        const result = await channelConnectionsApi.startMeta({
-          capabilityKey: nextCapability.key,
-        })
-        onMetaAuthorizationStart(result, nextCapability)
-      } catch (error) {
-        console.error("Meta authorization start failed", error)
-        toast.error(t("authStartFailed"))
-        setStep("capabilities")
-      } finally {
-        setIsAuthorizing(false)
-      }
-      return
-    }
-
+    // WhatsApp se vincula por QR; el resto pasa por el OAuth real del proveedor,
+    // que el backend despacha desde el mismo endpoint.
     if (nextCapability.connectionKind === "qr_device") {
       setStep("whatsapp")
       return
     }
-    setStep("authorizing")
+
+    setIsAuthorizing(true)
+    try {
+      const result = await channelConnectionsApi.startMeta({
+        capabilityKey: nextCapability.key,
+      })
+      onMetaAuthorizationStart(result, nextCapability)
+    } catch (error) {
+      console.error("Channel authorization start failed", error)
+      toast.error(t("authStartFailed"))
+      setStep("capabilities")
+    } finally {
+      setIsAuthorizing(false)
+    }
   }
 
   function finishMockConnection(selected: ChannelCandidate) {

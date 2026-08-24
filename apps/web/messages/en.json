@@ -2899,6 +2899,7 @@
       "whatsapp_status": "Connect a device to publish WhatsApp status updates.",
       "x_profile": "Post to your X profile."
     },
+    "channelConnected": "Channel connected.",
     "channelType": "Channel type",
     "connect": "Connect channel",
     "connectedAt": "Connected on",

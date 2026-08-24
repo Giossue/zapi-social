@@ -81,18 +81,20 @@ export class ChannelOAuthCallbackController {
     @Param('provider') provider: string,
     @Query() query: unknown,
   ) {
-    if (provider === 'meta') {
-      const result = await this.connections.callback(query);
-      const redirect = new URL(
-        '/portal/channels',
-        this.config.getOrThrow<string>('WEB_ORIGIN'),
-      );
-      redirect.searchParams.set('oauth', result.outcome);
-      redirect.searchParams.set('provider', 'meta');
-      redirect.searchParams.set('capability', result.capabilityKey);
-      return response.redirect(redirect.toString(), HttpStatus.FOUND);
-    }
-    const result = await this.authorization.callback(provider, query);
-    return response.redirect(result.redirectUrl, HttpStatus.FOUND);
+    const result =
+      provider === 'meta'
+        ? await this.connections.callback(query)
+        : await this.connections.callbackGeneric(
+            provider as 'linkedin' | 'x' | 'tiktok',
+            query,
+          );
+    const redirect = new URL(
+      '/portal/channels',
+      this.config.getOrThrow<string>('WEB_ORIGIN'),
+    );
+    redirect.searchParams.set('oauth', result.outcome);
+    redirect.searchParams.set('provider', provider);
+    redirect.searchParams.set('capability', result.capabilityKey);
+    return response.redirect(redirect.toString(), HttpStatus.FOUND);
   }
 }

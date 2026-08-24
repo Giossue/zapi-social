@@ -12,12 +12,16 @@ import {
   socialAccountCredentials,
   socialAccounts,
 } from '@workspace/database';
+import { createHash, randomBytes } from 'node:crypto';
 import {
+  channelCapability,
+  type ChannelOAuthProviderKey,
   selectPortalChannelCandidateSchema,
   startPortalChannelConnectionSchema,
   type PortalAuthSession,
   type PortalChannelAccount,
   type PortalChannelCandidate,
+  type PortalChannelCapabilityKey,
   type MetaCapabilityKey,
   type MetaCapabilityScopes,
   type MetaOAuthScope,
@@ -27,6 +31,7 @@ import { and, eq, gt } from '@workspace/database/query';
 import { DatabaseService } from '../database/database.service';
 import { IntegrationsService } from '../integrations/integrations.service';
 import { Aes256GcmService } from '../platform/crypto/aes-256-gcm.service';
+import { ChannelConnectionAdapterRegistry } from './connection-adapters/channel-connection.adapter';
 import { ChannelOAuthService } from './oauth/channel-oauth.service';
 
 const managerRoles = new Set(['owner', 'admin']);
@@ -69,6 +74,7 @@ export class ChannelConnectionsService {
     private readonly database: DatabaseService,
     private readonly integrations: IntegrationsService,
     private readonly oauth: ChannelOAuthService,
+    private readonly adapters: ChannelConnectionAdapterRegistry,
   ) {}
 
   async start(session: PortalAuthSession, input: unknown) {
@@ -76,6 +82,17 @@ export class ChannelConnectionsService {
     const values = this.parse(
       startPortalChannelConnectionSchema.safeParse(input),
     );
+    // Meta conserva su camino de siempre; el resto va por adaptador.
+    if (this.isMetaCapability(values.capabilityKey)) {
+      return this.startMeta(session, values);
+    }
+    return this.startGeneric(session, values);
+  }
+
+  private async startMeta(
+    session: PortalAuthSession,
+    values: { capabilityKey: string; reconnectAccountId?: string },
+  ) {
     if (!this.isMetaCapability(values.capabilityKey))
       throw new BadRequestException();
     if (values.reconnectAccountId) {
@@ -118,9 +135,68 @@ export class ChannelConnectionsService {
     };
   }
 
+  private async startGeneric(
+    session: PortalAuthSession,
+    values: { capabilityKey: string; reconnectAccountId?: string },
+  ) {
+    const providerKey = this.providerKeyFor(values.capabilityKey);
+    const adapter = this.adapters.find(providerKey);
+    if (!adapter) throw new BadRequestException();
+    if (values.reconnectAccountId) {
+      await this.assertGenericReconnect(
+        session,
+        values.reconnectAccountId,
+        providerKey,
+        values.capabilityKey,
+      );
+    }
+
+    const configuration =
+      await this.integrations.readOAuthConfiguration(providerKey);
+    const capabilityKey = values.capabilityKey as PortalChannelCapabilityKey;
+    const scopes = adapter.scopesFor(capabilityKey);
+    const expiresAt = new Date(Date.now() + lifetimeMilliseconds);
+
+    // PKCE se guarda en la propia sesión de conexión, cifrado con su
+    // identificador. Solo X lo necesita, pero generarlo siempre no cuesta nada.
+    const codeVerifier = randomBytes(48).toString('base64url');
+    const [connection] = await this.database.db
+      .insert(channelConnectionSessions)
+      .values({
+        workspaceId: session.workspace.id,
+        userId: session.user.id,
+        capabilityKey: values.capabilityKey,
+        reconnectAccountId: values.reconnectAccountId ?? null,
+        status: 'authorizing',
+        contextCiphertext: this.encryptGenericStart(codeVerifier),
+        expiresAt,
+      })
+      .returning();
+
+    const state = await this.oauth.start(session, {
+      providerKey,
+      capabilityKey: values.capabilityKey,
+      reconnectAccountId: values.reconnectAccountId,
+      context: { connectionId: connection.id },
+    });
+
+    return {
+      connection: this.serializeConnection(connection),
+      authorizationUrl: adapter.buildAuthorizationUrl({
+        clientId: configuration.clientId,
+        redirectUri: this.callbackUrlFor(providerKey),
+        state: state.state,
+        scopes,
+        codeChallenge: adapter.usesPkce
+          ? this.pkceChallenge(codeVerifier)
+          : undefined,
+      }),
+    };
+  }
+
   async reconnect(session: PortalAuthSession, accountId: string) {
     this.requireManager(session);
-    const account = await this.accountForWorkspace(session, accountId);
+    const account = await this.anyAccountForWorkspace(session, accountId);
     return this.start(session, {
       capabilityKey: account.capabilityKey,
       reconnectAccountId: account.id,
@@ -312,6 +388,272 @@ export class ChannelConnectionsService {
         .where(eq(channelConnectionSessions.id, connection.id));
       return { outcome: 'failed', capabilityKey: connection.capabilityKey };
     }
+  }
+
+  /**
+   * Cierre del OAuth de los proveedores por adaptador. Canjea el código,
+   * pide las cuentas y guarda las que correspondan a la capability. Redirige
+   * al Portal con el resultado, igual que Meta.
+   */
+  async callbackGeneric(
+    providerKey: ChannelOAuthProviderKey,
+    query: unknown,
+  ): Promise<{
+    outcome: 'authorized' | 'denied' | 'failed';
+    capabilityKey: string;
+  }> {
+    const adapter = this.adapters.find(providerKey);
+    if (!adapter) throw new BadRequestException();
+    const parsed = this.parseCallback(query);
+    const state = await this.oauth.consume(parsed.state, providerKey);
+    const connectionId = state.context.connectionId;
+    if (!connectionId) throw new BadRequestException();
+
+    const [connection] = await this.database.db
+      .select()
+      .from(channelConnectionSessions)
+      .where(
+        and(
+          eq(channelConnectionSessions.id, connectionId),
+          eq(channelConnectionSessions.workspaceId, state.workspaceId),
+          eq(channelConnectionSessions.userId, state.userId),
+          gt(channelConnectionSessions.expiresAt, new Date()),
+        ),
+      )
+      .limit(1);
+    if (!connection || connection.status !== 'authorizing')
+      throw new BadRequestException();
+
+    if (!parsed.code || parsed.error) {
+      await this.database.db
+        .update(channelConnectionSessions)
+        .set({ status: 'cancelled', updatedAt: new Date() })
+        .where(eq(channelConnectionSessions.id, connection.id));
+      return { outcome: 'denied', capabilityKey: connection.capabilityKey };
+    }
+
+    try {
+      const configuration =
+        await this.integrations.readOAuthConfiguration(providerKey);
+      const capabilityKey =
+        connection.capabilityKey as PortalChannelCapabilityKey;
+      const token = await adapter.exchangeCode({
+        clientId: configuration.clientId,
+        clientSecret: configuration.clientSecret,
+        code: parsed.code,
+        redirectUri: this.callbackUrlFor(providerKey),
+        codeVerifier: this.decryptGenericStart(connection),
+      });
+      const candidates = (
+        await adapter.fetchCandidates({
+          accessToken: token.accessToken,
+          capabilityKey,
+          apiVersion: configuration.apiVersion,
+        })
+      ).filter(
+        (candidate) =>
+          candidate.publicMetadata.kind === connection.capabilityKey,
+      );
+      if (!candidates.length) {
+        await this.database.db
+          .update(channelConnectionSessions)
+          .set({ status: 'failed', updatedAt: new Date() })
+          .where(eq(channelConnectionSessions.id, connection.id));
+        return { outcome: 'failed', capabilityKey: connection.capabilityKey };
+      }
+
+      // Cada candidato es una cuenta conectada. Un perfil trae uno; una página
+      // puede traer varias organizaciones administradas, y se conectan todas.
+      const scopes = adapter.scopesFor(capabilityKey);
+      let lastAccountId: string | null = null;
+      for (const candidate of candidates) {
+        lastAccountId = await this.persistGeneric(
+          connection,
+          providerKey,
+          candidate,
+          token,
+          scopes,
+        );
+      }
+
+      await this.database.db
+        .update(channelConnectionSessions)
+        .set({
+          socialAccountId: lastAccountId,
+          status: 'connected',
+          updatedAt: new Date(),
+        })
+        .where(eq(channelConnectionSessions.id, connection.id));
+
+      return { outcome: 'authorized', capabilityKey: connection.capabilityKey };
+    } catch {
+      await this.database.db
+        .update(channelConnectionSessions)
+        .set({ status: 'failed', updatedAt: new Date() })
+        .where(eq(channelConnectionSessions.id, connection.id));
+      return { outcome: 'failed', capabilityKey: connection.capabilityKey };
+    }
+  }
+
+  private async persistGeneric(
+    connection: ConnectionRow,
+    providerKey: string,
+    candidate: {
+      externalId: string;
+      displayName: string;
+      context: { avatarUrl?: string };
+    },
+    token: { accessToken: string; refreshToken?: string; expiresAt?: string },
+    scopes: string[],
+  ): Promise<string> {
+    const [existing] = await this.database.db
+      .select()
+      .from(socialAccounts)
+      .where(
+        and(
+          eq(socialAccounts.workspaceId, connection.workspaceId),
+          eq(socialAccounts.providerKey, providerKey),
+          eq(socialAccounts.capabilityKey, connection.capabilityKey),
+          eq(socialAccounts.externalId, candidate.externalId),
+        ),
+      )
+      .limit(1);
+
+    const values = {
+      avatarUrl: candidate.context.avatarUrl ?? null,
+      metadata: {
+        ...existing?.metadata,
+        externalDisplayName: candidate.displayName,
+      },
+      status: 'active' as const,
+      connectedAt: new Date(),
+      disconnectedAt: null,
+      updatedAt: new Date(),
+    };
+    const account = existing
+      ? (
+          await this.database.db
+            .update(socialAccounts)
+            .set(values)
+            .where(eq(socialAccounts.id, existing.id))
+            .returning()
+        )[0]
+      : (
+          await this.database.db
+            .insert(socialAccounts)
+            .values({
+              workspaceId: connection.workspaceId,
+              providerKey,
+              capabilityKey: connection.capabilityKey,
+              externalId: candidate.externalId,
+              displayName: candidate.displayName,
+              ...values,
+            })
+            .returning()
+        )[0];
+
+    const aad = `${providerKey}:account:${account.id}`;
+    const credential = {
+      accessTokenCiphertext: this.encryption().encrypt(token.accessToken, aad),
+      refreshTokenCiphertext: token.refreshToken
+        ? this.encryption().encrypt(token.refreshToken, `${aad}:refresh`)
+        : null,
+      expiresAt: token.expiresAt ? new Date(token.expiresAt) : null,
+      scopes,
+    };
+    await this.database.db
+      .insert(socialAccountCredentials)
+      .values({ socialAccountId: account.id, ...credential })
+      .onConflictDoUpdate({
+        target: socialAccountCredentials.socialAccountId,
+        set: {
+          ...credential,
+          rotatedAt: new Date(),
+          updatedAt: new Date(),
+        },
+      });
+    return account.id;
+  }
+
+  private providerKeyFor(capabilityKey: string): ChannelOAuthProviderKey {
+    const capability = channelCapability(
+      capabilityKey as PortalChannelCapabilityKey,
+    );
+    if (!capability) throw new BadRequestException();
+    return capability.providerKey as ChannelOAuthProviderKey;
+  }
+
+  private callbackUrlFor(providerKey: string) {
+    return new URL(
+      `/v1/oauth/channels/${providerKey}/callback`,
+      this.config.getOrThrow<string>('API_PUBLIC_ORIGIN'),
+    ).toString();
+  }
+
+  private pkceChallenge(verifier: string) {
+    return createHash('sha256').update(verifier).digest('base64url');
+  }
+
+  private encryptGenericStart(codeVerifier: string) {
+    return this.encryption().encrypt(
+      JSON.stringify({ codeVerifier }),
+      'channel-connection:start',
+    );
+  }
+
+  private decryptGenericStart(connection: ConnectionRow): string | undefined {
+    if (!connection.contextCiphertext) return undefined;
+    try {
+      const parsed: unknown = JSON.parse(
+        this.encryption().decrypt(
+          connection.contextCiphertext,
+          'channel-connection:start',
+        ),
+      );
+      const verifier =
+        typeof parsed === 'object' && parsed !== null
+          ? (parsed as Record<string, unknown>).codeVerifier
+          : null;
+      return typeof verifier === 'string' ? verifier : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  private async assertGenericReconnect(
+    session: PortalAuthSession,
+    id: string,
+    providerKey: string,
+    capabilityKey: string,
+  ) {
+    const [account] = await this.database.db
+      .select()
+      .from(socialAccounts)
+      .where(
+        and(
+          eq(socialAccounts.id, this.parseId(id)),
+          eq(socialAccounts.workspaceId, session.workspace.id),
+          eq(socialAccounts.providerKey, providerKey),
+          eq(socialAccounts.capabilityKey, capabilityKey),
+        ),
+      )
+      .limit(1);
+    if (!account) throw new NotFoundException();
+  }
+
+  private async anyAccountForWorkspace(session: PortalAuthSession, id: string) {
+    const [account] = await this.database.db
+      .select()
+      .from(socialAccounts)
+      .where(
+        and(
+          eq(socialAccounts.id, this.parseId(id)),
+          eq(socialAccounts.workspaceId, session.workspace.id),
+        ),
+      )
+      .limit(1);
+    if (!account) throw new NotFoundException();
+    return account;
   }
 
   private async persistSelection(

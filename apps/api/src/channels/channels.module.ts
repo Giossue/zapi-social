@@ -4,7 +4,13 @@ import { IdentityModule } from '../identity/identity.module';
 import { IntegrationsModule } from '../integrations/integrations.module';
 import { TeamsModule } from '../teams/teams.module';
 import { ChannelConnectionsService } from './channel-connections.service';
+import {
+  CHANNEL_CONNECTION_ADAPTERS,
+  ChannelConnectionAdapterRegistry,
+} from './connection-adapters/channel-connection.adapter';
 import { LinkedInConnectionAdapter } from './connection-adapters/linkedin-connection.adapter';
+import { TikTokConnectionAdapter } from './connection-adapters/tiktok-connection.adapter';
+import { XConnectionAdapter } from './connection-adapters/x-connection.adapter';
 import {
   ChannelConnectionsController,
   ChannelsController,
@@ -44,6 +50,22 @@ const WHATSAPP_PROFILE_SYNC_QUEUE = 'whatsapp-profile-sync';
     ChannelsService,
     ChannelConnectionsService,
     LinkedInConnectionAdapter,
+    XConnectionAdapter,
+    TikTokConnectionAdapter,
+    ChannelConnectionAdapterRegistry,
+    {
+      provide: CHANNEL_CONNECTION_ADAPTERS,
+      inject: [
+        LinkedInConnectionAdapter,
+        XConnectionAdapter,
+        TikTokConnectionAdapter,
+      ],
+      useFactory: (
+        linkedin: LinkedInConnectionAdapter,
+        x: XConnectionAdapter,
+        tiktok: TikTokConnectionAdapter,
+      ) => [linkedin, x, tiktok],
+    },
     WhatsAppStatusConnectionsService,
     ChannelOAuthService,
     ChannelOAuthAuthorizationService,

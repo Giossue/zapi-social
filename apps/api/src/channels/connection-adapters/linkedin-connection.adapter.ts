@@ -1,33 +1,10 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import type { PortalChannelCapabilityKey } from '@workspace/contracts';
 
-export type ConnectionCandidate = {
-  externalId: string;
-  displayName: string;
-  description: string;
-  publicMetadata: Record<string, string>;
-  context: { accessToken: string; avatarUrl?: string };
-};
-
-/**
- * Lo que cambia de una red a otra al conectar una cuenta. El resto —la sesión,
- * la tabla de candidatos, la selección y el guardado— ya es común.
- */
-export interface ChannelConnectionAdapter {
-  readonly providerKey: string;
-  scopesFor(capabilityKey: PortalChannelCapabilityKey): string[];
-  exchangeCode(input: {
-    clientId: string;
-    clientSecret: string;
-    code: string;
-    redirectUri: string;
-  }): Promise<string>;
-  fetchCandidates(input: {
-    accessToken: string;
-    capabilityKey: PortalChannelCapabilityKey;
-    apiVersion: string;
-  }): Promise<ConnectionCandidate[]>;
-}
+import type {
+  ChannelConnectionAdapter,
+  ConnectionCandidate,
+} from './channel-connection.adapter';
 
 const restBase = 'https://api.linkedin.com/rest';
 
@@ -51,6 +28,28 @@ export class LinkedInConnectionAdapter implements ChannelConnectionAdapter {
       : ['openid', 'profile', 'w_member_social'];
   }
 
+  buildAuthorizationUrl({
+    clientId,
+    redirectUri,
+    state,
+    scopes,
+  }: {
+    clientId: string;
+    redirectUri: string;
+    state: string;
+    scopes: string[];
+  }): string {
+    const url = new URL('https://www.linkedin.com/oauth/v2/authorization');
+    url.search = new URLSearchParams({
+      response_type: 'code',
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      state,
+      scope: scopes.join(' '),
+    }).toString();
+    return url.toString();
+  }
+
   async exchangeCode({
     clientId,
     clientSecret,
@@ -61,7 +60,11 @@ export class LinkedInConnectionAdapter implements ChannelConnectionAdapter {
     clientSecret: string;
     code: string;
     redirectUri: string;
-  }): Promise<string> {
+  }): Promise<{
+    accessToken: string;
+    refreshToken?: string;
+    expiresAt?: string;
+  }> {
     const response = await fetch(
       'https://www.linkedin.com/oauth/v2/accessToken',
       {
@@ -80,14 +83,23 @@ export class LinkedInConnectionAdapter implements ChannelConnectionAdapter {
       },
     );
     const body: unknown = await response.json().catch(() => null);
-    const accessToken =
+    const record =
       typeof body === 'object' && body !== null
-        ? (body as Record<string, unknown>).access_token
-        : null;
+        ? (body as Record<string, unknown>)
+        : {};
+    const accessToken = record.access_token;
     if (!response.ok || typeof accessToken !== 'string' || !accessToken) {
       throw new ServiceUnavailableException();
     }
-    return accessToken;
+    const refreshToken =
+      typeof record.refresh_token === 'string'
+        ? record.refresh_token
+        : undefined;
+    const expiresAt =
+      typeof record.expires_in === 'number'
+        ? new Date(Date.now() + record.expires_in * 1000).toISOString()
+        : undefined;
+    return { accessToken, refreshToken, expiresAt };
   }
 
   async fetchCandidates({
