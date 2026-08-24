@@ -175,6 +175,21 @@ export const channelProviderCatalog: readonly ChannelProviderDefinition[] = [
 /** Un elemento de la publicación, reducido a lo que deciden las reglas. */
 export type ChannelMediaItem = { mimeType: string }
 
+/**
+ * De dónde salen los límites de media, para que no parezcan arbitrarios cuando
+ * alguien los cambie:
+ *
+ * - **Facebook e Instagram**: Graph API. El Feed rechaza mezclar foto y vídeo y
+ *   admite un solo vídeo; Instagram no publica sin media.
+ * - **LinkedIn**: Posts API. `content.media` referencia un único `urn`; varias
+ *   imágenes exigen la MultiImage API, que es solo de imágenes.
+ * - **X**: hasta cuatro imágenes, o un solo vídeo o GIF, nunca mezclados.
+ * - **TikTok**: `/v2/post/publish/video/init/` para vídeo —uno— y
+ *   `/v2/post/publish/content/init/` para fotos.
+ *
+ * Los detalles y el contraste con lo que hace ZapiSocial están en
+ * `docs/planes/canales-publicacion-v2.md`.
+ */
 export const channelCapabilityCatalog: readonly ChannelCapabilityDefinition[] =
   [
     {
