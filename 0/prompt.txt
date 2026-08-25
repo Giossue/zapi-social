@@ -1,0 +1,5 @@
+ok, ahora en 
+
+[@/home/giossue/Documentos/template-shadcn-superdashboard/](file:///home/giossue/Documentos/template-shadcn-superdashboard/)
+
+ hay algo de un camvan, puedes crear esta funcionalidad para zapi v2, analizalo bien las tablas, que tablas crear, notificaciones, equipo, etc
