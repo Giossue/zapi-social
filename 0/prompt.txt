@@ -1,0 +1,1 @@
+Borra de amin templates: El envío usa la configuración SMTP de Integraciones. ese aviso
