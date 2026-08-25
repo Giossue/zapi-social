@@ -1,0 +1,1 @@
+se ejecutó api, web y worker
