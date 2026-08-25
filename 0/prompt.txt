@@ -1,0 +1,1 @@
+ok, gracias, sigamos con zapiv2, verás, quiero una buena estructura de carpetas cuando se crea un cuenta, es decir, en producción no sé cual será la estrcutura, pero debe ser ordenada, ya sea por  espacios, cuentas, etc. Pero quiero buena escalabilidad para eso
