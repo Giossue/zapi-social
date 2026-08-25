@@ -1,0 +1,10 @@
+ok, agrega:
+- **AdminSupport**
+- **AdminNotifications**
+- **AdminManualPayments** + **AdminPaymentManualConfig**
+- **AdminPaymentReport**
+- **AdminMailServer** si es que no está, aunque como dices ya está. Creo que falta como tal por ejemplo los templates de los correos.
+y dime como funcionaría el:
+- **AppAITrendFinder**
+- **AppAICompetitorWatch**
+Para ver si vale la pena agregarlo
