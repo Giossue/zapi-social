@@ -1,0 +1,1 @@
+ok, en algusno search (eceptp eñ del header) tienen como aplastar control + k, eso no quiero, quiero que lo borres
