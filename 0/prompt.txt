@@ -1,0 +1,7 @@
+<task-notification>
+<task-id>b6kqs2x81</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-giossue-Documentos-ZapiV2/4640032b-b84a-4017-81cc-3c00a0b8b94f/tasks/b6kqs2x81.output</output-file>
+<status>completed</status>
+<summary>Background command "Wait for local API health" completed (exit code 0)</summary>
+</task-notification>
