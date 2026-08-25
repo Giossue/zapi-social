@@ -1,0 +1,35 @@
+<task-notification>
+<task-id>ae2589c1155f61308</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-giossue-Documentos-ZapiV2/4640032b-b84a-4017-81cc-3c00a0b8b94f/tasks/ae2589c1155f61308.output</output-file>
+<status>completed</status>
+<summary>Agent "Patrón tabla: link-bio y email-templates" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Both files pass. All done — here is the summary.
+
+## Resumen por archivo
+
+**A) `/home/giossue/Documentos/ZapiV2/apps/web/features/link-bio/components/link-bio-page.tsx`**
+- Búsqueda local en `DataTableHeader` (izquierda) sobre **título y dirección/slug** (case-insensitive, trim); la acción existente "Nueva página" quedó a la derecha del mismo header. Cambiar la búsqueda reinicia la página.
+- `DataTableToolbar` con `DataTableFilter` de **Estado** (Todos / Publicada / Borrador) y botón "Limpiar" cuando hay filtros activos; cambiar el filtro reinicia la página.
+- Empty diferenciado dentro del `TableBody` vía `TableEmptyRow`: con filtros activos muestra "No hay coincidencias" con acción **Limpiar filtros**; sin filtros conserva el empty original.
+- `TablePagination` local (10 por página, `itemLabel="páginas"`), rango a la izquierda y anterior/siguiente a la derecha; el total solo vive ahí.
+- Intactos: sheet de creación/edición, acciones de fila, AlertDialog de borrado, llamadas API, loading/error/permiso, métricas y FAB.
+
+**B) `/home/giossue/Documentos/ZapiV2/apps/web/features/admin-email-templates/components/admin-email-templates-page.tsx`**
+- `DataTableHeader` nuevo con búsqueda local por **nombre y asunto**. No hay acción principal de página en esta ruta (las plantillas son fijas del sistema; las acciones Editar/Restablecer son por fila), así que el header lleva solo búsqueda.
+- `DataTableToolbar` con `DataTableFilter` de **Estado** (Todos / Personalizada / Texto por defecto), basado en el campo real `customized` del contrato (`packages/contracts/src/admin-email-templates.ts`); no existe campo de idioma. Botón "Limpiar" cuando hay filtros.
+- Empty dentro del `TableBody` con `TableEmptyRow` (colSpan 4): filtrado → "No hay coincidencias" + **Limpiar filtros**; inicial → mensaje sin acción.
+- `TablePagination` local (10 por página, `itemLabel="plantillas"`). Búsqueda y filtro reinician la página.
+- Intactos: sheet de edición, restablecer con AlertDialog, contratos y mutaciones.
+
+Todo importado de `@workspace/ui/components/data-table-controls`, `table-empty-row` y `table-pagination`; sin componentes nuevos, sin anchos fijos en filtros, sin conteos duplicados fuera de `TablePagination`.
+
+## Validación
+- `bun --cwd apps/web typecheck`: **0 errores en estos dos archivos**. Hay errores TS en `features/affiliate/components/affiliate-page.tsx` y `features/automation/components/automation-page.tsx`, pero son archivos a medio editar por trabajo paralelo ajeno a esta tarea (ya estaban modificados en el árbol).
+- ESLint sobre los dos archivos: **0 errores, 4 warnings**, todos `react-hooks/set-state-in-effect` en los `useEffect` preexistentes (líneas que no toqué); verifiqué que esos mismos 4 warnings existen en la versión HEAD, así que no introduje ninguno nuevo.
+
+## Advertencia operativa
+Durante la validación usé `git stash` para comparar contra HEAD y el `pop` falló por ediciones paralelas concurrentes en `affiliate-page.tsx`/`automation-page.tsx`. Restauré desde el stash mis dos archivos y `apps/web/features/admin-settings/components/static-pages-page.tsx` (trabajo paralelo que el stash había capturado), y dejé intactas las versiones más nuevas de affiliate/automation del árbol. Queda una entrada `stash@{0}` como punto de recuperación; **no** hacer `git stash pop` a ciegas porque contiene versiones antiguas de affiliate/automation que pisarían el trabajo en curso (lo seguro es `git stash drop` una vez confirmado que no falta nada).</result>
+<usage><subagent_tokens>94164</subagent_tokens><tool_uses>38</tool_uses><duration_ms>341770</duration_ms></usage>
+</task-notification>
