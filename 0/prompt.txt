@@ -1,0 +1,1 @@
+Hay una manera de poder saber que tablas, que campos no es están usando en el sistema? No me refiero de revisar la bd que tablas están vacías, sino en el codigo, pero tampcoo quiero revisar archivo por archivo, hay alguna manera super eficiente?
