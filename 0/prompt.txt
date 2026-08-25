@@ -1,0 +1,5 @@
+ok, ahora, voy aprobar todo el sistema, lo primero sería que en todas las sheets, no debe haber icono en los botones secundarios, por ejemplo acá 
+
+ , en el principal si, así que ejecuta un comando de busqueda de TODAS las sheet y arregla eso:
+1. Boton principal si hay icono
+2. Botones secundarios no hay icono
