@@ -1,0 +1,1 @@
+otra cosa, si selecciono otra vez el mismo archivo o carpeta debe deseleccionarse
