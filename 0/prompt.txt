@@ -1,0 +1,1 @@
+ya veo, pero nosotros no tenemos templates y acá en la vista previa se ve mejor. Además si agregamos templates tocaría hacer como hacemos con react email, porque descargamos una dependencia de react para eso, para esto de las link bio no creo que exista verdad?
