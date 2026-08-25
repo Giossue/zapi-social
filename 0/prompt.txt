@@ -1,0 +1,1 @@
+ok ahora un problema, el fondo del calendario es del mismo color que el fondo como tal, eso no debería ser así, debería ser todo del mismo color, por ejemplo el encabezado que está de esa tabla mismo
