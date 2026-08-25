@@ -1,0 +1,187 @@
+<task-notification>
+<task-id>a66ef378f5abed7db</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-giossue-Documentos-ZapiV2/4640032b-b84a-4017-81cc-3c00a0b8b94f/tasks/a66ef378f5abed7db.output</output-file>
+<status>completed</status>
+<summary>Agent "Explorar i18n en ZapiSocial" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Informe: sistema de i18n de **ZapiSocial** (`/home/giossue/Documentos/ZapiSocial`)
+
+## Resumen ejecutivo
+
+No es un i18n de Laravel "estándar de archivos". Es un **sistema híbrido JSON-en-disco + overrides en base de datos**, gestionado íntegramente desde el admin por el módulo `modules/AdminLanguages`, con **auto-traducción vía Google Translate** y un **scanner** que extrae las claves del código fuente. Las claves son **texto literal en inglés** (estilo JSON de Laravel), no `archivo.clave`.
+
+---
+
+## 1. Estructura de archivos de idioma
+
+- **No existe `lang/` ni `resources/lang/` en el repo.** El directorio `lang/` se **genera en runtime** (`TranslationScanner::writeJson()` hace `mkdir(dirname($path))`). No está en `.gitignore`; simplemente aún no se ha generado en esta copia.
+- Formato: **un único JSON plano por idioma**, `lang_path("{$locale}.json")` — p. ej. `lang/en.json`, `lang/es.json`. **Cero archivos PHP de idioma** en todo el proyecto.
+- Único JSON de idioma presente hoy: `/home/giossue/Documentos/ZapiSocial/resources/themes/guest/default/lang/en.json` → **181 claves**. Parece **legacy/no usado**: nada en `app/`, `modules/`, `config/` ni `bootstrap/` lo referencia (no hay `useLangPath()` ni `addJsonPath()` apuntando ahí). Muestra:
+  ```json
+  "Activation Successful!": "Activation Successful!",
+  "The activation link is invalid, expired or your account was already activated.": "..."
+  ```
+- **Volumen real de claves**: `12.982` llamadas a `__()` en `app/ modules/ resources/ routes/`, con **~6.930 claves únicas**. Ese es el tamaño aproximado que tendría el `lang/en.json` generado.
+- Idiomas disponibles: **dinámicos, definidos en BD** (tabla `languages`), no en disco. El catálogo de idiomas seleccionables está hardcodeado en `modules/AdminLanguages/Support/WorldLanguageCatalog.php` (~130 idiomas del mundo con `code`, `name`, `native_name`). No hay seeder de idiomas: `database/seeders/` solo tiene AI templates y planes.
+
+---
+
+## 2. Selección de idioma
+
+`config/app.php:83-85` → `'locale' =&gt; env('APP_LOCALE','en')`, `'fallback_locale' =&gt; env('APP_FALLBACK_LOCALE','en')`. `.env` y `.env.example` fijan ambos a `en`.
+
+`config/localization.php` (config propio del proyecto):
+```php
+'cookie_key' =&gt; 'locale', 'session_key' =&gt; 'locale',
+'cookie_minutes' =&gt; 5256000, 'option_key' =&gt; 'default_locale',
+'default_direction' =&gt; 'ltr',
+```
+
+**Middleware**: `modules/AdminLanguages/Http/Middleware/SetLocale.php`, registrado en `bootstrap/app.php` como el **primer `append` del grupo `web`** (antes de `SetThemeContext`, `ResolveUserPlanState`, etc.).
+
+**Cadena de resolución** — `modules/AdminLanguages/Support/LocaleManager::resolve()`, en orden de prioridad:
+1. `$request-&gt;route('locale')`
+2. sesión (`locale`)
+3. cookie (`locale`)
+4. `$request-&gt;user()-&gt;locale` (columna en `users`)
+5. opción global `default_locale` en `OptionStore` (AdminSettings)
+6. idioma con `is_default = true` en tabla `languages`
+7. `config('app.locale')` → `config('app.fallback_locale')`
+
+Cada candidato se valida contra `supportedCodes()` (códigos activos de la tabla `languages`).
+
+`apply()` hace `app()-&gt;setLocale($locale)` + `Carbon::setLocale($locale)`. El middleware además comparte `view()-&gt;share('currentLocale', $locale)`.
+
+**Persistencia** (`LocaleManager::persist()`): escribe sesión + cookie (10 años) y, si hay usuario autenticado, `$request-&gt;user()-&gt;forceFill(['locale' =&gt; $locale])-&gt;save()`.
+
+**Columna en BD**: `database/migrations/2026_04_18_110000_create_database.php:1325` → `$table-&gt;string('locale', 10)-&gt;nullable();` en `users`.
+
+**Ruta de switch**: `modules/AdminLanguages/Routes/web.php`
+```php
+Route::get('lang/{locale}', function (string $locale, LocaleManager $locales) { ... })
+    -&gt;name('language.switch');
+```
+Aborta 404 si el locale no está soportado, persiste, y redirige a `url()-&gt;previous()`.
+
+**Selectores en UI** (dropdowns Alpine con banderas `flag-icon`):
+- App autenticada: `/home/giossue/Documentos/ZapiSocial/resources/themes/app/default/resources/views/components/ui/shell.blade.php:1024-1077`
+- Guest/auth: `/home/giossue/Documentos/ZapiSocial/resources/themes/guest/default/resources/views/partials/auth-language-switcher.blade.php`
+- Layouts marketing/auth: `resources/themes/guest/default/resources/views/layouts/marketing.blade.php` y `auth.blade.php`
+
+**RTL**: `&lt;html lang="{{ str_replace('_','-',app()-&gt;getLocale()) }}" dir="{{ current_locale_direction() }}"&gt;` (shell.blade.php:88 y marketing.blade.php:2). `current_locale_direction()` lee `direction` de la fila `languages`. Nota: `resources/themes/guest/default/resources/views/layouts/app.blade.php:2` usa `Language::getCurrent('dir')`, una **facade inexistente** — layout muerto/legacy que reventaría si se renderizara.
+
+---
+
+## 3. Uso en vistas y código
+
+- **`__('Texto literal en inglés')` es la única convención**: 12.982 usos.
+- **`@lang(...)`: 0 usos.** `trans()`: 2. `trans_choice()`: 47.
+- **No hay claves con namespace** (`archivo.clave`). El único match del patrón `__('x.y')` en todo el repo es un falso positivo (`__('whsec_...')`).
+- Placeholders estilo `:name`:
+  ```php
+  __('Updated :count missing translations.', ['count' =&gt; $count])   // TranslationsPage.php
+  __('Preview: :title', ['title' =&gt; $blog-&gt;titleForLocale()])
+  ```
+- Pluralización, p. ej. `modules/AdminBlogCategories/Livewire/CategoryIndex.php:258`:
+  ```php
+  trans_choice('{1} :count category enabled.|[2,*] :count categories enabled.', $categoryIds-&gt;count(), ['count' =&gt; ...])
+  ```
+
+---
+
+## 4. Gestión de traducciones en el admin
+
+Sí, completa. Módulo `modules/AdminLanguages` (`module.json`: *"Language management module for localization and translation overrides"*). **No usa ningún paquete tipo `spatie/laravel-translation-loader` o `laravel-translations`**; está escrito a mano. La única dependencia externa es `stichoza/google-translate-php: ^5.3` (`composer.json:21`).
+
+**Tablas** (`database/migrations/2026_04_18_110000_create_database.php:687-713`):
+```php
+Schema::create('languages', ...);   // name, native_name, code(unique), icon, direction,
+                                     // is_default, is_active, auto_translate, sort_order
+Schema::create('language_translations', ...); // language_code, key, value(longText), is_custom
+                                              // unique(language_code,key) + index(language_code)
+```
+
+**Loader decorado** — `modules/AdminLanguages/Providers/AdminLanguagesServiceProvider.php`:
+```php
+$this-&gt;app-&gt;extend('translation.loader', fn ($loader, $app) =&gt;
+    new DatabaseTranslationLoader($loader, $app-&gt;make(TranslationCatalog::class)));
+```
+`modules/AdminLanguages/Support/DatabaseTranslationLoader.php` solo intercepta el caso JSON (`$group === '*' &amp;&amp; $namespace === '*'`) y hace `array_replace($lines, $catalog-&gt;overridesForLocale($locale))`. Es decir: **archivo JSON = base, BD = override**, y los namespaces de paquetes pasan intactos al loader nativo.
+
+**Caché**: `TranslationCatalog::overridesForLocale()` usa `Cache::rememberForever("translations.overrides.{$locale}")`, invalidado con `flushLocale()` en cada guardado.
+
+**Servicios de soporte** (`modules/AdminLanguages/Support/`):
+| Archivo | Función |
+|---|---|
+| `TranslationCatalog.php` | merge fallback+locale+overrides, paginación para el editor, `saveOverrides`, `import`, `export`, normalización de placeholders |
+| `TranslationScanner.php` | escanea `app_path()`, `routes/`, `resources/views`, `resources/themes`, `modules/` con regex `/__\(\s*(['"])(.+?)\1/s` y sincroniza `lang/en.json` |
+| `LanguageMaintenanceService.php` | `createLanguage()` (genera el JSON del nuevo idioma) y `updateMissing()` (rellena claves faltantes) |
+| `GoogleTranslationService.php` | traducción por lotes de 4000 chars con marcadores `[[I_n]]`, protege/restaura placeholders `:var` y `%s` |
+| `LocaleManager.php` | resolución/persistencia de locale |
+| `WorldLanguageCatalog.php` | catálogo estático de ~130 idiomas |
+| `helpers.php` | `locale_manager()`, `available_languages()`, `current_language()`, `current_locale_direction()`, `language_flag_class()` |
+
+**UI Livewire**:
+- `modules/AdminLanguages/Livewire/IndexTable.php` (542 líneas) + `Resources/views/livewire/index-table.blade.php` (365 líneas) → CRUD de idiomas, búsqueda, filtros, bulk select, marcar default (sincroniza `OptionStore` con `config('localization.option_key')`), toggle activo/auto_translate, import de catálogo JSON.
+- `modules/AdminLanguages/Livewire/TranslationsPage.php` (147 líneas) + `translations-page.blade.php` → editor clave-por-clave paginado (50/pág) con búsqueda, `saveTranslations()`, `importTranslations()` (upload `.json`), `updateLanguages()` (traducir solo faltantes), `autoTranslate()`.
+- Export: ruta `admin-languages.export` devuelve el JSON merged como descarga.
+
+**Salvaguarda inteligente en `saveOverrides()`**: si el valor editado es vacío o idéntico al base, **borra** la fila override en vez de duplicar; y `normalizePlaceholders()` reescribe los placeholders del valor traducido para que coincidan con los del original (protege contra que Google Translate rompa `:count`).
+
+**Rutas admin**: `modules/AdminLanguages/Routes/web.php`, prefijo `admin/languages`, middleware `['web','auth','verified']`. Sidebar registrado en el provider con `register_sidebar_section('localization', 'Localization', 50)`.
+
+---
+
+## 5. Traducciones por módulo
+
+**No.** `grep -rn "loadTranslationsFrom" modules app` → **0 resultados**. Ningún módulo registra su propio namespace de traducciones. Todos los `__()` de los ~85 módulos van al **JSON global único**, que es precisamente lo que permite que `TranslationScanner` escanee `base_path('modules')` y vuelque todo a `lang/en.json`. Los módulos sí usan `loadViewsFrom(..., 'adminlanguages')` para vistas, pero no para lang.
+
+---
+
+## 6. Contenido dinámico
+
+Sí, además de los strings de UI, mediante columnas JSON `*_translations` y el trait `app/Concerns/HasLocalizedAttributes.php`:
+
+```php
+public function localized(string $attribute, ?string $locale = null): string
+{
+    $locale ??= app()-&gt;getLocale();
+    $translations = $this-&gt;getAttribute($attribute.'_translations');
+    ...
+    return trim((string) ($translations[$locale] ?? $translations[$fallbackLocale] ?? $this-&gt;getAttribute($attribute) ?? ''));
+}
+```
+
+Modelos que lo usan (4):
+- `modules/AdminBlogs/Models/Blog.php` → `title_translations`, `excerpt_translations`, `content_translations` (migración líneas 383-387)
+- `modules/AdminBlogCategories/Models/BlogCategory.php` → `name_translations`, `description_translations` (407-409)
+- `modules/AdminBlogTags/Models/BlogTag.php` → `name_translations`, `description_translations` (463-465)
+- `modules/AdminFaqs/Models/Faq.php` → `title_translations`, `content_translations` (624-626)
+
+Los formularios admin (`modules/AdminBlogs/Resources/views/partials/fields.blade.php:1-22`) renderizan un campo por idioma iterando `available_languages()` y bindean `title_translations.{locale}`.
+
+**Planes, posts de usuario, emails: NO tienen contenido traducible en BD.** No hay `name_translations` en `plans`.
+
+**Emails/notificaciones**: `modules/AdminUser/Models/User.php:31` → `class User extends Authenticatable implements MustVerifyEmail, HasLocalePreference`, con `preferredLocale()` (línea 301) devolviendo `$this-&gt;locale` o el fallback de config. Esto hace que Laravel traduzca automáticamente los mailables/notificaciones encolados al idioma del usuario destinatario.
+
+**Nota**: `resources/themes/app/default/resources/views/components/ai/language-field.blade.php` y `components/ui/language-select.blade.php` **no son i18n de UI**: son selectores del idioma en que la IA debe *generar contenido* (default `['vi','en']` como preferidos).
+
+---
+
+## 7. JavaScript / frontend
+
+**No hay puente de traducciones a JS.** Cero coincidencias de `window.translations`, `window.i18n`, `@json(__(...))`, `Js::from(__(...))` en `resources/js` y `resources/themes`.
+
+Todo el texto es server-rendered vía Blade + Livewire. Los componentes Alpine reciben strings ya traducidos por PHP a través de `@js(...)` / atributos, no un diccionario. No existe build de i18n en el frontend.
+
+---
+
+## Notas para portar a Zapi V2
+
+- El "diccionario fuente" es **derivado del código** (scanner regex sobre `__()`), no una fuente de verdad versionada. Regenerar `lang/en.json` es un comando implícito en `LanguageMaintenanceService::createLanguage()` / `updateMissing()`, no hay comando artisan.
+- Riesgo conocido del diseño: claves = texto inglés completo → cambiar una tilde/palabra en el código huérfana el override en BD (`language_translations.key` no se migra).
+- El JSON de disco no es autoridad: la BD siempre gana vía `DatabaseTranslationLoader`, y solo para el grupo JSON.
+- `resources/themes/guest/default/lang/en.json` y `layouts/app.blade.php` (facade `Language::`) son restos de una implementación anterior.</result>
+<usage><subagent_tokens>46431</subagent_tokens><tool_uses>44</tool_uses><duration_ms>195068</duration_ms></usage>
+</task-notification>
