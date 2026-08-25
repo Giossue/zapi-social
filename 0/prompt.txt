@@ -1,0 +1,3 @@
+En cual pongo esto:
+COOKIE_DOMAIN=.zapisocial.com
+en worker, api, landing o app?
