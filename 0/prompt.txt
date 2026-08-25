@@ -1,0 +1,46 @@
+<task-notification>
+<task-id>a221d050f12c9fc7a</task-id>
+<tool-use-id>toolu_01VVfhZ146Qfy7Q2o626BvnG</tool-use-id>
+<output-file>/tmp/claude-1000/-home-giossue-Documentos-ZapiV2/4640032b-b84a-4017-81cc-3c00a0b8b94f/tasks/a221d050f12c9fc7a.output</output-file>
+<status>completed</status>
+<summary>Agent "Superficies admin de usuarios" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Todo completado y validado. Reporte final:
+
+## Qué muestra cada superficie
+
+**User Report — `/admin/user-report`** (solo lectura, sin acción de crear)
+- Métricas (`MetricCard`): Usuarios (1.248), Crecimiento 30 días (+18%), Correo verificado (82%), Dos factores (38%).
+- Tabla «Reporte de usuarios»: columnas Usuario (nombre + @usuario · locale), Rol, Plan, Registro + Estado + Acciones (Ver en sheet de detalle).
+- Estado por fila resume postura de la cuenta: Verificada / Sin verificar / Atención; filtro por esos estados + búsqueda + `TablePagination`.
+
+**User Roles — `/admin/user-roles`** (CRUD completo)
+- Métricas: Roles (6), Usuarios asignados (148), Permisos (112).
+- Columnas: Rol (nombre + descripción), Usuarios, Permisos; estado En uso / Sin usuarios con filtro.
+- Crear/Editar en sheet: Nombre*, Descripción y **matriz de permisos** (6 módulos × Ver/Crear/Editar/Eliminar con `Checkbox` en `FieldSet`); eliminar con `AlertDialog`; FAB en móvil.
+
+**Teams — `/admin/teams`** (solo editar, como Laravel: sin crear ni eliminar)
+- Métricas: Equipos (312), Con propietario (301), Sin propietario (11), Tamaño medio (3,4).
+- Columnas: Equipo (nombre + descripción), Propietario (nombre + email), Miembros, Slug (mono); estado Con/Sin propietario con filtro.
+- Fila con Ver + Editar (sheet con Nombre* y Descripción); sin botón de crear ni FAB.
+
+## Equivalencia Laravel encontrada (`ZapiSocial/modules/AdminUser`)
+- `AdminUserReportController` + `report/index.blade.php`: métricas de total/growth/verificación/2FA/plan/equipos y tabla «Latest users» (Usuario, Rol, Plan, Created).
+- `RoleIndex`/`RoleForm` + `AdminPermissionCatalog` + `roles-index.blade.php`: roles con users_count, conteo de permisos, formulario name/slug/description + catálogo de permisos por grupo y acción (view/create/edit/delete), delete que desasigna usuarios.
+- `TeamIndex`/`TeamForm` + `teams-index.blade.php`: equipos con owner, members_count, slug, badge Owned/Needs owner, solo Manage (name/description). Divergencias documentadas: gráficos Highcharts reducidos a 4 métricas y la gestión individual de miembros no se replica en el mock.
+
+## Ampliaciones hechas primero en la fuente (`diseño ideal`)
+Mockup genérico: campo `permissions` (matriz), modo de acción `edit`, botón «Cancelar» sin icono en sheet de formulario, `FloatingActionButton` (portado desde `packages/ui` a `src/components/floating-action-button.tsx`) con botón de header `hidden sm:inline-flex`, y columnas responsive `hidden md/lg:table-cell`. Los tres módulos son navegables en `/dashboard/admin-modules` bajo el grupo «Usuarios y acceso».
+
+## Archivos
+- Fuente: `diseño ideal/src/app/(main)/dashboard/admin-modules/_components/admin-secondary-fixtures.ts` y `admin-secondary-module-mockup.tsx` (editados), `page.tsx` (nuevo grupo), `src/components/floating-action-button.tsx` (nuevo).
+- V2 nuevos: `/home/giossue/Documentos/ZapiV2/apps/web/features/platform-admin-mockups/components/admin-secondary-fixtures.ts`, `.../admin-secondary-module-mockup.tsx` (copia fiel del patrón fuente, solo colecciones, imports `@workspace/ui`), `apps/web/app/admin/user-report/page.tsx`, `apps/web/app/admin/user-roles/page.tsx`, `apps/web/app/admin/teams/page.tsx`.
+- Plan actualizado: `/home/giossue/Documentos/ZapiV2/docs/planes/admin-secondary-modules-v2.md` (sección «Superficies de usuarios y acceso — 22 de agosto de 2026» con equivalencias, divergencias y evidencia).
+- No se tocó `admin-navigation.ts` ni se crearon contratos REST; fixtures sintéticas y deterministas.
+
+## Validaciones
+- Diseño ideal: `npx biome check` focal sin diagnósticos y `npx tsc --noEmit` limpio.
+- ZapiV2: `bun --cwd apps/web typecheck` limpio, `bun run audit:portal-admin-ui` → «sin hallazgos», `bun --filter web lint` → 0 errores y 0 hallazgos en los archivos nuevos (76 warnings preexistentes en features ajenas), `git diff --check` limpio en ambos repos.
+- Pendiente: aprobación visual del usuario. Nota: en el árbol de trabajo hay archivos ajenos a esta tarea (`admin/blog-rss`, `blog-rss-collection.tsx`) de otro proceso; no fueron tocados.</result>
+<usage><subagent_tokens>204631</subagent_tokens><tool_uses>70</tool_uses><duration_ms>821284</duration_ms></usage>
+</task-notification>
