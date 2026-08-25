@@ -1,0 +1,144 @@
+<task-notification>
+<task-id>a54a3e0c7392d611c</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-giossue-Documentos-ZapiV2/4640032b-b84a-4017-81cc-3c00a0b8b94f/tasks/a54a3e0c7392d611c.output</output-file>
+<status>completed</status>
+<summary>Agent "Explorar i18n en ZapiV2" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result># Informe: estado de i18n en ZapiV2
+
+## Resumen ejecutivo
+
+**No existe ningún sistema de i18n.** Toda la UI, los mensajes de error, los emails y los textos administrativos están hardcodeados en español. Sí existe infraestructura de *datos* relacionada con idioma (columnas `locale`/`language`, tabla `languages`, selector de "Idioma preferido" en el perfil), pero **ninguna de esas piezas afecta el idioma renderizado** — son campos almacenados sin consumidor.
+
+---
+
+## 1. Dependencias y directorios i18n: ninguno
+
+Grep sobre todos los `package.json` (excluyendo `node_modules`) con `next-intl|next-i18next|react-i18next|i18next|formatjs|lingui|react-intl`: **0 resultados**.
+
+`/home/giossue/Documentos/ZapiV2/apps/web/package.json` — deps relevantes: `next 16.2.6`, `react 19.2.4`, `date-fns`, `next-themes`, `zod`, `sonner`. Ninguna librería de traducción.
+`/home/giossue/Documentos/ZapiV2/apps/api/package.json` — `nestjs-zod`, `react-email 6.0.3`, `@react-email/render`, `nodemailer`. Sin `nestjs-i18n`.
+
+`find` de directorios `locales/`, `messages/`, `lang/`, `dictionaries/`, `i18n/`, `translations/`: **0 resultados** en todo el monorepo.
+
+Único uso de `locale` como concepto de formato: `date-fns/locale` (el export `es`) en `/home/giossue/Documentos/ZapiV2/apps/web/features/publishing/components/publishing-calendar.tsx:12`, y el locale `es` de FullCalendar.
+
+## 2. Idioma de la UI: español hardcodeado en JSX
+
+Confirmado. Ejemplos representativos:
+
+- `/home/giossue/Documentos/ZapiV2/apps/web/features/publishing/components/publishing-calendar-page.tsx:101` → `if (mode === "draft") return "Guardar borrador"`; línea 103 `return "Programar"`; línea 419 `Cancelar`.
+- `/home/giossue/Documentos/ZapiV2/apps/web/features/publishing/components/publishing-media-picker.tsx:70,84` → `&lt;CardTitle&gt;Selecciona desde tu almacenamiento&lt;/CardTitle&gt;`, `placeholder="Buscar en tu almacenamiento"`.
+- `/home/giossue/Documentos/ZapiV2/apps/web/features/publishing/components/publishing-account-picker.tsx:115` → `aria-label="Buscar cuentas destino"` (los `aria-label` también están en español).
+
+Formateo de fechas/números: **locale español fijado por literal**, no derivado de configuración. Hay una inconsistencia notable — se mezclan `"es"` y `"es-EC"`:
+
+- `/home/giossue/Documentos/ZapiV2/apps/web/components/dashboard-shell/notification-bell.tsx:18` → `new Intl.DateTimeFormat("es-EC", {...})`
+- `/home/giossue/Documentos/ZapiV2/apps/web/features/dashboard/components/upcoming-posts.tsx:26`, `channels-columns.tsx:75`, `recent-payments.tsx:29,70`, `audit-events-page.tsx:39`, `plans-page.tsx:156`, `portal-profile-page.tsx:67`, `captions-library-page.tsx:156`, `team-utils.ts:55` → todos `Intl.DateTimeFormat("es", ...)` / `Intl.NumberFormat("es", ...)`.
+
+## 3. Centralización de textos: parcial, por feature, sin capa común
+
+No hay archivos de copy, ni `constants/labels.ts`, ni fixtures de texto globales. El patrón real es **mapas `Record&lt;Enum, string&gt;` locales al componente**, unos 25+ repartidos por `apps/web/features/`:
+
+- `/home/giossue/Documentos/ZapiV2/apps/web/features/publishing/components/publishing-posts-table.tsx:55,61` → `providerLabels`, `statusLabels`
+- `/home/giossue/Documentos/ZapiV2/apps/web/features/teams/components/team-utils.ts:16,30` → `activityLabels`, `errorMessages`
+- `/home/giossue/Documentos/ZapiV2/apps/web/features/identity/components/auth-form.tsx:81` → `authErrorMessages`
+- También en `plans-page.tsx:107,112`, `captions-library-page.tsx:121,126`, `ai-configuration-page.tsx:88,100`, `support-tickets-page.tsx:77`, `rss-schedules-page.tsx:74`, `groups-page.tsx:103`, `affiliate-page.tsx:73`, `files-library-page.tsx:121`, `ai-studio-page.tsx:247,304`.
+
+Nota: `providerLabels` y `statusLabels` están **duplicados** entre `publishing-posts-table.tsx`, `publishing-account-picker.tsx:27` y `publishing-network-preview.tsx:18`.
+
+El caso más cercano a un "archivo de copy" es `/home/giossue/Documentos/ZapiV2/apps/web/features/admin-content/components/collections.tsx`, que define objetos de configuración por colección con `title`, `createLabel`, `emptyTitle`, `emptyDescription`, `searchPlaceholder`, etc. (líneas 146-234). Es el patrón más extraíble del repo.
+
+## 4. API: códigos en inglés, mensajes de validación en español
+
+**Excepciones NestJS**: no llevan prosa, llevan **códigos SCREAMING_SNAKE en inglés** que el frontend traduce. Ejemplos: `AUTH_SESSION_EXPIRED`, `AI_MODEL_NOT_FOUND`, `FILE_IN_USE_BY_PUBLISHING`, `COMMERCE_MANAGE_FORBIDDEN`, `EMAIL_TEMPLATE_NOT_FOUND`. Esto es favorable para un futuro i18n.
+
+La traducción ocurre en el cliente, p.ej. `/home/giossue/Documentos/ZapiV2/apps/web/features/identity/components/auth-form.tsx:90`:
+```ts
+AUTH_SESSION_EXPIRED: "Tu sesión terminó. Inicia sesión de nuevo.",
+```
+y `/home/giossue/Documentos/ZapiV2/apps/web/features/teams/components/team-utils.ts:33` con una redacción **distinta** para el mismo código (`"...Inicia sesión nuevamente."`) — evidencia de la falta de fuente única.
+
+Hay algunas excepciones con prosa en inglés (inconsistentes con el patrón de códigos): `'Email already exists'`, `'Edit values required'`, `'Commission already reviewed'`, `'Default signup plan already exists'`.
+
+**Zod en `packages/contracts`**: 30 mensajes `message:` personalizados, casi todos en español:
+- `/home/giossue/Documentos/ZapiV2/packages/contracts/src/index.ts:94` → `"Las contraseñas no coinciden."`
+- `index.ts:375` → `"La fecha final debe ser posterior a la fecha inicial."`
+- `portal-core-v2.ts:269` → `"La fecha programada es obligatoria."`
+- `notifications.ts:63` → `"Selecciona el espacio de trabajo destinatario."`
+- Excepción en inglés: `/home/giossue/Documentos/ZapiV2/packages/contracts/src/admin-integrations.ts:73` → `"OAuth scopes must not contain duplicates."`
+
+Los errores por defecto de Zod (los no personalizados) salen en **inglés** de la librería, ya que no hay `errorMap` global configurado.
+
+## 5. Emails: react-email, textos en español, con override en BD
+
+Plantillas en `/home/giossue/Documentos/ZapiV2/apps/api/src/email/templates/`:
+`email-template.ts` (layout base `zapiEmailTemplate`), `email-copy.ts` (tipo `EmailCopyOverride`), `password-reset-email.ts`, `team-invitation-email.ts`, `team-invitation-accepted-email.ts`, `team-access-updated-email.ts`, `team-member-removed-email.ts`, `team-ownership-transferred-email.ts`.
+
+Los defaults en español viven en `/home/giossue/Documentos/ZapiV2/apps/api/src/email/email-template-catalog.ts` (`EMAIL_TEMPLATE_CATALOG`), documentado como "fuente de verdad mientras un administrador no los sobrescriba":
+```ts
+subject: 'Restablece tu contraseña de Zapi',
+notice: 'Este enlace vence en 60 minutos y solo puede usarse una vez...'
+```
+Los templates usan `copy?.title ?? '&lt;default español&gt;'` (ver `password-reset-email.ts:4-19`), con overrides administrables desde Admin (`admin-email-templates.controller.ts`, contrato `packages/contracts/src/admin-email-templates.ts`).
+
+Interpolación por tokens `{{workspaceName}}`, `{{inviterName}}`, `{{role}}`, `{{expiresLabel}}` — un sistema de placeholders propio, no ICU.
+
+**Dato relevante**: `/home/giossue/Documentos/ZapiV2/docs/planes/plantillas-correo-v2.md:57` lista explícitamente en "Fuera de alcance": *"Traducir la plantilla por idioma del destinatario."* Es la única mención de i18n como decisión consciente y diferida.
+
+## 6. Documentación: cero mención de i18n
+
+Grep de `i18n|internacionaliz|traduc|idioma|locale|es-ES|español` sobre `docs/reglas/design.md`, `docs/reglas/workflow.md`, `ARCHITECTURE.md`, `CLAUDE.md`, `AGENTS.md`, `docs/conocimiento/stack.md`: **ninguna coincidencia sobre estrategia de idioma**. Los hits de "locales" en `workflow.md` y `design.md` son el adjetivo (`.env` locales, estilos locales), no localización. `docs/conocimiento/` (stack.md, ui/portal-sidebar.md, deployment/dokploy.md) no dice nada de idiomas.
+
+En `docs/planes/` "idioma" aparece solo como **campo de dominio**, no como i18n de la app:
+- `perfil-basico-v2.md:5,20,181` — editar idioma preferido del usuario (campo almacenado).
+- `admin-secondary-modules-v2.md:15` — módulo `/admin/languages` ("Idiomas y sincronización de traducciones") como módulo secundario aún no implementado.
+- `ai-studio-v2.md` — "idioma" como parámetro de generación de contenido con IA.
+- `refactor-visual-design-ideal-v2.md:212` — nota de que V2 pasa locale español a FullCalendar para que los encabezados no salgan en inglés.
+
+## 7. Next config y layout raíz
+
+`/home/giossue/Documentos/ZapiV2/apps/web/next.config.ts` — **sin bloque `i18n`**. Solo `transpilePackages`, `headers()` (COOP) y `experimental.proxyClientMaxBodySize`. (Correcto: App Router no soporta la clave `i18n` de todos modos; requeriría rutas `[locale]` o middleware, y no existen.)
+
+`/home/giossue/Documentos/ZapiV2/apps/web/app/layout.tsx:22`:
+```tsx
+&lt;html lang="es" suppressHydrationWarning className={cn("dark antialiased font-sans", ...)}&gt;
+```
+`lang="es"` está **hardcodeado**. No hay segmento de ruta `[locale]` ni middleware de negociación (`app/` contiene `portal/` y `admin/` como raíces).
+
+## 8. Esquema de BD: campos de idioma existen pero no se consumen
+
+Todo en `/home/giossue/Documentos/ZapiV2/packages/database/src/schema.ts`:
+
+| Línea | Tabla | Campo | Notas |
+|---|---|---|---|
+| 37 | `users` | `locale varchar(10)` nullable | Editable desde Portal, **no consumido** para renderizar |
+| 38 | `users` | `timezone varchar(64)` nullable | Sí se usa para fechas |
+| 2075 | `ai_workspace_settings` | `language varchar(16) NOT NULL DEFAULT 'es'` | Idioma de **generación IA**, no de UI |
+| 2211 | `ai_user_settings` | `language varchar(16)` nullable | Ídem, override por usuario |
+| 3211-3230 | `languages` (tabla global) | `code`, `name`, `nativeName`, `direction` (`ltr`/`rtl`), `isDefault`, `isActive`, `sortOrder` | Contenido de plataforma administrado desde Admin |
+
+La tabla `languages` es notable: ya modela `direction: 'ltr' | 'rtl'` e `isDefault`. Se gestiona en `apps/api/src/content/content.service.ts` y se expone en `apps/api/src/public-site/public-site.service.ts` (`packages/contracts/src/public-site.ts:91`). Su UI está en `apps/web/features/admin-content/components/collections.tsx:212`, descrita como *"El idioma predeterminado se usa cuando el contenido no está traducido"* — es decir, está pensada para **traducir contenido de sitio público (blog/FAQ)**, no la UI de la app. Hoy no hay tablas de traducción asociadas.
+
+**Cadena `users.locale`**: contrato en `/home/giossue/Documentos/ZapiV2/packages/contracts/src/index.ts:74,82` → `locale: z.enum(["es", "en"]).nullable()`; servicio en `/home/giossue/Documentos/ZapiV2/apps/api/src/identity/portal-profile.service.ts:35,141,157` (con guard `user.locale === 'es' || user.locale === 'en' ? user.locale : null`); UI en `/home/giossue/Documentos/ZapiV2/apps/web/features/profile/components/portal-profile-page.tsx:326-348` con `&lt;SelectItem value="es"&gt;Español&lt;/SelectItem&gt;` y `&lt;SelectItem value="en"&gt;English&lt;/SelectItem&gt;`.
+
+El selector **existe, persiste y no hace absolutamente nada** en el render: elegir "English" no cambia ni un string. Es la deuda funcional más visible de este informe.
+
+---
+
+## Implicaciones para adoptar i18n
+
+Favorable:
+- Los errores de API ya son códigos estables en inglés; el mapeo a texto ya está aislado en el cliente.
+- El contrato `locale: z.enum(["es","en"])` y `users.locale` ya existen y persisten.
+- Los emails ya tienen una capa de copy separada (`EMAIL_TEMPLATE_CATALOG` + `EmailCopyOverride`) — sería el punto más barato para introducir dimensión de idioma.
+- La tabla `languages` ya contempla `direction` y `isDefault`.
+
+Costoso:
+- Miles de literales en JSX repartidos por 31 directorios de `apps/web/features/`, incluyendo `aria-label` y `placeholder`.
+- ~30 mensajes Zod en español dentro de `packages/contracts`, que es un paquete compartido entre web, api y worker — decidir si los mensajes viven ahí o si el contrato pasa a emitir códigos.
+- Locales de formato hardcodeados (`"es"`, `"es-EC"`) en ~15 sitios, sin helper compartido.
+- Sin `[locale]` en el árbol de rutas: adoptar `next-intl` con routing implicaría mover `app/portal` y `app/admin`, o bien optar por estrategia sin prefijo de URL (cookie/perfil), que encaja mejor con el `users.locale` ya existente.</result>
+<usage><subagent_tokens>34787</subagent_tokens><tool_uses>28</tool_uses><duration_ms>138583</duration_ms></usage>
+</task-notification>
