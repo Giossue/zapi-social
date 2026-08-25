@@ -1,0 +1,1 @@
+Quiero que cambies el color principal, debe ser el 29 78 216 en vez el negro y blanco dependiendo el tema (claro y oscuro)
