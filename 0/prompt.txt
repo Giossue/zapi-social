@@ -1,0 +1,3 @@
+ok, ahora en canales veo que se abre un modal
+
+, quiero que sea una sheet pero que use toda la pantalla. así de simple
