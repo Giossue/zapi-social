@@ -1,0 +1,1 @@
+Espera. Toca arreglar la estrcutura, revisa https://github.com/Elvis-WDev/ExpressJS-agent-context, esto es lo que solía usar, puedes hacerlo, para arreglar mis .claude, skills, .mds, etc, es una documentación que usaba para hacer apps
