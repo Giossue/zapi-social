@@ -1,0 +1,6 @@
+ve.. 
+
+ 
+
+  Hya muchas cosas que faltan aun
+No hay como una biblioteca en python que encuentre palabras en español, luego ves donde están y ver si están ya en la tradución? y sino pues solo lo agregas?? No puedes automatizar eso??? porque si me pongo a revisar pagina por pagina me voy a demorar y voy gastar tokens...
