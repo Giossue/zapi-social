@@ -1,0 +1,18 @@
+Quiero crear un editor/visor de mermaid usando la documentacion oficial de la sintaxys de todos los diagramas, TODOs. 
+
+Debe ofrecer lo mismo que ofrece el mermaid premium y más:
+Visual editorVisual editor
+300 AI credits300 AI credits
+Unlimited diagram storageUnlimited diagram storage
+Limitless diagram sizeLimitless diagram size
+View & comment collaboration
+
+
+lee primero: https://mermaid.ai/open-source/syntax/flowchart.html
+
+
+ 
+
+ 
+
+Debes leer absolutamente todas las páginas, primero dime si pudiste acceder
