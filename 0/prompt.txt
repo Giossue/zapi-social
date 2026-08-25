@@ -1,0 +1,7 @@
+FAlta la navegación de esta manera: 
+
+ y 
+
+ acá no está alineado el icono de carpeta con el nombre con el iucono de los 3 puntos, debe todo estar al medio.
+
+Luego, quiero cambiar la manera de navegar entre archivos y carpetas, en drive tiene que darle doble click para entrar a un archivo o carpeta, una solo click es para seleccionar, luego el uso de acortadores, como el de control + A para seleccionar todo, control + click para seleccionar ciertos archivos, control + shit mas flechas arriba, abajo, derecha izquierda. De esa manera quitaríamos ese check que hay en los archivos
