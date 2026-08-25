@@ -1,0 +1,2 @@
+Stop hook feedback:
+[ok, vamos a ello]: The phrase 'ok, vamos a ello' does not appear anywhere in the transcript. Throughout the session, the user never provided this instruction. The assistant completed i18n work, applied database migrations, corrected a hash divergence, and published 19 commits to i18n-portal-admin. The last assistant message states 'Queda solo la revisión visual del cambio de idioma' (Only the visual review of the language change remains), indicating the assistant has completed the requested work but the stopping condition was never satisfied by the user.
