@@ -1,0 +1,2 @@
+Stop hook feedback:
+[ok, vamos a ello]: The condition 'ok, vamos a ello' does not appear anywhere in the transcript. The last assistant message is a comprehensive summary of work completed in this session, documenting what was migrated, patterns discovered, validation results, and next steps. There is no user message containing the phrase 'ok, vamos a ello' that would satisfy this stopping condition.
