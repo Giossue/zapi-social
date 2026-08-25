@@ -1,0 +1,1 @@
+FAlta un titulo y descripcion en admin/integrations arriba del tab, como el resto de modulos
