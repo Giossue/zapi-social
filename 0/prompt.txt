@@ -1,0 +1,1 @@
+ok, ahora recuerda que los botones de la landing, de empieza y conecta tus cuentas deben poder saber si está o no logeado, y mandarme a app.zapisocial.com, y el botón debe decir en ese caso ir a panel, SOLO SI YA ESTÁ LOGEADO, porque lo estaba pero no me apareció nada
