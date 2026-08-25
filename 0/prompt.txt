@@ -1,0 +1,33 @@
+<task-notification>
+<task-id>a62e8c073043b3211</task-id>
+<tool-use-id>toolu_01AAtKSMKBBC1y5UXAth7fRY</tool-use-id>
+<output-file>/tmp/claude-1000/-home-giossue-Documentos-ZapiV2/4640032b-b84a-4017-81cc-3c00a0b8b94f/tasks/a62e8c073043b3211.output</output-file>
+<status>completed</status>
+<summary>Agent "Blog RSS y soporte admin ampliado" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Ambas tareas completadas. Resumen:
+
+## Equivalencia Laravel encontrada
+
+**TAREA A — RSS Feeds** (`modules/AdminBlogs`, hijo "RSS Feeds" del sidebar → ruta `admin/blogs/rss`, Livewire `RssIndex` sobre el modelo `BlogRssSource`, tabla `blog_rss_sources`): campos `name`, `feed_url`, `blog_category_id`, `tag_ids[]`, `status` (activa/pausada), `auto_publish`, `ai_improve`, `ai_auto_translate`, `ai_prompt`, `sync_interval_minutes` (5–10080), `max_items_per_run` (1–50), `last_checked_at`/`last_imported_at` e `imports_count`. Acciones Laravel: crear/editar, activar/pausar, ejecutar (individual/todas/seleccionadas), eliminar. No se inventó ningún campo; validación remota del feed, run-now, selección múltiple y logs (`RssLogsIndex`) quedan documentados como fuera del mock.
+
+**TAREA B — AdminSupport**: `SupportCreate` (New Ticket): usuario destino obligatorio (búsqueda de usuarios), categoría y tipo opcionales, etiquetas múltiples, título y contenido obligatorios, más `status`/`pin` (documentados como divergencia: el mock siempre abre en "Abierto"). `SupportTaxonomy` (Manage Categories/Labels/Types): `name` obligatorio, `icon` y `color` opcionales (excluidos en V2 por la regla de tokens, documentado) y `status` activo/inactivo.
+
+## Composición elegida
+
+- **RSS**: colección declarativa con `AdminCollectionPage` (`ColumnConfig` + `hideBelow`), fixtures locales deterministas con `load/save/remove` sobre un store en memoria. En la fuente canónica se añadió la colección `blog-rss` a las fixtures genéricas de `admin-modules` (grupo "Contenido y localización") y el mapeo de `feed_url` como secundaria de la primera columna.
+- **Soporte admin**: tabs "Casos | Categorías | Etiquetas | Tipos" (mismo patrón que `/admin/manual-payments`). "Nuevo caso" como acción principal del `DataTableHeader` + FAB móvil, Sheet con `noValidate`, asteriscos semánticos, toasts y botón bloqueado; crear añade el caso al estado local y suma métricas ("Ver caso" deshabilitado en casos locales). Catálogos con tabla canónica completa (búsqueda, filtro estado, `TableEmptyRow`, `TablePagination`), sheet nombre+switch y `AlertDialog` para eliminar; categorías sembradas desde las reales de la cola, etiquetas/tipos desde fixtures. La cola real (`adminSupportApi`) no se tocó, ni `admin-navigation.ts`.
+
+## Archivos
+
+**diseño ideal** (fuente primero): `dashboard/support-admin/page.tsx` + `_components/admin-support-preview.tsx` (nuevos); `dashboard/admin-modules/_components/admin-secondary-fixtures.ts`, `admin-secondary-module-mockup.tsx` y `admin-modules/page.tsx` (editados).
+**ZapiV2**: nuevos `apps/web/features/admin-content/components/blog-rss-collection.tsx`, `apps/web/app/admin/blog-rss/page.tsx`, `apps/web/features/admin-support/components/support-catalog-panel.tsx` y `admin-support-new-case-sheet.tsx`; reescrito `apps/web/features/admin-support/components/admin-support-page.tsx`; planes `docs/planes/admin-secondary-modules-v2.md` (fila Contenido + sección "Fuente RSS del blog — 22 ago") y `docs/planes/support-v2.md` (sección "Ampliación mock del backoffice — 22 ago" + ajuste del párrafo de alcance).
+
+## Validaciones
+
+- diseño ideal: `npx biome check` focal sin diagnósticos y `npx tsc --noEmit` limpio.
+- ZapiV2: `bun --cwd apps/web typecheck` exit 0, `bun run audit:portal-admin-ui` sin hallazgos, `bun --filter web lint` con 0 errores y sin warnings nuevos en los archivos tocados (los 76 warnings son preexistentes en otras features), `git diff --check` limpio en ambos repos.
+
+Pendiente por diseño: aprobación visual del usuario y, en fase posterior, contratos/backend reales de RSS y de creación/catálogos de soporte.</result>
+<usage><subagent_tokens>229921</subagent_tokens><tool_uses>77</tool_uses><duration_ms>1063994</duration_ms></usage>
+</task-notification>
