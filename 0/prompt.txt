@@ -1,0 +1,2 @@
+ok falta arreglar cola y borradores, debe ser: Titulo descripcion tab cards y tabla, incluso esas tablas como que no coinciden del todo con le resto de tablas, ojo con el patrón
+ah y añade el tab en calendario
