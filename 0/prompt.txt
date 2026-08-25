@@ -1,0 +1,6 @@
+ok ahora en las tablas yo establecí una estrcutura, pero veo que en muchas partes de admin y portal falla, por ejemplo acá 
+
+ 
+LO que hice en channels de portal es así: 
+
+, mira el orden de la estcutura, en todas las tablas debe haber eso, los 6 puntos, identifica y mira el codigo de channels para que entiendas
