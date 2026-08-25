@@ -1,0 +1,1 @@
+ok ahora las tablas deben verse las columnas, a pesar de que no halla datos, por ejemplo en /portal/teams no hay en invitaciones pendientes las columnas, pero por ejemplo si hay en portal/channels, arreglalo en admin y portal
