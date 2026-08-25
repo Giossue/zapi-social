@@ -1,0 +1,2 @@
+Stop hook feedback:
+[ok, vamos a ello]: The condition 'ok, vamos a ello' does not appear anywhere in the transcript. The last assistant message is a summary of work completed and asks 'Sigo con el bloque de Channels y Files salvo que prefieras revisar antes.' (I'll continue with the Channels and Files block unless you'd prefer to review first.) No user affirmation matching the condition is present.
