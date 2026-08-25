@@ -1,0 +1,9 @@
++ok, acabo de añadir: 
+
+[@/home/giossue/Documentos/template-shadcn-superdashboard/](file:///home/giossue/Documentos/template-shadcn-superdashboard/)
+
+ , quiero que porfa pongas acá en zapiv2 las referencias a ese en vez de diseño ideal, es casi lo mismo, solo que este trae mejores cosas. ENtonces sería reemplazar todo lo de documentacion por 
+
+[@/home/giossue/Documentos/template-shadcn-superdashboard/](file:///home/giossue/Documentos/template-shadcn-superdashboard/)
+
+ , nada más. Porque el diseño ideal lo acabo de remover del proyecto
