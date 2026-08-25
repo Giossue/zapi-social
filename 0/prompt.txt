@@ -1,0 +1,4 @@
+una duda, el jwt donde lo guardas?
+En localstorage? Ten cuidado que no haya vulnerabilidades xss, sessionstorage, el problema es cuando cierras la pestaña y xss, o cookie http only, qué sería lo mejor. Porque la cookie no puede ser leída, pero no significa que todo poner en cookie sea segura, tienes que pensar XSRF, CORS, rotacion de tokens 
+
+ , dime si tiene esta arquitectura como mas o menos. O sea como tienes el acces token y el refresh token
