@@ -1,0 +1,3 @@
+ok hazlo, no pongas colores ni nada raro en la landing, tal cual como estaba la quiero, solo cambia la informacion o iconos que sean necesarios. recuerda que debe redirigir a app.zapisocial.com, luego cuando acabes pushea
+
+[@/home/giossue/Documentos/landing-zapi-social/](file:///home/giossue/Documentos/landing-zapi-social/)
