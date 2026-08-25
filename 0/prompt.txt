@@ -1,0 +1,2 @@
+Antes que nada, puedes hacer los tests de QA, rendimiento, etc. Puedes probar en producción, tienes permiso de crear usuarios de admin y cliente para que lo pruebes.
+Y si, la idea es que el usuario podrá pagar solo
