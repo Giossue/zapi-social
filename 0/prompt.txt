@@ -1,0 +1,3 @@
+pon en la misma linea los filter de todos los canales, semana y hoy. y borra el icono de calendario de todos los canales, de hecho estos filter están mal, deben ser como por ejemplo los de channels 
+
+ y hablando de channels, veo que el titulo y la descripcion están dentro, eso está mal, mira como está en /portal/ai-publishing por ejemplo
