@@ -1,0 +1,1 @@
+En movil en files quiero que borres los botones de nueva carpeta y google drive, y que sea el boton principal un signo de más, ahi habrá 3 opciones carpeta. g drive y subir desde archivos
