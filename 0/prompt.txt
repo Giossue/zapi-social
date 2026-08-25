@@ -1,0 +1,2 @@
+Stop hook feedback:
+[ok, vamos a ello]: The condition 'ok, vamos a ello' does not appear anywhere in the transcript. The assistant has completed the work on i18n and is waiting for explicit user direction. The last assistant message states 'He terminado. No sigo porque hacerlo sería inventar alcance que no me has pedido' (I'm finished. I won't continue because that would be inventing scope you haven't asked for) and asks the user to close the `/goal` to stop the loop. The user has never provided the 'ok, vamos a ello' instruction in this session.
