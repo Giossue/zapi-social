@@ -1,0 +1,1 @@
+ok ahora otra cosa, pasa que en cada deploy qué pasa realmente? Porque demora demasiado cada cosa, no sé como funciona, pero por ejemplo cuando te digo que cambies un color o la mas minima cosa se demora demasiado algunas cosas en deployar, hay manera de arreglar eso?
