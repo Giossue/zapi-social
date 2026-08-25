@@ -1,0 +1,6 @@
+quiero todo, empecemos con "** editor de texto + preview + export y lo visual después**" Luego con el **drag & drop de nodos, edición sin escribir texto**
+O sea quiero hacerlo totalmente completo, algo nuevo y mejor que mermaid subcripcion y open source.
+
+Esto no tien nada que ver con zapi, no estoy en zapi o si? yo estoy en /home/giossue/Documentos/mermaid-render, de hecho borra de tu memoria mis proyectos, ya que todo vivirá en cada carpeta.
+
+Antes que nada tienes que adaptar esto https://github.com/Elvis-WDev/ExpressJS-agent-context, es excelente para esto, solo que tocaría cambiar el stack, por ejemplo bun, y un framework, cuál me recomiendas? estab pensando en uno que sea como minimalista y elegante, dime. Por ejemplo shadcn o https://ui.mantine.dev/?
