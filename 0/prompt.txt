@@ -1,0 +1,1 @@
+ok ahora en la landing creo que quedó pendiente que se conecte de acuerdo a lo que configure en admin , osea que la landing consuma via api el contenido
