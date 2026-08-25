@@ -1,0 +1,1 @@
+ok, en las tablas cuando no hay datos, toca ponerle el icono que ya tiene por ejemplo en channel cuando no hay
