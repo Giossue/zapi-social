@@ -1,0 +1,1 @@
+ok ahora en modelos veo que hay como un minititulo pero no quiero eso, la estructura de las tablas se supone que ya está definida
