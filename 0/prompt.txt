@@ -1,0 +1,7 @@
+ok bug;
+No me sale la cinta de opciones cuando selecciono carpetas
+y añade un order by 
+
+ por ejemplo este tiene drive
+
+y algo pasa, cuando pongo un archivo en favoritos este se pone primero, pero si le quito este sigue igual en la misma posición, como si estuviera en favoritos, creo que es por la falta del order by y por ultimo borra esto que pusiste
