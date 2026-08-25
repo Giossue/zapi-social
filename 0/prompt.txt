@@ -1,0 +1,33 @@
+<task-notification>
+<task-id>a3ef04a3ad4a73f7c</task-id>
+<tool-use-id>toolu_01VGt17twNKzrUefPhukw7m6</tool-use-id>
+<output-file>/tmp/claude-1000/-home-giossue-Documentos-ZapiV2/4640032b-b84a-4017-81cc-3c00a0b8b94f/tasks/a3ef04a3ad4a73f7c.output</output-file>
+<status>completed</status>
+<summary>Agent "Layout móvil de AI Chat" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Both validations pass. The working tree contains other files modified by parallel work; my change is confined to `ai-chat-page.tsx` (the 95-line diff), and I did not touch anything else. `packages/ui` was not modified — its `package.json` already exports hooks via the `./hooks/*` glob (same mechanism sidebar.tsx uses for `@workspace/ui/hooks/use-mobile`), so `@workspace/ui/hooks/use-lg` resolved without adding an export.
+
+## Mecánica implementada
+
+**Lista ↔ hilo bajo `md`** (copiada de `chat.tsx` de diseño ideal):
+- Nuevo estado `showThread`. Ambas columnas comparten celda con `max-md:col-start-1 max-md:row-start-1` y `transition-transform duration-300 ease-out will-change-transform`.
+- Lista: `showThread &amp;&amp; "max-md:pointer-events-none max-md:-translate-x-full"`; hilo: `showThread ? "max-md:translate-x-0" : "max-md:pointer-events-none max-md:translate-x-full"`. Los desplazamientos son complementarios, así que se deslizan adyacentes sin solaparse, igual que la fuente.
+- Seleccionar una conversación y el botón "Nueva conversación" hacen `setShowThread(true)`; botón atrás `md:hidden` con `ArrowLeft` (variante `brand-secondary`, `icon-sm` — la regla V2 prohíbe `ghost`) en el header del hilo que hace `setShowThread(false)`. El título del header quedó envuelto junto al botón en un flex `min-w-0` para conservar el `justify-between`.
+
+**Panel de opciones:**
+- En `lg+` sigue idéntico: columna del grid con `--options-width` animado y toggle `PanelRightClose/Open`.
+- El toggle perdió `hidden lg:inline-flex`: ahora siempre visible; con `useIsLg()` alterna la columna en desktop y bajo `lg` abre un `Sheet` lateral derecho (estado separado `optionsSheetOpen`, montado solo `{!isLg &amp;&amp; …}` como la fuente) con `SheetHeader/SheetTitle/SheetDescription` y el mismo `ToolOptions` (mismo estado `options[tool]`, así que los valores se comparten entre panel y sheet). El sheet no tiene botones de pie; solo el cierre icon-only del primitive, cumpliendo la regla de sheets.
+
+**Comportamiento conservado:** carga/búsqueda con debounce, polling de generaciones en curso, envío/creación, retry/archivar/copiar, estados loading (`PageLoading`), error y redirección de sesión — sin cambios.
+
+## Archivos tocados
+
+- `/home/giossue/Documentos/ZapiV2/apps/web/features/ai-studio/components/ai-chat-page.tsx` (único archivo editado)
+
+## Validaciones
+
+- `bun --cwd apps/web typecheck` — pasa.
+- `bun run audit:portal-admin-ui` — "UI audit: sin hallazgos".
+- `git diff --check` — limpio. `packages/ui` sin tocar, por lo que su typecheck no aplica.</result>
+<usage><subagent_tokens>56264</subagent_tokens><tool_uses>24</tool_uses><duration_ms>189739</duration_ms></usage>
+</task-notification>
