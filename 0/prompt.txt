@@ -1,0 +1,1 @@
+ok, ahora acabamos con channels, que falta ahora? Porque la idea era preparar el sistema para subirlo a codecanyon, creo que era arreglar lo de las traduccione para hacerlo similar a zapisocial, porque la idea es que los compradores no estén tocando código para agregar traducciones, analizalo
