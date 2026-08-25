@@ -1,0 +1,3 @@
+Algo raro pasa acá 
+
+ , voy a un tab y carga pero luego sale el loading y así pasa, analiza que pasa
