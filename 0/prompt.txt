@@ -1,0 +1,2 @@
+Stop hook feedback:
+[ok, vamos a ello]: The condition 'ok, vamos a ello' does not appear anywhere in the transcript. The assistant's last message explicitly states that the work is complete and asks the user to close the `/goal` condition, indicating the assistant is waiting for user direction rather than having received the instruction 'ok, vamos a ello' to proceed.
