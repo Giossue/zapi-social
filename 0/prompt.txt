@@ -1,0 +1,2 @@
+Stop hook feedback:
+[ok, vamos a ello]: The condition 'ok, vamos a ello' does not appear anywhere in the transcript. The assistant's final message explicitly states the work is complete and asks the user to close the `/goal`, indicating the assistant is waiting for user direction rather than having received this instruction. The assistant has repeatedly ended messages asking what the user wants to do next (push commits, apply migration, etc.) without receiving the 'ok, vamos a ello' response.
