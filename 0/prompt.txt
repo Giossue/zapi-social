@@ -1,0 +1,1 @@
+oye noto al sistema demsiado lento, será por el stack? Dime será de usar otro stack tecnologico más compatible?
