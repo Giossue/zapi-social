@@ -1,0 +1,3 @@
+Cuando me deslogeo sale así: 
+
+ , si está bien aplicado buenas practicas? O sea si se destruye las cookies y lo de localstorage y esas cosas. Mira
