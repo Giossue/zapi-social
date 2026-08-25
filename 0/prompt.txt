@@ -1,0 +1,171 @@
+ok una cosa, esto fue lo que hice:
+
+[@auditoria-schema-sin-uso.md](file:///home/giossue/Documentos/ZapiV2/temp/auditoria-schema-sin-uso.md)
+
+
+<context ref="file:///home/giossue/Documentos/ZapiV2/temp/auditoria-schema-sin-uso.md">
+# Auditoría de schema sin uso — 2026-08-23 (2.º sondeo)
+
+Cruce de `packages/database/src/schema.ts` contra los archivos fuente de `apps/` y `packages/`.
+Generado con `bun run audit:schema` (`scripts/audit_schema_usage.py`).
+
+**95 tablas, 1061 columnas analizadas → 8 muertas, 10 dudosas, 3 solo-schema.**
+
+> Resondeado tras los commits de LinkedIn/X/TikTok (`70dc41d`…`67dbbe0`). Único cambio:
+> `socialAccountCredentials.refreshTokenCiphertext` salió de la lista — el nuevo
+> `apps/worker/src/token-refresh/token-refresh.processor.ts` lo lee, descifra y rota.
+> Las 8 muertas y las 3 solo-schema se mantienen idénticas; datos en ambas bases siguen a cero.
+
+---
+
+## Por qué hace falta un auditor
+
+El typecheck no ve una columna muerta. Sigue existiendo en el tipo inferido de la tabla, así que
+nadie tiene que leerla para que el proyecto compile. Y mirar qué tablas están vacías en la base no
+sirve: una columna puede tener datos escritos por una migración o un seed y no leerse nunca desde
+el producto.
+
+El auditor parsea el schema con un contador de llaves —no por indentación, así no lo parten los
+`sql` multilínea ni los objetos de opciones—, resuelve los `...timestamps`, y busca cada nombre en
+sus dos formas, camelCase y snake_case.
+
+Las migraciones (`packages/database/drizzle/`) y los artefactos de build quedan fuera del barrido a
+propósito: nombran todas las columnas siempre y convertirían cualquier campo muerto en usado.
+
+## Los tres niveles de certeza
+
+No todos los nombres se pueden buscar con la misma confianza, así que los hallazgos van separados:
+
+| Nivel | Qué significa | Fiabilidad |
+| --- | --- | --- |
+| `muerta` | Ni el camelCase ni el snake_case aparecen en ningún archivo fuera del schema | Alta, accionable |
+| `dudosa` | El nombre solo aparece en archivos que no tocan la tabla | Requiere mirarlo |
+| `solo-schema` | Solo se menciona en un índice, constraint o clave foránea del propio schema | Alta |
+
+---
+
+## Nivel `muerta` — 8 hallazgos
+
+Verificados uno a uno con `rg`: la única aparición es la propia declaración.
+
+### Tabla completa
+
+**`authIdentities` / `auth_identities`** — `schema.ts:205`, 11 columnas, cero referencias.
+
+Modela el enlace de identidades OAuth externas a un usuario: `provider`, `providerSubject`,
+`accessTokenEncrypted`, `refreshTokenEncrypted`, `tokenExpiresAt`, `scopes`. Tiene dos índices
+declarados (`auth_identities_provider_subject_unique`, `auth_identities_user_provider_index`) y
+ningún lector.
+
+Esa responsabilidad acabó viviendo en `socialAccountCredentials`. La tabla parece un diseño
+temprano que quedó atrás, no una funcionalidad a medio construir.
+
+### Columnas
+
+| Columna | Línea | Qué es y qué implica |
+| --- | --- | --- |
+| `workspaces.enabledModules` | 66 | `jsonb` con default `[]`. El gating de módulos por workspace está modelado pero nunca se cableó: hoy ningún módulo se activa ni se desactiva por workspace. Hueco de producto, no basura. |
+| `publishingPosts.networkOptions` | 1094 | `jsonb` para overrides por red en una publicación. Nunca se escribe ni se lee: no hay forma de personalizar un post por red desde el producto. Hueco de producto. |
+| `billingPayments.subscriptionId` | 3083 | FK nullable a suscripción. Nunca se puebla, así que **un pago no se puede trazar a su suscripción** desde el código. Relevante para conciliación. |
+| `auditReleases.deployedByUserId` | 296 | FK nullable a `users`. El registro de releases no guarda quién desplegó. |
+| `socialAccountCredentials.encryptionKeyVersion` | 587 | Versión de la clave de cifrado. Sin lector no hay rotación de claves posible: al rotar, no se sabría con qué clave descifrar cada fila. Ver nota de seguridad abajo. |
+| `providerIntegrations.configVersion` | 496 | `integer` con default 1. Versionado de config reservado para el futuro. |
+| `aiRequests.schemaVersion` | 2268 | `integer` con default 1. Versionado de payload reservado para el futuro. |
+
+**Sobre las tres columnas de versión** (`encryptionKeyVersion`, `configVersion`, `schemaVersion`):
+son columnas de evolución. Estar sin uso hoy es lo normal y esperable —existen para el día que haya
+un formato v2—, así que el hallazgo no es "sobran". El caso de `encryptionKeyVersion` sí merece una
+decisión explícita: si la rotación de claves está en el plan, falta el lector; si no lo está, la
+columna está prometiendo una garantía que el sistema no da.
+
+---
+
+## Nivel `dudosa` — 10 hallazgos
+
+En esta pasada, **las diez son colisiones de nombre**: la columna sí está sin leer en su tabla, pero
+su nombre es común y aparece en otros dominios. Comprobado en los casos no obvios.
+
+### Timestamps nunca leídos (6)
+
+`created_at` / `updated_at` que existen por el spread `...timestamps` y que nadie consulta en esa
+tabla concreta. Son inofensivos y probablemente deban quedarse por trazabilidad, pero conviene
+saberlo:
+
+- `auditReleases.updatedAt`
+- `billingWebhookEvents.createdAt`
+- `channelOauthStates.createdAt`
+- `channelSyncRuns.createdAt`
+- `passwordResetTokens.createdAt`
+- `commerceReturnRequests.resolvedAt` (línea 1344, mismo patrón: sello temporal sin lector)
+
+### Campos con nombre compartido (4)
+
+| Columna | Línea | Comprobación |
+| --- | --- | --- |
+| `emailTemplates.isActive` | 3223 | `isActive` existe en 4 tablas y en `pagination.tsx`, `sidebar.tsx`, admin-content y admin-support. El dueño real, `apps/api/src/email/email-templates.service.ts`, no lo lee: **una plantilla desactivada se sigue pudiendo usar**. |
+| `channelSyncRuns.requestId` | 747 | `requestId` está en 4 tablas; los aciertos son de las otras. El correlation-id de una sincronización no se lee. |
+| `auditReleases.reference` | 294 | `reference` es palabra común (15 archivos). Sin lector en su tabla. |
+| `affiliateWithdrawals.notes` | 791 | `notes` existe también en la línea 2814. Sin lector en su tabla. |
+
+`socialAccountCredentials.refreshTokenCiphertext` estaba aquí en el primer sondeo; ya no aplica: el
+worker `token-refresh` (llegado con X/TikTok) lo consume de verdad.
+
+---
+
+## Nivel `solo-schema` — 3 hallazgos
+
+Columnas que solo se mencionan dentro del propio schema, en un índice o una constraint. Existen para
+la base de datos, no para el producto.
+
+| Columna | Línea | Nota |
+| --- | --- | --- |
+| `fileAssets.trashedAt` | 878 | Papelera modelada e indexada; ningún código manda a la papelera ni restaura. |
+| `fileFolders.trashedAt` | 939 | Igual que la anterior, misma funcionalidad a medias. |
+| `auditReleases.deployedAt` | 295 | `notNull`, participa en un índice, ningún lector. |
+
+---
+
+## Dos límites del método
+
+**`select()` sin lista de columnas trae todas.** Una columna puede viajar en la respuesta HTTP sin
+que nadie la lea explícitamente. El auditor la marca muerta y tiene razón funcionalmente, pero el
+payload la incluye. Importa si alguna de estas columnas es sensible.
+
+**Muerta en código no es lo mismo que segura de borrar.** Puede haber datos escritos por
+migraciones, seeds o procesos externos. El auditor entrega la lista corta a revisar; la decisión de
+borrado es un paso aparte y necesita mirar la base.
+
+Un tercer detalle menor: los archivos `messages/*.d.json.ts` de i18n entran en el barrido por su
+extensión `.ts`. Eso solo ensancha el conjunto de "archivos que tocan la tabla", lo que hace al
+auditor **más conservador** —menos hallazgos, no falsos positivos—, así que se dejó así.
+
+---
+
+## Reejecutar
+
+```bash
+bun run audit:schema                          # todo
+bun run audit:schema --level muerta           # solo lo accionable
+bun run audit:schema --table socialAccounts   # una tabla (nombre TS o SQL)
+bun run audit:schema --fail-on-findings       # para CI
+```
+
+Tarda unos 13 segundos.
+
+---
+
+## Qué haría a continuación
+
+1. **Decidir sobre `authIdentities`.** Es el hallazgo más grande y el más limpio: tabla entera, sin
+   ambigüedad, con responsabilidad ya cubierta por `socialAccountCredentials`.
+2. **Mirar `emailTemplates.isActive`.** Es el único hallazgo que huele a bug de producto activo y no
+   a código muerto: hay una bandera de desactivación que el servicio ignora.
+3. **Resolver `encryptionKeyVersion`.** El refresco de tokens ya existe (worker `token-refresh`),
+   pero la rotación de la clave de cifrado sigue sin lector: al rotar, no se sabría con qué clave
+   descifrar cada fila.
+4. **Anotar los huecos de producto** (`enabledModules`, `networkOptions`, `trashedAt`) en el plan de
+   su vertical, para que no se confundan con basura en la próxima limpieza.
+
+> Este archivo vive en `temp/`, que está en `.gitignore` (línea 48). No se versiona.
+
+</context>
