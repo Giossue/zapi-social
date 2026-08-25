@@ -1,0 +1,5 @@
+ok, ahora quiero que crees la funcionalidad de manera nativa de 
+
+[@/home/giossue/Documentos/SmartBio%20v1.0%20Addon/AppLinkBio/](file:///home/giossue/Documentos/SmartBio%20v1.0%20Addon/AppLinkBio/)
+
+ en ZapiV2
