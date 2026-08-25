@@ -1,0 +1,3 @@
+Mira, cuando importo un imagen de google drive quiero salga un toast mejor además no se sube nada, se queda ahí 
+
+ , revisa las tablas de logs en la bd remota
