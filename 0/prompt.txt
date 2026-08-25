@@ -1,0 +1,3 @@
+y en las opciones pon eliminar, no enviar a papelera, porque no debe existir papelera en zapiv2 
+
+ , si borra, se borra automaticamente
