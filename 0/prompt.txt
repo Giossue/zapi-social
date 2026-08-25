@@ -1,0 +1,2 @@
+Stop hook feedback:
+[ok, vamos a ello]: The user has not provided the condition statement 'ok, vamos a ello' in the transcript. The assistant's last message asks the user a question about whether to continue or stop to review in the browser, but the user has not yet responded with 'ok, vamos a ello' or any affirmative instruction to proceed.
