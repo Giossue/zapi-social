@@ -1,0 +1,6 @@
+no, de la raiz de la carpeta 
+
+[@/home/giossue/Documentos/mermaid-render/](file:///home/giossue/Documentos/mermaid-render/)
+
+ no lo borres. Ojo con eso.
+Lo demás si, porque no entiendo porque se genera eso automaticamente
