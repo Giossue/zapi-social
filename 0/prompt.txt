@@ -1,0 +1,28 @@
+<task-notification>
+<task-id>ac362fce0112af07a</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-giossue-Documentos-ZapiV2/4640032b-b84a-4017-81cc-3c00a0b8b94f/tasks/ac362fce0112af07a.output</output-file>
+<status>completed</status>
+<summary>Agent "Patrón tabla: automation y bulk-posts" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Done. Both listings now follow the canonical Channels table pattern.
+
+**Important context for you:** another process/agent was concurrently editing this repo (HEAD advanced to `3a18ee5` mid-task, and files like `affiliate-page.tsx`, `ai-studio-page.tsx`, `link-bio-page.tsx` are being modified by it). One of its writes clobbered my first batch of edits to `automation-page.tsx`; I re-applied them and verified the final diff contains only my changes. Final state validated after its latest writes.
+
+## A) `/home/giossue/Documentos/ZapiV2/apps/web/features/automation/components/automation-page.tsx`
+Applied the full 6-point pattern to each of the three tables (module-level `pageSize = 10` + one local `paginate()` helper; all filtering is local over the already-loaded `data`, no REST changes):
+
+- **Claves API**: search by name in `DataTableHeader` (action "Nueva clave" kept there), `DataTableToolbar` with Estado filter (Todas/Activas/Revocadas) + "Limpiar" when active, paginated body, filtered-empty state ("No hay coincidencias" + "Restablecer filtros") distinct from the initial empty, `TablePagination` with `itemLabel="claves"` and `total={filteredKeys.length}`.
+- **Webhooks**: search by name/URL, Estado filter on `enabled` (Habilitados/Deshabilitados), same empty/clear behavior, `TablePagination` `itemLabel="webhooks"`.
+- **Actividad (logs)**: new `DataTableHeader` with search only (event/summary, no create action exists), Resultado filter (Aceptados/Correctos/Fallidos), `TablePagination` `itemLabel="registros"`.
+- Search or filter changes reset that table's page to 1; each tab has independent state. No duplicated counts anywhere; totals live only in `TablePagination`.
+
+## B) `/home/giossue/Documentos/ZapiV2/apps/web/features/bulk-posts/components/bulk-posts-page.tsx`
+Only added search: `search={...}` on the existing `DataTableHeader` (local filter by `sourceFileName`, resets page). Integrated with existing controls: `hasFilters` (query or status) now drives the toolbar "Limpiar" button and the filtered-empty state ("No hay coincidencias" + "Restablecer filtros", which also clears the query), and the range in `TablePagination` reflects the visible filtered rows. Note: the batches contract (`portalBulkPostBatchesQuerySchema`) is strict with no `q` param, so the search is local to the loaded page as instructed; server pagination/total untouched.
+
+## Validation
+- `bun --cwd apps/web typecheck`: **0 errors** (repo-wide clean).
+- `bun --filter web lint` filtered for automation/bulk-posts: **0 errors, no new warnings** — the 5 warnings shown on these files are pre-existing `react-hooks/set-state-in-effect` on the sheet-reset/load `useEffect`s that predate this change (lines merely shifted).
+- `bun run audit:portal-admin-ui`: "sin hallazgos".</result>
+<usage><subagent_tokens>117601</subagent_tokens><tool_uses>51</tool_uses><duration_ms>522715</duration_ms></usage>
+</task-notification>
