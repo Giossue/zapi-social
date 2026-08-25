@@ -1,0 +1,3 @@
+Te acuerdas que te dije que el botón principal podía tener un icono, porqué este lo tiene? 
+
+ Por favor, revisa todos los componentes sheets que hay y arregla eso
