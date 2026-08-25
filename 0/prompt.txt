@@ -1,0 +1,42 @@
+<task-notification>
+<task-id>a40f49ae806b2d3e3</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-giossue-Documentos-ZapiV2/4640032b-b84a-4017-81cc-3c00a0b8b94f/tasks/a40f49ae806b2d3e3.output</output-file>
+<status>completed</status>
+<summary>Agent "Responsive tablas Portal + fuentes" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Trabajo completado. Resumen final:
+
+## Tratamiento móvil aplicado (patrón escalonado de file-list-view: `hidden {bp}:table-cell` emparejado en TableHead y TableCell)
+
+**Tablas simples (solo clases en V2):**
+
+1. `/home/giossue/Documentos/ZapiV2/apps/web/features/bulk-posts/components/bulk-posts-page.tsx`
+   - Tabla de lotes: móvil conserva Lote / Estado / Acciones; **Progreso** reaparece en `md`, **Destinos** en `lg`.
+   - Tabla de filas del lote (BatchRowsSheet): sin cambios — solo tiene 3 columnas (Fila, Estado, Detalle), todas esenciales; ya cumple el criterio de 3-4 columnas en móvil.
+
+2. `/home/giossue/Documentos/ZapiV2/apps/web/features/rss-schedules/components/rss-schedules-page.tsx`
+   - Móvil conserva Feed / Estado / Acciones; **Próxima ejecución** reaparece en `md`, **Destinos** y **Actividad** en `lg`.
+
+3. `/home/giossue/Documentos/ZapiV2/apps/web/features/publishing/components/publishing-posts-table.tsx`
+   - Móvil conserva Publicación / Estado / Acciones; **Cuenta** reaparece en `md` (distingue filas por destino), **Fecha** en `lg` (mismo patrón que support-tickets).
+
+4. `/home/giossue/Documentos/ZapiV2/apps/web/features/link-bio/components/link-bio-page.tsx`
+   - **Rendimiento** oculto bajo `md`; móvil conserva Página / Estado / Acciones.
+
+**Tablas TanStack (source-first: mecanismo añadido primero en diseño ideal, luego copiado a V2):**
+
+5. Captions — la fuente `/home/giossue/Documentos/diseño ideal/src/app/(main)/dashboard/captions/_components/caption-library.tsx` NO traía clases responsive, así que añadí allí primero: module augmentation local de `ColumnMeta` (`className?: string`, importando `RowData`), `meta: { className }` en los ColumnDef y `className={...columnDef.meta?.className}` en TableHead/TableCell del render. Copiado idéntico (en el estilo sin punto y coma del archivo) a `/home/giossue/Documentos/ZapiV2/apps/web/features/captions/components/captions-library-page.tsx`. Columnas: **Origen** `md`, **Etiquetas** `lg`, **Actualizado** `lg`; móvil conserva Caption / Estado / Acciones.
+
+6. Channels — la fuente users tampoco tenía el mecanismo; lo añadí en `/home/giossue/Documentos/diseño ideal/src/app/(main)/dashboard/users/_components/users-columns.tsx` (augmentation + meta en Team `md`, Workspace `lg`, Joined date `lg`) y `users-table.tsx` (className en TableHead/TableCell). Copiado a `/home/giossue/Documentos/ZapiV2/apps/web/features/channels/components/channel-table/channels-columns.tsx` (**Proveedor** `md`, **Conectado el** `lg`) y `channels-table.tsx` (render). Móvil conserva Cuenta / Tipo de canal / Estado / Acciones.
+
+Sin cambios en datos, handlers ni contratos; solo clases y `meta` responsive.
+
+## Validaciones
+- diseño ideal: `npx biome check` sobre los 3 archivos tocados y `npx tsc --noEmit` — exit 0 (quité un `biome-ignore` que biome reportaba como supresión sin efecto).
+- ZapiV2: `bun --cwd apps/web typecheck` — limpio; `bun run audit:portal-admin-ui` — "sin hallazgos".
+- `git diff --check` limpio en ambos repos.
+
+Queda pendiente solo la aprobación visual del usuario, según `docs/reglas/design.md`.</result>
+<usage><subagent_tokens>137677</subagent_tokens><tool_uses>53</tool_uses><duration_ms>311565</duration_ms></usage>
+</task-notification>
