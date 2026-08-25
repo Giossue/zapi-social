@@ -1,0 +1,5 @@
+Quiero que en admin y portal en los dashboard los refactorices, en 
+
+[@/home/giossue/Documentos/dise%C3%B1o%20ideal/](file:///home/giossue/Documentos/dise%C3%B1o%20ideal/)
+
+ hay gráficos, usa eso para poner en cada uno información útil, miralo de acuerdo a la bd
