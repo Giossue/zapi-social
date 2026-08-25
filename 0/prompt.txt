@@ -1,0 +1,40 @@
+<task-notification>
+<task-id>a6edd2555e1c5a7f2</task-id>
+<tool-use-id>toolu_01NbSE31jF5oK9R9CvfKnARY</tool-use-id>
+<output-file>/tmp/claude-1000/-home-giossue-Documentos-ZapiV2/4640032b-b84a-4017-81cc-3c00a0b8b94f/tasks/a6edd2555e1c5a7f2.output</output-file>
+<status>completed</status>
+<summary>Agent "Patrón tabla: ai-admin y ai-studio" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Trabajo completado. Resumen por archivo y tabla:
+
+## A) `/home/giossue/Documentos/ZapiV2/apps/web/features/ai-admin/components/ai-configuration-page.tsx`
+
+**Tabla de modelos (pestaña "Modelos")** — ya tenía búsqueda y `TablePagination`; se añadió:
+- `DataTableToolbar` con tres `DataTableFilter`: **Proveedor** (opciones reales de `configuration.providers`), **Capacidad** (Texto/Imagen/Video) y **Habilitado** (Habilitados/Deshabilitados). Cada filtro y la búsqueda reinician la página; se combinan entre sí en el mismo `useMemo` de filtrado local.
+- Botón "Limpiar" (outline, `X`) en el toolbar cuando hay filtros activos.
+- Bug corregido: el `TableEmptyRow` usaba `colSpan={5}` con 6 columnas → ahora `colSpan={6}`, y distingue empty filtrado ("No encontramos modelos" + botón "Limpiar filtros") del inicial.
+
+**Tabla de rutas (pestaña "Rutas")** — solo tenía la tabla; ahora cumple los 6 puntos:
+- `DataTableHeader` con búsqueda local por nombre de herramienta (sin acción principal: la acción es por fila "Configurar").
+- `DataTableToolbar` con filtros **Capacidad** (vía `routeShape`) y **Estado** (Habilitadas/Deshabilitadas), con "Limpiar".
+- Filas paginadas (`TABLE_PAGE_SIZE` existente) y `TablePagination` con `itemLabel="rutas"` (total+rango izquierda, anterior/siguiente derecha).
+- Empty filtrado con "Limpiar filtros" ≠ empty inicial ("Aún no hay rutas").
+
+**Tabla de consumo (pestaña "Uso", `UsagePanel`)** — ya tenía búsqueda y paginación. No se añadieron `DataTableFilter` porque el listado `byModel` no tiene ningún campo categórico real (solo modelo + métricas numéricas); inventar un filtro violaría la regla de "campos reales". Sí se añadió la distinción de empty filtrado ("No encontramos consumo" + "Limpiar filtros") frente al inicial.
+
+## B) `/home/giossue/Documentos/ZapiV2/apps/web/features/ai-studio/components/ai-studio-page.tsx`
+
+**Tabla de historial de generaciones (`JobsTable`, sección "Actividad reciente" del Overview)** — solo se tocó esa sección:
+- El título/descripción de la sección salió del `CardHeader` a un `CollectionHeader level="h2"` fuera de la card (patrón exacto de `AiHistorySurface` en `ai-studio-operations.tsx`; el auditor `audit:portal-admin-ui` rechaza contexto dentro de `DataTableHeader` en Portal).
+- `DataTableHeader` con búsqueda local por título de la generación y, como acción a la derecha, el botón existente "Ver historial" (`size="sm"`, sin cambios de destino).
+- `DataTableToolbar` con `DataTableFilter` **Tipo** y **Estado**, opciones derivadas de los valores reales presentes en las filas (`requestKindLabels` y el nuevo `requestStatusLabels`, hoisted desde el copy inline de `StatusBadge` sin cambiar su render). Buscar/filtrar reinicia la página existente; "Limpiar" en toolbar cuando hay filtros.
+- Empty filtrado ("No hay coincidencias" + "Limpiar filtros") ≠ empty inicial ("Aún no hay generaciones"), dentro del `TableBody` con `colSpan={6}`.
+- `TablePagination` único conservado, `itemLabel="generaciones"`, ahora sobre el total filtrado. Sin contratos REST ni mutaciones tocados; `JobActions`, polling y demás flujos intactos.
+
+## Validación
+- `bun --cwd apps/web typecheck`: **0 errores en ambos archivos**. (El typecheck global falla por trabajo a medio hacer de otros agentes en `automation-page.tsx` y `affiliate-page.tsx`, archivos fuera de mi alcance y ya modificados en el working tree antes de mi validación.)
+- `bun --filter web lint | grep ai-configuration|ai-studio`: solo 1 aviso por archivo, "Avoid calling setState() directly within an effect" sobre el `useEffect(() =&gt; { void load() })` original; verifiqué linteando las versiones HEAD que ambos avisos son preexistentes (0 warnings nuevos).
+- `bun run audit:portal-admin-ui`: **0 hallazgos** en ambos archivos (corregí el hallazgo `portal-table-context` que provocó mi primera versión moviendo el contexto a `CollectionHeader`).
+- Prettier aplicado; `git diff --check` limpio.</result>
+<usage><subagent_tokens>121006</subagent_tokens><tool_uses>53</tool_uses><duration_ms>574463</duration_ms></usage>
+</task-notification>
