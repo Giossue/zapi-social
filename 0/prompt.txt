@@ -1,0 +1,1 @@
+ok, ahora vamos a configurar ya varias cosas en admin en producción, dime, qué es cada cosa (configurable)
