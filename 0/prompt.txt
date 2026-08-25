@@ -1,0 +1,6 @@
+espera, la verdad quisiera ver los huecos:
+- **Pasarelas de pago**
+- **Canales de publicación**
+- AdminLanguages: Acá quisiera que hagamos lo que hace zapisocial, como ya tenemos todo cubierto hallemos la mejor manera de hacerlo, porque ya tenemos todo en archivos? pero claro, toca hacer que el comprador no toque casi código.
+- 
+Verás para la pasarela y canales necesito que hagas eso, INVESTIGUES LA DOCUMENTACIÓN, COMO LO HACE ZAPISOCIAL, por qué? Porque no puedo hacer la prueba yo de eso, por eso necesito que lo tengas 100% cubierto. Luego vemos lo de - **Sin equivalente en V2** Eso tengo que analizarlo luego
