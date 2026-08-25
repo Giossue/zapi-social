@@ -1,0 +1,5 @@
+ok, ya lo revisaré, dime, si quisiera poner a la venta este sistema en codecanyon como lo hice en su momento con 
+
+[@/home/giossue/Documentos/ZapiSocial/](file:///home/giossue/Documentos/ZapiSocial/)
+
+ pero lo quité porque no me gustaba laravel, como lo haría con este sistema? Para incluir validación con codigo de compra, guia, documentación. Porque creo que aun faltan más funcionalidades que hay en zapisocial que no hay en zapiv2 aún. Sé que me irá bien, porque este sistema es mucho mejor, está más pulido, más bonito, etc
