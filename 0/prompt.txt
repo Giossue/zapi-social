@@ -1,0 +1,34 @@
+<task-notification>
+<task-id>acdd9e73f02c094b5</task-id>
+<tool-use-id>toolu_01FxWHgMoJdTgsvoVir2sSJc</tool-use-id>
+<output-file>/tmp/claude-1000/-home-giossue-Documentos-ZapiV2/4640032b-b84a-4017-81cc-3c00a0b8b94f/tasks/acdd9e73f02c094b5.output</output-file>
+<status>completed</status>
+<summary>Agent "Responsive tablas AI + FAB studio" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Listo. Trabajo completado y validado.
+
+## Cambios por archivo
+
+**1. `/home/giossue/Documentos/ZapiV2/apps/web/features/ai-admin/components/ai-configuration-page.tsx`** (3 tablas, siguiendo el patrón escalonado de `file-list-view.tsx`, TableHead y TableCell siempre emparejados):
+- **Modelos** (6 col): ocultas Proveedor (`hidden md:table-cell`), Capacidad (`hidden md:table-cell`), Perfil (`hidden lg:table-cell`). En móvil quedan Modelo, Estado y Habilitado (switch).
+- **Rutas** (7 col): ocultas Modelo principal (`md`), Costo (`md`), Respaldo (`lg`), Razonamiento (`lg`). En móvil quedan Herramienta, Estado y Acciones.
+- **Consumo** (5 col): ocultas Tokens entrada (`md`) y Tokens salida (`md`). En móvil quedan Modelo, Solicitudes y Costo estimado.
+
+**2. `/home/giossue/Documentos/ZapiV2/apps/web/features/ai-studio/components/ai-studio-operations.tsx`**:
+- **Historial** (6 col): ocultas Herramienta (`md`), Fecha (`md`), Consumo (`lg`). En móvil quedan Generación, Estado y Acciones.
+- **Automatizaciones** (5 col): ocultas Frecuencia (`md`) y Próxima ejecución (`lg`). En móvil quedan Automatización, Estado (con su switch) y Acciones.
+- **Movimientos de créditos** (4 col): oculta Detalle (`md`). En móvil quedan Fecha, Movimiento y Créditos.
+- **FAB añadido**: `FloatingActionButton` (import de `@workspace/ui/components/floating-action-button`) con `label="Nueva automatización"`, `onClick={onToggleForm}` y el mismo `disabled={state !== "ready"}` del botón de escritorio, envuelto en `canManage ? … : null` como en groups. El botón de cabecera pasó a `className="hidden sm:inline-flex"`. Colocado al final del contenido de la superficie, antes del `AlertDialog`.
+
+**3. `/home/giossue/Documentos/ZapiV2/apps/web/features/ai-studio/components/ai-studio-page.tsx`**:
+- **Actividad reciente / JobsTable** (6 col): ocultas Tipo (`md`), Fecha (`md`), Consumo (`lg`). En móvil quedan Generación, Estado y Acciones (mismo reparto que el historial de operations para coherencia).
+- **Plan semanal** (6 col): ocultas Canal (`md`) y Formato (`lg`). En móvil quedan Fecha sugerida, Idea, Estado y Acción (4, dentro del criterio).
+- **Grid del planner/heatmap** (~línea 1701): envuelto en un `&lt;div className="overflow-x-auto"&gt;` sin tocar su composición interna.
+- **Sin FAB en esta página**: su única acción de cabecera persistente ("Crear contenido" en Overview) es un `Link` de navegación cuya funcionalidad ya está cubierta en móvil por la grilla de herramientas "¿Qué quieres crear?" inmediatamente debajo; el resto de acciones (Generar plan, Actualizar análisis, Exportar) son contextuales por sección. Conforme a la instrucción, no se inventó un FAB.
+
+## Validación
+- `bun --cwd apps/web typecheck`: pasa sin errores.
+- `bun run audit:portal-admin-ui`: "UI audit: sin hallazgos" (0 hallazgos).
+- Prettier aplicado a los tres archivos (solo reformateó una línea larga en ai-studio-operations.tsx); `git diff` confirmó que no hay cambios de datos, handlers ni composición fuera de lo descrito. Nota: el árbol de trabajo contiene cambios concurrentes de otros archivos ajenos a esta tarea; no los toqué.</result>
+<usage><subagent_tokens>97555</subagent_tokens><tool_uses>50</tool_uses><duration_ms>297724</duration_ms></usage>
+</task-notification>
