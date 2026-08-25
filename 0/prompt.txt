@@ -1,0 +1,1 @@
+ok, ahora agrega la función, si no está configurado en admin un canal, en portal saldrá como proximamente
