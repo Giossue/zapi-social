@@ -1,0 +1,1 @@
+Pero lo malo es que en el modo oscuro el texto por ejemplo en botones sigue negro, en tabs igual, y eso no está bien, debería ser blanco:
