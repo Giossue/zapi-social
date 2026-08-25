@@ -1,0 +1,99 @@
+perdona, dame paso a paso, aun no pases al paso 2, primero al querer crear un token me sale estas opciones para marcar:
+
+
+ 
+
+Scopes
+General
+email
+openid
+profile
+Benefits
+benefits:read
+benefits:write
+Checkout Links
+checkout_links:read
+checkout_links:write
+Checkouts
+checkouts:read
+checkouts:write
+Custom Fields
+custom_fields:read
+custom_fields:write
+Customer Meters
+customer_meters:read
+Customer Portal
+customer_portal:read
+customer_portal:write
+Customer Seats
+customer_seats:read
+customer_seats:write
+Customer Sessions
+customer_sessions:write
+Customers
+customers:read
+customers:write
+Discounts
+discounts:read
+discounts:write
+Disputes
+disputes:read
+disputes:write
+Events
+events:read
+events:write
+Files
+files:read
+files:write
+License Keys
+license_keys:read
+license_keys:write
+Member Sessions
+member_sessions:write
+Members
+members:read
+members:write
+Meters
+meters:read
+meters:write
+Metrics
+metrics:read
+metrics:write
+Notification Recipients
+notification_recipients:read
+notification_recipients:write
+Notifications
+notifications:read
+notifications:write
+Orders
+orders:read
+orders:write
+Organizations
+organizations:read
+organizations:write
+Payments
+payments:read
+Payouts
+payouts:read
+payouts:write
+Products
+products:read
+products:write
+Refunds
+refunds:read
+refunds:write
+Subscriptions
+subscriptions:read
+subscriptions:write
+Transactions
+transactions:read
+transactions:write
+User
+user:read
+user:write
+Wallets
+wallets:read
+wallets:write
+Webhooks
+webhooks:read
+webhooks:write
