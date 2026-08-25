@@ -1,0 +1,6 @@
+ok, una cosa antes:
+https://21st.dev/community/templates/s/landing-page?preview=%2F%40serafimcloud%2Ftemplates%2Fvetra usa esta para la landing, ya tengo una en 
+
+[@/home/giossue/Documentos/landing-zapi-social/](file:///home/giossue/Documentos/landing-zapi-social/)
+
+ y funciona de hecho en zapisocial.com, pero claro, lo había hecho de manera provisional, pero usa el mcp de shadcn para bajarte ese template y cambiarle la información. y claro, agregando las funcionalidades que tendría por ejemplo los planes, paginas estáticas, etc. Ten en mente que en dokploy los tengo separados: el de zapisocial.com y app.zapisocial.com Así que halla la manera. Pero eso si, revisa TODO lo que pueda tener admin que influya en la landing y en las demás págginas de este que se puedan ir modificando, agregando
