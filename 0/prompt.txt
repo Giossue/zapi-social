@@ -1,0 +1,6 @@
+k, antes de acabar con los huecos grandes primero un cosa, no quiero comentarios en el código, haces demasiado eso, crea un script para borrar todos los comentarios de todo el sistema, y pon en tus reglas que no habrá comentarios y otra cosa, en task board hay dos problemas:
+- Se demora DEMASIADO en crear una task incluso actualizarla y el movimiento de los taks entre los estados es demasiado torpe, literal cuesta un monton cambiar de estado, no se supone que copias tal cual de 
+
+[@/home/giossue/Documentos/template-shadcn-superdashboard/](file:///home/giossue/Documentos/template-shadcn-superdashboard/)
+
+ ? o así va de mal también, es como que no se mueve y toca moverse milimétricamente para que funcione, eso es terrible, porque probé el de template y va de maravilla.
