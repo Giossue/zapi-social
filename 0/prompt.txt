@@ -1,0 +1,1 @@
+una duda, hay una manera de hacer que cuando haga un push solo se ejecute el que es? Porque cada que mando push se va api, worker y web, no podemos hacer por ejemplo si solo se hizo cambios relacionados worker, api o a web, solo se haga deploy a esos? O es imposible? Solo es duda, no hagas cambios
