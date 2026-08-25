@@ -1,0 +1,187 @@
+<task-notification>
+<task-id>abb4e06b4bda52298</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-giossue-Documentos-ZapiV2/4640032b-b84a-4017-81cc-3c00a0b8b94f/tasks/abb4e06b4bda52298.output</output-file>
+<status>completed</status>
+<summary>Agent "Analizar responsive en diseño ideal" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Informe completo de mecanismos responsive en `/home/giossue/Documentos/diseño ideal`.
+
+---
+
+## 0. Contexto base
+
+- Tailwind **v4 sin `tailwind.config.*`** (no existe el archivo): se usan los **breakpoints por defecto** (`sm 40rem`, `md 48rem`, `lg 64rem`, `xl 80rem`, `2xl 96rem`). En `/home/giossue/Documentos/diseño ideal/src/app/globals.css` sólo hay `@theme inline` con tokens de color/radius, `@custom-variant dark`, y un bloque `@media print` (≈línea 275) para el invoice. **No hay `--breakpoint-*` custom ni container queries declaradas en CSS**.
+- Sólo 2 sitios usan JS de viewport además de los hooks: `logistics.tsx` (`window.innerWidth &lt; 1024`) y los propios hooks.
+- Convención documentada en `CLAUDE.md` (líneas 89, 91, 107): "grids que colapsan limpiamente en pantallas pequeñas", "responsive action rows", y exigir capturas móviles en PRs.
+
+---
+
+## 1. Hooks de detección móvil
+
+**`/home/giossue/Documentos/diseño ideal/src/hooks/use-mobile.ts`** — breakpoint **768px**:
+
+```ts
+const MOBILE_BREAKPOINT = 768;
+const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+setIsMobile(window.innerWidth &lt; MOBILE_BREAKPOINT);
+```
+Estado inicial `undefined` → devuelve `!!isMobile` (false en SSR, evita mismatch de hidratación).
+
+**`/home/giossue/Documentos/diseño ideal/src/hooks/use-lg.ts`** — hook gemelo, breakpoint **1024px** con `(min-width: 1024px)`, devuelve `isLg`.
+
+Consumidores (`isMobile` directo o vía `useSidebar()`):
+
+| Archivo | Uso |
+|---|---|
+| `src/components/ui/sidebar.tsx:68` | fuente de verdad; expone `isMobile` en el contexto |
+| `src/app/(main)/dashboard/_components/sidebar/nav-user.tsx:51` | `side={isMobile ? "bottom" : "right"}` en el `DropdownMenuContent` |
+| `src/app/(main)/dashboard/_components/sidebar/nav-main.tsx:156-165` | `isCollapsedDesktop = state === "collapsed" &amp;&amp; !isMobile` → en móvil nunca usa el modo dropdown de iconos |
+| `src/app/(main)/mail/_components/mail.tsx:27` | bifurca layout completo mobile vs desktop |
+| `src/app/(main)/chat/_components/chat.tsx:24-25` | usa **ambos** hooks (`useIsLg` + `useIsMobile`) |
+| `src/app/(main)/dashboard/(legacy)/default-v1/_components/proposal-sections-table/columns.tsx:79` | dirección del Drawer y ocultar el chart |
+| `src/app/(main)/dashboard/(legacy)/default-v1/_components/chart-area-interactive.tsx` | rango por defecto según móvil |
+
+---
+
+## 2. Shell: sidebar + header
+
+`/home/giossue/Documentos/diseño ideal/src/components/ui/sidebar.tsx` (shadcn estándar, ligeramente adaptado):
+
+- Anchos: `SIDEBAR_WIDTH = 16rem`, **`SIDEBAR_WIDTH_MOBILE = 18rem`**, `SIDEBAR_WIDTH_ICON = 3rem` (líneas 29-31).
+- **Móvil = Sheet** (línea 181-203): si `isMobile`, el `&lt;Sidebar&gt;` entero se renderiza dentro de un `Sheet` controlado por estado propio `openMobile`/`setOpenMobile`, con `--sidebar-width: 18rem` inline y `[&amp;&gt;button]:hidden` (oculta el close por defecto).
+- `toggleSidebar()` (línea 92) es **dual**: `isMobile ? setOpenMobile(...) : setOpen(...)`. El estado desktop se persiste en cookie `sidebar_state`; el móvil no.
+- **Desktop**: el contenedor es `hidden … md:block` (línea 209) y el panel fijo `hidden … md:flex` (línea 232) → por debajo de `md` el sidebar desktop no existe en absoluto.
+- Modos `collapsible: "offcanvas" | "icon" | "none"`, preferencia de usuario (`sidebar_collapsible`, default `"icon"`) en `/src/lib/preferences/layout.ts` y `/src/lib/preferences/preferences-config.ts:98`, aplicada en `/src/app/(main)/dashboard/_components/sidebar/app-sidebar.tsx`.
+- `SidebarRail` (línea 278): `hidden … sm:flex` → el rail arrastrable sólo aparece ≥ sm.
+- Tooltips de `SidebarMenuButton` (línea 533): `hidden={state !== "collapsed" || isMobile}` → nunca tooltips en móvil.
+- `SidebarInset` (línea ~305): el modo `inset` (margen + rounded + shadow) sólo se aplica desde `md:` (`md:peer-data-[variant=inset]:m-2 …`).
+
+**Header** — `/home/giossue/Documentos/diseño ideal/src/app/(main)/dashboard/layout.tsx`:
+- Altura fija `h-12` + variable `[--dashboard-header-height:--spacing(12)]` que luego usan páginas full-bleed (`kanban`, `logistics`, `patient-monitoring`) para calcular `h-[calc(100dvh-var(--dashboard-header-height))]`.
+- `SidebarTrigger` siempre visible (es el único acceso al menú en móvil).
+- Padding progresivo: `px-4 lg:px-6`, gaps `gap-1 lg:gap-2`.
+- Contenido: `p-4 md:p-6`, con escape `has-data-[content-padding=false]:p-0` para pantallas full-bleed.
+- `min-w-0 overflow-x-clip` en `SidebarInset` + `overflow-x-hidden` en el wrapper: barrera anti-desbordamiento horizontal global (muy relevante en móvil).
+
+**Shell alternativo del chat** — `/home/giossue/Documentos/diseño ideal/src/app/(main)/chat/layout.tsx`: header propio sticky de `--header-height: 3.5rem` y `ChatSidebar` con `collapsible="offcanvas"` anclado bajo el header (`top-(--header-height) h-[calc(100svh-var(--header-height))]!`).
+
+---
+
+## 3. Tablas en pantallas pequeñas — 4 patrones distintos coexisten
+
+**(a) Ocultar columnas por breakpoint (`hidden md:table-cell`)** — el más literal:
+`/home/giossue/Documentos/diseño ideal/src/app/(main)/dashboard/file-manager/_components/file-list-view.tsx` líneas 61-63 y 80-82/124-133: escalonado por importancia — `Size` reaparece en `sm:`, `Owner` en `md:`, `Modified` en `lg:`. Mismo patrón, más simple, en `/src/app/(main)/dashboard/support/_components/support-preview.tsx:398,413` (columna "Categoría" con `hidden md:table-cell`).
+
+**(b) Tabla ↔ lista de cards duplicada (`hidden md:block` + `divide-y md:hidden`)** — el patrón "card list alternativa":
+`/home/giossue/Documentos/diseño ideal/src/app/(main)/dashboard/teams/_components/teams.tsx` líneas 157/195 (miembros) y 232/271 (invitaciones). Se renderiza el mismo dataset dos veces: `&lt;Table&gt;` completa en `≥md`, y en `&lt;md` una lista `divide-y` con avatar + nombre + `scope` como subtítulo + botón de acciones — descartando explícitamente las columnas Rol y "Se unió".
+
+**(c) Scroll horizontal (default del primitivo)**:
+`/home/giossue/Documentos/diseño ideal/src/components/ui/table.tsx:11` — **toda** `&lt;Table&gt;` viene envuelta en `&lt;div data-slot="table-container" className="relative w-full overflow-x-auto"&gt;`. Es el fallback silencioso para las ~15 tablas que no hacen nada especial (users, roles, tasks, crm, ecommerce). Refinado en `/src/app/(main)/dashboard/infrastructure/_components/project-environments.tsx:111`: scroll externo con scrollbar fina custom (`scrollbar-thin`, `[&amp;::-webkit-scrollbar]:h-1`) y anulación del interno vía `**:data-[slot=table-container]:overflow-visible`.
+
+**(d) Fila de tabla reconstruida como grid con `max-md:`** — el más sofisticado:
+`/home/giossue/Documentos/diseño ideal/src/app/(main)/dashboard/invoice/_components/invoice-items.tsx`. La cabecera es `hidden … md:grid md:grid-cols-[24px_minmax(0,1fr)_64px_112px_112px_32px]` (línea 67); cada fila pasa de 6 columnas a 4 (`grid-cols-[24px_minmax(0,0.8fr)_minmax(0,1fr)_32px]`, línea 128) y las celdas se reubican con `max-md:col-start-* / max-md:row-start-*` en 3 filas, añadiendo una etiqueta que sólo existe en móvil: `&lt;span className="hidden … max-md:inline"&gt;Line total&lt;/span&gt;` (línea 164).
+
+**Paginación y toolbars de tabla** (relacionado): `/src/components/ui/pagination.tsx:77,94` oculta el texto "Previous/Next" con `hidden sm:block` dejando sólo iconos; las tablas legacy ocultan el contador de filas y los botones first/last con `hidden … lg:flex` (`/src/app/(main)/dashboard/(legacy)/default-v1/_components/proposal-sections-table/table.tsx:228,233,263,292` y su gemelo en `crm-v1`); `/src/app/(main)/dashboard/tasks/_components/tasks-toolbar.tsx:68` esconde por completo el selector "View" de columnas con `hidden lg:flex`.
+
+---
+
+## 4. Grids y layouts
+
+**Patrón dominante: saltar de móvil directo a `xl`** (poco `md`, casi nada de `2xl`):
+- `grid-cols-2 xl:grid-cols-4` para tiras de KPI: `/src/app/(main)/dashboard/crm/_components/kpi-cards.tsx:16`, `/src/app/(main)/dashboard/default/_components/metric-cards.tsx:67`, `/src/app/(main)/dashboard/academy/_components/kpi-cards.tsx:9`, `/src/app/(main)/dashboard/platform/dashboard/_components/admin-metric-cards.tsx:67`. Es decir: **2 columnas ya en el móvil más pequeño**, nunca 1.
+- Rejilla de 12 columnas para cuerpos de dashboard: `grid-cols-1 … xl:grid-cols-12` + `xl:col-span-7 / xl:col-span-5 / xl:col-span-6 / xl:col-span-4` en `/src/app/(main)/dashboard/finance/page.tsx:51-78`, `/src/app/(main)/dashboard/analytics/page.tsx:39-52` (incluye `xl:col-start-8`), `/src/app/(main)/dashboard/ecommerce/_components/kpi-strip.tsx:92`.
+- Galería: `grid-cols-2 sm:grid-cols-3 xl:grid-cols-5` en `/src/app/(main)/dashboard/file-manager/_components/file-grid-view.tsx:51,80`.
+- Filas tipo "lista con columnas": `grid-cols-1 … sm:grid-cols-[10rem_1fr_auto] sm:items-center` (5 usos en `/src/app/(main)/dashboard/academy/_components/class-schedule.tsx`).
+- Cabeceras de página: patrón repetido literal `flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between` en `ecommerce/page.tsx:21`, `academy/page.tsx:14`, `file-manager/page.tsx:25`, `invoice/page.tsx:10`, `finance/page.tsx:27`.
+- Detalle 2 paneles: `lg:grid-cols-[400px_minmax(0,1fr)]` (logistics), `lg:grid-cols-[20rem_minmax(0,1fr)]` (patient-monitoring), `md:grid-cols-[22.5rem_minmax(0,1fr)] lg:grid-cols-[22.5rem_1fr_var(--profile-width)]` (chat).
+- Higiene constante contra overflow: `min-w-0`, `*:min-w-0`, `truncate`, `minmax(0,1fr)` aparecen en casi todos los grids.
+
+**Container queries** — se usan poco y **sólo en el dashboard legacy + primitivos**:
+- `/src/app/(main)/dashboard/(legacy)/default-v1/page.tsx:8` y `/src/app/(main)/dashboard/default/page.tsx:9`: `@container/main`.
+- `/src/app/(main)/dashboard/(legacy)/default-v1/_components/section-cards.tsx:8`: `grid-cols-1 @xl/main:grid-cols-2 @5xl/main:grid-cols-4` + cada `Card` es `@container/card`.
+- `/src/app/(main)/dashboard/(legacy)/default-v1/_components/chart-area-interactive.tsx:159,167`: **swap de control por ancho de tarjeta** — `ToggleGroup` con `hidden @[767px]/card:flex` y un `Select` equivalente con `flex @[767px]/card:hidden w-40` (único uso de container query arbitraria `@[767px]`).
+- `/src/app/(main)/dashboard/(legacy)/default-v1/_components/proposal-sections-table/table.tsx:132,145`: `Select` `flex @4xl/main:hidden` vs `TabsList` `hidden @4xl/main:flex`.
+- Primitivos: `@container/card-header` en `/src/components/ui/card.tsx:47`, y `@container/field-group` con `@md/field-group:flex-row …` en `/src/components/ui/field.tsx:46,63` (los `Field` pasan de apilados a fila según ancho del contenedor, no del viewport).
+- `@container/preview` en `/src/app/(main)/dashboard/invoice/_components/invoice-preview.tsx:47`.
+
+---
+
+## 5. Overlays: Dialog / Sheet / Drawer
+
+**Sheet** (`/src/components/ui/sheet.tsx:66`) es responsive por defecto: `data-[side=right]:w-3/4` + `data-[side=right]:sm:max-w-sm` → en móvil ocupa 75% del ancho, en `sm+` se limita a `24rem`.
+
+**Convención de sheets de formulario: `w-full … sm:max-w-xl`** (full-bleed en móvil, panel fijo en desktop) — repetida en:
+- `/src/app/(main)/dashboard/support/_components/support-preview.tsx:134`
+- `/src/app/(main)/dashboard/platform/_components/admin-module-preview.tsx:1030`
+- `/src/app/(main)/dashboard/platform/integrations/_components/integrations-preview.tsx:261` (+ `overflow-y-auto overscroll-contain`)
+- `/src/app/(main)/dashboard/platform/captcha/_components/captcha-settings-preview.tsx:111`
+- `/src/app/(main)/dashboard/portal-modules/_components/portal-module-mockup.tsx:965,1471`
+- `/src/app/(main)/dashboard/admin-modules/_components/admin-secondary-module-mockup.tsx:486,532`
+- Variante ancha: `w-full … sm:max-w-3xl` en `/src/app/(main)/dashboard/platform/plans/_components/plans-page-preview.tsx:362`.
+
+**Sheet anulando el tope de shadcn** — `/src/app/(main)/dashboard/logistics/_components/logistics.tsx:45`:
+```
+data-[side=right]:w-full data-[side=right]:sm:max-w-none data-[side=right]:md:w-3/4
+```
+100% en móvil, sin cap en `sm`, 75% desde `md`.
+
+**Sí existe el patrón Drawer-en-móvil / otra cosa en desktop, en dos sitios:**
+1. `/home/giossue/Documentos/diseño ideal/src/app/(main)/mail/_components/mail.tsx` — `isMobile ? &lt;MailMobileLayout/&gt; : &lt;MailDesktopLayout/&gt;`: en móvil la lista ocupa toda la pantalla y el mensaje abre en un `&lt;Drawer&gt;` (vaul, bottom, `max-h-[80vh]`); en desktop es `ResizablePanelGroup` con handle y layout persistido en cookie `mail_panel_layout`. Incluye guard `isMounted` con "Loading mail..." para no renderizar el layout equivocado en SSR.
+2. `/home/giossue/Documentos/diseño ideal/src/app/(main)/dashboard/(legacy)/default-v1/_components/proposal-sections-table/columns.tsx:82` — `&lt;Drawer direction={isMobile ? "bottom" : "right"}&gt;` y además `{!isMobile &amp;&amp; (&lt;ChartContainer …&gt;)}`: en móvil el drawer sube desde abajo **y se elimina el gráfico** del contenido.
+3. Caso Sheet condicional: `/src/app/(main)/chat/_components/chat.tsx:76` — `{!isLg &amp;&amp; &lt;Sheet …&gt;}`: el panel de perfil es una tercera columna del grid en `lg+` y un Sheet lateral por debajo de 1024px (el Sheet ni siquiera se monta en desktop).
+
+**Dialog** (`/src/components/ui/dialog.tsx:64`): base ya móvil-first — `w-full max-w-[calc(100%-2rem)] … sm:max-w-sm`. Ampliaciones habituales con tope de altura de viewport dinámico:
+- `max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-2xl` (`captions/caption-library.tsx:647`, `rss-schedules/rss-schedule-wizard.tsx:184`)
+- `max-h-[calc(100dvh-2rem)] overflow-hidden sm:max-w-3xl` + `ScrollArea max-h-[calc(100dvh-10rem)]` (`channels/channel-connection-dialog.tsx:142,149`)
+- El más elaborado, `/src/app/(main)/dashboard/publishing/_components/publishing-interaction-demo.tsx:148`: `max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-none overflow-y-auto sm:w-[min(90vw,64rem)] sm:max-w-none`, con cuerpo `grid-cols-1 lg:grid-cols-[minmax(0,1.1fr)_minmax(20rem,0.9fr)]`.
+
+---
+
+## 6. Sustitutos móviles de acciones de header / toolbars
+
+**No hay FAB**: cero coincidencias de `fixed bottom`, `sticky bottom` o botón flotante en todo `src`. Los sustitutos usados son:
+
+- **Botón "back" exclusivo de móvil**: `/src/app/(main)/chat/_components/chat-thread.tsx:68` — `&lt;Button … className="md:hidden"&gt;` con `&lt;ArrowLeft/&gt;`, montado sólo si `showBackButton={isMobile}` (doble guarda JS + CSS).
+- **Tabs que se estiran a ancho completo en móvil y se encogen en `sm`**: `/src/app/(main)/dashboard/kanban/_components/kanban.tsx:176` — `TabsList className="w-full *:data-[slot=tabs-trigger]:flex-1 sm:w-fit sm:*:data-[slot=tabs-trigger]:flex-none"`. Igual en `/src/app/(main)/dashboard/profile/_components/profile-settings.tsx:49` (`w-full sm:w-fit`) y `publishing-interaction-demo.tsx:226`.
+- **Botones full-width que pasan a auto**: kanban líneas 199-208 — `w-full sm:w-auto`, `ButtonGroup w-full sm:w-fit`, `Button flex-1 sm:flex-none`; buscador `min-w-0 sm:w-64 2xl:w-48`.
+- **Toolbar que envuelve**: `/src/app/(main)/dashboard/calendar/_components/calendar.tsx:70` — `flex flex-wrap items-center gap-2` (sin breakpoints; simplemente se reordena), y el cambio de vista está en un `DropdownMenuRadioGroup` tras un botón de icono en vez de tabs.
+- **CardAction que se convierte en fila propia**: patrón repetido en `/src/components/data-table-controls.tsx:53-66` y copiado en `users/_components/users.tsx:87`, `captions/caption-library.tsx:498`, `rss-schedules/rss-schedules.tsx:106`:
+  ```
+  col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch
+  md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end
+  ```
+  Es decir: en móvil las acciones caen debajo del título ocupando el ancho y con wrap; en `md+` saltan a la derecha en una sola línea. El search asociado es `h-7 w-full md:w-64` (línea 79).
+- **Filtros/acciones en columna**: `flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between` (`tasks-toolbar.tsx:36`, `tasks.tsx:135` con `md:`, `kanban.tsx:174`, `productivity/tasks-section.tsx:68`).
+- **Paginación**: `/src/components/table-pagination.tsx:37` — `justify-start md:justify-end`.
+- **Menú de usuario**: `side={isMobile ? "bottom" : "right"}` (nav-user.tsx:51).
+
+---
+
+## 7. Páginas con tratamiento móvil especial
+
+| Página | Mecanismo |
+|---|---|
+| **Chat** (`/src/app/(main)/chat/_components/chat.tsx`) | El más elaborado. Grid de 1→2→3 columnas; en `&lt;md` las dos primeras columnas se **superponen en la misma celda** (`max-md:col-start-1 max-md:row-start-1`) y se alternan con `translate-x` animado (`showThread ? "max-md:translate-x-0" : "max-md:pointer-events-none max-md:translate-x-full"`) → navegación tipo app móvil lista↔hilo. El panel de perfil: 3ª columna con ancho variable `--profile-width` en `lg+`, `Sheet` por debajo. |
+| **Mail** (`/src/app/(main)/mail/_components/mail.tsx`) | Bifurcación total de árbol de componentes: Drawer móvil vs paneles redimensionables desktop (ver §5). |
+| **Logistics** (`/src/app/(main)/dashboard/logistics/_components/logistics.tsx`) | Master-detail: detalle `hidden … lg:block` en el grid; al seleccionar, `if (window.innerWidth &lt; 1024) setDetailsOpen(true)` abre el mismo componente `ShipmentDetails` dentro de un Sheet full-width. Dentro, `shipment-details.tsx:143` pasa de `grid-cols-2` a `md:grid-cols-[1.35fr_1fr_1.1fr_1.15fr_1fr]`, con truco de etiqueta `md:invisible` (línea 145) y tipografías `text-xs md:text-sm`; mapa `grid-rows-[320px_1fr] lg:grid-rows-[420px_1fr]`. |
+| **File manager** (`/src/app/(main)/dashboard/file-manager/`) | Doble vista grid/list controlada por `?view=` (server), grid `2→sm:3→xl:5`, list con columnas escalonadas por breakpoint (§3a). |
+| **Kanban** (`/src/app/(main)/dashboard/kanban/_components/kanban.tsx:247-248`) | Scroll horizontal explícito del tablero con columnas de ancho mínimo: `inline-grid min-w-full grid-cols-[repeat(5,minmax(20rem,1fr))]` dentro de `overflow-x-auto overflow-y-hidden` con scrollbar fina. Altura `100dvh - header`. |
+| **Calendar** (`/src/app/(main)/dashboard/calendar/`) | La página ajusta altura por breakpoint: `h-[calc(100svh-5rem)] min-h-[34rem] md:h-[calc(100svh-7rem)]`. La toolbar hace wrap y el selector de vista es un dropdown. `src/components/calendar/event-calendar-views.tsx` no tiene breakpoints: se apoya en `whitespace-nowrap overflow-hidden` + `shrink-*` de FullCalendar. |
+| **Patient monitoring** | `grid min-w-0 flex-1 lg:grid-cols-[20rem_minmax(0,1fr)]` con borde que sólo aparece en `lg:border-l`; header `grid-cols-[minmax(0,1fr)_auto] lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]` con `col-span-2 lg:col-span-1`. |
+| **Invoice** | Filas reflowadas con `max-md:` (§3d) + `@container/preview` + `@media print` en globals.css. |
+| **Auth** (`/src/app/(main)/auth/v1/login/page.tsx:11`, `v2/layout.tsx:12`) | Panel decorativo `hidden bg-primary lg:block lg:w-1/3` / `hidden … lg:flex` con `grid h-dvh … lg:grid-cols-2`. |
+| **Analytics/Finance/Ecommerce** | Sin JS: sólo rejilla 12-col que colapsa a `grid-cols-1` por debajo de `xl` (§4). |
+
+---
+
+## 8. Resumen de la jerarquía de mecanismos (de más a menos usado)
+
+1. Clases utilitarias Tailwind con breakpoints estándar (predominan `sm:` y `xl:`; `md:` reservado casi en exclusiva para el corte sidebar/tabla).
+2. `overflow-x-auto` implícito del primitivo `Table` como red de seguridad.
+3. Variantes `max-md:` para reflow de grids (sólo chat e invoice).
+4. `useIsMobile()` (768) / `useIsLg()` (1024) para decisiones estructurales que CSS no puede hacer (montar/desmontar overlays, cambiar `side`/`direction`, bifurcar árboles).
+5. Container queries (`@container/main`, `@container/card`, `@[767px]/card`) — legado del dashboard v1 y primitivos `card`/`field`; **no es el patrón vigente** del repo.
+6. Preferencias persistidas de shell (variant/collapsible en cookie) que afectan sólo a desktop.</result>
+<usage><subagent_tokens>81586</subagent_tokens><tool_uses>49</tool_uses><duration_ms>284688</duration_ms></usage>
+</task-notification>
