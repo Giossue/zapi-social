@@ -1,0 +1,229 @@
+<task-notification>
+<task-id>abc8edd0f1baf197d</task-id>
+<tool-use-id>toolu_01CqkC6t9Gnga9MZwLZ3X9Js</tool-use-id>
+<output-file>/tmp/claude-1000/-home-giossue-Documentos-ZapiV2/4640032b-b84a-4017-81cc-3c00a0b8b94f/tasks/abc8edd0f1baf197d.output</output-file>
+<status>completed</status>
+<summary>Agent "Analizar responsive en ZapiV2" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result># Informe: mecanismos responsive / mobile en ZapiV2 (apps/web + packages/ui)
+
+## 1. Hook de detección móvil
+
+**`/home/giossue/Documentos/ZapiV2/packages/ui/src/hooks/use-mobile.ts`**
+- Breakpoint: `const MOBILE_BREAKPOINT = 768` → `matchMedia("(max-width: 767px)")`, con estado inicial `undefined` coaccionado con `!!isMobile` (primer render siempre "desktop", sin flag de hidratación).
+- **Consumidor único: `packages/ui/src/components/sidebar.tsx:7,67`.** Ningún archivo de `apps/web` importa `useIsMobile` directamente; lo consumen indirectamente vía `useSidebar()` (`nav-user.tsx:33`, `nav-main.tsx:118`).
+
+**`/home/giossue/Documentos/ZapiV2/packages/ui/src/hooks/use-lg.ts`**
+- `LG_BREAKPOINT = 1024`, `useIsLg()`. **Cero consumidores en todo el monorepo** — código muerto.
+
+Conclusión: la detección móvil en JS existe solo para el sidebar. Todo lo demás es CSS puro (Tailwind).
+
+---
+
+## 2. Shell / Sidebar
+
+**`apps/web/components/dashboard-shell/dashboard-shell.tsx`** (compartido por Portal y Admin vía `app-shell.tsx` y `admin-shell.tsx`):
+- `SidebarProvider` con `--sidebar-width: calc(var(--spacing) * 68)` (17rem), `collapsible="icon"`, `variant="inset"`.
+- Header **único para todos los tamaños**: `h-12 sticky top-0 z-50 ... px-4 lg:px-6`. No hay variante móvil del header; contiene `SidebarTrigger` + `Separator` + `DashboardSearchDialog` a la izquierda, y `NotificationBell` + `WorkspaceSwitcher` + `AccountMenu` a la derecha, siempre visibles.
+- Contenedor de contenido: `p-4 ... md:p-6`, `min-w-0 overflow-x-hidden`, `max-w-screen-2xl`.
+
+**`packages/ui/src/components/sidebar.tsx`**:
+- `if (isMobile)` (&lt; 768px) → renderiza `&lt;Sheet side="left"&gt;` con `SIDEBAR_WIDTH_MOBILE = "18rem"`, título/descripción `sr-only`, botón de cierre nativo oculto (`[&amp;&gt;button]:hidden`).
+- Desktop: `hidden ... md:block` + `sidebar-gap` + `sidebar-container fixed ... md:flex`, con `data-collapsible=icon|offcanvas`.
+- `SidebarInset:308`: `md:peer-data-[variant=inset]:m-2 ... md:peer-data-[variant=inset]:rounded-xl` — el "inset" solo aplica desde md.
+- `SidebarRail:290`: `hidden ... sm:flex` (no se usa en `app-sidebar.tsx`).
+- `SidebarMenuButton:532`: tooltip `hidden={state !== "collapsed" || isMobile}`.
+- `SidebarContent:372`: `no-scrollbar ... overflow-auto`.
+
+**`apps/web/components/dashboard-shell/nav-main.tsx`**:
+```tsx
+const isCollapsedDesktop = state === "collapsed" &amp;&amp; !isMobile
+const onNavigate = () =&gt; setOpenMobile(false)   // cierra el Sheet al navegar
+```
+En colapso desktop los grupos con hijos pasan de `Collapsible` a `NavDropdownItem`; en móvil siempre `Collapsible` expandible.
+
+**`nav-user.tsx:62`**: `side={isMobile ? "bottom" : "right"}` para el dropdown.
+
+**`workspace-switcher.tsx:76`**: `&lt;span className="hidden max-w-40 truncate sm:inline"&gt;` — único elemento del header que se adapta (el nombre del workspace se oculta &lt; 640px).
+
+**`search-dialog.tsx:122-132`**: botón "Buscar ⌘J" **sin** clases responsive — el label y el `&lt;kbd&gt;` se muestran igual en móvil.
+
+---
+
+## 3. Tablas en pantallas pequeñas
+
+### 3.1 Scroll horizontal universal (primitive)
+`packages/ui/src/components/table.tsx:45-82`: todo `&lt;Table&gt;` va envuelto en `div.no-scrollbar.w-full.overflow-x-auto.pb-2`, con un hook `useScrollbar` + `ResizeObserver` que dibuja una barra custom (`bar.visible ? ...`) cuando `scrollWidth &gt; clientWidth`. Además `TableHead`/`TableCell` llevan `whitespace-nowrap` (líneas 136 y 149) → las tablas anchas **siempre** desbordan y se scrollean, nunca envuelven.
+
+### 3.2 Columnas ocultas por breakpoint — **14 archivos** (de 30 con tabla)
+
+| Archivo | Nº celdas responsive | Breakpoints |
+|---|---|---|
+| `features/ai-admin/components/ai-report-page.tsx:297,300,317,320,348,365` | 6 | `lg` |
+| `features/admin-content/components/admin-collection-page.tsx:637-663` | 4 | `md`/`lg` (config) |
+| `features/automation/components/automation-page.tsx:815,1003,1191` | 3 | `lg` |
+| `features/admin-support/components/admin-support-page.tsx:293,296,300` | 3 | `lg`,`md`,`lg` |
+| `features/admin-payment-report/components/admin-payment-report-page.tsx:298,346,394` | 3 | `sm` |
+| `features/admin-notifications/components/admin-notifications-page.tsx:633,637,640` | 3 | `md`,`lg` |
+| `features/support/components/support-tickets-page.tsx:538,542` | 2 | `md`,`lg` |
+| `features/files/components/files-library-page.tsx:440,441` | 2 | `md`,`lg` |
+| `features/ai-admin/components/ai-usage-logs-page.tsx:254` | 2 | `lg` |
+| `features/affiliate/components/affiliate-page.tsx:574,705` | 2 | `lg` |
+| `features/admin-settings/components/infrastructure-pages.tsx:240,243` | 2 | `lg` |
+| `features/admin-manual-payments/components/admin-manual-payments-page.tsx:673,676` | 2 | `lg`,`md` |
+| `features/groups/components/groups-page.tsx:626` | 1 | `lg` |
+| `features/admin-email-templates/components/admin-email-templates-page.tsx:437` | 1 | `lg` |
+
+**Única abstracción declarativa** — `admin-collection-page.tsx:131` define `hideBelow?: "md" | "lg"` en el `ColumnConfig` y lo aplica a `TableHead` y `TableCell`; se usa 5 veces en `features/admin-content/components/collections.tsx:77,152,328,438,508`. Es el patrón más limpio del repo y **no está extraído a `packages/ui`**.
+
+### 3.3 Lista alternativa en móvil (dual render) — **1 sola feature**
+`features/teams/components/teams-page.tsx`: `&lt;div className="hidden md:block"&gt;&lt;Table&gt;…&lt;/Table&gt;&lt;/div&gt;` + `&lt;div className="divide-y md:hidden"&gt;` con tarjetas, repetido 4 veces (líneas **1004, 1126, 1242, 1411**: MembersTable, InvitationsTable, ActivityTable, MemberAccessView). Es el único sitio del monorepo con este patrón.
+
+### 3.4 Tablas **sin ningún tratamiento móvil** (todas las columnas siempre visibles, solo scroll horizontal) — 16 archivos
+
+| Archivo | Nº `&lt;TableHead&gt;` | Columnas |
+|---|---|---|
+| `features/ai-admin/components/ai-configuration-page.tsx` | 18 (3 tablas) | Modelo/Proveedor/Capacidad/Perfil/Estado/Habilitado; Herramienta/Modelo principal/Respaldo/Razonamiento/Costo/Estado/Acciones; Modelo/Solicitudes/Tokens entrada/Tokens salida/Costo estimado |
+| `features/ai-studio/components/ai-studio-operations.tsx` | 15 (3 tablas) | Generación/Herramienta/Estado/Consumo/Fecha/Acciones; Automatización/Frecuencia/Próxima ejecución/Estado/Acciones; Fecha/Movimiento/Detalle/Créditos |
+| `features/ai-studio/components/ai-studio-page.tsx` | 12 (2 tablas) | Generación/Tipo/Estado/Consumo/Fecha/Acciones; Fecha sugerida/Idea/Canal/Formato/Estado/Acción |
+| `features/bulk-posts/components/bulk-posts-page.tsx` | 8 (2 tablas) | Fila/Estado/Detalle; Lote/Destinos/Progreso/Estado/Acciones |
+| `features/plans/components/plans-page.tsx` | 8 | Plan/Precio/Cobro/Prueba/Suscriptores/Permisos/Estado/Acciones |
+| `features/platform-admin/components/audit-events-page.tsx` | 6 | Evento/Origen/Estado/Cuenta/Espacio/Fecha |
+| `features/rss-schedules/components/rss-schedules-page.tsx` | 6 | Feed/Destinos/Próxima ejecución/Actividad/Estado/Acciones |
+| `features/captions/components/captions-library-page.tsx` | TanStack, 6 cols | Caption/Origen/Estado/Etiquetas/Actualizado/Acciones (`columns` en línea 234+, sin `meta` responsive) |
+| `features/channels/components/channel-table/channels-columns.tsx` | TanStack, ~5 cols | sin `meta`/clases responsive |
+| `features/publishing/components/publishing-posts-table.tsx` | 5 | |
+| `features/platform-admin/components/recent-payments.tsx` | 5 | |
+| `features/dashboard/components/upcoming-posts.tsx` | 4 | |
+| `features/link-bio/components/link-bio-page.tsx` | 4 | |
+| `features/admin-settings/components/static-pages-page.tsx` | 3 | |
+| `features/platform-admin/components/admin-module-preview.tsx` | 3 | |
+| `features/teams/components/teams-page.tsx` (`ActivityTable`… ya cubierto por dual render) | — | |
+
+---
+
+## 4. Grids / layouts
+
+**`packages/ui/src/components/card-grid.tsx`** — mecanismo central: base `grid grid-cols-2 gap-3` (dos por fila **en móvil**, no `grid-cols-1`), con `layout` ∈ `2 | md-3 | xl-3 | xl-4 | xl-5` (default `xl-4`). Usa `:last-child:nth-child(odd)` para que la tarjeta impar final ocupe la fila, y `:has(&gt; *:nth-child(n):last-child)` para reducir tracks cuando hay pocas cards.
+Consumido por **17 features**: admin-manual-payments, admin-notifications, admin-payment-report, admin-settings, admin-support, affiliate, ai-admin, ai-studio, channels, files, groups, integrations, link-bio, plans, platform-admin, publishing, support.
+
+Frecuencia de `grid-cols` con breakpoint (todo el repo):
+```
+10 sm:grid-cols-2   10 md:grid-cols-2   9 sm:grid-cols-3
+ 4 xl:grid-cols-12   3 xl:grid-cols-5    3 xl:grid-cols-4   3 md:grid-cols-3   2 lg:grid-cols-2
+```
+Patrón dominante: **salto directo de móvil a `xl`** (`grid-cols-1 items-stretch gap-4 xl:grid-cols-12` ×4 en `dashboard-page.tsx:17,25` y `admin-dashboard.tsx`), sin escalón intermedio en `md`/`lg`.
+
+Layouts split de dos paneles (todos con fallback a 1 columna):
+- `features/publishing/components/publishing-calendar-page.tsx:320` `lg:grid-cols-[minmax(0,1.1fr)_minmax(24rem,0.9fr)]`
+- `features/link-bio/components/link-bio-page.tsx:384` `lg:grid-cols-[minmax(0,1fr)_22rem]`
+- `features/watermarks/components/watermarks-page.tsx:937` `lg:grid-cols-[minmax(0,1fr)_21rem]`
+- `features/ai-studio/components/ai-studio-page.tsx:1181,1433,1692,1856` — todos `xl:grid-cols-[…]`
+- `features/platform-admin/components/admin-dashboard.tsx:196` `xl:grid-cols-[minmax(0,1.4fr)_minmax(18rem,1fr)]`
+
+**Container queries: prácticamente inexistentes.** Solo 3 declaraciones y **una sola** regla que las usa:
+- `apps/web/features/dashboard/components/dashboard-page.tsx:15` `@container/main` — declarado pero **ningún hijo usa `@…/main:`** (muerto).
+- `packages/ui/src/components/card.tsx:46` `@container/card-header` — sin variantes `@…/card-header:` consumidas.
+- `packages/ui/src/components/field.tsx:46,63` `@container/field-group` + `@md/field-group:flex-row …` — **único uso real**.
+
+---
+
+## 5. Overlays
+
+**`packages/ui/src/components/sheet.tsx:63`** — `SheetContent`: base `w-full`, y `data-[side=left|right]:sm:w-3/4` + `sm:max-w-sm`; `SheetFooter` usa `pb-[max(1rem,env(safe-area-inset-bottom))]`. Es el overlay dominante: **26 archivos** con `&lt;SheetContent&gt;`.
+
+Patrones de clase reales (frecuencia):
+```
+6  w-full gap-0 p-0 sm:max-w-xl
+6  w-full gap-0 p-0 sm:max-w-lg
+6  w-full gap-0 overflow-y-auto overscroll-contain p-0 sm:max-w-xl
+4  w-full gap-0 p-0 sm:max-w-md
+3  w-full gap-0 p-0 sm:max-w-none data-[side=right]:sm:w-full data-[side=right]:sm:border-l-0   ← sheet a pantalla completa
+3  w-full gap-0 p-0 sm:max-w-2xl
+2  w-full gap-0 p-0 sm:max-w-3xl
+1  w-full gap-0 p-0 sm:max-w-md lg:max-w-lg
+1  w-full gap-0 p-0 sm:max-w-lg lg:max-w-xl
+```
+El patrón `w-full … sm:max-w-*` es consistente en el 100 % de los casos. El "full screen" (`sm:max-w-none … sm:w-full`) se usa en el composer de publicación (`publishing-calendar-page.tsx:301`), `channel-connection-dialog.tsx:299` e `integrations`.
+
+**`dialog.tsx:64`** — `w-full max-w-[calc(100%-2rem)] … sm:max-w-sm`. Solo **2 archivos** usan `&lt;DialogContent&gt;` en apps/web (`channels-page.tsx` ×1, `files/file-manager-dialogs.tsx` ×6), y solo uno pisa el ancho (`className="max-w-3xl"` — sin guardia `sm:`).
+
+**`alert-dialog.tsx:61`** — `w-full data-[size=default]:max-w-xs data-[size=sm]:max-w-xs data-[size=default]:sm:max-w-sm`; footer `flex-col-reverse … sm:flex-row` (botones apilados en móvil) y `size="sm"` fuerza `grid-cols-2`.
+
+**`drawer.tsx` (vaul) existe en `packages/ui` y tiene 0 consumidores en `apps/web`.** Documentado en `packages/ui/COMPONENTS.md:83` como "flujo contextual compacto, especialmente en móvil", pero nunca usado. El único drawer real es el `Sheet` interno del sidebar.
+
+---
+
+## 6. FloatingActionButton
+
+**`packages/ui/src/components/floating-action-button.tsx`**
+- `fixed right-4 bottom-[calc(1rem_+_env(safe-area-inset-bottom))] z-40 size-14 rounded-full shadow-lg … sm:hidden` → **visible solo &lt; 640px**.
+- `useHideOnScrollDown()`: se oculta al bajar (`HIDE_AFTER=96`, `SCROLL_THRESHOLD=12`, `BOTTOM_SLACK=32`) con `requestAnimationFrame`, `motion-reduce:transition-none`.
+- `withSpacer` (default `true`) renderiza `&lt;div className="h-24 sm:hidden" /&gt;`; `menu` lo convierte en `DropdownMenuTrigger`.
+
+**Features que lo usan (15 superficies):**
+`channels/channel-table/channels-users.tsx:167` · `publishing/publishing-calendar.tsx:286` (`withSpacer={false}`) · `publishing/publishing-calendar-page.tsx:697` (solo cuando `section !== "calendar"`) · `platform-admin/admin-module-preview.tsx:760` · `plans/plans-page.tsx:1098` · `captions/captions-library-page.tsx:731` · `teams/teams-page.tsx:855` · `files/files-library-page.tsx:1490` (**único con `menu`**: Nueva carpeta / Google Drive / Subir) · `rss-schedules/rss-schedules-page.tsx:593` · `support/support-tickets-page.tsx:629` · `groups/groups-page.tsx:765` · `bulk-posts/bulk-posts-page.tsx:828` · `admin-content/admin-collection-page.tsx:744` · `admin-settings/static-pages-page.tsx:435` · `link-bio/link-bio-page.tsx:1005`.
+
+**Pareo `hidden sm:inline-flex` ↔ FAB:** los 17 usos de `hidden sm:inline-flex` tienen contraparte FAB en la misma superficie (el de `publishing-posts-table.tsx:278` la recibe desde `publishing-calendar-page.tsx:697`). **No hay huecos de este tipo concreto.**
+
+**El hueco real es el inverso:** features con acción principal de creación **siempre visible** (sin `hidden sm:inline-flex`) y **sin FAB**, es decir que nunca adoptaron el patrón:
+- `features/automation/components/automation-page.tsx` — 4 botones con `&lt;Plus&gt;` (`:762`, `:951`, …), sin FAB.
+- `features/ai-studio/components/ai-studio-operations.tsx:560` (`onToggleForm`) y `ai-studio-page.tsx:1929` — sin FAB en toda la feature.
+- `features/watermarks/components/watermarks-page.tsx:1204` (`&lt;Plus&gt; …`) — sin FAB.
+- `features/admin-notifications/components/admin-notifications-page.tsx:578` — sin FAB.
+- `features/admin-manual-payments/components/admin-manual-payments-page.tsx:617` — sin FAB.
+
+---
+
+## 7. Superficies con tratamiento especial vs. superficies rotas
+
+### Con tratamiento móvil deliberado
+- **Publishing calendar** (`publishing-calendar.tsx` + `publishing-calendar-page.tsx:576`): altura anclada `h-[calc(100svh-5rem)] min-h-[40rem] md:h-[calc(100svh-7rem)]`, FAB con `withSpacer={false}`, composer en Sheet full-screen. `event-calendar-views.tsx` usa `shrink-1`/`shrink-100`/`whitespace-nowrap overflow-hidden` para eventos comprimibles.
+- **Files** (`files-library-page.tsx`): columnas `md`/`lg` ocultas, grid `grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5` (líneas 1428, 1443), toolbar `flex-col gap-3 xl:flex-row`, FAB con menú de 3 acciones que replica los 3 botones `hidden sm:inline-flex` (1220/1230/1244).
+- **Teams**: dual render tabla/lista ×4.
+- **Admin content**: `hideBelow` declarativo.
+- **`packages/ui/src/components/attachment.tsx:186`**: carrusel horizontal con `snap-x snap-mandatory scroll-fade-x overscroll-x-contain` — patrón mobile-first.
+- **Identity** (`auth-page.tsx:16-17,61`): `grid h-dvh … lg:grid-cols-2` con panel decorativo `hidden … lg:flex` y form `sm:w-[350px]`.
+
+### Sin adaptación / probablemente rotas en móvil
+1. **`features/ai-studio/components/ai-chat-page.tsx:521`** — el peor caso. Contenedor `h-[calc(100svh-var(--dashboard-header-height))] grid-cols-1 overflow-hidden` con **dos hijos `h-full` apilados** por debajo de `md`: la lista de conversaciones y el chat se reparten el viewport (cada uno queda a media pantalla) y no hay Sheet/drawer para la lista. El panel de opciones es `hidden … lg:flex` (`:729-730`), inaccesible &lt; 1024px, y su toggle es `hidden lg:inline-flex` (`:608`).
+2. **Toolbars con muchos filtros y cero adaptación**: `ai-configuration-page.tsx` (5 `DataTableFilter`), `ai-studio-operations.tsx` (4), `plans-page.tsx` (3), `channels-users.tsx` (3), `automation-page.tsx` (3), `admin-support-page.tsx` (3). `DataTableToolbar` (`data-table-controls.tsx:129-148`) solo hace `flex-wrap` — con 4-5 selects se convierte en un bloque de varias filas en móvil, sin colapsar a un botón "Filtros".
+3. **`DataTableHeader`** (`data-table-controls.tsx:66-98`): la búsqueda es `h-7 w-full md:w-64`, y el `CardAction` pasa a `md:col-start-2` — pero por debajo de `md` la búsqueda y la acción se apilan en el header sin más.
+4. **Toolbar del calendario** (`publishing-calendar.tsx:134`): 7 controles (buscar, "Hoy", ButtonGroup prev/título/next, filtro de canales, menú de vista, botón crear) en un `flex-wrap` sin agrupación móvil; el `ButtonGroupText` lleva `whitespace-nowrap`.
+5. **Charts con altura fija sin variante móvil**: `dashboard/publishing-activity.tsx:57` `h-68 w-full`, `dashboard/channel-breakdown.tsx:72` `h-64`, `dashboard/ai-usage.tsx:104` `h-36`, `platform-admin/user-growth.tsx:57` `h-68`, `admin-payment-report-page.tsx:236` `aspect-auto h-64`. Con muchas categorías, los ticks del eje X se apilan sin rotación ni reducción.
+6. **`features/ai-studio/components/ai-studio-page.tsx:1701`**: `grid-cols-[4rem_repeat(7,minmax(2.5rem,1fr))]` — ancho mínimo 21.5rem (344px); desborda por debajo de ~360px de viewport.
+7. **`features/rss-schedules/components/rss-schedule-wizard.tsx:490,494,498,507`**: `grid-cols-[9rem_1fr]` fijo (144px de etiqueta) sin breakpoint.
+8. **Formularios anchos sin escalón intermedio**: `profile/portal-profile-page.tsx:324,435` (`md:grid-cols-2`) está bien; en cambio `watermarks-page.tsx:937` y `link-bio-page.tsx:384` saltan de 1 columna a un split de 21-22rem en `lg` sin paso por `md`.
+9. **`features/portal-shell/`**: 0 clases responsive (solo definición de navegación, esperable).
+10. **Header del shell**: `DashboardSearchDialog` muestra texto "Buscar" + `⌘J` en móvil; `NotificationBell` + `WorkspaceSwitcher` + `AccountMenu` conviven en 12rem de alto sin colapso — riesgo de apretujamiento a 320-360px.
+11. **TabsList**: `features/publishing/…:380` usa `w-full justify-start sm:w-fit`, pero otros 4 usos son `flex h-auto flex-wrap` y 2 son `w-full justify-start border-b px-2.5` — no hay scroll horizontal de tabs; con muchas pestañas envuelven en varias filas.
+
+---
+
+## 8. Breakpoints custom en `globals.css`
+
+**No existen.** `packages/ui/src/styles/globals.css` (434 líneas) contiene `@custom-variant dark` (línea 14), `@theme inline` solo con colores/radios, `@layer base` (cursores, fuentes), `@layer utilities` (sombras por preset + `html[data-font=…]`), `html { overscroll-behavior: none }` (línea 285) y keyframes de overlay/sheet. **Ningún `--breakpoint-*`, ningún `@custom-variant` responsive, ninguna `@utility` de container.** Se usan los breakpoints por defecto de Tailwind v4 (sm 640, md 768, lg 1024, xl 1280, 2xl 1536).
+
+Utilidades como `no-scrollbar`, `scrollbar-none` y `scroll-fade-x` vienen de `@import "shadcn/tailwind.css"` (línea 3), no del repo.
+
+---
+
+## Lista explícita de huecos
+
+1. **`useIsLg` es código muerto**; `useIsMobile` solo lo consume el sidebar — cero lógica JS responsive en features.
+2. **`Drawer` (vaul) está empaquetado y documentado pero sin ningún consumidor**; ninguna superficie usa bottom-sheet en móvil.
+3. **`hideBelow` (admin-content) no está extraído a `packages/ui`** ni reutilizado por las otras 29 tablas.
+4. **El dual render tabla/lista existe solo en `teams-page.tsx`**; las 16 tablas sin tratamiento dependen únicamente del scroll horizontal.
+5. **Tablas de mayor riesgo sin ninguna columna responsive**, por gravedad: `ai-configuration-page.tsx` (18 heads), `ai-studio-operations.tsx` (15), `ai-studio-page.tsx` (12), `bulk-posts-page.tsx` (8), `plans-page.tsx` (8), `audit-events-page.tsx` (6), `rss-schedules-page.tsx` (6), `captions-library-page.tsx` (6, TanStack), `channels-columns.tsx` (TanStack), `publishing-posts-table.tsx` (5), `recent-payments.tsx` (5), `upcoming-posts.tsx` (4), `link-bio-page.tsx` (4), `static-pages-page.tsx` (3), `admin-module-preview.tsx` (3), `infrastructure-pages.tsx` (parcial).
+6. **Las tablas de TanStack (`captions`, `channels`) no tienen ningún canal para responsive** — sus `ColumnDef` no llevan `meta.className` ni equivalente, así que el patrón `hidden md:table-cell` es inaplicable tal cual.
+7. **Features sin FAB pese a tener acción principal de creación**: `automation`, `ai-studio` (operations + page), `watermarks`, `admin-notifications`, `admin-manual-payments`.
+8. **`ai-chat-page.tsx` no tiene layout móvil**: lista de conversaciones y panel de opciones inaccesibles/comprimidos por debajo de `md`/`lg` sin Sheet.
+9. **`DataTableToolbar` no colapsa filtros en móvil** (solo `flex-wrap`); afecta a las 6 superficies con 3-5 filtros.
+10. **Container queries declaradas sin usar**: `@container/main` en `dashboard-page.tsx:15` y `@container/card-header` en `card.tsx:46` no tienen ninguna variante `@…:` asociada.
+11. **Charts con `h-*` fija** en las 5 superficies con gráficos, sin altura reducida ni rotación de ticks en móvil.
+12. **El header del shell no tiene variante móvil** (ni ocultar el label de búsqueda, ni comprimir los 3 controles de la derecha).
+13. **Desalineación de breakpoints**: FAB `sm:hidden` (640), sidebar Sheet &lt; 768, columnas ocultas `md`(768)/`lg`(1024), `CardGrid` 2→`md`/`xl`. No hay una escala única documentada.
+14. **`packages/ui/src/styles/globals.css` no define ningún token/breakpoint responsive propio**, así que no hay punto único donde ajustar la escala.
+15. **`scripts/audit_portal_admin_ui.py` (318 líneas) no comprueba nada responsive** — ni `table-cell`, ni FAB, ni breakpoints; el checklist de `docs/reglas/design.md:146,201` menciona "móvil" pero no está automatizado.</result>
+<usage><subagent_tokens>104030</subagent_tokens><tool_uses>92</tool_uses><duration_ms>460376</duration_ms></usage>
+</task-notification>
