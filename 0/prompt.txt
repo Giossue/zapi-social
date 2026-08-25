@@ -1,0 +1,2 @@
+Stop hook feedback:
+[ok, vamos a ello]: The phrase 'ok, vamos a ello' does not appear in the transcript. The last assistant message explicitly pauses work and requests user review before proceeding: 'Cuando hayas commiteado y revisado, sigo con Teams y facturación.' No user message containing 'ok, vamos a ello' is present to satisfy this stopping condition.
