@@ -1,0 +1,203 @@
+This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+
+Summary:
+1. Primary Request and Intent:
+
+   The user (Giossue, Spanish-speaking solo dev of Zapi Social) made these explicit requests in sequence:
+
+   a) **"ok, ahora dime como funciona las traducciones en zapisocial y como podríamos hacer en zapiv2?"** — Explain ZapiSocial's (Laravel reference repo) translation system and propose how to do it in ZapiV2.
+
+   b) **"ok vamos a ello, crea el plan"** — Create the formal plan document.
+
+   c) **"/goal ok, vamos a ello"** — Set as a session goal condition, which activated a Stop hook that repeatedly required continuing implementation without pausing. This drove ~12 consecutive implementation batches.
+
+   d) **"ok comitea y luego sigue"** — Commit the work, then continue.
+
+   e) **"oye solo pushea ya..."** — Just push.
+
+   The overarching intent: implement i18n (Spanish/English) across ZapiV2, following the plan, with the language switcher in the profile (which stored `users.locale` but did nothing) finally working.
+
+2. Key Technical Concepts:
+   - **next-intl 4.13.7** without URL locale prefix (no `[locale]` route segment); locale resolved server-side from cookie `zapi_locale` → `users.locale` → `es`
+   - **Semantic keys** (`auth.form.submitLogin`) in versioned JSON, deliberately diverging from Laravel's English-phrase-as-key + scanner approach
+   - **Type augmentation**: `apps/web/global.d.ts` declares `AppConfig` with `Locale`, `Messages` (from generated `messages/es.d.json`), `Formats` — makes tsc fail on unknown keys and wrong ICU argument types
+   - **`createMessagesDeclaration`**: plugin regenerates `messages/es.d.json.ts` during `build`/`dev` only → must run `bun run build` before `typecheck` after adding keys
+   - **Named formats** (`date`, `dateTime`, `time`) in `i18n/request.ts`, consumed with `useFormatter()`
+   - **ICU syntax**: `{count, plural, one {...} other {...}}`, `{n, number}` for numeric args (string args are default; numbers must be declared)
+   - **Static catalogs declare `labelKey`, not text** — navigation, AI tools, link-bio templates/blocks, so they stay module-level per performance rules
+   - **API never translates**: returns `SCREAMING_SNAKE` codes; single client dictionary via `useApiErrorMessage()`
+   - **Brand names not translated** (Meta, LinkedIn, X, TikTok, Planner, Repurpose, Timing); descriptive terms are ("Página de Facebook", "Contenido", "Revisión")
+   - `bun run audit:i18n` — custom Python auditor for cross-language key parity (typing only covers source locale)
+   - Repo rules: `docs/reglas/` (design, calidad, seguridad, workflow, entrega), source-first from `template-shadcn-superdashboard`
+   - Commit conventions: one commit per coherent unit, `tipo: descripción imperativa` in Spanish <72 chars, no mass reformatting foreign to the change, branch required if on main, push only on explicit request
+
+3. Files and Code Sections:
+
+   **`docs/planes/i18n-v2.md`** (created, repeatedly updated)
+   - Canonical plan: Referencia Laravel (AdminLanguages module details), Estado de V2 al planificar, Decisiones V2, Fases 1–5 with checkboxes, Fuera de alcance, Riesgos, plus an "Evidencia"/tanda section appended per batch.
+   - Indexed in `docs/README.md`: `| Idiomas y traducciones de la interfaz | planes/i18n-v2.md |`
+
+   **`apps/web/i18n/locales.ts`** (created)
+   ```ts
+   export const defaultLocale = "es" satisfies SupportedLocale
+   export const supportedLocales = ["es", "en"] as const satisfies readonly SupportedLocale[]
+   export const localeCookieName = "zapi_locale"
+   export const localeCookieMaxAge = 60 * 60 * 24 * 365
+   export function isSupportedLocale(value: unknown): value is SupportedLocale
+   export function resolveLocale(value: unknown): SupportedLocale
+   ```
+
+   **`apps/web/i18n/request.ts`** (created)
+   ```ts
+   export default getRequestConfig(async () => {
+     const store = await cookies()
+     const locale = resolveLocale(store.get(localeCookieName)?.value)
+     return { locale, messages: (await import(`../messages/${locale}.json`)).default, formats }
+   })
+   export const formats = {
+     dateTime: {
+       date: { day: "numeric", month: "short", year: "numeric" },
+       dateTime: { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" },
+       time: { hour: "2-digit", minute: "2-digit" },
+     },
+   } as const
+   ```
+
+   **`apps/web/i18n/locale-cookie.ts`** (created) — `readLocaleCookie`, `writeLocaleCookie`, `syncLocaleCookie(locale): boolean` (returns true when displayed language changed so caller refreshes).
+
+   **`apps/web/global.d.ts`** (created)
+   ```ts
+   import type messages from "./messages/es.d.json"
+   import type { formats } from "./i18n/request"
+   import type { supportedLocales } from "./i18n/locales"
+   declare module "next-intl" {
+     interface AppConfig {
+       Locale: (typeof supportedLocales)[number]
+       Messages: typeof messages
+       Formats: typeof formats
+     }
+   }
+   ```
+
+   **`apps/web/lib/api-error-message.ts`** (created) — single error dictionary:
+   ```ts
+   export function useApiErrorMessage() {
+     const t = useTranslations("errors")
+     return function apiErrorMessage(code?: string) {
+       if (!code) return t("generic")
+       const key = code as Parameters<typeof t>[0]
+       return t.has(key) ? t(key) : t("generic")
+     }
+   }
+   ```
+
+   **`apps/web/lib/dashboard-labels.ts`**, **`apps/web/lib/channel-labels.ts`**, **`apps/web/lib/date-locale.ts`** (created) — shared labelers/locale mappers.
+
+   **`apps/web/components/dashboard-shell/navigation-types.ts`** — generic source types:
+   ```ts
+   export type NavigationSourceLink<Key extends string = string> = { labelKey: Key; href: string; icon?: LucideIcon }
+   export type NavigationSourceGroup<Key extends string = string> = { labelKey: Key; items: readonly NavigationSourceItem<Key>[] }
+   ```
+
+   **`apps/web/components/dashboard-shell/translate-navigation.ts`** (created) — `useTranslatedNavigation(groups, "navigation.portal" | "navigation.admin")`.
+
+   **`packages/contracts/src/index.ts`** — `supportedLocaleSchema`; `authUserSchema` gained `locale: supportedLocaleSchema.nullable()`; `portalDashboardKpiSchema` → `{key, value, change, descriptionKey}`; `adminDashboardKpiSchema` → `{key, value, currency, change, descriptionKey}`; `dashboardBreakdownItemSchema` → `{key, count}`; `upcoming.channelKey`.
+
+   **`apps/api/src/identity/identity.service.ts`** — selects `users.locale` in 4 query sites; private guard:
+   ```ts
+   private supportedLocale(value: string | null): SupportedLocale | null {
+     const parsed = supportedLocaleSchema.safeParse(value)
+     return parsed.success ? parsed.data : null
+   }
+   ```
+
+   **`apps/api/src/publishing/publishing.service.ts`** — the only real (non-formatting) API change in the final commit set:
+   ```ts
+   // `now` marca la publicación inmediata: la interfaz decide cómo leerlo.
+   time: post.status === 'processing' && !post.scheduledAt ? 'now' : when.toISOString().slice(11, 16),
+   // Sin texto, el título queda vacío y la interfaz pone su propio rótulo.
+   title: content.length > 54 ? `${content.slice(0, 51)}…` : content,
+   ```
+
+   **`apps/web/features/rss-schedules/types/rss-schedules.ts`** — rewritten so rows hold raw instants:
+   ```ts
+   export type RssSchedule = { id, name, feedUrl, targets: string[], status, nextRunAt: string | null, lastRunAt: string | null, queued: number }
+   ```
+
+   **`apps/web/features/link-bio/link-bio-templates.ts`** — catalog stripped to `key`/`category`/`theme`; `LinkBioTemplateCategory = "dark" | "light" | "color"`.
+
+   **`apps/web/features/link-bio/components/link-bio-blocks.ts`** — `emptyBlock(type: LinkBioBlockType, title = "")`.
+
+   **`apps/web/features/teams/components/team-utils.ts`** — reduced to `roleVariants` + `initials`; its error dictionary moved into global `errors`.
+
+   **`scripts/audit_i18n_messages.py`** (created) + `"audit:i18n": "python3 scripts/audit_i18n_messages.py"` in root `package.json`.
+
+   **`.prettierignore`** — added `**/messages/*.d.json.ts`.
+
+   **`docs/reglas/design.md`**, **`docs/reglas/calidad.md`**, **`apps/web/CLAUDE.md`** — added i18n norms and `bun run audit:i18n` to close-out commands.
+
+4. Errors and fixes:
+
+   - **Type augmentation not wired**: typecheck passed but didn't validate keys. Fixed by creating `global.d.ts`. Verified negatively (invented key → `error TS2554`).
+   - **`t("copyright", {year: number})`** → `Type 'number' is not assignable to type 'string'`. Fixed with `String(new Date().getFullYear())`. Later same class of error for counters → declared as `{n, number}` in ICU.
+   - **11 API spec fixtures** missing `locale` after contract change → fixed with a python regex script adding `locale: null`.
+   - **`.prettierignore` pattern wrong**: `apps/web/messages/*.d.json.ts` didn't match when prettier ran from the `apps/web` workspace → changed to `**/messages/*.d.json.ts`.
+   - **`t("status")` collided with a `status` message group** → renamed column header keys to `statusColumn`.
+   - **`useTranslations` inserted into `rowSelection`** (not a React component) → `react-hooks/rules-of-hooks` violation that would have broken render. Caught by lint, removed.
+   - **~20 lint warnings introduced across batches** (missing `t`/`format` deps in hooks, unused hooks, duplicated functions left after moving them into components). All found by comparing lint output **rule-by-rule** against HEAD, not by total count — my first comparison missed them because it only covered one of ESLint's two output formats.
+   - **`git diff -w` insufficient** to detect Prettier-only changes (line wrapping and trailing commas aren't intra-line whitespace) → wrote a comparison stripping whitespace + semicolons + commas.
+   - **HEAD did not compile**: user's commit `27a3755`/`1095737` captured `link-bio-page.tsx` calling `emptyBlock(type, title)` but not `link-bio-blocks.ts` with the 2-arg signature. Verified via `git stash` + `bun run typecheck` → `link-bio-page.tsx(481,29): error TS2554: Expected 1 arguments, but got 2`. Fixed by the first commit on the new branch.
+   - **41 files of foreign Prettier reformatting** in `apps/api` and `packages/ui` from my `bun run format` runs → reverted with `git checkout HEAD -- apps/api packages` per `entrega.md`, then re-applied the single real change by hand.
+   - **`rg -r` flag misuse** and shell confusion (zsh not fish; `cd` persistence between Bash calls) caused several mangled/failed commands — worked around with absolute paths and re-runs.
+
+5. Problem Solving:
+
+   Beyond moving text to keys, four structural problems surfaced and were fixed:
+   1. **The API sent prose inside data** — dashboard KPIs/breakdowns, Publishing's `'Ahora'` sentinel and `'Publicación sin texto'` fallback. Converted to keys/codes.
+   2. **Structures storing pre-formatted text** — RSS rows held "En pausa" inside a date field; Files' `toFolder`/`toAsset` and plans' price formatter fixed the locale at module level. Now they hold raw values or receive the formatter.
+   3. **Duplicated error dictionaries** — Teams and AI Studio each had their own with differing wordings. Unified into `errors` + `useApiErrorMessage`.
+   4. **Libraries with hardcoded locale** — `date-fns` and FullCalendar in the calendar → `lib/date-locale.ts`.
+
+   Validation regime per batch: `bun run typecheck`, `bun run build`, `bun run audit:i18n`, `bun run audit:portal-admin-ui`, `bun run lint` (compared rule-by-rule vs HEAD, always returned to 78 warnings), `bun run format`, `git diff --check`. API suite run occasionally: 19 passed, 40 skipped (no test DB).
+
+   **Never verified**: the language switch in a browser. Repeatedly flagged to the user as the one thing I cannot check.
+
+6. All user messages:
+   - "ok, ahora dime como funciona las traducciones en zapisocial y como podríamos hacer en zapiv2?"
+   - "ok vamos a ello, crea el plan"
+   - (via `/goal` command args) "ok, vamos a ello"
+   - "ok comitea y luego sigue"
+   - "oye solo pushea ya..."
+
+   Standing constraints from prior session/memory that remain in force: **never `git push` any repository unless the user explicitly asks for that repo at that moment** (a prior unauthorized push made the user very angry and had to be force-reverted). Repo rule `docs/reglas/entrega.md`: "Confirmar y publicar solo cuando el usuario lo pide. No se hace `push` por iniciativa propia." Also: no secrets, tokens, `.env` values or production data in code, docs, plans, fixtures, commit messages or PR descriptions.
+
+7. Pending Tasks:
+   - Finish `admin-support` migration (only `admin-support-page.tsx` remains)
+   - Migrate remaining Admin features: `platform-admin` (~193 strings), `ai-admin` (~208), `admin-content` (~175)
+   - Fase 2 leftovers: replace remaining `Intl.*` with literal locale per migrated feature
+   - Fase 3: neutralize `packages/contracts` Zod `message:` prose into keys/codes
+   - Fase 4: per-recipient email language using `users.locale` (and update `plantillas-correo-v2.md`)
+   - Fase 5 (optional): Admin translation editor with DB overrides + AI auto-translation
+   - User-side: visual review of the language switch; decide whether the branch goes to `main` (which triggers Dokploy deploy)
+
+8. Current Work:
+
+   Immediately before this summary I was migrating `admin-support` (the 5th of 9 Admin features). Already completed and written to disk in this feature:
+   - `admin-support-ticket-page.tsx` — removed `statusLabel` catalog, replaced with `t(\`status.${...}\`)`, migrated toasts (`replyRequired`, `replySent`, `replyFailed`, `statusFailed`), empty/forbidden states, `Sin responder` badge, reply placeholder; added `const t = useTranslations("adminSupport")`
+   - `admin-support-new-case-sheet.tsx` — migrated `missingFields`, `caseCreated`, `newCase`, `selectPerson`, `category`, `selectCategory`, `noCategory`, `type`, `selectType`, `noType`, `labels`; hook added
+   - `support-catalog-panel.tsx` — migrated `missingFields`, `active`, `saved`, `recordCreated`, `recordDeleted`, filters, table heads, `catalogStatus.active/inactive`, `emptyFilteredDescription`, `noMatches`, `cancel`; hook added
+
+   Still pending in this feature: `admin-support-page.tsx` (81 strings). I had just listed its remaining strings — metrics labels ("Abiertos"/"Casos en curso", "Sin responder", "Resueltos", "Cerrados"), tabs ("Casos", "Categorías", "Etiquetas", "Tipos"), search/filter labels ("Buscar casos de soporte", "Filtrar por cola", "Filtrar por estado", "Filtrar por categoría"), table heads, empty states, FAB "Nuevo caso", and the three catalog `copy` objects passed to `SupportCatalogPanel` (`createLabel`, `emptyTitle`, `searchPlaceholder`, descriptions for categorías/etiquetas/tipos). Note its fixture data (person names like "María Andrade", workspace names, catalog samples like "Urgente"/"Incidencia") is synthetic mock content and should be left as-is.
+
+   **No `adminSupport` message keys have been added to `messages/es.json`/`en.json` yet** — the three migrated files currently reference keys that don't exist, so the build would fail until those keys are added.
+
+   Repo state: on branch `i18n-portal-admin`, pushed to `origin` (9 commits + `4f00d12 feature: traducir los ajustes de plataforma de Admin`). 2,074 keys synced before this in-progress work. Portal fully migrated; Admin 5 of 9.
+
+9. Optional Next Step:
+
+   Finish `admin-support`: migrate `admin-support-page.tsx`, then add the complete `adminSupport` namespace to both `apps/web/messages/es.json` and `en.json`, then run the full validation chain (`bun run audit:i18n`, `bun run build`, `bun run typecheck`, `bun run lint` compared rule-by-rule vs HEAD, `bun run format`, `git diff --check`) and commit as a coherent unit.
+
+   This follows directly from the last action taken. My most recent assistant message before the interruption stated: "Continúo con `admin-support`." and I was inspecting `admin-support-page.tsx`'s remaining strings. Per the user's "ok comitea y luego sigue" and the active goal, work continues without pausing — but note the user's last explicit instruction was "oye solo pushea ya...", which has been satisfied (branch pushed, not `main`, since pushing `main` triggers a Dokploy production deploy).
+
+If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/giossue/.claude/projects/-home-giossue-Documentos-ZapiV2/4640032b-b84a-4017-81cc-3c00a0b8b94f.jsonl
+Continue the conversation from where it left off without asking the user any further questions. Resume directly — do not acknowledge the summary, do not recap what was happening, do not preface with "I'll continue" or similar. Pick up the last task as if the break never happened.
