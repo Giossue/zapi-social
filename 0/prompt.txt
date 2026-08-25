@@ -1,0 +1,1 @@
+ok, como podríamos hacer que tengan otros colores? O sea que el usuario pueda elegir el color de los bordes, relleno, texto. La forma de las lineas, por ejemplo en los flowcahrt TD que las líneas sean rectas
