@@ -1,0 +1,5 @@
+ok, lo que no qtengo crea solo:
+: **User Report**, **User Roles**, **Teams (vista admin**),  **RSS Feeds** como gestión dentro de Blogs.
+Dices que hay **r** (hay carpetas `admin/themes` y `admin/menu-builder`, esos residuos quiero que los borres
+Soporte admin: crear ticket desde admin («New Ticket») y gestión de Labels/Types.
+Y en **AI Publishing** — si ya existe entonces agrégalo
