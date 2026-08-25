@@ -1,0 +1,3 @@
+Hay un problema enorme:
+Quiero que hagas un analisis profundo con: 
+Cuando le doy a soporte me manda a https://app.zapisocial.com/portal/support, pero si le doy a get started me manda a https://app.zapisocial.com/login y no me sale logeado, eso es una gran tontería por no hacer un manejo de accesos.
