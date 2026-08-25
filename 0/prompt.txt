@@ -1,0 +1,3 @@
+ok, hasta eso arregla esto, quiero solo que esté al medio sin este diseño a la derecha 
+
+ , revisa en diseño ideal para ver otro login, pero ojo, yo ya tengo configurado un poco de cosas en mi login y register, así que ten en mente que sería cuestión de diseño
