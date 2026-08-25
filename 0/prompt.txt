@@ -1,0 +1,16 @@
+hint: Las ramas se han divergido y hay que especificar cómo reconciliarlas.
+hint: Se puede hacerlo ejecutando uno de los comandos siguiente antes del
+hint: próximo pull:
+hint:
+hint:   git config pull.rebase false  # fusionar
+hint:   git config pull.rebase true   # rebasar
+hint:   git config pull.ff only       # solo avance rápido
+hint:
+hint: Se puede reemplazar "git config" con "git config --global" para aplicar
+hint: la preferencia en todos los repositorios. También se puede pasar
+hint: --rebase, --no-rebase o --ff-only en el comando para sobrescribir la
+hint: configuración por defecto en cada invocación.
+fatal: Necesita especificar cómo reconciliar las ramas divergentes.
+
+
+ayudame arreglando esto, siempre pasa en landing zapi, no quiero que pushees
