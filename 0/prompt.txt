@@ -1,0 +1,2 @@
+Stop hook feedback:
+[ok, vamos a ello]: The condition 'ok, vamos a ello' does not appear anywhere in the transcript. The last assistant message ends by asking the user whether to push 18 unpublished commits to `i18n-portal-admin` and summarizes what remains pending from the user (applying the migration and reviewing the language change). The assistant is waiting for user direction, not proceeding based on an instruction to begin work.
