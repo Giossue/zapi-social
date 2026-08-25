@@ -1,0 +1,5 @@
+ok, ahora quiero que me listes de 
+
+[@/home/giossue/Documentos/ZapiSocial/](file:///home/giossue/Documentos/ZapiSocial/)
+
+ las opciones del sidebar en admin y portal
