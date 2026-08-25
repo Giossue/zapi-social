@@ -1,0 +1,37 @@
+<task-notification>
+<task-id>a816e997d7e866de8</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-giossue-Documentos-ZapiV2/4640032b-b84a-4017-81cc-3c00a0b8b94f/tasks/a816e997d7e866de8.output</output-file>
+<status>completed</status>
+<summary>Agent "Responsive tablas Admin + FABs" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Ambas validaciones pasan. Resumen final:
+
+## Tarea A — columnas responsive (patrón `hidden md/lg:table-cell` emparejado en `TableHead` y `TableCell`, según `file-list-view.tsx` de diseño ideal)
+
+| Archivo | Columnas y breakpoints |
+|---|---|
+| `apps/web/features/plans/components/plans-page.tsx` | Móvil: Plan, Precio, Estado, Acciones. `md`: + Cobro, Suscriptores. `lg`: + Prueba, Permisos (8 en total). |
+| `apps/web/features/platform-admin/components/audit-events-page.tsx` | Móvil: Evento, Estado, Fecha. `md`: + Origen, Cuenta. `lg`: + Espacio. |
+| `apps/web/features/admin-settings/components/static-pages-page.tsx` | **Sin cambios**: solo 3 columnas (Página, Estado, Acciones), todas esenciales y ≤4 en móvil. |
+| `apps/web/features/platform-admin/components/admin-module-preview.tsx` | Columnas dinámicas por tab (hasta 8 visibles antes). Añadí helper `responsiveColumnClass(index)`: columna 0 siempre visible, índices 1-2 a `md`, ≥3 a `lg`; Estado y Acciones siempre visibles → móvil muestra 3. Heads y cells iteran los mismos arrays por índice, por lo que quedan emparejados en todos los módulos (users, credits, affiliate, coupons, payments, subscriptions). |
+| `apps/web/features/admin-settings/components/infrastructure-pages.tsx` (CronsSettingsPage) | Escalonado completado: Frecuencia pasa de `lg` a `md` (head y cell); Próxima ejecución queda en `lg`. Móvil: Tarea + Cola (2 columnas). Pares head/cell verificados. |
+
+## Tarea B — FloatingActionButton (acción de escritorio pasa a `hidden sm:inline-flex`, FAB al final según patrón de `groups-page.tsx`)
+
+| Archivo | FAB y acción |
+|---|---|
+| `apps/web/features/automation/components/automation-page.tsx` | Un FAB por panel de tab con acción propia: en Claves API label "Nueva clave" → `setIsKeyOpen(true)`; en Webhooks label "Nuevo webhook" → `setEditingWebhook(null)` + `setIsWebhookOpen(true)`. Como Radix desmonta los `TabsContent` inactivos, solo se renderiza el de la tab activa y su label cambia con la tab; la tab Actividad no muestra FAB. Ambos gated por `data.canManage`, igual que los botones de escritorio (ahora `hidden sm:inline-flex`). |
+| `apps/web/features/watermarks/components/watermarks-page.tsx` | La acción principal es el submit del editor: FAB dispara `void save()` con el mismo `disabled={!canSave \|\| pending}` y label dinámico ("Crear marca de agua" / "Aplicar a cuentas" / "Guardar cambios"); icono `Save` al editar, `Plus` por defecto al crear. El botón submit de escritorio pasa a `hidden sm:inline-flex`. |
+| `apps/web/features/admin-notifications/components/admin-notifications-page.tsx` | FAB "Nuevo anuncio" → `setEditing(null)` + `setSheetOpen(true)`, al final del contenedor de la página. |
+| `apps/web/features/admin-manual-payments/components/admin-manual-payments-page.tsx` | FAB "Registrar pago" → `searchWorkspaces("")` + `setSheetOpen(true)`, dentro del `TabsContent` de Pagos (la tab Configuración no tiene acción de crear, no muestra FAB). |
+
+No se añadió FAB en `plans-page.tsx` ni `static-pages-page.tsx` porque ya lo tenían.
+
+## Validaciones
+- `bun --cwd apps/web typecheck`: sin errores.
+- `bun run audit:portal-admin-ui`: "UI audit: sin hallazgos" (0 hallazgos).
+
+No se tocaron datos, handlers, contratos ni composición general; solo clases responsive, los FAB y un helper de clases por índice en `admin-module-preview.tsx`. Queda pendiente la aprobación visual del usuario, conforme a `docs/reglas/design.md`.</result>
+<usage><subagent_tokens>176069</subagent_tokens><tool_uses>39</tool_uses><duration_ms>250387</duration_ms></usage>
+</task-notification>
