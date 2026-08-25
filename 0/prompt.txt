@@ -1,0 +1,55 @@
+<task-notification>
+<task-id>a89da89938047a27c</task-id>
+<tool-use-id>toolu_017C5GPdeWutoBUgWAAvXxME</tool-use-id>
+<output-file>/tmp/claude-1000/-home-giossue-Documentos-ZapiV2/4640032b-b84a-4017-81cc-3c00a0b8b94f/tasks/a89da89938047a27c.output</output-file>
+<status>completed</status>
+<summary>Agent "Auditar límites de plan e instalador ZapiSocial" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Findings (rutas relativas a `/home/giossue/Documentos/ZapiSocial`).
+
+## A. Límites de plan
+
+**A1. Dónde se definen**
+- Tabla `plans` en `database/migrations/2026_04_18_110000_create_database.php:873-897`. Columnas relevantes: `permissions` (json), `limits` (json), `features` (json), `free_plan`, `default_signup_plan`, `trial_day`, `type` (1=mensual, 2=anual, 3=lifetime), `status`, `price/monthly_price/yearly_price`.
+- HECHO: `limits` y `features` existen pero NO se leen en el código; TODO se guarda en `permissions`. `Modules\AdminUser\Models\User::planLimit()` (`modules/AdminUser/Models/User.php:310`) y `hasPlanFeature()` (línea 274) leen `plan-&gt;permissions[$key]` únicamente.
+- Las claves no están en una tabla ni enum: cada módulo las registra en runtime con `register_plan_permission()` (`app/Support/helpers.php:156`, registry `app/Support/Plans/PlanPermissionRegistry.php`). Registradores: `modules/AppChannels/Providers/AppChannelsServiceProvider.php:131`, `AppPublishing…:611`, `AppTeams…:64`, `AppFiles…:119`, `AppAIStudio…:105`, `AppAutomation`, `AppBulkPosts`, `AppLinkBio`, `AppAffiliate`, etc. `modules/AdminPlans/Support/DefaultPlanPermissions.php` devuelve `[]` (vacío).
+- Claves de límite numéricas observadas: `max_channels` + `channel_count_mode` (`entire_social_network|each_social_network`), `max_posts_per_month`, `max_ai_publishing_posts_per_month`, `max_team_members`, `max_storage_size_mb`, `max_file_size_mb`, `ai_studio_video_max_seconds`, `credits_usage_limit` (-1 = ilimitado) + un coste por acción de crédito.
+- Créditos: `modules/AdminPlans/Support/PlanPermissionSchema.php` inyecta el bloque `credits_usage` con `credits_usage_limit` más un campo numérico por cada acción de `credit_actions()`.
+- Edición admin: `modules/AdminPlans/Livewire/PlanForm.php` + `PlanPermissionSchema::normalize()/mapToState()`.
+
+**A2. Dónde se hace cumplir**
+- Conectar cuenta social: `modules/AppChannels/Support/ChannelPlanAccess.php` — `remainingSlots()` (línea 95) usa `max_channels` + `channel_count_mode`; `hasReachedLimit()` (línea 88). Se invoca en cada controlador OAuth: `modules/AppChannelFacebookPages/Http/Controllers/FacebookPageConnectController.php:38`, `AppChannelInstagramProfiles/…:36`, `AppChannelInstagramUnofficial/…:35,61`, `AppChannelLinkedinPages/…:38`, `AppChannelLinkedinProfiles/…:38`, `AppChannelTiktokProfiles/…:39`, `AppChannelXProfiles/…:38`, y en Livewire `PortalDashboard.php:214,326` + los `*Picker.php` (recortan la selección al remanente).
+- Programar post: NO hay enforcement. `max_posts_per_month` sólo se lee en `modules/AppPublishing/Providers/AppPublishingServiceProvider.php:163` (widget de dashboard) y `max_ai_publishing_posts_per_month` en la línea 285 (widget). No aparece ningún chequeo en creación/guardado de posts. El único gate de publicación es booleano: `canUsePlanFeature('publishing')` en el mismo provider (líneas 138, 470, 525).
+- Invitar miembro: `modules/AppTeams/Livewire/Workspace.php` — `maxTeamMembers()` (1161), `hasReachedTeamMemberLimit()` (1169), `canJoinTeamUnderCurrentPlan()` (1180). Enforcement vive en el componente Livewire, no en policy ni middleware.
+- Uso de AI / créditos: `modules/AppCredits/Support/CreditService.php` — `planLimit()` lee `credits_usage_limit`, `costFor()` lee el coste por acción del plan, `canConsume()`/`ensureCanConsume()` lanzan `InsufficientCreditsException`. Llamado desde los módulos AI (`AppAIContent`, `AppAIStudio/Support/AiContentStudioService.php`, `AppAIRepurpose`, `AppAITrendFinder`, `AppAICampaignWizard`, `AppAiPublishing/Jobs/ProcessAiPublishingRunJob.php`, `AppRssSchedules/Services/RssScheduleService.php`, `AppLinkBio`, etc.). Nota: si `negativeBalanceAllowed()` o `!actionBlockOnEmpty()`, `canConsume()` devuelve `true` siempre (línea ~92).
+- Subir archivos: `modules/AppFiles/Support/FileManager.php` — `maxUploadMb()` (43, plan `max_file_size_mb` con fallback a opción global), `maxStorageMb()` (54, `max_storage_size_mb`; negativo = ilimitado), `storageUsedBytes()` (187) y la comprobación de cuota en línea ~197-203. Aplicado en `modules/AppFiles/Http/Controllers/PortalFileController.php:126,301,541` y `modules/AppFiles/Livewire/PortalIndex.php:500`.
+- Patrón general: gating por feature booleana con `canUsePlanFeature('x')` / `hasPlanFeature('x')` disperso en controladores y componentes Livewire. No existe middleware de plan por ruta ni Policies de plan.
+- Patrón repetido y permisivo: `return ! $planOwner?-&gt;plan || $planOwner-&gt;hasPlanFeature('x')` — si el usuario NO tiene plan asignado, el módulo queda ABIERTO (`AppBulkPosts/Http/Controllers/AppBulkPostController.php:186`, `AppBulkPosts/Livewire/BulkPostsIndex.php:183`, `AppCaptions/Livewire/CaptionWorkspace.php:251`, `AppAiPublishing/Livewire/AiPublishingIndex.php:261` y `AiPublishingForm.php:478`, `AppAutomation/Support/AutomationAccess.php:19`, `AppAIStudio/Http/Controllers/PromptHistoryController.php:84`, `AISettingsController.php:241`, `AppCredits/Http/Controllers/CreditUsageController.php:73`, `AppTeams/Livewire/Workspace.php:1155`). Convive con la variante estricta `canUsePlanFeature()` usada en Channels/Publishing/Files.
+
+**A3. Degradación / expiración**
+- `modules/AppPayments/Support/UserPlanTransitionService.php`: `preview()` clasifica modos `new|trial|renewal|renewal_lifetime|replace|upgrade|downgrade_scheduled`. El downgrade NO es inmediato: `applyPurchasedPlan()` sólo escribe `users.next_plan_id` y el cambio se aplica al vencer.
+- Activación diferida: `activateScheduledPlanIfDue()` (línea ~97) corre en cada request vía `App\Http\Middleware\ResolveUserPlanState` (registrado en `bootstrap/app.php`), y en batch con `activateDuePlans()`.
+- Expiración: `User::hasActivePlan()` (`modules/AdminUser/Models/User.php:240`) devuelve false si `plan_expires_at` está en el pasado o el plan está inactivo. Esto sólo apaga las features que usan `canUsePlanFeature()`; NO hay middleware que bloquee el portal ni periodo de gracia. Las features que usan `hasPlanFeature()` directamente siguen funcionando tras la expiración (no comprueban fecha).
+- Trial: `isInPlanTrial()`/`trialEndsAt()` (líneas 249-271), derivado de `plan.trial_day` + `plan_started_at`.
+
+**A4. Módulos habilitados/deshabilitados**
+- Dos capas independientes: (1) plan → clave booleana en `plans.permissions`; (2) workspace → columna `teams.enabled_modules` (json) vía `Modules\AppTeams\Support\TeamWorkspaceAccess::enabledModules()` (línea 66) y `teamHasModule()` (línea 92), con defaults de `TeamPermissionRegistry::defaultEnabledModuleKeys()` y `alwaysEnabledModuleKeys()`.
+- UI: los ítems de menú se ocultan con callbacks `'visible' =&gt; fn () =&gt; …canUsePlanFeature(...)` en los ServiceProviders de módulo (p.ej. `modules/AppChannels/Providers/AppChannelsServiceProvider.php:59,128`; `AppPublishing…:138`).
+- Backend: mismo chequeo repetido dentro de controladores/Livewire (`abort_unless(...404)` en AppAIStudio). Las rutas de módulo sólo llevan `['web','auth','verified']` (p.ej. `modules/AppBulkPosts/Routes/web.php:7`), sin middleware de plan.
+
+## B. Instalador / comprador
+
+**B1. Instalador web**: sí. Ruta `/installer` (GET+POST) en `app/Installer/routes/web.php`, controlador `app/Installer/Http/Controllers/InstallerController.php`, vista única `app/Installer/resources/views/index.blade.php` (570 líneas, wizard de 3 pasos: `requirements` → `setup` → `finish`). No es `/install`.
+- Requisitos: `app/Installer/Support/InstallerState::requirements()` (PHP &gt;= 8.3, 10 extensiones, escribibilidad de `.env`, `bootstrap/cache`, `storage`), configurados en `app/Installer/config/installer.php`.
+- Redirección forzada al instalador y fallback a sesión/caché `file`: `app/Installer/Http/Middleware/PrepareInstallation.php` (prepend global en `bootstrap/app.php`). `RedirectIfInstalled.php` protege la ruta inversa.
+- `app/Installer/Support/InstallerService::install()`: escribe `.env` (`EnvFileManager`), configura la conexión MySQL en runtime, **exige base de datos vacía** (`ensureFreshDatabase()`, `SHOW TABLES`), corre `migrate --force`, seeders, crea admin (`is_super_admin=true`, referral + perfil de afiliado + team personal), asigna plan `agency-lifetime`, guarda opciones y marca `installer_completed_at` en `options` + `APP_INSTALLED=true`. Rollback del `.env` original ante excepción.
+
+**B2. Licencia / purchase code**: el instalador NO pide ni valida purchase code. La única verificación Envato-like es del marketplace de módulos, post-instalación: `modules/AdminMarketplace/Services/MarketplacePackageService.php` hace `POST {marketplaceApiBase}/install` con `purchase_code`, `domain`, `website` (línea ~305) y espera `status == 1`; guarda `purchase_code`, `license_type`, `licensed_domain` en `marketplace_packages`. Usa `Http::withOptions(['verify' =&gt; false])` (SSL desactivado) en las líneas 305, 335, 522, 570.
+
+**B3. Documentación**: NO hay carpeta `docs/` ni `README.md`. El único markdown del repo es `levantar.md`.
+
+**B4. Actualizaciones**: no existe ruta `/update` ni versionado de app (sin `config/app.php: version`, sin `APP_VERSION`). Sólo autoupdate de paquetes del marketplace: comando `marketplace:auto-update` programado en `modules/AdminMarketplace/Providers/AdminMarketplaceServiceProvider.php:33-45` y `MarketplacePackageService` (línea ~501) que sólo actualiza paquetes `source_type === 'purchase'`. Una sola migración monolítica (`2026_04_18_110000_create_database.php`) — sin migraciones incrementales para upgrades.
+
+**B5. Demo/seeders**: `database/seeders/ZapiSocialPlanSeeder.php` (planes Starter/Growth/… con permisos precargados), `AITemplateCategorySeeder.php`, `AITemplateSeeder.php` (data en `database/seeders/data/ai_templates.json`); los tres se ejecutan desde `installer.default_seeders`. Además existe modo demo global: `config/app.php:44` `demo_mode` (`APP_DEMO`) + `app/Http/Middleware/PreventDemoModeWriteOperations.php` e `InjectDemoThemeSwitcher.php`. No hay seeder de usuarios/posts demo.</result>
+<usage><subagent_tokens>62270</subagent_tokens><tool_uses>39</tool_uses><duration_ms>160494</duration_ms></usage>
+</task-notification>
