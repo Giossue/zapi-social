@@ -1,0 +1,3 @@
+a ver, cuando uso el filter de tipo y sino hay solo sale cargando 
+
+ y borra ese texto que dice Archivos
