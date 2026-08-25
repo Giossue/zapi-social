@@ -1,0 +1,7 @@
+esperaba que usarás en mcp de 21 st, para que se vea algo así:
+https://21st.dev/community/templates/s/chat?preview=%2F%40tailgrids%2Ftemplates%2Ftailgrids-ai-chat
+https://21st.dev/@educalvolpz/components/ai-context-meter
+https://21st.dev/@kvnkld/components/image-generation
+https://21st.dev/@theshanelevine/components/thinking
+https://21st.dev/@educalvolpz/components/ai-sources
+Porque estás poniendo un revuelto de todo y se ve mal
