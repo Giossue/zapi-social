@@ -24,6 +24,7 @@ async function tolerate<T>(load: () => Promise<T>): Promise<T | null> {
 
 const DEFAULT_SECTIONS: PublicSiteSections = {
   landingEnabled: true,
+  docsUrl: "",
   showPricing: true,
   showFaqs: true,
   showBlog: true,

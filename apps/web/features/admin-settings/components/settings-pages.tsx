@@ -153,6 +153,13 @@ export function PublicSiteSettingsPage() {
           description: t("publicSite.landingEnabledHint"),
         },
         {
+          kind: "text",
+          label: t("publicSite.docsUrl"),
+          name: "docsUrl",
+          placeholder: "https://docs.tudominio.com",
+          description: t("publicSite.docsUrlHint"),
+        },
+        {
           kind: "switch",
           label: t("publicSite.showPricing"),
           name: "showPricing",

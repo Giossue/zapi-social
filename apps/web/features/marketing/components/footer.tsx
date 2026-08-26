@@ -116,6 +116,18 @@ const Footer = async ({
                     </Link>
                   </li>
                 ))}
+                {sections?.docsUrl ? (
+                  <li className="mt-2">
+                    <a
+                      href={sections.docsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={linkClass}
+                    >
+                      {tFooter("links.documentation")}
+                    </a>
+                  </li>
+                ) : null}
               </ul>
             </Container>
             <Container delay={0.2} className="h-auto">

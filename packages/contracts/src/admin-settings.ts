@@ -51,6 +51,14 @@ export const adminStaticPagesSettingsSchema = z.object({
 
 export const adminPublicSiteSettingsSchema = z.object({
   landingEnabled: z.boolean().default(true),
+  docsUrl: z
+    .string()
+    .trim()
+    .max(2048)
+    .refine((value) => value === "" || /^https?:\/\//i.test(value), {
+      message: "La dirección debe empezar por http:// o https://",
+    })
+    .default(""),
   showPricing: z.boolean().default(true),
   showFaqs: z.boolean().default(true),
   showBlog: z.boolean().default(true),

@@ -1164,6 +1164,8 @@
     "loading": "Cargando {title}",
     "publicSite": {
       "description": "Controla qué muestra el sitio público y cuánto contenido aparece en la portada.",
+      "docsUrl": "Dirección de la documentación",
+      "docsUrlHint": "Si la rellenas, el pie del sitio público enlaza a tu documentación. Déjala vacía para no mostrar el enlace.",
       "featuredFaqsLimit": "Preguntas en la portada",
       "featuredPlansLimit": "Planes en la portada",
       "landingEnabled": "Mostrar la portada",
@@ -4280,6 +4282,7 @@
         "availableLanguages": "Idiomas disponibles",
         "blog": "Blog",
         "contact": "Contacto",
+        "documentation": "Documentación",
         "faq": "Preguntas",
         "features": "Funciones",
         "included": "Qué incluye",

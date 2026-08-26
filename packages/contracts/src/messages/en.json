@@ -1164,6 +1164,8 @@
     "loading": "Loading {title}",
     "publicSite": {
       "description": "Control what the public site shows and how much content appears on the home page.",
+      "docsUrl": "Documentation address",
+      "docsUrlHint": "Fill it in and the public site footer links to your documentation. Leave it empty to hide the link.",
       "featuredFaqsLimit": "FAQs on the home page",
       "featuredPlansLimit": "Plans on the home page",
       "landingEnabled": "Show the home page",
@@ -4280,6 +4282,7 @@
         "availableLanguages": "Available languages",
         "blog": "Blog",
         "contact": "Contact",
+        "documentation": "Documentation",
         "faq": "FAQ",
         "features": "Features",
         "included": "What's included",

@@ -77,6 +77,7 @@ export const publicSitePostSchema = publicSitePostSummarySchema.extend({
 
 export const publicSiteSectionsSchema = z.object({
   landingEnabled: z.boolean(),
+  docsUrl: z.string(),
   showPricing: z.boolean(),
   showFaqs: z.boolean(),
   showBlog: z.boolean(),
