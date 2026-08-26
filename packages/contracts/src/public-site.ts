@@ -162,6 +162,7 @@ export type PublicSitePostsResponse = z.infer<
 
 export const publicBrandingSchema = z.object({
   siteName: z.string(),
+  primaryColor: z.string(),
   favicon: z.string(),
   logoLight: z.string(),
   logoDark: z.string(),

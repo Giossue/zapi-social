@@ -1129,6 +1129,7 @@ declare const messages: {
         logoLight: "Isotipo (fondo claro)"
       }
       choose: "Subir imagen"
+      colorSaved: "Color principal actualizado."
       description: "Sustituye el favicon y los logotipos por los tuyos. El nombre sale de Configuración general. PNG, JPG, WebP, SVG o ICO, hasta 2 MB."
       hints: {
         favicon: "El icono de la pestaña del navegador."
@@ -1138,6 +1139,8 @@ declare const messages: {
         logoLight: "Símbolo sin texto, para fondos claros."
       }
       loadFailed: "No pudimos cargar la configuración de marca."
+      primaryColor: "Color principal"
+      primaryColorHint: "Se aplica a botones, enlaces activos y foco en Portal, Admin y el sitio público. El texto encima se ajusta solo para que se lea."
       restore: "Restaurar"
       restored: "Imagen restaurada a la de origen."
       title: "Marca"

@@ -123,7 +123,7 @@ La navegación y el pie ocultan cada enlace cuando su sección está desactivada
 
 - **`marketingStats`.** En la plantilla Laravel no muestra datos: fabrica cifras a partir del inventario (`planes × 302 + 1208` como número de portada, `max(24, preguntas + 24)`). Los contadores reales sí se exponen en `stats` del overview y se usan como resumen honesto en Admin.
 - **Temas (`theme_view` + módulo AdminThemes).** El sitio público de V2 tiene una sola composición. Es un módulo entero, no una diferencia de esta vertical.
-- **Plan vitalicio (`Lifetime`).** `billingType` elige el producto de Polar (`monthlyProductId` / `yearlyProductId`). Un valor `lifetime` caería al producto mensual y **cobraría una suscripción mensual por un plan de pago único**. Necesita un producto de pago único en la configuración de Polar y su manejo en suscripciones antes de tocar el enum; queda fuera de esta vertical.
+- **Plan vitalicio (`Lifetime`).** Descartado por decisión de producto: Zapi V2 no ofrecerá pago único, así que `billingType` se queda en mensual y anual.
 
 ## Tolerancia a versiones desacopladas
 
@@ -136,6 +136,10 @@ El producto se vende en CodeCanyon: el comprador debe poder cambiar nombre, favi
 - **Nombre.** Sale de `siteName` (Configuración general). Estaba incrustado en 15 claves de los catálogos de traducción —`Iniciar sesión - Zapi Social`, `Admin - Zapi Social`, `© {year} Zapi Social`—, que es el peor sitio posible: obligaba al comprador a editar JSON. Ahora esas claves llevan `{brand}` y el valor se inyecta en cada superficie.
 - **Imágenes.** Grupo de ajustes `branding` con cinco piezas equivalentes a las de ZapiSocial: `favicon`, `logoLight`, `logoDark`, `logoBrandLight` y `logoBrandDark`. Se suben desde Admin → Configuración → Marca; se guardan en `FILES_STORAGE_PATH/branding` y se sirven en `GET /v1/public/branding/:asset` con un token de versión en la URL para invalidar caché. «Restaurar» borra el archivo y devuelve el de origen.
 - **Respaldo.** Sin nada configurado se usan los assets incluidos en `apps/web/public/brand/`. La landing y el panel nunca quedan sin logo.
+
+- **Color principal.** `primaryColor` (hex) se inyecta como `--primary`, `--ring` y `--sidebar-primary` desde un `<style id="brand-color">` en el layout raíz, con selector `:root:root` para ganar a `.dark`. Alcanza a Portal, Admin **y** la landing de una vez, porque la capa `.marketing` redefine fondo y superficies pero deliberadamente no el primario. El `--primary-foreground` se calcula por luminancia relativa, así que un color claro no deja texto blanco ilegible. Sin valor, no se inyecta nada y manda el azul de `packages/ui`.
+
+Los presets `brutalist`, `soft-pop` y `tangerine` de `packages/ui/src/styles/presets/` siguen siendo **código muerto**: están importados pero nada pone `data-theme-preset`. Son paletas completas que chocarían con la tabla de color de `design.md`; el selector de color principal cubre lo que se necesitaba sin abrir esa puerta.
 
 El tipo real se detecta por firma binaria, no por la cabecera: el cliente envía `application/octet-stream` porque es el único parser que registra Fastify. Se aceptan PNG, JPG, WebP, SVG e ICO hasta 2 MB.
 

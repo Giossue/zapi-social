@@ -16,7 +16,7 @@ import { cn } from "@workspace/ui/lib/utils"
 
 import { BrandingProvider } from "@/components/branding-provider"
 import { ThemeProvider } from "@/components/theme-provider"
-import { getBranding } from "@/lib/branding"
+import { brandColorStyle, getBranding } from "@/lib/branding"
 import { SessionSynchronizer } from "@/features/identity/components/session-synchronizer"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
@@ -39,6 +39,7 @@ export default async function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const locale = await getLocale()
   const branding = await getBranding()
+  const brandStyle = brandColorStyle(branding.primaryColor)
   const demoMode = process.env.DEMO_MODE === "true"
   const tDemo = demoMode ? await getTranslations("demoMode") : null
 
@@ -52,6 +53,14 @@ export default async function RootLayout({
         fontMono.variable
       )}
     >
+      <head>
+        {brandStyle ? (
+          <style
+            id="brand-color"
+            dangerouslySetInnerHTML={{ __html: brandStyle }}
+          />
+        ) : null}
+      </head>
       <body>
         <NextIntlClientProvider>
           <BrandingProvider branding={branding}>

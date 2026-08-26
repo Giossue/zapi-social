@@ -65,6 +65,7 @@ export class BrandingService {
     const generalValues = adminGeneralSettingsSchema.parse(general);
     return {
       siteName: generalValues.siteName,
+      primaryColor: branding.primaryColor,
       favicon: this.publicUrl('favicon', branding.favicon),
       logoLight: this.publicUrl('logoLight', branding.logoLight),
       logoDark: this.publicUrl('logoDark', branding.logoDark),

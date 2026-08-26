@@ -71,7 +71,15 @@ export const brandingAssetSchema = z.enum([
 
 const brandingAssetValue = z.string().trim().max(2048).default("")
 
+export const brandColorSchema = z
+  .string()
+  .trim()
+  .regex(/^#[0-9a-fA-F]{6}$/)
+  .or(z.literal(""))
+  .default("")
+
 export const adminBrandingSettingsSchema = z.object({
+  primaryColor: brandColorSchema,
   favicon: brandingAssetValue,
   logoLight: brandingAssetValue,
   logoDark: brandingAssetValue,

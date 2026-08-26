@@ -1126,6 +1126,7 @@
         "logoLight": "Icon (light background)"
       },
       "choose": "Upload image",
+      "colorSaved": "Primary colour updated.",
       "description": "Replace the favicon and logos with your own. The name comes from General settings. PNG, JPG, WebP, SVG or ICO, up to 2 MB.",
       "hints": {
         "favicon": "The browser tab icon.",
@@ -1135,6 +1136,8 @@
         "logoLight": "Symbol only, for light backgrounds."
       },
       "loadFailed": "We couldn't load the branding settings.",
+      "primaryColor": "Primary colour",
+      "primaryColorHint": "Applies to buttons, active links and focus in the app and the public site. The text on top adjusts itself so it stays readable.",
       "restore": "Restore",
       "restored": "Image restored to the original.",
       "title": "Branding",
