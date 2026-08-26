@@ -45,3 +45,7 @@ ok haz todo, así mismo haz la parte de admin para configurarlo desde ahí
 ---
 
 así mismo el nombre, el favicon y los logos que saldrán en la landing, dentro de admin y portal, o sea ya no lo dejemos como duro, recuerda que debe ser personalizable para venderlo en codecanyon
+
+---
+
+ok, si hay temas? Para elegir el color principal en portal, admin y pagina landing? Ojo, no habrá lo de plan vitalicio, así que eso omitelo
