@@ -4140,6 +4140,27 @@
     "viewPublished": "View published",
     "viewsAndClicks": "{views, number} views · {clicks, number} clicks"
   },
+  "markdownEditor": {
+    "preview": "Preview",
+    "previewEmpty": "Write something to see how it looks.",
+    "toolbar": "Markdown formatting",
+    "tools": {
+      "bold": "Bold",
+      "bulletList": "Bullet list",
+      "code": "Code",
+      "codeBlock": "Code block",
+      "heading1": "Heading 1",
+      "heading2": "Heading 2",
+      "heading3": "Heading 3",
+      "image": "Image",
+      "italic": "Italic",
+      "link": "Link",
+      "orderedList": "Numbered list",
+      "quote": "Quote",
+      "rule": "Divider",
+      "strikethrough": "Strikethrough"
+    }
+  },
   "marketing": {
     "analysis": {
       "audienceDescription": "Understand how your audience responds and when it pays to post.",
@@ -5223,7 +5244,8 @@
     "title": "Static pages",
     "titleRequired": "The page needs a title.",
     "unavailable": "Pages unavailable",
-    "updated": "Page updated."
+    "updated": "Page updated.",
+    "contentHint": "Written in Markdown and rendered on the public page."
   },
   "support": {
     "actionColumn": "Action",

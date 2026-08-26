@@ -64,6 +64,8 @@ import {
 } from "@workspace/ui/components/sheet"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Switch } from "@workspace/ui/components/switch"
+
+import { MarkdownEditor } from "@/components/markdown-editor"
 import {
   Table,
   TableBody,
@@ -74,7 +76,6 @@ import {
 } from "@workspace/ui/components/table"
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@/components/table-pagination"
-import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
 import { loginPath } from "@/features/identity/login-redirect"
 
@@ -436,7 +437,10 @@ export function StaticPagesSettingsPage() {
       </div>
 
       <Sheet onOpenChange={setIsSheetOpen} open={isSheetOpen}>
-        <SheetContent className="w-full gap-0 p-0 sm:max-w-2xl" side="right">
+        <SheetContent
+          className="w-full gap-0 p-0 sm:max-w-none data-[side=right]:sm:w-full data-[side=right]:sm:border-l-0"
+          side="right"
+        >
           <SheetHeader className="border-b">
             <SheetTitle>
               {editingSlug ? t("editTitle") : t("create")}
@@ -484,15 +488,14 @@ export function StaticPagesSettingsPage() {
                 </Field>
                 <Field>
                   <FieldLabel htmlFor="page-content">{t("content")}</FieldLabel>
-                  <Textarea
+                  <MarkdownEditor
+                    className="min-h-96"
                     disabled={pending}
                     id="page-content"
-                    onChange={(event) =>
-                      setDraft({ ...draft, content: event.target.value })
-                    }
-                    rows={12}
+                    onChange={(content) => setDraft({ ...draft, content })}
                     value={draft.content}
                   />
+                  <FieldDescription>{t("contentHint")}</FieldDescription>
                 </Field>
                 <Field orientation="horizontal">
                   <Switch

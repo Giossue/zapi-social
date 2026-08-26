@@ -145,6 +145,14 @@ El tipo real se detecta por firma binaria, no por la cabecera: el cliente envía
 
 Los assets viven en el volumen de Files, que **solo montan API y Worker**. Por eso los sirve la API y el navegador los pide por el proxy `/api` de Web, en el mismo origen.
 
+## Páginas estáticas en Markdown
+
+El contenido se escribe en Markdown y se renderiza con `Streamdown`, que `apps/web` ya tenía por el chat de IA. `MarkdownContent` es el envoltorio compartido; `MarkdownEditor` añade la cinta de formato y la previsualización en vivo, y el sheet de Admin pasa a pantalla completa con editor y vista previa en dos columnas.
+
+**`linkSafety` se desactiva a propósito.** Por defecto Streamdown renderiza los enlaces como `<button>` con un modal de confirmación, porque está pensado para salida de un modelo. En una página legal escrita por el administrador eso rompe el enlace: no es navegable ni rastreable. Con `linkSafety={{ enabled: false }}` vuelve a ser un `<a href>` con `rel="noopener noreferrer"`. Se detectó comparando el HTML servido, no en el build.
+
+El blog sigue mostrando su contenido en texto plano (`whitespace-pre-line`). Pasarlo a Markdown es el mismo cambio de una línea, pero queda fuera de lo pedido.
+
 ## Deuda aceptada
 
 `features/marketing/components/particles.tsx` conserva un `eslint-disable react-hooks/exhaustive-deps`. Es código de canvas vendorizado cuyos `useEffect` dependen a propósito solo de `color` y `refresh`; añadir las funciones a sus arrays reinicializaría el lienzo en cada render. Se reordenaron las declaraciones para eliminar los avisos de acceso antes de declarar, que sí eran reales.

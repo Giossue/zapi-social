@@ -4143,6 +4143,27 @@ declare const messages: {
     "viewPublished": "Ver publicada",
     "viewsAndClicks": "{views, number} vistas · {clicks, number} clics"
   },
+  "markdownEditor": {
+    "preview": "Vista previa",
+    "previewEmpty": "Escribe algo para ver cómo queda.",
+    "toolbar": "Formato de Markdown",
+    "tools": {
+      "bold": "Negrita",
+      "bulletList": "Lista",
+      "code": "Código",
+      "codeBlock": "Bloque de código",
+      "heading1": "Título 1",
+      "heading2": "Título 2",
+      "heading3": "Título 3",
+      "image": "Imagen",
+      "italic": "Cursiva",
+      "link": "Enlace",
+      "orderedList": "Lista numerada",
+      "quote": "Cita",
+      "rule": "Separador",
+      "strikethrough": "Tachado"
+    }
+  },
   "marketing": {
     "analysis": {
       "audienceDescription": "Entiende cómo responde tu público y cuándo conviene publicar.",
@@ -5226,7 +5247,8 @@ declare const messages: {
     "title": "Páginas estáticas",
     "titleRequired": "La página necesita título.",
     "unavailable": "Páginas no disponibles",
-    "updated": "Página actualizada."
+    "updated": "Página actualizada.",
+    "contentHint": "Se escribe en Markdown y se muestra con formato en la página pública."
   },
   "support": {
     "actionColumn": "Acción",
