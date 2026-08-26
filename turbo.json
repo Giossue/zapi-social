@@ -1,7 +1,13 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
-  "globalEnv": ["CI", "DEMO_MODE", "E2E_BASE_URL", "INTERNAL_API_ORIGIN"],
+  "globalEnv": [
+    "CI",
+    "DEMO_MODE",
+    "E2E_BASE_URL",
+    "INTERNAL_API_ORIGIN",
+    "PORTAL_HOST"
+  ],
   "globalPassThroughEnv": [
     "DATABASE_URL",
     "E2E_ADMIN_EMAIL",

@@ -17,7 +17,7 @@ Laravel es la referencia funcional, visual y de datos; no es la arquitectura obj
 
 | Área                      | Responsabilidad                                                                                     | No debe hacer                                                                 |
 | ------------------------- | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `apps/web`                | Rutas Next, layouts y composición UI; consumo REST mediante `@workspace/api-client`.                | Acceder a PostgreSQL, Redis o credenciales de providers.                      |
+| `apps/web`                | Rutas Next de Portal, Admin y sitio público; layouts y composición UI; consumo REST mediante `@workspace/api-client`. | Acceder a PostgreSQL, Redis o credenciales de providers.                      |
 | `apps/api`                | REST `/v1`, auth, autorización, ownership, DTOs, OpenAPI y casos de uso.                            | Exponer entidades Drizzle o ejecutar trabajo lento en el request.             |
 | `apps/worker`             | Procesar BullMQ, reintentos, sincronizaciones e idempotencia.                                       | Exponer HTTP público o duplicar reglas de autorización de API.                |
 | `packages/ui`             | Tokens, primitives y patterns reutilizables.                                                        | Contener lógica de dominio o datos de features.                               |

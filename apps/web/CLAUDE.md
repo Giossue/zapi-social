@@ -1,6 +1,12 @@
 # apps/web
 
-Rutas Next de Portal y Admin, layouts y composición de interfaz. Consume REST mediante `@workspace/api-client`; nunca accede a PostgreSQL, Redis ni credenciales de providers.
+Rutas Next de Portal, Admin y sitio público, layouts y composición de interfaz. Consume REST mediante `@workspace/api-client`; nunca accede a PostgreSQL, Redis ni credenciales de providers.
+
+El grupo `app/(marketing)` sirve la landing, el blog y las páginas legales en el
+dominio apex; `PORTAL_HOST` hace que `/` entre al panel en `app.`. Es la única
+superficie con tokens y tipografía propios, bajo el ámbito `.marketing`: no se
+usa desde Portal ni Admin. Decisión en
+[`docs/planes/landing-en-web-v2.md`](../../docs/planes/landing-en-web-v2.md).
 
 ## Antes de editar
 

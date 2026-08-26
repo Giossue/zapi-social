@@ -5,6 +5,7 @@ import { safeNextPath } from "@/features/identity/login-redirect"
 const sessionCookieName = "zapi_session"
 const accessCookieName = "zapi_access"
 const apiOrigin = process.env.INTERNAL_API_ORIGIN ?? "http://127.0.0.1:3001"
+const portalHost = process.env.PORTAL_HOST
 
 const authRoutes = ["/login", "/register"]
 
@@ -40,6 +41,18 @@ async function sessionArea(
 export async function proxy(request: NextRequest) {
   const hasSession = request.cookies.has(sessionCookieName)
   const { pathname, search } = request.nextUrl
+
+  if (pathname === "/") {
+    const host = request.headers.get("host")?.split(":")[0]
+    if (!portalHost || host !== portalHost) return NextResponse.next()
+    if ((await setupRequired()) === true) {
+      return NextResponse.redirect(new URL("/setup", request.url))
+    }
+    const area = hasSession ? await sessionArea(request) : null
+    return NextResponse.redirect(
+      new URL(area ? `/${area}/dashboard` : "/login", request.url)
+    )
+  }
 
   if (pathname === "/setup") {
     const required = await setupRequired()
@@ -77,5 +90,12 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*", "/portal/:path*", "/login", "/register", "/setup"],
+  matcher: [
+    "/",
+    "/admin/:path*",
+    "/portal/:path*",
+    "/login",
+    "/register",
+    "/setup",
+  ],
 }

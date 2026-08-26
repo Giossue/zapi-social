@@ -6,7 +6,8 @@ Zapi V2 se despliega desde el mismo repositorio como servicios separados. La sep
 
 ```text
 Internet
-├── app.zapisocial.com  → Web Next.js
+├── zapisocial.com      → Web Next.js (sitio público)
+├── app.zapisocial.com  → Web Next.js (Portal y Admin)
 └── api.zapisocial.com  → API Nest
                              ├── PostgreSQL
                              ├── Redis / BullMQ
@@ -14,6 +15,11 @@ Internet
                                       ↑
 Worker Nest ───────────────────────────┘
 ```
+
+El sitio público de marketing **no es una aplicación aparte**: vive dentro de
+`apps/web` como grupo de rutas `(marketing)` y se sirve desde el mismo
+contenedor. La decisión y el porqué están en
+[`planes/landing-en-web-v2.md`](../../planes/landing-en-web-v2.md).
 
 El worker se despliega como servicio interno sin dominio público. Procesa perfiles, derivados, RSS, Publishing, Bulk Posts, AI y webhooks; comparte PostgreSQL, Redis, la clave de cifrado y el volumen Files con API.
 
@@ -35,17 +41,29 @@ En Namecheap deben existir registros `A` hacia la IP pública del servidor Dokpl
 
 | Host  | Destino         | Servicio Dokploy | Puerto interno |
 | ----- | --------------- | ---------------- | -------------: |
+| `@`   | IP del servidor | Web              |           3000 |
+| `www` | IP del servidor | Web              |           3000 |
 | `app` | IP del servidor | Web              |           3000 |
 | `api` | IP del servidor | API              |           3001 |
 
 Los dominios configurados en Dokploy son:
 
 ```text
-Web: https://app.zapisocial.com
+Web: https://zapisocial.com, https://www.zapisocial.com, https://app.zapisocial.com
 API: https://api.zapisocial.com
 ```
 
-Activar certificados HTTPS en ambos. No exponer PostgreSQL ni Redis como dominios públicos.
+Los tres dominios de Web apuntan a la misma aplicación. Lo que distingue a
+`app.` es `PORTAL_HOST`: en ese host la ruta `/` redirige al panel
+(`/portal/dashboard` o `/login`) en vez de servir la landing. La regla vive en
+`apps/web/proxy.ts` y se resuelve en **tiempo de ejecución**, verificado con
+podman: basta con definir la variable en el entorno del contenedor.
+
+Sin `PORTAL_HOST`, todos los hosts sirven la landing en `/`. Eso es lo correcto
+en local y lo que rompería producción si se olvida en Dokploy: `app.` dejaría de
+llevar al panel.
+
+Activar certificados HTTPS en todos. No exponer PostgreSQL ni Redis como dominios públicos.
 
 ## Dockerfiles
 
@@ -133,7 +151,7 @@ Los valores sensibles permanecen únicamente en Dokploy. En esta guía, `configu
 
 | Servicio    | Entorno actual                                                                                                                                                                                                                                                                                         |
 | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Web Next    | `NODE_ENV=production`, `INTERNAL_API_ORIGIN=https://api.zapisocial.com`                                                                                                                                                                                                                                |
+| Web Next    | `NODE_ENV=production`, `INTERNAL_API_ORIGIN=https://api.zapisocial.com`, `PORTAL_HOST=app.zapisocial.com`                                                                                                                                                                                                                                |
 | API Nest    | `NODE_ENV=production`, `API_HOST=0.0.0.0`, `API_PORT=3001`, `API_PUBLIC_ORIGIN=https://api.zapisocial.com`, `WEB_ORIGIN=https://app.zapisocial.com`, `COOKIE_SECURE=true`, `LOG_LEVEL=info`; base de datos, JWT, Redis, Files, cifrado y proveedores de media configurados en Dokploy cuando apliquen. |
 | Worker Nest | Servicio interno; comparte base de datos, Redis, clave de cifrado y volumen/ruta Files con API. `API_PUBLIC_ORIGIN` habilita media temporal de Instagram; proveedor y routing AI se administran en PostgreSQL desde Admin.                                                                             |
 
@@ -148,9 +166,13 @@ Solo necesita variables de ejecución y build relacionadas con el proxy hacia AP
 ```dotenv
 NODE_ENV=production
 INTERNAL_API_ORIGIN=https://api.zapisocial.com
+PORTAL_HOST=app.zapisocial.com
 ```
 
 `INTERNAL_API_ORIGIN` debe estar disponible durante el build y runtime porque `next.config.ts` construye el rewrite `/api/*`.
+
+`PORTAL_HOST` es el nombre de host —sin esquema ni puerto— que debe entrar al
+panel desde `/`. Solo se necesita en runtime.
 
 La web **no** recibe:
 
@@ -216,11 +238,13 @@ Notas:
 
 - `API_PUBLIC_ORIGIN` recibe callbacks OAuth y debe ser un dominio HTTPS público.
 - `WEB_ORIGIN` es el único origen permitido por CORS con cookies.
-- `COOKIE_DOMAIN=.zapisocial.com` hace que la sesión sea visible también para el
-  sitio público de marketing (los CTA «Ir al panel»). Sin él, la cookie es
-  host-only de `app.` y la landing nunca detecta sesión. Al introducirlo, las
-  cookies host-only previas quedan huérfanas: el logout de la API limpia ambas
-  variantes y el middleware de Web borra las que encuentre inválidas.
+- `COOKIE_DOMAIN=.zapisocial.com` comparte la sesión entre `zapisocial.com` y
+  `app.zapisocial.com`. Nació para que el sitio público detectase la sesión
+  cuando era una aplicación aparte; ahora que comparte contenedor sigue haciendo
+  falta, porque la landing y el panel se sirven en hosts distintos y los CTA «Ir
+  al panel» leen la cookie desde el apex. Al introducirlo, las cookies host-only
+  previas quedan huérfanas: el logout de la API limpia ambas variantes y el
+  middleware de Web borra las que encuentre inválidas.
 - `DATABASE_URL`, JWT, Redis y clave de cifrado son secretos de Dokploy: nunca se versionan ni se copian a documentación, issues o chat.
 - `PROVIDER_INTEGRATIONS_ENCRYPTION_KEY` debe mantenerse estable. Rotarla requiere un proceso explícito de re-cifrado de configuraciones OAuth existentes.
 - Redis autenticado usa `REDIS_HOST`, `REDIS_PORT`, `REDIS_USERNAME` y `REDIS_PASSWORD` separados. No usar una URL Redis como valor de `REDIS_HOST`.
@@ -304,6 +328,25 @@ https://api.zapisocial.com/v1/oauth/channels/linkedin/callback
 
 Cuando se habilite un provider, registrar la URL exacta en su consola y guardar su configuración únicamente mediante Admin Integrations. La configuración se cifra en API; nunca llega a Web.
 
+## Retirar la aplicación landing
+
+El sitio público fue una cuarta aplicación de Dokploy hasta que se integró en
+Web. Para completar la migración en un despliegue que todavía la tenga:
+
+1. Desplegar Web con el código que incluye `(marketing)` y añadirle
+   `PORTAL_HOST=app.zapisocial.com`.
+2. Añadir `zapisocial.com` y `www.zapisocial.com` como dominios de la aplicación
+   **Web**, con HTTPS. Dokploy no deja dos aplicaciones con el mismo dominio: hay
+   que quitarlo antes de la aplicación landing.
+3. Comprobar los cuatro casos: apex sirve la landing, `www` también, `app.`
+   redirige al panel y `/blog` responde.
+4. Eliminar la aplicación **landing**.
+5. Retirar de Web las variables que ya no usa nadie: `ZAPI_API_ORIGIN`,
+   `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_APP_NAME`, `NEXT_PUBLIC_AUTHOR_NAME`.
+
+El paso 2 es el único con corte de servicio: entre quitar el dominio de la
+aplicación vieja y añadirlo a Web, el apex no resuelve.
+
 ## Cómo añadir una variable nueva
 
 1. Definirla en el schema de configuración del servicio que realmente la consume.
@@ -323,16 +366,30 @@ GET https://api.zapisocial.com/v1/health
 
 Debe responder `status`, `database` y `redis` como `ok`.
 
-2. Web:
+2. Web, panel:
 
 ```text
 https://app.zapisocial.com/login
 ```
 
-3. Registro/login y una consulta de Portal Channels.
+`https://app.zapisocial.com/` debe redirigir al panel, no mostrar la landing. Si
+muestra la landing, falta `PORTAL_HOST`.
 
-4. Confirmar que API y Worker ven el mismo asset/thumbnail en `FILES_STORAGE_PATH`.
+3. Web, sitio público:
 
-5. Verificar que el Worker permanece activo y que los dispatchers no fallan por Redis, volumen, `ffmpeg` o variables AI.
+```text
+https://zapisocial.com/
+https://zapisocial.com/blog
+```
 
-6. Revisar auditoría persistente y logs de contenedor sin imprimir contraseñas, tokens, grants OAuth ni URLs de callback con `code` o `state`.
+Los planes, las preguntas y las páginas legales del pie salen del Admin. Si la
+API no responde, la página debe seguir cargando con esas secciones vacías: que
+la landing se caiga por un fallo del backend es un defecto.
+
+4. Registro/login y una consulta de Portal Channels.
+
+5. Confirmar que API y Worker ven el mismo asset/thumbnail en `FILES_STORAGE_PATH`.
+
+6. Verificar que el Worker permanece activo y que los dispatchers no fallan por Redis, volumen, `ffmpeg` o variables AI.
+
+7. Revisar auditoría persistente y logs de contenedor sin imprimir contraseñas, tokens, grants OAuth ni URLs de callback con `code` o `state`.

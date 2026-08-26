@@ -4096,6 +4096,155 @@ declare const messages: {
     "viewPublished": "Ver publicada",
     "viewsAndClicks": "{views, number} vistas · {clicks, number} clics"
   },
+  "marketing": {
+    "analysis": {
+      "audienceDescription": "Entiende cómo responde tu público y cuándo conviene publicar.",
+      "audienceTitle": "Audiencia",
+      "audienceTrend": "+{value, number, percent} de interacción",
+      "campaigns": {
+        "ads": "Anuncios",
+        "emails": "Correos",
+        "sales": "Ventas"
+      },
+      "channels": {
+        "direct": "Directo",
+        "email": "Correo",
+        "social": "Redes"
+      },
+      "columns": {
+        "campaign": "Campaña",
+        "channel": "Canal",
+        "conversion": "Conversión",
+        "reach": "Alcance",
+        "roi": "ROI",
+        "sessions": "Sesiones",
+        "status": "Estado",
+        "users": "Usuarios"
+      },
+      "download": "Descargar",
+      "filter": "Filtrar",
+      "performanceDescription": "Sigue el alcance y la interacción de lo que publicas.",
+      "performanceTitle": "Rendimiento",
+      "performanceTrend": "+{value, number, percent} respecto al mes pasado",
+      "statuses": {
+        "active": "Activa",
+        "done": "Terminada"
+      },
+      "subtitle": "Consulta el rendimiento de cada publicación y de cada cuenta sin salir del panel.",
+      "title": "Métricas claras <br></br><accent>dashboard</accent>"
+    },
+    "blog": {
+      "empty": "Todavía no hay entradas publicadas.",
+      "notFound": "Entrada no encontrada",
+      "subtitle": "Ideas, novedades y buenas prácticas para publicar mejor.",
+      "title": "Blog"
+    },
+    "brand": "Zapi Social",
+    "callToAction": {
+      "action": "Crear mi cuenta",
+      "subtitle": "Conecta tus cuentas, programa tu contenido y mide resultados desde el primer día.",
+      "title": "Empieza a publicar con <br></br><accent>Zapi</accent>"
+    },
+    "companies": {
+      "title": "Con la confianza de <accent>leading</accent> brands"
+    },
+    "cta": {
+      "dashboard": "Ir al panel",
+      "signIn": "Iniciar sesión",
+      "startFree": "Empieza gratis"
+    },
+    "faq": {
+      "subtitle": "Lo que suelen preguntarnos antes de empezar.",
+      "title": "Preguntas <accent>frecuentes</accent>"
+    },
+    "features": {
+      "items": {
+        "ai": {
+          "description": "Genera textos, imágenes y vídeo sin salir del panel",
+          "title": "Contenido con IA"
+        },
+        "calendar": {
+          "description": "Organiza lo que sale cada día y evita huecos o repeticiones",
+          "title": "Calendario editorial"
+        },
+        "library": {
+          "description": "Guarda y reutiliza tus imágenes y vídeos con marca de agua",
+          "title": "Biblioteca de medios"
+        },
+        "metrics": {
+          "description": "Alcance, interacción y crecimiento de cada cuenta en un panel",
+          "title": "Métricas reunidas"
+        },
+        "multiAccount": {
+          "description": "Programa una vez y publica en todas tus redes conectadas",
+          "title": "Publicación multicuenta"
+        }
+      },
+      "subtitle": "Reúne la planificación, la publicación y las métricas de todas tus cuentas en una sola herramienta.",
+      "title": "Todo tu contenido <br></br>made <accent>simple</accent>"
+    },
+    "footer": {
+      "copyright": "© {year} {company}. Todos los derechos reservados.",
+      "getStarted": "Empezar",
+      "legal": "Legal",
+      "links": {
+        "availableLanguages": "Idiomas disponibles",
+        "blog": "Blog",
+        "faq": "Preguntas",
+        "features": "Funciones",
+        "help": "Ayuda",
+        "included": "Qué incluye",
+        "languages": "Idiomas",
+        "plans": "Ver planes",
+        "pricing": "Precios",
+        "register": "Crear cuenta",
+        "signIn": "Iniciar sesión"
+      },
+      "product": "Producto",
+      "resources": "Recursos",
+      "tagline": "Gestiona todas tus redes sociales desde un solo panel."
+    },
+    "hero": {
+      "announcement": "Publica en todas tus redes desde un solo lugar",
+      "badge": "NUEVO",
+      "dashboardAlt": "Panel de Zapi Social",
+      "subtitle": "Programa, publica y mide tus redes sociales en un solo panel, con ayuda de IA para crear más rápido.",
+      "title": "Impulsa tu presencia en redes sociales"
+    },
+    "integration": {
+      "action": "Conecta tus cuentas",
+      "illustrationAlt": "Redes sociales conectadas a Zapi Social",
+      "title": "Conecta tus redes"
+    },
+    "languages": {
+      "more": "Y más",
+      "title": "Publica en más de 60 idiomas <accent>languages</accent>"
+    },
+    "nav": {
+      "blog": "Blog",
+      "faq": "Preguntas",
+      "features": "Funciones",
+      "menu": "Menú",
+      "pricing": "Precios"
+    },
+    "page": {
+      "notFound": "Página no encontrada"
+    },
+    "pricing": {
+      "billedMonthly": "Facturado cada mes",
+      "billedYearly": "Facturado en un pago anual",
+      "choose": "Elegir {name}",
+      "chooseFree": "Empezar gratis",
+      "includes": "Incluye:",
+      "monthly": "Mensual",
+      "perMonth": "/mes",
+      "perYear": "/año",
+      "subtitle": "Empieza gratis y cambia de plan cuando lo necesites.",
+      "title": "Elige el plan que encaja con <br></br><accent>your needs</accent>",
+      "toggleLabel": "Cambiar entre facturación mensual y anual",
+      "yearly": "Anual"
+    }
+  },
   "metadata": {
     "admin": "Admin - Zapi Social",
     "description": "Planifica, publica y mide tu contenido social.",

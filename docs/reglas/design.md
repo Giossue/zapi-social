@@ -8,6 +8,14 @@
 Tokens → shadcn primitives → patterns compartidos → features → rutas Next
 ```
 
+El sitio público de marketing (`apps/web/app/(marketing)`) es la única excepción
+a estas reglas y está acotada: sus tokens, tipografía y animaciones viven en el
+ámbito `.marketing` de `packages/ui/src/styles/globals.css` y no aplican a
+ninguna otra superficie. Ninguna feature de producto puede usar esa capa ni sus
+utilidades. El porqué está en
+[`../planes/landing-en-web-v2.md`](../planes/landing-en-web-v2.md). Todo lo
+demás de este documento gobierna Portal y Admin.
+
 Portal y Admin usan el mismo `ThemeProvider`, los mismos tokens y los mismos primitives de `packages/ui`. Diferencia entre áreas vive en información, permisos y navegación; no en un segundo tema, CSS global, paleta, tipografía, radios, sombras o conjunto duplicado de primitives.
 
 Para un mismo rol visual, ambas áreas usan el mismo primitive y la misma variante: por ejemplo, un card de resumen no puede ser `surface` en Admin y `subtle` en Portal sin una razón funcional documentada. La composición puede variar, pero no su identidad visual.

@@ -4093,6 +4093,155 @@
     "viewPublished": "View published",
     "viewsAndClicks": "{views, number} views · {clicks, number} clicks"
   },
+  "marketing": {
+    "analysis": {
+      "audienceDescription": "Understand how your audience responds and when it pays to post.",
+      "audienceTitle": "Audience",
+      "audienceTrend": "+{value, number, percent} engagement",
+      "campaigns": {
+        "ads": "Ads",
+        "emails": "Emails",
+        "sales": "Sales"
+      },
+      "channels": {
+        "direct": "Direct",
+        "email": "Email",
+        "social": "Social"
+      },
+      "columns": {
+        "campaign": "Campaign",
+        "channel": "Channel",
+        "conversion": "Conversion",
+        "reach": "Reach",
+        "roi": "ROI",
+        "sessions": "Sessions",
+        "status": "Status",
+        "users": "Users"
+      },
+      "download": "Download",
+      "filter": "Filter",
+      "performanceDescription": "Track the reach and engagement of what you post.",
+      "performanceTitle": "Performance",
+      "performanceTrend": "+{value, number, percent} from last month",
+      "statuses": {
+        "active": "Active",
+        "done": "Done"
+      },
+      "subtitle": "Check how every post and every account performs without leaving the dashboard.",
+      "title": "Clear metrics <br></br><accent>dashboard</accent>"
+    },
+    "blog": {
+      "empty": "No posts published yet.",
+      "notFound": "Post not found",
+      "subtitle": "Ideas, news and good practice for posting better.",
+      "title": "Blog"
+    },
+    "brand": "Zapi Social",
+    "callToAction": {
+      "action": "Create my account",
+      "subtitle": "Connect your accounts, schedule your content and measure results from day one.",
+      "title": "Start posting with <br></br><accent>Zapi</accent>"
+    },
+    "companies": {
+      "title": "Trusted by <accent>leading</accent> brands"
+    },
+    "cta": {
+      "dashboard": "Go to dashboard",
+      "signIn": "Sign in",
+      "startFree": "Start free"
+    },
+    "faq": {
+      "subtitle": "What people usually ask us before getting started.",
+      "title": "Frequently asked <accent>questions</accent>"
+    },
+    "features": {
+      "items": {
+        "ai": {
+          "description": "Generate copy, images and video without leaving the app",
+          "title": "AI content"
+        },
+        "calendar": {
+          "description": "Plan what goes out each day and avoid gaps or repeats",
+          "title": "Editorial calendar"
+        },
+        "library": {
+          "description": "Store and reuse your images and videos with watermarks",
+          "title": "Media library"
+        },
+        "metrics": {
+          "description": "Reach, engagement and growth for every account in one place",
+          "title": "Metrics together"
+        },
+        "multiAccount": {
+          "description": "Schedule once and publish to every connected network",
+          "title": "Multi-account publishing"
+        }
+      },
+      "subtitle": "Planning, publishing and analytics for all your accounts in a single tool.",
+      "title": "All your content <br></br>made <accent>simple</accent>"
+    },
+    "footer": {
+      "copyright": "© {year} {company}. All rights reserved.",
+      "getStarted": "Get started",
+      "legal": "Legal",
+      "links": {
+        "availableLanguages": "Available languages",
+        "blog": "Blog",
+        "faq": "FAQ",
+        "features": "Features",
+        "help": "Help",
+        "included": "What's included",
+        "languages": "Languages",
+        "plans": "See plans",
+        "pricing": "Pricing",
+        "register": "Create account",
+        "signIn": "Sign in"
+      },
+      "product": "Product",
+      "resources": "Resources",
+      "tagline": "Manage all your social networks from a single dashboard."
+    },
+    "hero": {
+      "announcement": "Post to every network from one place",
+      "badge": "NEW",
+      "dashboardAlt": "Zapi Social dashboard",
+      "subtitle": "Schedule, publish and measure your social networks in one dashboard, with AI to create faster.",
+      "title": "Grow your presence on social media"
+    },
+    "integration": {
+      "action": "Connect your accounts",
+      "illustrationAlt": "Social networks connected to Zapi Social",
+      "title": "Connect your networks"
+    },
+    "languages": {
+      "more": "And more",
+      "title": "Publish in more than 60 <accent>languages</accent>"
+    },
+    "nav": {
+      "blog": "Blog",
+      "faq": "FAQ",
+      "features": "Features",
+      "menu": "Menu",
+      "pricing": "Pricing"
+    },
+    "page": {
+      "notFound": "Page not found"
+    },
+    "pricing": {
+      "billedMonthly": "Billed every month",
+      "billedYearly": "Billed as a single yearly payment",
+      "choose": "Choose {name}",
+      "chooseFree": "Start free",
+      "includes": "Includes:",
+      "monthly": "Monthly",
+      "perMonth": "/mo",
+      "perYear": "/yr",
+      "subtitle": "Start free and change plan whenever you need to.",
+      "title": "Pick the plan that fits <br></br><accent>your needs</accent>",
+      "toggleLabel": "Switch between monthly and yearly billing",
+      "yearly": "Yearly"
+    }
+  },
   "metadata": {
     "admin": "Admin - Zapi Social",
     "description": "Plan, publish and measure your social content.",
