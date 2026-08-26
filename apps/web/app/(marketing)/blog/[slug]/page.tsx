@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 
 import Link from "next/link"
 
+import { MarkdownContent } from "@/components/markdown-content"
 import Container from "@/features/marketing/components/container"
 import Wrapper from "@/features/marketing/components/wrapper"
 import { getSitePost, getSitePosts } from "@/features/marketing/site"
@@ -51,8 +52,8 @@ export default async function PostPage({ params }: PostPageProps) {
             {post.excerpt}
           </p>
         ) : null}
-        <article className="mt-8 leading-relaxed whitespace-pre-line text-accent-foreground/90">
-          {post.content}
+        <article className="mt-8 leading-relaxed text-accent-foreground/90">
+          <MarkdownContent>{post.content}</MarkdownContent>
         </article>
       </Container>
 

@@ -90,6 +90,9 @@ import {
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@/components/table-pagination"
 import { Textarea } from "@workspace/ui/components/textarea"
+import { cn } from "@workspace/ui/lib/utils"
+
+import { MarkdownEditor } from "@/components/markdown-editor"
 import { toast } from "@workspace/ui/components/toast"
 import { loginPath } from "@/features/identity/login-redirect"
 
@@ -97,7 +100,7 @@ export type CollectionValues = Record<string, unknown>
 
 export type CollectionField =
   | {
-      kind: "text" | "textarea" | "number"
+      kind: "text" | "textarea" | "number" | "markdown"
       description?: string
       label: string
       name: string
@@ -204,6 +207,8 @@ function CollectionSheet({
     setValues((current) => ({ ...current, [name]: value }))
   }
 
+  const hasMarkdownField = fields.some((field) => field.kind === "markdown")
+
   const canSubmit = fields
     .filter((field) => "required" in field && field.required)
     .every((field) => String(values[field.name] ?? "").trim().length > 0)
@@ -220,7 +225,15 @@ function CollectionSheet({
 
   return (
     <Sheet onOpenChange={onOpenChange} open={open}>
-      <SheetContent className="w-full gap-0 p-0 sm:max-w-lg" side="right">
+      <SheetContent
+        className={cn(
+          "w-full gap-0 p-0",
+          hasMarkdownField
+            ? "sm:max-w-none data-[side=right]:sm:w-full data-[side=right]:sm:border-l-0"
+            : "sm:max-w-lg"
+        )}
+        side="right"
+      >
         <SheetHeader className="border-b">
           <SheetTitle>{title}</SheetTitle>
           <SheetDescription>{formDescription}</SheetDescription>
@@ -354,6 +367,14 @@ function CollectionSheet({
                           </SelectGroup>
                         </SelectContent>
                       </Select>
+                    ) : field.kind === "markdown" ? (
+                      <MarkdownEditor
+                        className="min-h-96"
+                        disabled={pending}
+                        id={controlId}
+                        onChange={(next) => update(field.name, next)}
+                        value={String(values[field.name] ?? "")}
+                      />
                     ) : field.kind === "textarea" ? (
                       <Textarea
                         aria-required={required ? "true" : undefined}

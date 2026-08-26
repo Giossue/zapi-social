@@ -254,7 +254,7 @@ export function BlogPostsCollection() {
         name: "excerpt",
         placeholder: t("blogPosts.excerptPlaceholder"),
       },
-      { kind: "textarea", label: t("blogPosts.content"), name: "content" },
+      { kind: "markdown", label: t("blogPosts.content"), name: "content" },
       {
         kind: "select",
         label: t("statusColumn"),

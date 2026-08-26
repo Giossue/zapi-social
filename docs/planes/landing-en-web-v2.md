@@ -153,7 +153,7 @@ El contenido se escribe en Markdown y se renderiza con `Streamdown`, que `apps/w
 
 **Los marcadores de lista se declaran en `MarkdownContent`, no se heredan de Streamdown.** El `@source` de `packages/ui/src/styles/globals.css` apunta a `node_modules/streamdown/`, una ruta que con el layout de bun **no existe**: el enlace real está en `packages/ui/node_modules/streamdown`. Ese glob no casa con nada, así que ninguna clase exclusiva de Streamdown llega al CSS. `list-disc` se salvaba de casualidad porque `field.tsx` la usa; `list-decimal` no la usa nadie más, y por eso las listas numeradas salían **sin números** —también en el chat de IA—. Corregir el glob al enlace real no lo arregla: Tailwind no lo atraviesa. Por eso `MarkdownContent` declara `list-disc`, `list-decimal`, `list-outside` y la sangría por su cuenta, que además no depende de cómo quede `node_modules`.
 
-El blog sigue mostrando su contenido en texto plano (`whitespace-pre-line`). Pasarlo a Markdown es el mismo cambio de una línea, pero queda fuera de lo pedido.
+El blog usa el mismo mecanismo. `admin-collection-page.tsx` gana un tipo de campo `markdown` que reutiliza `MarkdownEditor`, y su sheet pasa a pantalla completa solo cuando la colección tiene uno; el resto de colecciones no cambian de ancho. El resumen de la entrada sigue siendo texto plano a propósito: se muestra recortado con `line-clamp` en las tarjetas del listado y en la portada, donde el formato estorbaría.
 
 ## Deuda aceptada
 
