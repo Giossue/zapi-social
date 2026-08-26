@@ -1,0 +1,615 @@
+pero no borro mejor el app de landing zapi?
+
+---
+
+ok, en landing tenía:
+ZAPI_API_ORIGIN=https://api.zapisocial.com
+COOKIE_DOMAIN=.zapisocial.com
+
+---
+
+mira 
+ , trato de poner zapisocial.com pero me manda al login, quieres ver mis env para que sepas qué hacer? obvio tapadas
+
+---
+
+Ya me carga la web, pero me sale esto 
+ en https://zapisocial.com/login, eso no debería pasar, solo dentro de app.zapisocial.com/login
+
+y muchos de los diseños como que se rompieron, te puse de nuevo
+[@/home/giossue/Descargas/vetra-v1/](file:///home/giossue/Descargas/vetra-v1/)
+ para que lo pongas de nuevo
+
+---
+
+o sea zapisocial.com es solo la landing
+
+---
+
+ok si ya carga, pero como digo, hay diseños que están como mal hecho, te volví a subir
+[@/home/giossue/Descargas/vetra-v1/](file:///home/giossue/Descargas/vetra-v1/)
+ para que lo tomes y lo rehagas
+
+---
+
+Eresun terco, mira como se ve:
+
+---
+
+ok, ahora toca cambiar, por ejemplo, dime como lo hace zapisocial? Entiendo que ciertas cosillas cambian, por ejemplo??
+
+---
+
+ok haz todo, así mismo haz la parte de admin para configurarlo desde ahí
+
+---
+
+así mismo el nombre, el favicon y los logos que saldrán en la landing, dentro de admin y portal, o sea ya no lo dejemos como duro, recuerda que debe ser personalizable para venderlo en codecanyon
+
+---
+
+ok, si hay temas? Para elegir el color principal en portal, admin y pagina landing? Ojo, no habrá lo de plan vitalicio, así que eso omitelo
+
+---
+
+En reestablecer contraseña no puede ser así: 
+ , qué va a pasar cuando el comprador quiero poner siquiera unos 30 idiomas? Qué pasará? Crecerá ese tab con más opciones? Qué hacemos? Dejamos uno general? O hallamos la manera de que pueda consigurarlo por idioma y dejmar lo opción de que pueda dejarlo de manera global o que pueda elegir uno por idioma?
+
+---
+
+ok hazlo
+
+---
+
+ok ahora, siento que en admin las opciones están regadas por donde sea, por ejemplo no encuentro bien lo que es de la configuración de la página en dónde debería encontrarlo, puedes cambiar eso, solo acá
+
+---
+
+ok ahora en paginas estáticas quiero que en contenido sea compatible con markdown, o sea, que escriba en markdown, y que se pueda renderizar en las paginas estáticas sin problema. Eso si, deja como una cinta de opciones que sea para usar las etiquedas, por ejemplo, negritas, los headers, links, etc. Todo lo de markdown. Así mismo, haz que la sheet ocupe toda la pantalla y añade un previsualizador de como se vería
+
+---
+
+EStaba viendo lo que hiciste solo estos elementos como que están muy a la izquierda no?
+
+---
+
+y si, haz el cambio de blog que mencionas
+
+---
+
+Ok, ahora arreglos de interfaz:
+acá no uses tab mejor, mejor hazlo en el sidebar, separalo 
+ en submenu, lo mismo en Automatización
+
+y en Créditos y consumo se ve veo la interfaz 
+ , siento que no sigue la misma estrcutura de diseño que tiene el resto de mi interfaz: vamos quitando costo por herramienta, borra el texto de "Movimientos
+Asignaciones, consumos, reembolsos y ajustes del espacio."
+
+---
+
+ok, ahora vamos adelantando la documentación para zapisocial para codecanyon, ya cree "docs.zapisocial.com" y creé https://github.com/Giossue/docs-zapi-social-web para usarlo en dokploy
+QUiero usar 
+[@/home/giossue/Documentos/nextra-docs-template/](file:///home/giossue/Documentos/nextra-docs-template/)
+
+---
+
+Initializing deployment
+Cloning Repo github.com/Giossue/docs-zapi-social-web.git to /etc/dokploy/applications/zapisocial-docs-jmvkzs/code: ✅
+Cloning into '/etc/dokploy/applications/zapisocial-docs-jmvkzs/code'...
+remote: Enumerating objects: 106, done.
+remote: Counting objects:   0% (1/106)        
+remote: Counting objects:   1% (2/106)        
+remote: Counting objects:   2% (3/106)        
+remote: Counting objects:   3% (4/106)        
+remote: Counting objects:   4% (5/106)        
+remote: Counting objects:   5% (6/106)        
+remote: Counting objects:   6% (7/106)        
+remote: Counting objects:   7% (8/106)        
+remote: Counting objects:   8% (9/106)        
+remote: Counting objects:   9% (10/106)        
+remote: Counting objects:  10% (11/106)        
+remote: Counting objects:  11% (12/106)        
+remote: Counting objects:  12% (13/106)        
+remote: Counting objects:  13% (14/106)        
+remote: Counting objects:  14% (15/106)        
+remote: Counting objects:  15% (16/106)        
+remote: Counting objects:  16% (17/106)        
+remote: Counting objects:  17% (19/106)        
+remote: Counting objects:  18% (20/106)        
+remote: Counting objects:  19% (21/106)        
+remote: Counting objects:  20% (22/106)        
+remote: Counting objects:  21% (23/106)        
+remote: Counting objects:  22% (24/106)        
+remote: Counting objects:  23% (25/106)        
+remote: Counting objects:  24% (26/106)        
+remote: Counting objects:  25% (27/106)        
+remote: Counting objects:  26% (28/106)        
+remote: Counting objects:  27% (29/106)        
+remote: Counting objects:  28% (30/106)        
+remote: Counting objects:  29% (31/106)        
+remote: Counting objects:  30% (32/106)        
+remote: Counting objects:  31% (33/106)        
+remote: Counting objects:  32% (34/106)        
+remote: Counting objects:  33% (35/106)        
+remote: Counting objects:  34% (37/106)        
+remote: Counting objects:  35% (38/106)        
+remote: Counting objects:  36% (39/106)        
+remote: Counting objects:  37% (40/106)        
+remote: Counting objects:  38% (41/106)        
+remote: Counting objects:  39% (42/106)        
+remote: Counting objects:  40% (43/106)        
+remote: Counting objects:  41% (44/106)        
+remote: Counting objects:  42% (45/106)        
+remote: Counting objects:  43% (46/106)        
+remote: Counting objects:  44% (47/106)        
+remote: Counting objects:  45% (48/106)        
+remote: Counting objects:  46% (49/106)        
+remote: Counting objects:  47% (50/106)        
+remote: Counting objects:  48% (51/106)        
+remote: Counting objects:  49% (52/106)        
+remote: Counting objects:  50% (53/106)        
+remote: Counting objects:  51% (55/106)        
+remote: Counting objects:  52% (56/106)        
+remote: Counting objects:  53% (57/106)        
+remote: Counting objects:  54% (58/106)        
+remote: Counting objects:  55% (59/106)        
+remote: Counting objects:  56% (60/106)        
+remote: Counting objects:  57% (61/106)        
+remote: Counting objects:  58% (62/106)        
+remote: Counting objects:  59% (63/106)        
+remote: Counting objects:  60% (64/106)        
+remote: Counting objects:  61% (65/106)        
+remote: Counting objects:  62% (66/106)        
+remote: Counting objects:  63% (67/106)        
+remote: Counting objects:  64% (68/106)        
+remote: Counting objects:  65% (69/106)        
+remote: Counting objects:  66% (70/106)        
+remote: Counting objects:  67% (72/106)        
+remote: Counting objects:  68% (73/106)        
+remote: Counting objects:  69% (74/106)        
+remote: Counting objects:  70% (75/106)        
+remote: Counting objects:  71% (76/106)        
+remote: Counting objects:  72% (77/106)        
+remote: Counting objects:  73% (78/106)        
+remote: Counting objects:  74% (79/106)        
+remote: Counting objects:  75% (80/106)        
+remote: Counting objects:  76% (81/106)        
+remote: Counting objects:  77% (82/106)        
+remote: Counting objects:  78% (83/106)        
+remote: Counting objects:  79% (84/106)        
+remote: Counting objects:  80% (85/106)        
+remote: Counting objects:  81% (86/106)        
+remote: Counting objects:  82% (87/106)        
+remote: Counting objects:  83% (88/106)        
+remote: Counting objects:  84% (90/106)        
+remote: Counting objects:  85% (91/106)        
+remote: Counting objects:  86% (92/106)        
+remote: Counting objects:  87% (93/106)        
+remote: Counting objects:  88% (94/106)        
+remote: Counting objects:  89% (95/106)        
+remote: Counting objects:  90% (96/106)        
+remote: Counting objects:  91% (97/106)        
+remote: Counting objects:  92% (98/106)        
+remote: Counting objects:  93% (99/106)        
+remote: Counting objects:  94% (100/106)        
+remote: Counting objects:  95% (101/106)        
+remote: Counting objects:  96% (102/106)        
+remote: Counting objects:  97% (103/106)        
+remote: Counting objects:  98% (104/106)        
+remote: Counting objects:  99% (105/106)        
+remote: Counting objects: 100% (106/106)        
+remote: Counting objects: 100% (106/106), done.
+remote: Compressing objects:   0% (1/104)        
+remote: Compressing objects:   1% (2/104)        
+remote: Compressing objects:   2% (3/104)        
+remote: Compressing objects:   3% (4/104)        
+remote: Compressing objects:   4% (5/104)        
+remote: Compressing objects:   5% (6/104)        
+remote: Compressing objects:   6% (7/104)        
+remote: Compressing objects:   7% (8/104)        
+remote: Compressing objects:   8% (9/104)        
+remote: Compressing objects:   9% (10/104)        
+remote: Compressing objects:  10% (11/104)        
+remote: Compressing objects:  11% (12/104)        
+remote: Compressing objects:  12% (13/104)        
+remote: Compressing objects:  13% (14/104)        
+remote: Compressing objects:  14% (15/104)        
+remote: Compressing objects:  15% (16/104)        
+remote: Compressing objects:  16% (17/104)        
+remote: Compressing objects:  17% (18/104)        
+remote: Compressing objects:  18% (19/104)        
+remote: Compressing objects:  19% (20/104)        
+remote: Compressing objects:  20% (21/104)        
+remote: Compressing objects:  21% (22/104)        
+remote: Compressing objects:  22% (23/104)        
+remote: Compressing objects:  23% (24/104)        
+remote: Compressing objects:  24% (25/104)        
+remote: Compressing objects:  25% (26/104)        
+remote: Compressing objects:  26% (28/104)        
+remote: Compressing objects:  27% (29/104)        
+remote: Compressing objects:  28% (30/104)        
+remote: Compressing objects:  29% (31/104)        
+remote: Compressing objects:  30% (32/104)        
+remote: Compressing objects:  31% (33/104)        
+remote: Compressing objects:  32% (34/104)        
+remote: Compressing objects:  33% (35/104)        
+remote: Compressing objects:  34% (36/104)        
+remote: Compressing objects:  35% (37/104)        
+remote: Compressing objects:  36% (38/104)        
+remote: Compressing objects:  37% (39/104)        
+remote: Compressing objects:  38% (40/104)        
+remote: Compressing objects:  39% (41/104)        
+remote: Compressing objects:  40% (42/104)        
+remote: Compressing objects:  41% (43/104)        
+remote: Compressing objects:  42% (44/104)        
+remote: Compressing objects:  43% (45/104)        
+remote: Compressing objects:  44% (46/104)        
+remote: Compressing objects:  45% (47/104)        
+remote: Compressing objects:  46% (48/104)        
+remote: Compressing objects:  47% (49/104)        
+remote: Compressing objects:  48% (50/104)        
+remote: Compressing objects:  49% (51/104)        
+remote: Compressing objects:  50% (52/104)        
+remote: Compressing objects:  51% (54/104)        
+remote: Compressing objects:  52% (55/104)        
+remote: Compressing objects:  53% (56/104)        
+remote: Compressing objects:  54% (57/104)        
+remote: Compressing objects:  55% (58/104)        
+remote: Compressing objects:  56% (59/104)        
+remote: Compressing objects:  57% (60/104)        
+remote: Compressing objects:  58% (61/104)        
+remote: Compressing objects:  59% (62/104)        
+remote: Compressing objects:  60% (63/104)        
+remote: Compressing objects:  61% (64/104)        
+remote: Compressing objects:  62% (65/104)        
+remote: Compressing objects:  63% (66/104)        
+remote: Compressing objects:  64% (67/104)        
+remote: Compressing objects:  65% (68/104)        
+remote: Compressing objects:  66% (69/104)        
+remote: Compressing objects:  67% (70/104)        
+remote: Compressing objects:  68% (71/104)        
+remote: Compressing objects:  69% (72/104)        
+remote: Compressing objects:  70% (73/104)        
+remote: Compressing objects:  71% (74/104)        
+remote: Compressing objects:  72% (75/104)        
+remote: Compressing objects:  73% (76/104)        
+remote: Compressing objects:  74% (77/104)        
+remote: Compressing objects:  75% (78/104)        
+remote: Compressing objects:  76% (80/104)        
+remote: Compressing objects:  77% (81/104)        
+remote: Compressing objects:  78% (82/104)        
+remote: Compressing objects:  79% (83/104)        
+remote: Compressing objects:  80% (84/104)        
+remote: Compressing objects:  81% (85/104)        
+remote: Compressing objects:  82% (86/104)        
+remote: Compressing objects:  83% (87/104)        
+remote: Compressing objects:  84% (88/104)        
+remote: Compressing objects:  85% (89/104)        
+remote: Compressing objects:  86% (90/104)        
+remote: Compressing objects:  87% (91/104)        
+remote: Compressing objects:  88% (92/104)        
+remote: Compressing objects:  89% (93/104)        
+remote: Compressing objects:  90% (94/104)        
+remote: Compressing objects:  91% (95/104)        
+remote: Compressing objects:  92% (96/104)        
+remote: Compressing objects:  93% (97/104)        
+remote: Compressing objects:  94% (98/104)        
+remote: Compressing objects:  95% (99/104)        
+remote: Compressing objects:  96% (100/104)        
+remote: Compressing objects:  97% (101/104)        
+remote: Compressing objects:  98% (102/104)        
+remote: Compressing objects:  99% (103/104)        
+remote: Compressing objects: 100% (104/104)        
+remote: Compressing objects: 100% (104/104), done.
+Receiving objects:   0% (1/106)
+Receiving objects:   1% (2/106)
+Receiving objects:   2% (3/106)
+Receiving objects:   3% (4/106)
+Receiving objects:   4% (5/106)
+Receiving objects:   5% (6/106)
+Receiving objects:   6% (7/106)
+Receiving objects:   7% (8/106)
+Receiving objects:   8% (9/106)
+Receiving objects:   9% (10/106)
+Receiving objects:  10% (11/106)
+Receiving objects:  11% (12/106)
+Receiving objects:  12% (13/106)
+Receiving objects:  13% (14/106)
+Receiving objects:  14% (15/106)
+Receiving objects:  15% (16/106)
+Receiving objects:  16% (17/106)
+Receiving objects:  17% (19/106)
+Receiving objects:  18% (20/106)
+Receiving objects:  19% (21/106)
+Receiving objects:  20% (22/106)
+Receiving objects:  21% (23/106)
+Receiving objects:  22% (24/106)
+Receiving objects:  23% (25/106)
+Receiving objects:  24% (26/106)
+Receiving objects:  25% (27/106)
+Receiving objects:  26% (28/106)
+Receiving objects:  27% (29/106)
+Receiving objects:  28% (30/106)
+Receiving objects:  29% (31/106)
+Receiving objects:  30% (32/106)
+Receiving objects:  31% (33/106)
+Receiving objects:  32% (34/106)
+Receiving objects:  33% (35/106)
+Receiving objects:  34% (37/106)
+Receiving objects:  35% (38/106)
+Receiving objects:  36% (39/106)
+Receiving objects:  37% (40/106)
+Receiving objects:  38% (41/106)
+Receiving objects:  39% (42/106)
+Receiving objects:  40% (43/106)
+Receiving objects:  41% (44/106)
+Receiving objects:  42% (45/106)
+Receiving objects:  43% (46/106)
+Receiving objects:  44% (47/106)
+Receiving objects:  45% (48/106)
+Receiving objects:  46% (49/106)
+Receiving objects:  47% (50/106)
+Receiving objects:  48% (51/106)
+Receiving objects:  49% (52/106)
+Receiving objects:  50% (53/106)
+Receiving objects:  51% (55/106)
+Receiving objects:  52% (56/106)
+Receiving objects:  53% (57/106)
+Receiving objects:  54% (58/106)
+Receiving objects:  55% (59/106)
+Receiving objects:  56% (60/106)
+Receiving objects:  57% (61/106)
+Receiving objects:  58% (62/106)
+Receiving objects:  59% (63/106)
+Receiving objects:  60% (64/106)
+Receiving objects:  61% (65/106)
+Receiving objects:  62% (66/106)
+Receiving objects:  63% (67/106)
+Receiving objects:  64% (68/106)
+Receiving objects:  65% (69/106)
+Receiving objects:  66% (70/106)
+Receiving objects:  67% (72/106)
+Receiving objects:  68% (73/106)
+Receiving objects:  69% (74/106)
+Receiving objects:  70% (75/106)
+Receiving objects:  71% (76/106)
+Receiving objects:  72% (77/106)
+Receiving objects:  73% (78/106)
+Receiving objects:  74% (79/106)
+Receiving objects:  75% (80/106)
+Receiving objects:  76% (81/106)
+Receiving objects:  77% (82/106)
+Receiving objects:  78% (83/106)
+Receiving objects:  79% (84/106)
+Receiving objects:  80% (85/106)
+Receiving objects:  81% (86/106)
+Receiving objects:  82% (87/106)
+Receiving objects:  83% (88/106)
+Receiving objects:  84% (90/106)
+remote: Total 106 (delta 0), reused 106 (delta 0), pack-reused 0 (from 0)
+Receiving objects:  85% (91/106)
+Receiving objects:  86% (92/106)
+Receiving objects:  87% (93/106)
+Receiving objects:  88% (94/106)
+Receiving objects:  89% (95/106)
+Receiving objects:  90% (96/106)
+Receiving objects:  91% (97/106)
+Receiving objects:  92% (98/106)
+Receiving objects:  93% (99/106)
+Receiving objects:  94% (100/106)
+Receiving objects:  95% (101/106)
+Receiving objects:  96% (102/106)
+Receiving objects:  97% (103/106)
+Receiving objects:  98% (104/106)
+Receiving objects:  99% (105/106)
+Receiving objects: 100% (106/106)
+Receiving objects: 100% (106/106), 101.38 KiB | 674.00 KiB/s, done.
+Building zapisocial-docs-jmvkzs
+#0 building with "default" instance using docker driver
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 620B done
+#1 DONE 0.0s
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1
+#2 DONE 1.7s
+#3 docker-image://docker.io/docker/dockerfile:1@sha256:ecfaec9ed6d810b56388c508f4121597bfbba70d41a6dfeee4d8cad5f295fc32
+#3 resolve docker.io/docker/dockerfile:1@sha256:ecfaec9ed6d810b56388c508f4121597bfbba70d41a6dfeee4d8cad5f295fc32 0.0s done
+#3 sha256:48ca54f0226d3b90064659efd4391d107ad948df73aed877309530e6f3ef19df 12.58MB / 13.01MB 0.2s
+#3 sha256:48ca54f0226d3b90064659efd4391d107ad948df73aed877309530e6f3ef19df 13.01MB / 13.01MB 0.2s done
+#3 extracting sha256:48ca54f0226d3b90064659efd4391d107ad948df73aed877309530e6f3ef19df
+#3 extracting sha256:48ca54f0226d3b90064659efd4391d107ad948df73aed877309530e6f3ef19df 0.2s done
+#3 DONE 0.5s
+#4 [internal] load metadata for docker.io/library/node:24-bookworm-slim
+#4 DONE 1.1s
+#5 [internal] load .dockerignore
+#5 transferring context: 64B done
+#5 DONE 0.0s
+#6 [internal] load build context
+#6 transferring context: 319.99kB 0.0s done
+#6 DONE 0.1s
+#7 [build 1/6] FROM docker.io/library/node:24-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df
+#7 resolve docker.io/library/node:24-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df 0.0s done
+#7 DONE 0.1s
+#7 [build 1/6] FROM docker.io/library/node:24-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df
+#7 sha256:2c2703a803deed783a7ad4280ddfa7730b37f3366e943e31da0b9a69d47331e5 1.71MB / 1.71MB 0.1s done
+#7 sha256:ea1c5d4af1ed637f410554e0375978811f80e3f696d6a4f317ceafae0ef759e6 448B / 448B 0.2s done
+#7 sha256:707d116f5feee6cfa5e25ac4182074f2f705d6b9f3993bc8de8f505197c32868 0B / 50.48MB 0.2s
+#7 sha256:18a8d678ac2908ce11be82449cf079d3b45de8a0b6425f7534dddb98b521e89f 0B / 3.31kB 0.2s
+#7 sha256:75782e20ea1f4a9d9259bc20a5ecbbea8d5943bf5370bf0f5727900728f1cc9a 0B / 28.12MB 0.2s
+#7 sha256:707d116f5feee6cfa5e25ac4182074f2f705d6b9f3993bc8de8f505197c32868 7.34MB / 50.48MB 0.3s
+#7 sha256:18a8d678ac2908ce11be82449cf079d3b45de8a0b6425f7534dddb98b521e89f 3.31kB / 3.31kB 0.3s done
+#7 sha256:75782e20ea1f4a9d9259bc20a5ecbbea8d5943bf5370bf0f5727900728f1cc9a 15.73MB / 28.12MB 0.3s
+#7 sha256:707d116f5feee6cfa5e25ac4182074f2f705d6b9f3993bc8de8f505197c32868 28.31MB / 50.48MB 0.5s
+#7 sha256:75782e20ea1f4a9d9259bc20a5ecbbea8d5943bf5370bf0f5727900728f1cc9a 28.12MB / 28.12MB 0.5s
+#7 sha256:707d116f5feee6cfa5e25ac4182074f2f705d6b9f3993bc8de8f505197c32868 47.19MB / 50.48MB 0.6s
+#7 sha256:707d116f5feee6cfa5e25ac4182074f2f705d6b9f3993bc8de8f505197c32868 50.48MB / 50.48MB 0.8s
+#7 sha256:75782e20ea1f4a9d9259bc20a5ecbbea8d5943bf5370bf0f5727900728f1cc9a 28.12MB / 28.12MB 0.7s done
+#7 sha256:707d116f5feee6cfa5e25ac4182074f2f705d6b9f3993bc8de8f505197c32868 50.48MB / 50.48MB 0.9s done
+#7 extracting sha256:75782e20ea1f4a9d9259bc20a5ecbbea8d5943bf5370bf0f5727900728f1cc9a
+#7 extracting sha256:75782e20ea1f4a9d9259bc20a5ecbbea8d5943bf5370bf0f5727900728f1cc9a 0.8s done
+#7 DONE 1.8s
+#7 [build 1/6] FROM docker.io/library/node:24-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df
+#7 extracting sha256:18a8d678ac2908ce11be82449cf079d3b45de8a0b6425f7534dddb98b521e89f 0.0s done
+#7 extracting sha256:707d116f5feee6cfa5e25ac4182074f2f705d6b9f3993bc8de8f505197c32868
+#7 extracting sha256:707d116f5feee6cfa5e25ac4182074f2f705d6b9f3993bc8de8f505197c32868 0.9s done
+#7 DONE 2.8s
+#7 [build 1/6] FROM docker.io/library/node:24-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df
+#7 extracting sha256:2c2703a803deed783a7ad4280ddfa7730b37f3366e943e31da0b9a69d47331e5 0.0s done
+#7 extracting sha256:ea1c5d4af1ed637f410554e0375978811f80e3f696d6a4f317ceafae0ef759e6 0.0s done
+#7 DONE 2.9s
+#8 [build 2/6] WORKDIR /app
+#8 DONE 4.2s
+#9 [build 3/6] COPY package.json package-lock.json ./
+#9 DONE 0.1s
+#10 [build 4/6] RUN npm ci --no-audit --no-fund
+#10 3.950 npm warn deprecated lodash.get@4.4.2: This package is deprecated. Use the optional chaining (?.) operator instead.
+#10 4.223 npm warn deprecated intersection-observer@0.12.2: The Intersection Observer polyfill is no longer needed and can safely be removed. Intersection Observer has been Baseline since 2019.
+#10 11.62
+#10 11.62 added 407 packages in 11s
+#10 11.63 npm notice
+#10 11.63 npm notice New major version of npm available! 11.17.0 -> 12.0.2
+#10 11.63 npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.2
+#10 11.63 npm notice To update run: npm install -g npm@12.0.2
+#10 11.63 npm notice
+#10 DONE 19.8s
+#11 [build 5/6] COPY . .
+#11 DONE 0.2s
+#12 [build 6/6] RUN npm run build
+#12 0.265
+#12 0.265 > docs-zapi-social@1.0.0 build
+#12 0.265 > next build
+#12 0.265
+#12 0.907 Attention: Next.js now collects completely anonymous telemetry regarding usage.
+#12 0.907 This information is used to shape Next.js' roadmap and prioritize features.
+#12 0.907 You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+#12 0.907 https://nextjs.org/telemetry
+#12 0.907
+#12 0.967   ▲ Next.js 14.2.35
+#12 0.967   - Environments: .env
+#12 0.967
+#12 0.967    Linting and checking validity of types ...
+#12 3.249    Creating an optimized production build ...
+#12 5.033 [nextra] Init git repository failed Discover git repo from [/app] failed: could not find repository at '/app'; class=Repository (6); code=NotFound (-3)
+#12 21.27  ✓ Compiled successfully
+#12 21.27    Collecting page data ...
+#12 22.75    Generating static pages (0/70) ...
+#12 25.80    Generating static pages (17/70)
+#12 28.03    Generating static pages (34/70)
+#12 30.36    Generating static pages (52/70)
+#12 32.22  ✓ Generating static pages (70/70)
+#12 52.30    Finalizing page optimization ...
+#12 52.30    Collecting build traces ...
+#12 55.66
+#12 55.66 Route (pages)                             Size     First Load JS
+#12 55.66 ┌ ○ /404                                  182 B          84.8 kB
+#12 55.66 ├ ○ /en                                   3.63 kB         181 kB
+#12 55.66 ├ ○ /en/admin                             3.22 kB         181 kB
+#12 55.66 ├ ○ /en/admin/operacion                   3.34 kB         181 kB
+#12 55.66 ├ ○ /en/admin/planes-y-cobros             3.49 kB         181 kB
+#12 55.66 ├ ○ /en/admin/soporte                     2.95 kB         181 kB
+#12 55.66 ├ ○ /en/admin/usuarios                    3.16 kB         181 kB
+#12 55.66 ├ ○ /en/configuracion/acceso              3.44 kB         181 kB
+#12 55.66 ├ ○ /en/configuracion/analitica           3.21 kB         181 kB
+#12 55.66 ├ ○ /en/configuracion/correo              3.65 kB         181 kB
+#12 55.66 ├ ○ /en/configuracion/general             3.31 kB         181 kB
+#12 55.66 ├ ○ /en/configuracion/ia                  3.51 kB         181 kB
+#12 55.66 ├ ○ /en/configuracion/idiomas             3.46 kB         181 kB
+#12 55.66 ├ ○ /en/configuracion/integraciones       3.77 kB         181 kB
+#12 55.66 ├ ○ /en/configuracion/marca               3.6 kB          181 kB
+#12 55.66 ├ ○ /en/configuracion/paginas-y-blog      3.52 kB         181 kB
+#12 55.66 ├ ○ /en/configuracion/sitio-publico       3.74 kB         181 kB
+#12 55.66 ├ ○ /en/instalacion                       3.91 kB         182 kB
+#12 55.66 ├ ○ /en/instalacion/docker-compose        3.8 kB          182 kB
+#12 55.66 ├ ○ /en/instalacion/dokploy               4.6 kB          182 kB
+#12 55.66 ├ ○ /en/instalacion/primer-acceso         3.64 kB         181 kB
+#12 55.66 ├ ○ /en/instalacion/variables             4.4 kB          182 kB
+#12 55.66 ├ ○ /en/instalacion/verificacion          3.79 kB         182 kB
+#12 55.66 ├ ○ /en/mantenimiento/actualizar          3.48 kB         181 kB
+#12 55.66 ├ ○ /en/mantenimiento/copias              3.74 kB         181 kB
+#12 55.66 ├ ○ /en/mantenimiento/problemas           3.83 kB         182 kB
+#12 55.66 ├ ○ /en/portal                            3.48 kB         181 kB
+#12 55.66 ├ ○ /en/portal/ai-studio                  3.46 kB         181 kB
+#12 55.66 ├ ○ /en/portal/automatizacion             3.19 kB         181 kB
+#12 55.66 ├ ○ /en/portal/biblioteca                 3.49 kB         181 kB
+#12 55.66 ├ ○ /en/portal/canales                    3.54 kB         181 kB
+#12 55.66 ├ ○ /en/portal/equipos                    3.43 kB         181 kB
+#12 55.66 ├ ○ /en/portal/facturacion                3.31 kB         181 kB
+#12 55.66 ├ ○ /en/portal/publicacion                3.57 kB         181 kB
+#12 55.66 ├ ○ /en/soporte                           3.15 kB         181 kB
+#12 55.66 ├ ○ /es                                   3.71 kB         181 kB
+#12 55.66 ├ ○ /es/admin                             3.26 kB         181 kB
+#12 55.66 ├ ○ /es/admin/operacion                   3.38 kB         181 kB
+#12 55.66 ├ ○ /es/admin/planes-y-cobros             3.53 kB         181 kB
+#12 55.66 ├ ○ /es/admin/soporte                     2.99 kB         181 kB
+#12 55.66 ├ ○ /es/admin/usuarios                    3.2 kB          181 kB
+#12 55.66 ├ ○ /es/configuracion/acceso              3.49 kB         181 kB
+#12 55.66 ├ ○ /es/configuracion/analitica           3.24 kB         181 kB
+#12 55.66 ├ ○ /es/configuracion/correo              3.69 kB         181 kB
+#12 55.66 ├ ○ /es/configuracion/general             3.41 kB         181 kB
+#12 55.66 ├ ○ /es/configuracion/ia                  3.55 kB         181 kB
+#12 55.66 ├ ○ /es/configuracion/idiomas             3.52 kB         181 kB
+#12 55.66 ├ ○ /es/configuracion/integraciones       3.83 kB         182 kB
+#12 55.66 ├ ○ /es/configuracion/marca               3.67 kB         181 kB
+#12 55.66 ├ ○ /es/configuracion/paginas-y-blog      3.61 kB         181 kB
+#12 55.66 ├ ○ /es/configuracion/sitio-publico       3.81 kB         182 kB
+#12 55.66 ├ ○ /es/instalacion                       3.94 kB         182 kB
+#12 55.66 ├ ○ /es/instalacion/docker-compose        3.8 kB          182 kB
+#12 55.66 ├ ○ /es/instalacion/dokploy               4.72 kB         182 kB
+#12 55.66 ├ ○ /es/instalacion/primer-acceso         3.68 kB         181 kB
+#12 55.66 ├ ○ /es/instalacion/variables             4.46 kB         182 kB
+#12 55.66 ├ ○ /es/instalacion/verificacion          3.85 kB         182 kB
+#12 55.66 ├ ○ /es/mantenimiento/actualizar          3.52 kB         181 kB
+#12 55.66 ├ ○ /es/mantenimiento/copias              3.78 kB         182 kB
+#12 55.66 ├ ○ /es/mantenimiento/problemas           3.91 kB         182 kB
+#12 55.66 ├ ○ /es/portal                            3.57 kB         181 kB
+#12 55.66 ├ ○ /es/portal/ai-studio                  3.54 kB         181 kB
+#12 55.66 ├ ○ /es/portal/automatizacion             3.23 kB         181 kB
+#12 55.66 ├ ○ /es/portal/biblioteca                 3.54 kB         181 kB
+#12 55.66 ├ ○ /es/portal/canales                    3.58 kB         181 kB
+#12 55.66 ├ ○ /es/portal/equipos                    3.45 kB         181 kB
+#12 55.66 ├ ○ /es/portal/facturacion                3.33 kB         181 kB
+#12 55.66 ├ ○ /es/portal/publicacion                3.63 kB         181 kB
+#12 55.66 └ ○ /es/soporte                           3.17 kB         181 kB
+#12 55.66 + First Load JS shared by all             84.7 kB
+#12 55.66   ├ chunks/framework-840cff9d6bb95703.js  44.8 kB
+#12 55.66   ├ chunks/main-df1959d9b88bb66e.js       38.6 kB
+#12 55.66   └ other shared chunks (total)           1.21 kB
+#12 55.66
+#12 55.66 ○  (Static)  prerendered as static content
+#12 55.66
+#12 DONE 55.9s
+#13 [runtime 3/5] COPY --from=build --chown=node:node /app/.next/standalone ./
+#13 CACHED
+#14 [runtime 4/5] COPY --from=build --chown=node:node /app/.next/static ./.next/static
+#14 CACHED
+#15 [runtime 5/5] COPY --from=build --chown=node:node /app/public ./public
+#15 ERROR: failed to calculate checksum of ref ozgktsr894vgz729urkevlkhf::xcxn64tcix7gyt9dszgbw4wsf: "/app/public": not found
+------
+> [runtime 5/5] COPY --from=build --chown=node:node /app/public ./public:
+------
+Dockerfile:18
+--------------------
+|     COPY --from=build --chown=node:node /app/.next/standalone ./
+|     COPY --from=build --chown=node:node /app/.next/static ./.next/static
+| >>> COPY --from=build --chown=node:node /app/public ./public
+|
+|     ENV NODE_ENV=production
+--------------------
+ERROR: failed to build: failed to solve: failed to compute cache key: failed to calculate checksum of ref ozgktsr894vgz729urkevlkhf::xcxn64tcix7gyt9dszgbw4wsf: "/app/public": not found
+❌ Docker build failed
+Error occurred ❌, check the logs for details.
+
+---
+
+ya pusheaste?
+
+---
+
+que significa
+
+---
+
+Si, no se puede hacer eso? Es que claro, tengo un servidor oracle aparte, quería usar eso para el docs
+
+---
+
+si
