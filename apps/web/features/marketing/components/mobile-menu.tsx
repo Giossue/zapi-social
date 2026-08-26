@@ -3,7 +3,7 @@
 import { ArrowRightIcon, Menu } from "lucide-react"
 import Link from "next/link"
 
-import { Button } from "@workspace/ui/components/button"
+import { MarketingButton } from "./button"
 import {
   Sheet,
   SheetContent,
@@ -28,14 +28,14 @@ const MobileMenu = ({
   return (
     <Sheet>
       <SheetTrigger asChild className="lg:hidden">
-        <Button
-          variant="brand-secondary"
-          size="icon-lg"
+        <MarketingButton
+          variant="ghost"
+          size="icon"
           aria-label={menuLabel}
           className="lg:hidden"
         >
           <Menu className="size-6" />
-        </Button>
+        </MarketingButton>
       </SheetTrigger>
       <SheetContent side="right" className="w-full pt-12 sm:w-[300px]">
         <SheetHeader className="mb-8">
@@ -53,10 +53,10 @@ const MobileMenu = ({
           ))}
           <div className="mt-4 border-t border-border pt-4">
             <Link href={ctaHref} className="w-full">
-              <Button size="lg" className="w-full">
+              <MarketingButton variant="blue" className="w-full">
                 {ctaLabel}
                 <ArrowRightIcon className="size-4" />
-              </Button>
+              </MarketingButton>
             </Link>
           </div>
         </nav>

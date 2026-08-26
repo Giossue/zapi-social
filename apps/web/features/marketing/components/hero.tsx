@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server"
 import Image from "next/image"
 import Link from "next/link"
 
-import { Button } from "@workspace/ui/components/button"
+import { MarketingButton } from "./button"
 
 import { marketingCta } from "@/features/marketing/cta"
 
@@ -72,10 +72,10 @@ const Hero = async ({ signedIn, registrationEnabled }: HeroProps) => {
           <Container delay={0.25} className="z-20">
             <div className="mt-6 flex items-center justify-center gap-x-4">
               <Link href={cta.href} className="group flex items-center gap-2">
-                <Button size="lg">
+                <MarketingButton size="lg">
                   {tCta(cta.messageKey)}
                   <ArrowRightIcon className="size-4 transition-all duration-300 group-hover:translate-x-1" />
-                </Button>
+                </MarketingButton>
               </Link>
             </div>
           </Container>

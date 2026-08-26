@@ -20,10 +20,12 @@ Dentro de `apps/web` las tres desaparecen: la API se consume por la red interna,
 
 Se conservan los dos dominios y su significado actual. Ambos apuntan a la misma aplicación Web de Dokploy.
 
-| Dominio                | `/`                                          | Resto                                          |
-| ---------------------- | -------------------------------------------- | ---------------------------------------------- |
-| `zapisocial.com`       | Landing                                      | `/blog`, `/blog/[slug]`, `/[slug]` públicas    |
-| `app.zapisocial.com`   | Redirige a `/portal/dashboard` o `/login`    | Portal y Admin, igual que hoy                  |
+| Dominio              | Sirve                                                             |
+| -------------------- | ----------------------------------------------------------------- |
+| `zapisocial.com`     | **Solo la landing**: `/`, `/blog`, `/blog/[slug]`, `/[slug]`      |
+| `app.zapisocial.com` | Portal y Admin; `/` redirige a `/portal/dashboard` o `/login`     |
+
+El apex no sirve el panel. `/login`, `/register`, `/portal/*`, `/admin/*` y `/setup` redirigen a `app.zapisocial.com` conservando la ruta. Sin esa separación el login quedaba accesible en dos dominios y el widget de Turnstile fallaba en el apex, porque su lista de hosts autorizados solo tiene `app.`.
 
 La distinción vive en `apps/web/proxy.ts` como regla por host, gobernada por la variable `PORTAL_HOST`. Si esa variable falta, todos los hosts sirven la landing en `/`: es lo correcto en local y lo que rompería producción si se olvida en Dokploy.
 
@@ -57,7 +59,9 @@ Se conserva el comportamiento que sí era una decisión de producto: **si la API
 
 Se resuelve declarando todo eso en `packages/ui/src/styles/globals.css` bajo el ámbito `.marketing`, que solo aplica el layout del grupo de rutas. Portal y Admin no ven ninguna de estas declaraciones y sus tokens no cambian. Ninguna feature de producto puede usar la capa `.marketing`.
 
-Los primitives sí se unifican: la landing pasa a usar `Button`, `Sheet` y `Accordion` de `@workspace/ui` y se elimina la copia de shadcn que arrastraba la plantilla. La variante `blue` del botón de la plantilla no existe en V2 y no se recrea: el primario de `packages/ui` es el mismo azul.
+`Sheet` y `Accordion` sí se unifican: la landing usa los de `@workspace/ui` y se elimina la copia de shadcn que arrastraba la plantilla.
+
+El **botón no**. Se intentó unificar y rompió todos los CTA de la página: el `size="lg"` de producto es `h-10 px-2.5` —un control compacto de panel— frente al `h-10 px-8` de la plantilla, y el primitive de V2 no tiene ni el desplazamiento al pasar el ratón, ni el anillo, ni la variante `white` que usan las tarjetas de precios. Un botón de marketing y uno de panel no son el mismo rol visual. `features/marketing/components/button.tsx` conserva las variantes y tamaños de la plantilla y solo lo usa esta superficie.
 
 ## Migración Tailwind 3 → 4
 

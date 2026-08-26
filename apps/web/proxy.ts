@@ -42,9 +42,18 @@ export async function proxy(request: NextRequest) {
   const hasSession = request.cookies.has(sessionCookieName)
   const { pathname, search } = request.nextUrl
 
+  const host = request.headers.get("host")?.split(":")[0]
+  const onPortalHost = !portalHost || host === portalHost
+
+  if (!onPortalHost) {
+    if (pathname === "/") return NextResponse.next()
+    const scheme = request.headers.get("x-forwarded-proto") ?? "https"
+    return NextResponse.redirect(
+      new URL(`${pathname}${search}`, `${scheme}://${portalHost}`)
+    )
+  }
+
   if (pathname === "/") {
-    const host = request.headers.get("host")?.split(":")[0]
-    if (!portalHost || host !== portalHost) return NextResponse.next()
     if ((await setupRequired()) === true) {
       return NextResponse.redirect(new URL("/setup", request.url))
     }

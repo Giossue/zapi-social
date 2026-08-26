@@ -111,6 +111,7 @@
         "@workspace/ui": "workspace:*",
         "ai": "^7.0.77",
         "animejs": "^4.5.0",
+        "class-variance-authority": "^0.7.1",
         "date-fns": "^4.4.0",
         "lucide-react": "^1.28.0",
         "motion": "^13.1.1",

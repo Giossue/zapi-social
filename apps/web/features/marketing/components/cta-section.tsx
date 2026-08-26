@@ -5,7 +5,7 @@ import { motion } from "motion/react"
 import { useTranslations } from "next-intl"
 import Link from "next/link"
 
-import { Button } from "@workspace/ui/components/button"
+import { MarketingButton } from "./button"
 
 import Container from "./container"
 import Particles from "./particles"
@@ -57,10 +57,10 @@ const CtaSection = ({ signedIn }: { signedIn: boolean }) => {
             href={signedIn ? "/portal/dashboard" : "/#pricing"}
             className="mt-8"
           >
-            <Button size="lg">
+            <MarketingButton size="lg">
               {signedIn ? tCta("dashboard") : t("action")}
               <ArrowRightIcon className="size-4" />
-            </Button>
+            </MarketingButton>
           </Link>
         </div>
       </Container>

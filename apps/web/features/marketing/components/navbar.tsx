@@ -2,7 +2,7 @@ import { ArrowRightIcon } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 import Link from "next/link"
 
-import { Button } from "@workspace/ui/components/button"
+import { MarketingButton } from "./button"
 
 import { marketingCta } from "@/features/marketing/cta"
 import { MARKETING_NAV_LINKS } from "@/features/marketing/nav"
@@ -53,10 +53,10 @@ const Navbar = async ({
 
           <div className="flex items-center gap-4">
             <Link href={cta.href} className="group hidden lg:block">
-              <Button size="lg">
+              <MarketingButton variant="blue">
                 {t(`cta.${cta.messageKey}`)}
                 <ArrowRightIcon className="size-4 transition-all duration-300 group-hover:translate-x-1" />
-              </Button>
+              </MarketingButton>
             </Link>
             <MobileMenu
               ctaHref={cta.href}

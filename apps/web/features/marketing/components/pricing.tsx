@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { useState } from "react"
 
-import { Button } from "@workspace/ui/components/button"
+import { MarketingButton } from "./button"
 import { cn } from "@workspace/ui/lib/utils"
 
 import type { MarketingPlan } from "@/features/marketing/plans"
@@ -126,14 +126,14 @@ const PlanCard = ({
 
       <div className="flex w-full flex-col items-start px-4 py-2 md:px-8">
         <Link href={plan.href} className="group w-full">
-          <Button
+          <MarketingButton
             size="lg"
-            variant={plan.featured ? "default" : "secondary"}
+            variant={plan.featured ? "blue" : "white"}
             className="w-full"
           >
             {plan.isFree ? t("chooseFree") : t("choose", { name: plan.name })}
             <ArrowRightIcon className="size-4 transition-all duration-300 group-hover:translate-x-1" />
-          </Button>
+          </MarketingButton>
         </Link>
         <div className="mx-auto h-8 w-full overflow-hidden">
           <AnimatePresence mode="wait">

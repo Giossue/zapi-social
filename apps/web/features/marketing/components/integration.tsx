@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server"
 import Image from "next/image"
 import Link from "next/link"
 
-import { Button } from "@workspace/ui/components/button"
+import { MarketingButton } from "./button"
 import { cn } from "@workspace/ui/lib/utils"
 
 import { marketingCta } from "@/features/marketing/cta"
@@ -91,10 +91,10 @@ const Integration = async ({
       </div>
       <div className="inset-x-0 z-20 mx-auto mt-8 flex max-w-3xl flex-col items-center text-center lg:absolute lg:bottom-1/4 lg:mt-0">
         <Link href={cta.href}>
-          <Button size="lg">
+          <MarketingButton size="lg">
             {signedIn ? tCta("dashboard") : t("action")}
             <ArrowRightIcon className="size-4" />
-          </Button>
+          </MarketingButton>
         </Link>
       </div>
 

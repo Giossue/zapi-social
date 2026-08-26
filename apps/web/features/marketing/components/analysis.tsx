@@ -1,7 +1,7 @@
 import { DownloadIcon, FilterIcon, TrendingUpIcon } from "lucide-react"
 import { getFormatter, getTranslations } from "next-intl/server"
 
-import { Button } from "@workspace/ui/components/button"
+import { MarketingButton } from "./button"
 
 import Container from "./container"
 import { MagicCard } from "./magic-card"
@@ -79,20 +79,20 @@ const Analysis = async () => {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button
+                      <MarketingButton
                         size="icon"
-                        variant="brand-secondary"
+                        variant="ghost"
                         aria-label={t("filter")}
                       >
                         <FilterIcon className="size-5" />
-                      </Button>
-                      <Button
+                      </MarketingButton>
+                      <MarketingButton
                         size="icon"
-                        variant="brand-secondary"
+                        variant="ghost"
                         aria-label={t("download")}
                       >
                         <DownloadIcon className="size-5" />
-                      </Button>
+                      </MarketingButton>
                     </div>
                   </div>
 
@@ -150,20 +150,20 @@ const Analysis = async () => {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button
+                      <MarketingButton
                         size="icon"
-                        variant="brand-secondary"
+                        variant="ghost"
                         aria-label={t("filter")}
                       >
                         <FilterIcon className="size-5" />
-                      </Button>
-                      <Button
+                      </MarketingButton>
+                      <MarketingButton
                         size="icon"
-                        variant="brand-secondary"
+                        variant="ghost"
                         aria-label={t("download")}
                       >
                         <DownloadIcon className="size-5" />
-                      </Button>
+                      </MarketingButton>
                     </div>
                   </div>
 
