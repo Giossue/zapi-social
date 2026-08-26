@@ -85,3 +85,25 @@ aviso, estado, autor de la última edición y timestamps. El índice único es
   la salida de Next; `audit:portal-admin-ui` sin hallazgos.
 - No se envió un correo real de verificación: requiere SMTP configurado.
 - Falta la aprobación visual del usuario.
+
+## Texto por defecto y anulaciones por idioma
+
+Hasta el 26 de agosto de 2026 los correos solo existían en `es` y `en`, porque `supportedLocaleSchema` es un enum cerrado y el diálogo pintaba una pestaña por cada uno. Con 30 idiomas añadidos desde Admin el diálogo no crecía: los 30 recibían el correo en español, porque `users.locale` es un `varchar(8)` libre y el catálogo no los tenía.
+
+Ahora cada plantilla tiene:
+
+- **Un texto por defecto**, guardado con el idioma reservado `"*"`. Es el que se usa en cualquier idioma sin versión propia.
+- **Anulaciones por idioma**, opcionales, para cualquier código de idioma. Solo existen las que el administrador crea.
+
+El diálogo cambia la tira de pestañas por un selector con los idiomas activos, así que escala igual con 2 que con 300. La lista muestra el estado del texto por defecto y un contador de idiomas propios.
+
+No hizo falta migración: las filas `es`/`en` que ya existían pasan a ser anulaciones por idioma, que es justo lo que eran.
+
+### Orden de resolución al enviar
+
+1. Anulación del idioma del destinatario, si está activa.
+2. Texto por defecto (`"*"`), si está activo.
+3. Catálogo incluido en el código, para ese idioma.
+4. Catálogo incluido en español.
+
+El paso 2 va antes del 3 a propósito: si el administrador editó el texto por defecto, ha expresado una intención para todos los idiomas y debe ganar al texto de fábrica. Las seis reglas están cubiertas en `apps/api/src/email/email-templates-resolution.spec.ts`.

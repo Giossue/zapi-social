@@ -1,17 +1,16 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { apiAuditLogs, emailTemplates } from '@workspace/database';
-import { and, eq } from '@workspace/database/query';
+import { and, eq, inArray } from '@workspace/database/query';
 import {
+  DEFAULT_EMAIL_TEMPLATE_LOCALE,
   emailTemplateKeySchema,
   resetAdminEmailTemplateSchema,
-  supportedLocaleSchema,
   updateAdminEmailTemplateSchema,
   type AdminEmailTemplate,
   type AdminEmailTemplateCopy,
   type AdminEmailTemplatesResponse,
   type EmailTemplateKey,
   type PlatformAdminAuthSession,
-  type SupportedLocale,
 } from '@workspace/contracts';
 import { DatabaseService } from '../database/database.service';
 import { AppException } from '../platform/errors/app-exception';
@@ -26,34 +25,52 @@ export class EmailTemplatesService {
 
   async list(): Promise<AdminEmailTemplatesResponse> {
     const rows = await this.database.db.select().from(emailTemplates);
-    const overrides = new Map(
-      rows.map((row) => [`${row.key}:${row.locale}`, row]),
-    );
+    const byKey = new Map<string, typeof rows>();
+    for (const row of rows) {
+      const bucket = byKey.get(row.key) ?? [];
+      bucket.push(row);
+      byKey.set(row.key, bucket);
+    }
+
     const templates = (
       Object.keys(EMAIL_TEMPLATE_CATALOG) as EmailTemplateKey[]
     ).map((key): AdminEmailTemplate => {
       const entry = EMAIL_TEMPLATE_CATALOG[key];
+      const stored = byKey.get(key) ?? [];
+      const defaultRow = stored.find(
+        (row) => row.locale === DEFAULT_EMAIL_TEMPLATE_LOCALE,
+      );
+      const fallback = entry.copy.es;
+
       return {
         key,
         name: entry.name,
         description: entry.description,
-        copies: supportedLocaleSchema.options.map(
-          (locale): AdminEmailTemplateCopy => {
-            const override = overrides.get(`${key}:${locale}`);
-            const fallback = entry.copy[locale];
-            return {
-              locale,
-              subject: override?.subject ?? fallback.subject,
-              title: override?.title ?? fallback.title,
-              body: override?.description ?? fallback.body,
-              actionLabel: override?.actionLabel ?? fallback.actionLabel,
-              notice: override?.notice ?? fallback.notice,
-              customized: Boolean(override),
-              isActive: override?.isActive ?? true,
-              updatedAt: override?.updatedAt.toISOString() ?? null,
-            };
-          },
-        ),
+        defaultCopy: {
+          locale: DEFAULT_EMAIL_TEMPLATE_LOCALE,
+          subject: defaultRow?.subject ?? fallback.subject,
+          title: defaultRow?.title ?? fallback.title,
+          body: defaultRow?.description ?? fallback.body,
+          actionLabel: defaultRow?.actionLabel ?? fallback.actionLabel,
+          notice: defaultRow?.notice ?? fallback.notice,
+          customized: Boolean(defaultRow),
+          isActive: defaultRow?.isActive ?? true,
+          updatedAt: defaultRow?.updatedAt.toISOString() ?? null,
+        },
+        overrides: stored
+          .filter((row) => row.locale !== DEFAULT_EMAIL_TEMPLATE_LOCALE)
+          .sort((a, b) => a.locale.localeCompare(b.locale))
+          .map((row): AdminEmailTemplateCopy => ({
+            locale: row.locale,
+            subject: row.subject,
+            title: row.title,
+            body: row.description,
+            actionLabel: row.actionLabel,
+            notice: row.notice,
+            customized: true,
+            isActive: row.isActive,
+            updatedAt: row.updatedAt.toISOString(),
+          })),
         variables: entry.variables,
       };
     });
@@ -124,27 +141,41 @@ export class EmailTemplatesService {
   async resolve(
     key: EmailTemplateKey,
     variables: Record<string, string> = {},
-    locale: SupportedLocale = 'es',
+    locale = 'es',
   ): Promise<EmailTemplateCopy> {
     const entry = EMAIL_TEMPLATE_CATALOG[key];
-    const [override] = await this.database.db
+    const rows = await this.database.db
       .select()
       .from(emailTemplates)
       .where(
-        and(eq(emailTemplates.key, key), eq(emailTemplates.locale, locale)),
-      )
-      .limit(1);
-    const active = override?.isActive ? override : undefined;
-    const copy: EmailTemplateCopy = active
+        and(
+          eq(emailTemplates.key, key),
+          inArray(emailTemplates.locale, [
+            locale,
+            DEFAULT_EMAIL_TEMPLATE_LOCALE,
+          ]),
+        ),
+      );
+    const active = rows.filter((row) => row.isActive);
+    const chosen =
+      active.find((row) => row.locale === locale) ??
+      active.find((row) => row.locale === DEFAULT_EMAIL_TEMPLATE_LOCALE);
+
+    const bundled =
+      (entry.copy as Record<string, EmailTemplateCopy | undefined>)[locale] ??
+      entry.copy.es;
+
+    const copy: EmailTemplateCopy = chosen
       ? {
-          preview: entry.copy[locale].preview,
-          subject: active.subject,
-          title: active.title,
-          body: active.description,
-          actionLabel: active.actionLabel,
-          notice: active.notice,
+          preview: bundled.preview,
+          subject: chosen.subject,
+          title: chosen.title,
+          body: chosen.description,
+          actionLabel: chosen.actionLabel,
+          notice: chosen.notice,
         }
-      : entry.copy[locale];
+      : bundled;
+
     return {
       preview: this.render(copy.preview, variables),
       subject: this.render(copy.subject, variables),

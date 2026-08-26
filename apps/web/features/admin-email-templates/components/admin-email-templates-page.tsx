@@ -3,12 +3,16 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react"
 import { CircleAlert, Pencil, RotateCcw, Save, ShieldX, X } from "lucide-react"
 
-import { adminEmailTemplatesApi, ApiError } from "@workspace/api-client"
+import {
+  adminEmailTemplatesApi,
+  ApiError,
+  i18nApi,
+} from "@workspace/api-client"
+import { DEFAULT_EMAIL_TEMPLATE_LOCALE } from "@workspace/contracts"
 import type {
   AdminEmailTemplate,
   AdminEmailTemplateCopy,
   AdminEmailTemplatesResponse,
-  SupportedLocale,
 } from "@workspace/contracts"
 import {
   AlertDialog,
@@ -21,6 +25,13 @@ import {
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog"
 import { Badge } from "@workspace/ui/components/badge"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
@@ -61,7 +72,6 @@ import {
 } from "@workspace/ui/components/table"
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@/components/table-pagination"
-import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
 import { useTranslations } from "next-intl"
@@ -90,15 +100,17 @@ function toForm(copy: AdminEmailTemplateCopy): FormValues {
 
 function copyFor(
   template: AdminEmailTemplate,
-  locale: SupportedLocale
+  locale: string
 ): AdminEmailTemplateCopy {
+  if (locale === DEFAULT_EMAIL_TEMPLATE_LOCALE) return template.defaultCopy
   return (
-    template.copies.find((copy) => copy.locale === locale) ??
-    template.copies[0]!
+    template.overrides.find((copy) => copy.locale === locale) ??
+    template.defaultCopy
   )
 }
 
 function TemplateSheet({
+  languages,
   locale,
   onLocaleChange,
   onOpenChange,
@@ -107,8 +119,9 @@ function TemplateSheet({
   pending,
   template,
 }: {
-  locale: SupportedLocale
-  onLocaleChange: (locale: SupportedLocale) => void
+  languages: { code: string; label: string }[]
+  locale: string
+  onLocaleChange: (locale: string) => void
   onOpenChange: (open: boolean) => void
   onSubmit: (values: FormValues) => Promise<boolean>
   open: boolean
@@ -165,20 +178,36 @@ function TemplateSheet({
           onSubmit={(event) => void submit(event)}
         >
           <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-4">
-            <Tabs
-              onValueChange={(value) =>
-                onLocaleChange(value as SupportedLocale)
-              }
-              value={locale}
-            >
-              <TabsList aria-label={t("localeTabs")}>
-                {template?.copies.map((copy) => (
-                  <TabsTrigger key={copy.locale} value={copy.locale}>
-                    {t(`locale.${copy.locale}`)}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
+            <Field>
+              <FieldLabel htmlFor="template-locale">
+                {t("localeLabel")}
+              </FieldLabel>
+              <Select onValueChange={onLocaleChange} value={locale}>
+                <SelectTrigger id="template-locale">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={DEFAULT_EMAIL_TEMPLATE_LOCALE}>
+                    {t("defaultCopy")}
+                  </SelectItem>
+                  {languages.map((language) => (
+                    <SelectItem key={language.code} value={language.code}>
+                      {language.label}
+                      {template?.overrides.some(
+                        (copy) => copy.locale === language.code
+                      )
+                        ? ` · ${t("status.customized")}`
+                        : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FieldDescription>
+                {locale === DEFAULT_EMAIL_TEMPLATE_LOCALE
+                  ? t("defaultCopyHint")
+                  : t("overrideHint")}
+              </FieldDescription>
+            </Field>
             {template?.variables.length ? (
               <Card variant="inset">
                 <CardContent className="flex flex-col gap-2 py-3">
@@ -349,7 +378,26 @@ export function AdminEmailTemplatesPage() {
   const [loadError, setLoadError] = useState(false)
   const [forbidden, setForbidden] = useState(false)
   const [editing, setEditing] = useState<AdminEmailTemplate | null>(null)
-  const [editingLocale, setEditingLocale] = useState<SupportedLocale>("es")
+  const [editingLocale, setEditingLocale] = useState<string>(
+    DEFAULT_EMAIL_TEMPLATE_LOCALE
+  )
+  const [languages, setLanguages] = useState<{ code: string; label: string }[]>(
+    []
+  )
+
+  useEffect(() => {
+    void i18nApi
+      .languages()
+      .then((response) =>
+        setLanguages(
+          response.languages.map((language) => ({
+            code: language.code,
+            label: language.nativeName || language.name,
+          }))
+        )
+      )
+      .catch(() => setLanguages([]))
+  }, [])
   const [sheetOpen, setSheetOpen] = useState(false)
   const [resetting, setResetting] = useState<AdminEmailTemplate | null>(null)
   const [pending, setPending] = useState(false)
@@ -408,10 +456,11 @@ export function AdminEmailTemplatesPage() {
     const matchesQuery =
       !normalizedQuery ||
       template.name.toLowerCase().includes(normalizedQuery) ||
-      template.copies.some((copy) =>
+      [template.defaultCopy, ...template.overrides].some((copy) =>
         copy.subject.toLowerCase().includes(normalizedQuery)
       )
-    const customized = template.copies.some((copy) => copy.customized)
+    const customized =
+      template.defaultCopy.customized || template.overrides.length > 0
     const matchesStatus =
       statusFilter === "all" ||
       (statusFilter === "customized" ? customized : !customized)
@@ -510,21 +559,29 @@ export function AdminEmailTemplatesPage() {
                         </div>
                       </TableCell>
                       <TableCell className="hidden text-muted-foreground lg:table-cell">
-                        {copyFor(template, "es").subject}
+                        {template.defaultCopy.subject}
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
-                          {template.copies.map((copy) => (
-                            <Badge
-                              key={copy.locale}
-                              variant={copy.customized ? "info" : "secondary"}
-                            >
-                              {t(`locale.${copy.locale}`)} ·{" "}
-                              {copy.customized
-                                ? t("status.customized")
-                                : t("status.default")}
+                          <Badge
+                            variant={
+                              template.defaultCopy.customized
+                                ? "info"
+                                : "secondary"
+                            }
+                          >
+                            {t("defaultCopy")} ·{" "}
+                            {template.defaultCopy.customized
+                              ? t("status.customized")
+                              : t("status.default")}
+                          </Badge>
+                          {template.overrides.length ? (
+                            <Badge variant="info">
+                              {t("overrideCount", {
+                                count: template.overrides.length,
+                              })}
                             </Badge>
-                          ))}
+                          ) : null}
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
@@ -532,7 +589,7 @@ export function AdminEmailTemplatesPage() {
                           <Button
                             onClick={() => {
                               setEditing(template)
-                              setEditingLocale("es")
+                              setEditingLocale(DEFAULT_EMAIL_TEMPLATE_LOCALE)
                               setSheetOpen(true)
                             }}
                             size="sm"
@@ -540,7 +597,8 @@ export function AdminEmailTemplatesPage() {
                           >
                             <Pencil data-icon="inline-start" /> {t("edit")}
                           </Button>
-                          {template.copies.some((copy) => copy.customized) ? (
+                          {template.defaultCopy.customized ||
+                          template.overrides.length ? (
                             <Button
                               aria-label={t("resetAria", {
                                 name: template.name,
@@ -594,6 +652,7 @@ export function AdminEmailTemplatesPage() {
         </Card>
       </div>
       <TemplateSheet
+        languages={languages}
         locale={editingLocale}
         onLocaleChange={setEditingLocale}
         onOpenChange={setSheetOpen}
@@ -647,11 +706,12 @@ export function AdminEmailTemplatesPage() {
                 const target = resetting
                 if (!target) return
                 setPending(true)
-                const customized = target.copies.filter(
-                  (copy) => copy.customized
-                )
+                const customized = [
+                  target.defaultCopy,
+                  ...target.overrides,
+                ].filter((copy) => copy.customized)
                 void customized
-                  .reduce(
+                  .reduce<Promise<AdminEmailTemplatesResponse | null>>(
                     (chain, copy) =>
                       chain.then(() =>
                         adminEmailTemplatesApi.reset(target.key, {

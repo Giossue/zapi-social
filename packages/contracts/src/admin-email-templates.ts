@@ -1,6 +1,13 @@
 import { z } from "zod"
 
-import { supportedLocaleSchema } from "./locale.js"
+export const DEFAULT_EMAIL_TEMPLATE_LOCALE = "*"
+
+export const emailTemplateLocaleSchema = z
+  .string()
+  .trim()
+  .min(1)
+  .max(8)
+  .regex(/^(\*|[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})?)$/)
 
 export const emailTemplateKeySchema = z.enum([
   "password_reset",
@@ -20,7 +27,7 @@ export const emailTemplateVariableSchema = z.object({
 })
 
 export const adminEmailTemplateCopySchema = z.object({
-  locale: supportedLocaleSchema,
+  locale: emailTemplateLocaleSchema,
   subject: z.string(),
   title: z.string(),
   body: z.string(),
@@ -35,7 +42,8 @@ export const adminEmailTemplateSchema = z.object({
   key: emailTemplateKeySchema,
   name: z.string(),
   description: z.string(),
-  copies: z.array(adminEmailTemplateCopySchema).min(1),
+  defaultCopy: adminEmailTemplateCopySchema,
+  overrides: z.array(adminEmailTemplateCopySchema),
   variables: z.array(emailTemplateVariableSchema),
 })
 
@@ -45,7 +53,7 @@ export const adminEmailTemplatesResponseSchema = z.object({
 
 export const updateAdminEmailTemplateSchema = z
   .object({
-    locale: supportedLocaleSchema,
+    locale: emailTemplateLocaleSchema,
     subject: z.string().trim().min(1).max(250),
     title: z.string().trim().min(1).max(250),
     body: z.string().trim().min(1).max(2000),
@@ -56,7 +64,7 @@ export const updateAdminEmailTemplateSchema = z
   .strict()
 
 export const resetAdminEmailTemplateSchema = z
-  .object({ locale: supportedLocaleSchema })
+  .object({ locale: emailTemplateLocaleSchema })
   .strict()
 
 export type EmailTemplateKey = z.infer<typeof emailTemplateKeySchema>
