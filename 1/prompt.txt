@@ -1,0 +1,2 @@
+En portal cuando intentor importar sale error 
+ y las imagenes se renderizan mal
