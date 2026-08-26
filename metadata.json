@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "01M0ZAKMP63JPNGBA6GB5QTV1H",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "apps/web/app/(marketing)/blog/[slug]/page.tsx",
+    "apps/web/app/(marketing)/blog/page.tsx",
+    "apps/web/app/(marketing)/page.tsx",
+    "apps/web/features/marketing/nav.ts",
+    "apps/web/features/marketing/site.ts"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 611,
+    "cache_creation_tokens": 963615,
+    "cache_read_tokens": 97364491,
+    "output_tokens": 225311,
+    "api_call_count": 308
+  }
+}
