@@ -261,7 +261,7 @@ Mount path Worker: /var/lib/zapi/files
 FILES_STORAGE_PATH=/var/lib/zapi/files
 ```
 
-Un volumen con el mismo nombre pero datos independientes, o rutas internas distintas, rompe thumbnails, Bulk Posts, AI Images, Publishing y watermarks. Después de cambiar un mount se redeployan ambos servicios. El volumen no se monta en Web.
+Un volumen con el mismo nombre pero datos independientes, o rutas internas distintas, rompe thumbnails, Bulk Posts, AI Images, Publishing, watermarks y los logotipos subidos desde Admin, que viven en `branding/` dentro de esa misma ruta. Después de cambiar un mount se redeployan ambos servicios. El volumen no se monta en Web.
 
 Los volúmenes nuevos se montan inicialmente como `root:root`, aunque la imagen haya creado la ruta con otro propietario. API y Worker arrancan mediante `files-storage-entrypoint`: corrige una vez la propiedad del volumen a `bun:bun` cuando sea necesario y después ejecuta Nest como el usuario sin privilegios `bun`. El smoke operativo debe confirmar lectura y escritura desde ambos contenedores; que los archivos sean legibles no basta para generar thumbnails, importaciones ni variantes temporales de watermarks.
 

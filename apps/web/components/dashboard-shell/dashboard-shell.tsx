@@ -1,5 +1,6 @@
 "use client"
 
+import { useBranding } from "@/components/branding-provider"
 import { useEffect, useMemo, useState } from "react"
 import { usePathname } from "next/navigation"
 import { useTranslations } from "next-intl"
@@ -78,13 +79,15 @@ export function DashboardShell({
     [notificationUnread]
   )
 
+  const { siteName } = useBranding()
+
   useEffect(() => subscribeToNotificationUnread(setNotificationUnread), [])
 
   useEffect(() => {
     const routeLabel =
       documentTitleOverrides?.[pathname] ?? getRouteLabel(items, pathname)
-    document.title = `${routeLabel || areaName} - Zapi Social`
-  }, [areaName, documentTitleOverrides, items, pathname])
+    document.title = `${routeLabel || areaName} - ${siteName}`
+  }, [areaName, documentTitleOverrides, items, pathname, siteName])
 
   return (
     <SidebarProvider

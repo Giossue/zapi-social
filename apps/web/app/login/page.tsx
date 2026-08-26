@@ -1,3 +1,4 @@
+import { getBrandName } from "@/lib/branding"
 import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
@@ -6,7 +7,8 @@ import { safeNextPath } from "@/features/identity/login-redirect"
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("auth.metadata")
-  return { title: t("login") }
+  const brand = await getBrandName()
+  return { title: t("login", { brand }) }
 }
 
 export default async function LoginPage({

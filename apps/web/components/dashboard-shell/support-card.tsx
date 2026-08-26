@@ -1,3 +1,4 @@
+import { BrandName } from "@/components/brand-mark"
 import {
   Card,
   CardDescription,
@@ -19,7 +20,9 @@ export function SupportCard({ areaLabel }: SupportCardProps) {
       className="overflow-hidden shadow-none group-data-[collapsible=icon]:hidden"
     >
       <CardHeader className="min-w-0 px-4">
-        <CardTitle className="truncate text-sm">Zapi Social</CardTitle>
+        <CardTitle className="truncate text-sm">
+          <BrandName />
+        </CardTitle>
         <CardDescription className="line-clamp-3">
           {t("supportCardDescription", { area: areaLabel.toLowerCase() })}
         </CardDescription>

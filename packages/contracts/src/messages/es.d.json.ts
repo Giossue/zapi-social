@@ -1120,6 +1120,29 @@ declare const messages: {
       sessionLifetimeHours: "Duración de sesión (horas)"
       title: "Acceso y registro"
     }
+    branding: {
+      assets: {
+        favicon: "Favicon"
+        logoBrandDark: "Marca completa (fondo oscuro)"
+        logoBrandLight: "Marca completa (fondo claro)"
+        logoDark: "Isotipo (fondo oscuro)"
+        logoLight: "Isotipo (fondo claro)"
+      }
+      choose: "Subir imagen"
+      description: "Sustituye el favicon y los logotipos por los tuyos. El nombre sale de Configuración general. PNG, JPG, WebP, SVG o ICO, hasta 2 MB."
+      hints: {
+        favicon: "El icono de la pestaña del navegador."
+        logoBrandDark: "Logotipo con nombre, para fondos oscuros."
+        logoBrandLight: "Logotipo con nombre, para fondos claros."
+        logoDark: "Símbolo sin texto, para fondos oscuros. Es el del panel y la landing."
+        logoLight: "Símbolo sin texto, para fondos claros."
+      }
+      loadFailed: "No pudimos cargar la configuración de marca."
+      restore: "Restaurar"
+      restored: "Imagen restaurada a la de origen."
+      title: "Marca"
+      uploaded: "Imagen actualizada."
+    }
     forbiddenDescription: "Solicita a un administrador el permiso necesario para cambiar estos ajustes."
     general: {
       companyName: "Empresa"
@@ -2504,13 +2527,13 @@ declare const messages: {
       timezonePlaceholder: "Selecciona tu zona horaria"
     }
     metadata: {
-      forgotPassword: "Recuperar contraseña - Zapi Social"
-      login: "Iniciar sesión - Zapi Social"
-      register: "Crear cuenta - Zapi Social"
-      resetPassword: "Restablecer contraseña - Zapi Social"
+      forgotPassword: "Recuperar contraseña - {brand}"
+      login: "Iniciar sesión - {brand}"
+      register: "Crear cuenta - {brand}"
+      resetPassword: "Restablecer contraseña - {brand}"
     }
     page: {
-      copyright: "© {year} Zapi Social"
+      copyright: "© {year} {brand}"
       hasAccount: "¿Ya tienes una cuenta?"
       loginDescription: "Ingresa tus datos para continuar."
       loginTitle: "Inicia sesión en tu cuenta"
@@ -4163,7 +4186,6 @@ declare const messages: {
       subtitle: "Ideas, novedades y buenas prácticas para publicar mejor."
       title: "Blog"
     }
-    brand: "Zapi Social"
     callToAction: {
       action: "Crear mi cuenta"
       subtitle: "Conecta tus cuentas, programa tu contenido y mide resultados desde el primer día."
@@ -4251,13 +4273,13 @@ declare const messages: {
     hero: {
       announcement: "Publica en todas tus redes desde un solo lugar"
       badge: "NUEVO"
-      dashboardAlt: "Panel de Zapi Social"
+      dashboardAlt: "Panel de {brand}"
       subtitle: "Programa, publica y mide tus redes sociales en un solo panel, con ayuda de IA para crear más rápido."
       title: "Impulsa tu presencia en redes sociales"
     }
     integration: {
       action: "Conecta tus cuentas"
-      illustrationAlt: "Redes sociales conectadas a Zapi Social"
+      illustrationAlt: "Redes sociales conectadas a {brand}"
       title: "Conecta tus redes"
     }
     languages: {
@@ -4300,10 +4322,10 @@ declare const messages: {
     }
   }
   metadata: {
-    admin: "Admin - Zapi Social"
+    admin: "Admin - {brand}"
     description: "Planifica, publica y mide tu contenido social."
-    invite: "Invitación - Zapi Social"
-    portal: "Portal - Zapi Social"
+    invite: "Invitación - {brand}"
+    portal: "Portal - {brand}"
   }
   navigation: {
     admin: {
@@ -4324,6 +4346,7 @@ declare const messages: {
       blog: "Blog"
       blogPosts: "Entradas"
       blogRss: "RSS Feeds"
+      branding: "Marca"
       cache: "Cache"
       captcha: "Captcha"
       cases: "Casos"
@@ -4925,7 +4948,7 @@ declare const messages: {
       loading: "Cargando administración"
       title: "No se pudo cargar la administración"
     }
-    adminTitle: "Admin - Zapi Social"
+    adminTitle: "Admin - {brand}"
     aiConfiguration: {
       description: "Reintenta para cargar el proveedor y los modelos."
       loading: "Cargando configuración AI"
@@ -4953,7 +4976,7 @@ declare const messages: {
       description: "No se modificó ningún dato. Inténtalo de nuevo."
       title: "No se pudo cargar el portal"
     }
-    portalTitle: "Portal - Zapi Social"
+    portalTitle: "Portal - {brand}"
     publishing: {
       description: "Ninguna publicación fue modificada. Intenta cargar la sección de nuevo."
       title: "No se pudo cargar Publishing"
@@ -5136,7 +5159,7 @@ declare const messages: {
       title: "No se pudo completar la configuración"
       validation: "Revisa los datos y usa una contraseña segura."
     }
-    metadata: "Configurar Zapi Social"
+    metadata: "Configurar {brand}"
     name: "Nombre del administrador"
     namePlaceholder: "Administrador principal"
     password: "Contraseña"
@@ -5144,7 +5167,7 @@ declare const messages: {
     passwordHint: "Usa 8 o más caracteres con mayúscula, minúscula, número y carácter especial."
     submit: "Completar configuración"
     submitting: "Configurando…"
-    title: "Configura Zapi Social"
+    title: "Configura {brand}"
   }
   staticPages: {
     actions: "Acciones"

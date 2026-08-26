@@ -7,6 +7,7 @@ import Footer from "@/features/marketing/components/footer"
 import Navbar from "@/features/marketing/components/navbar"
 import { instrumentSerif, satoshi } from "@/features/marketing/fonts"
 import { getSiteOverview, hasSession } from "@/features/marketing/site"
+import { DEFAULT_BRAND_NAME, getBranding } from "@/lib/branding"
 
 export async function generateMetadata(): Promise<Metadata> {
   const site = await getSiteOverview()
@@ -23,10 +24,15 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function MarketingLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [site, signedIn] = await Promise.all([getSiteOverview(), hasSession()])
+  const [site, signedIn, branding] = await Promise.all([
+    getSiteOverview(),
+    hasSession(),
+    getBranding(),
+  ])
   const settings = site?.settings ?? null
   const sections = site?.sections ?? null
   const measurementId = settings?.analytics?.measurementId
+  const brand = settings?.siteName?.trim() || DEFAULT_BRAND_NAME
 
   return (
     <div
@@ -37,12 +43,16 @@ export default async function MarketingLayout({
       )}
     >
       <Navbar
+        brand={brand}
+        logo={branding.logoDark}
         signedIn={signedIn}
         sections={sections}
         registrationEnabled={settings?.registrationEnabled ?? true}
       />
       <main className="relative z-40 mx-auto w-full">{children}</main>
       <Footer
+        brand={brand}
+        logo={branding.logoDark}
         settings={settings}
         sections={sections}
         pages={site?.pages ?? []}

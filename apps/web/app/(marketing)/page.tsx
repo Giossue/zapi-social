@@ -13,6 +13,7 @@ import Pricing from "@/features/marketing/components/pricing"
 import Wrapper from "@/features/marketing/components/wrapper"
 import { toMarketingPlans } from "@/features/marketing/plans"
 import { getSiteOverview, hasSession } from "@/features/marketing/site"
+import { DEFAULT_BRAND_NAME } from "@/lib/branding"
 
 export default async function MarketingHomePage() {
   const [site, signedIn] = await Promise.all([getSiteOverview(), hasSession()])
@@ -22,6 +23,7 @@ export default async function MarketingHomePage() {
   }
 
   const sections = site?.sections
+  const brand = site?.settings.siteName?.trim() || DEFAULT_BRAND_NAME
   const registrationEnabled = site?.settings.registrationEnabled ?? true
 
   const plans =
@@ -40,11 +42,16 @@ export default async function MarketingHomePage() {
 
   return (
     <Wrapper className="relative py-20">
-      <Hero signedIn={signedIn} registrationEnabled={registrationEnabled} />
+      <Hero
+        brand={brand}
+        signedIn={signedIn}
+        registrationEnabled={registrationEnabled}
+      />
       <Companies />
       <Features />
       <Analysis />
       <Integration
+        brand={brand}
         signedIn={signedIn}
         registrationEnabled={registrationEnabled}
       />

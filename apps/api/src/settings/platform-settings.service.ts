@@ -4,6 +4,7 @@ import { eq } from '@workspace/database/query';
 import {
   adminAnalyticsSettingsSchema,
   adminAuthSettingsSchema,
+  adminBrandingSettingsSchema,
   adminGeneralSettingsSchema,
   adminPublicSiteSettingsSchema,
   adminSettingsGroupSchema,
@@ -23,6 +24,7 @@ const groupSchemas = {
   analytics: adminAnalyticsSettingsSchema,
   'static-pages': adminStaticPagesSettingsSchema,
   'public-site': adminPublicSiteSettingsSchema,
+  branding: adminBrandingSettingsSchema,
 } satisfies Record<string, ZodType>;
 
 const scheduledQueues = [

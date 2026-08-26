@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 
-import { ZapiLogo } from "@/components/zapi-logo"
+import { BrandMark, BrandName } from "@/components/brand-mark"
 
 import {
   Sidebar,
@@ -43,8 +43,10 @@ function DashboardSidebarHeader({ homeHref }: { homeHref: string }) {
         <SidebarMenuItem>
           <SidebarMenuButton asChild>
             <Link href={homeHref} onClick={() => setOpenMobile(false)}>
-              <ZapiLogo className="size-5 shrink-0" />
-              <span className="text-base font-semibold">Zapi Social</span>
+              <BrandMark className="size-5 shrink-0" />
+              <span className="text-base font-semibold">
+                <BrandName />
+              </span>
             </Link>
           </SidebarMenuButton>
         </SidebarMenuItem>

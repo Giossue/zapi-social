@@ -1,3 +1,4 @@
+import { getBrandName } from "@/lib/branding"
 import type { ReactNode } from "react"
 
 import { Globe } from "lucide-react"
@@ -28,6 +29,7 @@ export async function AuthPage({
   returnTo?: string
 }) {
   const t = await getTranslations("auth.page")
+  const siteName = await getBrandName()
   const tForm = await getTranslations("auth.form")
   const tLanguage = await getTranslations("common.language")
   const isLogin = initialMode === "login"
@@ -65,7 +67,10 @@ export async function AuthPage({
 
       <div className="absolute bottom-5 flex w-full justify-between px-10">
         <div className="text-sm">
-          {t("copyright", { year: String(new Date().getFullYear()) })}
+          {t("copyright", {
+            year: String(new Date().getFullYear()),
+            brand: siteName,
+          })}
         </div>
         <div className="flex items-center gap-1 text-sm">
           <Globe aria-hidden="true" className="size-4 text-muted-foreground" />

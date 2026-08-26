@@ -14,21 +14,31 @@ import {
 } from "@workspace/ui/components/alert"
 import { cn } from "@workspace/ui/lib/utils"
 
+import { BrandingProvider } from "@/components/branding-provider"
 import { ThemeProvider } from "@/components/theme-provider"
+import { getBranding } from "@/lib/branding"
 import { SessionSynchronizer } from "@/features/identity/components/session-synchronizer"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" })
 const fontMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("metadata")
-  return { title: "Zapi Social", description: t("description") }
+  const [t, branding] = await Promise.all([
+    getTranslations("metadata"),
+    getBranding(),
+  ])
+  return {
+    title: branding.siteName,
+    description: t("description"),
+    icons: { icon: branding.favicon, apple: branding.favicon },
+  }
 }
 
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const locale = await getLocale()
+  const branding = await getBranding()
   const demoMode = process.env.DEMO_MODE === "true"
   const tDemo = demoMode ? await getTranslations("demoMode") : null
 
@@ -44,20 +54,22 @@ export default async function RootLayout({
     >
       <body>
         <NextIntlClientProvider>
-          <ThemeProvider>
-            <TooltipProvider>
-              <SessionSynchronizer />
-              {children}
-              {tDemo ? (
-                <Alert className="fixed right-4 bottom-4 max-w-md">
-                  <ShieldAlert />
-                  <AlertTitle>{tDemo("title")}</AlertTitle>
-                  <AlertDescription>{tDemo("description")}</AlertDescription>
-                </Alert>
-              ) : null}
-              <Toaster />
-            </TooltipProvider>
-          </ThemeProvider>
+          <BrandingProvider branding={branding}>
+            <ThemeProvider>
+              <TooltipProvider>
+                <SessionSynchronizer />
+                {children}
+                {tDemo ? (
+                  <Alert className="fixed right-4 bottom-4 max-w-md">
+                    <ShieldAlert />
+                    <AlertTitle>{tDemo("title")}</AlertTitle>
+                    <AlertDescription>{tDemo("description")}</AlertDescription>
+                  </Alert>
+                ) : null}
+                <Toaster />
+              </TooltipProvider>
+            </ThemeProvider>
+          </BrandingProvider>
         </NextIntlClientProvider>
       </body>
     </html>

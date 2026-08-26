@@ -90,6 +90,7 @@ import type {
   AdminFaqsResponse,
   AdminGeneralSettings,
   AdminScheduledJobs,
+  AdminBrandingSettings,
   AdminPublicSiteSettings,
   AdminStaticPagesSettings,
   AdminSystemInformation,
@@ -277,6 +278,7 @@ import type {
   PublicSiteOverview,
   PublicSitePage,
   PublicSitePost,
+  PublicBranding,
   PublicSiteFaqsQuery,
   PublicSiteFaqsResponse,
   PublicSitePostsQuery,
@@ -1520,6 +1522,10 @@ export const adminOperationsApi = {
     ),
 }
 
+export const publicBrandingApi = {
+  get: () => request<PublicBranding>("/v1/public/branding", { method: "GET" }),
+}
+
 export const publicSiteApi = {
   overview: () =>
     request<PublicSiteOverview>("/v1/public/site", { method: "GET" }),
@@ -1936,6 +1942,34 @@ export const adminSettingsApi = {
     request<AdminPublicSiteSettings>("/v1/admin/settings/public-site", {
       method: "PATCH",
       body: JSON.stringify(input),
+    }),
+  branding: () =>
+    request<AdminBrandingSettings>("/v1/admin/settings/branding", {
+      method: "GET",
+    }),
+  saveBranding: (input: AdminBrandingSettings) =>
+    request<AdminBrandingSettings>("/v1/admin/settings/branding", {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  uploadBrandingAsset: async (asset: string, file: File) => {
+    const response = await fetch(
+      `${apiBaseUrl}/v1/admin/settings/branding/${asset}`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: { "content-type": "application/octet-stream" },
+        body: file,
+      }
+    )
+    if (!response.ok) {
+      throw new ApiError("BRANDING_UPLOAD_FAILED", response.status)
+    }
+    return response.json() as Promise<{ asset: string; version: string }>
+  },
+  clearBrandingAsset: (asset: string) =>
+    request<void>(`/v1/admin/settings/branding/${asset}`, {
+      method: "DELETE",
     }),
   cache: () =>
     request<AdminCacheState>("/v1/admin/settings/cache", { method: "GET" }),

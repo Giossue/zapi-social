@@ -129,6 +129,18 @@ La navegación y el pie ocultan cada enlace cuando su sección está desactivada
 
 `getSiteOverview` normaliza la respuesta con valores por defecto. Sin eso, un despliegue en el que Web va por delante de API deja **todo el sitio público en 500**: `site.sections` llega `undefined` y revienta en el primer acceso. Se reprodujo con la imagen nueva contra la API en producción antes de corregirlo.
 
+## Marca personalizable
+
+El producto se vende en CodeCanyon: el comprador debe poder cambiar nombre, favicon y logotipos sin tocar código.
+
+- **Nombre.** Sale de `siteName` (Configuración general). Estaba incrustado en 15 claves de los catálogos de traducción —`Iniciar sesión - Zapi Social`, `Admin - Zapi Social`, `© {year} Zapi Social`—, que es el peor sitio posible: obligaba al comprador a editar JSON. Ahora esas claves llevan `{brand}` y el valor se inyecta en cada superficie.
+- **Imágenes.** Grupo de ajustes `branding` con cinco piezas equivalentes a las de ZapiSocial: `favicon`, `logoLight`, `logoDark`, `logoBrandLight` y `logoBrandDark`. Se suben desde Admin → Configuración → Marca; se guardan en `FILES_STORAGE_PATH/branding` y se sirven en `GET /v1/public/branding/:asset` con un token de versión en la URL para invalidar caché. «Restaurar» borra el archivo y devuelve el de origen.
+- **Respaldo.** Sin nada configurado se usan los assets incluidos en `apps/web/public/brand/`. La landing y el panel nunca quedan sin logo.
+
+El tipo real se detecta por firma binaria, no por la cabecera: el cliente envía `application/octet-stream` porque es el único parser que registra Fastify. Se aceptan PNG, JPG, WebP, SVG e ICO hasta 2 MB.
+
+Los assets viven en el volumen de Files, que **solo montan API y Worker**. Por eso los sirve la API y el navegador los pide por el proxy `/api` de Web, en el mismo origen.
+
 ## Deuda aceptada
 
 `features/marketing/components/particles.tsx` conserva un `eslint-disable react-hooks/exhaustive-deps`. Es código de canvas vendorizado cuyos `useEffect` dependen a propósito solo de `color` y `refresh`; añadir las funciones a sus arrays reinicializaría el lienzo en cada render. Se reordenaron las declaraciones para eliminar los avisos de acceso antes de declarar, que sí eran reales.

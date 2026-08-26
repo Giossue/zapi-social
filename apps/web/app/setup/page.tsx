@@ -1,3 +1,4 @@
+import { getBrandName } from "@/lib/branding"
 import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
@@ -6,7 +7,8 @@ import { SetupForm } from "@/features/setup/components/setup-form"
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("setup")
-  return { title: t("metadata") }
+  const brand = await getBrandName()
+  return { title: t("metadata", { brand }) }
 }
 
 export default function SetupPage() {

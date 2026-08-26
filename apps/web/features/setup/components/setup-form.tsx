@@ -1,5 +1,6 @@
 "use client"
 
+import { useBranding } from "@/components/branding-provider"
 import { useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
@@ -26,6 +27,7 @@ import { toast } from "@workspace/ui/components/toast"
 
 export function SetupForm() {
   const t = useTranslations("setup")
+  const { siteName } = useBranding()
   const router = useRouter()
   const [displayName, setDisplayName] = useState("")
   const [email, setEmail] = useState("")
@@ -86,7 +88,7 @@ export function SetupForm() {
     <form className="w-full max-w-md" noValidate onSubmit={submit}>
       <Card>
         <CardHeader>
-          <CardTitle>{t("title")}</CardTitle>
+          <CardTitle>{t("title", { brand: siteName })}</CardTitle>
           <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-6">

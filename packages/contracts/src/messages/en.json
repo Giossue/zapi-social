@@ -1117,6 +1117,29 @@
       "sessionLifetimeHours": "Session lifetime (hours)",
       "title": "Access and sign-up"
     },
+    "branding": {
+      "assets": {
+        "favicon": "Favicon",
+        "logoBrandDark": "Full logo (dark background)",
+        "logoBrandLight": "Full logo (light background)",
+        "logoDark": "Icon (dark background)",
+        "logoLight": "Icon (light background)"
+      },
+      "choose": "Upload image",
+      "description": "Replace the favicon and logos with your own. The name comes from General settings. PNG, JPG, WebP, SVG or ICO, up to 2 MB.",
+      "hints": {
+        "favicon": "The browser tab icon.",
+        "logoBrandDark": "Logo with wordmark, for dark backgrounds.",
+        "logoBrandLight": "Logo with wordmark, for light backgrounds.",
+        "logoDark": "Symbol only, for dark backgrounds. Used in the app and the public site.",
+        "logoLight": "Symbol only, for light backgrounds."
+      },
+      "loadFailed": "We couldn't load the branding settings.",
+      "restore": "Restore",
+      "restored": "Image restored to the original.",
+      "title": "Branding",
+      "uploaded": "Image updated."
+    },
     "forbiddenDescription": "Ask an administrator for the permission needed to change these settings.",
     "general": {
       "companyName": "Company",
@@ -2501,13 +2524,13 @@
       "timezonePlaceholder": "Select your time zone"
     },
     "metadata": {
-      "forgotPassword": "Recover password - Zapi Social",
-      "login": "Sign in - Zapi Social",
-      "register": "Create account - Zapi Social",
-      "resetPassword": "Reset password - Zapi Social"
+      "forgotPassword": "Reset password - {brand}",
+      "login": "Sign in - {brand}",
+      "register": "Create account - {brand}",
+      "resetPassword": "Set a new password - {brand}"
     },
     "page": {
-      "copyright": "© {year} Zapi Social",
+      "copyright": "© {year} {brand}",
       "hasAccount": "Already have an account?",
       "loginDescription": "Enter your details to continue.",
       "loginTitle": "Sign in to your account",
@@ -4160,7 +4183,6 @@
       "subtitle": "Ideas, news and good practice for posting better.",
       "title": "Blog"
     },
-    "brand": "Zapi Social",
     "callToAction": {
       "action": "Create my account",
       "subtitle": "Connect your accounts, schedule your content and measure results from day one.",
@@ -4248,13 +4270,13 @@
     "hero": {
       "announcement": "Post to every network from one place",
       "badge": "NEW",
-      "dashboardAlt": "Zapi Social dashboard",
+      "dashboardAlt": "{brand} dashboard",
       "subtitle": "Schedule, publish and measure your social networks in one dashboard, with AI to create faster.",
       "title": "Grow your presence on social media"
     },
     "integration": {
       "action": "Connect your accounts",
-      "illustrationAlt": "Social networks connected to Zapi Social",
+      "illustrationAlt": "Social networks connected to {brand}",
       "title": "Connect your networks"
     },
     "languages": {
@@ -4297,10 +4319,10 @@
     }
   },
   "metadata": {
-    "admin": "Admin - Zapi Social",
+    "admin": "Admin - {brand}",
     "description": "Plan, publish and measure your social content.",
-    "invite": "Invitation - Zapi Social",
-    "portal": "Portal - Zapi Social"
+    "invite": "Invitation - {brand}",
+    "portal": "Portal - {brand}"
   },
   "navigation": {
     "admin": {
@@ -4321,6 +4343,7 @@
       "blog": "Blog",
       "blogPosts": "Posts",
       "blogRss": "RSS feeds",
+      "branding": "Branding",
       "cache": "Cache",
       "captcha": "Captcha",
       "cases": "Cases",
@@ -4922,7 +4945,7 @@
       "loading": "Loading admin area",
       "title": "The admin area could not be loaded"
     },
-    "adminTitle": "Admin - Zapi Social",
+    "adminTitle": "Admin - {brand}",
     "aiConfiguration": {
       "description": "Retry to load the provider and the models.",
       "loading": "Loading AI configuration",
@@ -4950,7 +4973,7 @@
       "description": "No data was changed. Try again.",
       "title": "The portal could not be loaded"
     },
-    "portalTitle": "Portal - Zapi Social",
+    "portalTitle": "Portal - {brand}",
     "publishing": {
       "description": "No post was changed. Try loading the section again.",
       "title": "Publishing could not be loaded"
@@ -5133,7 +5156,7 @@
       "title": "Setup could not be completed",
       "validation": "Review the details and use a secure password."
     },
-    "metadata": "Set up Zapi Social",
+    "metadata": "Set up {brand}",
     "name": "Administrator name",
     "namePlaceholder": "Primary administrator",
     "password": "Password",
@@ -5141,7 +5164,7 @@
     "passwordHint": "Use 8 or more characters with uppercase, lowercase, a number, and a special character.",
     "submit": "Complete setup",
     "submitting": "Setting up…",
-    "title": "Set up Zapi Social"
+    "title": "Set up {brand}"
   },
   "staticPages": {
     "actions": "Actions",

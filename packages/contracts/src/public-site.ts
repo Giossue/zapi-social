@@ -159,3 +159,14 @@ export type PublicSitePostsQuery = z.infer<typeof publicSitePostsQuerySchema>
 export type PublicSitePostsResponse = z.infer<
   typeof publicSitePostsResponseSchema
 >
+
+export const publicBrandingSchema = z.object({
+  siteName: z.string(),
+  favicon: z.string(),
+  logoLight: z.string(),
+  logoDark: z.string(),
+  logoBrandLight: z.string(),
+  logoBrandDark: z.string(),
+})
+
+export type PublicBranding = z.infer<typeof publicBrandingSchema>

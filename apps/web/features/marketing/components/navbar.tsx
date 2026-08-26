@@ -9,17 +9,21 @@ import { MarketingButton } from "./button"
 import { marketingCta } from "@/features/marketing/cta"
 import { visibleNavLinks } from "@/features/marketing/nav"
 
-import Icons from "./icons"
+import MarketingLogo from "./logo"
 import MobileMenu from "./mobile-menu"
 import Wrapper from "./wrapper"
 
 interface NavbarProps {
+  brand: string
+  logo: string
   signedIn: boolean
   sections: PublicSiteSections | null
   registrationEnabled: boolean
 }
 
 const Navbar = async ({
+  brand,
+  logo,
   signedIn,
   sections,
   registrationEnabled,
@@ -34,9 +38,9 @@ const Navbar = async ({
         <div className="flex h-full items-center justify-between">
           <div className="flex items-center">
             <Link href="/" className="flex items-center gap-2">
-              <Icons.icon className="w-6" />
+              <MarketingLogo logo={logo} className="w-6" />
               <span className="hidden text-xl font-semibold lg:block">
-                {t("brand")}
+                {brand}
               </span>
             </Link>
           </div>

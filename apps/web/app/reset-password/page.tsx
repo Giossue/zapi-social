@@ -1,3 +1,4 @@
+import { getBrandName } from "@/lib/branding"
 import type { Metadata } from "next"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { getTranslations } from "next-intl/server"
@@ -8,7 +9,8 @@ import { ResetPasswordForm } from "@/features/identity/components/password-reset
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("auth.metadata")
-  return { title: t("resetPassword") }
+  const brand = await getBrandName()
+  return { title: t("resetPassword", { brand }) }
 }
 
 function ResetPasswordLoading({ label }: { label: string }) {

@@ -61,12 +61,31 @@ export const adminPublicSiteSettingsSchema = z.object({
   latestPostsLimit: z.number().int().min(1).max(12).default(3),
 })
 
+export const brandingAssetSchema = z.enum([
+  "favicon",
+  "logoLight",
+  "logoDark",
+  "logoBrandLight",
+  "logoBrandDark",
+])
+
+const brandingAssetValue = z.string().trim().max(2048).default("")
+
+export const adminBrandingSettingsSchema = z.object({
+  favicon: brandingAssetValue,
+  logoLight: brandingAssetValue,
+  logoDark: brandingAssetValue,
+  logoBrandLight: brandingAssetValue,
+  logoBrandDark: brandingAssetValue,
+})
+
 export const adminSettingsGroupSchema = z.enum([
   "general",
   "auth",
   "analytics",
   "static-pages",
   "public-site",
+  "branding",
 ])
 
 export const adminCacheStateSchema = z.object({
@@ -112,6 +131,8 @@ export type AdminStaticPagesSettings = z.infer<
 export type AdminPublicSiteSettings = z.infer<
   typeof adminPublicSiteSettingsSchema
 >
+export type BrandingAsset = z.infer<typeof brandingAssetSchema>
+export type AdminBrandingSettings = z.infer<typeof adminBrandingSettingsSchema>
 export type AdminSettingsGroup = z.infer<typeof adminSettingsGroupSchema>
 export type AdminCacheState = z.infer<typeof adminCacheStateSchema>
 export type AdminScheduledJob = z.infer<typeof adminScheduledJobSchema>

@@ -1,3 +1,4 @@
+import { getBrandName } from "@/lib/branding"
 import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 
@@ -5,7 +6,8 @@ import { AdminAreaLayout } from "@/components/admin-area-layout"
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("metadata")
-  return { title: t("admin") }
+  const brand = await getBrandName()
+  return { title: t("admin", { brand }) }
 }
 
 export default function AdminLayout({

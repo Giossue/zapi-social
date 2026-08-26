@@ -54,11 +54,13 @@ const SOCIAL_PLATFORMS = [
 ]
 
 interface IntegrationProps {
+  brand: string
   signedIn: boolean
   registrationEnabled: boolean
 }
 
 const Integration = async ({
+  brand,
   signedIn,
   registrationEnabled,
 }: IntegrationProps) => {
@@ -75,7 +77,7 @@ const Integration = async ({
           <div className="mx-auto mt-8 h-auto w-full max-w-sm">
             <Image
               src="/marketing/integration.svg"
-              alt={t("illustrationAlt")}
+              alt={t("illustrationAlt", { brand })}
               width={1000}
               height={1000}
               className="h-auto w-full"

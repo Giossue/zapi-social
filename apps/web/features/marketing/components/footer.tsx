@@ -8,7 +8,7 @@ import type {
 } from "@workspace/contracts"
 
 import Container from "./container"
-import Icons from "./icons"
+import MarketingLogo from "./logo"
 
 interface FooterLink {
   key:
@@ -39,6 +39,8 @@ const RESOURCE_LINKS: FooterLink[] = [
 const linkClass = "link hover:text-foreground transition-all duration-300"
 
 interface FooterProps {
+  brand: string
+  logo: string
   settings: PublicSiteSettings | null
   sections: PublicSiteSections | null
   pages: PublicSitePageSummary[]
@@ -51,12 +53,13 @@ const visible = (
 ) => !section || !sections || sections[section] === true
 
 const Footer = async ({
+  brand,
+  logo,
   settings,
   sections,
   pages,
   registrationEnabled,
 }: FooterProps) => {
-  const t = await getTranslations("marketing")
   const tFooter = await getTranslations("marketing.footer")
   const year = String(new Date().getFullYear())
 
@@ -66,9 +69,9 @@ const Footer = async ({
         <Container>
           <div className="flex flex-col items-start justify-start md:max-w-[200px]">
             <div className="flex items-center gap-2">
-              <Icons.icon className="h-5 w-auto" />
+              <MarketingLogo logo={logo} className="h-5 w-auto" />
               <span className="text-base font-medium text-foreground md:text-lg">
-                {t("brand")}
+                {brand}
               </span>
             </div>
             <p className="mt-4 text-start text-sm text-muted-foreground">
@@ -191,8 +194,7 @@ const Footer = async ({
           <p className="mt-8 text-sm text-muted-foreground md:mt-0">
             {tFooter("copyright", {
               year,
-              company:
-                settings?.companyName || settings?.siteName || t("brand"),
+              company: settings?.companyName || settings?.siteName || brand,
             })}
           </p>
         </div>

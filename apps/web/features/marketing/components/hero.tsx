@@ -12,11 +12,12 @@ import Icons from "./icons"
 import { OrbitingCircles } from "./orbiting-circles"
 
 interface HeroProps {
+  brand: string
   signedIn: boolean
   registrationEnabled: boolean
 }
 
-const Hero = async ({ signedIn, registrationEnabled }: HeroProps) => {
+const Hero = async ({ brand, signedIn, registrationEnabled }: HeroProps) => {
   const t = await getTranslations("marketing.hero")
   const tCta = await getTranslations("marketing.cta")
   const cta = marketingCta(signedIn, registrationEnabled)
@@ -87,7 +88,7 @@ const Hero = async ({ signedIn, registrationEnabled }: HeroProps) => {
               <div className="rounded-lg border border-border bg-background lg:rounded-[22px]">
                 <Image
                   src="/marketing/dashboard.png"
-                  alt={t("dashboardAlt")}
+                  alt={t("dashboardAlt", { brand })}
                   width={1920}
                   height={1080}
                   priority
