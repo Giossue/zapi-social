@@ -102,6 +102,33 @@ Material de relleno de la plantilla que sí se porta tal cual, para no mezclar l
 - `Companies` afirma «Con la confianza de leading brands» sobre logotipos de empresas ajenas incluidos en la plantilla.
 - Los énfasis en cursiva son palabras en inglés dentro de una página en español: «made simple», «your needs», «dashboard», «languages».
 
+## Equivalencia con ZapiSocial
+
+La referencia Laravel tiene más superficie pública que la plantilla `vetra`. Lo que se ha traído:
+
+| ZapiSocial                          | Zapi V2                                              |
+| ----------------------------------- | ---------------------------------------------------- |
+| `/pricing`                          | `/pricing`, con todos los planes y preguntas debajo  |
+| `/faqs` con buscador y paginación   | `/faqs`, 12 por página                               |
+| `/contact`                          | `/contact`, sin formulario, igual que la referencia  |
+| `/blogs` con buscador               | `/blog`, 9 por página                                |
+| `relatedBlogs` (3)                  | Bloque «Seguir leyendo» en la entrada                |
+| `latestBlogs` (3) en la portada     | Sección de últimas entradas                          |
+| `auth_landing_page_status`          | `landingEnabled` en Admin → Configuración → Sitio público |
+| `featuredPlans` / `featuredFaqs`    | Límites configurables desde el mismo sitio           |
+
+La navegación y el pie ocultan cada enlace cuando su sección está desactivada.
+
+### Lo que no se trae
+
+- **`marketingStats`.** En la plantilla Laravel no muestra datos: fabrica cifras a partir del inventario (`planes × 302 + 1208` como número de portada, `max(24, preguntas + 24)`). Los contadores reales sí se exponen en `stats` del overview y se usan como resumen honesto en Admin.
+- **Temas (`theme_view` + módulo AdminThemes).** El sitio público de V2 tiene una sola composición. Es un módulo entero, no una diferencia de esta vertical.
+- **Plan vitalicio (`Lifetime`).** `billingType` elige el producto de Polar (`monthlyProductId` / `yearlyProductId`). Un valor `lifetime` caería al producto mensual y **cobraría una suscripción mensual por un plan de pago único**. Necesita un producto de pago único en la configuración de Polar y su manejo en suscripciones antes de tocar el enum; queda fuera de esta vertical.
+
+## Tolerancia a versiones desacopladas
+
+`getSiteOverview` normaliza la respuesta con valores por defecto. Sin eso, un despliegue en el que Web va por delante de API deja **todo el sitio público en 500**: `site.sections` llega `undefined` y revienta en el primer acceso. Se reprodujo con la imagen nueva contra la API en producción antes de corregirlo.
+
 ## Deuda aceptada
 
 `features/marketing/components/particles.tsx` conserva un `eslint-disable react-hooks/exhaustive-deps`. Es código de canvas vendorizado cuyos `useEffect` dependen a propósito solo de `color` y `refresh`; añadir las funciones a sus arrays reinicializaría el lienzo en cada render. Se reordenaron las declaraciones para eliminar los avisos de acceso antes de declarar, que sí eran reales.

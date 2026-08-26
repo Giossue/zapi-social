@@ -49,11 +49,24 @@ export const adminStaticPagesSettingsSchema = z.object({
     ),
 })
 
+export const adminPublicSiteSettingsSchema = z.object({
+  landingEnabled: z.boolean().default(true),
+  showPricing: z.boolean().default(true),
+  showFaqs: z.boolean().default(true),
+  showBlog: z.boolean().default(true),
+  showLanguages: z.boolean().default(true),
+  showContact: z.boolean().default(true),
+  featuredPlansLimit: z.number().int().min(1).max(12).default(3),
+  featuredFaqsLimit: z.number().int().min(1).max(24).default(6),
+  latestPostsLimit: z.number().int().min(1).max(12).default(3),
+})
+
 export const adminSettingsGroupSchema = z.enum([
   "general",
   "auth",
   "analytics",
   "static-pages",
+  "public-site",
 ])
 
 export const adminCacheStateSchema = z.object({
@@ -95,6 +108,9 @@ export type AdminAnalyticsSettings = z.infer<
 export type AdminStaticPage = z.infer<typeof adminStaticPageSchema>
 export type AdminStaticPagesSettings = z.infer<
   typeof adminStaticPagesSettingsSchema
+>
+export type AdminPublicSiteSettings = z.infer<
+  typeof adminPublicSiteSettingsSchema
 >
 export type AdminSettingsGroup = z.infer<typeof adminSettingsGroupSchema>
 export type AdminCacheState = z.infer<typeof adminCacheStateSchema>

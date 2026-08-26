@@ -24,8 +24,11 @@ import {
   adminAnalyticsSettingsSchema,
   adminAuthSettingsSchema,
   adminGeneralSettingsSchema,
+  adminPublicSiteSettingsSchema,
   adminStaticPagesSettingsSchema,
+  publicSiteFaqsQuerySchema,
   publicSitePostsQuerySchema,
+  type PublicSiteFaqsResponse,
   type PublicSiteOverview,
   type PublicSitePage,
   type PublicSitePost,
@@ -40,22 +43,73 @@ export class PublicSiteService {
   constructor(private readonly database: DatabaseService) {}
 
   async overview(): Promise<PublicSiteOverview> {
-    const [settings, languageRows, planRows, packageRows, faqRows, pages] =
-      await Promise.all([
-        this.settings(),
-        this.languages(),
-        this.plans(),
-        this.creditPackages(),
-        this.faqs(),
-        this.pages(),
-      ]);
+    const [
+      settings,
+      sections,
+      languageRows,
+      planRows,
+      packageRows,
+      faqRows,
+      latestPosts,
+      pages,
+      postCount,
+    ] = await Promise.all([
+      this.settings(),
+      this.sections(),
+      this.languages(),
+      this.plans(),
+      this.creditPackages(),
+      this.faqs(),
+      this.latestPosts(),
+      this.pages(),
+      this.publishedPostCount(),
+    ]);
     return {
       settings,
+      sections,
+      stats: {
+        plans: planRows.length,
+        posts: postCount,
+        faqs: faqRows.length,
+      },
       languages: languageRows,
       plans: planRows,
       creditPackages: packageRows,
       faqs: faqRows,
+      latestPosts,
       pages,
+    };
+  }
+
+  async faqList(query: unknown): Promise<PublicSiteFaqsResponse> {
+    const filters = this.parse(publicSiteFaqsQuerySchema.safeParse(query));
+    const conditions = [eq(faqs.isActive, true)];
+    if (filters.q) {
+      const value = `%${filters.q}%`;
+      conditions.push(
+        or(ilike(faqs.question, value), ilike(faqs.answer, value))!,
+      );
+    }
+    const where = and(...conditions)!;
+    const [rows, totalRows] = await Promise.all([
+      this.database.db
+        .select()
+        .from(faqs)
+        .where(where)
+        .orderBy(asc(faqs.sortOrder), asc(faqs.createdAt))
+        .limit(filters.limit)
+        .offset((filters.page - 1) * filters.limit),
+      this.database.db.select({ total: count() }).from(faqs).where(where),
+    ]);
+    return {
+      faqs: rows.map((row) => ({
+        id: row.id,
+        question: row.question,
+        answer: row.answer,
+      })),
+      page: filters.page,
+      limit: filters.limit,
+      total: Number(totalRows[0]?.total ?? 0),
     };
   }
 
@@ -253,6 +307,44 @@ export class PublicSiteService {
       question: row.question,
       answer: row.answer,
     }));
+  }
+
+  private async sections() {
+    return adminPublicSiteSettingsSchema.parse(
+      await this.settingsGroup('public-site'),
+    );
+  }
+
+  private async latestPosts() {
+    const sections = await this.sections();
+    const rows = await this.database.db
+      .select({
+        slug: blogPosts.slug,
+        title: blogPosts.title,
+        excerpt: blogPosts.excerpt,
+        categoryName: blogCategories.name,
+        publishedAt: blogPosts.publishedAt,
+      })
+      .from(blogPosts)
+      .leftJoin(blogCategories, eq(blogPosts.categoryId, blogCategories.id))
+      .where(eq(blogPosts.status, 'published'))
+      .orderBy(desc(blogPosts.publishedAt), desc(blogPosts.createdAt))
+      .limit(sections.latestPostsLimit);
+    return rows.map((row) => ({
+      slug: row.slug,
+      title: row.title,
+      excerpt: row.excerpt,
+      categoryName: row.categoryName ?? null,
+      publishedAt: row.publishedAt?.toISOString() ?? null,
+    }));
+  }
+
+  private async publishedPostCount() {
+    const [row] = await this.database.db
+      .select({ total: count() })
+      .from(blogPosts)
+      .where(eq(blogPosts.status, 'published'));
+    return Number(row?.total ?? 0);
   }
 
   private async pages() {

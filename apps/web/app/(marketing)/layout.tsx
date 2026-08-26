@@ -25,6 +25,7 @@ export default async function MarketingLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const [site, signedIn] = await Promise.all([getSiteOverview(), hasSession()])
   const settings = site?.settings ?? null
+  const sections = site?.sections ?? null
   const measurementId = settings?.analytics?.measurementId
 
   return (
@@ -37,15 +38,15 @@ export default async function MarketingLayout({
     >
       <Navbar
         signedIn={signedIn}
-        hasFaqs={Boolean(site?.faqs.length)}
+        sections={sections}
         registrationEnabled={settings?.registrationEnabled ?? true}
       />
       <main className="relative z-40 mx-auto w-full">{children}</main>
       <Footer
         settings={settings}
+        sections={sections}
         pages={site?.pages ?? []}
         registrationEnabled={settings?.registrationEnabled ?? true}
-        hasFaqs={Boolean(site?.faqs.length)}
       />
       {measurementId ? (
         <>

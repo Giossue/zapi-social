@@ -2,9 +2,11 @@ import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
 import { notFound } from "next/navigation"
 
+import Link from "next/link"
+
 import Container from "@/features/marketing/components/container"
 import Wrapper from "@/features/marketing/components/wrapper"
-import { getSitePost } from "@/features/marketing/site"
+import { getSitePost, getSitePosts } from "@/features/marketing/site"
 
 interface PostPageProps {
   params: Promise<{ slug: string }>
@@ -27,6 +29,12 @@ export default async function PostPage({ params }: PostPageProps) {
   const post = await getSitePost(slug)
   if (!post) notFound()
 
+  const t = await getTranslations("marketing.blog")
+  const related = await getSitePosts({ limit: 4 })
+  const relatedPosts = (related?.posts ?? [])
+    .filter((entry) => entry.slug !== slug)
+    .slice(0, 3)
+
   return (
     <Wrapper className="relative py-20 lg:py-32">
       <Container className="mx-auto max-w-3xl">
@@ -47,6 +55,26 @@ export default async function PostPage({ params }: PostPageProps) {
           {post.content}
         </article>
       </Container>
+
+      {relatedPosts.length ? (
+        <Container className="mx-auto mt-16 max-w-3xl">
+          <h2 className="font-heading text-xl font-medium">{t("related")}</h2>
+          <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+            {relatedPosts.map((entry) => (
+              <Link
+                key={entry.slug}
+                href={`/blog/${entry.slug}`}
+                className="flex flex-col rounded-2xl border border-foreground/10 bg-background/20 p-4 transition-colors hover:border-foreground/20"
+              >
+                <span className="text-sm font-medium">{entry.title}</span>
+                <span className="mt-2 line-clamp-2 text-xs text-accent-foreground/70">
+                  {entry.excerpt}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </Container>
+      ) : null}
     </Wrapper>
   )
 }

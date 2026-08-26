@@ -5,6 +5,7 @@ import {
   adminAnalyticsSettingsSchema,
   adminAuthSettingsSchema,
   adminGeneralSettingsSchema,
+  adminPublicSiteSettingsSchema,
   adminSettingsGroupSchema,
   adminStaticPagesSettingsSchema,
   type AdminCacheState,
@@ -21,6 +22,7 @@ const groupSchemas = {
   auth: adminAuthSettingsSchema,
   analytics: adminAnalyticsSettingsSchema,
   'static-pages': adminStaticPagesSettingsSchema,
+  'public-site': adminPublicSiteSettingsSchema,
 } satisfies Record<string, ZodType>;
 
 const scheduledQueues = [

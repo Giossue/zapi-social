@@ -12,6 +12,11 @@ export class PublicSiteController {
     return this.site.overview();
   }
 
+  @Get('faqs')
+  async faqs(@Query() query: unknown) {
+    return this.site.faqList(query);
+  }
+
   @Get('posts')
   async posts(@Query() query: unknown) {
     return this.site.posts(query);

@@ -90,6 +90,7 @@ import type {
   AdminFaqsResponse,
   AdminGeneralSettings,
   AdminScheduledJobs,
+  AdminPublicSiteSettings,
   AdminStaticPagesSettings,
   AdminSystemInformation,
   AdminTaxonomiesResponse,
@@ -276,6 +277,8 @@ import type {
   PublicSiteOverview,
   PublicSitePage,
   PublicSitePost,
+  PublicSiteFaqsQuery,
+  PublicSiteFaqsResponse,
   PublicSitePostsQuery,
   PublicSitePostsResponse,
 } from "@workspace/contracts"
@@ -1520,6 +1523,11 @@ export const adminOperationsApi = {
 export const publicSiteApi = {
   overview: () =>
     request<PublicSiteOverview>("/v1/public/site", { method: "GET" }),
+  faqs: (query: Partial<PublicSiteFaqsQuery> = {}) =>
+    request<PublicSiteFaqsResponse>(
+      `/v1/public/site/faqs${adminContentQueryString(query)}`,
+      { method: "GET" }
+    ),
   posts: (query: Partial<PublicSitePostsQuery> = {}) =>
     request<PublicSitePostsResponse>(
       `/v1/public/site/posts${adminContentQueryString(query)}`,
@@ -1917,6 +1925,15 @@ export const adminSettingsApi = {
     }),
   saveStaticPages: (input: AdminStaticPagesSettings) =>
     request<AdminStaticPagesSettings>("/v1/admin/settings/static-pages", {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  publicSite: () =>
+    request<AdminPublicSiteSettings>("/v1/admin/settings/public-site", {
+      method: "GET",
+    }),
+  savePublicSite: (input: AdminPublicSiteSettings) =>
+    request<AdminPublicSiteSettings>("/v1/admin/settings/public-site", {
       method: "PATCH",
       body: JSON.stringify(input),
     }),

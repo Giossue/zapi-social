@@ -1136,6 +1136,22 @@
     "loadFailedDescription": "No pudimos cargar estos ajustes.",
     "loadFailedTitle": "{title} no disponible",
     "loading": "Cargando {title}",
+    "publicSite": {
+      "description": "Controla qué muestra el sitio público y cuánto contenido aparece en la portada.",
+      "featuredFaqsLimit": "Preguntas en la portada",
+      "featuredPlansLimit": "Planes en la portada",
+      "landingEnabled": "Mostrar la portada",
+      "landingEnabledHint": "Al desactivarla, la dirección raíz lleva al panel en vez de al sitio público. El blog, los precios y las páginas legales siguen accesibles.",
+      "latestPostsLimit": "Entradas del blog en la portada",
+      "limitsHint": "Cuántos elementos se muestran en la portada, como máximo.",
+      "showBlog": "Sección de blog",
+      "showContact": "Página de contacto",
+      "showContactHint": "Usa el correo, el teléfono y el horario de Configuración general.",
+      "showFaqs": "Sección de preguntas",
+      "showLanguages": "Sección de idiomas",
+      "showPricing": "Sección de precios",
+      "title": "Sitio público"
+    },
     "saveChanges": "Guardar cambios",
     "saveFailed": "No pudimos guardar los ajustes. Inténtalo de nuevo.",
     "saved": "Ajustes guardados.",
@@ -2216,9 +2232,9 @@
         "promptLabel": "Brief"
       },
       "duration": {
-        "12": "12 segundos",
         "4": "4 segundos",
-        "8": "8 segundos"
+        "8": "8 segundos",
+        "12": "12 segundos"
       },
       "field": {
         "aspectRatio": "Proporción",
@@ -4132,7 +4148,15 @@
     },
     "blog": {
       "empty": "Todavía no hay entradas publicadas.",
+      "next": "Siguiente",
+      "noResults": "No encontramos entradas para «{query}».",
       "notFound": "Entrada no encontrada",
+      "previous": "Anterior",
+      "range": "{from, number}-{to, number} de {total, number}",
+      "related": "Seguir leyendo",
+      "searchAction": "Buscar",
+      "searchLabel": "Buscar entre las entradas",
+      "searchPlaceholder": "¿Sobre qué quieres leer?",
       "subtitle": "Ideas, novedades y buenas prácticas para publicar mejor.",
       "title": "Blog"
     },
@@ -4145,6 +4169,14 @@
     "companies": {
       "title": "Con la confianza de <accent>leading</accent> brands"
     },
+    "contact": {
+      "email": "Correo",
+      "empty": "Todavía no hay datos de contacto publicados.",
+      "hours": "Horario de atención",
+      "phone": "Teléfono",
+      "subtitle": "Escríbenos y te respondemos lo antes posible.",
+      "title": "Contacto"
+    },
     "cta": {
       "dashboard": "Ir al panel",
       "signIn": "Iniciar sesión",
@@ -4153,6 +4185,18 @@
     "faq": {
       "subtitle": "Lo que suelen preguntarnos antes de empezar.",
       "title": "Preguntas <accent>frecuentes</accent>"
+    },
+    "faqsPage": {
+      "empty": "Todavía no hay preguntas publicadas.",
+      "next": "Siguiente",
+      "noResults": "No encontramos preguntas para «{query}».",
+      "previous": "Anterior",
+      "range": "{from, number}-{to, number} de {total, number}",
+      "searchAction": "Buscar",
+      "searchLabel": "Buscar entre las preguntas",
+      "searchPlaceholder": "¿Qué necesitas saber?",
+      "subtitle": "Resuelve tus dudas antes de empezar.",
+      "title": "Preguntas frecuentes"
     },
     "features": {
       "items": {
@@ -4187,9 +4231,9 @@
       "links": {
         "availableLanguages": "Idiomas disponibles",
         "blog": "Blog",
+        "contact": "Contacto",
         "faq": "Preguntas",
         "features": "Funciones",
-        "help": "Ayuda",
         "included": "Qué incluye",
         "languages": "Idiomas",
         "plans": "Ver planes",
@@ -4217,8 +4261,14 @@
       "more": "Y más",
       "title": "Publica en más de 60 idiomas <accent>languages</accent>"
     },
+    "latestPosts": {
+      "all": "Ver todas las entradas",
+      "subtitle": "Lo último que hemos publicado.",
+      "title": "Desde el <accent>blog</accent>"
+    },
     "nav": {
       "blog": "Blog",
+      "contact": "Contacto",
       "faq": "Preguntas",
       "features": "Funciones",
       "menu": "Menú",
@@ -4240,6 +4290,10 @@
       "title": "Elige el plan que encaja con <br></br><accent>your needs</accent>",
       "toggleLabel": "Cambiar entre facturación mensual y anual",
       "yearly": "Anual"
+    },
+    "pricingPage": {
+      "subtitle": "Empieza gratis y cambia de plan cuando lo necesites. Sin permanencia.",
+      "title": "Precios"
     }
   },
   "metadata": {
@@ -4287,6 +4341,7 @@
       "payments": "Pagos",
       "plans": "Planes",
       "platform": "Plataforma",
+      "publicSite": "Sitio público",
       "report": "Reporte",
       "roles": "Roles",
       "settings": "Ajustes",
@@ -4325,8 +4380,8 @@
       "help": "Ayuda",
       "library": "Biblioteca",
       "linkBio": "Link in bio",
-      "onlineMedia": "Buscar medios online",
       "notifications": "Notificaciones",
+      "onlineMedia": "Buscar medios online",
       "overview": "Resumen",
       "plans": "Planes",
       "publishing": "Publicación",

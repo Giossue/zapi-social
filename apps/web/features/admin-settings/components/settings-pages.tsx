@@ -5,6 +5,7 @@ import type {
   AdminAnalyticsSettings,
   AdminAuthSettings,
   AdminGeneralSettings,
+  AdminPublicSiteSettings,
 } from "@workspace/contracts"
 
 import { useTranslations } from "next-intl"
@@ -134,6 +135,69 @@ export function AnalyticsSettingsPage() {
       load={() => adminSettingsApi.analytics()}
       save={(values) => adminSettingsApi.saveAnalytics(values)}
       title={t("analytics.title")}
+    />
+  )
+}
+
+export function PublicSiteSettingsPage() {
+  const t = useTranslations("adminSettings")
+
+  return (
+    <SettingsFormPage<AdminPublicSiteSettings>
+      description={t("publicSite.description")}
+      fields={[
+        {
+          kind: "switch",
+          label: t("publicSite.landingEnabled"),
+          name: "landingEnabled",
+          description: t("publicSite.landingEnabledHint"),
+        },
+        {
+          kind: "switch",
+          label: t("publicSite.showPricing"),
+          name: "showPricing",
+        },
+        {
+          kind: "switch",
+          label: t("publicSite.showFaqs"),
+          name: "showFaqs",
+        },
+        {
+          kind: "switch",
+          label: t("publicSite.showBlog"),
+          name: "showBlog",
+        },
+        {
+          kind: "switch",
+          label: t("publicSite.showLanguages"),
+          name: "showLanguages",
+        },
+        {
+          kind: "switch",
+          label: t("publicSite.showContact"),
+          name: "showContact",
+          description: t("publicSite.showContactHint"),
+        },
+        {
+          kind: "number",
+          label: t("publicSite.featuredPlansLimit"),
+          name: "featuredPlansLimit",
+          description: t("publicSite.limitsHint"),
+        },
+        {
+          kind: "number",
+          label: t("publicSite.featuredFaqsLimit"),
+          name: "featuredFaqsLimit",
+        },
+        {
+          kind: "number",
+          label: t("publicSite.latestPostsLimit"),
+          name: "latestPostsLimit",
+        },
+      ]}
+      load={() => adminSettingsApi.publicSite()}
+      save={(values) => adminSettingsApi.savePublicSite(values)}
+      title={t("publicSite.title")}
     />
   )
 }

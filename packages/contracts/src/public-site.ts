@@ -75,13 +75,49 @@ export const publicSitePostSchema = publicSitePostSummarySchema.extend({
   tags: z.array(z.string()),
 })
 
+export const publicSiteSectionsSchema = z.object({
+  landingEnabled: z.boolean(),
+  showPricing: z.boolean(),
+  showFaqs: z.boolean(),
+  showBlog: z.boolean(),
+  showLanguages: z.boolean(),
+  showContact: z.boolean(),
+  featuredPlansLimit: z.number().int().positive(),
+  featuredFaqsLimit: z.number().int().positive(),
+  latestPostsLimit: z.number().int().positive(),
+})
+
+export const publicSiteStatsSchema = z.object({
+  plans: z.number().int().nonnegative(),
+  posts: z.number().int().nonnegative(),
+  faqs: z.number().int().nonnegative(),
+})
+
 export const publicSiteOverviewSchema = z.object({
   settings: publicSiteSettingsSchema,
+  sections: publicSiteSectionsSchema,
+  stats: publicSiteStatsSchema,
   languages: z.array(publicSiteLanguageSchema),
   plans: z.array(publicSitePlanSchema),
   creditPackages: z.array(publicSiteCreditPackageSchema),
   faqs: z.array(publicSiteFaqSchema),
+  latestPosts: z.array(publicSitePostSummarySchema),
   pages: z.array(publicSitePageSummarySchema),
+})
+
+export const publicSiteFaqsQuerySchema = z
+  .object({
+    q: z.string().trim().min(1).max(255).optional(),
+    page: z.coerce.number().int().positive().default(1),
+    limit: z.coerce.number().int().min(1).max(48).default(12),
+  })
+  .strict()
+
+export const publicSiteFaqsResponseSchema = z.object({
+  faqs: z.array(publicSiteFaqSchema),
+  page: z.number().int().positive(),
+  limit: z.number().int().positive(),
+  total: z.number().int().nonnegative(),
 })
 
 export const publicSitePostsQuerySchema = z
@@ -112,7 +148,13 @@ export type PublicSitePageSummary = z.infer<typeof publicSitePageSummarySchema>
 export type PublicSitePage = z.infer<typeof publicSitePageSchema>
 export type PublicSitePostSummary = z.infer<typeof publicSitePostSummarySchema>
 export type PublicSitePost = z.infer<typeof publicSitePostSchema>
+export type PublicSiteSections = z.infer<typeof publicSiteSectionsSchema>
+export type PublicSiteStats = z.infer<typeof publicSiteStatsSchema>
 export type PublicSiteOverview = z.infer<typeof publicSiteOverviewSchema>
+export type PublicSiteFaqsQuery = z.infer<typeof publicSiteFaqsQuerySchema>
+export type PublicSiteFaqsResponse = z.infer<
+  typeof publicSiteFaqsResponseSchema
+>
 export type PublicSitePostsQuery = z.infer<typeof publicSitePostsQuerySchema>
 export type PublicSitePostsResponse = z.infer<
   typeof publicSitePostsResponseSchema

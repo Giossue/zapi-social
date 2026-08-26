@@ -3,39 +3,58 @@ import Link from "next/link"
 
 import type {
   PublicSitePageSummary,
+  PublicSiteSections,
   PublicSiteSettings,
 } from "@workspace/contracts"
 
 import Container from "./container"
 import Icons from "./icons"
 
-const PRODUCT_LINKS = [
-  { key: "features", href: "/#features", needsFaqs: false },
-  { key: "pricing", href: "/#pricing", needsFaqs: false },
-  { key: "faq", href: "/#faq", needsFaqs: true },
-  { key: "languages", href: "/#languages", needsFaqs: false },
-] as const
+interface FooterLink {
+  key:
+    | "features"
+    | "pricing"
+    | "faq"
+    | "languages"
+    | "blog"
+    | "availableLanguages"
+    | "contact"
+  href: string
+  section?: keyof PublicSiteSections
+}
 
-const RESOURCE_LINKS = [
-  { key: "blog", href: "/blog", needsFaqs: false },
-  { key: "availableLanguages", href: "/#languages", needsFaqs: false },
-  { key: "help", href: "/#faq", needsFaqs: true },
-] as const
+const PRODUCT_LINKS: FooterLink[] = [
+  { key: "features", href: "/#features" },
+  { key: "pricing", href: "/pricing", section: "showPricing" },
+  { key: "faq", href: "/faqs", section: "showFaqs" },
+  { key: "languages", href: "/#languages", section: "showLanguages" },
+]
+
+const RESOURCE_LINKS: FooterLink[] = [
+  { key: "blog", href: "/blog", section: "showBlog" },
+  { key: "availableLanguages", href: "/#languages", section: "showLanguages" },
+  { key: "contact", href: "/contact", section: "showContact" },
+]
 
 const linkClass = "link hover:text-foreground transition-all duration-300"
 
 interface FooterProps {
   settings: PublicSiteSettings | null
+  sections: PublicSiteSections | null
   pages: PublicSitePageSummary[]
   registrationEnabled: boolean
-  hasFaqs: boolean
 }
+
+const visible = (
+  sections: PublicSiteSections | null,
+  section?: keyof PublicSiteSections
+) => !section || !sections || sections[section] === true
 
 const Footer = async ({
   settings,
+  sections,
   pages,
   registrationEnabled,
-  hasFaqs,
 }: FooterProps) => {
   const t = await getTranslations("marketing")
   const tFooter = await getTranslations("marketing.footer")
@@ -85,15 +104,15 @@ const Footer = async ({
                 {tFooter("product")}
               </h3>
               <ul className="mt-4 space-y-4 text-sm text-muted-foreground">
-                {PRODUCT_LINKS.filter((link) => hasFaqs || !link.needsFaqs).map(
-                  (link) => (
-                    <li key={link.key} className="mt-2">
-                      <Link href={link.href} className={linkClass}>
-                        {tFooter(`links.${link.key}`)}
-                      </Link>
-                    </li>
-                  )
-                )}
+                {PRODUCT_LINKS.filter((link) =>
+                  visible(sections, link.section)
+                ).map((link) => (
+                  <li key={link.key} className="mt-2">
+                    <Link href={link.href} className={linkClass}>
+                      {tFooter(`links.${link.key}`)}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </Container>
             <Container delay={0.2} className="h-auto">
@@ -115,7 +134,7 @@ const Footer = async ({
                     </Link>
                   </li>
                   <li className="mt-2">
-                    <Link href="/#pricing" className={linkClass}>
+                    <Link href="/pricing" className={linkClass}>
                       {tFooter("links.plans")}
                     </Link>
                   </li>
@@ -134,8 +153,8 @@ const Footer = async ({
                 {tFooter("resources")}
               </h3>
               <ul className="mt-4 space-y-4 text-sm text-muted-foreground">
-                {RESOURCE_LINKS.filter(
-                  (link) => hasFaqs || !link.needsFaqs
+                {RESOURCE_LINKS.filter((link) =>
+                  visible(sections, link.section)
                 ).map((link) => (
                   <li key={link.key} className="mt-2">
                     <Link href={link.href} className={linkClass}>

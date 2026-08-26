@@ -16,7 +16,13 @@ import Container from "./container"
 
 type BillingCycle = "monthly" | "yearly"
 
-const Pricing = ({ plans }: { plans: MarketingPlan[] }) => {
+const Pricing = ({
+  plans,
+  showHeading = true,
+}: {
+  plans: MarketingPlan[]
+  showHeading?: boolean
+}) => {
   const t = useTranslations("marketing.pricing")
   const [cycle, setCycle] = useState<BillingCycle>("monthly")
 
@@ -28,21 +34,23 @@ const Pricing = ({ plans }: { plans: MarketingPlan[] }) => {
       className="relative mx-auto flex max-w-5xl flex-col items-center justify-center py-20"
     >
       <div className="mx-auto flex max-w-2xl flex-col items-center justify-center">
-        <Container>
-          <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
-            <h2 className="mt-6 font-heading text-2xl leading-snug! font-medium md:text-4xl lg:text-5xl">
-              {t.rich("title", {
-                br: () => <br className="hidden lg:block" />,
-                accent: (chunks) => (
-                  <span className="font-subheading italic">{chunks}</span>
-                ),
-              })}
-            </h2>
-            <p className="mt-6 text-center text-base text-accent-foreground/80 md:text-lg">
-              {t("subtitle")}
-            </p>
-          </div>
-        </Container>
+        {showHeading ? (
+          <Container>
+            <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
+              <h2 className="mt-6 font-heading text-2xl leading-snug! font-medium md:text-4xl lg:text-5xl">
+                {t.rich("title", {
+                  br: () => <br className="hidden lg:block" />,
+                  accent: (chunks) => (
+                    <span className="font-subheading italic">{chunks}</span>
+                  ),
+                })}
+              </h2>
+              <p className="mt-6 text-center text-base text-accent-foreground/80 md:text-lg">
+                {t("subtitle")}
+              </p>
+            </div>
+          </Container>
+        ) : null}
 
         <Container delay={0.2}>
           <div className="mt-6 flex items-center justify-center space-x-4">

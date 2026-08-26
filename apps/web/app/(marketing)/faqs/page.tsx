@@ -1,37 +1,43 @@
 import type { Metadata } from "next"
 import { getTranslations } from "next-intl/server"
-import Link from "next/link"
 import { notFound } from "next/navigation"
+
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@workspace/ui/components/accordion"
 
 import Container from "@/features/marketing/components/container"
 import MarketingPageHeader from "@/features/marketing/components/page-header"
 import MarketingPagination from "@/features/marketing/components/pagination"
 import MarketingSearchForm from "@/features/marketing/components/search-form"
 import Wrapper from "@/features/marketing/components/wrapper"
-import { getSiteOverview, getSitePosts } from "@/features/marketing/site"
+import { getSiteFaqs, getSiteOverview } from "@/features/marketing/site"
 
-interface BlogPageProps {
+interface FaqsPageProps {
   searchParams: Promise<{ q?: string; page?: string }>
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations("marketing.blog")
+  const t = await getTranslations("marketing.faqsPage")
   return { title: t("title"), description: t("subtitle") }
 }
 
-export default async function BlogPage({ searchParams }: BlogPageProps) {
+export default async function FaqsPage({ searchParams }: FaqsPageProps) {
   const site = await getSiteOverview()
-  if (site && !site.sections.showBlog) notFound()
+  if (site && !site.sections.showFaqs) notFound()
 
   const params = await searchParams
   const query = params.q?.trim() || undefined
   const page = Math.max(1, Number(params.page ?? 1) || 1)
 
-  const t = await getTranslations("marketing.blog")
-  const data = await getSitePosts({ q: query, page, limit: 9 })
-  const posts = data?.posts ?? []
+  const t = await getTranslations("marketing.faqsPage")
+  const data = await getSiteFaqs({ q: query, page, limit: 12 })
+  const faqs = data?.faqs ?? []
   const total = data?.total ?? 0
-  const limit = data?.limit ?? 9
+  const limit = data?.limit ?? 12
   const from = total === 0 ? 0 : (page - 1) * limit + 1
   const to = Math.min(page * limit, total)
 
@@ -41,7 +47,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
 
       <Container className="mt-10">
         <MarketingSearchForm
-          action="/blog"
+          action="/faqs"
           label={t("searchLabel")}
           placeholder={t("searchPlaceholder")}
           submitLabel={t("searchAction")}
@@ -49,26 +55,21 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
         />
       </Container>
 
-      <Container className="mt-12">
-        {posts.length ? (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {posts.map((post) => (
-              <Link
-                key={post.slug}
-                href={`/blog/${post.slug}`}
-                className="flex flex-col rounded-2xl border border-foreground/10 bg-background/20 p-6 transition-colors hover:border-foreground/20"
-              >
-                {post.categoryName ? (
-                  <span className="text-xs text-accent-foreground/60">
-                    {post.categoryName}
-                  </span>
-                ) : null}
-                <h2 className="mt-2 text-lg font-medium">{post.title}</h2>
-                <p className="mt-2 line-clamp-3 text-sm text-accent-foreground/80">
-                  {post.excerpt}
-                </p>
-              </Link>
-            ))}
+      <Container className="mt-10">
+        {faqs.length ? (
+          <div className="mx-auto w-full max-w-3xl">
+            <Accordion type="single" collapsible className="w-full">
+              {faqs.map((faq) => (
+                <AccordionItem key={faq.id} value={faq.id}>
+                  <AccordionTrigger className="text-left">
+                    {faq.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-accent-foreground/80">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           </div>
         ) : (
           <p className="text-center text-accent-foreground/70">
@@ -78,7 +79,7 @@ export default async function BlogPage({ searchParams }: BlogPageProps) {
       </Container>
 
       <MarketingPagination
-        basePath="/blog"
+        basePath="/faqs"
         query={query}
         page={page}
         limit={limit}

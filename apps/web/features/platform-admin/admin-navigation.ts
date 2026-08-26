@@ -141,6 +141,7 @@ export const adminNavigationGroups: readonly AdminNavigationGroup[] = [
           { labelKey: "auth", href: "/admin/settings/auth" },
           { labelKey: "captcha", href: "/admin/settings/captcha" },
           { labelKey: "analytics", href: "/admin/settings/analytics" },
+          { labelKey: "publicSite", href: "/admin/settings/public-site" },
         ],
       },
       {

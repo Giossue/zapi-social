@@ -2,10 +2,12 @@ import { ArrowRightIcon } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 import Link from "next/link"
 
+import type { PublicSiteSections } from "@workspace/contracts"
+
 import { MarketingButton } from "./button"
 
 import { marketingCta } from "@/features/marketing/cta"
-import { MARKETING_NAV_LINKS } from "@/features/marketing/nav"
+import { visibleNavLinks } from "@/features/marketing/nav"
 
 import Icons from "./icons"
 import MobileMenu from "./mobile-menu"
@@ -13,19 +15,17 @@ import Wrapper from "./wrapper"
 
 interface NavbarProps {
   signedIn: boolean
-  hasFaqs: boolean
+  sections: PublicSiteSections | null
   registrationEnabled: boolean
 }
 
 const Navbar = async ({
   signedIn,
-  hasFaqs,
+  sections,
   registrationEnabled,
 }: NavbarProps) => {
   const t = await getTranslations("marketing")
-  const links = MARKETING_NAV_LINKS.filter(
-    (link) => hasFaqs || link.key !== "faq"
-  )
+  const links = visibleNavLinks(sections)
   const cta = marketingCta(signedIn, registrationEnabled)
 
   return (
