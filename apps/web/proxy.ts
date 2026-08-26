@@ -43,15 +43,16 @@ export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl
 
   const host = request.headers.get("host")?.split(":")[0]
-  const onPortalHost = !portalHost || host === portalHost
 
-  if (!onPortalHost) {
+  if (portalHost && host !== portalHost) {
     if (pathname === "/") return NextResponse.next()
     const scheme = request.headers.get("x-forwarded-proto") ?? "https"
     return NextResponse.redirect(
       new URL(`${pathname}${search}`, `${scheme}://${portalHost}`)
     )
   }
+
+  if (!portalHost && pathname === "/") return NextResponse.next()
 
   if (pathname === "/") {
     if ((await setupRequired()) === true) {

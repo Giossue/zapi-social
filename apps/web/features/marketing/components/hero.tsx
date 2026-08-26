@@ -46,7 +46,7 @@ const Hero = async ({ signedIn, registrationEnabled }: HeroProps) => {
 
         <div className="flex flex-col items-center justify-center gap-y-4 bg-background/0 text-center">
           <Container className="relative hidden overflow-hidden lg:block">
-            <div className="group relative mx-auto grid overflow-hidden rounded-full px-2 py-1 shadow-[0_1000px_0_0_hsl(0_0%_15%)_inset] transition-colors duration-200">
+            <div className="group relative mx-auto grid w-fit overflow-hidden rounded-full px-2 py-1 shadow-[0_1000px_0_0_hsl(0_0%_15%)_inset] transition-colors duration-200">
               <span>
                 <span className="spark mask-gradient absolute inset-0 h-full w-full animate-flip overflow-hidden rounded-full [mask:linear-gradient(white,_transparent_50%)] before:absolute before:[inset:0_auto_auto_50%] before:aspect-square before:w-[200%] before:[translate:-50%_-15%] before:rotate-[-90deg] before:animate-rotate before:bg-[conic-gradient(from_0deg,transparent_0_340deg,white_360deg)] before:content-['']" />
               </span>
