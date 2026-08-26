@@ -151,6 +151,8 @@ El contenido se escribe en Markdown y se renderiza con `Streamdown`, que `apps/w
 
 **`linkSafety` se desactiva a propósito.** Por defecto Streamdown renderiza los enlaces como `<button>` con un modal de confirmación, porque está pensado para salida de un modelo. En una página legal escrita por el administrador eso rompe el enlace: no es navegable ni rastreable. Con `linkSafety={{ enabled: false }}` vuelve a ser un `<a href>` con `rel="noopener noreferrer"`. Se detectó comparando el HTML servido, no en el build.
 
+**Los marcadores de lista se declaran en `MarkdownContent`, no se heredan de Streamdown.** El `@source` de `packages/ui/src/styles/globals.css` apunta a `node_modules/streamdown/`, una ruta que con el layout de bun **no existe**: el enlace real está en `packages/ui/node_modules/streamdown`. Ese glob no casa con nada, así que ninguna clase exclusiva de Streamdown llega al CSS. `list-disc` se salvaba de casualidad porque `field.tsx` la usa; `list-decimal` no la usa nadie más, y por eso las listas numeradas salían **sin números** —también en el chat de IA—. Corregir el glob al enlace real no lo arregla: Tailwind no lo atraviesa. Por eso `MarkdownContent` declara `list-disc`, `list-decimal`, `list-outside` y la sangría por su cuenta, que además no depende de cómo quede `node_modules`.
+
 El blog sigue mostrando su contenido en texto plano (`whitespace-pre-line`). Pasarlo a Markdown es el mismo cambio de una línea, pero queda fuera de lo pedido.
 
 ## Deuda aceptada
