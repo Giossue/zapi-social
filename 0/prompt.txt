@@ -62,3 +62,7 @@ ok hazlo
 ---
 
 ok ahora, siento que en admin las opciones están regadas por donde sea, por ejemplo no encuentro bien lo que es de la configuración de la página en dónde debería encontrarlo, puedes cambiar eso, solo acá
+
+---
+
+ok ahora en paginas estáticas quiero que en contenido sea compatible con markdown, o sea, que escriba en markdown, y que se pueda renderizar en las paginas estáticas sin problema. Eso si, deja como una cinta de opciones que sea para usar las etiquedas, por ejemplo, negritas, los headers, links, etc. Todo lo de markdown. Así mismo, haz que la sheet ocupe toda la pantalla y añade un previsualizador de como se vería
