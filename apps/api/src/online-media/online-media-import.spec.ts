@@ -27,8 +27,7 @@ function databaseStub() {
   });
   const database = {
     db: {
-      transaction: (run: (tx: unknown) => Promise<unknown>) =>
-        run({ insert }),
+      transaction: (run: (tx: unknown) => Promise<unknown>) => run({ insert }),
     },
   } as unknown as DatabaseService;
   return { database, inserted };
@@ -88,9 +87,9 @@ describe('Importación de medios online', () => {
     expect(result.fileAssetId).toBe(inserted[0]?.id);
     const storageKey = String(inserted[0]?.storageKey);
     expect(storageKey.endsWith('.jpg')).toBe(true);
-    await expect(
-      readFile(resolve(storageRoot, storageKey)),
-    ).resolves.toEqual(jpeg);
+    await expect(readFile(resolve(storageRoot, storageKey))).resolves.toEqual(
+      jpeg,
+    );
     expect(inserted[0]?.name).toBe('Casa moderna.jpg');
     expect(inserted[0]?.sizeBytes).toBe(jpeg.length);
   });

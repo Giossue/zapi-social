@@ -15,13 +15,16 @@ Base: `/v1/portal/online-media`, con sesión Portal.
 
 `provider=auto` consulta todos los proveedores configurados. Unsplash sólo aporta imágenes; Pexels aporta imágenes y vídeos. Importar requiere `owner` o `admin` y una carpeta activa opcional del mismo workspace.
 
+La vista previa que devuelve la búsqueda usa la variante grande de cada proveedor (`src.large` en Pexels, `urls.regular` en Unsplash): las variantes pequeñas quedaban por debajo del ancho de la tarjeta y se veían borrosas.
+
 ## Seguridad de importación
 
 - Sólo HTTPS y hosts de media declarados por proveedor (`images.unsplash.com`, `images.pexels.com`, `videos.pexels.com`).
 - Máximo tres redirecciones y cada destino se vuelve a validar; no se aceptan URLs arbitrarias entregadas por el cliente.
 - Timeout de búsqueda 12 segundos y de descarga 30 segundos.
 - Streaming a archivo temporal con límite de 25 MB, comprobación de `Content-Type` y validación de firma real del binario.
-- Escritura atómica, limpieza del temporal/original ante error y path resuelto dentro de `FILES_STORAGE_PATH`.
+- Escritura atómica, limpieza del temporal/original ante error y path resuelto dentro de `FILES_STORAGE_PATH`. La importación crea el directorio del temporal y el del original antes de escribir: `FILES_STORAGE_PATH/tmp` no existe en una instalación que todavía no subió archivos.
+- El original se guarda con la extensión que corresponde a su MIME. `originalStorageKey` deriva la extensión de un nombre, no de un sufijo suelto.
 - El archivo guarda proveedor, ID, URL de origen y autor en `file_assets.metadata`; una auditoría `online_media.imported` registra la operación.
 
 ## Integración con Files y despliegue
@@ -39,5 +42,7 @@ Base: `/v1/portal/online-media`, con sesión Portal.
 - [x] Migración local aplicada; existe `file_assets.metadata` y pasan typechecks de Database, Contracts, API Client y API.
 - [x] Web conectado a `onlineMediaApi`, sin fixtures y con enlaces visibles de atribución, autor y fuente.
 - [x] Pexels configurable desde Admin, con prueba previa, secreto cifrado y respuesta redactada.
-- [ ] Añadir pruebas de proveedor simulado para redirecciones, límite, firma MIME y limpieza ante fallo.
+- [x] Regresión de importación con proveedor simulado sobre un `FILES_STORAGE_PATH` vacío: `apps/api/src/online-media/online-media-import.spec.ts` comprueba que el binario se escribe y que la clave conserva la extensión.
+- [ ] Ampliar el proveedor simulado a redirecciones, límite de tamaño, firma MIME y limpieza ante fallo.
+- [ ] Aplicar el límite de almacenamiento del plan a la importación online: hoy sólo lo comprueba la subida directa (`planAccess.requireFileSize` en `files.service.ts`).
 - [ ] Definir idempotencia/deduplicación si el mismo resultado se importa más de una vez.

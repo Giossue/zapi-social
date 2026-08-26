@@ -30,9 +30,7 @@ export const adminManualPaymentSchema = z.object({
 export const adminManualPaymentsQuerySchema = z
   .object({
     q: z.string().trim().min(1).max(255).optional(),
-    status: z
-      .enum(["all", "pending", "approved", "rejected"])
-      .default("all"),
+    status: z.enum(["all", "pending", "approved", "rejected"]).default("all"),
     page: z.coerce.number().int().positive().default(1),
     limit: z.coerce.number().int().min(1).max(50).default(20),
   })
