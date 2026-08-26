@@ -41,3 +41,7 @@ ok, ahora toca cambiar, por ejemplo, dime como lo hace zapisocial? Entiendo que 
 ---
 
 ok haz todo, así mismo haz la parte de admin para configurarlo desde ahí
+
+---
+
+así mismo el nombre, el favicon y los logos que saldrán en la landing, dentro de admin y portal, o sea ya no lo dejemos como duro, recuerda que debe ser personalizable para venderlo en codecanyon
