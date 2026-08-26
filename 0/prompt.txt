@@ -1,0 +1,60 @@
+pero no borro mejor el app de landing zapi?
+
+---
+
+ok, en landing tenía:
+ZAPI_API_ORIGIN=https://api.zapisocial.com
+COOKIE_DOMAIN=.zapisocial.com
+
+---
+
+mira 
+ , trato de poner zapisocial.com pero me manda al login, quieres ver mis env para que sepas qué hacer? obvio tapadas
+
+---
+
+Ya me carga la web, pero me sale esto 
+ en https://zapisocial.com/login, eso no debería pasar, solo dentro de app.zapisocial.com/login
+
+y muchos de los diseños como que se rompieron, te puse de nuevo
+[@/home/giossue/Descargas/vetra-v1/](file:///home/giossue/Descargas/vetra-v1/)
+ para que lo pongas de nuevo
+
+---
+
+o sea zapisocial.com es solo la landing
+
+---
+
+ok si ya carga, pero como digo, hay diseños que están como mal hecho, te volví a subir
+[@/home/giossue/Descargas/vetra-v1/](file:///home/giossue/Descargas/vetra-v1/)
+ para que lo tomes y lo rehagas
+
+---
+
+Eresun terco, mira como se ve:
+
+---
+
+ok, ahora toca cambiar, por ejemplo, dime como lo hace zapisocial? Entiendo que ciertas cosillas cambian, por ejemplo??
+
+---
+
+ok haz todo, así mismo haz la parte de admin para configurarlo desde ahí
+
+---
+
+así mismo el nombre, el favicon y los logos que saldrán en la landing, dentro de admin y portal, o sea ya no lo dejemos como duro, recuerda que debe ser personalizable para venderlo en codecanyon
+
+---
+
+ok, si hay temas? Para elegir el color principal en portal, admin y pagina landing? Ojo, no habrá lo de plan vitalicio, así que eso omitelo
+
+---
+
+En reestablecer contraseña no puede ser así: 
+ , qué va a pasar cuando el comprador quiero poner siquiera unos 30 idiomas? Qué pasará? Crecerá ese tab con más opciones? Qué hacemos? Dejamos uno general? O hallamos la manera de que pueda consigurarlo por idioma y dejmar lo opción de que pueda dejarlo de manera global o que pueda elegir uno por idioma?
+
+---
+
+ok hazlo
