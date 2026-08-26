@@ -45,6 +45,7 @@ export default async function MarketingLayout({
         settings={settings}
         pages={site?.pages ?? []}
         registrationEnabled={settings?.registrationEnabled ?? true}
+        hasFaqs={Boolean(site?.faqs.length)}
       />
       {measurementId ? (
         <>

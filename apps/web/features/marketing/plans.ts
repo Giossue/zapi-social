@@ -18,10 +18,11 @@ export interface MarketingPlan {
 const YEARLY_DISCOUNT = 0.88
 
 function planFeatures(description: string): string[] {
-  return description
+  const lines = description
     .split(/\r?\n|·/)
     .map((line) => line.trim())
     .filter(Boolean)
+  return lines.length > 1 ? lines : []
 }
 
 export function toMarketingPlans(

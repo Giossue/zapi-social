@@ -10,16 +10,16 @@ import Container from "./container"
 import Icons from "./icons"
 
 const PRODUCT_LINKS = [
-  { key: "features", href: "/#features" },
-  { key: "pricing", href: "/#pricing" },
-  { key: "faq", href: "/#faq" },
-  { key: "languages", href: "/#languages" },
+  { key: "features", href: "/#features", needsFaqs: false },
+  { key: "pricing", href: "/#pricing", needsFaqs: false },
+  { key: "faq", href: "/#faq", needsFaqs: true },
+  { key: "languages", href: "/#languages", needsFaqs: false },
 ] as const
 
 const RESOURCE_LINKS = [
-  { key: "blog", href: "/blog" },
-  { key: "availableLanguages", href: "/#languages" },
-  { key: "help", href: "/#faq" },
+  { key: "blog", href: "/blog", needsFaqs: false },
+  { key: "availableLanguages", href: "/#languages", needsFaqs: false },
+  { key: "help", href: "/#faq", needsFaqs: true },
 ] as const
 
 const linkClass = "link hover:text-foreground transition-all duration-300"
@@ -28,12 +28,14 @@ interface FooterProps {
   settings: PublicSiteSettings | null
   pages: PublicSitePageSummary[]
   registrationEnabled: boolean
+  hasFaqs: boolean
 }
 
 const Footer = async ({
   settings,
   pages,
   registrationEnabled,
+  hasFaqs,
 }: FooterProps) => {
   const t = await getTranslations("marketing")
   const tFooter = await getTranslations("marketing.footer")
@@ -83,13 +85,15 @@ const Footer = async ({
                 {tFooter("product")}
               </h3>
               <ul className="mt-4 space-y-4 text-sm text-muted-foreground">
-                {PRODUCT_LINKS.map((link) => (
-                  <li key={link.key} className="mt-2">
-                    <Link href={link.href} className={linkClass}>
-                      {tFooter(`links.${link.key}`)}
-                    </Link>
-                  </li>
-                ))}
+                {PRODUCT_LINKS.filter((link) => hasFaqs || !link.needsFaqs).map(
+                  (link) => (
+                    <li key={link.key} className="mt-2">
+                      <Link href={link.href} className={linkClass}>
+                        {tFooter(`links.${link.key}`)}
+                      </Link>
+                    </li>
+                  )
+                )}
               </ul>
             </Container>
             <Container delay={0.2} className="h-auto">
@@ -130,7 +134,9 @@ const Footer = async ({
                 {tFooter("resources")}
               </h3>
               <ul className="mt-4 space-y-4 text-sm text-muted-foreground">
-                {RESOURCE_LINKS.map((link) => (
+                {RESOURCE_LINKS.filter(
+                  (link) => hasFaqs || !link.needsFaqs
+                ).map((link) => (
                   <li key={link.key} className="mt-2">
                     <Link href={link.href} className={linkClass}>
                       {tFooter(`links.${link.key}`)}
@@ -139,22 +145,24 @@ const Footer = async ({
                 ))}
               </ul>
             </Container>
-            <Container delay={0.4} className="h-auto">
-              <div className="mt-10 flex flex-col md:mt-0">
-                <h3 className="text-base font-medium text-foreground">
-                  {tFooter("legal")}
-                </h3>
-                <ul className="mt-4 space-y-4 text-sm text-muted-foreground">
-                  {pages.map((page) => (
-                    <li className="mt-2" key={page.slug}>
-                      <Link href={`/${page.slug}`} className={linkClass}>
-                        {page.title}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </Container>
+            {pages.length ? (
+              <Container delay={0.4} className="h-auto">
+                <div className="mt-10 flex flex-col md:mt-0">
+                  <h3 className="text-base font-medium text-foreground">
+                    {tFooter("legal")}
+                  </h3>
+                  <ul className="mt-4 space-y-4 text-sm text-muted-foreground">
+                    {pages.map((page) => (
+                      <li className="mt-2" key={page.slug}>
+                        <Link href={`/${page.slug}`} className={linkClass}>
+                          {page.title}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </Container>
+            ) : null}
           </div>
         </div>
       </div>

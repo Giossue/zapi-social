@@ -70,7 +70,14 @@ const Pricing = ({ plans }: { plans: MarketingPlan[] }) => {
         </Container>
       </div>
 
-      <div className="mx-auto grid w-full max-w-4xl grid-cols-1 gap-4 pt-8 lg:grid-cols-2 lg:gap-6 lg:pt-12">
+      <div
+        className={cn(
+          "mx-auto grid w-full grid-cols-1 gap-4 pt-8 lg:gap-6 lg:pt-12",
+          plans.length === 1 && "max-w-md",
+          plans.length === 2 && "max-w-4xl lg:grid-cols-2",
+          plans.length > 2 && "max-w-6xl md:grid-cols-2 lg:grid-cols-3"
+        )}
+      >
         {plans.map((plan, index) => (
           <Container key={plan.slug} delay={0.1 * index + 0.2}>
             <PlanCard plan={plan} cycle={cycle} />
@@ -151,7 +158,12 @@ const PlanCard = ({
         </div>
       </div>
 
-      <div className="mb-4 ml-1 flex w-full flex-col items-start gap-y-2 p-5">
+      <div
+        className={cn(
+          "mb-4 ml-1 w-full flex-col items-start gap-y-2 p-5",
+          plan.features.length ? "flex" : "hidden"
+        )}
+      >
         <span className="mb-2 text-left text-base">{t("includes")}</span>
         {plan.features.map((feature) => (
           <div key={feature} className="flex items-center justify-start gap-2">
