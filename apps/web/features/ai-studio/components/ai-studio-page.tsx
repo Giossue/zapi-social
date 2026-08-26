@@ -2493,8 +2493,6 @@ function OperationalCredits() {
   const apiErrorMessage = useApiErrorMessage()
   const t = useTranslations("aiStudio.pages")
   const format = useFormatter()
-  const tOps = useTranslations("aiStudio.operations")
-  const tStudio = useTranslations("aiStudio.studio")
   const [credits, setCredits] = useState<PortalCreditsResponse | null>(null)
   const [viewState, setViewState] = useState<AiOperationalViewState>("loading")
   const [query, setQuery] = useState("")
@@ -2690,11 +2688,6 @@ function OperationalCredits() {
           onClick={exportLedger}
         />
       }
-      toolCosts={(credits?.costs ?? []).map((item) => ({
-        cost: tStudio("credits", { count: item.units }),
-        id: item.kind,
-        label: tOps(`kind.${item.kind}`),
-      }))}
       total={filteredEntries.length}
     />
   )

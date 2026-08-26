@@ -74,13 +74,32 @@ export const portalNavigationGroups: readonly PortalNavigationGroup[] = [
         href: "/portal/bulk-posts",
         icon: FileText,
       },
-      { labelKey: "automation", href: "/portal/automation", icon: Zap },
+      {
+        labelKey: "automation",
+        icon: Zap,
+        children: [
+          { labelKey: "automationKeys", href: "/portal/automation" },
+          {
+            labelKey: "automationWebhooks",
+            href: "/portal/automation/webhooks",
+          },
+          { labelKey: "automationLogs", href: "/portal/automation/logs" },
+        ],
+      },
     ],
   },
   {
     labelKey: "contentTools",
     items: [
-      { labelKey: "teams", href: "/portal/teams", icon: Users },
+      {
+        labelKey: "teams",
+        icon: Users,
+        children: [
+          { labelKey: "teamMembers", href: "/portal/teams" },
+          { labelKey: "teamInvitations", href: "/portal/teams/invitations" },
+          { labelKey: "teamActivity", href: "/portal/teams/activity" },
+        ],
+      },
       { labelKey: "captions", href: "/portal/captions", icon: PenLine },
       {
         labelKey: "aiStudio",

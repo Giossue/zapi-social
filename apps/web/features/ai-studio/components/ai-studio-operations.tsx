@@ -163,12 +163,6 @@ type AiCreditMovementRow = {
   credits: string
 }
 
-type AiToolCost = {
-  id: string
-  label: string
-  cost: string
-}
-
 type PaginationProps = {
   page: number
   pageSize: number
@@ -932,7 +926,6 @@ type AiCreditsSurfaceProps = PaginationProps & {
   renewal: string
   state: AiOperationalViewState
   tableAction?: ReactNode
-  toolCosts: AiToolCost[]
 }
 
 function AiCreditsSurface({
@@ -962,7 +955,6 @@ function AiCreditsSurface({
   renewal,
   state,
   tableAction,
-  toolCosts,
   total,
 }: AiCreditsSurfaceProps) {
   const t = useTranslations("aiStudio.operations")
@@ -1012,11 +1004,6 @@ function AiCreditsSurface({
 
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
             <div className="flex flex-col gap-4">
-              <CollectionHeader
-                description={t("credits.movementsDescription")}
-                level="h2"
-                title={t("credits.movements")}
-              />
               <Card variant="subtle">
                 <DataTableHeader
                   action={tableAction}
@@ -1193,25 +1180,6 @@ function AiCreditsSurface({
                   </form>
                 </CardContent>
               </Card>
-
-              <Card variant="subtle">
-                <CardHeader>
-                  <CardTitle>{t("credits.costPerTool")}</CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-2">
-                  {toolCosts.map((tool) => (
-                    <div
-                      className="flex items-center justify-between gap-3 text-sm"
-                      key={tool.id}
-                    >
-                      <span className="text-muted-foreground">
-                        {tool.label}
-                      </span>
-                      <Badge variant="warning">{tool.cost}</Badge>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
             </div>
           </div>
         </>
@@ -1263,6 +1231,5 @@ export {
   type AiHistoryRow,
   AiHistorySurface,
   type AiOperationalViewState,
-  type AiToolCost,
   DownloadTableButton,
 }

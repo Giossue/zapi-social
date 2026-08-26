@@ -66,12 +66,7 @@ import {
   TableEmptyRow,
 } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@/components/table-pagination"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/tabs"
+import { Tabs, TabsContent } from "@workspace/ui/components/tabs"
 import { toast } from "@workspace/ui/components/toast"
 import { useFormatter, useTranslations } from "next-intl"
 
@@ -380,7 +375,7 @@ function errorCode(error: unknown) {
   return error instanceof ApiError ? error.code : undefined
 }
 
-export function TeamsPage() {
+export function TeamsPage({ view = "members" }: { view?: ManagerView }) {
   const t = useTranslations("teams")
   const apiErrorMessage = useApiErrorMessage()
   const [teams, setTeams] = useState<PortalTeamsResponse | null>(null)
@@ -389,7 +384,7 @@ export function TeamsPage() {
   const [actionError, setActionError] = useState<string | null>(null)
   const [dialogError, setDialogError] = useState<string | null>(null)
   const [pendingAction, setPendingAction] = useState<string | null>(null)
-  const [activeView, setActiveView] = useState<ManagerView>("members")
+  const activeView = view
   const [memberQuery, setMemberQuery] = useState("")
   const [invitationQuery, setInvitationQuery] = useState("")
   const [memberPage, setMemberPage] = useState(1)
@@ -535,14 +530,6 @@ export function TeamsPage() {
     }
     setActivityPage(1)
     setActivityQuery(value)
-  }
-
-  function changeView(value: string) {
-    const nextView = value as ManagerView
-    setActiveView(nextView)
-    if (nextView === "members") setMemberPage(1)
-    if (nextView === "invitations") setInvitationPage(1)
-    if (nextView === "activity") setActivityPage(1)
   }
 
   async function refreshAfterAction() {
@@ -761,15 +748,7 @@ export function TeamsPage() {
       />
 
       {teams.canManage ? (
-        <Tabs className="gap-4" onValueChange={changeView} value={activeView}>
-          <TabsList aria-label={t("viewsLabel")}>
-            <TabsTrigger value="members">{t("tab.members")}</TabsTrigger>
-            <TabsTrigger value="invitations">
-              {t("pendingInvitations")}
-            </TabsTrigger>
-            <TabsTrigger value="activity">{t("tab.activity")}</TabsTrigger>
-          </TabsList>
-
+        <Tabs className="gap-4" value={activeView}>
           <Card variant="subtle">
             {tableHeader}
             <CardContent className="flex flex-col gap-4 px-0">

@@ -80,12 +80,7 @@ import {
 } from "@workspace/ui/components/table"
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@/components/table-pagination"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/tabs"
+import { Tabs, TabsContent } from "@workspace/ui/components/tabs"
 import { toast } from "@workspace/ui/components/toast"
 import { useFormatter, useTranslations } from "next-intl"
 import { loginPath } from "@/features/identity/login-redirect"
@@ -491,7 +486,9 @@ function WebhookSheet({
   )
 }
 
-export function AutomationPage() {
+export type AutomationView = "keys" | "webhooks" | "logs"
+
+export function AutomationPage({ view = "keys" }: { view?: AutomationView }) {
   const t = useTranslations("automation")
   const format = useFormatter()
   const router = useRouter()
@@ -753,13 +750,7 @@ export function AutomationPage() {
           description={t("pageDescription")}
           title={t("pageTitle")}
         />
-        <Tabs defaultValue="keys">
-          <TabsList className="flex h-auto flex-wrap">
-            <TabsTrigger value="keys">{t("tab.keys")}</TabsTrigger>
-            <TabsTrigger value="webhooks">{t("tab.webhooks")}</TabsTrigger>
-            <TabsTrigger value="logs">{t("tab.logs")}</TabsTrigger>
-          </TabsList>
-
+        <Tabs value={view}>
           <TabsContent className="pt-3" value="keys">
             <Card variant="subtle">
               <DataTableHeader
