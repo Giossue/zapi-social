@@ -1,0 +1,22 @@
+Ayúdame con algo, ahora la landing la tengo separada en dokploy en otro application, o sea tengo  en dokploy:
+1. api
+2. web
+3. worker
+4. landing
+
+Ahora quiero que esté dentro del que sea, web será?
+
+---
+
+espera, me confundes
+ 
+ 
+ lo tengo así, que debo hacer?
+
+---
+
+Me equivoqué era esta:
+
+---
+
+DIOS, dame los pasos directos, me das demasiado texto
