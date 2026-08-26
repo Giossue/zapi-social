@@ -120,7 +120,7 @@ export class OnlineMediaService {
     const storageKey = originalStorageKey({
       workspaceId: session.workspace.id,
       assetId: id,
-      extension,
+      extension: `.${extension}`,
     });
     const path = resolve(this.storageRoot, storageKey);
     const temporaryPath = resolve(
@@ -141,6 +141,7 @@ export class OnlineMediaService {
     });
     try {
       if (!response.body) throw this.invalidBinary();
+      await mkdir(resolve(temporaryPath, '..'), { recursive: true });
       await mkdir(resolve(path, '..'), { recursive: true });
       await pipeline(
         Readable.fromWeb(response.body as never),
@@ -389,7 +390,7 @@ function parseUnsplashResult(value: unknown): PortalOnlineMediaResult | null {
   const user = nestedRecord(value, 'user');
   const links = nestedRecord(value, 'links');
   const id = stringValue(value.id);
-  const previewUrl = stringValue(urls?.small);
+  const previewUrl = stringValue(urls?.regular ?? urls?.small);
   const downloadUrl = stringValue(urls?.full ?? urls?.raw);
   const sourceUrl = stringValue(links?.html);
   if (!id || !previewUrl || !downloadUrl || !sourceUrl) return null;
@@ -421,7 +422,7 @@ function parsePexelsResult(
   if (!id || !sourceUrl) return null;
   if (type === 'image') {
     const src = nestedRecord(value, 'src');
-    const previewUrl = stringValue(src?.medium);
+    const previewUrl = stringValue(src?.large ?? src?.medium);
     const downloadUrl = stringValue(src?.original);
     if (!previewUrl || !downloadUrl) return null;
     return {

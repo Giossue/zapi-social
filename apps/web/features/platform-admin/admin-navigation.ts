@@ -141,19 +141,21 @@ export const adminNavigationGroups: readonly AdminNavigationGroup[] = [
           { labelKey: "auth", href: "/admin/settings/auth" },
           { labelKey: "captcha", href: "/admin/settings/captcha" },
           { labelKey: "analytics", href: "/admin/settings/analytics" },
-          { labelKey: "publicSite", href: "/admin/settings/public-site" },
+        ],
+      },
+      {
+        labelKey: "brandAndSite",
+        icon: Globe2,
+        children: [
           { labelKey: "branding", href: "/admin/settings/branding" },
+          { labelKey: "publicSite", href: "/admin/settings/public-site" },
+          { labelKey: "staticPages", href: "/admin/settings/static-pages" },
         ],
       },
       {
         labelKey: "emailTemplates",
         href: "/admin/email-templates",
         icon: Mail,
-      },
-      {
-        labelKey: "staticPages",
-        href: "/admin/settings/static-pages",
-        icon: Globe2,
       },
       {
         labelKey: "operations",

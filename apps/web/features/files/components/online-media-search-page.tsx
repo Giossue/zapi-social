@@ -32,6 +32,7 @@ import { toast } from "@workspace/ui/components/toast"
 import { FilesPermissionState } from "@/features/files/components/files-states"
 import { useTranslations } from "next-intl"
 
+import { useApiErrorMessage } from "@/lib/api-error-message"
 import { loginPath } from "@/features/identity/login-redirect"
 
 const typeMeta = {
@@ -56,6 +57,7 @@ function dimensions(result: PortalOnlineMediaResult) {
 
 export function OnlineMediaSearchPage() {
   const t = useTranslations("files.online")
+  const apiErrorMessage = useApiErrorMessage()
   const router = useRouter()
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<PortalOnlineMediaResult[]>([])
@@ -149,7 +151,11 @@ export function OnlineMediaSearchPage() {
     } catch (error) {
       if (handleError(error)) return
       console.error("Online media import failed", error)
-      toast.error(t("importFailed"))
+      toast.error(
+        error instanceof ApiError
+          ? apiErrorMessage(error.code)
+          : t("importFailed")
+      )
     } finally {
       setImportingId(null)
     }
@@ -181,9 +187,7 @@ export function OnlineMediaSearchPage() {
 
       {hasSearched && results.length ? (
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="font-medium">
-            {total} {total === 1 ? "resultado" : "resultados"}
-          </p>
+          <p className="font-medium">{t("resultsCount", { count: total })}</p>
           <p className="text-sm text-muted-foreground">{t("importHint")}</p>
         </div>
       ) : null}
@@ -232,7 +236,7 @@ export function OnlineMediaSearchPage() {
             return (
               <Card key={`${result.provider}-${result.id}`} variant="subtle">
                 <CardHeader>
-                  <div className="relative flex h-32 items-center justify-center overflow-hidden rounded-lg bg-muted">
+                  <div className="relative flex aspect-video items-center justify-center overflow-hidden rounded-lg bg-muted">
                     <MediaIcon
                       aria-hidden="true"
                       className="size-8 text-muted-foreground"
@@ -248,7 +252,7 @@ export function OnlineMediaSearchPage() {
                       src={result.previewUrl}
                     />
                   </div>
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-start justify-between gap-3">
                     <CardTitle className="truncate">{result.title}</CardTitle>
                     <Badge variant="neutral">{label}</Badge>
                   </div>
