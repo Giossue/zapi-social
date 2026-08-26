@@ -1,0 +1,35 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "01M0YC79QMAKE0JEQ9NVYE89NB",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "apps/web/features/marketing/components/analysis.tsx",
+    "apps/web/features/marketing/components/button.tsx",
+    "apps/web/features/marketing/components/cta-section.tsx",
+    "apps/web/features/marketing/components/hero.tsx",
+    "apps/web/features/marketing/components/integration.tsx",
+    "apps/web/features/marketing/components/mobile-menu.tsx",
+    "apps/web/features/marketing/components/navbar.tsx",
+    "apps/web/features/marketing/components/pricing.tsx",
+    "apps/web/proxy.ts",
+    "docs/planes/landing-en-web-v2.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 352,
+    "cache_creation_tokens": 402171,
+    "cache_read_tokens": 39942852,
+    "output_tokens": 147539,
+    "api_call_count": 178
+  }
+}
