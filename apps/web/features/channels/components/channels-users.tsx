@@ -149,7 +149,7 @@ export function ChannelsUsers({
       {isFiltering ? (
         <PageLoading aria-label={t("filtering")} className="min-h-48" />
       ) : accounts.length ? (
-        <CardGrid layout="xl-4">
+        <CardGrid layout="xl-4-fixed">
           {accounts.map((account) => (
             <ChannelAccountCard
               account={account}
