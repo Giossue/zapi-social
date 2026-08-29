@@ -1,10 +1,10 @@
-# Tableros (kanban) V2
+# Tareas V2
 
 ## Estado
 
 **Cerrado el 23 de agosto de 2026**, salvo el correo de vencimiento, que queda
-anotado en la fase 4 con su motivo. Portal tiene dos tableros: uno de tareas
-con columnas configurables y otro de contenido sobre `publishing_posts`.
+anotado en la fase 4 con su motivo. Portal tiene tareas con columnas
+configurables.
 
 Evidencia: `bun run typecheck` 8/8, `bun run build` 6/6, `bun run lint` sin
 avisos, los tres auditores sin hallazgos y 5 pruebas de integración del tablero
@@ -109,8 +109,8 @@ transacción** al mover. Un tablero tiene decenas de tarjetas, no millones:
 renumerar es más barato que arrastrar la deuda de posiciones fraccionarias que
 se degradan tras muchos movimientos.
 
-`publishing_post_id` es el enlace opcional con el tablero de contenido: una
-tarea puede apuntar a una publicación, pero no la necesita.
+`publishing_post_id` es un enlace opcional: una tarea puede apuntar a una
+publicación, pero no la necesita.
 
 #### `board_labels` y `board_task_labels`
 
@@ -140,23 +140,6 @@ de `board_task_comments`; no se guardan denormalizados.
   en la consulta del tablero evita mantener dos fuentes de verdad.
 - **Tabla de plantillas de tarea.** El menú «Add from template» de la plantilla
   visual queda fuera de alcance; el botón no se copia.
-
-## Tablero de contenido
-
-No lleva tablas nuevas. Es una vista de `publishing_posts` agrupada por
-`status`, con las columnas fijas que ya define el dominio: `draft`,
-`scheduled`, `processing`, `published`, `failed`.
-
-Arrastrar cambia el estado solo donde el dominio lo permite:
-
-| Origen      | Destinos válidos       | Motivo                                                   |
-| ----------- | ---------------------- | -------------------------------------------------------- |
-| `draft`     | `scheduled`            | Exige que la publicación tenga fecha y cuenta            |
-| `scheduled` | `draft`                | Desprogramar antes de que el worker la tome              |
-| resto       | ninguno                | `processing`, `published` y `failed` los decide el worker |
-
-Las columnas no reordenables y las tarjetas de las tres últimas columnas no
-arrastrables. Un intento inválido se rechaza en la API, no solo en la interfaz.
 
 ## Permisos
 
@@ -272,12 +255,13 @@ Dos matices que aparecieron al construirlo:
       superficie de correo entera y merece su propio cambio. El aviso sí llega
       por la campana.
 
-### Fase 5 — Tablero de contenido · terminada
+### Alcance actual — 29 de agosto de 2026
 
-- [x] Endpoint sobre `publishing_posts` agrupado por estado, filtrado por las
-      cuentas que la membresía tiene concedidas.
-- [x] Transiciones comprobadas en la API, no solo en la interfaz.
-- [x] Vista de tablero con las tres columnas finales bloqueadas.
+El Portal expone Tareas directamente en `/portal/tasks`. Se retiró el tablero
+de contenido, su vista sobre publicaciones y los endpoints asociados; las
+tareas conservan las mismas tablas, permisos y API interna de `boards`.
+La retirada pasa build, typecheck, lint, auditorías i18n/Portal-Admin y las 5
+pruebas de integración de tareas contra `zapi_v2_local`.
 
 ## Lo que cambió al construirlo
 

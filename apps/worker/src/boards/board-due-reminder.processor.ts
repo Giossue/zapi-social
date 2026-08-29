@@ -27,7 +27,7 @@ export class BoardDueReminderProcessor extends WorkerHost {
         tasks.assignee_user_id,
         'board.task_due_soon',
         jsonb_build_object('taskId', tasks.id::text, 'title', tasks.title),
-        '/portal/boards/tasks?task=' || tasks.id::text
+        '/portal/tasks?task=' || tasks.id::text
       from board_tasks as tasks
       where tasks.assignee_user_id is not null
         and tasks.archived_at is null

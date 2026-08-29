@@ -225,6 +225,18 @@ Cada vertical se cierra solo con:
 
 ## Estado actual
 
+### Retirada de Groups — 29 de agosto de 2026
+
+Groups se retiró por completo del Portal, API, contratos, cliente, permisos,
+límites de planes y navegación. La migración `0049_material_phalanx` limpia los
+permisos, límites y auditoría asociados antes de eliminar
+`account_group_social_accounts` y `account_groups`.
+
+La migración se probó dentro de `BEGIN` / `ROLLBACK` y se aplicó en
+`zapi_v2_local` y remoto: ambos quedaron en historial 50, sin las tablas ni
+residuos de Groups. Validación adicional: build, typecheck, lint, auditorías
+i18n/Portal-Admin y API Jest (25 suites, 102 pruebas aprobadas).
+
 La foundation y varias verticales Portal ya tienen contrato, API, persistencia y, cuando corresponde, Worker. La migración consolidada `0020_mushy_peter_parker` incorpora Bulk Posts, Automation, AI, intentos Publishing, Commerce, Affiliate y metadata de Files; `0021_pale_thor` añade FKs cross-workspace, cuotas AI seguras e inventario consistente.
 
 | Slice                                                | Backend                   | Web                                                         |

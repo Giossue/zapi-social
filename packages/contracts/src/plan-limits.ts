@@ -143,6 +143,7 @@ export function portalModuleForHref(href: string): PortalModuleKey | null {
     return "ai-publishing"
   }
   if (href.startsWith("/portal/ai-studio")) return "ai-studio"
+  if (href.startsWith("/portal/tasks")) return "boards"
   const match = /^\/portal\/([a-z-]+)/.exec(href)
   if (!match?.[1]) return null
   return portalPathModules[match[1]] ?? null

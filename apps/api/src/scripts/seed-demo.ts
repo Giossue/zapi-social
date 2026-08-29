@@ -331,8 +331,8 @@ async function main() {
         },
         {
           kind: 'demo.content-ready',
-          payload: { title: 'Your content board is ready to review' },
-          url: '/portal/boards/content',
+          payload: { title: 'Your tasks are ready to review' },
+          url: '/portal/tasks',
           readAt: shiftedDate(0, -2),
         },
       ];

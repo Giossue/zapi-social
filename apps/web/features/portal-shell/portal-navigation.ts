@@ -84,14 +84,7 @@ export const portalNavigationGroups: readonly PortalNavigationGroup[] = [
           { labelKey: "aiCredits", href: "/portal/ai-studio/credits" },
         ],
       },
-      {
-        labelKey: "boards",
-        icon: KanbanSquare,
-        children: [
-          { labelKey: "boardTasks", href: "/portal/boards/tasks" },
-          { labelKey: "boardContent", href: "/portal/boards/content" },
-        ],
-      },
+      { labelKey: "tasks", href: "/portal/tasks", icon: KanbanSquare },
     ],
   },
   {

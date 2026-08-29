@@ -76,6 +76,6 @@ export class BoardNotificationsService {
   }
 
   private taskUrl(taskId: string) {
-    return `/portal/boards/tasks?task=${taskId}`;
+    return `/portal/tasks?task=${taskId}`;
   }
 }

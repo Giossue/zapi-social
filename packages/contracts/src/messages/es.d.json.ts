@@ -3111,26 +3111,6 @@ declare const messages: {
       "range": "{from, number}-{to, number} de {total, number}"
     }
   },
-  "contentBoard": {
-    "cardCount": "{count, plural, one {# publicación} other {# publicaciones}}",
-    "emptyColumn": "Nada en este estado.",
-    "failureCode": "Fallo: {code}",
-    "loadFailed": "No pudimos cargar el tablero",
-    "loadFailedDescription": "Vuelve a intentarlo en unos segundos.",
-    "lockedColumn": "Este estado lo decide la publicación.",
-    "noAccount": "Sin cuenta asignada",
-    "noContent": "Sin texto",
-    "pageDescription": "{count, plural, one {# publicación} other {# publicaciones}} en el flujo.",
-    "pageTitle": "Tablero de contenido",
-    "status": {
-      "draft": "Borrador",
-      "failed": "Fallida",
-      "processing": "Publicando",
-      "published": "Publicada",
-      "scheduled": "Programada"
-    },
-    "statusChanged": "Estado actualizado."
-  },
   "dashboard": {
     "admin": {
       "aiActivity": {
@@ -4351,9 +4331,7 @@ declare const messages: {
       "automationKeys": "Claves de API",
       "automationLogs": "Registro",
       "automationWebhooks": "Webhooks",
-      "boardContent": "Contenido",
-      "boardTasks": "Tareas",
-      "boards": "Tableros",
+      "tasks": "Tareas",
       "bulkPosts": "Publicaciones masivas",
       "calendar": "Calendario",
       "captions": "Captions",
@@ -4487,7 +4465,7 @@ declare const messages: {
         "ai-publishing": "AI Publishing",
         "ai-studio": "AI Studio",
         "automation": "Automatización",
-        "boards": "Tableros",
+        "boards": "Tareas",
         "bulk-posts": "Bulk posts",
         "captions": "Captions",
         "files": "Archivos",
@@ -5486,10 +5464,10 @@ declare const messages: {
         "view": "Ver automatizaciones"
       },
       "boards": {
-        "delete_tasks": "Borrar tarjetas",
-        "manage_columns": "Configurar las columnas",
-        "manage_tasks": "Crear y editar tarjetas",
-        "view": "Ver el tablero"
+        "delete_tasks": "Borrar tareas",
+        "manage_columns": "Configurar las columnas de tareas",
+        "manage_tasks": "Crear y editar tareas",
+        "view": "Ver tareas"
       },
       "bulk-posts": {
         "manage": "Crear y administrar cargas masivas",
@@ -5528,7 +5506,7 @@ declare const messages: {
       "ai-publishing": "Automatizaciones de IA",
       "ai-studio": "AI Studio",
       "automation": "Automatización",
-      "boards": "Tableros",
+      "boards": "Tareas",
       "bulk-posts": "Publicaciones masivas",
       "captions": "Pies de foto",
       "channels": "Canales",

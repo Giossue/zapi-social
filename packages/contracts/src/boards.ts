@@ -150,36 +150,6 @@ export const createBoardLabelSchema = z
   })
   .strict()
 
-export const contentBoardColumnSchema = z.enum([
-  "draft",
-  "scheduled",
-  "processing",
-  "published",
-  "failed",
-])
-
-export const contentBoardCardSchema = z.object({
-  id: z.uuid(),
-  status: contentBoardColumnSchema,
-  content: z.string(),
-  scheduledAt: z.string().datetime().nullable(),
-  publishedAt: z.string().datetime().nullable(),
-  failureCode: z.string().nullable(),
-  accountId: z.uuid().nullable(),
-  accountName: z.string().nullable(),
-  authorName: z.string().nullable(),
-  mediaCount: z.number().int().nonnegative(),
-})
-
-export const contentBoardResponseSchema = z.object({
-  cards: z.array(contentBoardCardSchema),
-  canManage: z.boolean(),
-})
-
-export const moveContentBoardCardSchema = z
-  .object({ status: z.enum(["draft", "scheduled"]) })
-  .strict()
-
 export type BoardTaskPriority = z.infer<typeof boardTaskPrioritySchema>
 export type BoardColumn = z.infer<typeof boardColumnSchema>
 export type BoardLabel = z.infer<typeof boardLabelSchema>
@@ -204,9 +174,3 @@ export type CreateBoardTaskAttachmentInput = z.infer<
   typeof createBoardTaskAttachmentSchema
 >
 export type CreateBoardLabelInput = z.infer<typeof createBoardLabelSchema>
-export type ContentBoardColumn = z.infer<typeof contentBoardColumnSchema>
-export type ContentBoardCard = z.infer<typeof contentBoardCardSchema>
-export type ContentBoardResponse = z.infer<typeof contentBoardResponseSchema>
-export type MoveContentBoardCardInput = z.infer<
-  typeof moveContentBoardCardSchema
->

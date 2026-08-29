@@ -1,5 +1,5 @@
 import { BoardPage } from "@/features/boards/components/board-page"
 
-export default function BoardTasksRoutePage() {
+export default function TasksRoutePage() {
   return <BoardPage />
 }

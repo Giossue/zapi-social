@@ -10,14 +10,12 @@ import type {
   BoardQuery,
   BoardResponse,
   BoardTaskDetail,
-  ContentBoardResponse,
   CreateBoardColumnInput,
   CreateBoardLabelInput,
   CreateBoardTaskAttachmentInput,
   CreateBoardTaskCommentInput,
   CreateBoardTaskInput,
   MoveBoardTaskInput,
-  MoveContentBoardCardInput,
   ReorderBoardColumnsInput,
   UpdateBoardColumnInput,
   UpdateBoardTaskInput,
@@ -2058,13 +2056,4 @@ export const boardsApi = {
     }),
   deleteLabel: (id: string) =>
     request<void>(`/v1/portal/boards/labels/${id}`, { method: "DELETE" }),
-  contentBoard: () =>
-    request<ContentBoardResponse>("/v1/portal/boards/content", {
-      method: "GET",
-    }),
-  moveContentCard: (id: string, input: MoveContentBoardCardInput) =>
-    request<ContentBoardResponse>(`/v1/portal/boards/content/${id}/status`, {
-      method: "PUT",
-      body: JSON.stringify(input),
-    }),
 }

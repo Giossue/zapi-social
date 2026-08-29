@@ -3108,26 +3108,6 @@
       "range": "{from, number}-{to, number} of {total, number}"
     }
   },
-  "contentBoard": {
-    "cardCount": "{count, plural, one {# post} other {# posts}}",
-    "emptyColumn": "Nothing in this state.",
-    "failureCode": "Failure: {code}",
-    "loadFailed": "We could not load the board",
-    "loadFailedDescription": "Try again in a few seconds.",
-    "lockedColumn": "This state is decided by publishing.",
-    "noAccount": "No account assigned",
-    "noContent": "No text",
-    "pageDescription": "{count, plural, one {# post} other {# posts}} in the pipeline.",
-    "pageTitle": "Content board",
-    "status": {
-      "draft": "Draft",
-      "failed": "Failed",
-      "processing": "Publishing",
-      "published": "Published",
-      "scheduled": "Scheduled"
-    },
-    "statusChanged": "Status updated."
-  },
   "dashboard": {
     "admin": {
       "aiActivity": {
@@ -4348,9 +4328,7 @@
       "automationKeys": "API keys",
       "automationLogs": "Log",
       "automationWebhooks": "Webhooks",
-      "boardContent": "Content",
-      "boardTasks": "Tasks",
-      "boards": "Boards",
+      "tasks": "Tasks",
       "bulkPosts": "Bulk posts",
       "calendar": "Calendar",
       "captions": "Captions",
@@ -4484,7 +4462,7 @@
         "ai-publishing": "AI Publishing",
         "ai-studio": "AI Studio",
         "automation": "Automation",
-        "boards": "Boards",
+        "boards": "Tasks",
         "bulk-posts": "Bulk posts",
         "captions": "Captions",
         "files": "Files",
@@ -5483,10 +5461,10 @@
         "view": "View automations"
       },
       "boards": {
-        "delete_tasks": "Delete cards",
-        "manage_columns": "Configure columns",
-        "manage_tasks": "Create and edit cards",
-        "view": "View the board"
+        "delete_tasks": "Delete tasks",
+        "manage_columns": "Configure task columns",
+        "manage_tasks": "Create and edit tasks",
+        "view": "View tasks"
       },
       "bulk-posts": {
         "manage": "Create and manage bulk uploads",
@@ -5525,7 +5503,7 @@
       "ai-publishing": "AI automations",
       "ai-studio": "AI Studio",
       "automation": "Automation",
-      "boards": "Boards",
+      "boards": "Tasks",
       "bulk-posts": "Bulk posts",
       "captions": "Captions",
       "channels": "Channels",

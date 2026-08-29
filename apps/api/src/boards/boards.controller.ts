@@ -16,14 +16,12 @@ import { ApiTags } from '@nestjs/swagger';
 import type { FastifyRequest } from 'fastify';
 import { SessionAccessService } from '../identity/session-access.service';
 import { BoardsService } from './boards.service';
-import { ContentBoardService } from './content-board.service';
 
 @ApiTags('portal-boards')
 @Controller('v1/portal/boards')
 export class BoardsController {
   constructor(
     private readonly boards: BoardsService,
-    private readonly content: ContentBoardService,
     private readonly access: SessionAccessService,
   ) {}
 
@@ -195,24 +193,6 @@ export class BoardsController {
     await this.boards.deleteLabel(
       await this.access.requirePortalSession(request),
       id,
-    );
-  }
-
-  @Get('content')
-  async contentBoard(@Req() request: FastifyRequest) {
-    return this.content.board(await this.access.requirePortalSession(request));
-  }
-
-  @Put('content/:id/status')
-  async moveContentCard(
-    @Req() request: FastifyRequest,
-    @Param('id') id: string,
-    @Body() body: unknown,
-  ) {
-    return this.content.move(
-      await this.access.requirePortalSession(request),
-      id,
-      body,
     );
   }
 }
