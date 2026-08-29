@@ -1,12 +1,11 @@
 "use client"
-"use no memo"
 
 import * as React from "react"
 
-import { getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { Plus } from "lucide-react"
 
 import { Button } from "@workspace/ui/components/button"
+import { CardGrid } from "@workspace/ui/components/card-grid"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import {
@@ -15,16 +14,16 @@ import {
 } from "@workspace/ui/components/data-table-controls"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
+import { PageLoading } from "@workspace/ui/components/page-loading"
+import { TablePagination } from "@/components/table-pagination"
 
-import type { PortalChannelAccount } from "../../types/channels"
-import { useFormatter, useTranslations } from "next-intl"
+import type { PortalChannelAccount } from "../types/channels"
+import { useTranslations } from "next-intl"
 
-import { useChannelLabels } from "@/lib/channel-labels"
 import {
-  createChannelsColumns,
-  type ChannelTableActions,
-} from "./channels-columns"
-import { ChannelsTable } from "./channels-table"
+  ChannelAccountCard,
+  type ChannelCardActions,
+} from "./channel-account-card"
 
 type ChannelFilterOption = readonly [string, string]
 
@@ -50,7 +49,7 @@ type ChannelsUsersProps = {
   rangeEnd: number
   rangeStart: number
   statusFilter: string
-  tableActions: ChannelTableActions
+  cardActions: ChannelCardActions
   total: number
 }
 
@@ -76,20 +75,10 @@ export function ChannelsUsers({
   rangeEnd,
   rangeStart,
   statusFilter,
-  tableActions,
+  cardActions,
   total,
 }: ChannelsUsersProps) {
   const t = useTranslations("channels")
-  const labels = useChannelLabels()
-  const format = useFormatter()
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const table = useReactTable({
-    data: accounts,
-    columns: createChannelsColumns({ ...tableActions, format, labels, t }),
-    getRowId: (row) => row.id,
-    autoResetPageIndex: false,
-    getCoreRowModel: getCoreRowModel(),
-  })
 
   return (
     <div className="flex flex-col gap-4">
@@ -117,7 +106,7 @@ export function ChannelsUsers({
             value: query,
           }}
         />
-        <CardContent className="flex flex-col gap-4 px-0">
+        <CardContent className="px-0">
           <DataTableToolbar>
             <DataTableFilter
               ariaLabel={t("filterProvider")}
@@ -154,21 +143,37 @@ export function ChannelsUsers({
               value={statusFilter}
             />
           </DataTableToolbar>
-
-          <ChannelsTable
-            canGoNext={canGoNext}
-            canGoPrevious={canGoPrevious}
-            emptyState={emptyState}
-            isFiltering={isFiltering}
-            onNextPage={onNextPage}
-            onPreviousPage={onPreviousPage}
-            rangeEnd={rangeEnd}
-            rangeStart={rangeStart}
-            table={table}
-            total={total}
-          />
         </CardContent>
       </Card>
+
+      {isFiltering ? (
+        <PageLoading aria-label={t("filtering")} className="min-h-48" />
+      ) : accounts.length ? (
+        <CardGrid layout="xl-3">
+          {accounts.map((account) => (
+            <ChannelAccountCard
+              account={account}
+              key={account.id}
+              {...cardActions}
+            />
+          ))}
+        </CardGrid>
+      ) : (
+        <Card variant="subtle">
+          <CardContent>{emptyState}</CardContent>
+        </Card>
+      )}
+
+      <TablePagination
+        canGoNext={canGoNext}
+        canGoPrevious={canGoPrevious}
+        itemLabel={t("itemLabel")}
+        onNextPage={onNextPage}
+        onPreviousPage={onPreviousPage}
+        rangeEnd={rangeEnd}
+        rangeStart={rangeStart}
+        total={total}
+      />
 
       {canManage ? (
         <FloatingActionButton label={t("connect")} onClick={onConnect} />

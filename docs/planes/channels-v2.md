@@ -410,6 +410,13 @@ La pantalla muestra instrucciones específicas de cada provider: scopes, callbac
 
 Regla de bloqueo de conexión nueva:
 
+El inventario de `/portal/channels` se presenta como una rejilla de cards,
+no como tabla. La búsqueda, los filtros de proveedor, tipo y estado, la
+paginación y la acción de conexión permanecen visibles. Cada card conserva
+identidad, estado, capability, proveedor, fecha de conexión y todas las
+acciones operativas. La composición canónica vive en
+`template-shadcn-superdashboard/src/app/(main)/dashboard/channels` y V2 adapta
+únicamente datos, traducciones, permisos y handlers reales.
 
 **Implementado el 23 de agosto de 2026.** `ChannelsService.portalCapabilities()`
 deriva la disponibilidad de la integración de Admin de cada proveedor: hace
@@ -533,6 +540,14 @@ Los errores públicos usan `code` + `requestId`; los detalles técnicos quedan e
 - [x] Bloquear publicación de canales desconectados y mostrar aviso de reconexión.
 - [ ] Diseñar estados empty, búsqueda vacía, permisos, móvil, claro y oscuro.
 - [x] Obtener aprobación visual y funcional de los flujos mock del Portal.
+
+**Evidencia del inventario en cards — 29 de agosto de 2026:** `bun run
+typecheck`, `bun run lint`, `bun run build`, `bun run audit:portal-admin-ui`,
+`bun run audit:i18n` y `bun run audit:i18n-hardcoded` completaron sin
+hallazgos en V2. La fuente visual nueva del template pasó Biome y compiló con
+Next; su build global conserva dos errores TypeScript ajenos a Channels en
+`chart-area-interactive.tsx` y `store-traffic.tsx`. La aprobación visual de la
+rejilla nueva sigue a cargo del usuario.
 
 **Criterio de salida:** cada botón del Portal tiene un estado, permiso, resultado y mensaje mock definido antes de crear endpoints o adapters.
 

@@ -19,7 +19,6 @@ import {
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { EmptyState } from "@workspace/ui/components/empty-state"
-import { TABLE_EMPTY_ICON } from "@workspace/ui/components/table-empty-row"
 import { Field, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { RetryButton } from "@workspace/ui/components/retry-button"
@@ -33,7 +32,7 @@ import {
 } from "@workspace/ui/components/sheet"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
-import { LockKeyhole, Save, Trash2, TriangleAlert } from "lucide-react"
+import { LockKeyhole, Save, Share2, Trash2, TriangleAlert } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react"
@@ -46,8 +45,8 @@ import type {
   PortalChannelAccount,
   PortalChannelCapability,
 } from "../types/channels"
-import { type ChannelTableActions } from "./channel-table/channels-columns"
-import { ChannelsUsers } from "./channel-table/channels-users"
+import { type ChannelCardActions } from "./channel-account-card"
+import { ChannelsUsers } from "./channels-users"
 import {
   ChannelConnectionDialog,
   type MetaPickerSession,
@@ -599,13 +598,18 @@ export function LiveChannelsPage() {
         summary.total
       )
     : 0
-  const tableActions: ChannelTableActions = {
+  const cardActions: ChannelCardActions = {
     onDelete: setDeletingAccount,
     onEdit: setEditingAccount,
     onReconnect: (account) => void reconnect(account),
     onProfileSync: (account) => void refreshProfile(account),
     pendingAccountId,
   }
+  const hasActiveFilters =
+    query.length > 0 ||
+    providerFilter !== "all" ||
+    capabilityFilter !== "all" ||
+    statusFilter !== "all"
 
   if (isLoading) return <ChannelsLoading />
   if (!hasPermission)
@@ -649,10 +653,12 @@ export function LiveChannelsPage() {
         emptyState={
           <EmptyState
             description={
-              query ? t("emptyFilteredDescription") : t("emptyDescription")
+              hasActiveFilters
+                ? t("emptyFilteredDescription")
+                : t("emptyDescription")
             }
-            icon={TABLE_EMPTY_ICON}
-            title={query ? t("noMatches") : t("emptyTitle")}
+            icon={Share2}
+            title={hasActiveFilters ? t("noMatches") : t("emptyTitle")}
           />
         }
         isFiltering={isFiltering}
@@ -678,7 +684,7 @@ export function LiveChannelsPage() {
         rangeEnd={rangeEnd}
         rangeStart={rangeStart}
         statusFilter={statusFilter}
-        tableActions={tableActions}
+        cardActions={cardActions}
         total={summary.total}
       />
       <EditChannelSheet
