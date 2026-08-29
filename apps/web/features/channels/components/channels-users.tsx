@@ -91,10 +91,7 @@ export function ChannelsUsers({
             value: query,
           }}
         />
-        <DataTableToolbar
-          className="px-0"
-          filtersClassName="rounded-lg bg-muted/50 py-2"
-        >
+        <DataTableToolbar className="px-0">
           <DataTableFilter
             ariaLabel={t("filterProvider")}
             label={t("provider")}
@@ -103,6 +100,7 @@ export function ChannelsUsers({
               { label: t("all"), value: "all" },
               ...providerOptions.map(([value, label]) => ({ label, value })),
             ]}
+            triggerClassName="bg-muted/50"
             value={providerFilter}
           />
           <DataTableFilter
@@ -116,6 +114,7 @@ export function ChannelsUsers({
                 value,
               })),
             ]}
+            triggerClassName="bg-muted/50"
             value={capabilityFilter}
           />
           <DataTableFilter
@@ -127,6 +126,7 @@ export function ChannelsUsers({
               { label: t("filter.connected"), value: "connected" },
               { label: t("filter.disconnected"), value: "disconnected" },
             ]}
+            triggerClassName="bg-muted/50"
             value={statusFilter}
           />
         </DataTableToolbar>

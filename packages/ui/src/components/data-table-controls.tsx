@@ -61,6 +61,7 @@ type DataTableFilterProps = {
   label?: string
   onValueChange: (value: string) => void
   options: readonly DataTableFilterOption[]
+  triggerClassName?: string
   value: string
 }
 
@@ -187,13 +188,14 @@ function DataTableFilter({
   label,
   onValueChange,
   options,
+  triggerClassName,
   value,
 }: DataTableFilterProps) {
   return (
     <Select onValueChange={onValueChange} value={value}>
       <SelectTrigger
         aria-label={ariaLabel}
-        className="w-max max-w-full"
+        className={cn("w-max max-w-full", triggerClassName)}
         size="sm"
       >
         {label ? (
