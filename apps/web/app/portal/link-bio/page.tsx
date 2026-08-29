@@ -1,5 +1,14 @@
-import { LinkBioPage } from "@/features/link-bio/components/link-bio-page"
+import {
+  redirectToPortalSettings,
+  type LegacySettingsSearchParams,
+} from "@/features/settings/lib/legacy-settings-redirect"
 
-export default function LinkBioRoutePage() {
-  return <LinkBioPage />
+type LegacyLinkBioRoutePageProps = {
+  searchParams: LegacySettingsSearchParams
+}
+
+export default function LinkBioRoutePage({
+  searchParams,
+}: LegacyLinkBioRoutePageProps) {
+  return redirectToPortalSettings("/portal/settings/link-bio", searchParams)
 }

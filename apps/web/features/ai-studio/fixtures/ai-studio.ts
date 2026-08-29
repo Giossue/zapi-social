@@ -121,7 +121,7 @@ export const studioDestinations: StudioDestination[] = [
   },
   {
     description: "Voz de marca, idioma y preferencias de salida.",
-    href: "/portal/ai-studio/settings",
+    href: "/portal/settings/ai-studio",
     icon: Settings2,
     label: "Configuración",
     view: "settings",

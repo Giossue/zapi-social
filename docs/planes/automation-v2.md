@@ -2,7 +2,7 @@
 
 ## Estado
 
-El backend de API keys, API externa y webhooks salientes está implementado. `/portal/automation` ya tiene un mockup source-first navegable con pestañas separadas para claves, webhooks y actividad; su siguiente fase es conectar esa composición a `automationApi`.
+El backend de API keys, API externa y webhooks salientes está implementado. `/portal/settings/automation` ya tiene un mockup source-first navegable con pestañas separadas para claves, webhooks y actividad; su siguiente fase es conectar esa composición a `automationApi`.
 
 ## Administración Portal
 

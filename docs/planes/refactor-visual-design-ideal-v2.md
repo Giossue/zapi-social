@@ -308,7 +308,7 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 ## Cierre de placeholders del Portal — 10 de agosto de 2026
 
 - `template-shadcn-superdashboard/src/app/(main)/dashboard/portal-modules` es la fuente canónica navegable para Publicaciones masivas, AI Publishing, API de automatización, Grupos y Afiliados.
-- ZapiV2 copia esa composición en `/portal/bulk-posts`, `/portal/ai-publishing`, `/portal/automation`, `/portal/groups` y `/portal/affiliate`.
+- ZapiV2 copia esa composición en `/portal/bulk-posts`, `/portal/ai-publishing`, `/portal/settings/automation`, `/portal/groups` y `/portal/affiliate`.
 - Las cinco superficies usan el patrón final de tablas, búsqueda y filtros adaptables, paginación compacta, tabs sin contadores, acciones con icono izquierdo y sheets desplazables con validación por toast.
 - Revisión del 12 de agosto de 2026: la cabecera de página y la acción primaria quedaron fuera de la card operativa; métricas, enlace de afiliado y tabla usan la jerarquía semántica de superficies. Crear y editar actualizan las filas locales, ver abre detalle real y las acciones destructivas exigen confirmación antes de retirar la fila. Los filtros y la paginación siguen trabajando únicamente sobre la pestaña activa.
 - Esta iteración cierra el mockup visual y sus interacciones locales. Las conexiones a `bulkPostsApi`, schedules de `aiApi`, `automationApi`, `groupsApi` y `affiliateApi` permanecen en los planes de cada vertical.

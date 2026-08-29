@@ -72,7 +72,7 @@ cuántas páginas puede tener el workspace, con `-1` como ilimitado y `1` por de
 ## Superficies V2
 
 ```text
-/portal/link-bio            listado con métricas de vistas, clics y CTR
+/portal/settings/link-bio   listado con métricas de vistas, clics y CTR
 /portal/link-bio/{id}       constructor: bloques, apariencia y vista previa
 /b/{slug}                   página pública renderizada por Next
 ```
@@ -99,7 +99,7 @@ Laravel auditado
 Implementado. Migración `0034_third_black_widow` aplicada en local y remoto: `link_bio_pages`
 y `link_bio_events`.
 
-- `/portal/link-bio` lista páginas con vistas, clics y conversión, y abre el constructor en
+- `/portal/settings/link-bio` lista páginas con vistas, clics y conversión, y abre el constructor en
   `Sheet` a pantalla completa con los nueve tipos de bloque, reordenamiento y apariencia.
 - `/b/{slug}` renderiza la página publicada y registra la visita al montar; cada clic se
   registra antes de abrir el destino.

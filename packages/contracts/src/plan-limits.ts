@@ -136,6 +136,11 @@ export function portalModuleForPath(path: string): PortalModuleKey | null {
 }
 
 export function portalModuleForHref(href: string): PortalModuleKey | null {
+  const settingsModule =
+    /^\/portal\/settings\/(ai-studio|link-bio|watermarks|automation)/.exec(
+      href
+    )?.[1]
+  if (settingsModule) return portalPathModules[settingsModule] ?? null
   if (href.startsWith("/portal/ai-studio/automation")) {
     return "ai-publishing"
   }

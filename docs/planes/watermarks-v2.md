@@ -4,7 +4,7 @@
 
 El backend está implementado en contrato, cliente REST y Nest. La migración
 aditiva `0018_gorgeous_doctor_faustus` está aplicada a `zapi_v2_local`.
-Por solicitud explícita, el fixture funcional de `/portal/watermarks` se creó
+Por solicitud explícita, el fixture funcional de `/portal/settings/watermarks` se creó
 directamente en V2, reutilizando los patrones de formularios, diálogos y
 feedback ya canónicos del Portal.
 
@@ -101,6 +101,6 @@ leer para explicar qué reglas aplicarán en Publishing.
   `zapi_v2_local`. Tras aplicar `0018`, pasó 2/2 y confirmó que la transacción
   revierte sus fixtures: tickets, comentarios y reglas terminan en cero.
 - `apps/web` pasa `typecheck` y `build`; la salida de Next incluye
-  `/portal/watermarks`.
+  `/portal/settings/watermarks`.
 - Tras ajustar el selector de destinos, `apps/web` vuelve a pasar `typecheck`
   y el lint focal de `features/watermarks/components/watermarks-page.tsx`.

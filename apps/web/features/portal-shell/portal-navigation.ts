@@ -2,14 +2,12 @@ import {
   Bell,
   CalendarDays,
   CreditCard,
-  Droplets,
   FileText,
   FolderOpen,
   HandCoins,
   Image,
   KanbanSquare,
   Layers3,
-  Link2,
   LayoutDashboard,
   LifeBuoy,
   PenLine,
@@ -17,7 +15,6 @@ import {
   Settings2,
   Users,
   WandSparkles,
-  Zap,
 } from "lucide-react"
 
 import type {
@@ -74,18 +71,6 @@ export const portalNavigationGroups: readonly PortalNavigationGroup[] = [
         href: "/portal/bulk-posts",
         icon: FileText,
       },
-      {
-        labelKey: "automation",
-        icon: Zap,
-        children: [
-          { labelKey: "automationKeys", href: "/portal/automation" },
-          {
-            labelKey: "automationWebhooks",
-            href: "/portal/automation/webhooks",
-          },
-          { labelKey: "automationLogs", href: "/portal/automation/logs" },
-        ],
-      },
     ],
   },
   {
@@ -110,11 +95,9 @@ export const portalNavigationGroups: readonly PortalNavigationGroup[] = [
             labelKey: "aiAutomation",
             href: "/portal/ai-studio/automation",
           },
-          { labelKey: "aiSettings", href: "/portal/ai-studio/settings" },
           { labelKey: "aiCredits", href: "/portal/ai-studio/credits" },
         ],
       },
-      { labelKey: "linkBio", href: "/portal/link-bio", icon: Link2 },
       { labelKey: "groups", href: "/portal/groups", icon: Layers3 },
       {
         labelKey: "boards",
@@ -124,7 +107,6 @@ export const portalNavigationGroups: readonly PortalNavigationGroup[] = [
           { labelKey: "boardContent", href: "/portal/boards/content" },
         ],
       },
-      { labelKey: "watermarks", href: "/portal/watermarks", icon: Droplets },
     ],
   },
   {

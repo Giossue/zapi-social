@@ -213,7 +213,8 @@ export function workspacePermissionForPortalHref(
   href: string
 ): WorkspacePermission | null {
   const module =
-    href.startsWith("/portal/channels") || href.startsWith("/portal/settings")
+    href.startsWith("/portal/channels") ||
+    href.startsWith("/portal/settings/channels")
       ? "channels"
       : portalModuleForHref(href)
   return module ? permissionForModule(module, "view") : null

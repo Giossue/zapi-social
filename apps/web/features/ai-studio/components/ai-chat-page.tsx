@@ -821,7 +821,7 @@ export function AiChatPage() {
             <Button asChild size="icon-sm" variant="brand-secondary">
               <Link
                 aria-label={t("settings")}
-                href="/portal/ai-studio/settings"
+                href="/portal/settings/ai-studio"
               >
                 <Settings2 />
               </Link>
@@ -897,7 +897,7 @@ export function AiChatPage() {
               <EmptyState
                 action={
                   <Button asChild>
-                    <Link href="/portal/ai-studio/settings">
+                    <Link href="/portal/settings/ai-studio">
                       <Settings2 data-icon="inline-start" />
                       {t("configurationRequiredAction")}
                     </Link>

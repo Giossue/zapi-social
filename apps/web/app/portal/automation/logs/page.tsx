@@ -1,5 +1,17 @@
-import { AutomationPage } from "@/features/automation/components/automation-page"
+import {
+  redirectToPortalSettings,
+  type LegacySettingsSearchParams,
+} from "@/features/settings/lib/legacy-settings-redirect"
 
-export default function AutomationRoutePage() {
-  return <AutomationPage view="logs" />
+type LegacyAutomationLogsRoutePageProps = {
+  searchParams: LegacySettingsSearchParams
+}
+
+export default function AutomationRoutePage({
+  searchParams,
+}: LegacyAutomationLogsRoutePageProps) {
+  return redirectToPortalSettings(
+    "/portal/settings/automation/logs",
+    searchParams
+  )
 }

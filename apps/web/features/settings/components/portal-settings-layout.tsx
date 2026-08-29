@@ -5,7 +5,15 @@ import type { ReactNode } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTranslations } from "next-intl"
-import { Share2 } from "lucide-react"
+import {
+  Droplets,
+  KeyRound,
+  Link2,
+  ScrollText,
+  Share2,
+  WandSparkles,
+  Webhook,
+} from "lucide-react"
 
 import {
   Tabs,
@@ -25,13 +33,51 @@ const settingsItems = [
     labelKey: "channels",
     value: "channels",
   },
+  {
+    href: "/portal/settings/ai-studio",
+    icon: WandSparkles,
+    labelKey: "aiSettings",
+    value: "ai-studio",
+  },
+  {
+    href: "/portal/settings/link-bio",
+    icon: Link2,
+    labelKey: "linkBio",
+    value: "link-bio",
+  },
+  {
+    href: "/portal/settings/watermarks",
+    icon: Droplets,
+    labelKey: "watermarks",
+    value: "watermarks",
+  },
+  {
+    href: "/portal/settings/automation",
+    icon: KeyRound,
+    labelKey: "automationKeys",
+    value: "automation",
+  },
+  {
+    href: "/portal/settings/automation/webhooks",
+    icon: Webhook,
+    labelKey: "automationWebhooks",
+    value: "automation-webhooks",
+  },
+  {
+    href: "/portal/settings/automation/logs",
+    icon: ScrollText,
+    labelKey: "automationLogs",
+    value: "automation-logs",
+  },
 ] as const
 
 export function PortalSettingsLayout({ children }: PortalSettingsLayoutProps) {
   const pathname = usePathname()
   const t = useTranslations("navigation.portal")
   const activeItem =
-    settingsItems.find((item) => pathname.startsWith(item.href)) ??
+    settingsItems
+      .filter((item) => pathname.startsWith(item.href))
+      .sort((first, second) => second.href.length - first.href.length)[0] ??
     settingsItems[0]
 
   return (
@@ -57,7 +103,7 @@ export function PortalSettingsLayout({ children }: PortalSettingsLayoutProps) {
           })}
         </TabsList>
       </aside>
-      <TabsContent className="m-0 min-w-0 p-4 md:p-6" value="channels">
+      <TabsContent className="m-0 min-w-0 p-4 md:p-6" value={activeItem.value}>
         {children}
       </TabsContent>
     </Tabs>

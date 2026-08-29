@@ -1,5 +1,14 @@
-import { AiStudio } from "@/features/ai-studio/components/ai-studio-page"
+import {
+  redirectToPortalSettings,
+  type LegacySettingsSearchParams,
+} from "@/features/settings/lib/legacy-settings-redirect"
 
-export default function AISettingsRoutePage() {
-  return <AiStudio view="settings" />
+type LegacyAiStudioSettingsRoutePageProps = {
+  searchParams: LegacySettingsSearchParams
+}
+
+export default function AISettingsRoutePage({
+  searchParams,
+}: LegacyAiStudioSettingsRoutePageProps) {
+  return redirectToPortalSettings("/portal/settings/ai-studio", searchParams)
 }

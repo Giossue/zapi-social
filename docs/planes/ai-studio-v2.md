@@ -171,7 +171,7 @@ AI Studio
 ├── Búsqueda semántica        /portal/ai-studio/search
 ├── Historial                 /portal/ai-studio/history
 ├── Automatización AI         /portal/ai-studio/automation
-├── Ajustes AI                /portal/ai-studio/settings
+├── Ajustes AI                /portal/settings/ai-studio
 └── Créditos AI               /portal/ai-studio/credits
 ```
 
