@@ -5,70 +5,6 @@ const pageFields = {
   limit: z.coerce.number().int().min(1).max(100).default(25),
 }
 
-export const portalGroupStatusSchema = z.enum(["active", "inactive"])
-export const portalGroupAccountSchema = z.object({
-  id: z.uuid(),
-  displayName: z.string(),
-  providerKey: z.string(),
-  capabilityKey: z.string(),
-  avatarUrl: z.string().nullable(),
-})
-export const portalAccountGroupSchema = z.object({
-  id: z.uuid(),
-  name: z.string(),
-  slug: z.string(),
-  description: z.string(),
-  color: z.string().regex(/^#[0-9a-f]{6}$/),
-  status: portalGroupStatusSchema,
-  accountIds: z.array(z.uuid()),
-  updatedAt: z.string().datetime(),
-  createdAt: z.string().datetime(),
-})
-export const portalGroupsResponseSchema = z.object({
-  canManage: z.boolean(),
-  accounts: z.array(portalGroupAccountSchema),
-  groups: z.array(portalAccountGroupSchema),
-  metrics: z.object({
-    total: z.number().int().nonnegative(),
-    active: z.number().int().nonnegative(),
-    inactive: z.number().int().nonnegative(),
-    reachedAccounts: z.number().int().nonnegative(),
-  }),
-})
-export const portalGroupsQuerySchema = z
-  .object({
-    q: z.string().trim().min(1).max(255).optional(),
-    status: portalGroupStatusSchema.optional(),
-  })
-  .strict()
-const portalAccountGroupInputFields = {
-  name: z.string().trim().min(1).max(120),
-  description: z.string().trim().max(1000).default(""),
-  color: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .regex(/^#[0-9a-f]{6}$/),
-  status: portalGroupStatusSchema.default("active"),
-  accountIds: z
-    .array(z.uuid())
-    .max(500)
-    .refine((ids) => new Set(ids).size === ids.length),
-}
-export const createPortalAccountGroupSchema = z
-  .object(portalAccountGroupInputFields)
-  .strict()
-export const updatePortalAccountGroupSchema = z
-  .object({
-    name: portalAccountGroupInputFields.name.optional(),
-    description: z.string().trim().max(1000).optional(),
-    color: portalAccountGroupInputFields.color.optional(),
-    status: portalGroupStatusSchema.optional(),
-    accountIds: portalAccountGroupInputFields.accountIds.optional(),
-  })
-  .strict()
-  .refine((input) => Object.keys(input).length > 0)
-
 export const portalBulkPostBatchStatusSchema = z.enum([
   "queued",
   "processing",
@@ -240,7 +176,12 @@ export const automationIdentitySchema = z.object({
   workspaceId: z.uuid(),
   permissions: z.array(automationPermissionSchema),
 })
-export const automationAccountSchema = portalGroupAccountSchema.extend({
+export const automationAccountSchema = z.object({
+  id: z.uuid(),
+  displayName: z.string(),
+  providerKey: z.string(),
+  capabilityKey: z.string(),
+  avatarUrl: z.string().nullable(),
   status: z.string(),
 })
 export const automationCreatePostsSchema = z
@@ -284,17 +225,6 @@ export const automationPostSchema = z.object({
   scheduledAt: z.string().datetime().nullable(),
 })
 
-export type PortalGroupStatus = z.infer<typeof portalGroupStatusSchema>
-export type PortalGroupAccount = z.infer<typeof portalGroupAccountSchema>
-export type PortalAccountGroup = z.infer<typeof portalAccountGroupSchema>
-export type PortalGroupsResponse = z.infer<typeof portalGroupsResponseSchema>
-export type PortalGroupsQuery = z.infer<typeof portalGroupsQuerySchema>
-export type CreatePortalAccountGroupInput = z.infer<
-  typeof createPortalAccountGroupSchema
->
-export type UpdatePortalAccountGroupInput = z.infer<
-  typeof updatePortalAccountGroupSchema
->
 export type PortalBulkPostBatch = z.infer<typeof portalBulkPostBatchSchema>
 export type PortalBulkPostRow = z.infer<typeof portalBulkPostRowSchema>
 export type PortalBulkPostBatchesResponse = z.infer<

@@ -14,7 +14,6 @@ export const portalModuleKeySchema = z.enum([
   "files",
   "link-bio",
   "boards",
-  "groups",
 ])
 
 export const portalModuleKeys = portalModuleKeySchema.options
@@ -122,7 +121,6 @@ const portalPathModules: Record<string, PortalModuleKey> = {
   "online-media": "files",
   "link-bio": "link-bio",
   boards: "boards",
-  groups: "groups",
 }
 
 export function portalModuleForPath(path: string): PortalModuleKey | null {

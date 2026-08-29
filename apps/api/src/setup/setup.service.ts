@@ -20,7 +20,7 @@ const freeLimits = planLimitsSchema.parse({
   maxFileSizeMb: 25,
   aiVideoMaxSeconds: 0,
   creditsPerMonth: 25,
-  enabledModules: ['publishing', 'captions', 'files', 'boards', 'groups'],
+  enabledModules: ['publishing', 'captions', 'files', 'boards'],
 });
 const growthLimits = planLimitsSchema.parse({
   maxChannels: 10,

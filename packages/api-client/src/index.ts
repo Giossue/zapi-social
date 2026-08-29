@@ -132,27 +132,22 @@ import type {
   AcceptPortalTeamInvitationInput,
   PreviewPortalTeamInvitationInput,
   PublicPortalTeamInvitationPreview,
-  CreatePortalAccountGroupInput,
   CreatePortalAutomationApiKeyInput,
   CreatePortalAutomationWebhookInput,
   CreatePortalBulkPostBatchInput,
   CreatePortalTeamInvitationInput,
   CreatedPortalAutomationApiKey,
-  PortalAccountGroup,
   PortalAutomationResponse,
   PortalBulkPostBatch,
   PortalBulkPostBatchDetail,
   PortalBulkPostBatchesQuery,
   PortalBulkPostBatchesResponse,
   PortalBulkPostRowsQuery,
-  PortalGroupsQuery,
-  PortalGroupsResponse,
   PortalTeamInvitation,
   PortalTeamActivityQuery,
   PortalTeamActivityResponse,
   PortalTeamsResponse,
   ReplacePortalTeamAccountGrantsInput,
-  UpdatePortalAccountGroupInput,
   UpdatePortalAutomationWebhookInput,
   UpdatedPortalAutomationWebhook,
   UpdatePortalTeamMemberAccessInput,
@@ -812,34 +807,6 @@ export const watermarksApi = {
     }),
   remove: (id: string) =>
     request<void>(`/v1/portal/watermarks/${id}`, { method: "DELETE" }),
-}
-
-function portalGroupsQueryString(query: Partial<PortalGroupsQuery> = {}) {
-  const params = new URLSearchParams()
-  if (query.q) params.set("q", query.q)
-  if (query.status) params.set("status", query.status)
-  const serialized = params.toString()
-  return serialized ? `?${serialized}` : ""
-}
-
-export const groupsApi = {
-  list: (query?: Partial<PortalGroupsQuery>) =>
-    request<PortalGroupsResponse>(
-      `/v1/portal/groups${portalGroupsQueryString(query)}`,
-      { method: "GET" }
-    ),
-  create: (input: CreatePortalAccountGroupInput) =>
-    request<PortalAccountGroup>("/v1/portal/groups", {
-      method: "POST",
-      body: JSON.stringify(input),
-    }),
-  update: (id: string, input: UpdatePortalAccountGroupInput) =>
-    request<PortalAccountGroup>(`/v1/portal/groups/${id}`, {
-      method: "PATCH",
-      body: JSON.stringify(input),
-    }),
-  remove: (id: string) =>
-    request<void>(`/v1/portal/groups/${id}`, { method: "DELETE" }),
 }
 
 function portalBulkPostsQueryString(

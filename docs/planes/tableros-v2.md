@@ -70,7 +70,7 @@ Las columnas del tablero. Configurables por espacio, no fijas.
 | `workspace_id`  | `uuid`         | `on delete cascade`                                          |
 | `name`          | `varchar(60)`  | Texto libre del usuario; no se traduce                       |
 | `position`      | `integer`      | Orden en el tablero                                          |
-| `color`         | `varchar(7)`   | `#rrggbb`, mismo `check` que `account_groups`                |
+| `color`         | `varchar(7)`   | `#rrggbb`, validado por un `check` de formato                 |
 | `is_terminal`   | `boolean`      | Marca la columna de «hecho»: al entrar se sella `completed_at` |
 | `wip_limit`     | `integer` nulo | Aviso visual al pasarse; no bloquea                          |
 

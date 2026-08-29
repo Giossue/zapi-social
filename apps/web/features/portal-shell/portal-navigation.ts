@@ -5,7 +5,6 @@ import {
   HandCoins,
   Image,
   KanbanSquare,
-  Layers3,
   LayoutDashboard,
   LifeBuoy,
   PenLine,
@@ -85,7 +84,6 @@ export const portalNavigationGroups: readonly PortalNavigationGroup[] = [
           { labelKey: "aiCredits", href: "/portal/ai-studio/credits" },
         ],
       },
-      { labelKey: "groups", href: "/portal/groups", icon: Layers3 },
       {
         labelKey: "boards",
         icon: KanbanSquare,

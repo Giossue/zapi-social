@@ -32,7 +32,6 @@ import { SupportModule } from './support/support.module';
 import { WatermarksModule } from './watermarks/watermarks.module';
 import { BoardsModule } from './boards/boards.module';
 import { TeamsModule } from './teams/teams.module';
-import { GroupsModule } from './groups/groups.module';
 import { BulkPostsModule } from './bulk-posts/bulk-posts.module';
 import { AutomationModule } from './automation/automation.module';
 import { AiModule } from './ai/ai.module';
@@ -156,7 +155,6 @@ const pinoRedactPaths = [
     WatermarksModule,
     BoardsModule,
     TeamsModule,
-    GroupsModule,
     BulkPostsModule,
     AutomationModule,
     AiModule,

@@ -7,7 +7,6 @@ import {
   createDatabase,
   creditLedgerEntries,
   plans,
-  socialAccounts,
   users,
   workspaceCreditAccounts,
   workspacePlanAssignments,
@@ -25,7 +24,6 @@ import { AiService } from './ai/ai.service';
 import { AutomationEventsService } from './automation/automation-events.service';
 import { CommerceService } from './commerce/commerce.service';
 import { DatabaseService } from './database/database.service';
-import { GroupsService } from './groups/groups.service';
 import { AppException } from './platform/errors/app-exception';
 import { TeamAccountAccessService } from './teams/team-account-access.service';
 
@@ -105,46 +103,9 @@ async function seedWorkspace(database: Database, suffix: string) {
   };
 }
 
-async function seedSocialAccount(database: Database, workspaceId: string) {
-  const id = randomUUID();
-  await database.insert(socialAccounts).values({
-    capabilityKey: 'facebook_page',
-    displayName: 'Portal backend channel',
-    id,
-    providerKey: 'meta',
-    workspaceId,
-  });
-  return id;
-}
-
 describeDatabase('Portal backend v2 database contracts', () => {
   afterAll(async () => {
     await connection?.client.end();
-  });
-
-  it('keeps account groups isolated by workspace', async () => {
-    await inRollbackTransaction(async (database) => {
-      const owner = await seedWorkspace(database, 'groups-owner');
-      const outsider = await seedWorkspace(database, 'groups-outsider');
-      const accountId = await seedSocialAccount(database, owner.workspaceId);
-      const service = new GroupsService({ db: database } as DatabaseService);
-
-      const group = await service.create(owner.session, {
-        accountIds: [accountId],
-        color: '#2563eb',
-        description: 'Private account group',
-        name: 'Private group',
-        status: 'active',
-      });
-      const outsiderGroups = await service.list(outsider.session, {});
-
-      expect(outsiderGroups.groups).toHaveLength(0);
-      await expect(
-        service.remove(outsider.session, group.id),
-      ).rejects.toMatchObject({
-        code: 'GROUP_NOT_FOUND',
-      } satisfies Partial<AppException>);
-    });
   });
 
   it('reserves inventory once and consumes it on order completion', async () => {

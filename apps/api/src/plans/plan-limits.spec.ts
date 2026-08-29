@@ -59,9 +59,6 @@ describe('plan limits contract', () => {
     expect(
       workspacePermissionForPortalRequest('/v1/portal/files', 'POST'),
     ).toBe('files.manage');
-    expect(workspacePermissionForPortalHref('/portal/groups')).toBe(
-      'groups.view',
-    );
     expect(workspacePermissionForPortalHref('/portal/teams')).toBeNull();
   });
 

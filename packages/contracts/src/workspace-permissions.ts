@@ -31,8 +31,6 @@ export const workspacePermissionSchema = z.enum([
   "boards.manage_tasks",
   "boards.manage_columns",
   "boards.delete_tasks",
-  "groups.view",
-  "groups.manage",
 ])
 
 export const workspacePermissionModuleSchema = z.enum([
@@ -48,7 +46,6 @@ export const workspacePermissionModuleSchema = z.enum([
   "files",
   "link-bio",
   "boards",
-  "groups",
 ])
 
 export const workspacePermissionCatalog = [
@@ -105,10 +102,6 @@ export const workspacePermissionCatalog = [
       "boards.delete_tasks",
     ],
   },
-  {
-    module: "groups",
-    permissions: ["groups.view", "groups.manage"],
-  },
 ] as const satisfies readonly {
   module: z.infer<typeof workspacePermissionModuleSchema>
   permissions: readonly z.infer<typeof workspacePermissionSchema>[]
@@ -139,7 +132,6 @@ export const defaultWorkspaceMemberPermissions: readonly WorkspacePermission[] =
     "files.view",
     "files.manage",
     "link-bio.view",
-    "groups.view",
   ]
 
 export function sanitizeWorkspacePermissions(

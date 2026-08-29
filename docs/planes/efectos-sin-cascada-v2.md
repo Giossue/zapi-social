@@ -28,7 +28,7 @@ useEffect(() => {
 }, [load])
 ```
 
-El repositorio **ya tiene resuelto este caso** en `groups-page.tsx`,
+El repositorio **ya tiene resuelto este caso** en
 `admin-turnstile-settings-page.tsx` y `admin-support-page.tsx`:
 
 ```tsx

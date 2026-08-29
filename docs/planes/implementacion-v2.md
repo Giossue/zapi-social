@@ -71,7 +71,7 @@ ZapiV2/
 | Dominio        | Agrupa Laravel actual                                                        |
 | -------------- | ---------------------------------------------------------------------------- |
 | `identity`     | Fortify, usuarios, perfil, login social                                      |
-| `workspaces`   | Teams, Groups, miembros, permisos de workspace                               |
+| `workspaces`   | Teams, miembros, permisos de workspace                                       |
 | `channels`     | AppChannels y proveedores Facebook, Instagram, X, LinkedIn, TikTok, WhatsApp |
 | `publishing`   | publicaciones, captions, bulk posts, RSS, watermarks, URL shorteners         |
 | `ai`           | AI Studio, planner, content, image, video, review, semantic search           |
@@ -200,7 +200,7 @@ Credenciales locales viven en `.env` ignorado. Solo `infra/podman/.env.example` 
 
 - [x] Catálogo, inventario, órdenes, devoluciones y afiliados durables. Evidencia: [commerce-v2.md](./commerce-v2.md).
 - [x] Support Portal, API keys, API externa y webhooks firmados. Evidencia: [support-v2.md](./support-v2.md) y [automation-v2.md](./automation-v2.md).
-- [x] Groups, Bulk Posts y búsqueda/importación de media online. Evidencia: [groups-v2.md](./groups-v2.md), [bulk-posts-v2.md](./bulk-posts-v2.md) y [online-media-v2.md](./online-media-v2.md).
+- [x] Bulk Posts y búsqueda/importación de media online. Evidencia: [bulk-posts-v2.md](./bulk-posts-v2.md) y [online-media-v2.md](./online-media-v2.md).
 - [ ] Gateway de pagos, checkout, suscripciones, facturas y webhooks de billing; no se implementan sin decisiones explícitas.
 - [ ] Notificaciones y operaciones Admin sobre los mismos módulos de dominio.
 
@@ -225,12 +225,12 @@ Cada vertical se cierra solo con:
 
 ## Estado actual
 
-La foundation y varias verticales Portal ya tienen contrato, API, persistencia y, cuando corresponde, Worker. La migración consolidada `0020_mushy_peter_parker` incorpora Groups, Bulk Posts, Automation, AI, intentos Publishing, Commerce, Affiliate y metadata de Files; `0021_pale_thor` añade FKs cross-workspace, cuotas AI seguras e inventario consistente.
+La foundation y varias verticales Portal ya tienen contrato, API, persistencia y, cuando corresponde, Worker. La migración consolidada `0020_mushy_peter_parker` incorpora Bulk Posts, Automation, AI, intentos Publishing, Commerce, Affiliate y metadata de Files; `0021_pale_thor` añade FKs cross-workspace, cuotas AI seguras e inventario consistente.
 
 | Slice                                                | Backend                   | Web                                                         |
 | ---------------------------------------------------- | ------------------------- | ----------------------------------------------------------- |
 | Publishing, RSS, Support y Watermarks                | REST/Worker operativo     | conectado a REST en sus superficies implementadas           |
-| Groups, Bulk Posts y Automation                      | REST/Worker operativo     | conectado a REST                                            |
+| Bulk Posts y Automation                              | REST/Worker operativo     | conectado a REST                                            |
 | AI Studio                                            | REST/Worker operativo     | conectado a REST en todas sus vistas                        |
 | Commerce y Affiliate                                 | REST operativo            | Commerce no se expone en Portal; Affiliate conectado a REST |
 | Online Media                                         | búsqueda/importación REST | conectado a REST                                            |

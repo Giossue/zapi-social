@@ -612,7 +612,7 @@ rejilla nueva sigue a cargo del usuario.
 
 - [ ] Añadir BullMQ para refresh, sincronización y operaciones largas después de cada adapter aprobado.
 - [ ] Usar locks e idempotencia por cuenta/dispositivo; registrar operaciones seguras en `channel_sync_runs`.
-- [ ] Entregar a Publishing, AI, RSS, Groups y Automation solo canales activos y accesibles por membership.
+- [ ] Entregar a Publishing, AI, RSS y Automation solo canales activos y accesibles por membership.
 - [ ] Tests de autorización PlatformAdmin/Portal, scope por `managed_account_ids` y límites de plan.
 - [ ] Tests de schemas, redacción de secretos, state OAuth, PKCE, pickers y comprobantes de prueba.
 - [ ] Tests QR/polling/cancel/reconnect/delete con conector mock.
