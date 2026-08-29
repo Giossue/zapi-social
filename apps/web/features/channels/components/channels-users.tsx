@@ -93,7 +93,7 @@ export function ChannelsUsers({
         />
         <DataTableToolbar
           className="px-0"
-          filtersClassName="rounded-lg bg-muted/50 px-3 py-2"
+          filtersClassName="rounded-lg bg-muted/50 py-2"
         >
           <DataTableFilter
             ariaLabel={t("filterProvider")}
