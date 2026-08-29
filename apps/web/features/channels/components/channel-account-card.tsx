@@ -14,9 +14,7 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
-  CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
@@ -28,6 +26,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip"
 
 import type { PortalChannelAccount } from "../types/channels"
 
@@ -93,97 +96,103 @@ export function ChannelAccountCard({
 
   return (
     <Card className="h-full" variant="subtle">
-      <CardHeader>
-        <div className="flex items-start justify-between gap-2">
-          <Avatar size="lg">
-            {account.avatarUrl ? (
-              <AvatarImage
-                alt={t("avatarAlt", { name: account.displayName })}
-                src={account.avatarUrl}
-              />
-            ) : null}
-            <AvatarFallback>{initials(account.displayName)}</AvatarFallback>
-          </Avatar>
-          <Badge variant={disconnected ? "warning" : "success"}>
-            {disconnected ? t("status.disconnected") : t("status.connected")}
-          </Badge>
+      <CardHeader className="flex flex-row items-center gap-3">
+        <Avatar size="lg">
+          {account.avatarUrl ? (
+            <AvatarImage
+              alt={t("avatarAlt", { name: account.displayName })}
+              src={account.avatarUrl}
+            />
+          ) : null}
+          <AvatarFallback>{initials(account.displayName)}</AvatarFallback>
+        </Avatar>
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <CardTitle className="truncate">{account.displayName}</CardTitle>
+          <CardDescription className="truncate">
+            {identity || "—"}
+          </CardDescription>
         </div>
-        <CardTitle className="truncate">{account.displayName}</CardTitle>
-        <CardDescription className="truncate">
-          {identity || "—"}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="grid flex-1 gap-3">
-        <div className="flex min-w-0 flex-col gap-1">
-          <span className="text-xs text-muted-foreground">
-            {t("channelType")}
-          </span>
-          <span className="line-clamp-2 font-medium">
-            {labels.capability(account.capabilityKey)}
-          </span>
-        </div>
-        <div className="flex min-w-0 flex-col gap-1">
-          <span className="text-xs text-muted-foreground">{t("provider")}</span>
-          <span className="truncate font-medium">{provider}</span>
-        </div>
-      </CardContent>
-      <CardFooter className="justify-between gap-2">
-        <div className="min-w-0">
-          <p className="text-xs text-muted-foreground">{t("connectedAt")}</p>
-          <p className="truncate text-sm">
-            {format.dateTime(connectionInstant(account.connectedAt), {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-            })}
-          </p>
-        </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              aria-label={t("openActions", { name: account.displayName })}
-              size="icon-sm"
-              variant="brand-secondary"
+        <div className="flex shrink-0 items-center gap-1">
+          <Tooltip>
+            <Badge asChild variant={disconnected ? "warning" : "success"}>
+              <TooltipTrigger>
+                {disconnected
+                  ? t("status.disconnected")
+                  : t("status.connected")}
+              </TooltipTrigger>
+            </Badge>
+            <TooltipContent
+              align="end"
+              className="flex-col items-start gap-2"
+              sideOffset={6}
             >
-              <MoreVertical />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuGroup>
-              <DropdownMenuItem onSelect={() => onEdit(account)}>
-                <Pencil />
-                {t("edit")}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                disabled={pending}
-                onSelect={() => onProfileSync(account)}
+              <div className="grid gap-0.5">
+                <span>{t("channelType")}</span>
+                <span>{labels.capability(account.capabilityKey)}</span>
+              </div>
+              <div className="grid gap-0.5">
+                <span>{t("provider")}</span>
+                <span>{provider}</span>
+              </div>
+              <div className="grid gap-0.5">
+                <span>{t("connectedAt")}</span>
+                <span>
+                  {format.dateTime(connectionInstant(account.connectedAt), {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </span>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                aria-label={t("openActions", { name: account.displayName })}
+                size="icon-sm"
+                variant="brand-secondary"
               >
-                <RefreshCw />
-                {t("refresh")}
-              </DropdownMenuItem>
-              {disconnected ? (
+                <MoreVertical />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuGroup>
+                <DropdownMenuItem onSelect={() => onEdit(account)}>
+                  <Pencil />
+                  {t("edit")}
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   disabled={pending}
-                  onSelect={() => onReconnect(account)}
+                  onSelect={() => onProfileSync(account)}
                 >
                   <RefreshCw />
-                  {t("reconnect")}
+                  {t("refresh")}
                 </DropdownMenuItem>
-              ) : null}
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem
-                onSelect={() => onDelete(account)}
-                variant="destructive"
-              >
-                <Trash2 />
-                {t("delete")}
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </CardFooter>
+                {disconnected ? (
+                  <DropdownMenuItem
+                    disabled={pending}
+                    onSelect={() => onReconnect(account)}
+                  >
+                    <RefreshCw />
+                    {t("reconnect")}
+                  </DropdownMenuItem>
+                ) : null}
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuItem
+                  onSelect={() => onDelete(account)}
+                  variant="destructive"
+                >
+                  <Trash2 />
+                  {t("delete")}
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </CardHeader>
     </Card>
   )
 }
