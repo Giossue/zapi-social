@@ -4352,9 +4352,6 @@ declare const messages: {
       "rssSchedules": "Programaciones RSS",
       "settings": "Ajustes",
       "support": "Soporte",
-      "teamActivity": "Actividad",
-      "teamInvitations": "Invitaciones",
-      "teamMembers": "Miembros",
       "teams": "Equipos",
       "watermarks": "Marca de agua",
       "workspace": "Espacio de trabajo"
@@ -4806,6 +4803,7 @@ declare const messages: {
       "saved": "Los cambios se guardaron.",
       "scheduled": "{count, plural, one {Programamos # publicación.} other {Programamos # publicaciones.}}",
       "section": {
+        "bulkPosts": "Publicaciones masivas",
         "calendar": "Calendario",
         "drafts": "Borradores",
         "queue": "Cola"
@@ -5546,6 +5544,7 @@ declare const messages: {
       "invitations": "Invitaciones",
       "members": "Miembros"
     },
+    "tabsLabel": "Secciones de equipos",
     "transferOwnership": "Transferir propiedad",
     "viewDescription": "Consulta tu rol, las cuentas disponibles y quién forma parte del workspace.",
     "viewDetails": "Ver detalles",

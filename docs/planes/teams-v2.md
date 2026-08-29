@@ -154,6 +154,8 @@ workspace_membership_audit_events
 ### Composición común
 
 - Ruta única: `/portal/teams`.
+- El sidebar enlaza directamente a Equipos; Miembros, Invitaciones y Actividad
+  se muestran como tabs dentro de esa única ruta.
 - El shell mantiene el título de ruta; la página empieza con acciones y contenido operativo, sin hero card duplicada.
 - Acción primaria: **Invitar miembro**, visible solo para owner/admin y deshabilitada con explicación cuando no quedan cupos.
 - Indicador compacto de cupos junto a la acción principal.

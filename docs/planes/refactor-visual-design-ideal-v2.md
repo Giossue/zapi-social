@@ -99,7 +99,7 @@ Los componentes compartidos de Preferences/layout controls de la referencia se e
 
 ## Pendientes reales
 
-1. Ejecutar browser smoke sobre `/portal/dashboard`, `/admin/dashboard`, `/portal/files`, `/portal/files/search-online`, `/portal/publishing/calendar`, `/portal/settings/channels`, `/portal/teams`, `/portal/captions`, `/portal/ai-studio/ai-content`, auth y 404.
+1. Ejecutar browser smoke sobre `/portal/dashboard`, `/admin/dashboard`, `/portal/files`, `/portal/files/search-online`, `/portal/publishing`, `/portal/settings/channels`, `/portal/teams`, `/portal/captions`, `/portal/ai-studio/ai-content`, auth y 404.
 2. Conectar los módulos Portal todavía declarados como mock a sus contratos REST aprobados en los planes de cada vertical; Commerce no vuelve a exponerse hasta definir su alcance de producto.
 3. Resolver warnings de hooks migrados y configuración lint de `database`/`contracts` en una tarea de calidad separada.
 4. Retirar compatibilidad UI antigua cuando todos sus consumidores usen contratos finales nuevos.
@@ -201,7 +201,7 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - V2 adapta los eventos desde `PublishingPost`, los calendarios de demo a filtros Facebook/Instagram/WhatsApp y `Add event` al compositor mock. La navegación, selector, jerarquía DOM, clases, responsive, popover y vistas mes/semana/día se conservan de la fuente.
 - La vista diaria es una divergencia visual explícita frente a Laravel, que solo expone mes/semana; no introduce datos ni nuevas transiciones de estado y se reevaluará al definir REST.
 - `@fullcalendar/react` y `date-fns` se declaran en `apps/web` por importación directa. El CSS de skeleton se importa junto al renderer copiado, sin tokens, colores o CSS global V2 nuevos.
-- Validación: `bun --cwd apps/web typecheck`, lint focal de los tres componentes y `git diff --check` correctos el 2026-08-03. Falta smoke manual en navegador para `/portal/publishing/calendar` en escritorio, móvil y modo claro/oscuro.
+- Validación: `bun --cwd apps/web typecheck`, lint focal de los tres componentes y `git diff --check` correctos el 2026-08-03. Falta smoke manual en navegador para `/portal/publishing` en escritorio, móvil y modo claro/oscuro.
 
 ## Publishing Portal — encuadre e idioma del calendario — 15 de agosto de 2026
 
@@ -308,10 +308,10 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 ## Cierre de placeholders del Portal — 10 de agosto de 2026
 
 - `template-shadcn-superdashboard/src/app/(main)/dashboard/portal-modules` es la fuente canónica navegable para Publicaciones masivas, AI Publishing, API de automatización y Afiliados.
-- ZapiV2 copia esa composición en `/portal/bulk-posts`, `/portal/ai-publishing`, `/portal/settings/automation` y `/portal/affiliate`.
+- ZapiV2 copia esa composición en la pestaña `/portal/publishing?tab=bulk-posts`, `/portal/ai-publishing`, `/portal/settings/automation` y `/portal/affiliate`.
 - Las cuatro superficies usan el patrón final de tablas, búsqueda y filtros adaptables, paginación compacta, tabs sin contadores, acciones con icono izquierdo y sheets desplazables con validación por toast.
 - Revisión del 12 de agosto de 2026: la cabecera de página y la acción primaria quedaron fuera de la card operativa; métricas, enlace de afiliado y tabla usan la jerarquía semántica de superficies. Crear y editar actualizan las filas locales, ver abre detalle real y las acciones destructivas exigen confirmación antes de retirar la fila. Los filtros y la paginación siguen trabajando únicamente sobre la pestaña activa.
-- Esta iteración cierra el mockup visual y sus interacciones locales. Las conexiones a `bulkPostsApi`, schedules de `aiApi`, `automationApi` y `affiliateApi` permanecen en los planes de cada vertical.
+- Esta iteración cierra el mockup visual y sus interacciones locales. Publicaciones masivas ya consume `bulkPostsApi`; las conexiones a schedules de `aiApi`, `automationApi` y `affiliateApi` permanecen en los planes de cada vertical.
 
 ## Consistencia transversal Admin y Portal — 12 de agosto de 2026
 

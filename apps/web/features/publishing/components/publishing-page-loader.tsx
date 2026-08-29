@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { publishingApi } from "@workspace/api-client"
 import type { PortalPublishingResponse } from "@workspace/contracts"
 import { Card, CardContent } from "@workspace/ui/components/card"
@@ -9,16 +10,23 @@ import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import { TriangleAlert } from "lucide-react"
 import { useTranslations } from "next-intl"
-import { PublishingCalendarPage } from "@/features/publishing/components/publishing-calendar-page"
+import {
+  PublishingCalendarPage,
+  type PublishingSection,
+} from "@/features/publishing/components/publishing-calendar-page"
 
 let lastResponse: PortalPublishingResponse | null = null
 
-export function PublishingPageLoader({
-  initialSection,
-}: {
-  initialSection?: "calendar" | "queue" | "drafts"
-}) {
+const publishingSections = new Set<PublishingSection>([
+  "calendar",
+  "queue",
+  "drafts",
+  "bulk-posts",
+])
+
+export function PublishingPageLoader() {
   const t = useTranslations("publishing.loader")
+  const searchParams = useSearchParams()
   const [calendar, setCalendar] = useState<PortalPublishingResponse | null>(
     lastResponse
   )
@@ -72,6 +80,12 @@ export function PublishingPageLoader({
     )
   }
   if (!calendar) return <PageLoading />
+  const tab = searchParams.get("tab")
+  const initialSection =
+    tab && publishingSections.has(tab as PublishingSection)
+      ? (tab as PublishingSection)
+      : "calendar"
+
   return (
     <PublishingCalendarPage
       calendar={calendar}

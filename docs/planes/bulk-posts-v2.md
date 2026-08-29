@@ -2,7 +2,7 @@
 
 ## Estado
 
-El backend de lotes CSV está implementado con API, persistencia, Worker y creación durable de borradores/programaciones en Publishing. `/portal/bulk-posts` ya tiene un mockup source-first navegable con resumen, listado, filtros, estados y sheet de creación; su siguiente fase es sustituir las fixtures por `bulkPostsApi` sin cambiar la composición aprobada.
+El backend de lotes CSV está implementado con API, persistencia, Worker y creación durable de borradores/programaciones en Publishing. La pestaña Publicaciones masivas de `/portal/publishing?tab=bulk-posts` consume `bulkPostsApi` para el resumen, listado, filtros, estados y sheet de creación; queda pendiente publicar una plantilla CSV descargable.
 
 ## REST
 
@@ -40,5 +40,6 @@ Crear/cancelar requiere rol `owner` o `admin`. El archivo debe ser CSV/TXT `read
 - [x] Contratos, API, cliente, schema y Worker implementados en `0020_mushy_peter_parker`.
 - [x] Migración aplicada localmente y typecheck de Database, Contracts, API Client, API y Worker.
 - [x] Sustituir el placeholder por un mockup source-first navegable, copiado desde `template-shadcn-superdashboard/src/app/(main)/dashboard/portal-modules`.
-- [ ] Conectar el mockup a `bulkPostsApi` y publicar una plantilla CSV descargable.
+- [x] Conectar el mockup a `bulkPostsApi`.
+- [ ] Publicar una plantilla CSV descargable.
 - [ ] Añadir prueba de integración de reintento fila/cuenta y un smoke con archivo real en el volumen compartido.

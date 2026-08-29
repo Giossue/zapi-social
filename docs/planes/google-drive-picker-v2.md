@@ -49,7 +49,7 @@ Zapi ya creado o programado.
 - El scope es `https://www.googleapis.com/auth/drive.file`. No se solicita
   `drive`, `drive.readonly` ni acceso general al inventario del usuario.
 - Desde `/portal/files`, el destino es la carpeta abierta.
-- Desde `/portal/publishing/calendar`, el destino es la raíz de Files porque el
+- Desde `/portal/publishing`, el destino es la raíz de Files porque el
   compositor no tiene una carpeta de navegación activa.
 - Files y Publishing abren Picker en selección simple. La multiselección queda
   como mejora posterior a la estabilización del flujo productivo.

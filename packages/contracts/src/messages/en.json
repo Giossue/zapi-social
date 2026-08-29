@@ -4349,9 +4349,6 @@
       "rssSchedules": "RSS schedules",
       "settings": "Settings",
       "support": "Support",
-      "teamActivity": "Activity",
-      "teamInvitations": "Invitations",
-      "teamMembers": "Members",
       "teams": "Teams",
       "watermarks": "Watermark",
       "workspace": "Workspace"
@@ -4803,6 +4800,7 @@
       "saved": "Your changes were saved.",
       "scheduled": "{count, plural, one {We scheduled # post.} other {We scheduled # posts.}}",
       "section": {
+        "bulkPosts": "Bulk posts",
         "calendar": "Calendar",
         "drafts": "Drafts",
         "queue": "Queue"
@@ -5543,6 +5541,7 @@
       "invitations": "Invitations",
       "members": "Members"
     },
+    "tabsLabel": "Team sections",
     "transferOwnership": "Transfer ownership",
     "viewDescription": "Check your role, the available accounts and who's part of the workspace.",
     "viewDetails": "View details",

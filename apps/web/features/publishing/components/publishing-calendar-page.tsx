@@ -32,7 +32,12 @@ import {
   FieldLabel,
   FieldSet,
 } from "@workspace/ui/components/field"
-import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -58,16 +63,21 @@ import type {
   PublishingMediaAsset,
   PublishingPost,
 } from "@/features/publishing/types/publishing-calendar"
+import { BulkPostsPage } from "@/features/bulk-posts/components/bulk-posts-page"
 
-type PublishingSection = "calendar" | "queue" | "drafts"
+export type PublishingSection = "calendar" | "queue" | "drafts" | "bulk-posts"
 type ComposerMode = "draft" | "now" | "schedule"
 
 const defaultScheduleDate = "2026-08-03"
 
 const sectionLinks: Array<{ href: string; value: PublishingSection }> = [
-  { href: "/portal/publishing/calendar", value: "calendar" },
-  { href: "/portal/publishing/queue", value: "queue" },
-  { href: "/portal/publishing/drafts", value: "drafts" },
+  { href: "/portal/publishing", value: "calendar" },
+  { href: "/portal/publishing?tab=queue", value: "queue" },
+  { href: "/portal/publishing?tab=drafts", value: "drafts" },
+  {
+    href: "/portal/publishing?tab=bulk-posts",
+    value: "bulk-posts",
+  },
 ]
 
 function RequiredMark() {
@@ -429,7 +439,7 @@ export function PublishingCalendarPage({
   const router = useRouter()
   const [posts, setPosts] = useState(calendar.posts)
   const [media, setMedia] = useState(calendar.media ?? [])
-  const [section, setSection] = useState<PublishingSection>(initialSection)
+  const section = initialSection
   const [composerOpen, setComposerOpen] = useState(false)
   const [composerScheduledDate, setComposerScheduledDate] =
     useState(defaultScheduleDate)
@@ -443,6 +453,12 @@ export function PublishingCalendarPage({
     () => posts.filter((post) => post.status === "draft"),
     [posts]
   )
+  const sectionLabels: Record<PublishingSection, string> = {
+    "bulk-posts": t("section.bulkPosts"),
+    calendar: t("section.calendar"),
+    drafts: t("section.drafts"),
+    queue: t("section.queue"),
+  }
 
   useEffect(() => {
     for (const link of sectionLinks) router.prefetch(link.href)
@@ -565,113 +581,122 @@ export function PublishingCalendarPage({
         title={t("pageTitle")}
       />
 
-      <nav aria-label={t("sectionsLabel")}>
-        <Tabs
-          onValueChange={(value) => {
-            const nextSection = value as PublishingSection
-            const nextLink = sectionLinks.find(
-              (item) => item.value === nextSection
-            )
-            if (!nextLink) return
+      <Tabs
+        className={cn("min-h-0", section === "calendar" && "flex-1")}
+        onValueChange={(value) => {
+          const nextSection = value as PublishingSection
+          const nextLink = sectionLinks.find(
+            (item) => item.value === nextSection
+          )
+          if (!nextLink) return
 
-            setSection(nextSection)
-            router.push(nextLink.href)
-          }}
-          value={section}
-        >
-          <TabsList>
+          router.push(nextLink.href)
+        }}
+        value={section}
+      >
+        <nav aria-label={t("sectionsLabel")}>
+          <TabsList className="h-auto w-full flex-wrap justify-start sm:w-fit">
             {sectionLinks.map((item) => (
               <TabsTrigger key={item.value} value={item.value}>
-                {t(`section.${item.value}`)}
+                {sectionLabels[item.value]}
               </TabsTrigger>
             ))}
           </TabsList>
-        </Tabs>
-      </nav>
+        </nav>
 
-      {section === "calendar" ? (
-        <section aria-label={t("calendarLabel")} className="min-h-0 flex-1">
-          <PublishingCalendar
-            initialDate={calendar.focusDate}
-            onCreateAtDate={(date) => openComposer(null, date)}
-            onEditPost={openComposer}
-            posts={posts}
-          />
-        </section>
-      ) : null}
+        <TabsContent value="calendar" className="min-h-0 flex-1">
+          <section aria-label={t("calendarLabel")} className="min-h-0 flex-1">
+            <PublishingCalendar
+              initialDate={calendar.focusDate}
+              onCreateAtDate={(date) => openComposer(null, date)}
+              onEditPost={openComposer}
+              posts={posts}
+            />
+          </section>
+        </TabsContent>
 
-      {section === "queue" ? (
-        <section aria-label={t("queueLabel")} className="flex flex-col gap-4">
-          <PublishingMetrics
-            items={[
-              {
-                description: t("metrics.scheduledDescription"),
-                icon: CalendarClock,
-                label: t("metrics.scheduled"),
-                value: queuePosts.filter((post) => post.status === "scheduled")
-                  .length,
-              },
-              {
-                description: t("metrics.processingDescription"),
-                icon: LoaderCircle,
-                label: t("metrics.processing"),
-                value: queuePosts.filter((post) => post.status === "processing")
-                  .length,
-              },
-              {
-                description: t("metrics.failedDescription"),
-                icon: XCircle,
-                label: t("metrics.failed"),
-                value: queuePosts.filter((post) => post.status === "failed")
-                  .length,
-              },
-            ]}
-          />
-          <PublishingPostsTable
-            mode="queue"
-            onCreate={() => openComposer()}
-            onRetry={retryPost}
-            posts={queuePosts}
-          />
-        </section>
-      ) : null}
+        <TabsContent value="queue" className="flex flex-col gap-4">
+          <section aria-label={t("queueLabel")} className="flex flex-col gap-4">
+            <PublishingMetrics
+              items={[
+                {
+                  description: t("metrics.scheduledDescription"),
+                  icon: CalendarClock,
+                  label: t("metrics.scheduled"),
+                  value: queuePosts.filter(
+                    (post) => post.status === "scheduled"
+                  ).length,
+                },
+                {
+                  description: t("metrics.processingDescription"),
+                  icon: LoaderCircle,
+                  label: t("metrics.processing"),
+                  value: queuePosts.filter(
+                    (post) => post.status === "processing"
+                  ).length,
+                },
+                {
+                  description: t("metrics.failedDescription"),
+                  icon: XCircle,
+                  label: t("metrics.failed"),
+                  value: queuePosts.filter((post) => post.status === "failed")
+                    .length,
+                },
+              ]}
+            />
+            <PublishingPostsTable
+              mode="queue"
+              onCreate={() => openComposer()}
+              onRetry={retryPost}
+              posts={queuePosts}
+            />
+          </section>
+        </TabsContent>
 
-      {section === "drafts" ? (
-        <section aria-label={t("draftsLabel")} className="flex flex-col gap-4">
-          <PublishingMetrics
-            items={[
-              {
-                description: t("metrics.draftsDescription"),
-                icon: FileText,
-                label: t("metrics.drafts"),
-                value: drafts.length,
-              },
-              {
-                description: t("metrics.withMediaDescription"),
-                icon: ImagePlus,
-                label: t("metrics.withMedia"),
-                value: drafts.filter((post) => post.hasMedia).length,
-              },
-              {
-                description: t("metrics.readyDescription"),
-                icon: Send,
-                label: t("metrics.ready"),
-                value: drafts.filter((post) => post.content.trim().length > 0)
-                  .length,
-              },
-            ]}
-          />
-          <PublishingPostsTable
-            mode="drafts"
-            onContinue={openComposer}
-            onCreate={() => openComposer()}
-            onDelete={deletePost}
-            posts={drafts}
-          />
-        </section>
-      ) : null}
+        <TabsContent value="drafts" className="flex flex-col gap-4">
+          <section
+            aria-label={t("draftsLabel")}
+            className="flex flex-col gap-4"
+          >
+            <PublishingMetrics
+              items={[
+                {
+                  description: t("metrics.draftsDescription"),
+                  icon: FileText,
+                  label: t("metrics.drafts"),
+                  value: drafts.length,
+                },
+                {
+                  description: t("metrics.withMediaDescription"),
+                  icon: ImagePlus,
+                  label: t("metrics.withMedia"),
+                  value: drafts.filter((post) => post.hasMedia).length,
+                },
+                {
+                  description: t("metrics.readyDescription"),
+                  icon: Send,
+                  label: t("metrics.ready"),
+                  value: drafts.filter((post) => post.content.trim().length > 0)
+                    .length,
+                },
+              ]}
+            />
+            <PublishingPostsTable
+              mode="drafts"
+              onContinue={openComposer}
+              onCreate={() => openComposer()}
+              onDelete={deletePost}
+              posts={drafts}
+            />
+          </section>
+        </TabsContent>
 
-      {section !== "calendar" ? (
+        <TabsContent value="bulk-posts">
+          <BulkPostsPage embedded />
+        </TabsContent>
+      </Tabs>
+
+      {section === "queue" || section === "drafts" ? (
         <FloatingActionButton
           icon={<CalendarDays aria-hidden="true" className="size-6" />}
           label={t("createTitle")}

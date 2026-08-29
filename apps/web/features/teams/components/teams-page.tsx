@@ -66,7 +66,12 @@ import {
   TableEmptyRow,
 } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@/components/table-pagination"
-import { Tabs, TabsContent } from "@workspace/ui/components/tabs"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/tabs"
 import { toast } from "@workspace/ui/components/toast"
 import { useFormatter, useTranslations } from "next-intl"
 
@@ -375,7 +380,7 @@ function errorCode(error: unknown) {
   return error instanceof ApiError ? error.code : undefined
 }
 
-export function TeamsPage({ view = "members" }: { view?: ManagerView }) {
+export function TeamsPage() {
   const t = useTranslations("teams")
   const apiErrorMessage = useApiErrorMessage()
   const [teams, setTeams] = useState<PortalTeamsResponse | null>(null)
@@ -384,7 +389,7 @@ export function TeamsPage({ view = "members" }: { view?: ManagerView }) {
   const [actionError, setActionError] = useState<string | null>(null)
   const [dialogError, setDialogError] = useState<string | null>(null)
   const [pendingAction, setPendingAction] = useState<string | null>(null)
-  const activeView = view
+  const [activeView, setActiveView] = useState<ManagerView>("members")
   const [memberQuery, setMemberQuery] = useState("")
   const [invitationQuery, setInvitationQuery] = useState("")
   const [memberPage, setMemberPage] = useState(1)
@@ -748,7 +753,18 @@ export function TeamsPage({ view = "members" }: { view?: ManagerView }) {
       />
 
       {teams.canManage ? (
-        <Tabs className="gap-4" value={activeView}>
+        <Tabs
+          className="gap-4"
+          onValueChange={(value) => setActiveView(value as ManagerView)}
+          value={activeView}
+        >
+          <TabsList aria-label={t("tabsLabel")} className="w-full sm:w-fit">
+            <TabsTrigger value="members">{t("tab.members")}</TabsTrigger>
+            <TabsTrigger value="invitations">
+              {t("tab.invitations")}
+            </TabsTrigger>
+            <TabsTrigger value="activity">{t("tab.activity")}</TabsTrigger>
+          </TabsList>
           <Card variant="subtle">
             {tableHeader}
             <CardContent className="flex flex-col gap-4 px-0">

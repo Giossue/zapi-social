@@ -83,8 +83,8 @@ La migración `0020_mushy_peter_parker` añade intentos, procedencia/resultados 
 
 ## Web
 
+- `/portal/publishing` concentra las pestañas Calendario, Cola, Borradores y Publicaciones masivas; las tres primeras consumen `publishingApi` y el lote conserva `bulkPostsApi`.
 - Calendario fuente-canónica usa FullCalendar con vistas mes/semana/día y compositor contextual.
-- Cola y borradores consumen `publishingApi`; el estado React es caché de respuesta, no fuente fixture.
 - API conserva instantes en UTC y convierte `date`, `time` y `focusDate` a la zona IANA del usuario autenticado antes de responder. Una publicación completada muestra `publishedAt`; las pendientes conservan su fecha programada y los borradores su creación. Web trata `date` como fecha de calendario estable; los logs operativos permanecen en UTC.
 - Cola y borradores reutilizan `MetricCard` para sus resúmenes operativos, con
   icono semántico y contexto breve por estado, igual que AI Publishing.

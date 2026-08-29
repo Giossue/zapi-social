@@ -1,6 +1,5 @@
 import {
   CalendarDays,
-  FileText,
   FolderOpen,
   HandCoins,
   Image,
@@ -44,33 +43,16 @@ export const portalNavigationGroups: readonly PortalNavigationGroup[] = [
       { labelKey: "settings", href: "/portal/settings", icon: Settings2 },
       {
         labelKey: "publishing",
+        href: "/portal/publishing",
         icon: CalendarDays,
-        children: [
-          { labelKey: "calendar", href: "/portal/publishing/calendar" },
-          { labelKey: "queue", href: "/portal/publishing/queue" },
-          { labelKey: "drafts", href: "/portal/publishing/drafts" },
-        ],
       },
       { labelKey: "rssSchedules", href: "/portal/rss-schedules", icon: Rss },
-      {
-        labelKey: "bulkPosts",
-        href: "/portal/bulk-posts",
-        icon: FileText,
-      },
     ],
   },
   {
     labelKey: "contentTools",
     items: [
-      {
-        labelKey: "teams",
-        icon: Users,
-        children: [
-          { labelKey: "teamMembers", href: "/portal/teams" },
-          { labelKey: "teamInvitations", href: "/portal/teams/invitations" },
-          { labelKey: "teamActivity", href: "/portal/teams/activity" },
-        ],
-      },
+      { labelKey: "teams", href: "/portal/teams", icon: Users },
       { labelKey: "captions", href: "/portal/captions", icon: PenLine },
       {
         labelKey: "aiStudio",

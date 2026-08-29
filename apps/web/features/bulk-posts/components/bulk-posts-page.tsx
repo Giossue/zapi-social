@@ -407,7 +407,7 @@ function BatchRowsSheet({
   )
 }
 
-export function BulkPostsPage() {
+export function BulkPostsPage({ embedded = false }: { embedded?: boolean }) {
   const t = useTranslations("bulkPosts")
   const format = useFormatter()
   const router = useRouter()
@@ -609,10 +609,12 @@ export function BulkPostsPage() {
   return (
     <>
       <div className="flex flex-col gap-4">
-        <CollectionHeader
-          description={t("pageDescription")}
-          title={t("pageTitle")}
-        />
+        {embedded ? null : (
+          <CollectionHeader
+            description={t("pageDescription")}
+            title={t("pageTitle")}
+          />
+        )}
         <Card variant="subtle">
           <DataTableHeader
             action={
