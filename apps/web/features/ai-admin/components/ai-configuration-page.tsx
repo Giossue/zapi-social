@@ -14,7 +14,6 @@ import type {
 } from "@workspace/contracts"
 import { useApiErrorMessage } from "@/lib/api-error-message"
 import { Badge } from "@workspace/ui/components/badge"
-import { CardGrid } from "@workspace/ui/components/card-grid"
 import { Button } from "@workspace/ui/components/button"
 import {
   DataTableFilter,
@@ -31,7 +30,6 @@ import {
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
-import { MetricCard } from "@workspace/ui/components/metric-card"
 import { PageLoading } from "@/components/page-loading"
 import {
   Select,
@@ -72,7 +70,6 @@ import {
   Activity,
   Circle,
   CircleAlert,
-  CircleDollarSign,
   CircleX,
   CheckCircle2,
   KeyRound,
@@ -81,7 +78,6 @@ import {
   Save,
   Settings2,
   ShieldCheck,
-  Timer,
   X,
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
@@ -1431,137 +1427,94 @@ function UsagePanel({
     )
   }
   if (!usage) return <PageLoading aria-label={t("usage.loading")} />
-  const metrics = [
-    {
-      description: t("usage.metric.requests.description", {
-        days: usage.periodDays,
-      }),
-      icon: Activity,
-      label: t("usage.metric.requests.label"),
-      value: format.number(usage.requests),
-    },
-    {
-      description: t("usage.metric.succeeded.description"),
-      icon: CheckCircle2,
-      label: t("usage.metric.succeeded.label"),
-      value: format.number(usage.succeeded),
-    },
-    {
-      description: t("usage.metric.failed.description"),
-      icon: CircleX,
-      label: t("usage.metric.failed.label"),
-      value: format.number(usage.failed),
-    },
-    {
-      description: t("usage.metric.cost.description"),
-      icon: CircleDollarSign,
-      label: t("usage.metric.cost.label"),
-      value: money(format, usage.estimatedCostMicrousd),
-    },
-    {
-      description: t("usage.metric.latency.description"),
-      icon: Timer,
-      label: t("usage.metric.latency.label"),
-      value: t("milliseconds", { value: usage.averageLatencyMs }),
-    },
-  ]
   return (
-    <>
-      <CardGrid layout="xl-5">
-        {metrics.map((metric) => (
-          <MetricCard key={metric.label} {...metric} />
-        ))}
-      </CardGrid>
-      <Card variant="subtle">
-        <DataTableHeader
-          search={{
-            ariaLabel: t("usage.searchAria"),
-            onChange: (value) => {
-              setQuery(value)
-              setPage(1)
-            },
-            placeholder: t("usage.searchPlaceholder"),
-            value: query,
-          }}
+    <Card variant="subtle">
+      <DataTableHeader
+        search={{
+          ariaLabel: t("usage.searchAria"),
+          onChange: (value) => {
+            setQuery(value)
+            setPage(1)
+          },
+          placeholder: t("usage.searchPlaceholder"),
+          value: query,
+        }}
+      />
+      <CardContent className="flex flex-col gap-4 px-0">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t("modelColumn")}</TableHead>
+              <TableHead>{t("requestsColumn")}</TableHead>
+              <TableHead className="hidden md:table-cell">
+                {t("inputTokensColumn")}
+              </TableHead>
+              <TableHead className="hidden md:table-cell">
+                {t("outputTokensColumn")}
+              </TableHead>
+              <TableHead>{t("estimatedCostColumn")}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {visibleItems.length ? (
+              visibleItems.map((item) => (
+                <TableRow key={item.model}>
+                  <TableCell className="font-mono text-xs">
+                    {item.model}
+                  </TableCell>
+                  <TableCell>{format.number(item.requests)}</TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    {format.number(item.inputTokens)}
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    {format.number(item.outputTokens)}
+                  </TableCell>
+                  <TableCell>
+                    {money(format, item.estimatedCostMicrousd)}
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableEmptyRow
+                action={
+                  query.trim() ? (
+                    <Button
+                      onClick={() => {
+                        setQuery("")
+                        setPage(1)
+                      }}
+                      variant="outline"
+                    >
+                      {t("clearFilters")}
+                    </Button>
+                  ) : null
+                }
+                colSpan={5}
+                description={
+                  query.trim()
+                    ? t("usage.emptyFilteredDescription")
+                    : t("usage.emptyDescription")
+                }
+                title={
+                  query.trim() ? t("usage.noMatches") : t("usage.emptyTitle")
+                }
+              />
+            )}
+          </TableBody>
+        </Table>
+        <TablePagination
+          canGoNext={safePage < pageCount}
+          canGoPrevious={safePage > 1}
+          itemLabel={t("itemLabel.models")}
+          onNextPage={() =>
+            setPage((current) => Math.min(current + 1, pageCount))
+          }
+          onPreviousPage={() => setPage((current) => Math.max(current - 1, 1))}
+          rangeEnd={rangeEnd}
+          rangeStart={rangeStart}
+          total={filteredItems.length}
         />
-        <CardContent className="flex flex-col gap-4 px-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("modelColumn")}</TableHead>
-                <TableHead>{t("requestsColumn")}</TableHead>
-                <TableHead className="hidden md:table-cell">
-                  {t("inputTokensColumn")}
-                </TableHead>
-                <TableHead className="hidden md:table-cell">
-                  {t("outputTokensColumn")}
-                </TableHead>
-                <TableHead>{t("estimatedCostColumn")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {visibleItems.length ? (
-                visibleItems.map((item) => (
-                  <TableRow key={item.model}>
-                    <TableCell className="font-mono text-xs">
-                      {item.model}
-                    </TableCell>
-                    <TableCell>{format.number(item.requests)}</TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {format.number(item.inputTokens)}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {format.number(item.outputTokens)}
-                    </TableCell>
-                    <TableCell>
-                      {money(format, item.estimatedCostMicrousd)}
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableEmptyRow
-                  action={
-                    query.trim() ? (
-                      <Button
-                        onClick={() => {
-                          setQuery("")
-                          setPage(1)
-                        }}
-                        variant="outline"
-                      >
-                        {t("clearFilters")}
-                      </Button>
-                    ) : null
-                  }
-                  colSpan={5}
-                  description={
-                    query.trim()
-                      ? t("usage.emptyFilteredDescription")
-                      : t("usage.emptyDescription")
-                  }
-                  title={
-                    query.trim() ? t("usage.noMatches") : t("usage.emptyTitle")
-                  }
-                />
-              )}
-            </TableBody>
-          </Table>
-          <TablePagination
-            canGoNext={safePage < pageCount}
-            canGoPrevious={safePage > 1}
-            itemLabel={t("itemLabel.models")}
-            onNextPage={() =>
-              setPage((current) => Math.min(current + 1, pageCount))
-            }
-            onPreviousPage={() =>
-              setPage((current) => Math.max(current - 1, 1))
-            }
-            rangeEnd={rangeEnd}
-            rangeStart={rangeStart}
-            total={filteredItems.length}
-          />
-        </CardContent>
-      </Card>
-    </>
+      </CardContent>
+    </Card>
   )
 }

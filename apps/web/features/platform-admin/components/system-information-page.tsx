@@ -3,23 +3,14 @@
 import { useCallback, useEffect, useState } from "react"
 import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
-import {
-  CheckCircle2,
-  CircleAlert,
-  Cpu,
-  Database,
-  ShieldCheck,
-  XCircle,
-} from "lucide-react"
+import { CheckCircle2, CircleAlert, ShieldCheck, XCircle } from "lucide-react"
 
 import { ApiError, adminSystemApi } from "@workspace/api-client"
 import type { AdminSystemInformation } from "@workspace/contracts"
 import { Badge } from "@workspace/ui/components/badge"
 import { Card, CardContent } from "@workspace/ui/components/card"
-import { CardGrid } from "@workspace/ui/components/card-grid"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import { EmptyState } from "@workspace/ui/components/empty-state"
-import { MetricCard } from "@workspace/ui/components/metric-card"
 import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import { Separator } from "@workspace/ui/components/separator"
@@ -109,31 +100,6 @@ export function SystemInformationPage() {
   return (
     <div className="flex flex-col gap-4">
       <CollectionHeader description={t("description")} title={t("title")} />
-
-      <CardGrid layout="md-3">
-        <MetricCard
-          description={t("environmentHint")}
-          icon={Cpu}
-          label={t("environment")}
-          value={data.environment}
-        />
-        <MetricCard
-          description={t("uptimeHint")}
-          icon={Cpu}
-          label={t("uptime")}
-          value={t("uptimeValue", {
-            hours: Math.floor((data.uptimeSeconds % 86_400) / 3_600),
-            days: Math.floor(data.uptimeSeconds / 86_400),
-            minutes: Math.floor((data.uptimeSeconds % 3_600) / 60),
-          })}
-        />
-        <MetricCard
-          description={t("migrationsHint")}
-          icon={Database}
-          label={t("migrations")}
-          value={data.migrationsApplied}
-        />
-      </CardGrid>
 
       <div className="grid gap-4 xl:grid-cols-2">
         <Card variant="subtle">

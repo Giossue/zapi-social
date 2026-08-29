@@ -4771,6 +4771,7 @@ declare const messages: {
       "title": "Selecciona desde tu almacenamiento"
     },
     "page": {
+      "activityLabel": "Actividad de publicaciones",
       "calendarLabel": "Calendario de publicaciones",
       "createTitle": "Nueva publicación",
       "draftDeleteFailed": "No pudimos eliminar el borrador.",
@@ -4803,6 +4804,7 @@ declare const messages: {
       "saved": "Los cambios se guardaron.",
       "scheduled": "{count, plural, one {Programamos # publicación.} other {Programamos # publicaciones.}}",
       "section": {
+        "activity": "Actividad",
         "bulkPosts": "Publicaciones masivas",
         "calendar": "Calendario",
         "drafts": "Borradores",
@@ -4846,6 +4848,10 @@ declare const messages: {
       "deleting": "Eliminando...",
       "edit": "Editar",
       "empty": {
+        "activity": {
+          "description": "Cuando crees, programes o publiques una pieza, su actividad aparecerá aquí por cada destino.",
+          "title": "Todavía no hay actividad"
+        },
         "drafts": {
           "description": "Guarda una publicación como borrador para continuarla después.",
           "title": "Todavía no hay borradores"

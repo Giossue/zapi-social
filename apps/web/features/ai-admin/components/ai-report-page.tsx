@@ -3,21 +3,12 @@
 import { useCallback, useEffect, useState } from "react"
 import { useFormatter, useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
-import {
-  Activity,
-  CalendarRange,
-  CheckCircle2,
-  CircleAlert,
-  CircleDollarSign,
-  ShieldCheck,
-  Timer,
-} from "lucide-react"
+import { CalendarRange, CircleAlert, ShieldCheck } from "lucide-react"
 
 import { ApiError, adminAiApi } from "@workspace/api-client"
 import type { AdminAiReport } from "@workspace/contracts"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
-import { CardGrid } from "@workspace/ui/components/card-grid"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
 import { EmptyState } from "@workspace/ui/components/empty-state"
@@ -28,7 +19,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@workspace/ui/components/popover"
-import { MetricCard } from "@workspace/ui/components/metric-card"
 import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import {
@@ -230,45 +220,6 @@ export function AiReportPage() {
           </DataTableToolbar>
         </CardContent>
       </Card>
-
-      <CardGrid layout="md-3">
-        <MetricCard
-          description={t("metric.requests.description")}
-          icon={Activity}
-          label={t("metric.requests.label")}
-          value={format.number(report.totals.requests)}
-        />
-        <MetricCard
-          description={t("metric.successRate.description")}
-          icon={CheckCircle2}
-          label={t("metric.successRate.label")}
-          value={t("percent", { value: report.totals.successRate })}
-        />
-        <MetricCard
-          description={t("metric.tokens.description")}
-          icon={Activity}
-          label={t("metric.tokens.label")}
-          value={format.number(report.totals.tokens)}
-        />
-        <MetricCard
-          description={t("metric.cost.description")}
-          icon={CircleDollarSign}
-          label={t("metric.cost.label")}
-          value={money(format, report.totals.estimatedCostMicrousd)}
-        />
-        <MetricCard
-          description={t("metric.latency.description")}
-          icon={Timer}
-          label={t("metric.latency.label")}
-          value={t("milliseconds", { value: report.totals.averageLatencyMs })}
-        />
-        <MetricCard
-          description={t("metric.failed.description")}
-          icon={CircleAlert}
-          label={t("metric.failed.label")}
-          value={format.number(report.totals.failed)}
-        />
-      </CardGrid>
 
       <Tabs defaultValue="daily">
         <TabsList className="flex h-auto flex-wrap">

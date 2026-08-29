@@ -4,9 +4,6 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useState, type FormEvent } from "react"
 import {
-  CircleCheck,
-  CircleDot,
-  CircleX,
   LifeBuoy,
   LockKeyhole,
   MessageSquare,
@@ -16,7 +13,6 @@ import {
 
 import { ApiError, supportApi } from "@workspace/api-client"
 import { Badge } from "@workspace/ui/components/badge"
-import { CardGrid } from "@workspace/ui/components/card-grid"
 import { Button } from "@workspace/ui/components/button"
 import {
   DataTableFilter,
@@ -37,7 +33,6 @@ import { EmptyState } from "@workspace/ui/components/empty-state"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
-import { MetricCard } from "@workspace/ui/components/metric-card"
 import {
   Field,
   FieldDescription,
@@ -100,42 +95,6 @@ const emptyTicketValues: NewTicketValues = {
   categoryId: "",
   subject: "",
   description: "",
-}
-
-type SupportCounts = Record<SupportTicketStatus, number>
-
-const emptyCounts: SupportCounts = { open: 0, resolved: 0, closed: 0 }
-
-function SupportMetrics({ counts }: { counts: SupportCounts }) {
-  const t = useTranslations("support")
-  const items = [
-    {
-      description: t("metrics.openDescription"),
-      icon: CircleDot,
-      label: t("metrics.open"),
-      value: counts.open,
-    },
-    {
-      description: t("metrics.resolvedDescription"),
-      icon: CircleCheck,
-      label: t("metrics.resolved"),
-      value: counts.resolved,
-    },
-    {
-      description: t("metrics.closedDescription"),
-      icon: CircleX,
-      label: t("metrics.closed"),
-      value: counts.closed,
-    },
-  ]
-
-  return (
-    <CardGrid layout="xl-3">
-      {items.map((item) => (
-        <MetricCard key={item.label} {...item} />
-      ))}
-    </CardGrid>
-  )
 }
 
 function NewSupportTicketSheet({
@@ -307,7 +266,6 @@ export function SupportTicketsPage() {
   const router = useRouter()
   const [tickets, setTickets] = useState<SupportTicket[]>([])
   const [categories, setCategories] = useState<SupportCategory[]>([])
-  const [counts, setCounts] = useState<SupportCounts>(emptyCounts)
   const [total, setTotal] = useState(0)
   const [query, setQuery] = useState("")
   const [status, setStatus] = useState<SupportTicketStatus | "all">("all")
@@ -333,32 +291,16 @@ export function SupportTicketsPage() {
     [router]
   )
 
-  const loadCounts = useCallback(async () => {
-    const [open, resolved, closed] = await Promise.all([
-      supportApi.list({ limit: 1, status: "open" }),
-      supportApi.list({ limit: 1, status: "resolved" }),
-      supportApi.list({ limit: 1, status: "closed" }),
-    ])
-    setCounts({
-      open: open.total,
-      resolved: resolved.total,
-      closed: closed.total,
-    })
-  }, [])
-
   const load = useCallback(async () => {
     setIsLoading(true)
     setLoadError(false)
     try {
-      const [response] = await Promise.all([
-        supportApi.list({
-          limit: pageSize,
-          page,
-          ...(query.trim() ? { q: query.trim() } : {}),
-          ...(status === "all" ? {} : { status }),
-        }),
-        loadCounts(),
-      ])
+      const response = await supportApi.list({
+        limit: pageSize,
+        page,
+        ...(query.trim() ? { q: query.trim() } : {}),
+        ...(status === "all" ? {} : { status }),
+      })
       setTickets(response.tickets)
       setTotal(response.total)
       setCanView(true)
@@ -369,7 +311,7 @@ export function SupportTicketsPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [handleError, loadCounts, page, query, status])
+  }, [handleError, page, query, status])
 
   useEffect(() => {
     const timer = setTimeout(() => void load(), query ? 300 : 0)
@@ -467,7 +409,6 @@ export function SupportTicketsPage() {
           description={t("pageDescription")}
           title={t("pageTitle")}
         />
-        <SupportMetrics counts={counts} />
         <Card variant="subtle">
           <DataTableHeader
             action={

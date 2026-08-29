@@ -7,11 +7,8 @@ import {
   ArrowUp,
   CircleAlert,
   ExternalLink,
-  Eye,
-  Link2,
   LockKeyhole,
   MoreHorizontal,
-  MousePointerClick,
   Pencil,
   Plus,
   Trash2,
@@ -39,7 +36,6 @@ import {
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
-import { CardGrid } from "@workspace/ui/components/card-grid"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import {
   DataTableFilter,
@@ -64,7 +60,6 @@ import {
 } from "@workspace/ui/components/field"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import { Input } from "@workspace/ui/components/input"
-import { MetricCard } from "@workspace/ui/components/metric-card"
 import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import {
@@ -973,26 +968,6 @@ export function LinkBioPage() {
           description={t("pageDescription")}
           title={t("pageTitle")}
         />
-        <CardGrid layout="md-3">
-          <MetricCard
-            description={t("metrics.pagesDescription")}
-            icon={Link2}
-            label={t("metrics.pages")}
-            value={data.metrics.total}
-          />
-          <MetricCard
-            description={t("metrics.viewsDescription")}
-            icon={Eye}
-            label={t("metrics.views")}
-            value={data.metrics.views}
-          />
-          <MetricCard
-            description={t("metrics.clicksDescription")}
-            icon={MousePointerClick}
-            label={t("metrics.clicks")}
-            value={data.metrics.clicks}
-          />
-        </CardGrid>
         <Card variant="subtle">
           <DataTableHeader
             action={

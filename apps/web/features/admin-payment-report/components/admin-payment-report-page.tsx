@@ -2,14 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { Area, CartesianGrid, ComposedChart, XAxis } from "recharts"
-import {
-  BadgeDollarSign,
-  CircleAlert,
-  Receipt,
-  RotateCcw,
-  ShieldX,
-  Wallet,
-} from "lucide-react"
+import { BadgeDollarSign, CircleAlert, ShieldX } from "lucide-react"
 
 import { adminPaymentReportApi, ApiError } from "@workspace/api-client"
 import type {
@@ -26,7 +19,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import { CardGrid } from "@workspace/ui/components/card-grid"
 import {
   type ChartConfig,
   ChartContainer,
@@ -36,7 +28,6 @@ import {
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import { DataTableFilter } from "@workspace/ui/components/data-table-controls"
 import { EmptyState } from "@workspace/ui/components/empty-state"
-import { MetricCard } from "@workspace/ui/components/metric-card"
 import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import {
@@ -135,7 +126,7 @@ export function AdminPaymentReportPage() {
     )
   }
 
-  const { currency, metrics } = report
+  const { currency } = report
   const series = report.series.map((point) => ({
     label: periodLabel(point.period),
     net: point.netMinor / 100,
@@ -179,39 +170,6 @@ export function AdminPaymentReportPage() {
             : ""}
         </p>
       </div>
-
-      <CardGrid>
-        <MetricCard
-          description={t("metrics.grossDescription")}
-          icon={BadgeDollarSign}
-          label={t("metrics.gross")}
-          value={reportMoney(metrics.grossMinor, currency)}
-        />
-        <MetricCard
-          description={t("metrics.netDescription")}
-          icon={Wallet}
-          label={t("metrics.net")}
-          value={reportMoney(metrics.netMinor, currency)}
-        />
-        <MetricCard
-          description={t("metrics.refundedDescription", {
-            count: metrics.refundedCount,
-          })}
-          icon={RotateCcw}
-          label={t("metrics.refunded")}
-          value={reportMoney(metrics.refundedMinor, currency)}
-        />
-        <MetricCard
-          description={t("metrics.ticketDescription", {
-            failed: metrics.failedCount,
-            paid: metrics.paidCount,
-            pending: metrics.pendingCount,
-          })}
-          icon={Receipt}
-          label={t("metrics.ticket")}
-          value={reportMoney(metrics.averageTicketMinor, currency)}
-        />
-      </CardGrid>
 
       <Card variant="subtle">
         <CardHeader>

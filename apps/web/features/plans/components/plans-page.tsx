@@ -17,11 +17,9 @@ import {
   Sparkles,
   Trash2,
   Users,
-  WalletCards,
 } from "lucide-react"
 
 import { Badge } from "@workspace/ui/components/badge"
-import { CardGrid } from "@workspace/ui/components/card-grid"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -74,7 +72,6 @@ import {
   FieldSet,
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
-import { MetricCard } from "@workspace/ui/components/metric-card"
 import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import {
@@ -958,12 +955,6 @@ export function PlansPage() {
   )
   const rangeStart = plans.length === 0 ? 0 : currentPageIndex * pageSize + 1
   const rangeEnd = Math.min((currentPageIndex + 1) * pageSize, plans.length)
-  const activePlans = plans.filter((plan) => plan.status === "active").length
-  const subscriberCount = plans.reduce(
-    (total, plan) => total + plan.subscriberCount,
-    0
-  )
-  const featuredPlans = plans.filter((plan) => plan.featured).length
 
   if (!hasPermission) {
     return (
@@ -1007,37 +998,6 @@ export function PlansPage() {
         <PageLoading className="min-h-80" />
       ) : (
         <>
-          <CardGrid>
-            {[
-              {
-                label: t("metrics.plans"),
-                value: plans.length.toLocaleString("es"),
-                description: t("metrics.plansDescription"),
-                icon: WalletCards,
-              },
-              {
-                label: t("metrics.active"),
-                value: activePlans.toLocaleString("es"),
-                description: t("metrics.activeDescription"),
-                icon: Check,
-              },
-              {
-                label: t("metrics.subscribers"),
-                value: subscriberCount.toLocaleString("es"),
-                description: t("metrics.subscribersDescription"),
-                icon: Users,
-              },
-              {
-                label: t("metrics.featured"),
-                value: featuredPlans.toLocaleString("es"),
-                description: t("metrics.featuredDescription"),
-                icon: Sparkles,
-              },
-            ].map((metric) => (
-              <MetricCard key={metric.label} {...metric} />
-            ))}
-          </CardGrid>
-
           <Card variant="subtle">
             <DataTableHeader
               action={

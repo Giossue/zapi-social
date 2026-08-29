@@ -2,17 +2,8 @@
 
 import { useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
-import { type FormEvent, useEffect, useMemo, useRef, useState } from "react"
-import {
-  CalendarClock,
-  CalendarDays,
-  CircleAlert,
-  FileText,
-  ImagePlus,
-  LoaderCircle,
-  Send,
-  XCircle,
-} from "lucide-react"
+import { type FormEvent, useEffect, useRef, useState } from "react"
+import { CalendarDays, CircleAlert, FileText, Send } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
@@ -52,10 +43,7 @@ import { PublishingCalendar } from "@/features/publishing/components/publishing-
 import { PublishingMediaPicker } from "@/features/publishing/components/publishing-media-picker"
 import { openGoogleDrivePicker } from "@/features/files/components/google-drive-picker"
 import { PublishingNetworkPreview } from "@/features/publishing/components/publishing-network-preview"
-import {
-  PublishingMetrics,
-  PublishingPostsTable,
-} from "@/features/publishing/components/publishing-posts-table"
+import { PublishingPostsTable } from "@/features/publishing/components/publishing-posts-table"
 import { PublishingSchedulePicker } from "@/features/publishing/components/publishing-schedule-picker"
 import type {
   PublishingAccount,
@@ -65,15 +53,14 @@ import type {
 } from "@/features/publishing/types/publishing-calendar"
 import { BulkPostsPage } from "@/features/bulk-posts/components/bulk-posts-page"
 
-export type PublishingSection = "calendar" | "queue" | "drafts" | "bulk-posts"
+export type PublishingSection = "calendar" | "activity" | "bulk-posts"
 type ComposerMode = "draft" | "now" | "schedule"
 
 const defaultScheduleDate = "2026-08-03"
 
 const sectionLinks: Array<{ href: string; value: PublishingSection }> = [
   { href: "/portal/publishing", value: "calendar" },
-  { href: "/portal/publishing?tab=queue", value: "queue" },
-  { href: "/portal/publishing?tab=drafts", value: "drafts" },
+  { href: "/portal/publishing?tab=activity", value: "activity" },
   {
     href: "/portal/publishing?tab=bulk-posts",
     value: "bulk-posts",
@@ -445,19 +432,10 @@ export function PublishingCalendarPage({
     useState(defaultScheduleDate)
   const [editingPost, setEditingPost] = useState<PublishingPost | null>(null)
   const createIdempotencyKey = useRef<string | null>(null)
-  const queuePosts = useMemo(
-    () => posts.filter((post) => post.status !== "draft"),
-    [posts]
-  )
-  const drafts = useMemo(
-    () => posts.filter((post) => post.status === "draft"),
-    [posts]
-  )
   const sectionLabels: Record<PublishingSection, string> = {
+    activity: t("section.activity"),
     "bulk-posts": t("section.bulkPosts"),
     calendar: t("section.calendar"),
-    drafts: t("section.drafts"),
-    queue: t("section.queue"),
   }
 
   useEffect(() => {
@@ -615,78 +593,17 @@ export function PublishingCalendarPage({
           </section>
         </TabsContent>
 
-        <TabsContent value="queue" className="flex flex-col gap-4">
-          <section aria-label={t("queueLabel")} className="flex flex-col gap-4">
-            <PublishingMetrics
-              items={[
-                {
-                  description: t("metrics.scheduledDescription"),
-                  icon: CalendarClock,
-                  label: t("metrics.scheduled"),
-                  value: queuePosts.filter(
-                    (post) => post.status === "scheduled"
-                  ).length,
-                },
-                {
-                  description: t("metrics.processingDescription"),
-                  icon: LoaderCircle,
-                  label: t("metrics.processing"),
-                  value: queuePosts.filter(
-                    (post) => post.status === "processing"
-                  ).length,
-                },
-                {
-                  description: t("metrics.failedDescription"),
-                  icon: XCircle,
-                  label: t("metrics.failed"),
-                  value: queuePosts.filter((post) => post.status === "failed")
-                    .length,
-                },
-              ]}
-            />
-            <PublishingPostsTable
-              mode="queue"
-              onCreate={() => openComposer()}
-              onRetry={retryPost}
-              posts={queuePosts}
-            />
-          </section>
-        </TabsContent>
-
-        <TabsContent value="drafts" className="flex flex-col gap-4">
+        <TabsContent value="activity" className="flex flex-col gap-4">
           <section
-            aria-label={t("draftsLabel")}
+            aria-label={t("activityLabel")}
             className="flex flex-col gap-4"
           >
-            <PublishingMetrics
-              items={[
-                {
-                  description: t("metrics.draftsDescription"),
-                  icon: FileText,
-                  label: t("metrics.drafts"),
-                  value: drafts.length,
-                },
-                {
-                  description: t("metrics.withMediaDescription"),
-                  icon: ImagePlus,
-                  label: t("metrics.withMedia"),
-                  value: drafts.filter((post) => post.hasMedia).length,
-                },
-                {
-                  description: t("metrics.readyDescription"),
-                  icon: Send,
-                  label: t("metrics.ready"),
-                  value: drafts.filter((post) => post.content.trim().length > 0)
-                    .length,
-                },
-              ]}
-            />
             <PublishingPostsTable
-              mode="drafts"
               onContinue={openComposer}
               onCreate={() => openComposer()}
               onDelete={deletePost}
-              posts={drafts}
+              onRetry={retryPost}
+              posts={posts}
             />
           </section>
         </TabsContent>
@@ -696,7 +613,7 @@ export function PublishingCalendarPage({
         </TabsContent>
       </Tabs>
 
-      {section === "queue" || section === "drafts" ? (
+      {section === "activity" ? (
         <FloatingActionButton
           icon={<CalendarDays aria-hidden="true" className="size-6" />}
           label={t("createTitle")}

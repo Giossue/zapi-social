@@ -2,24 +2,13 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
-import {
-  BadgeCheck,
-  CircleAlert,
-  CircleDollarSign,
-  Copy,
-  HandCoins,
-  MousePointerClick,
-  Users,
-  Wallet,
-  X,
-} from "lucide-react"
+import { CircleAlert, Copy, HandCoins, Wallet, X } from "lucide-react"
 
 import { ApiError, affiliateApi } from "@workspace/api-client"
 import type { PortalAffiliateDashboard } from "@workspace/contracts"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
-import { CardGrid } from "@workspace/ui/components/card-grid"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import {
   DataTableFilter,
@@ -34,7 +23,6 @@ import {
   FieldLabel,
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
-import { MetricCard } from "@workspace/ui/components/metric-card"
 import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import {
@@ -470,45 +458,6 @@ export function AffiliatePage() {
             </div>
           </CardContent>
         </Card>
-
-        <CardGrid layout="md-3">
-          <MetricCard
-            description={t("metrics.clicksDescription")}
-            icon={MousePointerClick}
-            label={t("metrics.clicks")}
-            value={totals.visits}
-          />
-          <MetricCard
-            description={t("metrics.referralsDescription")}
-            icon={Users}
-            label={t("metrics.referrals")}
-            value={totals.referrals}
-          />
-          <MetricCard
-            description={t("metrics.conversionsDescription")}
-            icon={BadgeCheck}
-            label={t("metrics.conversions")}
-            value={totals.conversions}
-          />
-          <MetricCard
-            description={t("metrics.availableDescription")}
-            icon={Wallet}
-            label={t("metrics.available")}
-            value={money(totals.availableMinor, totals.currency)}
-          />
-          <MetricCard
-            description={t("metrics.pendingDescription")}
-            icon={CircleDollarSign}
-            label={t("metrics.pending")}
-            value={money(totals.pendingMinor, totals.currency)}
-          />
-          <MetricCard
-            description={t("metrics.paidDescription")}
-            icon={HandCoins}
-            label={t("metrics.paid")}
-            value={money(totals.paidMinor, totals.currency)}
-          />
-        </CardGrid>
 
         <Tabs
           defaultValue="commissions"

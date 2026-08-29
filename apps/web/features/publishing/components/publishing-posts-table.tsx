@@ -1,14 +1,7 @@
 "use client"
 
 import { type MouseEvent, useMemo, useState } from "react"
-import {
-  CalendarClock,
-  FilePenLine,
-  ListFilter,
-  Plus,
-  RotateCcw,
-  Trash2,
-} from "lucide-react"
+import { FilePenLine, ListFilter, Plus, RotateCcw, Trash2 } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,7 +16,6 @@ import {
 import { useFormatter, useTranslations } from "next-intl"
 
 import { Badge } from "@workspace/ui/components/badge"
-import { CardGrid } from "@workspace/ui/components/card-grid"
 import { Button } from "@workspace/ui/components/button"
 import {
   DataTableFilter,
@@ -31,7 +23,6 @@ import {
 } from "@workspace/ui/components/data-table-controls"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
 import { Card, CardContent } from "@workspace/ui/components/card"
-import { MetricCard } from "@workspace/ui/components/metric-card"
 import {
   Table,
   TableBody,
@@ -72,13 +63,11 @@ const statusVariants: Record<
 }
 
 function PostActions({
-  mode,
   onContinue,
   onDelete,
   onRetry,
   post,
 }: {
-  mode: "drafts" | "queue"
   onContinue?: (post: PublishingPost) => void
   onDelete?: (post: PublishingPost) => boolean | void | Promise<boolean | void>
   onRetry?: (post: PublishingPost) => void
@@ -103,7 +92,7 @@ function PostActions({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      {mode === "drafts" && onContinue ? (
+      {post.status === "draft" && onContinue ? (
         <Button
           onClick={() => onContinue(post)}
           size="sm"
@@ -114,16 +103,13 @@ function PostActions({
           {t("edit")}
         </Button>
       ) : null}
-      {mode === "queue" &&
-      post.status === "failed" &&
-      post.recoverable &&
-      onRetry ? (
+      {post.status === "failed" && post.recoverable && onRetry ? (
         <Button onClick={() => onRetry(post)} size="sm" type="button">
           <RotateCcw data-icon="inline-start" />
           {t("retry")}
         </Button>
       ) : null}
-      {mode === "drafts" && onDelete ? (
+      {post.status === "draft" && onDelete ? (
         <AlertDialog
           onOpenChange={(nextOpen) => !deletePending && setDeleteOpen(nextOpen)}
           open={deleteOpen}
@@ -173,34 +159,13 @@ function PostActions({
   )
 }
 
-export function PublishingMetrics({
-  items,
-}: {
-  items: Array<{
-    description: string
-    icon: typeof CalendarClock
-    label: string
-    value: number
-  }>
-}) {
-  return (
-    <CardGrid layout="xl-3">
-      {items.map((item) => (
-        <MetricCard key={item.label} {...item} />
-      ))}
-    </CardGrid>
-  )
-}
-
 export function PublishingPostsTable({
-  mode,
   onContinue,
   onCreate,
   onDelete,
   onRetry,
   posts,
 }: {
-  mode: "drafts" | "queue"
   onContinue?: (post: PublishingPost) => void
   onCreate: () => void
   onDelete?: (post: PublishingPost) => boolean | void | Promise<boolean | void>
@@ -235,16 +200,17 @@ export function PublishingPostsTable({
     currentPage * PAGE_SIZE
   )
   const hasFilters = query || provider !== "all" || status !== "all"
-  const emptyVariant = hasFilters
-    ? "filtered"
-    : mode === "drafts"
-      ? "drafts"
-      : "queue"
-  const emptyProps = {
-    description: t(`empty.${emptyVariant}.description`),
-    icon: TABLE_EMPTY_ICON,
-    title: t(`empty.${emptyVariant}.title`),
-  }
+  const emptyProps = hasFilters
+    ? {
+        description: t("empty.filtered.description"),
+        icon: TABLE_EMPTY_ICON,
+        title: t("empty.filtered.title"),
+      }
+    : {
+        description: t("empty.activity.description"),
+        icon: TABLE_EMPTY_ICON,
+        title: t("empty.activity.title"),
+      }
   const pageRangeStart = filteredPosts.length
     ? (currentPage - 1) * PAGE_SIZE + 1
     : 0
@@ -316,20 +282,14 @@ export function PublishingPostsTable({
               setStatus(value as PublishingStatus | "all")
               setPage(1)
             }}
-            options={
-              mode === "drafts"
-                ? [
-                    { label: t("allStatuses"), value: "all" },
-                    { label: t("statusLabel.draft"), value: "draft" },
-                  ]
-                : [
-                    { label: t("allStatuses"), value: "all" },
-                    { label: t("statusLabel.scheduled"), value: "scheduled" },
-                    { label: t("statusLabel.processing"), value: "processing" },
-                    { label: t("statusLabel.failed"), value: "failed" },
-                    { label: t("statusLabel.published"), value: "published" },
-                  ]
-            }
+            options={[
+              { label: t("allStatuses"), value: "all" },
+              { label: t("statusLabel.draft"), value: "draft" },
+              { label: t("statusLabel.scheduled"), value: "scheduled" },
+              { label: t("statusLabel.processing"), value: "processing" },
+              { label: t("statusLabel.failed"), value: "failed" },
+              { label: t("statusLabel.published"), value: "published" },
+            ]}
             value={status}
           />
         </DataTableToolbar>
@@ -381,7 +341,6 @@ export function PublishingPostsTable({
                 <TableCell className="pr-4 text-right">
                   <div className="inline-flex">
                     <PostActions
-                      mode={mode}
                       onContinue={onContinue}
                       onDelete={onDelete}
                       onRetry={onRetry}

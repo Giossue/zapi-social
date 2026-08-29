@@ -83,11 +83,9 @@ La migración `0020_mushy_peter_parker` añade intentos, procedencia/resultados 
 
 ## Web
 
-- `/portal/publishing` concentra las pestañas Calendario, Cola, Borradores y Publicaciones masivas; las tres primeras consumen `publishingApi` y el lote conserva `bulkPostsApi`.
+- `/portal/publishing` concentra las pestañas Calendario, Actividad y Publicaciones masivas. Actividad reúne cola y borradores en una tabla filtrable sin métricas; Calendario y Actividad consumen `publishingApi` y el lote conserva `bulkPostsApi`.
 - Calendario fuente-canónica usa FullCalendar con vistas mes/semana/día y compositor contextual.
 - API conserva instantes en UTC y convierte `date`, `time` y `focusDate` a la zona IANA del usuario autenticado antes de responder. Una publicación completada muestra `publishedAt`; las pendientes conservan su fecha programada y los borradores su creación. Web trata `date` como fecha de calendario estable; los logs operativos permanecen en UTC.
-- Cola y borradores reutilizan `MetricCard` para sus resúmenes operativos, con
-  icono semántico y contexto breve por estado, igual que AI Publishing.
 - Las mutaciones confirman con toast y preservan estados loading/empty/error.
 - El compositor usa `noValidate`, marca campos obligatorios, bloquea el submit incompleto y muestra `Spinner` durante la mutación; eliminar un borrador exige confirmación con `AlertDialog`.
 - Google Drive está integrado como origen de importación dentro del selector de
@@ -100,7 +98,7 @@ La migración `0020_mushy_peter_parker` añade intentos, procedencia/resultados 
 
 ## Evidencia y pendientes
 
-- [x] CRUD REST, cliente, Web calendar/queue/drafts y protección de Files.
+- [x] CRUD REST, cliente, Web calendar/activity y protección de Files.
 - [x] Worker con scheduler, claim, intentos y adapters Facebook/Instagram/WhatsApp Status.
 - [x] Watermarks efímeros de imagen/vídeo y endpoint temporal firmado.
 - [x] Productores Bulk, RSS, AI y Automation conectados.

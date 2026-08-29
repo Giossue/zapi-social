@@ -39,7 +39,6 @@ import {
   RefreshCw,
   Save,
   Search,
-  ShieldCheck,
   Sparkles,
   Trash2,
   Upload,
@@ -62,7 +61,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import { MetricCard } from "@workspace/ui/components/metric-card"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import {
   DataTableFilter,
@@ -540,34 +538,6 @@ function Overview() {
     )
   }
 
-  const metrics = [
-    {
-      label: t("metrics.credits"),
-      value: dashboard.credits.unlimited
-        ? t("metrics.unlimited")
-        : String(dashboard.credits.balanceUnits),
-      detail: t("metrics.usedInCycle", { count: dashboard.credits.usedUnits }),
-      icon: Coins,
-    },
-    {
-      label: t("metrics.succeeded"),
-      value: String(dashboard.counts.succeededThisCycle),
-      detail: t("metrics.currentCycle"),
-      icon: Sparkles,
-    },
-    {
-      label: t("metrics.inProgress"),
-      value: String(dashboard.counts.queued + dashboard.counts.processing),
-      detail: t("metrics.queued", { count: dashboard.counts.queued }),
-      icon: Clock3,
-    },
-    {
-      label: t("metrics.drafts"),
-      value: String(dashboard.counts.draftsThisCycle),
-      detail: t("metrics.readyForReview"),
-      icon: ShieldCheck,
-    },
-  ]
   return (
     <div className="flex flex-col gap-6">
       <StudioHeader
@@ -581,18 +551,6 @@ function Overview() {
         }
         view="overview"
       />
-
-      <CardGrid>
-        {metrics.map((metric) => (
-          <MetricCard
-            description={metric.detail}
-            icon={metric.icon}
-            key={metric.label}
-            label={metric.label}
-            value={metric.value}
-          />
-        ))}
-      </CardGrid>
 
       <section className="flex flex-col gap-3">
         <div>
@@ -2631,21 +2589,12 @@ function OperationalCredits() {
     URL.revokeObjectURL(url)
   }
 
-  let balanceLabel = "—"
-  if (credits) {
-    balanceLabel = credits.unlimited
-      ? t("operational.unlimited")
-      : String(credits.balanceUnits)
-  }
-
   return (
     <AiCreditsSurface
       alertPercent={alertPercent}
       alertsEnabled={alertsEnabled}
-      balance={balanceLabel}
       budget={budget}
       budgetEditable={budgetEditable}
-      consumed={credits ? String(credits.usedUnits) : "—"}
       hasFilters={Boolean(query.trim() || movementType !== "all")}
       movementType={movementType}
       movements={movements}
@@ -2673,13 +2622,6 @@ function OperationalCredits() {
       pageSize={AI_TABLE_PAGE_SIZE}
       pendingBudget={pendingBudget}
       query={query}
-      renewal={
-        credits?.cycleEndsAt
-          ? format.dateTime(new Date(credits.cycleEndsAt), {
-              dateStyle: "medium",
-            })
-          : t("operational.noDate")
-      }
       state={viewState}
       tableAction={
         <DownloadTableButton

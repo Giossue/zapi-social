@@ -19,8 +19,7 @@ let lastResponse: PortalPublishingResponse | null = null
 
 const publishingSections = new Set<PublishingSection>([
   "calendar",
-  "queue",
-  "drafts",
+  "activity",
   "bulk-posts",
 ])
 

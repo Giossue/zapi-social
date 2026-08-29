@@ -2,16 +2,12 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from "react"
 import {
-  BellRing,
   EllipsisVertical,
-  Eye,
-  FileText,
   Megaphone,
   Pencil,
   Plus,
   Send,
   ShieldX,
-  Target,
   Trash2,
   X,
 } from "lucide-react"
@@ -19,7 +15,6 @@ import {
 import { adminNotificationsApi, ApiError } from "@workspace/api-client"
 import type {
   AdminAnnouncement,
-  AdminAnnouncementMetrics,
   AnnouncementAudience,
   UpsertAdminAnnouncementInput,
 } from "@workspace/contracts"
@@ -36,7 +31,6 @@ import {
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
-import { CardGrid } from "@workspace/ui/components/card-grid"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import {
   DataTableFilter,
@@ -59,7 +53,6 @@ import {
 } from "@workspace/ui/components/field"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import { Input } from "@workspace/ui/components/input"
-import { MetricCard } from "@workspace/ui/components/metric-card"
 import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import {
@@ -92,13 +85,6 @@ import { TablePagination } from "@/components/table-pagination"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
 import { useFormatter, useTranslations } from "next-intl"
-
-const emptyMetrics: AdminAnnouncementMetrics = {
-  published: 0,
-  drafts: 0,
-  targeted: 0,
-  reads: 0,
-}
 
 const pageSize = 10
 
@@ -421,7 +407,6 @@ export function AdminNotificationsPage() {
   const t = useTranslations("adminNotifications")
   const format = useFormatter()
   const [announcements, setAnnouncements] = useState<AdminAnnouncement[]>([])
-  const [metrics, setMetrics] = useState<AdminAnnouncementMetrics>(emptyMetrics)
   const [total, setTotal] = useState(0)
   const [query, setQuery] = useState("")
   const [status, setStatus] = useState<"all" | "draft" | "published">("all")
@@ -445,7 +430,6 @@ export function AdminNotificationsPage() {
         ...(status === "all" ? {} : { status }),
       })
       setAnnouncements(response.announcements)
-      setMetrics(response.metrics)
       setTotal(response.total)
       setForbidden(false)
     } catch (error) {
@@ -536,32 +520,6 @@ export function AdminNotificationsPage() {
           description={t("pageDescription")}
           title={t("pageTitle")}
         />
-        <CardGrid>
-          <MetricCard
-            description={t("metrics.publishedDescription")}
-            icon={BellRing}
-            label={t("metrics.published")}
-            value={metrics.published}
-          />
-          <MetricCard
-            description={t("metrics.draftsDescription")}
-            icon={FileText}
-            label={t("metrics.drafts")}
-            value={metrics.drafts}
-          />
-          <MetricCard
-            description={t("metrics.targetedDescription")}
-            icon={Target}
-            label={t("metrics.targeted")}
-            value={metrics.targeted}
-          />
-          <MetricCard
-            description={t("metrics.readsDescription")}
-            icon={Eye}
-            label={t("metrics.reads")}
-            value={metrics.reads}
-          />
-        </CardGrid>
         <Card variant="subtle">
           <DataTableHeader
             action={

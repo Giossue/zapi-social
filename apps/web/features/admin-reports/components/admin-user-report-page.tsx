@@ -3,15 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useFormatter, useTranslations } from "next-intl"
-import {
-  BadgeCheck,
-  CircleAlert,
-  MailCheck,
-  ShieldX,
-  TrendingUp,
-  UserPlus,
-  Users,
-} from "lucide-react"
+import { BadgeCheck, CircleAlert, ShieldX } from "lucide-react"
 
 import { ApiError, adminReportsApi } from "@workspace/api-client"
 import type { AdminUserReportResponse } from "@workspace/contracts"
@@ -22,10 +14,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import { CardGrid } from "@workspace/ui/components/card-grid"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import { EmptyState } from "@workspace/ui/components/empty-state"
-import { MetricCard } from "@workspace/ui/components/metric-card"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import {
   Table,
@@ -109,32 +99,6 @@ export function AdminUserReportPage() {
         description={t("pageDescription")}
         title={t("pageTitle")}
       />
-      <CardGrid layout="xl-4">
-        <MetricCard
-          icon={Users}
-          description={t("totalUsersHint")}
-          label={t("totalUsers")}
-          value={format.number(data.totals.users)}
-        />
-        <MetricCard
-          icon={UserPlus}
-          description={t("newUsersHint")}
-          label={t("newUsers")}
-          value={format.number(data.totals.newLast30Days)}
-        />
-        <MetricCard
-          icon={TrendingUp}
-          description={t("growthHint")}
-          label={t("growth")}
-          value={t("growthValue", { value: data.totals.growthPct })}
-        />
-        <MetricCard
-          icon={MailCheck}
-          description={t("verifiedHint")}
-          label={t("verified")}
-          value={t("percentValue", { value: data.totals.verifiedPct })}
-        />
-      </CardGrid>
       <div className="grid gap-4 lg:grid-cols-2">
         <Card variant="subtle">
           <CardHeader>

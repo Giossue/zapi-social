@@ -4,8 +4,6 @@ import type { FormEvent, ReactNode } from "react"
 
 import {
   CircleAlert,
-  Clock3,
-  Coins,
   Download,
   MoreHorizontal,
   Play,
@@ -13,7 +11,6 @@ import {
   RefreshCw,
   Save,
   ShieldX,
-  Sparkles,
   Trash2,
 } from "lucide-react"
 
@@ -23,10 +20,8 @@ import {
 } from "@workspace/ui/components/data-table-controls"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
-import { CardGrid } from "@workspace/ui/components/card-grid"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
-import { MetricCard } from "@workspace/ui/components/metric-card"
 import { PageLoading } from "@/components/page-loading"
 import { TablePagination } from "@/components/table-pagination"
 import {
@@ -906,10 +901,8 @@ function AiAutomationSurface({
 type AiCreditsSurfaceProps = PaginationProps & {
   alertPercent: string
   alertsEnabled: boolean
-  balance: string
   budget: string
   budgetEditable: boolean
-  consumed: string
   hasFilters: boolean
   movementType: string
   movements: AiCreditMovementRow[]
@@ -923,7 +916,6 @@ type AiCreditsSurfaceProps = PaginationProps & {
   onSaveBudget: (event: FormEvent<HTMLFormElement>) => void
   pendingBudget: boolean
   query: string
-  renewal: string
   state: AiOperationalViewState
   tableAction?: ReactNode
 }
@@ -931,10 +923,8 @@ type AiCreditsSurfaceProps = PaginationProps & {
 function AiCreditsSurface({
   alertPercent,
   alertsEnabled,
-  balance,
   budget,
   budgetEditable,
-  consumed,
   hasFilters,
   movementType,
   movements,
@@ -952,7 +942,6 @@ function AiCreditsSurface({
   pageSize,
   pendingBudget,
   query,
-  renewal,
   state,
   tableAction,
   total,
@@ -976,33 +965,7 @@ function AiCreditsSurface({
       />
 
       {state === "ready" ? (
-        <>
-          <CardGrid layout="xl-3">
-            {[
-              {
-                description: t("credits.balanceHint"),
-                icon: Coins,
-                label: t("credits.balance"),
-                value: balance,
-              },
-              {
-                description: t("credits.usedHint"),
-                icon: Sparkles,
-                label: t("credits.used"),
-                value: consumed,
-              },
-              {
-                description: t("currentCycle"),
-                icon: Clock3,
-                label: t("credits.nextRenewal"),
-                value: renewal,
-              },
-            ].map((metric) => (
-              <MetricCard key={metric.label} {...metric} />
-            ))}
-          </CardGrid>
-
-          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
             <div className="flex flex-col gap-4">
               <Card variant="subtle">
                 <DataTableHeader
@@ -1182,7 +1145,6 @@ function AiCreditsSurface({
               </Card>
             </div>
           </div>
-        </>
       ) : (
         <Card variant="subtle">
           <CollectionState

@@ -13,28 +13,18 @@ import type {
 } from "@workspace/contracts"
 import type { LucideIcon } from "lucide-react"
 import {
-  BadgeDollarSign,
   Check,
   CircleAlert,
-  CircleDollarSign,
   EllipsisVertical,
   Eye,
-  HandCoins,
   PackagePlus,
   Pencil,
   Plus,
-  ReceiptText,
-  RotateCcw,
   ShieldX,
-  Tags,
   Trash2,
   UserPlus,
-  Users,
-  WalletCards,
-  X,
 } from "lucide-react"
 import { toast } from "@workspace/ui/components/toast"
-import { CardGrid } from "@workspace/ui/components/card-grid"
 
 import { Badge } from "@workspace/ui/components/badge"
 import {
@@ -73,7 +63,6 @@ import {
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
-import { MetricCard } from "@workspace/ui/components/metric-card"
 import { Field, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { PageLoading } from "@/components/page-loading"
@@ -98,11 +87,9 @@ type Icon = LucideIcon
 type Row = AdminOperationView["rows"][number]
 type Cell = Row["cells"][number]
 type Action = Row["actions"][number]
-type Metric = AdminOperationView["metrics"][number] & { icon: Icon }
 type Tab = {
   value: string
   columnKeys: readonly string[]
-  metricIcons: Record<string, Icon>
   primaryAction?: { icon: Icon; fieldKeys: readonly string[] }
 }
 type Module = { tabs: [Tab, ...Tab[]] }
@@ -113,12 +100,6 @@ const modules: Record<AdminModuleKey, Module> = {
       {
         value: "users",
         columnKeys: ["user", "access", "plan", "workspace", "signup"],
-        metricIcons: {
-          "users.users.total": Users,
-          "users.users.new": UserPlus,
-          "users.users.withPlan": WalletCards,
-          "users.users.review": ShieldX,
-        },
         primaryAction: {
           icon: UserPlus,
           fieldKeys: ["displayName", "email", "plan"],
@@ -131,12 +112,6 @@ const modules: Record<AdminModuleKey, Module> = {
       {
         value: "packs",
         columnKeys: ["pack", "credits", "price", "purchases", "order"],
-        metricIcons: {
-          "credits.packs.total": BadgeDollarSign,
-          "credits.packs.active": Check,
-          "credits.packs.featured": PackagePlus,
-          "credits.packs.sales": ReceiptText,
-        },
         primaryAction: {
           icon: PackagePlus,
           fieldKeys: ["name", "credits", "price"],
@@ -145,12 +120,6 @@ const modules: Record<AdminModuleKey, Module> = {
       {
         value: "ledger",
         columnKeys: ["user", "type", "pack", "credits", "balance", "date"],
-        metricIcons: {
-          "credits.ledger.total": ReceiptText,
-          "credits.ledger.purchases": CircleDollarSign,
-          "credits.ledger.granted": BadgeDollarSign,
-          "credits.ledger.available": WalletCards,
-        },
       },
       {
         value: "usage",
@@ -162,12 +131,6 @@ const modules: Record<AdminModuleKey, Module> = {
           "quantity",
           "date",
         ],
-        metricIcons: {
-          "credits.usage.total": ReceiptText,
-          "credits.usage.consumed": BadgeDollarSign,
-          "credits.usage.users": Users,
-          "credits.usage.actions": RotateCcw,
-        },
       },
     ],
   },
@@ -176,12 +139,6 @@ const modules: Record<AdminModuleKey, Module> = {
       {
         value: "overview",
         columnKeys: ["affiliate", "code", "clicks", "conversions", "balance"],
-        metricIcons: {
-          "affiliate.overview.total": HandCoins,
-          "affiliate.overview.clicks": Eye,
-          "affiliate.overview.conversions": Check,
-          "affiliate.overview.approved": CircleDollarSign,
-        },
       },
       {
         value: "commissions",
@@ -192,22 +149,10 @@ const modules: Record<AdminModuleKey, Module> = {
           "commission",
           "created",
         ],
-        metricIcons: {
-          "affiliate.commissions.total": ReceiptText,
-          "affiliate.commissions.pending": RotateCcw,
-          "affiliate.commissions.available": CircleDollarSign,
-          "affiliate.commissions.rejected": X,
-        },
       },
       {
         value: "withdrawals",
         columnKeys: ["affiliate", "request", "method", "amount", "requested"],
-        metricIcons: {
-          "affiliate.withdrawals.total": ReceiptText,
-          "affiliate.withdrawals.pending": RotateCcw,
-          "affiliate.withdrawals.approved": Check,
-          "affiliate.withdrawals.paid": CircleDollarSign,
-        },
       },
     ],
   },
@@ -216,12 +161,6 @@ const modules: Record<AdminModuleKey, Module> = {
       {
         value: "coupons",
         columnKeys: ["coupon", "discount", "usage", "plans", "validity"],
-        metricIcons: {
-          "coupons.coupons.total": Tags,
-          "coupons.coupons.active": Check,
-          "coupons.coupons.redemptions": ReceiptText,
-          "coupons.coupons.unlimited": RotateCcw,
-        },
         primaryAction: {
           icon: Plus,
           fieldKeys: ["name", "code", "discountValue"],
@@ -241,12 +180,6 @@ const modules: Record<AdminModuleKey, Module> = {
           "amount",
           "date",
         ],
-        metricIcons: {
-          "payments.payments.total": ReceiptText,
-          "payments.payments.completed": Check,
-          "payments.payments.refunded": RotateCcw,
-          "payments.payments.volume": CircleDollarSign,
-        },
       },
     ],
   },
@@ -262,12 +195,6 @@ const modules: Record<AdminModuleKey, Module> = {
           "renewal",
           "updated",
         ],
-        metricIcons: {
-          "subscriptions.subscriptions.total": ReceiptText,
-          "subscriptions.subscriptions.active": Check,
-          "subscriptions.subscriptions.pastDue": RotateCcw,
-          "subscriptions.subscriptions.mrr": CircleDollarSign,
-        },
       },
     ],
   },
@@ -425,10 +352,6 @@ export function AdminModulePreview({
   const rangeStart = remote?.pagination.rangeStart ?? 0
   const rangeEnd = remote?.pagination.rangeEnd ?? 0
   const total = remote?.pagination.total ?? 0
-  const metrics: Metric[] = (remote?.metrics ?? []).map((metric) => ({
-    ...metric,
-    icon: active.metricIcons[metric.key] ?? CircleAlert,
-  }))
   const primaryAction = active.primaryAction
   const PrimaryIcon = primaryAction?.icon
   const formComplete =
@@ -540,24 +463,6 @@ export function AdminModulePreview({
           </TabsList>
         </Tabs>
       ) : null}
-
-      <CardGrid>
-        {metrics.map((metric) => (
-          <MetricCard
-            description={t(`metric.${metric.key}.description`)}
-            icon={metric.icon}
-            key={metric.key}
-            label={t(`metric.${metric.key}.label`)}
-            value={
-              metric.moneyValue
-                ? money(format, metric.moneyValue)
-                : metric.numberValue !== undefined
-                  ? format.number(metric.numberValue)
-                  : metric.value
-            }
-          />
-        ))}
-      </CardGrid>
 
       <Card variant="subtle">
         <DataTableHeader

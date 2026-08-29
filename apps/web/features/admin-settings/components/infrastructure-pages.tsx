@@ -3,17 +3,15 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { useFormatter, useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
-import { CircleAlert, Clock, Database, ShieldCheck, Trash2 } from "lucide-react"
+import { CircleAlert, ShieldCheck, Trash2 } from "lucide-react"
 
 import { ApiError, adminSettingsApi } from "@workspace/api-client"
 import type { AdminCacheState, AdminScheduledJobs } from "@workspace/contracts"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
-import { CardGrid } from "@workspace/ui/components/card-grid"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import { EmptyState } from "@workspace/ui/components/empty-state"
-import { MetricCard } from "@workspace/ui/components/metric-card"
 import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -124,7 +122,6 @@ function StateGuard({
 
 export function CacheSettingsPage() {
   const t = useTranslations("infrastructure")
-  const format = useFormatter()
   const { data, forbidden, isLoading, loadError, refresh, setData } =
     useAdminResource<AdminCacheState>(
       () => adminSettingsApi.cache(),
@@ -160,30 +157,6 @@ export function CacheSettingsPage() {
           description={t("cache.description")}
           title={t("cache.title")}
         />
-        <CardGrid layout="md-3">
-          <MetricCard
-            description={t("cache.keysHint")}
-            icon={Database}
-            label={t("cache.keys")}
-            value={data?.keys ?? 0}
-          />
-          <MetricCard
-            description={t("cache.memoryHint")}
-            icon={Database}
-            label={t("cache.memory")}
-            value={data?.memoryUsed ?? "—"}
-          />
-          <MetricCard
-            description={t("cache.lastPurgeHint")}
-            icon={Clock}
-            label={t("cache.lastPurge")}
-            value={
-              data?.lastPurgedAt
-                ? format.dateTime(new Date(data.lastPurgedAt), "dateTime")
-                : t("never")
-            }
-          />
-        </CardGrid>
         <Card variant="subtle">
           <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 flex-col gap-1">

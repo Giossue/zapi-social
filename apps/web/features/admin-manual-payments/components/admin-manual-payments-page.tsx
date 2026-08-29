@@ -2,10 +2,8 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from "react"
 import {
-  BadgeDollarSign,
   Check,
   CircleAlert,
-  CircleDot,
   Plus,
   Save,
   ShieldX,
@@ -16,7 +14,6 @@ import {
 import { adminManualPaymentsApi, ApiError } from "@workspace/api-client"
 import type {
   AdminManualPayment,
-  AdminManualPaymentMetrics,
   AdminManualPaymentOptions,
   CreateAdminManualPaymentInput,
   ManualPaymentSettings,
@@ -35,7 +32,6 @@ import {
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
-import { CardGrid } from "@workspace/ui/components/card-grid"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import {
   DataTableFilter,
@@ -51,7 +47,6 @@ import {
 } from "@workspace/ui/components/field"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import { Input } from "@workspace/ui/components/input"
-import { MetricCard } from "@workspace/ui/components/metric-card"
 import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import {
@@ -96,14 +91,6 @@ const statusVariant: Record<
   ManualPaymentStatus,
   "info" | "success" | "secondary"
 > = { pending: "info", approved: "success", rejected: "secondary" }
-
-const emptyMetrics: AdminManualPaymentMetrics = {
-  pending: 0,
-  approved: 0,
-  rejected: 0,
-  approvedAmountMinor: 0,
-  currency: "USD",
-}
 
 const emptySettings: ManualPaymentSettings = {
   enabled: false,
@@ -455,7 +442,6 @@ export function AdminManualPaymentsPage() {
   const t = useTranslations("adminManualPayments")
   const format = useFormatter()
   const [payments, setPayments] = useState<AdminManualPayment[]>([])
-  const [metrics, setMetrics] = useState(emptyMetrics)
   const [settings, setSettings] = useState(emptySettings)
   const [settingsDraft, setSettingsDraft] = useState(emptySettings)
   const [options, setOptions] = useState(emptyOptions)
@@ -481,7 +467,6 @@ export function AdminManualPaymentsPage() {
         ...(status === "all" ? {} : { status }),
       })
       setPayments(response.payments)
-      setMetrics(response.metrics)
       setSettings(response.settings)
       setSettingsDraft(response.settings)
       setForbidden(false)
@@ -583,35 +568,6 @@ export function AdminManualPaymentsPage() {
             <TabsTrigger value="settings">{t("tab.settings")}</TabsTrigger>
           </TabsList>
           <TabsContent className="flex flex-col gap-4" value="payments">
-            <CardGrid>
-              <MetricCard
-                description={t("metrics.pendingDescription")}
-                icon={CircleDot}
-                label={t("metrics.pending")}
-                value={metrics.pending}
-              />
-              <MetricCard
-                description={t("metrics.approvedDescription")}
-                icon={Check}
-                label={t("metrics.approved")}
-                value={metrics.approved}
-              />
-              <MetricCard
-                description={t("metrics.rejectedDescription")}
-                icon={X}
-                label={t("metrics.rejected")}
-                value={metrics.rejected}
-              />
-              <MetricCard
-                description={t("metrics.amountDescription")}
-                icon={BadgeDollarSign}
-                label={t("metrics.amount")}
-                value={format.number(metrics.approvedAmountMinor / 100, {
-                  currency: metrics.currency,
-                  style: "currency",
-                })}
-              />
-            </CardGrid>
             <Card variant="subtle">
               <DataTableHeader
                 action={

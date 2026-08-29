@@ -4,29 +4,17 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
 import { useFormatter, useTranslations } from "next-intl"
-import {
-  CircleCheck,
-  CircleDot,
-  CircleX,
-  LifeBuoy,
-  MessageSquare,
-  Plus,
-  ShieldX,
-  Timer,
-  X,
-} from "lucide-react"
+import { LifeBuoy, MessageSquare, Plus, ShieldX, X } from "lucide-react"
 
 import { adminSupportApi, ApiError } from "@workspace/api-client"
 import type {
   AdminSupportCategory,
-  AdminSupportMetrics,
   AdminSupportTicket,
   AdminSupportTicketStatus,
 } from "@workspace/contracts"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
-import { CardGrid } from "@workspace/ui/components/card-grid"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import {
   DataTableFilter,
@@ -35,7 +23,6 @@ import {
 import { DataTableToolbar } from "@/components/data-table-toolbar"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
-import { MetricCard } from "@workspace/ui/components/metric-card"
 import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import {
@@ -75,42 +62,10 @@ const statusVariant: Record<
   "info" | "success" | "secondary"
 > = { open: "info", resolved: "success", closed: "secondary" }
 
-const emptyMetrics: AdminSupportMetrics = {
-  open: 0,
-  awaitingReply: 0,
-  resolved: 0,
-  closed: 0,
-}
-
 const pageSize = 10
 
 function isLocalTicket(ticket: AdminSupportTicket) {
   return ticket.id.startsWith("local-")
-}
-
-const metricCards = [
-  { icon: CircleDot, key: "open" },
-  { icon: Timer, key: "awaitingReply" },
-  { icon: CircleCheck, key: "resolved" },
-  { icon: CircleX, key: "closed" },
-] as const
-
-function SupportMetrics({ metrics }: { metrics: AdminSupportMetrics }) {
-  const t = useTranslations("adminSupport")
-
-  return (
-    <CardGrid>
-      {metricCards.map((card) => (
-        <MetricCard
-          description={t(`metric.${card.key}.description`)}
-          icon={card.icon}
-          key={card.key}
-          label={t(`metric.${card.key}.label`)}
-          value={metrics[card.key]}
-        />
-      ))}
-    </CardGrid>
-  )
 }
 
 export function AdminSupportPage() {
@@ -119,7 +74,6 @@ export function AdminSupportPage() {
   const format = useFormatter()
   const [tickets, setTickets] = useState<AdminSupportTicket[]>([])
   const [categories, setCategories] = useState<AdminSupportCategory[]>([])
-  const [metrics, setMetrics] = useState<AdminSupportMetrics>(emptyMetrics)
   const [total, setTotal] = useState(0)
   const [query, setQuery] = useState("")
   const [status, setStatus] = useState<AdminSupportTicketStatus | "all">("all")
@@ -155,7 +109,6 @@ export function AdminSupportPage() {
       })
       setTickets(response.tickets)
       setCategories(response.categories)
-      setMetrics(response.metrics)
       setTotal(response.total)
       setForbidden(false)
       setCategoriesCatalog(
@@ -190,10 +143,6 @@ export function AdminSupportPage() {
 
   const displayTickets = [...localTickets, ...tickets]
   const displayTotal = total + localTickets.length
-  const displayMetrics: AdminSupportMetrics = {
-    ...metrics,
-    open: metrics.open + localTickets.length,
-  }
   const pageCount = Math.max(1, Math.ceil(displayTotal / pageSize))
   const safePage = Math.min(page, pageCount)
   const rangeStart = displayTotal ? (safePage - 1) * pageSize + 1 : 0
@@ -286,7 +235,6 @@ export function AdminSupportPage() {
             <TabsTrigger value="types">{t("tab.types")}</TabsTrigger>
           </TabsList>
           <TabsContent className="flex flex-col gap-4" value="cases">
-            <SupportMetrics metrics={displayMetrics} />
             <Card variant="subtle">
               <DataTableHeader
                 action={

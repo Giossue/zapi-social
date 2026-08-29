@@ -4768,6 +4768,7 @@
       "title": "Pick from your storage"
     },
     "page": {
+      "activityLabel": "Publishing activity",
       "calendarLabel": "Post calendar",
       "createTitle": "New post",
       "draftDeleteFailed": "We couldn't delete the draft.",
@@ -4800,6 +4801,7 @@
       "saved": "Your changes were saved.",
       "scheduled": "{count, plural, one {We scheduled # post.} other {We scheduled # posts.}}",
       "section": {
+        "activity": "Activity",
         "bulkPosts": "Bulk posts",
         "calendar": "Calendar",
         "drafts": "Drafts",
@@ -4843,6 +4845,10 @@
       "deleting": "Deleting...",
       "edit": "Edit",
       "empty": {
+        "activity": {
+          "description": "Once you create, schedule, or publish a piece, its activity will appear here for each target.",
+          "title": "No activity yet"
+        },
         "drafts": {
           "description": "Save a post as a draft to continue it later.",
           "title": "No drafts yet"

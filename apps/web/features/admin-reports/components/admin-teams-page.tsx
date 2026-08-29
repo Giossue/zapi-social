@@ -4,12 +4,10 @@ import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useFormatter, useTranslations } from "next-intl"
 import {
-  Cable,
   CircleAlert,
   EllipsisVertical,
   Settings2,
   ShieldX,
-  Users,
   UsersRound,
 } from "lucide-react"
 
@@ -22,7 +20,6 @@ import {
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
-import { CardGrid } from "@workspace/ui/components/card-grid"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import { DataTableHeader } from "@workspace/ui/components/data-table-controls"
 import { EmptyState } from "@workspace/ui/components/empty-state"
@@ -33,7 +30,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
-import { MetricCard } from "@workspace/ui/components/metric-card"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import {
   Table,
@@ -174,32 +170,6 @@ export function AdminTeamsPage() {
         description={t("pageDescription")}
         title={t("pageTitle")}
       />
-      <CardGrid layout="xl-4">
-        <MetricCard
-          icon={UsersRound}
-          description={t("totalWorkspacesHint")}
-          label={t("totalWorkspaces")}
-          value={format.number(data?.totals.workspaces ?? 0)}
-        />
-        <MetricCard
-          icon={Users}
-          description={t("teamWorkspacesHint")}
-          label={t("teamWorkspaces")}
-          value={format.number(data?.totals.teamWorkspaces ?? 0)}
-        />
-        <MetricCard
-          icon={Users}
-          description={t("averageMembersHint")}
-          label={t("averageMembers")}
-          value={format.number(data?.totals.averageMembers ?? 0)}
-        />
-        <MetricCard
-          icon={Cable}
-          description={t("connectedAccountsHint")}
-          label={t("connectedAccounts")}
-          value={format.number(data?.totals.connectedAccounts ?? 0)}
-        />
-      </CardGrid>
       <Card variant="subtle">
         <DataTableHeader
           search={{
