@@ -413,7 +413,8 @@ Regla de bloqueo de conexión nueva:
 El inventario de `/portal/channels` se presenta como una rejilla de cards,
 no como tabla: dos columnas en móvil y cuatro columnas fijas desde `xl`, aun
 cuando existan menos de cuatro canales. La búsqueda, los filtros de proveedor,
-tipo y estado, la paginación y la acción de conexión permanecen visibles. Cada
+tipo y estado y la acción de conexión permanecen visibles; el inventario carga
+todos los canales que coinciden con los filtros, sin paginación. Cada
 card muestra permanentemente avatar, nombre personalizado, nombre oficial y
 estado; el tooltip accesible del estado contiene tipo de canal, proveedor y
 fecha de conexión. Las acciones operativas permanecen disponibles en su menú

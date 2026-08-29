@@ -55,11 +55,8 @@ import { ChannelsLoading } from "./channels-loading"
 import { loginPath } from "@/features/identity/login-redirect"
 
 const META_OAUTH_SESSION_KEY = "zapi:channels:meta-oauth"
-const CHANNELS_PAGE_SIZE = 10
 
 type ChannelsResponse = Awaited<ReturnType<typeof channelsApi.list>>
-type ChannelsSummary = ChannelsResponse["summary"]
-type ChannelsPagination = ChannelsResponse["pagination"]
 
 const providerFilterOptions = [
   ["meta", "Meta"],
@@ -283,19 +280,6 @@ export function LiveChannelsPage() {
   const [capabilities, setCapabilities] = useState<PortalChannelCapability[]>(
     []
   )
-  const [summary, setSummary] = useState<ChannelsSummary>({
-    total: 0,
-    connected: 0,
-    disconnected: 0,
-  })
-  const [pagination, setPagination] = useState<ChannelsPagination>({
-    limit: CHANNELS_PAGE_SIZE,
-    nextCursor: null,
-  })
-  const [cursor, setCursor] = useState<string | undefined>()
-  const [cursorHistory, setCursorHistory] = useState<Array<string | undefined>>(
-    []
-  )
   const [canManage, setCanManage] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
@@ -330,7 +314,7 @@ export function LiveChannelsPage() {
     setHasError(false)
 
     try {
-      const response = await channelsApi.list({
+      const filters = {
         q: debouncedQuery.trim() || undefined,
         provider:
           providerFilter === "all"
@@ -344,16 +328,27 @@ export function LiveChannelsPage() {
           statusFilter === "all"
             ? undefined
             : (statusFilter as ChannelsResponse["accounts"][number]["status"]),
-        limit: CHANNELS_PAGE_SIZE,
-        cursor,
-      })
+        limit: 50,
+      }
+      const response = await channelsApi.list(filters)
       if (requestId !== requestSequence.current) return
 
+      const allAccounts = [...response.accounts]
+      let nextCursor = response.pagination.nextCursor
+
+      while (nextCursor) {
+        const nextPage = await channelsApi.list({
+          ...filters,
+          cursor: nextCursor,
+        })
+        if (requestId !== requestSequence.current) return
+        allAccounts.push(...nextPage.accounts)
+        nextCursor = nextPage.pagination.nextCursor
+      }
+
       const portalCapabilities = response.capabilities.map(toPortalCapability)
-      setAccounts(response.accounts.map(toPortalAccount))
+      setAccounts(allAccounts.map(toPortalAccount))
       setCapabilities(portalCapabilities)
-      setSummary(response.summary)
-      setPagination(response.pagination)
       setCanManage(response.canManage)
       setHasPermission(true)
     } catch (error) {
@@ -378,7 +373,6 @@ export function LiveChannelsPage() {
     }
   }, [
     capabilityFilter,
-    cursor,
     debouncedQuery,
     providerFilter,
     router,
@@ -394,28 +388,9 @@ export function LiveChannelsPage() {
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setDebouncedQuery(query)
-      setCursor(undefined)
-      setCursorHistory([])
     }, 300)
     return () => window.clearTimeout(timer)
   }, [query])
-
-  function resetPagination() {
-    setCursor(undefined)
-    setCursorHistory([])
-  }
-
-  function goToNextPage() {
-    if (!pagination.nextCursor) return
-    setCursorHistory((history) => [...history, cursor])
-    setCursor(pagination.nextCursor)
-  }
-
-  function goToPreviousPage() {
-    if (cursorHistory.length === 0) return
-    setCursor(cursorHistory[cursorHistory.length - 1])
-    setCursorHistory((history) => history.slice(0, -1))
-  }
 
   useEffect(() => {
     const outcome = searchParams.get("oauth")
@@ -589,15 +564,6 @@ export function LiveChannelsPage() {
     setMetaPickerSession(null)
   }
 
-  const rangeStart = accounts.length
-    ? cursorHistory.length * CHANNELS_PAGE_SIZE + 1
-    : 0
-  const rangeEnd = accounts.length
-    ? Math.min(
-        cursorHistory.length * CHANNELS_PAGE_SIZE + accounts.length,
-        summary.total
-      )
-    : 0
   const cardActions: ChannelCardActions = {
     onDelete: setDeletingAccount,
     onEdit: setEditingAccount,
@@ -642,8 +608,6 @@ export function LiveChannelsPage() {
     <>
       <ChannelsUsers
         accounts={accounts}
-        canGoNext={pagination.nextCursor !== null}
-        canGoPrevious={cursorHistory.length > 0}
         canManage={canManage}
         capabilityFilter={capabilityFilter}
         capabilityOptions={capabilityKeys.map((key) => [
@@ -664,28 +628,20 @@ export function LiveChannelsPage() {
         isFiltering={isFiltering}
         onCapabilityFilterChange={(value) => {
           setCapabilityFilter(value)
-          resetPagination()
         }}
         onConnect={() => setIsConnectOpen(true)}
-        onNextPage={goToNextPage}
-        onPreviousPage={goToPreviousPage}
         onProviderFilterChange={(value) => {
           setProviderFilter(value)
-          resetPagination()
         }}
         onQueryChange={setQuery}
         onStatusFilterChange={(value) => {
           setStatusFilter(value)
-          resetPagination()
         }}
         providerFilter={providerFilter}
         providerOptions={providerFilterOptions}
         query={query}
-        rangeEnd={rangeEnd}
-        rangeStart={rangeStart}
         statusFilter={statusFilter}
         cardActions={cardActions}
-        total={summary.total}
       />
       <EditChannelSheet
         account={editingAccount}

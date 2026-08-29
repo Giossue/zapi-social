@@ -15,8 +15,6 @@ import {
 import { DataTableToolbar } from "@/components/data-table-toolbar"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import { PageLoading } from "@workspace/ui/components/page-loading"
-import { TablePagination } from "@/components/table-pagination"
-
 import type { PortalChannelAccount } from "../types/channels"
 import { useTranslations } from "next-intl"
 
@@ -29,8 +27,6 @@ type ChannelFilterOption = readonly [string, string]
 
 type ChannelsUsersProps = {
   accounts: PortalChannelAccount[]
-  canGoNext: boolean
-  canGoPrevious: boolean
   canManage: boolean
   capabilityFilter: string
   capabilityOptions: readonly ChannelFilterOption[]
@@ -38,25 +34,18 @@ type ChannelsUsersProps = {
   isFiltering: boolean
   onCapabilityFilterChange: (value: string) => void
   onConnect: () => void
-  onNextPage: () => void
-  onPreviousPage: () => void
   onProviderFilterChange: (value: string) => void
   onQueryChange: (value: string) => void
   onStatusFilterChange: (value: string) => void
   providerFilter: string
   providerOptions: readonly ChannelFilterOption[]
   query: string
-  rangeEnd: number
-  rangeStart: number
   statusFilter: string
   cardActions: ChannelCardActions
-  total: number
 }
 
 export function ChannelsUsers({
   accounts,
-  canGoNext,
-  canGoPrevious,
   canManage,
   capabilityFilter,
   capabilityOptions,
@@ -64,19 +53,14 @@ export function ChannelsUsers({
   isFiltering,
   onCapabilityFilterChange,
   onConnect,
-  onNextPage,
-  onPreviousPage,
   onProviderFilterChange,
   onQueryChange,
   onStatusFilterChange,
   providerFilter,
   providerOptions,
   query,
-  rangeEnd,
-  rangeStart,
   statusFilter,
   cardActions,
-  total,
 }: ChannelsUsersProps) {
   const t = useTranslations("channels")
 
@@ -86,7 +70,7 @@ export function ChannelsUsers({
         description={t("pageDescription")}
         title={t("pageTitle")}
       />
-      <Card variant="subtle">
+      <Card variant="outline">
         <DataTableHeader
           action={
             canManage ? (
@@ -163,17 +147,6 @@ export function ChannelsUsers({
           <CardContent>{emptyState}</CardContent>
         </Card>
       )}
-
-      <TablePagination
-        canGoNext={canGoNext}
-        canGoPrevious={canGoPrevious}
-        itemLabel={t("itemLabel")}
-        onNextPage={onNextPage}
-        onPreviousPage={onPreviousPage}
-        rangeEnd={rangeEnd}
-        rangeStart={rangeStart}
-        total={total}
-      />
 
       {canManage ? (
         <FloatingActionButton label={t("connect")} onClick={onConnect} />
