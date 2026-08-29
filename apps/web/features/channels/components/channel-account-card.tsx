@@ -127,15 +127,15 @@ export function ChannelAccountCard({
               sideOffset={6}
             >
               <div className="grid gap-0.5">
-                <span>{t("channelType")}</span>
+                <span className="font-semibold">{t("channelType")}</span>
                 <span>{labels.capability(account.capabilityKey)}</span>
               </div>
               <div className="grid gap-0.5">
-                <span>{t("provider")}</span>
+                <span className="font-semibold">{t("provider")}</span>
                 <span>{provider}</span>
               </div>
               <div className="grid gap-0.5">
-                <span>{t("connectedAt")}</span>
+                <span className="font-semibold">{t("connectedAt")}</span>
                 <span>
                   {format.dateTime(connectionInstant(account.connectedAt), {
                     day: "numeric",
