@@ -36,9 +36,9 @@ secciones disponibles.
 
 La composición canónica vive en
 `template-shadcn-superdashboard/src/app/(main)/dashboard/settings`: navegación
-secundaria compuesta con los mismos primitives `SidebarMenu` del sidebar
-principal y montada por el shell junto a él, fuera del panel inset del contenido.
-Es responsive y no añade primitives nuevos.
+secundaria compuesta con los mismos primitives `SidebarMenu` y `Sidebar` del
+sidebar principal, montada por el shell junto a él y fuera del panel inset del
+contenido. Es responsive y no añade primitives nuevos.
 V2 adapta traducciones, rutas y las páginas funcionales existentes. La fuente
 incluye rutas demo reutilizables para AI Studio y Marcas de agua; Link in bio y
 Automatización no tienen equivalentes en el template, por lo que conservan sus

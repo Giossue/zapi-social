@@ -1,5 +1,7 @@
 "use client"
 
+import type { CSSProperties } from "react"
+
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTranslations } from "next-intl"
@@ -14,8 +16,11 @@ import {
 } from "lucide-react"
 
 import {
+  Sidebar,
+  SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -76,32 +81,44 @@ export function PortalSettingsSidebar() {
     settingsItems[0]
 
   return (
-    <aside className="shrink-0 border-b border-sidebar-border bg-sidebar text-sidebar-foreground md:w-56 md:border-r md:border-b-0">
-      <h1 className="px-4 py-4 text-lg font-semibold">{t("settings")}</h1>
-      <SidebarGroup className="pt-0">
-        <SidebarGroupContent>
-          <SidebarMenu aria-label={t("settings")}>
-            {settingsItems.map((item) => {
-              const Icon = item.icon
-              const isActive = item.value === activeItem.value
+    <Sidebar
+      collapsible="none"
+      className="hidden border-r border-sidebar-border md:flex"
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 56)",
+        } as CSSProperties
+      }
+    >
+      <SidebarHeader>
+        <h1 className="px-2 py-2 text-lg font-semibold">{t("settings")}</h1>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarGroup className="pt-0">
+          <SidebarGroupContent>
+            <SidebarMenu aria-label={t("settings")}>
+              {settingsItems.map((item) => {
+                const Icon = item.icon
+                const isActive = item.value === activeItem.value
 
-              return (
-                <SidebarMenuItem key={item.value}>
-                  <SidebarMenuButton asChild isActive={isActive}>
-                    <Link
-                      aria-current={isActive ? "page" : undefined}
-                      href={item.href}
-                    >
-                      <Icon />
-                      <span>{t(item.labelKey)}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )
-            })}
-          </SidebarMenu>
-        </SidebarGroupContent>
-      </SidebarGroup>
-    </aside>
+                return (
+                  <SidebarMenuItem key={item.value}>
+                    <SidebarMenuButton asChild isActive={isActive}>
+                      <Link
+                        aria-current={isActive ? "page" : undefined}
+                        href={item.href}
+                      >
+                        <Icon />
+                        <span>{t(item.labelKey)}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+    </Sidebar>
   )
 }
