@@ -27,22 +27,22 @@ Este inventario refleja los módulos reales de `packages/ui/src/components/`. No
 
 ## Formularios y selección
 
-| Componente     | Importación                              | Uso principal                                                                    |
-| -------------- | ---------------------------------------- | -------------------------------------------------------------------------------- |
-| `Calendar`     | `@workspace/ui/components/calendar`      | Selección accesible de fechas; combinar con `Popover` para campos.               |
-| `Checkbox`     | `@workspace/ui/components/checkbox`      | Selección múltiple o booleana.                                                   |
-| `Combobox`     | `@workspace/ui/components/combobox`      | Selección con búsqueda.                                                          |
-| `Field`        | `@workspace/ui/components/field`         | Estructura, etiqueta, descripción y error de campos de formulario.               |
-| `Input`        | `@workspace/ui/components/input`         | Entrada de texto de una línea; usa `background` para contrastar dentro de cards. |
-| `InputGroup`   | `@workspace/ui/components/input-group`   | Campo con addons o acciones integradas.                                          |
-| `InputOTP`     | `@workspace/ui/components/input-otp`     | Captura segmentada de códigos de un solo uso.                                    |
-| `Label`        | `@workspace/ui/components/label`         | Etiqueta accesible para controles.                                               |
-| `NativeSelect` | `@workspace/ui/components/native-select` | Compatibilidad interna o heredada; no usar en superficies de producto.           |
-| `RadioGroup`   | `@workspace/ui/components/radio-group`   | Una opción entre alternativas exclusivas.                                        |
-| `Select`       | `@workspace/ui/components/select`        | Selecciones acotadas; el trigger conserva el plano `background`.                 |
-| `Slider`       | `@workspace/ui/components/slider`        | Selección continua o de rango.                                                   |
-| `Switch`       | `@workspace/ui/components/switch`        | Ajustes binarios inmediatos.                                                     |
-| `Textarea`     | `@workspace/ui/components/textarea`      | Entrada multilínea; usa `background` dentro de superficies agrupadas.            |
+| Componente     | Importación                              | Uso principal                                                                                                                     |
+| -------------- | ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `Calendar`     | `@workspace/ui/components/calendar`      | Selección accesible de fechas; combinar con `Popover` para campos.                                                                |
+| `Checkbox`     | `@workspace/ui/components/checkbox`      | Selección múltiple o booleana.                                                                                                    |
+| `Combobox`     | `@workspace/ui/components/combobox`      | Selección con búsqueda.                                                                                                           |
+| `Field`        | `@workspace/ui/components/field`         | Estructura, etiqueta, descripción y error de campos de formulario.                                                                |
+| `Input`        | `@workspace/ui/components/input`         | Entrada de texto de una línea; usa `background` para contrastar dentro de cards.                                                  |
+| `InputGroup`   | `@workspace/ui/components/input-group`   | Campo con addons o acciones integradas.                                                                                           |
+| `InputOTP`     | `@workspace/ui/components/input-otp`     | Captura segmentada de códigos de un solo uso.                                                                                     |
+| `Label`        | `@workspace/ui/components/label`         | Etiqueta accesible para controles.                                                                                                |
+| `NativeSelect` | `@workspace/ui/components/native-select` | Compatibilidad interna o heredada; no usar en superficies de producto.                                                            |
+| `RadioGroup`   | `@workspace/ui/components/radio-group`   | Una opción entre alternativas exclusivas.                                                                                         |
+| `Select`       | `@workspace/ui/components/select`        | Selecciones acotadas; el trigger conserva el plano `background`.                                                                  |
+| `Slider`       | `@workspace/ui/components/slider`        | Selección continua o de rango.                                                                                                    |
+| `Switch`       | `@workspace/ui/components/switch`        | Ajustes binarios inmediatos.                                                                                                      |
+| `Textarea`     | `@workspace/ui/components/textarea`      | Entrada multilínea; usa `background` dentro de superficies agrupadas.                                                             |
 | `TimePicker`   | `@workspace/ui/components/time-picker`   | Hora y minutos compartidos por Publishing y programaciones; adapta el `Input type="time"` oficial y conserva el contrato `HH:mm`. |
 
 ## Superficies, datos y contenido

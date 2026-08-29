@@ -411,10 +411,11 @@ La pantalla muestra instrucciones específicas de cada provider: scopes, callbac
 Regla de bloqueo de conexión nueva:
 
 El inventario de `/portal/channels` se presenta como una rejilla de cards,
-no como tabla. La búsqueda, los filtros de proveedor, tipo y estado, la
-paginación y la acción de conexión permanecen visibles. Cada card conserva
-identidad, estado, capability, proveedor, fecha de conexión y todas las
-acciones operativas. La composición canónica vive en
+no como tabla: dos columnas en móvil y cuatro desde `xl`. La búsqueda, los
+filtros de proveedor, tipo y estado, la paginación y la acción de conexión
+permanecen visibles. Cada card conserva identidad, estado, capability,
+proveedor, fecha de conexión y todas las acciones operativas. La composición
+canónica vive en
 `template-shadcn-superdashboard/src/app/(main)/dashboard/channels` y V2 adapta
 únicamente datos, traducciones, permisos y handlers reales.
 
