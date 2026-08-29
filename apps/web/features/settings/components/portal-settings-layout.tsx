@@ -83,7 +83,7 @@ export function PortalSettingsSidebar() {
   return (
     <Sidebar
       collapsible="none"
-      className="hidden border-r border-sidebar-border md:flex"
+      className="hidden min-h-svh self-stretch border-r border-sidebar-border md:flex"
       style={
         {
           "--sidebar-width": "calc(var(--spacing) * 56)",
