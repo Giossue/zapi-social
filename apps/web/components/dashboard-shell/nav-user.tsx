@@ -16,7 +16,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@workspace/ui/components/sidebar"
-import { CircleUser, EllipsisVertical, LogOut } from "lucide-react"
+import { CircleUser, CreditCard, EllipsisVertical, LogOut } from "lucide-react"
 import Link from "next/link"
 
 import {
@@ -24,18 +24,20 @@ import {
   type AccountProfile,
   useSessionLogout,
 } from "@/components/account-menu"
-import { ThemeMenuItem } from "@/components/dashboard-shell/theme-switcher"
 
 type DashboardNavUserProps = {
+  plansHref?: string
   profile: AccountProfile
   profileHref: string
 }
 
 export function DashboardNavUser({
+  plansHref,
   profile,
   profileHref,
 }: DashboardNavUserProps) {
   const t = useTranslations("navigation.user")
+  const tPortal = useTranslations("navigation.portal")
   const { isMobile, setOpenMobile } = useSidebar()
   const logout = useSessionLogout()
 
@@ -77,7 +79,14 @@ export function DashboardNavUser({
                   {t("myProfile")}
                 </Link>
               </DropdownMenuItem>
-              <ThemeMenuItem />
+              {plansHref ? (
+                <DropdownMenuItem asChild>
+                  <Link href={plansHref} onClick={() => setOpenMobile(false)}>
+                    <CreditCard />
+                    {tPortal("plans")}
+                  </Link>
+                </DropdownMenuItem>
+              ) : null}
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem

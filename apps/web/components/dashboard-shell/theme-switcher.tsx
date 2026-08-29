@@ -3,7 +3,9 @@
 import { Monitor, Moon, Sun } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { useTheme } from "next-themes"
+import { useSyncExternalStore } from "react"
 
+import { Button } from "@workspace/ui/components/button"
 import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
@@ -19,6 +21,34 @@ const THEMES = [
 ] as const
 
 type ThemeMode = (typeof THEMES)[number]["value"]
+
+const subscribeNoop = () => () => {}
+
+export function ThemeSwitcher() {
+  const t = useTranslations("shell.theme")
+  const { setTheme, theme } = useTheme()
+  const mounted = useSyncExternalStore(
+    subscribeNoop,
+    () => true,
+    () => false
+  )
+
+  const active = THEMES.find((item) => item.value === theme) ?? THEMES[2]
+  const next =
+    THEMES[(THEMES.indexOf(active) + 1) % THEMES.length] ?? THEMES[0]
+  const CurrentIcon = mounted ? active.icon : Monitor
+
+  return (
+    <Button
+      aria-label={`${t("label")}: ${t(active.value)}`}
+      size="icon-sm"
+      variant="ghost"
+      onClick={() => setTheme(next.value)}
+    >
+      <CurrentIcon />
+    </Button>
+  )
+}
 
 export function ThemeMenuItem() {
   const t = useTranslations("shell.theme")

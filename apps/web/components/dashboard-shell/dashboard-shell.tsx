@@ -23,6 +23,7 @@ import type {
 } from "./navigation-types"
 import { NotificationBell } from "./notification-bell"
 import { DashboardSearchDialog } from "./search-dialog"
+import { ThemeSwitcher } from "./theme-switcher"
 import { WorkspaceSwitcher } from "./workspace-switcher"
 import { subscribeToNotificationUnread } from "@/features/notifications/notification-indicator"
 
@@ -110,6 +111,7 @@ export function DashboardShell({
         lockedLabel={t("planLocked.navigationLabel")}
         isItemActive={isItemActive}
         items={items}
+        plansHref={areaName === "Admin" ? undefined : "/portal/plans"}
         profile={profile}
         profileHref={
           areaName === "Admin" ? "/admin/profile" : "/portal/profile"
@@ -144,12 +146,15 @@ export function DashboardShell({
                 lockedLabel={t("planLocked.navigationLabel")}
               />
             </div>
-            {workspaceContext ? (
-              <div className="flex items-center gap-2">
-                <NotificationBell />
-                <WorkspaceSwitcher {...workspaceContext} />
-              </div>
-            ) : null}
+            <div className="flex items-center gap-2">
+              <ThemeSwitcher />
+              {workspaceContext ? (
+                <>
+                  <NotificationBell />
+                  <WorkspaceSwitcher {...workspaceContext} />
+                </>
+              ) : null}
+            </div>
           </div>
         </header>
         <div
