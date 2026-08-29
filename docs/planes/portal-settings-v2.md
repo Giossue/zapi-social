@@ -35,8 +35,9 @@ secciones disponibles.
 ## Fuente visual y validación
 
 La composición canónica vive en
-`template-shadcn-superdashboard/src/app/(main)/dashboard/settings`: Tabs
-verticales dentro de un panel secundario, responsive y sin primitives nuevos.
+`template-shadcn-superdashboard/src/app/(main)/dashboard/settings`: navegación
+secundaria compuesta con los mismos primitives `SidebarMenu` del sidebar
+principal, responsive y sin primitives nuevos.
 V2 adapta traducciones, rutas y las páginas funcionales existentes. La fuente
 incluye rutas demo reutilizables para AI Studio y Marcas de agua; Link in bio y
 Automatización no tienen equivalentes en el template, por lo que conservan sus
