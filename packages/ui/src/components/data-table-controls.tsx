@@ -48,6 +48,7 @@ type DataTableToolbarProps = {
   actions?: ReactNode
   children?: ReactNode
   className?: string
+  filtersClassName?: string
 }
 
 type DataTableFilterOption = {
@@ -136,6 +137,7 @@ function DataTableToolbar({
   actions,
   children,
   className,
+  filtersClassName,
   filtersLabel,
 }: DataTableToolbarProps) {
   const [filtersOpen, setFiltersOpen] = useState(false)
@@ -166,7 +168,8 @@ function DataTableToolbar({
       <div
         className={cn(
           "w-full min-w-0 flex-wrap items-center gap-3 sm:w-auto md:flex",
-          filtersOpen ? "flex" : "hidden"
+          filtersOpen ? "flex" : "hidden",
+          filtersClassName
         )}
         id={filtersId}
       >

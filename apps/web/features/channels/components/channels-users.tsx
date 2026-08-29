@@ -91,7 +91,10 @@ export function ChannelsUsers({
             value: query,
           }}
         />
-        <DataTableToolbar>
+        <DataTableToolbar
+          className="px-0"
+          filtersClassName="rounded-lg bg-muted/50 px-3 py-2"
+        >
           <DataTableFilter
             ariaLabel={t("filterProvider")}
             label={t("provider")}
