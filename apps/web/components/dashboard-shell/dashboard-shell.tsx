@@ -35,6 +35,7 @@ type DashboardShellProps = {
   items: readonly DashboardNavigationGroup[]
   navigationLabel: string
   profile: AccountProfile
+  secondaryNavigation?: React.ReactNode
   sidebarStorageKey: string
   workspaceContext?: {
     activeWorkspace: ActiveWorkspace
@@ -67,6 +68,7 @@ export function DashboardShell({
   items,
   navigationLabel,
   profile,
+  secondaryNavigation,
   sidebarStorageKey,
   workspaceContext,
 }: DashboardShellProps) {
@@ -150,8 +152,20 @@ export function DashboardShell({
             ) : null}
           </div>
         </header>
-        <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden p-4 has-data-[content-padding=false]:p-0 md:p-6 md:has-data-[content-padding=false]:p-0">
-          {children}
+        <div
+          className={cn(
+            "min-h-0 min-w-0 flex-1 overflow-x-hidden",
+            secondaryNavigation
+              ? "flex flex-col md:flex-row"
+              : "p-4 has-data-[content-padding=false]:p-0 md:p-6 md:has-data-[content-padding=false]:p-0"
+          )}
+        >
+          {secondaryNavigation}
+          {secondaryNavigation ? (
+            <div className="min-w-0 flex-1 p-4 md:p-6">{children}</div>
+          ) : (
+            children
+          )}
         </div>
       </SidebarInset>
     </SidebarProvider>

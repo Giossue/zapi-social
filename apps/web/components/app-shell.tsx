@@ -17,6 +17,7 @@ import type {
 } from "@/components/dashboard-shell/navigation-types"
 import { ImpersonationBanner } from "@/features/identity/components/impersonation-banner"
 import { PlanLockedModule } from "@/features/portal-shell/components/plan-locked-module"
+import { PortalSettingsSidebar } from "@/features/settings/components/portal-settings-layout"
 import { useTranslatedNavigation } from "@/components/dashboard-shell/translate-navigation"
 import {
   getPortalNavigationItem,
@@ -134,6 +135,11 @@ export function AppShell({ children, session }: AppShellProps) {
       items={items}
       navigationLabel={t("portalNavigationLabel")}
       profile={session.user}
+      secondaryNavigation={
+        pathname.startsWith("/portal/settings") ? (
+          <PortalSettingsSidebar />
+        ) : undefined
+      }
       sidebarStorageKey="zapi:portal-sidebar:v1"
       workspaceContext={{
         activeWorkspace: session.workspace,
