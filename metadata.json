@@ -1,0 +1,56 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "01M17W64KQY89MAAJ3HQQGTZK7",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "apps/web/features/admin-manual-payments/components/admin-manual-payments-page.tsx",
+    "apps/web/features/admin-notifications/components/admin-notifications-page.tsx",
+    "apps/web/features/admin-payment-report/components/admin-payment-report-page.tsx",
+    "apps/web/features/admin-reports/components/admin-teams-page.tsx",
+    "apps/web/features/admin-reports/components/admin-user-report-page.tsx",
+    "apps/web/features/admin-settings/components/infrastructure-pages.tsx",
+    "apps/web/features/admin-support/components/admin-support-page.tsx",
+    "apps/web/features/affiliate/components/affiliate-page.tsx",
+    "apps/web/features/ai-admin/components/ai-configuration-page.tsx",
+    "apps/web/features/ai-admin/components/ai-report-page.tsx",
+    "apps/web/features/ai-studio/components/ai-studio-operations.tsx",
+    "apps/web/features/ai-studio/components/ai-studio-page.tsx",
+    "apps/web/features/link-bio/components/link-bio-page.tsx",
+    "apps/web/features/plans/components/plans-page.tsx",
+    "apps/web/features/platform-admin/components/admin-module-preview.tsx",
+    "apps/web/features/platform-admin/components/system-information-page.tsx",
+    "apps/web/features/publishing/components/publishing-calendar-page.tsx",
+    "apps/web/features/publishing/components/publishing-page-loader.tsx",
+    "apps/web/features/publishing/components/publishing-posts-table.tsx",
+    "apps/web/features/support/components/support-tickets-page.tsx",
+    "docs/planes/publishing-v2.md",
+    "packages/contracts/src/messages/en.json",
+    "packages/contracts/src/messages/es.d.json.ts",
+    "packages/contracts/src/messages/es.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 20,
+    "cache_creation_tokens": 62878,
+    "cache_read_tokens": 734098,
+    "output_tokens": 5954,
+    "api_call_count": 11,
+    "subagent_tokens": {
+      "input_tokens": 61,
+      "cache_creation_tokens": 298785,
+      "cache_read_tokens": 2606378,
+      "output_tokens": 52153,
+      "api_call_count": 32
+    }
+  }
+}

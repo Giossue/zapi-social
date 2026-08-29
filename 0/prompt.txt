@@ -1,0 +1,138 @@
+ok ahora quiero en todas las páginas que no sean Resumen o Dashboard las card metrics se quiten, es decir solo habrá card metrics en el dashboard
+
+---
+
+<task-notification>
+<task-id>aec077c598e7a7278</task-id>
+<tool-use-id>toolu_01QX1aaWR2FbbTKSzoofdUPR</tool-use-id>
+<output-file>/tmp/claude-1000/-home-giossue-Documentos-ZapiV2/4ddaaecc-e2ca-490f-9fdc-dbb5f701cbc4/tasks/aec077c598e7a7278.output</output-file>
+<status>completed</status>
+<summary>Agent "Quitar MetricCards lote 2" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Terminado. Resumen:
+
+## Archivos editados (los 6 pedidos)
+
+1. **`/home/giossue/Documentos/ZapiV2/apps/web/features/admin-support/components/admin-support-page.tsx`**
+   - Eliminados el componente `SupportMetrics`, el array `metricCards`, la constante `emptyMetrics`, el estado `metrics`/`setMetrics`, el cálculo `displayMetrics` y `setMetrics(response.metrics)` en `load`.
+   - Imports fuera: `MetricCard`, `CardGrid`, tipo `AdminSupportMetrics` e iconos `CircleCheck`, `CircleDot`, `CircleX`, `Timer`.
+
+2. **`/home/giossue/Documentos/ZapiV2/apps/web/features/admin-notifications/components/admin-notifications-page.tsx`**
+   - Eliminado el bloque `&lt;CardGrid&gt;` con las 4 `MetricCard`, `emptyMetrics`, el estado `metrics`/`setMetrics` y `setMetrics(response.metrics)`.
+   - Imports fuera: `MetricCard`, `CardGrid`, tipo `AdminAnnouncementMetrics` e iconos `BellRing`, `Eye`, `FileText`, `Target`.
+
+3. **`/home/giossue/Documentos/ZapiV2/apps/web/features/admin-manual-payments/components/admin-manual-payments-page.tsx`**
+   - Eliminado el bloque `&lt;CardGrid&gt;` de la pestaña de pagos, `emptyMetrics`, el estado `metrics`/`setMetrics` y `setMetrics(response.metrics)`.
+   - Imports fuera: `MetricCard`, `CardGrid`, tipo `AdminManualPaymentMetrics` e iconos `BadgeDollarSign`, `CircleDot` (`Check` y `X` se conservan porque se usan en aprobar/rechazar y limpiar filtros).
+
+4. **`/home/giossue/Documentos/ZapiV2/apps/web/features/admin-payment-report/components/admin-payment-report-page.tsx`**
+   - Eliminado el bloque `&lt;CardGrid&gt;` de KPIs y `metrics` del destructuring (`const { currency } = report`); `currency` y `reportMoney` se conservan porque los usan las tablas.
+   - Imports fuera: `MetricCard`, `CardGrid` e iconos `Wallet`, `RotateCcw`, `Receipt` (`BadgeDollarSign` se conserva: lo usa el EmptyState del gráfico).
+
+5. **`/home/giossue/Documentos/ZapiV2/apps/web/features/admin-reports/components/admin-user-report-page.tsx`**
+   - Eliminado el bloque `&lt;CardGrid layout="xl-4"&gt;` con las 4 tarjetas de totales.
+   - Imports fuera: `MetricCard`, `CardGrid` e iconos `Users`, `UserPlus`, `TrendingUp`, `MailCheck` (`BadgeCheck` se conserva: badge de verificado en la tabla).
+
+6. **`/home/giossue/Documentos/ZapiV2/apps/web/features/admin-reports/components/admin-teams-page.tsx`**
+   - Eliminado el bloque `&lt;CardGrid layout="xl-4"&gt;` con las 4 tarjetas de totales.
+   - Imports fuera: `MetricCard`, `CardGrid` e iconos `Users`, `Cable` (`UsersRound` se conserva: lo usa el EmptyState de la tabla).
+
+No toqué catálogos i18n ni nada más del layout (tablas, filtros, formularios, tabs y paginación intactos).
+
+## Validación
+
+- **`bun run lint`**: pasa completo (8/8 tareas, 0 errores).
+- **`bun run typecheck`**: mis 6 archivos compilan sin errores. El comando global falla, pero únicamente por dos archivos ajenos a esta tarea que tienen cambios en curso de otro trabajo paralelo (visibles en `git status` como modificados con cambios staged/unstaged que yo no hice): `apps/web/features/ai-studio/components/ai-studio-page.tsx` (props faltantes `balance`, `consumed`, `renewal`) y `apps/web/features/platform-admin/components/system-information-page.tsx` (referencias a `CardGrid`/`MetricCard`/`Cpu`/`Database` cuyos imports quitó ese otro cambio dejando el JSX). No los toqué para no pisar ese trabajo; ninguno de los errores proviene de mis archivos.</result>
+<usage><subagent_tokens>83302</subagent_tokens><tool_uses>46</tool_uses><duration_ms>190736</duration_ms></usage>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>a07d1cd8fb492806a</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-giossue-Documentos-ZapiV2/4ddaaecc-e2ca-490f-9fdc-dbb5f701cbc4/tasks/a07d1cd8fb492806a.output</output-file>
+<status>completed</status>
+<summary>Agent "Quitar MetricCards lote 3" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Terminado. Resumen:
+
+## Archivos editados
+
+1. **`/home/giossue/Documentos/ZapiV2/apps/web/features/ai-admin/components/ai-configuration-page.tsx`**
+   - Eliminado el array `metrics` y el bloque `&lt;CardGrid layout="xl-5"&gt;` con las 5 `MetricCard` del `UsagePanel` (se deshizo también el fragmento `&lt;&gt;…&lt;/&gt;` que solo existía para envolverlas).
+   - Eliminados los imports de `MetricCard`, `CardGrid` y los iconos `CircleDollarSign` y `Timer` (solo los usaban las tarjetas). `Activity`, `CheckCircle2` y `CircleX` se conservan porque se usan en `readinessCopy` y en los `EmptyState`.
+
+2. **`/home/giossue/Documentos/ZapiV2/apps/web/features/ai-admin/components/ai-report-page.tsx`**
+   - Eliminado el bloque `&lt;CardGrid layout="md-3"&gt;` con las 6 `MetricCard` de totales.
+   - Eliminados los imports de `MetricCard`, `CardGrid` y los iconos `Activity`, `CheckCircle2`, `CircleDollarSign` y `Timer`. `CircleAlert`, `ShieldCheck` y `CalendarRange` se conservan (estados de error y selector de fechas). `money` sigue usándose en las tablas.
+
+3. **`/home/giossue/Documentos/ZapiV2/apps/web/features/platform-admin/components/admin-module-preview.tsx`**
+   - Eliminado el bloque `&lt;CardGrid&gt;` con las `MetricCard`, la variable calculada `metrics`, el tipo `Metric` y la propiedad `metricIcons` del tipo `Tab` y de los 6 módulos (`users`, `credits`, `affiliate`, `coupons`, `payments`, `subscriptions`).
+   - Eliminados los imports de `MetricCard`, `CardGrid` y los 9 iconos que solo usaban las tarjetas: `BadgeDollarSign`, `CircleDollarSign`, `HandCoins`, `ReceiptText`, `RotateCcw`, `Tags`, `Users`, `WalletCards`, `X`. Se conservan los que siguen en uso (acciones de fila, primary actions y estados vacíos).
+
+4. **`/home/giossue/Documentos/ZapiV2/apps/web/features/platform-admin/components/system-information-page.tsx`**
+   - Eliminado el bloque `&lt;CardGrid layout="md-3"&gt;` con las 3 `MetricCard` (entorno, uptime, migraciones), incluido el cálculo de días/horas/minutos que solo existía ahí.
+   - Eliminados los imports de `MetricCard`, `CardGrid`, `Cpu` y `Database`.
+
+5. **`/home/giossue/Documentos/ZapiV2/apps/web/features/admin-settings/components/infrastructure-pages.tsx`**
+   - Eliminado en `CacheSettingsPage` el bloque `&lt;CardGrid layout="md-3"&gt;` con las 3 `MetricCard` (claves, memoria, última purga) y el `const format = useFormatter()` de esa función, que quedaba sin uso (`CronsSettingsPage` conserva el suyo).
+   - Eliminados los imports de `MetricCard`, `CardGrid`, `Clock` y `Database`.
+
+No hubo props ni tipos expuestos hacia llamadores que cablear: los cinco componentes consumen sus datos internamente. No se tocaron los catálogos i18n ni los cuatro archivos prohibidos.
+
+## Validación
+
+- **`bun run lint`**: pasa (8/8 tareas OK).
+- **`bun run typecheck`**: mis cinco archivos no producen ningún error. El comando global falla únicamente por errores de sintaxis preexistentes en `apps/web/features/ai-studio/components/ai-studio-operations.tsx` (líneas 1148-1163), un archivo que no toqué y que tiene modificaciones en curso de otro trabajo en el árbol (aparece con cambios staged y unstaged ajenos a esta tarea). No lo corregí porque no proviene de mis archivos y el encargo prohíbe tocar nada más.</result>
+<usage><subagent_tokens>86691</subagent_tokens><tool_uses>36</tool_uses><duration_ms>186678</duration_ms></usage>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>a810d442adc0c4f28</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-giossue-Documentos-ZapiV2/4ddaaecc-e2ca-490f-9fdc-dbb5f701cbc4/tasks/a810d442adc0c4f28.output</output-file>
+<status>completed</status>
+<summary>Agent "Quitar MetricCards lote 1" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Trabajo terminado. Resumen:
+
+**Archivos editados y qué se quitó en cada uno:**
+
+1. `/home/giossue/Documentos/ZapiV2/apps/web/features/support/components/support-tickets-page.tsx`
+   - Componente `SupportMetrics`, tipo `SupportCounts`, constante `emptyCounts`, estado `counts` y el callback `loadCounts` (junto con su `Promise.all` en `load`, que quedó como llamada simple a `supportApi.list`).
+   - Imports: `MetricCard`, `CardGrid` y los iconos `CircleCheck`, `CircleDot`, `CircleX`.
+
+2. `/home/giossue/Documentos/ZapiV2/apps/web/features/affiliate/components/affiliate-page.tsx`
+   - Bloque `CardGrid` con las 6 `MetricCard` (clics, referidos, conversiones, disponible, pendiente, pagado).
+   - Imports: `MetricCard`, `CardGrid` e iconos `BadgeCheck`, `CircleDollarSign`, `MousePointerClick`, `Users`. Se conservaron `Wallet`, `HandCoins` y `money()` porque se usan en otras partes; `totals` sigue en uso para el retiro.
+
+3. `/home/giossue/Documentos/ZapiV2/apps/web/features/plans/components/plans-page.tsx`
+   - Bloque `CardGrid` con el array inline de 4 métricas, y los cálculos `activePlans`, `subscriberCount`, `featuredPlans` (solo servían a las tarjetas).
+   - Imports: `MetricCard`, `CardGrid` e icono `WalletCards`. Se conservaron `Check`, `Users` y `Sparkles`, usados en otras partes.
+
+4. `/home/giossue/Documentos/ZapiV2/apps/web/features/link-bio/components/link-bio-page.tsx`
+   - Bloque `CardGrid` con las 3 `MetricCard` (páginas, vistas, clics).
+   - Imports: `MetricCard`, `CardGrid` e iconos `Link2`, `Eye`, `MousePointerClick`.
+
+5. `/home/giossue/Documentos/ZapiV2/apps/web/features/publishing/components/publishing-posts-table.tsx`
+   - **Sin cambios**: el archivo no contiene ninguna `MetricCard` ni import relacionado (parece que ya se había retirado antes). Verificado con grep en toda la feature.
+
+6. `/home/giossue/Documentos/ZapiV2/apps/web/features/ai-studio/components/ai-studio-page.tsx`
+   - En `Overview`: array `metrics` y su `CardGrid` de `MetricCard`.
+   - En `OperationalCredits`: props `balance`, `consumed` y `renewal` pasadas a `AiCreditsSurface` y el cálculo `balanceLabel`.
+   - Imports: `MetricCard` e icono `ShieldCheck`. `CardGrid`, `Coins`, `Sparkles` y `Clock3` se conservaron porque se usan en otras vistas del mismo archivo.
+
+7. `/home/giossue/Documentos/ZapiV2/apps/web/features/ai-studio/components/ai-studio-operations.tsx`
+   - En `AiCreditsSurface`: el bloque `CardGrid` con las 3 métricas de créditos (se desenrolló el fragmento que solo lo envolvía) y las props `balance`, `consumed`, `renewal` del tipo `AiCreditsSurfaceProps` y del destructuring.
+   - Imports: `MetricCard`, `CardGrid` e iconos `Clock3`, `Coins`, `Sparkles`.
+
+No se tocaron catálogos i18n, tablas, filtros ni formularios.
+
+**Validación:**
+- `bun run typecheck`: 8/8 tareas correctas (web recompilado, cache miss, sin errores).
+- `bun run lint`: 8/8 correctas; como `web:lint` salió de caché de turbo, ejecuté además `eslint` directamente sobre los 7 archivos y salió limpio (0 errores, 0 warnings).</result>
+<usage><subagent_tokens>142010</subagent_tokens><tool_uses>46</tool_uses><duration_ms>205599</duration_ms></usage>
+</task-notification>
