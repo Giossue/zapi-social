@@ -70,8 +70,9 @@ export function ChannelsUsers({
         description={t("pageDescription")}
         title={t("pageTitle")}
       />
-      <Card variant="outline">
+      <div className="flex flex-col gap-4 py-4">
         <DataTableHeader
+          className="border-b-0"
           action={
             canManage ? (
               <Button
@@ -90,45 +91,43 @@ export function ChannelsUsers({
             value: query,
           }}
         />
-        <CardContent className="px-0">
-          <DataTableToolbar>
-            <DataTableFilter
-              ariaLabel={t("filterProvider")}
-              label={t("provider")}
-              onValueChange={onProviderFilterChange}
-              options={[
-                { label: t("all"), value: "all" },
-                ...providerOptions.map(([value, label]) => ({ label, value })),
-              ]}
-              value={providerFilter}
-            />
-            <DataTableFilter
-              ariaLabel={t("filterType")}
-              label={t("type")}
-              onValueChange={onCapabilityFilterChange}
-              options={[
-                { label: t("all"), value: "all" },
-                ...capabilityOptions.map(([value, label]) => ({
-                  label,
-                  value,
-                })),
-              ]}
-              value={capabilityFilter}
-            />
-            <DataTableFilter
-              ariaLabel={t("filterStatus")}
-              label={t("statusColumn")}
-              onValueChange={onStatusFilterChange}
-              options={[
-                { label: t("all"), value: "all" },
-                { label: t("filter.connected"), value: "connected" },
-                { label: t("filter.disconnected"), value: "disconnected" },
-              ]}
-              value={statusFilter}
-            />
-          </DataTableToolbar>
-        </CardContent>
-      </Card>
+        <DataTableToolbar>
+          <DataTableFilter
+            ariaLabel={t("filterProvider")}
+            label={t("provider")}
+            onValueChange={onProviderFilterChange}
+            options={[
+              { label: t("all"), value: "all" },
+              ...providerOptions.map(([value, label]) => ({ label, value })),
+            ]}
+            value={providerFilter}
+          />
+          <DataTableFilter
+            ariaLabel={t("filterType")}
+            label={t("type")}
+            onValueChange={onCapabilityFilterChange}
+            options={[
+              { label: t("all"), value: "all" },
+              ...capabilityOptions.map(([value, label]) => ({
+                label,
+                value,
+              })),
+            ]}
+            value={capabilityFilter}
+          />
+          <DataTableFilter
+            ariaLabel={t("filterStatus")}
+            label={t("statusColumn")}
+            onValueChange={onStatusFilterChange}
+            options={[
+              { label: t("all"), value: "all" },
+              { label: t("filter.connected"), value: "connected" },
+              { label: t("filter.disconnected"), value: "disconnected" },
+            ]}
+            value={statusFilter}
+          />
+        </DataTableToolbar>
+      </div>
 
       {isFiltering ? (
         <PageLoading aria-label={t("filtering")} className="min-h-48" />

@@ -37,6 +37,7 @@ type DataTableSearchProps = {
 
 type DataTableHeaderProps = {
   action?: ReactNode
+  className?: string
   description?: ReactNode
   search?: DataTableSearchProps
   title?: ReactNode
@@ -64,6 +65,7 @@ type DataTableFilterProps = {
 
 function DataTableHeader({
   action,
+  className,
   description,
   search,
   title,
@@ -74,7 +76,8 @@ function DataTableHeader({
     <CardHeader
       className={cn(
         "border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]",
-        !hasContext && "md:has-data-[slot=card-action]:grid-cols-1"
+        !hasContext && "md:has-data-[slot=card-action]:grid-cols-1",
+        className
       )}
     >
       {title !== undefined ? (
