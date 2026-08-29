@@ -582,8 +582,11 @@ export function PublishingCalendarPage({
           </TabsList>
         </nav>
 
-        <TabsContent value="calendar" className="min-h-0 flex-1">
-          <section aria-label={t("calendarLabel")} className="min-h-0 flex-1">
+        <TabsContent value="calendar" className="flex min-h-0 flex-1 flex-col">
+          <section
+            aria-label={t("calendarLabel")}
+            className="flex min-h-0 flex-1 flex-col"
+          >
             <PublishingCalendar
               initialDate={calendar.focusDate}
               onCreateAtDate={(date) => openComposer(null, date)}
