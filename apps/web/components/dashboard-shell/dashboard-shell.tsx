@@ -116,7 +116,7 @@ export function DashboardShell({
         profileHref={
           areaName === "Admin" ? "/admin/profile" : "/portal/profile"
         }
-        variant="inset"
+        variant="sidebar"
       />
       {secondaryNavigation}
       <SidebarInset
@@ -124,7 +124,6 @@ export function DashboardShell({
           "[&>*]:mx-auto",
           "[&>*]:w-full",
           "[&>*]:max-w-screen-2xl",
-          "peer-data-[variant=inset]:border",
           "[--dashboard-header-height:--spacing(12)]",
           "min-w-0 overflow-x-clip"
         )}
@@ -132,7 +131,7 @@ export function DashboardShell({
         <header
           className={cn(
             "flex h-12 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12",
-            "sticky top-0 z-50 overflow-hidden rounded-t-[inherit] bg-background/50 backdrop-blur-md"
+            "sticky top-0 z-50 overflow-hidden bg-background/50 backdrop-blur-md"
           )}
         >
           <div className="flex w-full items-center justify-between px-4 lg:px-6">

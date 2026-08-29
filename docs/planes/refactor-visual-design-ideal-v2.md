@@ -53,7 +53,7 @@ No se entrega un selector de preferencias. Presets, fuentes y modos alternos de 
 
 ### Shells y composición transversal
 
-- [x] Portal y Admin: `SidebarProvider` + `SidebarInset`, contenido centrado, header compacto sticky, sidebar `inset` y colapso `icon`.
+- [x] Portal y Admin: `SidebarProvider` + `SidebarInset` como contenedor plano, contenido centrado, header compacto sticky, sidebar recto y colapso `icon`.
 - [x] Navegación, sesión, permisos, estado activo y persistencia de sidebar preservados.
 - [x] Marca Admin enlaza directamente a `/admin/dashboard`.
 - [x] Auth: login, registro, recuperación y reset con composición nueva sin cambiar flujos de sesión.
