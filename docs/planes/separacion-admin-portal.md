@@ -174,7 +174,7 @@ username
 
 ```text
 /portal/dashboard
-/portal/channels
+/portal/settings/channels
 /portal/publishing/*
 /portal/library/*
 /portal/settings/*

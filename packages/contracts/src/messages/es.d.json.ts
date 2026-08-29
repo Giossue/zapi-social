@@ -4446,6 +4446,7 @@ declare const messages: {
       "publishing": "Publicación",
       "queue": "Cola",
       "rssSchedules": "Programaciones RSS",
+      "settings": "Ajustes",
       "support": "Soporte",
       "teamActivity": "Actividad",
       "teamInvitations": "Invitaciones",

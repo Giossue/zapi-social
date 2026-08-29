@@ -14,7 +14,7 @@ import {
   LifeBuoy,
   PenLine,
   Rss,
-  Share2,
+  Settings2,
   Users,
   WandSparkles,
   Zap,
@@ -58,7 +58,7 @@ export const portalNavigationGroups: readonly PortalNavigationGroup[] = [
   {
     labelKey: "workspace",
     items: [
-      { labelKey: "channels", href: "/portal/channels", icon: Share2 },
+      { labelKey: "settings", href: "/portal/settings", icon: Settings2 },
       {
         labelKey: "publishing",
         icon: CalendarDays,

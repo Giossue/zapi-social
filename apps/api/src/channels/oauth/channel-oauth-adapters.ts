@@ -187,7 +187,7 @@ export class ChannelOAuthAuthorizationService {
     capabilityKey: string;
   }) {
     const url = new URL(
-      '/portal/channels',
+      '/portal/settings/channels',
       this.config.getOrThrow<string>('WEB_ORIGIN'),
     );
     url.searchParams.set('oauth', input.outcome);

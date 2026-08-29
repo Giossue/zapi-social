@@ -110,7 +110,7 @@ function metaOAuthPickerCapability(
 }
 
 function clearMetaOAuthReturnUrl() {
-  const canonicalPath = "/portal/channels"
+  const canonicalPath = "/portal/settings/channels"
   const hasFacebookReturnHash = window.location.hash === "#_=_"
 
   if (

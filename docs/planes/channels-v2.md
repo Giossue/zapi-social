@@ -56,10 +56,10 @@ No se copiarán secretos, tokens, cuentas ni recursos reales de Laravel a V2. La
 
 ## Separación Admin y Portal
 
-| Área          | Ruta V2               | Responsabilidad                                                       |
-| ------------- | --------------------- | --------------------------------------------------------------------- |
-| PlatformAdmin | `/admin/integrations` | Configuración global, readiness y diagnóstico del proveedor           |
-| PortalUser    | `/portal/channels`    | Inventario, conexión, reconexión y operación de cuentas del workspace |
+| Área          | Ruta V2                     | Responsabilidad                                                       |
+| ------------- | --------------------------- | --------------------------------------------------------------------- |
+| PlatformAdmin | `/admin/integrations`       | Configuración global, readiness y diagnóstico del proveedor           |
+| PortalUser    | `/portal/settings/channels` | Inventario, conexión, reconexión y operación de cuentas del workspace |
 
 La separación de identidad está definida en [separacion-admin-portal.md](./separacion-admin-portal.md). PlatformAdmin no posee canales ni puede iniciar conexiones de cliente.
 
@@ -410,7 +410,7 @@ La pantalla muestra instrucciones específicas de cada provider: scopes, callbac
 
 Regla de bloqueo de conexión nueva:
 
-El inventario de `/portal/channels` se presenta como una rejilla de cards,
+El inventario de `/portal/settings/channels` se presenta como una rejilla de cards,
 no como tabla: dos columnas en móvil y cuatro columnas fijas desde `xl`, aun
 cuando existan menos de cuatro canales. La búsqueda, los filtros de proveedor,
 tipo y estado y la acción de conexión permanecen visibles; el inventario carga
@@ -481,7 +481,7 @@ Todos los estados se diseñan primero con fixtures/mock sintéticos, en claro/os
 /admin/integrations/*
   requiere PlatformAdmin + integrations.manage
 
-/portal/channels/*
+/portal/settings/channels/*
   requiere PortalUser + workspace membership activa
   requiere channels.view o channels.manage según acción
 ```
@@ -531,7 +531,7 @@ Los errores públicos usan `code` + `requestId`; los detalles técnicos quedan e
 
 ### Fase B — Mock del Portal `[aprobado; estados complementarios pendientes]`
 
-**Qué se hará:** construir `/portal/channels` con repositorio mock y fixtures sintéticas; el usuario inicia por capability, como en Laravel.
+**Qué se hará:** construir `/portal/settings/channels` con repositorio mock y fixtures sintéticas; el usuario inicia por capability, como en Laravel.
 
 - [x] Crear inventario mock de cuentas conectadas y desconectadas, limitado a las cuentas accesibles del workspace.
 - [x] Crear selector directo de capabilities, no selector previo de provider.

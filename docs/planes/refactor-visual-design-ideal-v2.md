@@ -62,15 +62,15 @@ No se entrega un selector de preferencias. Presets, fuentes y modos alternos de 
 
 ### Verticales
 
-| Vertical                | Estado visual                 | Fuente de datos                  | Notas                                                                                                                |
-| ----------------------- | ----------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| Dashboard Portal/Admin  | [x] Refactorizado             | Portal REST live / Admin fixture | Sin hero duplicado; métricas y paneles operativos densos.                                                            |
-| Files y búsqueda online | [x] Mock nuevo                | Fixtures deterministas           | Rutas `/portal/files` y `/portal/files/search-online`; upload/búsqueda no tocan storage ni API.                      |
-| Publishing              | [x] Source-first (calendario) | Mock existente                   | Calendario canónico FullCalendar; cola, borradores y compositor siguen locales.                                      |
-| Channels                | [x] Refactorizado             | REST/OAuth live                  | OAuth, 403, paginación, mutaciones y errores preservados.                                                            |
-| Teams                   | [x] Source-first              | REST live                        | Miembros, invitaciones, actividad y directorio usan roles y mutaciones reales.                                       |
-| AI Studio               | [x] Source-first              | REST live                        | Las 13 rutas comparten composición; historial, automatizaciones y créditos operan sobre API real.                    |
-| Captions                | [x] Source-first              | REST live                        | Inventario tabular canónico copiado; CRUD, filtros locales, pending, 403, error y sesión expirada preservados.       |
+| Vertical                | Estado visual                 | Fuente de datos                  | Notas                                                                                                          |
+| ----------------------- | ----------------------------- | -------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Dashboard Portal/Admin  | [x] Refactorizado             | Portal REST live / Admin fixture | Sin hero duplicado; métricas y paneles operativos densos.                                                      |
+| Files y búsqueda online | [x] Mock nuevo                | Fixtures deterministas           | Rutas `/portal/files` y `/portal/files/search-online`; upload/búsqueda no tocan storage ni API.                |
+| Publishing              | [x] Source-first (calendario) | Mock existente                   | Calendario canónico FullCalendar; cola, borradores y compositor siguen locales.                                |
+| Channels                | [x] Refactorizado             | REST/OAuth live                  | OAuth, 403, paginación, mutaciones y errores preservados.                                                      |
+| Teams                   | [x] Source-first              | REST live                        | Miembros, invitaciones, actividad y directorio usan roles y mutaciones reales.                                 |
+| AI Studio               | [x] Source-first              | REST live                        | Las 13 rutas comparten composición; historial, automatizaciones y créditos operan sobre API real.              |
+| Captions                | [x] Source-first              | REST live                        | Inventario tabular canónico copiado; CRUD, filtros locales, pending, 403, error y sesión expirada preservados. |
 
 ## Referencias adaptadas
 
@@ -99,7 +99,7 @@ Los componentes compartidos de Preferences/layout controls de la referencia se e
 
 ## Pendientes reales
 
-1. Ejecutar browser smoke sobre `/portal/dashboard`, `/admin/dashboard`, `/portal/files`, `/portal/files/search-online`, `/portal/publishing/calendar`, `/portal/channels`, `/portal/teams`, `/portal/captions`, `/portal/ai-studio/ai-content`, auth y 404.
+1. Ejecutar browser smoke sobre `/portal/dashboard`, `/admin/dashboard`, `/portal/files`, `/portal/files/search-online`, `/portal/publishing/calendar`, `/portal/settings/channels`, `/portal/teams`, `/portal/captions`, `/portal/ai-studio/ai-content`, auth y 404.
 2. Conectar los módulos Portal todavía declarados como mock a sus contratos REST aprobados en los planes de cada vertical; Commerce no vuelve a exponerse hasta definir su alcance de producto.
 3. Resolver warnings de hooks migrados y configuración lint de `database`/`contracts` en una tarea de calidad separada.
 4. Retirar compatibilidad UI antigua cuando todos sus consumidores usen contratos finales nuevos.
@@ -129,13 +129,13 @@ template-shadcn-superdashboard → implementación visual literal
 ZapiV2       → datos y comportamiento de dominio
 ```
 
-| Superficie                                                         | Estado source-first                                                                                             |
-| ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| Shell Portal/Admin                                                 | Base activa: estructura fuente copiada y datos/rutas Zapi inyectados.                                           |
-| Dashboard Portal                                                   | Base activa: jerarquía `dashboard/default` copiada y alimentada por `PortalDashboard`.                          |
+| Superficie                                               | Estado source-first                                                                                             |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Shell Portal/Admin                                       | Base activa: estructura fuente copiada y datos/rutas Zapi inyectados.                                           |
+| Dashboard Portal                                         | Base activa: jerarquía `dashboard/default` copiada y alimentada por `PortalDashboard`.                          |
 | Auth, Profile, Files, Teams, AI Studio y Dashboard Admin | Cerradas con fuente canónica explícita; las adaptaciones se limitan a datos, permisos y callbacks de ZapiV2.    |
-| Publishing / Calendario                                            | Base activa: `dashboard/calendar` y su renderer FullCalendar copiados; datos y callbacks Publishing inyectados. |
-| Captions                                                           | Base activa: `dashboard/captions/_components/caption-library.tsx` copiado a la feature y conectado a REST real. |
+| Publishing / Calendario                                  | Base activa: `dashboard/calendar` y su renderer FullCalendar copiados; datos y callbacks Publishing inyectados. |
+| Captions                                                 | Base activa: `dashboard/captions/_components/caption-library.tsx` copiado a la feature y conectado a REST real. |
 
 No se consideran terminadas las superficies pendientes solo porque una iteración previa haya usado primitives, tokens o una adaptación visual. Cada una debe auditarse primero y sustituirse sin perder lógica Zapi.
 

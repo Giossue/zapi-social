@@ -89,7 +89,7 @@ export class ChannelOAuthCallbackController {
             query,
           );
     const redirect = new URL(
-      '/portal/channels',
+      '/portal/settings/channels',
       this.config.getOrThrow<string>('WEB_ORIGIN'),
     );
     redirect.searchParams.set('oauth', result.outcome);
