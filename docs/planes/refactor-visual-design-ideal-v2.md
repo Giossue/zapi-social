@@ -232,6 +232,12 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - La API vuelve a comprobar la regla al crear o editar una publicación programada: una fecha igual o anterior al instante del servidor se rechaza, evitando que un cliente o una petición directa la salte.
 - Validación: typecheck y build de Web, typecheck de API, prueba focal de Publishing (6 casos), auditoría Portal/UI y `git diff --check` correctos. La fuente canónica pasa Biome focal con un aviso preexistente de orden de clases fuera de este cambio.
 
+## Publicación — jerarquía visual del calendario — 30 de agosto de 2026
+
+- Las cabeceras de día, semana y mes, junto con la columna de horas, usan el plano semántico `muted` sobre el cuerpo `card`. Así el calendario separa navegación temporal y contenido sin introducir una paleta ni estilos locales.
+- La modificación vive primero en el renderer canónico `template-shadcn-superdashboard/src/components/calendar/event-calendar-views.tsx` y se copia literalmente al renderer de Publishing.
+- Validación: format y typecheck de Web, auditoría Portal/UI, build Web y `git diff --check` correctos. Biome de la fuente excluye ese renderer compartido por configuración.
+
 ## Files — carpetas y archivos en una sola superficie — 15 de agosto de 2026
 
 - Producto pidió el modelo de Google Drive: una sola vista donde las carpetas encabezan el mismo listado que los archivos, en vez de una sección `Carpetas` con cards grandes y otra `Todos los archivos`. El cambio se hizo primero en `template-shadcn-superdashboard/src/app/(main)/dashboard/file-manager/` y luego se copió a V2.

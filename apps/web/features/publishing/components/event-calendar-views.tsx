@@ -360,9 +360,9 @@ export function EventCalendarViews({
       tableBodyClass="bg-card"
       fillerClass="border opacity-50"
       dayNarrowWidth={100}
-      dayHeaderRowClass="border"
+      dayHeaderRowClass="border bg-muted/50"
       dayRowClass="border"
-      slotHeaderRowClass="border"
+      slotHeaderRowClass="border bg-muted/50"
       slotHeaderInnerClass="text-muted-foreground"
 
       navLinkClass="focus-visible:outline-3 outline-ring/50"
@@ -384,7 +384,7 @@ export function EventCalendarViews({
         ...userViews,
         dayGrid: {
           ...dayRowCommonClasses,
-          tableHeaderClass: "bg-card",
+          tableHeaderClass: "bg-muted/50",
           dayHeaderAlign: (info) =>
             info.inPopover ? "start" : info.isNarrow ? "center" : "end",
           dayHeaderDividerClass: "border-b",
@@ -395,7 +395,7 @@ export function EventCalendarViews({
           ...dayRowCommonClasses,
           className: "bg-foreground/3",
           tableHeaderClass: (info) =>
-            cn(info.multiMonthColumns === 1 && "bg-card"),
+            cn(info.multiMonthColumns === 1 && "bg-muted/50"),
           dayHeaderAlign: (info) =>
             info.inPopover ? "start" : info.isNarrow ? "center" : "end",
           dayHeaderDividerClass: (info) =>
@@ -409,7 +409,7 @@ export function EventCalendarViews({
         },
         timeGrid: {
           ...dayRowCommonClasses,
-          tableHeaderClass: "bg-card",
+          tableHeaderClass: "bg-muted/50",
           dayHeaderAlign: (info) => (info.inPopover ? "start" : "center"),
           dayHeaderDividerClass: (info) =>
             cn(
@@ -436,7 +436,7 @@ export function EventCalendarViews({
           allDayDividerClass:
             "border-b border-foreground/20 not-print:shadow-sm",
 
-          slotHeaderClass: "justify-end",
+          slotHeaderClass: "justify-end bg-muted/50",
           slotHeaderInnerClass: (info) =>
             cn(
               "relative m-2",
