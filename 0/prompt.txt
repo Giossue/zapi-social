@@ -1,0 +1,7 @@
+si usaste esto? 
+  de https://elements.ai-sdk.dev
+
+---
+
+ok, haz, cuando le doy click a 3 puntos me debe dejar hacer exactamente todo lo de /admin/settings/ai, usando sheets que ocupen toda la pantalla, como en channels de portal, crea ese mockup, además bug visual que no sale bien el modelo 
+ y borra el pie que dice agente, en tal caso toca poder hacer que lo editen en el nombre nomás, por ejemplo que puedan poner agente ... etc, eso verá cada persona como ponerlo
