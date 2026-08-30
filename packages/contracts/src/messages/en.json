@@ -1695,6 +1695,14 @@
     },
     "withReferences": "With references: {model}"
   },
+  "aiAgents": {
+    "canvas": {
+      "agent": "Agent",
+      "model": "Model",
+      "preview": "Preview with sample data",
+      "trigger": "Trigger"
+    }
+  },
   "aiReport": {
     "apply": "Apply",
     "costColumn": "Cost",
@@ -4296,6 +4304,7 @@
       "accounts": "Accounts",
       "affiliate": "Affiliates",
       "ai": "AI",
+      "aiAgents": "Agents",
       "aiConfiguration": "AI configuration",
       "aiObservability": "AI observability",
       "aiReport": "Report",

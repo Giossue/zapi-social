@@ -873,3 +873,32 @@ correctos; lint focal sin errores; auditorías de traducciones, texto hardcoded 
 UI de Portal/Admin sin hallazgos. Las tres suites de integración focales cargan
 y compilan, pero sus doce pruebas quedan omitidas cuando no están definidas las
 URLs de las bases locales de test.
+
+### Rediseño hacia orquestación de agentes — 30 de agosto de 2026
+
+Decisión de producto: AI Studio evoluciona de herramientas sueltas a una
+orquestación de agentes definida en Admin. Cada agente tendrá prompt de
+sistema, modelo, herramientas permitidas y estado propios; los flujos se
+modelan como grafo (nodos y aristas) al estilo n8n y el Worker los ejecutará
+nodo a nodo. Las herramientas `review`, `planner` y `repurpose` saldrán del
+selector del Portal; el backend conserva sus kinds para el historial.
+
+Además, las opciones por herramienta del chat dejaron el `Sheet` lateral y se
+muestran inline dentro del `PromptInput` (selects compactos, dropdown con
+checkboxes para plataformas, popovers para texto/número/fecha), con claves
+`optionCount`/`optionValue` en el catálogo.
+
+Fase 1 entregada como vista previa mock: componentes Workflow de AI Elements
+vendorizados en `apps/web/components/ai-elements/` (`canvas`, `node`, `edge`,
+`connection`, `controls`, `panel`, `toolbar`) sobre la dependencia nueva
+`@xyflow/react`; ruta `Admin → AI → Agentes` (`/admin/ai-agents`) con
+`AiAgentsCanvasPage` y fixtures deterministas (disparador de chat, orquestador
+y agentes de contenido, media y publicación). El icono de agente reproduce el
+de n8n como componente local `AiAgentIcon`. Sin contrato ni backend todavía.
+
+Pendiente: aprobación visual del canvas; fase 2 con tablas `ai_agents` y
+`ai_workflows`, contratos Zod y CRUD Nest; fase 3 con ejecución en Worker y
+selector de agentes en Portal.
+
+Validación: build y typecheck del monorepo correctos; auditorías de paridad
+i18n, texto hardcoded y UI de Portal/Admin sin hallazgos.

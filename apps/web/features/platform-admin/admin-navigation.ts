@@ -110,6 +110,11 @@ export const adminNavigationGroups: readonly AdminNavigationGroup[] = [
         icon: BrainCircuit,
       },
       {
+        labelKey: "aiAgents",
+        href: "/admin/ai-agents",
+        icon: Workflow,
+      },
+      {
         labelKey: "aiTemplates",
         icon: Bot,
         children: [

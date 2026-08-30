@@ -31,6 +31,7 @@
     "@workspace/api-client": "workspace:*",
     "@workspace/contracts": "workspace:*",
     "@workspace/ui": "workspace:*",
+    "@xyflow/react": "^12.11.5",
     "ai": "^7.0.77",
     "animejs": "^4.5.0",
     "class-variance-authority": "^0.7.1",

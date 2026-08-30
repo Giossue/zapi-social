@@ -1698,6 +1698,14 @@ declare const messages: {
     },
     "withReferences": "Con referencias: {model}"
   },
+  "aiAgents": {
+    "canvas": {
+      "agent": "Agente",
+      "model": "Modelo",
+      "preview": "Vista previa con datos de ejemplo",
+      "trigger": "Disparador"
+    }
+  },
   "aiReport": {
     "apply": "Aplicar",
     "costColumn": "Costo",
@@ -4299,6 +4307,7 @@ declare const messages: {
       "accounts": "Cuentas",
       "affiliate": "Afiliados",
       "ai": "AI",
+      "aiAgents": "Agentes",
       "aiConfiguration": "Configuración AI",
       "aiObservability": "Observabilidad AI",
       "aiReport": "Reporte",
