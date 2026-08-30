@@ -1,0 +1,200 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "01M19XZX0S1GCEYFNZWTSKC782",
+  "session_id": "1a9593ba-554b-46c5-b8ec-c6bbe79a0297",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-30T18:13:03.673602447Z",
+  "branch": "main",
+  "checkpoints_count": 3,
+  "save_step_count": 1,
+  "files_touched": [
+    "apps/api/src/ai/admin-ai.service.ts",
+    "apps/api/src/ai/ai.service.ts",
+    "apps/api/src/publishing/publishing-timezone.spec.ts",
+    "apps/web/features/ai-admin/components/ai-configuration-page.tsx",
+    "apps/worker/src/ai/ai-request.processor.ts",
+    "docs/planes/ai-studio-v2.md",
+    "packages/contracts/src/ai-v2.ts",
+    "packages/database/drizzle/0052_yummy_shadow_king.sql",
+    "packages/database/drizzle/meta/0052_snapshot.json",
+    "packages/database/drizzle/meta/_journal.json",
+    "packages/database/src/schema.ts"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-fable-5",
+  "turn_id": "85455bf12f36",
+  "checkpoint_transcript_start": 571,
+  "transcript_lines_at_start": 571,
+  "compact_transcript_start": 195,
+  "token_usage": {
+    "input_tokens": 126,
+    "cache_creation_tokens": 333274,
+    "cache_read_tokens": 33078137,
+    "output_tokens": 41677,
+    "api_call_count": 68
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "prompt-skill-claude-code-caveman-2026-08-30T08:45:25.096363295Z",
+      "event_type": "prompt_invocation",
+      "skill": {
+        "name": "caveman"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "prompt_slash_command",
+        "confidence": "explicit"
+      },
+      "turn_id": "6910ad90d66f",
+      "timestamp": "2026-08-30T08:45:25.096363295Z",
+      "native": {
+        "command": "/caveman"
+      },
+      "collapse": {
+        "target": "user_message",
+        "label": "/caveman",
+        "default_collapsed": true
+      }
+    },
+    {
+      "id": "prompt-skill-claude-code-caveman-2026-08-30T08:56:26.968516462Z",
+      "event_type": "prompt_invocation",
+      "skill": {
+        "name": "caveman"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "prompt_slash_command",
+        "confidence": "explicit"
+      },
+      "turn_id": "68d713096333",
+      "timestamp": "2026-08-30T08:56:26.968516462Z",
+      "native": {
+        "command": "/caveman"
+      },
+      "collapse": {
+        "target": "user_message",
+        "label": "/caveman",
+        "default_collapsed": true
+      }
+    },
+    {
+      "id": "claude-skill-toolu_011NLR8vNKedfZsohyT2NdLy",
+      "event_type": "tool_invocation",
+      "skill": {
+        "name": "implement-operational-frontend-v2"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "skill_tool_use",
+        "confidence": "explicit"
+      },
+      "turn_id": "85455bf12f36",
+      "transcript_anchor": {
+        "unit": "line",
+        "start": 207,
+        "end": 208,
+        "entry_ids": [
+          "64b9ef4e-22f1-4ad9-b9ad-51d412a1dc27"
+        ],
+        "tool_use_id": "toolu_011NLR8vNKedfZsohyT2NdLy"
+      },
+      "native": {
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_011NLR8vNKedfZsohyT2NdLy"
+      },
+      "collapse": {
+        "target": "tool_pair",
+        "label": "Skill: implement-operational-frontend-v2",
+        "default_collapsed": true
+      }
+    },
+    {
+      "id": "claude-skill-toolu_01UhYguNcLr8D1im6rnawCrP",
+      "event_type": "tool_invocation",
+      "skill": {
+        "name": "claude-api"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "skill_tool_use",
+        "confidence": "explicit"
+      },
+      "turn_id": "85455bf12f36",
+      "transcript_anchor": {
+        "unit": "line",
+        "start": 584,
+        "end": 585,
+        "entry_ids": [
+          "4e691a99-55c6-4fa1-820e-5240bec83792"
+        ],
+        "tool_use_id": "toolu_01UhYguNcLr8D1im6rnawCrP"
+      },
+      "native": {
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_01UhYguNcLr8D1im6rnawCrP"
+      },
+      "collapse": {
+        "target": "tool_pair",
+        "label": "Skill: claude-api",
+        "default_collapsed": true
+      }
+    },
+    {
+      "id": "claude-skill-toolu_01ErzTBey2KoT9NY3Kqw67bQ",
+      "event_type": "tool_invocation",
+      "skill": {
+        "name": "create-drizzle-migration"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "skill_tool_use",
+        "confidence": "explicit"
+      },
+      "turn_id": "85455bf12f36",
+      "transcript_anchor": {
+        "unit": "line",
+        "start": 641,
+        "end": 642,
+        "entry_ids": [
+          "836e286f-0f03-4887-9a65-3a51371d110d"
+        ],
+        "tool_use_id": "toolu_01ErzTBey2KoT9NY3Kqw67bQ"
+      },
+      "native": {
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_01ErzTBey2KoT9NY3Kqw67bQ"
+      },
+      "collapse": {
+        "target": "tool_pair",
+        "label": "Skill: create-drizzle-migration",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "session_metrics": {
+    "turn_count": 24
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-08-30T18:13:03.252152814Z",
+    "agent_lines": 16396,
+    "agent_removed": 75,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 16396,
+    "total_lines_changed": 16471,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    }
+  ]
+}

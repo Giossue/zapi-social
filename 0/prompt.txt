@@ -1,0 +1,14 @@
+pero creo que no es necesario no?
+o sea creo que con el nombre, system prompt modelo y herramientas y descripcion bastaría no? o si hace falta algo más? Otra cosa, me explicaron que usar langchain es mejor en estos casos, que usar python para esto es lo recomendado, qué me dices tu?
+
+---
+
+una duda, si en algún momento usara otros proveedores? Por ejemplo claude, deepseek, qwen?
+
+---
+
+ok, entonces sigamos en typescript, entonces apruebo el mockup y añade soporte para deepseek qwen y claude, ojo, usa los ultimos modelos nomás, mira la documentación oficial siempre
+
+Y ojo, por el tema de calling solo toca ver que toca adaptar y ya
+
+ahora, crea y edita las tablas que consideres
