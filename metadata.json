@@ -3,7 +3,7 @@
   "checkpoint_id": "01M1A23J5TV1XKPNTF88FEYBMQ",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 1,
+  "checkpoints_count": 5,
   "files_touched": [
     "apps/api/tsconfig.build.json",
     "apps/api/tsconfig.json",
@@ -21,13 +21,20 @@
       "compact_transcript": "/0/transcript.jsonl",
       "content_hash": "/0/content_hash.txt",
       "prompt": "/0/prompt.txt"
+    },
+    {
+      "metadata": "/1/metadata.json",
+      "transcript": "/1/full.jsonl",
+      "compact_transcript": "/1/transcript.jsonl",
+      "content_hash": "/1/content_hash.txt",
+      "prompt": ""
     }
   ],
   "token_usage": {
-    "input_tokens": 68,
-    "cache_creation_tokens": 23237,
-    "cache_read_tokens": 21638432,
-    "output_tokens": 13518,
-    "api_call_count": 34
+    "input_tokens": 151,
+    "cache_creation_tokens": 148413,
+    "cache_read_tokens": 24075436,
+    "output_tokens": 33927,
+    "api_call_count": 79
   }
 }
