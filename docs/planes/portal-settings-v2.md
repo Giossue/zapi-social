@@ -11,13 +11,15 @@ navegación secundaria vertical. Las secciones canónicas son:
 | Ajustes AI     | `/portal/settings/ai-studio`           |
 | Link in bio    | `/portal/settings/link-bio`            |
 | Marcas de agua | `/portal/settings/watermarks`          |
-| Claves API     | `/portal/settings/automation`          |
-| Webhooks       | `/portal/settings/automation/webhooks` |
-| Registro       | `/portal/settings/automation/logs`     |
+| Automatización | `/portal/settings/automation`          |
 
 La entrada primaria **Ajustes** sustituye las entradas directas de estas
-secciones en el sidebar del Portal. El área secundaria muestra las siete
+secciones en el sidebar del Portal. El área secundaria muestra las cinco
 secciones disponibles.
+
+Automatización concentra las pestañas Claves API, Webhooks y Registro en su
+ruta canónica; las rutas de pestañas anteriores redirigen y preservan los
+parámetros de búsqueda.
 
 ## Compatibilidad y permisos
 
@@ -27,7 +29,7 @@ secciones disponibles.
 - `/portal/ai-studio/settings`, `/portal/link-bio`, `/portal/watermarks`,
   `/portal/automation`, `/portal/automation/logs` y
   `/portal/automation/webhooks` redirigen a su equivalente en Settings y
-  conservan los parámetros de búsqueda.
+  conservan los parámetros de búsqueda y la pestaña de Automatización.
 - Cada sección mantiene su permiso y bloqueo por plan: `channels.view`,
   `ai-studio.view`, `link-bio.view`, `watermarks.view` y `automation.view`.
   Mover la ruta no cambia contratos, ownership ni APIs.
@@ -51,13 +53,13 @@ i18n y aprobación visual.
 ## Evidencia de implementación — 29 de agosto de 2026
 
 - [x] Sidebar primario con **Ajustes**, navegación secundaria vertical y
-      siete secciones bajo `/portal/settings/*`.
+      cinco secciones bajo `/portal/settings/*`.
 - [x] Redirección compatible desde `/portal/channels`, incluida la preservación
       de parámetros para retornos OAuth; callbacks OAuth y limpieza de URL apuntan
       a la ruta canónica nueva.
 - [x] Migradas las rutas de Ajustes AI, Link in bio, Marcas de agua y
-      Automatización (claves, webhooks y registro), manteniendo componentes,
-      APIs, permisos y bloqueos de plan existentes.
+      Automatización (tabs de claves, webhooks y registro), manteniendo
+      componentes, APIs, permisos y bloqueos de plan existentes.
 - [x] `bun run --cwd apps/web build`, `bun run typecheck`, `bun run lint`,
       `bun run audit:i18n`, `bun run audit:i18n-hardcoded` y
       `bun run audit:portal-admin-ui` sin hallazgos.

@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState, type FormEvent } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import {
   CircleAlert,
   Copy,
@@ -80,7 +80,12 @@ import {
 } from "@workspace/ui/components/table"
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
 import { TablePagination } from "@/components/table-pagination"
-import { Tabs, TabsContent } from "@workspace/ui/components/tabs"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/tabs"
 import { toast } from "@workspace/ui/components/toast"
 import { useFormatter, useTranslations } from "next-intl"
 import { loginPath } from "@/features/identity/login-redirect"
@@ -488,10 +493,29 @@ function WebhookSheet({
 
 export type AutomationView = "keys" | "webhooks" | "logs"
 
-export function AutomationPage({ view = "keys" }: { view?: AutomationView }) {
+const automationViews = new Set<AutomationView>(["keys", "webhooks", "logs"])
+
+const automationViewLinks: Array<{ href: string; value: AutomationView }> = [
+  { href: "/portal/settings/automation", value: "keys" },
+  { href: "/portal/settings/automation?tab=webhooks", value: "webhooks" },
+  { href: "/portal/settings/automation?tab=logs", value: "logs" },
+]
+
+export function AutomationPage() {
   const t = useTranslations("automation")
   const format = useFormatter()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const tab = searchParams.get("tab")
+  const view =
+    tab && automationViews.has(tab as AutomationView)
+      ? (tab as AutomationView)
+      : "keys"
+  const tabLabels: Record<AutomationView, string> = {
+    keys: t("tab.keys"),
+    logs: t("tab.logs"),
+    webhooks: t("tab.webhooks"),
+  }
   const [data, setData] = useState<PortalAutomationResponse | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
@@ -750,7 +774,23 @@ export function AutomationPage({ view = "keys" }: { view?: AutomationView }) {
           description={t("pageDescription")}
           title={t("pageTitle")}
         />
-        <Tabs value={view}>
+        <Tabs
+          onValueChange={(value) => {
+            const nextView = value as AutomationView
+            const nextLink = automationViewLinks.find(
+              (item) => item.value === nextView
+            )
+            if (nextLink) router.push(nextLink.href)
+          }}
+          value={view}
+        >
+          <TabsList className="h-auto w-full flex-wrap justify-start sm:w-fit">
+            {automationViewLinks.map((item) => (
+              <TabsTrigger key={item.value} value={item.value}>
+                {tabLabels[item.value]}
+              </TabsTrigger>
+            ))}
+          </TabsList>
           <TabsContent className="pt-3" value="keys">
             <Card variant="subtle">
               <DataTableHeader

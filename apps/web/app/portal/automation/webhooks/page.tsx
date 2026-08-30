@@ -10,8 +10,7 @@ type LegacyAutomationWebhooksRoutePageProps = {
 export default function AutomationRoutePage({
   searchParams,
 }: LegacyAutomationWebhooksRoutePageProps) {
-  return redirectToPortalSettings(
-    "/portal/settings/automation/webhooks",
-    searchParams
-  )
+  return redirectToPortalSettings("/portal/settings/automation", searchParams, {
+    tab: "webhooks",
+  })
 }

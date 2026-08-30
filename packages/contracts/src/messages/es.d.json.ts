@@ -2700,7 +2700,7 @@ declare const messages: {
     "status": "Estado",
     "tab": {
       "keys": "Claves API",
-      "logs": "Actividad",
+      "logs": "Registro",
       "webhooks": "Webhooks"
     },
     "tokenDescription": "Guárdalo ahora: no volveremos a mostrarlo. Si lo pierdes, crea una clave nueva.",
@@ -4327,7 +4327,7 @@ declare const messages: {
       "aiSettings": "Ajustes AI",
       "aiStudio": "AI Studio",
       "apps": "Aplicaciones",
-      "automation": "API de automatización",
+      "automation": "Automatización",
       "automationKeys": "Claves de API",
       "automationLogs": "Registro",
       "automationWebhooks": "Webhooks",
@@ -4336,6 +4336,7 @@ declare const messages: {
       "calendar": "Calendario",
       "captions": "Captions",
       "channels": "Canales",
+      "configuration": "Configuración",
       "contentTools": "Herramientas de contenido",
       "drafts": "Borradores",
       "files": "Archivos",

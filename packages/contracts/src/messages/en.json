@@ -2697,7 +2697,7 @@
     "status": "Status",
     "tab": {
       "keys": "API keys",
-      "logs": "Activity",
+      "logs": "Log",
       "webhooks": "Webhooks"
     },
     "tokenDescription": "Save it now: we won't show it again. If you lose it, create a new key.",
@@ -4324,7 +4324,7 @@
       "aiSettings": "AI settings",
       "aiStudio": "AI Studio",
       "apps": "Apps",
-      "automation": "Automation API",
+      "automation": "Automation",
       "automationKeys": "API keys",
       "automationLogs": "Log",
       "automationWebhooks": "Webhooks",

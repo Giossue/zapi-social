@@ -5,15 +5,7 @@ import type { CSSProperties } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTranslations } from "next-intl"
-import {
-  Droplets,
-  KeyRound,
-  Link2,
-  ScrollText,
-  Share2,
-  WandSparkles,
-  Webhook,
-} from "lucide-react"
+import { Droplets, KeyRound, Link2, Share2, WandSparkles } from "lucide-react"
 
 import {
   Sidebar,
@@ -54,20 +46,8 @@ const settingsItems = [
   {
     href: "/portal/settings/automation",
     icon: KeyRound,
-    labelKey: "automationKeys",
+    labelKey: "automation",
     value: "automation",
-  },
-  {
-    href: "/portal/settings/automation/webhooks",
-    icon: Webhook,
-    labelKey: "automationWebhooks",
-    value: "automation-webhooks",
-  },
-  {
-    href: "/portal/settings/automation/logs",
-    icon: ScrollText,
-    labelKey: "automationLogs",
-    value: "automation-logs",
   },
 ] as const
 

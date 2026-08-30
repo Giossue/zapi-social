@@ -10,8 +10,7 @@ type LegacyAutomationLogsRoutePageProps = {
 export default function AutomationRoutePage({
   searchParams,
 }: LegacyAutomationLogsRoutePageProps) {
-  return redirectToPortalSettings(
-    "/portal/settings/automation/logs",
-    searchParams
-  )
+  return redirectToPortalSettings("/portal/settings/automation", searchParams, {
+    tab: "logs",
+  })
 }
