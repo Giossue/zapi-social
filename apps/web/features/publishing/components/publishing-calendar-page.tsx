@@ -89,14 +89,6 @@ function toTimeKey(value: Date) {
   ].join(":")
 }
 
-function isSameCalendarDay(left: Date, right: Date) {
-  return (
-    left.getFullYear() === right.getFullYear() &&
-    left.getMonth() === right.getMonth() &&
-    left.getDate() === right.getDate()
-  )
-}
-
 function nextQuarterHour(value: Date) {
   const next = new Date(value)
   next.setSeconds(0, 0)
@@ -496,21 +488,13 @@ export function PublishingCalendarPage({
 
   function openComposerAtDate(date: Date, allDay: boolean) {
     const now = new Date()
-    if (
-      allDay &&
-      !isSameCalendarDay(date, now) &&
-      date.getTime() < now.getTime()
-    ) {
+    const nextAvailable = nextQuarterHour(now)
+    if (date.getTime() < nextAvailable.getTime()) {
+      openComposer(null, toDateKey(nextAvailable), toTimeKey(nextAvailable))
       return
     }
-    if (!allDay && date.getTime() < now.getTime()) return
 
-    const scheduledTime =
-      allDay && isSameCalendarDay(date, now)
-        ? toTimeKey(nextQuarterHour(now))
-        : allDay
-          ? defaultScheduleTime
-          : toTimeKey(date)
+    const scheduledTime = allDay ? defaultScheduleTime : toTimeKey(date)
 
     openComposer(null, toDateKey(date), scheduledTime)
   }
@@ -631,6 +615,7 @@ export function PublishingCalendarPage({
           className="flex min-h-0 flex-1 flex-col"
         >
           <PublishingCalendar
+            accounts={calendar.accounts}
             initialDate={calendar.focusDate}
             onCreateAtDate={openComposerAtDate}
             onEditPost={openComposer}

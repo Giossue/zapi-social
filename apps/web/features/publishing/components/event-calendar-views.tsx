@@ -256,7 +256,10 @@ export function EventCalendarViews({
       }
 
       dayCellClass={(info) =>
-        cn("border", info.isMajor && "border-foreground/20")
+        cn(
+          "border border-foreground/20",
+          info.isMajor && "border-foreground/30"
+        )
       }
       dayCellTopClass={(info) =>
         cn(info.isNarrow ? "min-h-0.5" : "min-h-1", "flex flex-row justify-end")
@@ -311,15 +314,20 @@ export function EventCalendarViews({
 
       dayLaneClass={(info) =>
         cn(
-          "border",
-          info.isMajor && "border-foreground/20",
+          "border border-foreground/20",
+          info.isMajor && "border-foreground/30",
           info.isDisabled && "bg-foreground/3"
         )
       }
       dayLaneInnerClass={(info) =>
         info.isStack ? "m-1" : info.isNarrow ? "mx-px" : "mx-0.5"
       }
-      slotLaneClass={(info) => cn("border", info.isMinor && "border-dotted")}
+      slotLaneClass={(info) =>
+        cn(
+          "border border-foreground/20 transition-colors hover:border-primary/70",
+          info.isMinor && "border-dotted"
+        )
+      }
 
       listDayClass={(info) => cn("flex flex-col", !info.isLast && "border-b")}
       listDayHeaderClass="-mb-px border-b bg-[color-mix(in_oklab,var(--foreground)_3%,var(--card))] flex flex-row items-center justify-between"
@@ -360,9 +368,9 @@ export function EventCalendarViews({
       tableBodyClass="bg-card"
       fillerClass="border opacity-50"
       dayNarrowWidth={100}
-      dayHeaderRowClass="border bg-muted/50"
-      dayRowClass="border"
-      slotHeaderRowClass="border bg-muted/50"
+      dayHeaderRowClass="border border-foreground/20 bg-muted/50"
+      dayRowClass="border border-foreground/20"
+      slotHeaderRowClass="border border-foreground/20 bg-muted/50"
       slotHeaderInnerClass="text-muted-foreground"
 
       navLinkClass="focus-visible:outline-3 outline-ring/50"
@@ -440,7 +448,7 @@ export function EventCalendarViews({
           slotHeaderInnerClass: (info) =>
             cn(
               "relative m-2",
-              info.isNarrow ? `-top-3.5 ${xxsTextClass}` : "-top-4 text-xs",
+              info.isNarrow ? `-top-3.5 ${xxsTextClass}` : "-top-6 text-xs",
               info.isFirst && "hidden"
             ),
           slotHeaderDividerClass: "border-e",

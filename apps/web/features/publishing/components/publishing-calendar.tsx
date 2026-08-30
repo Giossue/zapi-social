@@ -42,6 +42,7 @@ import {
   PopoverTrigger,
 } from "@workspace/ui/components/popover"
 import type {
+  PublishingAccount,
   PublishingPost,
   PublishingProvider,
   PublishingStatus,
@@ -58,7 +59,7 @@ const views = [
   { key: "timeGridDay", messageKey: "day" },
 ] as const
 
-const channels: Array<{ key: PublishingProvider; label: string }> = [
+const channelOptions: Array<{ key: PublishingProvider; label: string }> = [
   { key: "facebook", label: "Facebook" },
   { key: "instagram", label: "Instagram" },
   { key: "whatsapp", label: "WhatsApp" },
@@ -79,20 +80,11 @@ const editableStatuses = new Set<PublishingStatus>([
 ])
 
 type PublishingCalendarProps = {
+  accounts: PublishingAccount[]
   initialDate: string
   onCreateAtDate: (date: Date, allDay: boolean) => void
   onEditPost: (post: PublishingPost) => void
   posts: PublishingPost[]
-}
-
-function isPastCalendarDay(date: Date, now: Date) {
-  const calendarDay = new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate()
-  )
-  const currentDay = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  return calendarDay.getTime() < currentDay.getTime()
 }
 
 function toEventStart(post: PublishingPost) {
@@ -100,6 +92,7 @@ function toEventStart(post: PublishingPost) {
 }
 
 export function PublishingCalendar({
+  accounts,
   initialDate,
   onCreateAtDate,
   onEditPost,
@@ -112,6 +105,13 @@ export function PublishingCalendar({
   const [selectedChannels, setSelectedChannels] = React.useState<
     PublishingProvider[]
   >([])
+  const availableChannels = React.useMemo(
+    () =>
+      channelOptions.filter((channel) =>
+        accounts.some((account) => account.provider === channel.key)
+      ),
+    [accounts]
+  )
   const [title, setTitle] = React.useState(() =>
     format(new Date(`${initialDate}T12:00:00`), "MMMM yyyy", {
       locale: dateLocale.dateFns,
@@ -142,6 +142,14 @@ export function PublishingCalendar({
         title: post.title || t("untitled"),
       }))
   }, [posts, query, selectedChannels, t])
+
+  React.useEffect(() => {
+    setSelectedChannels((current) =>
+      current.filter((provider) =>
+        availableChannels.some((channel) => channel.key === provider)
+      )
+    )
+  }, [availableChannels])
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-md border bg-card text-card-foreground">
@@ -180,57 +188,59 @@ export function PublishingCalendar({
           </Button>
         </ButtonGroup>
 
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              aria-label={t("filterChannel")}
-              className="relative"
-              size="icon-sm"
-              variant="outline"
-            >
-              <Funnel />
-              {selectedChannels.length > 0 ? (
-                <Badge className="absolute -end-1.5 -top-1.5 size-4 justify-center rounded-full p-0 text-[0.625rem]">
-                  {selectedChannels.length}
-                </Badge>
-              ) : null}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent align="start" className="w-56 p-3">
-            <div className="flex flex-col gap-3">
-              <div className="text-sm font-medium">{t("channels")}</div>
-              {channels.map((channel) => (
-                <div className="flex items-center gap-2" key={channel.key}>
-                  <Checkbox
-                    checked={selectedChannels.includes(channel.key)}
-                    id={`channel-${channel.key}`}
-                    onCheckedChange={(checked) =>
-                      setSelectedChannels((current) =>
-                        checked === true
-                          ? [...current, channel.key]
-                          : current.filter((item) => item !== channel.key)
-                      )
-                    }
-                  />
-                  <Label
-                    className="font-normal"
-                    htmlFor={`channel-${channel.key}`}
-                  >
-                    {channel.label}
-                  </Label>
-                </div>
-              ))}
+        {availableChannels.length > 0 ? (
+          <Popover>
+            <PopoverTrigger asChild>
               <Button
-                disabled={selectedChannels.length === 0}
-                onClick={() => setSelectedChannels([])}
-                size="sm"
+                aria-label={t("filterChannel")}
+                className="relative"
+                size="icon-sm"
                 variant="outline"
               >
-                {t("clearFilters")}
+                <Funnel />
+                {selectedChannels.length > 0 ? (
+                  <Badge className="absolute -end-1.5 -top-1.5 size-4 justify-center rounded-full p-0 text-[0.625rem]">
+                    {selectedChannels.length}
+                  </Badge>
+                ) : null}
               </Button>
-            </div>
-          </PopoverContent>
-        </Popover>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-56 p-3">
+              <div className="flex flex-col gap-3">
+                <div className="text-sm font-medium">{t("channels")}</div>
+                {availableChannels.map((channel) => (
+                  <div className="flex items-center gap-2" key={channel.key}>
+                    <Checkbox
+                      checked={selectedChannels.includes(channel.key)}
+                      id={`channel-${channel.key}`}
+                      onCheckedChange={(checked) =>
+                        setSelectedChannels((current) =>
+                          checked === true
+                            ? [...current, channel.key]
+                            : current.filter((item) => item !== channel.key)
+                        )
+                      }
+                    />
+                    <Label
+                      className="font-normal"
+                      htmlFor={`channel-${channel.key}`}
+                    >
+                      {channel.label}
+                    </Label>
+                  </div>
+                ))}
+                <Button
+                  disabled={selectedChannels.length === 0}
+                  onClick={() => setSelectedChannels([])}
+                  size="sm"
+                  variant="outline"
+                >
+                  {t("clearFilters")}
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+        ) : null}
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -268,17 +278,7 @@ export function PublishingCalendar({
       <div className="min-h-0 flex-1">
         <EventCalendarViews
           controller={controller}
-          dateClick={(info) => {
-            const now = new Date()
-            if (
-              info.allDay
-                ? isPastCalendarDay(info.date, now)
-                : info.date.getTime() < now.getTime()
-            ) {
-              return
-            }
-            onCreateAtDate(info.date, info.allDay)
-          }}
+          dateClick={(info) => onCreateAtDate(info.date, info.allDay)}
           datesSet={(info) => {
             setTitle(info.view.title)
           }}

@@ -228,14 +228,21 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 ## Publicación — franjas de quince minutos — 30 de agosto de 2026
 
 - El calendario mantiene una división visual cada 30 minutos, pero hace snap de los clics en franjas de 15 minutos. Las etiquetas del eje solo aparecen cada hora y se formatean en 24 horas (`01:00`, `02:00`).
-- Al elegir una hora anterior a la actual no se abre el compositor. Un clic de día completo sobre hoy propone el siguiente cuarto de hora; los días pasados tampoco permiten iniciar una publicación.
+- Un clic en cualquier día u hora pasada abre el compositor en el próximo cuarto de hora disponible del día actual; por ejemplo, al tocar el 28 cuando hoy es 30 a las 15:00, se propone el 30 a las 15:15.
 - La API vuelve a comprobar la regla al crear o editar una publicación programada: una fecha igual o anterior al instante del servidor se rechaza, evitando que un cliente o una petición directa la salte.
 - Validación: typecheck y build de Web, typecheck de API, prueba focal de Publishing (6 casos), auditoría Portal/UI y `git diff --check` correctos. La fuente canónica pasa Biome focal con un aviso preexistente de orden de clases fuera de este cambio.
 
 ## Publicación — jerarquía visual del calendario — 30 de agosto de 2026
 
 - Las cabeceras de día, semana y mes, junto con la columna de horas, usan el plano semántico `muted` sobre el cuerpo `card`. Así el calendario separa navegación temporal y contenido sin introducir una paleta ni estilos locales.
+- Las celdas y franjas usan bordes semánticos de mayor contraste para que las divisiones de día, mes, semana y hora sean visibles en ambos temas.
+- Las divisiones secundarias de media hora son punteadas y se resaltan con `primary` al pasar sobre su franja, para identificar con precisión dónde hará snap el siguiente clic.
 - La modificación vive primero en el renderer canónico `template-shadcn-superdashboard/src/components/calendar/event-calendar-views.tsx` y se copia literalmente al renderer de Publishing.
+
+## Publicación — filtro de canales disponibles — 30 de agosto de 2026
+
+- El selector de canales del calendario ya no enumera proveedores fijos: deriva Facebook, Instagram y WhatsApp de las cuentas activas y publicables que Publishing entrega para el workspace. Un proveedor sin cuenta disponible no aparece; si ninguno está disponible, se oculta el selector.
+- Validación: typecheck de Web, auditoría Portal/UI y `git diff --check` correctos.
 - Validación: format y typecheck de Web, auditoría Portal/UI, build Web y `git diff --check` correctos. Biome de la fuente excluye ese renderer compartido por configuración.
 
 ## Files — carpetas y archivos en una sola superficie — 15 de agosto de 2026
