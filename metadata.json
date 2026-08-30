@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "01M1845P7NRH36KTZ2H4SEKRDQ",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "apps/web/features/admin-manual-payments/components/admin-manual-payments-page.tsx",
+    "apps/web/features/admin-notifications/components/admin-notifications-page.tsx",
+    "apps/web/features/admin-support/components/admin-support-page.tsx",
+    "apps/web/features/affiliate/components/affiliate-page.tsx",
+    "apps/web/features/ai-admin/components/ai-configuration-page.tsx",
+    "apps/web/features/ai-studio/components/ai-studio-page.tsx",
+    "apps/web/features/link-bio/components/link-bio-page.tsx",
+    "apps/web/features/support/components/support-tickets-page.tsx"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": ""
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 83,
+    "cache_creation_tokens": 125176,
+    "cache_read_tokens": 2437004,
+    "output_tokens": 20409,
+    "api_call_count": 45
+  }
+}
