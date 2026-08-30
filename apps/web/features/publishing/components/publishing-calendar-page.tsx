@@ -6,6 +6,7 @@ import { type FormEvent, useEffect, useRef, useState } from "react"
 import {
   BookOpenText,
   CalendarDays,
+  ChevronDown,
   CircleAlert,
   FileText,
   History,
@@ -15,14 +16,28 @@ import {
   Send,
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
+import { Card, CardContent } from "@workspace/ui/components/card"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card"
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@workspace/ui/components/alert"
+import { ButtonGroup } from "@workspace/ui/components/button-group"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
 import {
   Sheet,
   SheetContent,
@@ -39,8 +54,12 @@ import {
   FieldLabel,
   FieldSet,
 } from "@workspace/ui/components/field"
-import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip"
 import { toast } from "@workspace/ui/components/toast"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { cn } from "@workspace/ui/lib/utils"
@@ -74,9 +93,6 @@ import { BulkPostsPage } from "@/features/bulk-posts/components/bulk-posts-page"
 export type PublishingSection = "calendar" | "activity" | "bulk-posts"
 type ComposerMode = "draft" | "now" | "schedule"
 type ComposerTool = "captions" | "media" | "notes" | null
-
-const defaultScheduleDate = "2026-08-03"
-const defaultScheduleTime = "10:00"
 
 const sectionRoutes: Record<PublishingSection, string> = {
   calendar: "/portal/publishing",
@@ -112,6 +128,14 @@ function nextQuarterHour(value: Date) {
   next.setSeconds(0, 0)
   next.setMinutes(next.getMinutes() + (15 - (next.getMinutes() % 15)))
   return next
+}
+
+function getDefaultSchedule() {
+  const nextAvailable = nextQuarterHour(new Date())
+  return {
+    date: toDateKey(nextAvailable),
+    time: toTimeKey(nextAvailable),
+  }
 }
 
 function ComposerActionIcon({ mode }: { mode: ComposerMode }) {
@@ -168,7 +192,7 @@ function ComposerDialog({
   )
   const [scheduledTime, setScheduledTime] = useState(() =>
     editingPost?.time === "now"
-      ? defaultScheduleTime
+      ? initialScheduledTime
       : (editingPost?.time ?? initialScheduledTime)
   )
   const [activePreviewAccountId, setActivePreviewAccountId] = useState<
@@ -198,13 +222,22 @@ function ComposerDialog({
   const requiresMedia = selected.some(
     (account) => account.provider !== "facebook"
   )
-  const canSubmit =
-    selected.length > 0 &&
-    selected.every((account) => account.connected) &&
-    Boolean(content.trim()) &&
-    (!requiresMedia || hasMedia) &&
-    (mode !== "schedule" || Boolean(scheduledDate && scheduledTime)) &&
-    !pending
+  const isPastSchedule =
+    mode === "schedule" &&
+    Boolean(scheduledDate && scheduledTime) &&
+    new Date(`${scheduledDate}T${scheduledTime}:00`).getTime() <= Date.now()
+  const validationIssues = [
+    selected.length === 0 ? t("validation.accounts") : null,
+    selected.some((account) => !account.connected)
+      ? t("validation.connectedAccounts")
+      : null,
+    !content.trim() ? t("validation.content") : null,
+    requiresMedia && !hasMedia ? t("validation.media") : null,
+    mode === "schedule" && !scheduledDate ? t("validation.scheduleDate") : null,
+    mode === "schedule" && !scheduledTime ? t("validation.scheduleTime") : null,
+    isPastSchedule ? t("validation.schedulePast") : null,
+  ].filter((issue): issue is string => Boolean(issue))
+  const canSubmit = validationIssues.length === 0 && !pending
 
   useEffect(() => {
     void filesApi
@@ -330,8 +363,8 @@ function ComposerDialog({
     }
   }
 
-  function toggleTool(tool: Exclude<ComposerTool, null>) {
-    setActiveTool((current) => (current === tool ? null : tool))
+  function openTool(tool: Exclude<ComposerTool, null>) {
+    setActiveTool(tool)
   }
 
   function appendContent(value: string) {
@@ -400,13 +433,7 @@ function ComposerDialog({
           onSubmit={handleSubmit}
         >
           <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4">
-            <div
-              className={cn(
-                "mx-auto grid w-full max-w-7xl grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(24rem,0.9fr)]",
-                activeTool === "notes" &&
-                  "xl:grid-cols-[minmax(0,1fr)_minmax(22rem,0.8fr)_minmax(18rem,0.7fr)]"
-              )}
-            >
+            <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(24rem,0.9fr)]">
               <FieldGroup className="min-w-0">
                 <FieldSet>
                   <FieldLabel asChild>
@@ -436,117 +463,52 @@ function ComposerDialog({
                         placeholder={t("contentPlaceholder")}
                         value={content}
                       />
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Button
-                          aria-pressed={activeTool === "media"}
-                          onClick={() => toggleTool("media")}
-                          size="sm"
-                          type="button"
-                          variant="brand-secondary"
-                        >
-                          <ImagePlus data-icon="inline-start" />
-                          {t("tool.media")}
-                        </Button>
-                        <Button
-                          aria-pressed={activeTool === "captions"}
-                          onClick={() => toggleTool("captions")}
-                          size="sm"
-                          type="button"
-                          variant="brand-secondary"
-                        >
-                          <BookOpenText data-icon="inline-start" />
-                          {t("tool.captions")}
-                        </Button>
-                        <Button
-                          aria-pressed={activeTool === "notes"}
-                          onClick={() => toggleTool("notes")}
-                          size="sm"
-                          type="button"
-                          variant="brand-secondary"
-                        >
-                          <NotebookText data-icon="inline-start" />
-                          {t("tool.notes")}
-                        </Button>
+                      <div className="flex items-center gap-1">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              aria-label={t("tool.media")}
+                              onClick={() => openTool("media")}
+                              size="icon-sm"
+                              type="button"
+                              variant="brand-secondary"
+                            >
+                              <ImagePlus />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>{t("tool.media")}</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              aria-label={t("tool.captions")}
+                              onClick={() => openTool("captions")}
+                              size="icon-sm"
+                              type="button"
+                              variant="brand-secondary"
+                            >
+                              <BookOpenText />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>{t("tool.captions")}</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              aria-label={t("tool.notes")}
+                              onClick={() => openTool("notes")}
+                              size="icon-sm"
+                              type="button"
+                              variant="brand-secondary"
+                            >
+                              <NotebookText />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>{t("tool.notes")}</TooltipContent>
+                        </Tooltip>
                       </div>
                     </CardContent>
                   </Card>
-                </Field>
-
-                {activeTool === "media" ? (
-                  <Field>
-                    <FieldLabel>
-                      {t("media")} {requiresMedia ? <RequiredMark /> : null}
-                    </FieldLabel>
-                    <PublishingMediaPicker
-                      ariaRequired={requiresMedia}
-                      assets={availableMedia ?? []}
-                      driveEnabled={driveProvider?.enabled ?? false}
-                      driveImportStatus={
-                        driveBatch
-                          ? driveBatch.status === "failed" ||
-                            driveBatch.status === "expired" ||
-                            driveBatch.status === "partial"
-                            ? "failed"
-                            : "processing"
-                          : undefined
-                      }
-                      driveOpening={openingDrive}
-                      onChange={setSelectedMediaAssetId}
-                      onImportFromDrive={() => void importFromGoogleDrive()}
-                      selectedAssetId={selectedMediaAssetId}
-                    />
-                  </Field>
-                ) : null}
-
-                {activeTool === "captions" ? (
-                  <Card size="sm" variant="inset">
-                    <CardHeader>
-                      <CardTitle>{t("captionsTitle")}</CardTitle>
-                      <CardDescription>
-                        {t("captionsDescription")}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex flex-col gap-2 p-3">
-                      {toolLoading ? (
-                        <PageLoading className="min-h-28" />
-                      ) : captions.length ? (
-                        captions.map((caption) => (
-                          <Button
-                            className="h-auto justify-start text-left whitespace-normal"
-                            key={caption.id}
-                            onClick={() => appendContent(caption.content)}
-                            type="button"
-                            variant="brand-secondary"
-                          >
-                            <span className="line-clamp-2">
-                              {caption.content}
-                            </span>
-                          </Button>
-                        ))
-                      ) : (
-                        <p className="text-sm text-muted-foreground">
-                          {t("captionsEmpty")}
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
-                ) : null}
-
-                <Field>
-                  <FieldLabel>{t("when")}</FieldLabel>
-                  <Tabs
-                    aria-label={t("when")}
-                    onValueChange={(value) => setMode(value as ComposerMode)}
-                    value={mode}
-                  >
-                    <TabsList className="w-full justify-start sm:w-fit">
-                      <TabsTrigger value="draft">{t("mode.draft")}</TabsTrigger>
-                      <TabsTrigger value="now">{t("mode.now")}</TabsTrigger>
-                      <TabsTrigger value="schedule">
-                        {t("mode.schedule")}
-                      </TabsTrigger>
-                    </TabsList>
-                  </Tabs>
                 </Field>
 
                 {mode === "schedule" ? (
@@ -570,61 +532,26 @@ function ComposerDialog({
                   selectedAccountIds={selectedAccounts}
                 />
               </div>
-
-              {activeTool === "notes" ? (
-                <Card
-                  className="min-w-0 xl:col-start-3 xl:row-start-1"
-                  variant="surface"
-                >
-                  <CardHeader>
-                    <CardTitle>{t("notesTitle")}</CardTitle>
-                    <CardDescription>{t("notesDescription")}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex flex-col gap-3 p-3">
-                    <Textarea
-                      aria-label={t("notePlaceholder")}
-                      onChange={(event) => setNoteDraft(event.target.value)}
-                      placeholder={t("notePlaceholder")}
-                      value={noteDraft}
-                    />
-                    <Button
-                      disabled={!noteDraft.trim() || savingNote}
-                      onClick={() => void saveNote()}
-                      type="button"
-                    >
-                      {savingNote ? (
-                        <Spinner data-icon="inline-start" />
-                      ) : (
-                        <NotebookText data-icon="inline-start" />
-                      )}
-                      {t("saveNote")}
-                    </Button>
-                    {toolLoading ? (
-                      <PageLoading className="min-h-28" />
-                    ) : notes.length ? (
-                      <div className="flex flex-col gap-2">
-                        {notes.map((note) => (
-                          <Button
-                            className="h-auto justify-start text-left whitespace-normal"
-                            key={note.id}
-                            onClick={() => appendContent(note.content)}
-                            type="button"
-                            variant="brand-secondary"
-                          >
-                            <span className="line-clamp-3">{note.content}</span>
-                          </Button>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">
-                        {t("notesEmpty")}
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
-              ) : null}
             </div>
           </div>
+
+          {validationIssues.length ? (
+            <div className="px-4 pb-4">
+              <Alert variant="destructive">
+                <CircleAlert />
+                <AlertTitle>
+                  {t("validation.title", { count: validationIssues.length })}
+                </AlertTitle>
+                <AlertDescription>
+                  <ul className="list-disc space-y-1 pl-4">
+                    {validationIssues.map((issue) => (
+                      <li key={issue}>{issue}</li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            </div>
+          ) : null}
 
           <SheetActions>
             <Button
@@ -635,16 +562,187 @@ function ComposerDialog({
             >
               {t("cancel")}
             </Button>
-            <Button disabled={!canSubmit} type="submit">
-              {pending ? (
-                <Spinner data-icon="inline-start" />
-              ) : (
-                <ComposerActionIcon mode={mode} />
-              )}
-              {t(composerActionKey(mode, pending))}
-            </Button>
+            <ButtonGroup>
+              <Button disabled={!canSubmit} type="submit">
+                {pending ? (
+                  <Spinner data-icon="inline-start" />
+                ) : (
+                  <ComposerActionIcon mode={mode} />
+                )}
+                {t(composerActionKey(mode, pending))}
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    aria-label={t("actionOptions")}
+                    disabled={pending}
+                    size="icon"
+                    type="button"
+                    variant="brand-secondary"
+                  >
+                    <ChevronDown />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-72">
+                  <DropdownMenuRadioGroup
+                    onValueChange={(value) => setMode(value as ComposerMode)}
+                    value={mode}
+                  >
+                    <DropdownMenuRadioItem value="draft">
+                      <span className="flex flex-col gap-0.5">
+                        <span>{t("submit.draft")}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {t("modeDescription.draft")}
+                        </span>
+                      </span>
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="schedule">
+                      <span className="flex flex-col gap-0.5">
+                        <span>{t("submit.schedule")}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {t("modeDescription.schedule")}
+                        </span>
+                      </span>
+                    </DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="now">
+                      <span className="flex flex-col gap-0.5">
+                        <span>{t("submit.now")}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {t("modeDescription.now")}
+                        </span>
+                      </span>
+                    </DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </ButtonGroup>
           </SheetActions>
         </form>
+
+        <Dialog
+          onOpenChange={(nextOpen) => !nextOpen && setActiveTool(null)}
+          open={activeTool === "media"}
+        >
+          <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>{t("tool.media")}</DialogTitle>
+              <DialogDescription>{t("mediaDescription")}</DialogDescription>
+            </DialogHeader>
+            <PublishingMediaPicker
+              ariaRequired={requiresMedia}
+              assets={availableMedia}
+              driveEnabled={driveProvider?.enabled ?? false}
+              driveImportStatus={
+                driveBatch
+                  ? driveBatch.status === "failed" ||
+                    driveBatch.status === "expired" ||
+                    driveBatch.status === "partial"
+                    ? "failed"
+                    : "processing"
+                  : undefined
+              }
+              driveOpening={openingDrive}
+              onChange={(assetId) => {
+                setSelectedMediaAssetId(assetId)
+                setActiveTool(null)
+              }}
+              onImportFromDrive={() => void importFromGoogleDrive()}
+              selectedAssetId={selectedMediaAssetId}
+            />
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          onOpenChange={(nextOpen) => !nextOpen && setActiveTool(null)}
+          open={activeTool === "captions"}
+        >
+          <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-xl">
+            <DialogHeader>
+              <DialogTitle>{t("captionsTitle")}</DialogTitle>
+              <DialogDescription>{t("captionsDescription")}</DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col gap-2">
+              {toolLoading ? (
+                <PageLoading className="min-h-28" />
+              ) : captions.length ? (
+                captions.map((caption) => (
+                  <Button
+                    className="h-auto justify-start text-left whitespace-normal"
+                    key={caption.id}
+                    onClick={() => {
+                      appendContent(caption.content)
+                      setActiveTool(null)
+                    }}
+                    type="button"
+                    variant="brand-secondary"
+                  >
+                    <span className="line-clamp-3">{caption.content}</span>
+                  </Button>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  {t("captionsEmpty")}
+                </p>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          onOpenChange={(nextOpen) => !nextOpen && setActiveTool(null)}
+          open={activeTool === "notes"}
+        >
+          <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-xl">
+            <DialogHeader>
+              <DialogTitle>{t("notesTitle")}</DialogTitle>
+              <DialogDescription>{t("notesDescription")}</DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col gap-3">
+              <Textarea
+                aria-label={t("notePlaceholder")}
+                onChange={(event) => setNoteDraft(event.target.value)}
+                placeholder={t("notePlaceholder")}
+                value={noteDraft}
+              />
+              <Button
+                disabled={!noteDraft.trim() || savingNote}
+                onClick={() => void saveNote()}
+                type="button"
+              >
+                {savingNote ? (
+                  <Spinner data-icon="inline-start" />
+                ) : (
+                  <NotebookText data-icon="inline-start" />
+                )}
+                {t("saveNote")}
+              </Button>
+              {toolLoading ? (
+                <PageLoading className="min-h-28" />
+              ) : notes.length ? (
+                <div className="flex flex-col gap-2">
+                  {notes.map((note) => (
+                    <Button
+                      className="h-auto justify-start text-left whitespace-normal"
+                      key={note.id}
+                      onClick={() => {
+                        appendContent(note.content)
+                        setActiveTool(null)
+                      }}
+                      type="button"
+                      variant="brand-secondary"
+                    >
+                      <span className="line-clamp-3">{note.content}</span>
+                    </Button>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  {t("notesEmpty")}
+                </p>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </SheetContent>
     </Sheet>
   )
@@ -662,10 +760,12 @@ export function PublishingCalendarPage({
   const [media, setMedia] = useState(calendar.media ?? [])
   const section = initialSection
   const [composerOpen, setComposerOpen] = useState(false)
-  const [composerScheduledDate, setComposerScheduledDate] =
-    useState(defaultScheduleDate)
-  const [composerScheduledTime, setComposerScheduledTime] =
-    useState(defaultScheduleTime)
+  const [composerScheduledDate, setComposerScheduledDate] = useState(
+    () => getDefaultSchedule().date
+  )
+  const [composerScheduledTime, setComposerScheduledTime] = useState(
+    () => getDefaultSchedule().time
+  )
   const [editingPost, setEditingPost] = useState<PublishingPost | null>(null)
   const createIdempotencyKey = useRef<string | null>(null)
   if (!calendar.canView) {
@@ -684,14 +784,14 @@ export function PublishingCalendarPage({
 
   function openComposer(
     post: PublishingPost | null = null,
-    scheduledDate = defaultScheduleDate,
-    scheduledTime = defaultScheduleTime
+    scheduledDate = getDefaultSchedule().date,
+    scheduledTime = getDefaultSchedule().time
   ) {
     createIdempotencyKey.current = post ? null : crypto.randomUUID()
     setEditingPost(post)
     setComposerScheduledDate(post?.date ?? scheduledDate)
     setComposerScheduledTime(
-      post?.time === "now" ? defaultScheduleTime : (post?.time ?? scheduledTime)
+      post?.time === "now" ? scheduledTime : (post?.time ?? scheduledTime)
     )
     setComposerOpen(true)
   }
@@ -704,7 +804,7 @@ export function PublishingCalendarPage({
       return
     }
 
-    const scheduledTime = allDay ? defaultScheduleTime : toTimeKey(date)
+    const scheduledTime = allDay ? getDefaultSchedule().time : toTimeKey(date)
 
     openComposer(null, toDateKey(date), scheduledTime)
   }

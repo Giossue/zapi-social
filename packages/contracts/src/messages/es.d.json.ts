@@ -4754,6 +4754,7 @@ declare const messages: {
     },
     "composer": {
       "accounts": "Cuentas destino",
+      "actionOptions": "Opciones de publicación",
       "cancel": "Cancelar",
       "composerDescription": "Valida cada destino antes de guardar, programar o publicar.",
       "content": "Texto",
@@ -4769,6 +4770,7 @@ declare const messages: {
       "driveUnavailable": "Google Drive no está disponible en este momento.",
       "editTitle": "Editar publicación",
       "media": "Media",
+      "mediaDescription": "Selecciona un archivo de Files o impórtalo desde Google Drive.",
       "notesDescription": "Guarda referencias privadas para reutilizarlas después.",
       "notesEmpty": "Aún no hay notas guardadas.",
       "notesTitle": "Notas internas",
@@ -4787,6 +4789,11 @@ declare const messages: {
         "now": "Ahora",
         "schedule": "Programar"
       },
+      "modeDescription": {
+        "draft": "Guarda el contenido para continuarlo después.",
+        "now": "Guarda y publica inmediatamente.",
+        "schedule": "Publica en la fecha y hora seleccionadas."
+      },
       "pending": {
         "draft": "Guardando...",
         "now": "Publicando...",
@@ -4796,6 +4803,16 @@ declare const messages: {
         "draft": "Guardar borrador",
         "now": "Publicar ahora",
         "schedule": "Programar"
+      },
+      "validation": {
+        "accounts": "Selecciona al menos una cuenta de destino.",
+        "connectedAccounts": "Todas las cuentas seleccionadas deben estar conectadas.",
+        "content": "Escribe el contenido de la publicación.",
+        "media": "Las cuentas seleccionadas requieren al menos un archivo multimedia.",
+        "scheduleDate": "Selecciona una fecha de publicación.",
+        "schedulePast": "La fecha de publicación debe ser futura.",
+        "scheduleTime": "Selecciona una hora de publicación.",
+        "title": "{count, plural, one {# error por resolver} other {# errores por resolver}}"
       },
       "when": "Cuándo publicar"
     },

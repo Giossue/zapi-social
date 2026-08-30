@@ -4751,6 +4751,7 @@
     },
     "composer": {
       "accounts": "Target accounts",
+      "actionOptions": "Publishing options",
       "cancel": "Cancel",
       "composerDescription": "Check every target before saving, scheduling or publishing.",
       "content": "Text",
@@ -4766,6 +4767,7 @@
       "driveUnavailable": "Google Drive isn't available right now.",
       "editTitle": "Edit post",
       "media": "Media",
+      "mediaDescription": "Choose a file from Files or import one from Google Drive.",
       "notesDescription": "Save private references to reuse later.",
       "notesEmpty": "There are no saved notes yet.",
       "notesTitle": "Internal notes",
@@ -4784,6 +4786,11 @@
         "now": "Now",
         "schedule": "Schedule"
       },
+      "modeDescription": {
+        "draft": "Save the content to continue it later.",
+        "now": "Save and publish immediately.",
+        "schedule": "Publish on the selected date and time."
+      },
       "pending": {
         "draft": "Saving...",
         "now": "Publishing...",
@@ -4793,6 +4800,16 @@
         "draft": "Save draft",
         "now": "Publish now",
         "schedule": "Schedule"
+      },
+      "validation": {
+        "accounts": "Select at least one target account.",
+        "connectedAccounts": "Every selected account must be connected.",
+        "content": "Write the post content.",
+        "media": "The selected accounts require at least one media file.",
+        "scheduleDate": "Select a publishing date.",
+        "schedulePast": "The publishing date must be in the future.",
+        "scheduleTime": "Select a publishing time.",
+        "title": "{count, plural, one {# issue to resolve} other {# issues to resolve}}"
       },
       "when": "When to publish"
     },

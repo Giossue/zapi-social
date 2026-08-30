@@ -230,6 +230,7 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - El calendario mantiene una división visual cada 30 minutos, pero hace snap de los clics en franjas de 15 minutos. Las etiquetas del eje solo aparecen cada hora y se formatean en 24 horas (`01:00`, `02:00`).
 - Un clic en cualquier día u hora pasada abre el compositor en el próximo cuarto de hora disponible del día actual; por ejemplo, al tocar el 28 cuando hoy es 30 a las 15:00, se propone el 30 a las 15:15.
 - La API vuelve a comprobar la regla al crear o editar una publicación programada: una fecha igual o anterior al instante del servidor se rechaza, evitando que un cliente o una petición directa la salte.
+- El compositor fuente y V2 mantienen el editor estable: la cinta compacta abre diálogos para Media, Captions y Notas internas, en lugar de inyectar paneles en el flujo. El footer concentra el menú de acción (borrador, programar o publicar ahora) y una alerta enumera las validaciones pendientes antes del submit.
 - Validación: typecheck y build de Web, typecheck de API, prueba focal de Publishing (6 casos), auditoría Portal/UI y `git diff --check` correctos. La fuente canónica pasa Biome focal con un aviso preexistente de orden de clases fuera de este cambio.
 
 ## Publicación — jerarquía visual del calendario — 30 de agosto de 2026
