@@ -1,0 +1,2 @@
+una cosa: borralo de acá en tal caso tratemos que quitar de acá, porque quiero migrar todo dentro de agentes
+ porque sé que a la gente le gustará más la parte visual como de workflow, arrastrar cards, etc.
