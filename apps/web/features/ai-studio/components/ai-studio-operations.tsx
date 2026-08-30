@@ -1,6 +1,6 @@
 "use client"
 
-import type { FormEvent, ReactNode } from "react"
+import { useState, type FormEvent, type ReactNode } from "react"
 
 import {
   CircleAlert,
@@ -11,6 +11,7 @@ import {
   RefreshCw,
   Save,
   ShieldX,
+  SlidersHorizontal,
   Trash2,
 } from "lucide-react"
 
@@ -947,6 +948,7 @@ function AiCreditsSurface({
   total,
 }: AiCreditsSurfaceProps) {
   const t = useTranslations("aiStudio.operations")
+  const [budgetOpen, setBudgetOpen] = useState(false)
   const alertNumber = Number(alertPercent)
   const budgetNumber = Number(budget)
   const budgetIsValid =
@@ -965,118 +967,32 @@ function AiCreditsSurface({
       />
 
       {state === "ready" ? (
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
-          <div className="flex flex-col gap-4">
-            <Card variant="subtle">
-              <DataTableHeader
-                action={tableAction}
-                search={{
-                  ariaLabel: t("credits.searchLabel"),
-                  onChange: onQueryChange,
-                  placeholder: t("credits.searchPlaceholder"),
-                  value: query,
-                }}
-              />
-              <CardContent className="flex flex-col gap-4 px-0">
-                <DataTableToolbar>
-                  <DataTableFilter
-                    ariaLabel={t("credits.filterTypeLabel")}
-                    label={t("type")}
-                    onValueChange={onMovementTypeChange}
-                    options={creditTypeOptions.map((value) => ({
-                      label: t(`creditType.${value}`),
-                      value,
-                    }))}
-                    value={movementType}
-                  />
-                </DataTableToolbar>
-
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t("date")}</TableHead>
-                      <TableHead>{t("credits.movement")}</TableHead>
-                      <TableHead className="hidden md:table-cell">
-                        {t("credits.detailColumn")}
-                      </TableHead>
-                      <TableHead className="text-right">
-                        {t("credits.creditsColumn")}
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {movements.map((movement) => (
-                      <TableRow key={movement.id}>
-                        <TableCell className="text-muted-foreground">
-                          {movement.date}
-                        </TableCell>
-                        <TableCell>
-                          <CreditTypeBadge type={movement.type} />
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          {movement.detail}
-                        </TableCell>
-                        <TableCell className="text-right font-medium">
-                          {movement.credits}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {movements.length === 0 ? (
-                      <TableEmptyRow
-                        colSpan={4}
-                        action={
-                          hasFilters ? (
-                            <Button
-                              onClick={onClearFilters}
-                              type="button"
-                              variant="brand-secondary"
-                            >
-                              {t("clearFilters")}
-                            </Button>
-                          ) : undefined
-                        }
-                        description={
-                          hasFilters
-                            ? t("credits.emptyFilteredDescription")
-                            : t("credits.emptyDescription")
-                        }
-                        title={
-                          hasFilters ? t("noResults") : t("credits.emptyTitle")
-                        }
-                      />
-                    ) : null}
-                  </TableBody>
-                </Table>
-                <CollectionPagination
-                  onNextPage={onNextPage}
-                  onPreviousPage={onPreviousPage}
-                  page={page}
-                  pageSize={pageSize}
-                  total={total}
-                />
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="flex flex-col gap-4">
-            <Card variant="subtle">
-              <CardHeader>
-                <CardTitle>{t("credits.budgetTitle")}</CardTitle>
-                <CardDescription>
-                  {budgetEditable
-                    ? t("credits.budgetHint")
-                    : t("credits.budgetReadOnly")}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form noValidate onSubmit={onSaveBudget}>
+        <>
+          <Sheet
+            onOpenChange={(open) => {
+              if (!pendingBudget) setBudgetOpen(open)
+            }}
+            open={budgetOpen}
+          >
+            <SheetContent className="w-full gap-0 p-0 sm:max-w-md" side="right">
+              <SheetHeader className="border-b">
+                <SheetTitle>{t("credits.budgetTitle")}</SheetTitle>
+                <SheetDescription>{t("credits.budgetHint")}</SheetDescription>
+              </SheetHeader>
+              <form
+                aria-busy={pendingBudget}
+                className="flex min-h-0 flex-1 flex-col"
+                noValidate
+                onSubmit={onSaveBudget}
+              >
+                <div className="min-h-0 flex-1 overflow-y-auto p-4">
                   <FieldGroup>
-                    <Field data-disabled={!budgetEditable || pendingBudget}>
+                    <Field data-disabled={pendingBudget || undefined}>
                       <FieldLabel htmlFor="ai-monthly-budget">
                         {t("credits.budgetLimit")}
                       </FieldLabel>
                       <Input
-                        disabled={!budgetEditable || pendingBudget}
+                        disabled={pendingBudget}
                         id="ai-monthly-budget"
                         min="0"
                         onChange={(event) => onBudgetChange(event.target.value)}
@@ -1085,13 +1001,13 @@ function AiCreditsSurface({
                         value={budget}
                       />
                     </Field>
-                    <Field data-disabled={!budgetEditable || pendingBudget}>
+                    <Field data-disabled={pendingBudget || undefined}>
                       <FieldLabel htmlFor="ai-budget-alert">
                         {t("credits.alertThreshold")} <RequiredMark />
                       </FieldLabel>
                       <Input
                         aria-required="true"
-                        disabled={!budgetEditable || pendingBudget}
+                        disabled={pendingBudget}
                         id="ai-budget-alert"
                         max="100"
                         min="1"
@@ -1103,7 +1019,7 @@ function AiCreditsSurface({
                       />
                     </Field>
                     <Field
-                      data-disabled={!budgetEditable || pendingBudget}
+                      data-disabled={pendingBudget || undefined}
                       orientation="horizontal"
                     >
                       <FieldLabel htmlFor="ai-budget-alerts">
@@ -1111,36 +1027,149 @@ function AiCreditsSurface({
                       </FieldLabel>
                       <Switch
                         checked={alertsEnabled}
-                        disabled={!budgetEditable || pendingBudget}
+                        disabled={pendingBudget}
                         id="ai-budget-alerts"
                         onCheckedChange={onAlertsEnabledChange}
                       />
                     </Field>
-                    <Button
-                      disabled={
-                        !budgetEditable ||
-                        pendingBudget ||
-                        !budgetIsValid ||
-                        !alertIsValid
-                      }
-                      type="submit"
-                    >
-                      {pendingBudget ? (
-                        <Spinner
-                          aria-label={t("credits.savingBudget")}
-                          data-icon="inline-start"
-                        />
-                      ) : (
-                        <Save aria-hidden="true" data-icon="inline-start" />
-                      )}
-                      {pendingBudget ? t("saving") : t("credits.saveBudget")}
-                    </Button>
                   </FieldGroup>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+                </div>
+                <SheetActions>
+                  <Button
+                    disabled={pendingBudget}
+                    onClick={() => setBudgetOpen(false)}
+                    type="button"
+                    variant="brand-secondary"
+                  >
+                    {t("cancel")}
+                  </Button>
+                  <Button
+                    disabled={pendingBudget || !budgetIsValid || !alertIsValid}
+                    type="submit"
+                  >
+                    {pendingBudget ? (
+                      <Spinner
+                        aria-label={t("credits.savingBudget")}
+                        data-icon="inline-start"
+                      />
+                    ) : (
+                      <Save aria-hidden="true" data-icon="inline-start" />
+                    )}
+                    {pendingBudget ? t("saving") : t("credits.saveBudget")}
+                  </Button>
+                </SheetActions>
+              </form>
+            </SheetContent>
+          </Sheet>
+
+          <Card variant="subtle">
+            <DataTableHeader
+              action={
+                <div className="flex flex-wrap items-center gap-2">
+                  {tableAction}
+                  {budgetEditable ? (
+                    <Button
+                      onClick={() => setBudgetOpen(true)}
+                      size="sm"
+                      type="button"
+                      variant="brand-secondary"
+                    >
+                      <SlidersHorizontal
+                        aria-hidden="true"
+                        data-icon="inline-start"
+                      />
+                      {t("credits.configureBudget")}
+                    </Button>
+                  ) : null}
+                </div>
+              }
+              search={{
+                ariaLabel: t("credits.searchLabel"),
+                onChange: onQueryChange,
+                placeholder: t("credits.searchPlaceholder"),
+                value: query,
+              }}
+            />
+            <CardContent className="flex flex-col gap-4 px-0">
+              <DataTableToolbar>
+                <DataTableFilter
+                  ariaLabel={t("credits.filterTypeLabel")}
+                  label={t("type")}
+                  onValueChange={onMovementTypeChange}
+                  options={creditTypeOptions.map((value) => ({
+                    label: t(`creditType.${value}`),
+                    value,
+                  }))}
+                  value={movementType}
+                />
+              </DataTableToolbar>
+
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t("date")}</TableHead>
+                    <TableHead>{t("credits.movement")}</TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      {t("credits.detailColumn")}
+                    </TableHead>
+                    <TableHead className="text-right">
+                      {t("credits.creditsColumn")}
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {movements.map((movement) => (
+                    <TableRow key={movement.id}>
+                      <TableCell className="text-muted-foreground">
+                        {movement.date}
+                      </TableCell>
+                      <TableCell>
+                        <CreditTypeBadge type={movement.type} />
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {movement.detail}
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {movement.credits}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {movements.length === 0 ? (
+                    <TableEmptyRow
+                      colSpan={4}
+                      action={
+                        hasFilters ? (
+                          <Button
+                            onClick={onClearFilters}
+                            type="button"
+                            variant="brand-secondary"
+                          >
+                            {t("clearFilters")}
+                          </Button>
+                        ) : undefined
+                      }
+                      description={
+                        hasFilters
+                          ? t("credits.emptyFilteredDescription")
+                          : t("credits.emptyDescription")
+                      }
+                      title={
+                        hasFilters ? t("noResults") : t("credits.emptyTitle")
+                      }
+                    />
+                  ) : null}
+                </TableBody>
+              </Table>
+              <CollectionPagination
+                onNextPage={onNextPage}
+                onPreviousPage={onPreviousPage}
+                page={page}
+                pageSize={pageSize}
+                total={total}
+              />
+            </CardContent>
+          </Card>
+        </>
       ) : (
         <Card variant="subtle">
           <CollectionState
