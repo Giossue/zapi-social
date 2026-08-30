@@ -3,7 +3,7 @@
   "checkpoint_id": "01M1845P7NRH36KTZ2H4SEKRDQ",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 4,
+  "checkpoints_count": 5,
   "files_touched": [
     "apps/web/features/admin-manual-payments/components/admin-manual-payments-page.tsx",
     "apps/web/features/admin-notifications/components/admin-notifications-page.tsx",
@@ -11,8 +11,12 @@
     "apps/web/features/affiliate/components/affiliate-page.tsx",
     "apps/web/features/ai-admin/components/ai-configuration-page.tsx",
     "apps/web/features/ai-studio/components/ai-studio-page.tsx",
+    "apps/web/features/boards/components/board-page.tsx",
+    "apps/web/features/channels/components/channels-page.tsx",
+    "apps/web/features/channels/components/channels-users.tsx",
     "apps/web/features/link-bio/components/link-bio-page.tsx",
-    "apps/web/features/support/components/support-tickets-page.tsx"
+    "apps/web/features/support/components/support-tickets-page.tsx",
+    "packages/ui/src/components/data-table-controls.tsx"
   ],
   "sessions": [
     {
@@ -21,13 +25,27 @@
       "compact_transcript": "/0/transcript.jsonl",
       "content_hash": "/0/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/1/metadata.json",
+      "transcript": "/1/full.jsonl",
+      "compact_transcript": "/1/transcript.jsonl",
+      "content_hash": "/1/content_hash.txt",
+      "prompt": "/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 83,
-    "cache_creation_tokens": 125176,
-    "cache_read_tokens": 2437004,
-    "output_tokens": 20409,
-    "api_call_count": 45
+    "input_tokens": 131,
+    "cache_creation_tokens": 169502,
+    "cache_read_tokens": 7638675,
+    "output_tokens": 35400,
+    "api_call_count": 69,
+    "subagent_tokens": {
+      "input_tokens": 8,
+      "cache_creation_tokens": 14856,
+      "cache_read_tokens": 32662,
+      "output_tokens": 1252,
+      "api_call_count": 4
+    }
   }
 }

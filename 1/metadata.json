@@ -1,0 +1,213 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "01M1845P7NRH36KTZ2H4SEKRDQ",
+  "session_id": "fcdddacb-5a5c-41e1-9773-e4bd765dea1b",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-30T01:22:35.149098211Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "save_step_count": 1,
+  "files_touched": [
+    "apps/web/features/boards/components/board-page.tsx",
+    "apps/web/features/channels/components/channels-page.tsx",
+    "apps/web/features/channels/components/channels-users.tsx",
+    "packages/ui/src/components/data-table-controls.tsx"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-fable-5",
+  "turn_id": "afc61f6d92d9",
+  "checkpoint_transcript_start": 407,
+  "transcript_lines_at_start": 407,
+  "compact_transcript_start": 133,
+  "token_usage": {
+    "input_tokens": 48,
+    "cache_creation_tokens": 44326,
+    "cache_read_tokens": 5201671,
+    "output_tokens": 14991,
+    "api_call_count": 24,
+    "subagent_tokens": {
+      "input_tokens": 8,
+      "cache_creation_tokens": 14856,
+      "cache_read_tokens": 32662,
+      "output_tokens": 1252,
+      "api_call_count": 4
+    }
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "claude-skill-toolu_01BRmJX3Gs2ZSinYgBQ8XFUo",
+      "event_type": "tool_invocation",
+      "skill": {
+        "name": "implement-operational-frontend-v2"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "skill_tool_use",
+        "confidence": "explicit"
+      },
+      "turn_id": "afc61f6d92d9",
+      "transcript_anchor": {
+        "unit": "line",
+        "start": 43,
+        "end": 44,
+        "entry_ids": [
+          "3223bd3f-d2e0-42df-9070-252e808cb1b7"
+        ],
+        "tool_use_id": "toolu_01BRmJX3Gs2ZSinYgBQ8XFUo"
+      },
+      "native": {
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_01BRmJX3Gs2ZSinYgBQ8XFUo"
+      },
+      "collapse": {
+        "target": "tool_pair",
+        "label": "Skill: implement-operational-frontend-v2",
+        "default_collapsed": true
+      }
+    },
+    {
+      "id": "claude-skill-toolu_01RP951SG91STWT3tjf8auks",
+      "event_type": "tool_invocation",
+      "skill": {
+        "name": "implement-feature-v2"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "skill_tool_use",
+        "confidence": "explicit"
+      },
+      "turn_id": "afc61f6d92d9",
+      "transcript_anchor": {
+        "unit": "line",
+        "start": 414,
+        "end": 415,
+        "entry_ids": [
+          "13399db3-2104-4ad7-ae67-4d3a4eadd09b"
+        ],
+        "tool_use_id": "toolu_01RP951SG91STWT3tjf8auks"
+      },
+      "native": {
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_01RP951SG91STWT3tjf8auks"
+      },
+      "collapse": {
+        "target": "tool_pair",
+        "label": "Skill: implement-feature-v2",
+        "default_collapsed": true
+      }
+    },
+    {
+      "id": "claude-skill-toolu_01WkDG6keTjavseJ88gm62mG",
+      "event_type": "tool_invocation",
+      "skill": {
+        "name": "create-drizzle-migration"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "skill_tool_use",
+        "confidence": "explicit"
+      },
+      "turn_id": "afc61f6d92d9",
+      "transcript_anchor": {
+        "unit": "line",
+        "start": 489,
+        "end": 490,
+        "entry_ids": [
+          "1b5b9d2e-4d55-41ce-bcff-c5f41a04b7dc"
+        ],
+        "tool_use_id": "toolu_01WkDG6keTjavseJ88gm62mG"
+      },
+      "native": {
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_01WkDG6keTjavseJ88gm62mG"
+      },
+      "collapse": {
+        "target": "tool_pair",
+        "label": "Skill: create-drizzle-migration",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "session_metrics": {
+    "turn_count": 3
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-08-30T01:22:34.998221909Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 15700,
+    "human_modified": 29,
+    "human_removed": 0,
+    "total_committed": 15700,
+    "total_lines_changed": 15753,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 6,
+      "user_lines_removed": 4,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        "apps/web/features/boards/components/board-page.tsx": 1,
+        "packages/ui/src/components/data-table-controls.tsx": 5
+      },
+      "user_removed_per_file": {
+        "apps/web/features/boards/components/board-page.tsx": 1,
+        "packages/ui/src/components/data-table-controls.tsx": 3
+      }
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 64,
+      "user_lines_removed": 24,
+      "agent_lines_added": 34,
+      "agent_lines_removed": 6,
+      "user_added_per_file": {
+        "apps/web/components/data-table-toolbar.tsx": 7,
+        "apps/web/features/admin-content/components/admin-collection-page.tsx": 1,
+        "apps/web/features/admin-email-templates/components/admin-email-templates-page.tsx": 1,
+        "apps/web/features/admin-manual-payments/components/admin-manual-payments-page.tsx": 1,
+        "apps/web/features/admin-notifications/components/admin-notifications-page.tsx": 1,
+        "apps/web/features/admin-settings/components/static-pages-page.tsx": 1,
+        "apps/web/features/admin-support/components/admin-support-page.tsx": 3,
+        "apps/web/features/admin-support/components/support-catalog-panel.tsx": 1,
+        "apps/web/features/affiliate/components/affiliate-page.tsx": 2,
+        "apps/web/features/ai-admin/components/ai-configuration-page.tsx": 5,
+        "apps/web/features/ai-admin/components/ai-usage-logs-page.tsx": 1,
+        "apps/web/features/ai-studio/components/ai-studio-page.tsx": 1,
+        "apps/web/features/automation/components/automation-page.tsx": 3,
+        "apps/web/features/bulk-posts/components/bulk-posts-page.tsx": 1,
+        "apps/web/features/captions/components/captions-library-page.tsx": 1,
+        "apps/web/features/link-bio/components/link-bio-page.tsx": 1,
+        "apps/web/features/publishing/components/publishing-posts-table.tsx": 1,
+        "apps/web/features/support/components/support-tickets-page.tsx": 1,
+        "packages/ui/src/components/data-table-controls.tsx": 31
+      },
+      "user_removed_per_file": {
+        "apps/web/components/data-table-toolbar.tsx": 1,
+        "apps/web/features/admin-content/components/admin-collection-page.tsx": 1,
+        "apps/web/features/admin-email-templates/components/admin-email-templates-page.tsx": 1,
+        "apps/web/features/admin-manual-payments/components/admin-manual-payments-page.tsx": 1,
+        "apps/web/features/admin-notifications/components/admin-notifications-page.tsx": 1,
+        "apps/web/features/admin-settings/components/static-pages-page.tsx": 1,
+        "apps/web/features/admin-support/components/admin-support-page.tsx": 1,
+        "apps/web/features/admin-support/components/support-catalog-panel.tsx": 1,
+        "apps/web/features/affiliate/components/affiliate-page.tsx": 2,
+        "apps/web/features/ai-admin/components/ai-configuration-page.tsx": 2,
+        "apps/web/features/ai-admin/components/ai-usage-logs-page.tsx": 1,
+        "apps/web/features/ai-studio/components/ai-studio-page.tsx": 1,
+        "apps/web/features/automation/components/automation-page.tsx": 3,
+        "apps/web/features/bulk-posts/components/bulk-posts-page.tsx": 1,
+        "apps/web/features/captions/components/captions-library-page.tsx": 1,
+        "apps/web/features/link-bio/components/link-bio-page.tsx": 1,
+        "apps/web/features/publishing/components/publishing-posts-table.tsx": 1,
+        "apps/web/features/support/components/support-tickets-page.tsx": 1,
+        "packages/ui/src/components/data-table-controls.tsx": 2
+      }
+    }
+  ]
+}
