@@ -2,7 +2,13 @@
 
 import { useTranslations } from "next-intl"
 import Link from "next/link"
-import { type FormEvent, useEffect, useRef, useState } from "react"
+import {
+  type FormEvent,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react"
 import {
   BookOpenText,
   CalendarDays,
@@ -138,6 +144,15 @@ function getDefaultSchedule() {
   }
 }
 
+function subscribeToClock(listener: () => void) {
+  const interval = window.setInterval(listener, 60_000)
+  return () => window.clearInterval(interval)
+}
+
+function getCurrentTime() {
+  return Date.now()
+}
+
 function ComposerActionIcon({ mode }: { mode: ComposerMode }) {
   if (mode === "draft") return <FileText data-icon="inline-start" />
   if (mode === "now") return <Send data-icon="inline-start" />
@@ -211,7 +226,7 @@ function ComposerDialog({
   const [captionsLoaded, setCaptionsLoaded] = useState(false)
   const [notes, setNotes] = useState<PortalPublishingNote[]>([])
   const [notesLoaded, setNotesLoaded] = useState(false)
-  const [toolLoading, setToolLoading] = useState(false)
+  const [toolLoading, setToolLoading] = useState<ComposerTool>(null)
   const [noteDraft, setNoteDraft] = useState("")
   const [savingNote, setSavingNote] = useState(false)
   const handledDriveBatch = useRef<string | null>(null)
@@ -222,10 +237,15 @@ function ComposerDialog({
   const requiresMedia = selected.some(
     (account) => account.provider !== "facebook"
   )
+  const currentTime = useSyncExternalStore(
+    subscribeToClock,
+    getCurrentTime,
+    () => 0
+  )
   const isPastSchedule =
     mode === "schedule" &&
     Boolean(scheduledDate && scheduledTime) &&
-    new Date(`${scheduledDate}T${scheduledTime}:00`).getTime() <= Date.now()
+    new Date(`${scheduledDate}T${scheduledTime}:00`).getTime() <= currentTime
   const validationIssues = [
     selected.length === 0 ? t("validation.accounts") : null,
     selected.some((account) => !account.connected)
@@ -253,31 +273,6 @@ function ComposerDialog({
         })
       )
   }, [])
-
-  useEffect(() => {
-    if (activeTool === "captions" && !captionsLoaded) {
-      setToolLoading(true)
-      void captionsApi
-        .list({ status: "active" })
-        .then((response) => {
-          setCaptions(response.captions)
-          setCaptionsLoaded(true)
-        })
-        .catch(() => toast.error(t("toolLoadFailed")))
-        .finally(() => setToolLoading(false))
-    }
-    if (activeTool === "notes" && !notesLoaded) {
-      setToolLoading(true)
-      void publishingApi
-        .listNotes()
-        .then((response) => {
-          setNotes(response.notes)
-          setNotesLoaded(true)
-        })
-        .catch(() => toast.error(t("toolLoadFailed")))
-        .finally(() => setToolLoading(false))
-    }
-  }, [activeTool, captionsLoaded, notesLoaded, t])
 
   useEffect(() => {
     if (!driveBatch) return
@@ -365,6 +360,28 @@ function ComposerDialog({
 
   function openTool(tool: Exclude<ComposerTool, null>) {
     setActiveTool(tool)
+    if (tool === "captions" && !captionsLoaded) {
+      setToolLoading(tool)
+      void captionsApi
+        .list({ status: "active" })
+        .then((response) => {
+          setCaptions(response.captions)
+          setCaptionsLoaded(true)
+        })
+        .catch(() => toast.error(t("toolLoadFailed")))
+        .finally(() => setToolLoading(null))
+    }
+    if (tool === "notes" && !notesLoaded) {
+      setToolLoading(tool)
+      void publishingApi
+        .listNotes()
+        .then((response) => {
+          setNotes(response.notes)
+          setNotesLoaded(true)
+        })
+        .catch(() => toast.error(t("toolLoadFailed")))
+        .finally(() => setToolLoading(null))
+    }
   }
 
   function appendContent(value: string) {
@@ -662,7 +679,7 @@ function ComposerDialog({
               <DialogDescription>{t("captionsDescription")}</DialogDescription>
             </DialogHeader>
             <div className="flex flex-col gap-2">
-              {toolLoading ? (
+              {toolLoading === "captions" ? (
                 <PageLoading className="min-h-28" />
               ) : captions.length ? (
                 captions.map((caption) => (
@@ -716,7 +733,7 @@ function ComposerDialog({
                 )}
                 {t("saveNote")}
               </Button>
-              {toolLoading ? (
+              {toolLoading === "notes" ? (
                 <PageLoading className="min-h-28" />
               ) : notes.length ? (
                 <div className="flex flex-col gap-2">

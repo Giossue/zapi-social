@@ -4,8 +4,8 @@ const adapter = new LinkedInConnectionAdapter();
 const originalFetch = globalThis.fetch;
 
 function respond(routes: Record<string, unknown>) {
-  globalThis.fetch = (input: string | URL) => {
-    const url = input.toString();
+  globalThis.fetch = (input: RequestInfo | URL) => {
+    const url = input instanceof Request ? input.url : input.toString();
     const match = Object.keys(routes).find((key) => url.includes(key));
     if (!match) return Promise.resolve({ ok: false, status: 404 } as Response);
     return Promise.resolve({

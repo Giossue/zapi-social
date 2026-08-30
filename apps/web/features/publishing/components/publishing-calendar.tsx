@@ -112,6 +112,13 @@ export function PublishingCalendar({
       ),
     [accounts]
   )
+  const selectedAvailableChannels = React.useMemo(
+    () =>
+      selectedChannels.filter((provider) =>
+        availableChannels.some((channel) => channel.key === provider)
+      ),
+    [availableChannels, selectedChannels]
+  )
   const [title, setTitle] = React.useState(() =>
     format(new Date(`${initialDate}T12:00:00`), "MMMM yyyy", {
       locale: dateLocale.dateFns,
@@ -131,8 +138,8 @@ export function PublishingCalendar({
       .filter((post) => {
         const matchesQuery = !term || post.title.toLowerCase().includes(term)
         const matchesChannel =
-          selectedChannels.length === 0 ||
-          selectedChannels.includes(post.provider)
+          selectedAvailableChannels.length === 0 ||
+          selectedAvailableChannels.includes(post.provider)
 
         return matchesQuery && matchesChannel
       })
@@ -141,15 +148,7 @@ export function PublishingCalendar({
         start: toEventStart(post),
         title: post.title || t("untitled"),
       }))
-  }, [posts, query, selectedChannels, t])
-
-  React.useEffect(() => {
-    setSelectedChannels((current) =>
-      current.filter((provider) =>
-        availableChannels.some((channel) => channel.key === provider)
-      )
-    )
-  }, [availableChannels])
+  }, [posts, query, selectedAvailableChannels, t])
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-md border bg-card text-card-foreground">
@@ -198,9 +197,9 @@ export function PublishingCalendar({
                 variant="outline"
               >
                 <Funnel />
-                {selectedChannels.length > 0 ? (
+                {selectedAvailableChannels.length > 0 ? (
                   <Badge className="absolute -end-1.5 -top-1.5 size-4 justify-center rounded-full p-0 text-[0.625rem]">
-                    {selectedChannels.length}
+                    {selectedAvailableChannels.length}
                   </Badge>
                 ) : null}
               </Button>
@@ -211,14 +210,20 @@ export function PublishingCalendar({
                 {availableChannels.map((channel) => (
                   <div className="flex items-center gap-2" key={channel.key}>
                     <Checkbox
-                      checked={selectedChannels.includes(channel.key)}
+                      checked={selectedAvailableChannels.includes(channel.key)}
                       id={`channel-${channel.key}`}
                       onCheckedChange={(checked) =>
-                        setSelectedChannels((current) =>
-                          checked === true
-                            ? [...current, channel.key]
-                            : current.filter((item) => item !== channel.key)
-                        )
+                        setSelectedChannels((current) => {
+                          const selected = current.filter((provider) =>
+                            availableChannels.some(
+                              (available) => available.key === provider
+                            )
+                          )
+
+                          return checked === true
+                            ? [...selected, channel.key]
+                            : selected.filter((item) => item !== channel.key)
+                        })
                       }
                     />
                     <Label
@@ -230,7 +235,7 @@ export function PublishingCalendar({
                   </div>
                 ))}
                 <Button
-                  disabled={selectedChannels.length === 0}
+                  disabled={selectedAvailableChannels.length === 0}
                   onClick={() => setSelectedChannels([])}
                   size="sm"
                   variant="outline"

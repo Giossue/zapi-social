@@ -43,7 +43,7 @@
     "eslint": "^9",
     "shadcn": "^4.16.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^6.0.3"
   },
   "exports": {
     "./globals.css": "./src/styles/globals.css",

@@ -12,7 +12,7 @@
         "prettier": "^3.9.6",
         "prettier-plugin-tailwindcss": "^0.8.1",
         "turbo": "^2.10.11",
-        "typescript": "^5.9.3",
+        "typescript": "^6.0.3",
       },
     },
     "apps/api": {
@@ -84,7 +84,7 @@
         "ts-loader": "^9.5.2",
         "ts-node": "^10.9.2",
         "tsconfig-paths": "^4.2.0",
-        "typescript": "^5.7.3",
+        "typescript": "^6.0.3",
         "typescript-eslint": "^8.20.0",
       },
     },
@@ -143,7 +143,7 @@
         "@workspace/typescript-config": "workspace:*",
         "eslint": "^9",
         "msw": "^2.15.0",
-        "typescript": "^5",
+        "typescript": "^6.0.3",
         "vitest": "^4.1.10",
       },
     },
@@ -190,7 +190,7 @@
         "ts-loader": "^9.5.2",
         "ts-node": "^10.9.2",
         "tsconfig-paths": "^4.2.0",
-        "typescript": "^5.7.3",
+        "typescript": "^6.0.3",
         "typescript-eslint": "^8.20.0",
       },
     },
@@ -208,7 +208,7 @@
         "eslint": "^9",
         "orval": "^8.6.1",
         "prettier": "^3.8.3",
-        "typescript": "^5",
+        "typescript": "^6.0.3",
       },
     },
     "packages/contracts": {
@@ -223,7 +223,7 @@
         "@workspace/typescript-config": "workspace:*",
         "eslint": "^9",
         "prettier": "^3.8.3",
-        "typescript": "^5",
+        "typescript": "^6.0.3",
       },
     },
     "packages/database": {
@@ -240,7 +240,7 @@
         "@workspace/typescript-config": "workspace:*",
         "eslint": "^9",
         "prettier": "^3.8.3",
-        "typescript": "^5",
+        "typescript": "^6.0.3",
       },
     },
     "packages/eslint-config": {
@@ -258,7 +258,7 @@
         "eslint-plugin-react-hooks": "^7.1.1",
         "eslint-plugin-turbo": "^2.9.15",
         "globals": "^17.6.0",
-        "typescript": "^5",
+        "typescript": "^6.0.3",
         "typescript-eslint": "^8.60.0",
       },
     },
@@ -271,7 +271,7 @@
         "@workspace/typescript-config": "workspace:*",
         "eslint": "^9",
         "prettier": "^3.8.3",
-        "typescript": "^5",
+        "typescript": "^6.0.3",
       },
     },
     "packages/typescript-config": {
@@ -316,7 +316,7 @@
         "eslint": "^9",
         "shadcn": "^4.16.0",
         "tailwindcss": "^4",
-        "typescript": "^5",
+        "typescript": "^6.0.3",
       },
     },
   },
@@ -3485,7 +3485,7 @@
 
     "typedoc-plugin-markdown": ["typedoc-plugin-markdown@4.12.0", "", { "peerDependencies": { "typedoc": "0.28.x" } }, "sha512-eJDEMAfxCmede22c/Jw7d0FA13ggAQv+KkwQYKYCdqI02cin6Rc9QRwbG/7XvvHWinuFejySnZVUWDtvGk3Vbg=="],
 
-    "typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
+    "typescript": ["typescript@6.0.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw=="],
 
     "typescript-eslint": ["typescript-eslint@8.65.0", "", { "dependencies": { "@typescript-eslint/eslint-plugin": "8.65.0", "@typescript-eslint/parser": "8.65.0", "@typescript-eslint/typescript-estree": "8.65.0", "@typescript-eslint/utils": "8.65.0" }, "peerDependencies": { "eslint": "^8.57.0 || ^9.0.0 || ^10.0.0", "typescript": ">=4.8.4 <6.1.0" } }, "sha512-/ggrHAwyjENDusvyxbuqxAC2dTnZg/Z8F+fgQtYIz+L6n/9HfSlEZcFGV/NsMNa6CkGk0xUjUAFwC0vHOflvIA=="],
 
@@ -3750,6 +3750,8 @@
     "@nestjs/cli/commander": ["commander@4.1.1", "", {}, "sha512-NOKm8xhkzAjzFx8B2v5OAHT+u5pRQc2UCa2Vq9jYL/31o2wi9mxBA7LIFs3sV5VSC49z6pEhfbMULvShKj26WA=="],
 
     "@nestjs/cli/ora": ["ora@5.4.1", "", { "dependencies": { "bl": "^4.1.0", "chalk": "^4.1.0", "cli-cursor": "^3.1.0", "cli-spinners": "^2.5.0", "is-interactive": "^1.0.0", "is-unicode-supported": "^0.1.0", "log-symbols": "^4.1.0", "strip-ansi": "^6.0.0", "wcwidth": "^1.0.1" } }, "sha512-5b6Y85tPxZZ7QytO+BQzysW31HJku27cRIlkbAXaNx+BdcVi+LlRFmVXzeF6a7JCwJpyw5c4b+YSVImQIrBpuQ=="],
+
+    "@nestjs/cli/typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
     "@nestjs/config/dotenv": ["dotenv@17.4.1", "", {}, "sha512-k8DaKGP6r1G30Lx8V4+pCsLzKr8vLmV2paqEj1Y55GdAgJuIqpRp5FfajGF8KtwMxCz9qJc6wUIJnm053d/WCw=="],
 

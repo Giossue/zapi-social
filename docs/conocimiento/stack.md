@@ -1,4 +1,5 @@
 Monorepo: Bun + Turborepo
+Compilador: TypeScript 6.0.3
 Frontend: Next.js + React + TypeScript
 UI: Tailwind CSS 4 + shadcn/ui Radix Nova + Lucide
 UI bloques: 21st.dev MCP, adaptado a packages/ui

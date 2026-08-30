@@ -35,6 +35,17 @@ type DashboardSearchDialogProps = {
   lockedLabel: string
 }
 
+function subscribeToPlatform() {
+  return () => undefined
+}
+
+function getApplePlatform() {
+  return (
+    typeof navigator !== "undefined" &&
+    /Mac|iPhone|iPad|iPod/.test(navigator.userAgent)
+  )
+}
+
 function getSearchItems(items: readonly DashboardNavigationGroup[]) {
   return items.flatMap((group) =>
     group.items.flatMap((item) => {
@@ -107,7 +118,11 @@ export function DashboardSearchDialog({
   const t = useTranslations("shell.search")
   const [open, setOpen] = React.useState(false)
   const [query, setQuery] = React.useState("")
-  const [isApplePlatform, setIsApplePlatform] = React.useState(false)
+  const isApplePlatform = React.useSyncExternalStore(
+    subscribeToPlatform,
+    getApplePlatform,
+    () => false
+  )
   const router = useRouter()
   const searchItems = getSearchItems(items)
 
@@ -121,10 +136,6 @@ export function DashboardSearchDialog({
 
     document.addEventListener("keydown", down)
     return () => document.removeEventListener("keydown", down)
-  }, [])
-
-  React.useEffect(() => {
-    setIsApplePlatform(/Mac|iPhone|iPad|iPod/.test(navigator.userAgent))
   }, [])
 
   function handleOpenChange(nextOpen: boolean) {
