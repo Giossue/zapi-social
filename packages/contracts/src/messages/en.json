@@ -1533,7 +1533,7 @@
     "costColumn": "Cost",
     "costUnits": "Cost in credits",
     "deprecated": "Deprecated",
-    "description": "Set the connection, the models and what each Portal tool uses.",
+    "description": "Define the connection and the available models. Routing is managed in the Agents canvas.",
     "enableModel": "Enable {model}",
     "enableProvider": "Enable {provider}",
     "enableProviderHint": "Only the capabilities listed above get enabled.",
@@ -1644,7 +1644,6 @@
     "tab": {
       "models": "Models",
       "provider": "Provider",
-      "routing": "Routes",
       "usage": "Usage"
     },
     "testBeforeEnable": "Test the connection before enabling {provider}.",

@@ -1536,7 +1536,7 @@ declare const messages: {
     "costColumn": "Costo",
     "costUnits": "Costo en créditos",
     "deprecated": "Obsoleto",
-    "description": "Define la conexión, los modelos y qué usa cada herramienta del Portal.",
+    "description": "Define la conexión y los modelos disponibles. El enrutamiento se administra en el canvas de Agentes.",
     "enableModel": "Habilitar {model}",
     "enableProvider": "Habilitar {provider}",
     "enableProviderHint": "Activa únicamente las capacidades indicadas arriba.",
@@ -1647,7 +1647,6 @@ declare const messages: {
     "tab": {
       "models": "Modelos",
       "provider": "Proveedor",
-      "routing": "Rutas",
       "usage": "Uso"
     },
     "testBeforeEnable": "Prueba la conexión antes de habilitar {provider}.",

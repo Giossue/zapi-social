@@ -7,10 +7,7 @@ import type {
   AdminAiConfiguration,
   AdminAiModel,
   AdminAiProviderKey,
-  AdminAiRoute,
   AdminAiUsage,
-  AiRequestKind,
-  AiReasoningEffort,
 } from "@workspace/contracts"
 import { useApiErrorMessage } from "@/lib/api-error-message"
 import { Badge } from "@workspace/ui/components/badge"
@@ -31,22 +28,6 @@ import { EmptyState } from "@workspace/ui/components/empty-state"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { PageLoading } from "@/components/page-loading"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetActions,
-  SheetHeader,
-  SheetTitle,
-} from "@workspace/ui/components/sheet"
 import { Switch } from "@workspace/ui/components/switch"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
@@ -74,37 +55,13 @@ import {
   CheckCircle2,
   KeyRound,
   RefreshCw,
-  Route,
   Save,
-  Settings2,
   ShieldCheck,
   X,
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
 const TABLE_PAGE_SIZE = 10
-
-type RouteShape = {
-  capability: "text" | "image" | "video"
-  internal: boolean
-  media: boolean
-  primaryModes: string[]
-  referenceModes: string[]
-}
-
-function routeShape(kind: AiRequestKind): RouteShape {
-  return {
-    capability:
-      kind === "image" ? "image" : kind === "video" ? "video" : "text",
-    internal: kind === "timing" || kind === "search",
-    media: kind === "image" || kind === "video",
-    primaryModes: kind === "image" ? ["text-to-image"] : ["text-to-video"],
-    referenceModes:
-      kind === "image"
-        ? ["image-to-image"]
-        : ["image-to-video", "reference-to-video"],
-  }
-}
 
 const readinessCopy = {
   ready: { icon: CheckCircle2, variant: "success" as const },
@@ -156,12 +113,6 @@ export function AiConfigurationPage() {
   const [modelCapabilityFilter, setModelCapabilityFilter] = useState("all")
   const [modelEnabledFilter, setModelEnabledFilter] = useState("all")
   const [modelPage, setModelPage] = useState(1)
-  const [routeQuery, setRouteQuery] = useState("")
-  const [routeCapabilityFilter, setRouteCapabilityFilter] = useState("all")
-  const [routeStatusFilter, setRouteStatusFilter] = useState("all")
-  const [routePage, setRoutePage] = useState(1)
-  const [editingRouteKind, setEditingRouteKind] =
-    useState<AiRequestKind | null>(null)
 
   const hasModelFilters = Boolean(
     modelQuery.trim() ||
@@ -217,53 +168,6 @@ export function AiConfigurationPage() {
     : 0
   const modelRangeEnd = filteredModels.length
     ? modelRangeStart + visibleModels.length - 1
-    : 0
-
-  const hasRouteFilters = Boolean(
-    routeQuery.trim() ||
-    routeCapabilityFilter !== "all" ||
-    routeStatusFilter !== "all"
-  )
-  const filteredRoutes = useMemo(() => {
-    const normalized = routeQuery.trim().toLocaleLowerCase(locale)
-    return (configuration?.routes ?? []).filter((route) => {
-      if (
-        routeCapabilityFilter !== "all" &&
-        routeShape(route.kind).capability !== routeCapabilityFilter
-      )
-        return false
-      if (
-        routeStatusFilter !== "all" &&
-        route.enabled !== (routeStatusFilter === "enabled")
-      )
-        return false
-      if (!normalized) return true
-      return t(`kind.${route.kind}`)
-        .toLocaleLowerCase(locale)
-        .includes(normalized)
-    })
-  }, [
-    configuration?.routes,
-    locale,
-    routeCapabilityFilter,
-    routeQuery,
-    routeStatusFilter,
-    t,
-  ])
-  const routePageCount = Math.max(
-    1,
-    Math.ceil(filteredRoutes.length / TABLE_PAGE_SIZE)
-  )
-  const safeRoutePage = Math.min(routePage, routePageCount)
-  const visibleRoutes = filteredRoutes.slice(
-    (safeRoutePage - 1) * TABLE_PAGE_SIZE,
-    safeRoutePage * TABLE_PAGE_SIZE
-  )
-  const routeRangeStart = filteredRoutes.length
-    ? (safeRoutePage - 1) * TABLE_PAGE_SIZE + 1
-    : 0
-  const routeRangeEnd = filteredRoutes.length
-    ? routeRangeStart + visibleRoutes.length - 1
     : 0
 
   const load = useCallback(async () => {
@@ -413,66 +317,12 @@ export function AiConfigurationPage() {
     }
   }
 
-  async function saveRoute(route: AdminAiRoute) {
-    setPending(`route-${route.kind}`)
-    try {
-      const updated = await adminAiApi.updateRoute(route.kind, {
-        primaryModelId: route.primaryModelId,
-        fallbackModelId: route.fallbackModelId,
-        referenceModelId: route.referenceModelId,
-        referenceFallbackModelId: route.referenceFallbackModelId,
-        reasoningEffort: route.reasoningEffort,
-        costUnits: route.costUnits,
-        enabled: route.enabled,
-      })
-      setConfiguration((current) =>
-        current
-          ? {
-              ...current,
-              routes: current.routes.map((item) =>
-                item.kind === updated.kind ? updated : item
-              ),
-            }
-          : current
-      )
-      toast.success(t("routeSaved", { tool: t(`kind.${route.kind}`) }))
-      return true
-    } catch (error) {
-      toast.error(
-        apiErrorMessage(error instanceof ApiError ? error.code : undefined)
-      )
-      return false
-    } finally {
-      setPending(null)
-    }
-  }
-
-  function updateRoute(kind: AiRequestKind, patch: Partial<AdminAiRoute>) {
-    setConfiguration((current) =>
-      current
-        ? {
-            ...current,
-            routes: current.routes.map((route) =>
-              route.kind === kind ? { ...route, ...patch } : route
-            ),
-          }
-        : current
-    )
-  }
-
   function clearModelFilters() {
     setModelQuery("")
     setModelProviderFilter("all")
     setModelCapabilityFilter("all")
     setModelEnabledFilter("all")
     setModelPage(1)
-  }
-
-  function clearRouteFilters() {
-    setRouteQuery("")
-    setRouteCapabilityFilter("all")
-    setRouteStatusFilter("all")
-    setRoutePage(1)
   }
 
   if (!configuration) {
@@ -495,9 +345,6 @@ export function AiConfigurationPage() {
     )
   }
 
-  const editingRoute =
-    configuration.routes.find((route) => route.kind === editingRouteKind) ??
-    null
   const readyProviders = configuration.providers.filter(
     (provider) => provider.readiness === "ready"
   ).length
@@ -530,7 +377,6 @@ export function AiConfigurationPage() {
         <TabsList className="flex h-auto flex-wrap">
           <TabsTrigger value="provider">{t("tab.provider")}</TabsTrigger>
           <TabsTrigger value="models">{t("tab.models")}</TabsTrigger>
-          <TabsTrigger value="routing">{t("tab.routing")}</TabsTrigger>
           <TabsTrigger value="usage">{t("tab.usage")}</TabsTrigger>
         </TabsList>
 
@@ -846,207 +692,6 @@ export function AiConfigurationPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="routing" className="pt-3">
-          <Card variant="subtle">
-            <DataTableHeader
-              search={{
-                ariaLabel: t("searchRoutesAria"),
-                onChange: (value) => {
-                  setRouteQuery(value)
-                  setRoutePage(1)
-                },
-                placeholder: t("searchRoutes"),
-                value: routeQuery,
-              }}
-            />
-            <CardContent className="flex flex-col gap-4 px-0">
-              <DataTableToolbar
-                actions={
-                  routeCapabilityFilter !== "all" ||
-                  routeStatusFilter !== "all" ? (
-                    <Button
-                      onClick={clearRouteFilters}
-                      size="sm"
-                      type="button"
-                      variant="outline"
-                    >
-                      <X /> {t("clear")}
-                    </Button>
-                  ) : undefined
-                }
-              >
-                <DataTableFilter
-                  ariaLabel={t("filterCapability")}
-                  label={t("capability")}
-                  onValueChange={(value) => {
-                    setRouteCapabilityFilter(value)
-                    setRoutePage(1)
-                  }}
-                  options={[
-                    { label: t("allFeminine"), value: "all" },
-                    { label: t("capabilityLabel.text"), value: "text" },
-                    { label: t("capabilityLabel.image"), value: "image" },
-                    { label: t("capabilityLabel.video"), value: "video" },
-                  ]}
-                  value={routeCapabilityFilter}
-                />
-                <DataTableFilter
-                  ariaLabel={t("filterStatus")}
-                  label={t("statusColumn")}
-                  onValueChange={(value) => {
-                    setRouteStatusFilter(value)
-                    setRoutePage(1)
-                  }}
-                  options={[
-                    { label: t("allFeminine"), value: "all" },
-                    { label: t("filter.enabledFeminine"), value: "enabled" },
-                    { label: t("filter.disabledFeminine"), value: "disabled" },
-                  ]}
-                  value={routeStatusFilter}
-                />
-              </DataTableToolbar>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("toolColumn")}</TableHead>
-                    <TableHead className="hidden md:table-cell">
-                      {t("primaryModelColumn")}
-                    </TableHead>
-                    <TableHead className="hidden lg:table-cell">
-                      {t("fallbackColumn")}
-                    </TableHead>
-                    <TableHead className="hidden lg:table-cell">
-                      {t("reasoningColumn")}
-                    </TableHead>
-                    <TableHead className="hidden md:table-cell">
-                      {t("costColumn")}
-                    </TableHead>
-                    <TableHead>{t("statusColumn")}</TableHead>
-                    <TableHead className="text-right">
-                      {t("actionsColumn")}
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {visibleRoutes.map((route) => {
-                    const shape = routeShape(route.kind)
-                    return (
-                      <TableRow key={route.kind}>
-                        <TableCell>
-                          <p className="font-medium">
-                            {t(`kind.${route.kind}`)}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {shape.internal
-                              ? t("internalRoute")
-                              : t(`capabilityLabel.${shape.capability}`)}
-                          </p>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          <RouteModelCell
-                            models={configuration.models}
-                            primaryId={route.primaryModelId}
-                            referenceId={route.referenceModelId}
-                            shape={shape}
-                          />
-                        </TableCell>
-                        <TableCell className="hidden lg:table-cell">
-                          <RouteModelCell
-                            models={configuration.models}
-                            primaryId={route.fallbackModelId}
-                            referenceId={route.referenceFallbackModelId}
-                            shape={shape}
-                          />
-                        </TableCell>
-                        <TableCell className="hidden lg:table-cell">
-                          {shape.internal || shape.media
-                            ? "—"
-                            : t(`reasoning.${route.reasoningEffort}`)}
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          {route.costUnits}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={route.enabled ? "success" : "neutral"}
-                          >
-                            {route.enabled
-                              ? t("routeEnabled")
-                              : t("routeDisabled")}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            onClick={() => setEditingRouteKind(route.kind)}
-                            size="sm"
-                            variant="brand-secondary"
-                          >
-                            <Settings2 data-icon="inline-start" />
-                            {t("configure")}
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                  {visibleRoutes.length === 0 ? (
-                    <TableEmptyRow
-                      action={
-                        hasRouteFilters ? (
-                          <Button onClick={clearRouteFilters} variant="outline">
-                            {t("clearFilters")}
-                          </Button>
-                        ) : null
-                      }
-                      colSpan={7}
-                      description={
-                        hasRouteFilters
-                          ? t("routes.emptyFilteredDescription")
-                          : t("routes.emptyDescription")
-                      }
-                      title={
-                        hasRouteFilters
-                          ? t("routes.noMatches")
-                          : t("routes.emptyTitle")
-                      }
-                    />
-                  ) : null}
-                </TableBody>
-              </Table>
-              <TablePagination
-                canGoNext={safeRoutePage < routePageCount}
-                canGoPrevious={safeRoutePage > 1}
-                itemLabel={t("itemLabel.routes")}
-                onNextPage={() =>
-                  setRoutePage((current) =>
-                    Math.min(current + 1, routePageCount)
-                  )
-                }
-                onPreviousPage={() =>
-                  setRoutePage((current) => Math.max(current - 1, 1))
-                }
-                rangeEnd={routeRangeEnd}
-                rangeStart={routeRangeStart}
-                total={filteredRoutes.length}
-              />
-            </CardContent>
-          </Card>
-          {editingRoute ? (
-            <RouteSheet
-              models={configuration.models}
-              onChange={(patch) => updateRoute(editingRoute.kind, patch)}
-              onOpenChange={(nextOpen) =>
-                setEditingRouteKind(nextOpen ? editingRoute.kind : null)
-              }
-              onSave={async () => {
-                const saved = await saveRoute(editingRoute)
-                if (saved) setEditingRouteKind(null)
-              }}
-              pending={pending === `route-${editingRoute.kind}`}
-              route={editingRoute}
-            />
-          ) : null}
-        </TabsContent>
-
         <TabsContent value="usage" className="flex flex-col gap-4 pt-3">
           <UsagePanel
             error={usageError}
@@ -1056,323 +701,6 @@ export function AiConfigurationPage() {
         </TabsContent>
       </Tabs>
     </section>
-  )
-}
-
-function RouteModelCell({
-  models,
-  primaryId,
-  referenceId,
-  shape,
-}: {
-  models: AdminAiModel[]
-  primaryId: string | null
-  referenceId: string | null
-  shape: RouteShape
-}) {
-  const t = useTranslations("aiConfiguration")
-
-  function modelLabel(id: string | null) {
-    if (!id) return t("noModel")
-    return models.find((model) => model.id === id)?.label ?? t("modelMissing")
-  }
-
-  if (shape.internal) return <>—</>
-  if (!shape.media) return <>{modelLabel(primaryId)}</>
-
-  return (
-    <div className="flex flex-col">
-      <span>{modelLabel(primaryId)}</span>
-      <span className="text-xs text-muted-foreground">
-        {t("withReferences", { model: modelLabel(referenceId) })}
-      </span>
-    </div>
-  )
-}
-
-function RouteSheet({
-  route,
-  models,
-  pending,
-  onChange,
-  onOpenChange,
-  onSave,
-}: {
-  route: AdminAiRoute
-  models: AdminAiModel[]
-  pending: boolean
-  onChange: (patch: Partial<AdminAiRoute>) => void
-  onOpenChange: (open: boolean) => void
-  onSave: () => void
-}) {
-  const t = useTranslations("aiConfiguration")
-  const { capability, internal, media, primaryModes, referenceModes } =
-    routeShape(route.kind)
-  const options = models.filter(
-    (model) =>
-      model.capability === capability &&
-      model.enabled &&
-      !model.deprecated &&
-      (!media || model.modes.some((mode) => primaryModes.includes(mode)))
-  )
-  const referenceOptions = media
-    ? models.filter(
-        (model) =>
-          model.capability === capability &&
-          model.enabled &&
-          !model.deprecated &&
-          model.modes.some((mode) => referenceModes.includes(mode))
-      )
-    : []
-
-  return (
-    <Sheet onOpenChange={onOpenChange} open>
-      <SheetContent className="w-full gap-0 p-0 sm:max-w-2xl" side="right">
-        <SheetHeader className="border-b">
-          <SheetTitle className="flex items-center gap-2">
-            <Route className="size-4" /> {t(`kind.${route.kind}`)}
-          </SheetTitle>
-          <SheetDescription>
-            {internal
-              ? t("sheet.internal")
-              : media
-                ? t("sheet.media")
-                : t("sheet.text", {
-                    capability: t(`capabilityLower.${capability}`),
-                  })}
-          </SheetDescription>
-        </SheetHeader>
-        <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            {!internal ? (
-              <>
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium">
-                    {media ? t("primaryWithoutReferences") : t("primaryModel")}
-                    {route.enabled ? (
-                      <span aria-hidden="true" className="text-destructive">
-                        *
-                      </span>
-                    ) : null}
-                  </label>
-                  <Select
-                    value={route.primaryModelId ?? "none"}
-                    onValueChange={(value) =>
-                      onChange({
-                        primaryModelId: value === "none" ? null : value,
-                      })
-                    }
-                  >
-                    <SelectTrigger
-                      aria-required={route.enabled ? "true" : undefined}
-                      className="w-full"
-                    >
-                      <SelectValue placeholder={t("select")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem value="none">{t("noModel")}</SelectItem>
-                        {options.map((model) => (
-                          <SelectItem key={model.id} value={model.id}>
-                            {model.label}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-sm font-medium">
-                    {media
-                      ? t("fallbackWithoutReferences")
-                      : t("fallbackModel")}
-                  </label>
-                  <Select
-                    value={route.fallbackModelId ?? "none"}
-                    onValueChange={(value) =>
-                      onChange({
-                        fallbackModelId: value === "none" ? null : value,
-                      })
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={t("select")} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectItem value="none">{t("noFallback")}</SelectItem>
-                        {options
-                          .filter((model) => model.id !== route.primaryModelId)
-                          .map((model) => (
-                            <SelectItem key={model.id} value={model.id}>
-                              {model.label}
-                            </SelectItem>
-                          ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-                {media ? (
-                  <>
-                    <div className="flex flex-col gap-2">
-                      <label className="text-sm font-medium">
-                        {t("primaryWithReferences")}
-                        {route.enabled ? (
-                          <span aria-hidden="true" className="text-destructive">
-                            *
-                          </span>
-                        ) : null}
-                      </label>
-                      <Select
-                        value={route.referenceModelId ?? "none"}
-                        onValueChange={(value) =>
-                          onChange({
-                            referenceModelId: value === "none" ? null : value,
-                          })
-                        }
-                      >
-                        <SelectTrigger
-                          aria-required={route.enabled ? "true" : undefined}
-                          className="w-full"
-                        >
-                          <SelectValue placeholder={t("select")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectItem value="none">{t("noModel")}</SelectItem>
-                            {referenceOptions.map((model) => (
-                              <SelectItem key={model.id} value={model.id}>
-                                {model.label}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <label className="text-sm font-medium">
-                        {t("fallbackWithReferences")}
-                      </label>
-                      <Select
-                        value={route.referenceFallbackModelId ?? "none"}
-                        onValueChange={(value) =>
-                          onChange({
-                            referenceFallbackModelId:
-                              value === "none" ? null : value,
-                          })
-                        }
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder={t("select")} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectItem value="none">
-                              {t("noFallback")}
-                            </SelectItem>
-                            {referenceOptions
-                              .filter(
-                                (model) => model.id !== route.referenceModelId
-                              )
-                              .map((model) => (
-                                <SelectItem key={model.id} value={model.id}>
-                                  {model.label}
-                                </SelectItem>
-                              ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </>
-                ) : null}
-                {!media ? (
-                  <div className="flex flex-col gap-2">
-                    <label className="text-sm font-medium">
-                      {t("reasoningColumn")}
-                    </label>
-                    <Select
-                      value={route.reasoningEffort}
-                      onValueChange={(value) =>
-                        onChange({
-                          reasoningEffort: value as AiReasoningEffort,
-                        })
-                      }
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectItem value="none">
-                            {t("reasoning.none")}
-                          </SelectItem>
-                          <SelectItem value="low">
-                            {t("reasoning.low")}
-                          </SelectItem>
-                          <SelectItem value="medium">
-                            {t("reasoning.medium")}
-                          </SelectItem>
-                          <SelectItem value="high">
-                            {t("reasoning.high")}
-                          </SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                ) : null}
-              </>
-            ) : null}
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">{t("costUnits")}</label>
-              <Input
-                type="number"
-                min={0}
-                max={10000}
-                value={route.costUnits}
-                onChange={(event) =>
-                  onChange({
-                    costUnits: Math.max(0, Number(event.target.value) || 0),
-                  })
-                }
-              />
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Switch
-              checked={route.enabled}
-              onCheckedChange={(enabled) => onChange({ enabled })}
-              aria-label={t("enableTool", { tool: t(`kind.${route.kind}`) })}
-            />
-            <span className="text-sm">{t("toolEnabled")}</span>
-          </div>
-        </div>
-        <SheetActions>
-          <Button
-            disabled={pending}
-            onClick={() => onOpenChange(false)}
-            type="button"
-            variant="brand-secondary"
-          >
-            {t("cancel")}
-          </Button>
-          <Button
-            onClick={onSave}
-            disabled={
-              pending ||
-              (route.enabled && !internal && !route.primaryModelId) ||
-              (route.enabled && media && !route.referenceModelId)
-            }
-          >
-            {pending ? (
-              <Spinner data-icon="inline-start" size={16} />
-            ) : (
-              <Save data-icon="inline-start" />
-            )}
-            {t("saveRoute")}
-          </Button>
-        </SheetActions>
-      </SheetContent>
-    </Sheet>
   )
 }
 
