@@ -225,6 +225,13 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - Las tres rutas se prefetchean al montar la vista, de modo que la navegación entre pestañas no espera al RSC ni muestra su `loading.tsx`.
 - No cambian contratos, permisos ni mutaciones: `publishingApi` se sigue consultando en cada montaje.
 
+## Publicación — franjas de quince minutos — 30 de agosto de 2026
+
+- El calendario mantiene una división visual cada 30 minutos, pero hace snap de los clics en franjas de 15 minutos. Las etiquetas del eje solo aparecen cada hora y se formatean en 24 horas (`01:00`, `02:00`).
+- Al elegir una hora anterior a la actual no se abre el compositor. Un clic de día completo sobre hoy propone el siguiente cuarto de hora; los días pasados tampoco permiten iniciar una publicación.
+- La API vuelve a comprobar la regla al crear o editar una publicación programada: una fecha igual o anterior al instante del servidor se rechaza, evitando que un cliente o una petición directa la salte.
+- Validación: typecheck y build de Web, typecheck de API, prueba focal de Publishing (6 casos), auditoría Portal/UI y `git diff --check` correctos. La fuente canónica pasa Biome focal con un aviso preexistente de orden de clases fuera de este cambio.
+
 ## Files — carpetas y archivos en una sola superficie — 15 de agosto de 2026
 
 - Producto pidió el modelo de Google Drive: una sola vista donde las carpetas encabezan el mismo listado que los archivos, en vez de una sección `Carpetas` con cards grandes y otra `Todos los archivos`. El cambio se hizo primero en `template-shadcn-superdashboard/src/app/(main)/dashboard/file-manager/` y luego se copió a V2.

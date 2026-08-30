@@ -80,9 +80,19 @@ const editableStatuses = new Set<PublishingStatus>([
 
 type PublishingCalendarProps = {
   initialDate: string
-  onCreateAtDate: (date: string) => void
+  onCreateAtDate: (date: Date, allDay: boolean) => void
   onEditPost: (post: PublishingPost) => void
   posts: PublishingPost[]
+}
+
+function isPastCalendarDay(date: Date, now: Date) {
+  const calendarDay = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate()
+  )
+  const currentDay = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  return calendarDay.getTime() < currentDay.getTime()
 }
 
 function toEventStart(post: PublishingPost) {
@@ -245,7 +255,9 @@ export function PublishingCalendar({
 
         <Button
           className="ms-auto hidden sm:inline-flex"
-          onClick={() => onCreateAtDate(initialDate)}
+          onClick={() =>
+            onCreateAtDate(new Date(`${initialDate}T12:00:00`), true)
+          }
           size="sm"
         >
           <Plus />
@@ -256,7 +268,17 @@ export function PublishingCalendar({
       <div className="min-h-0 flex-1">
         <EventCalendarViews
           controller={controller}
-          dateClick={(info) => onCreateAtDate(info.dateStr)}
+          dateClick={(info) => {
+            const now = new Date()
+            if (
+              info.allDay
+                ? isPastCalendarDay(info.date, now)
+                : info.date.getTime() < now.getTime()
+            ) {
+              return
+            }
+            onCreateAtDate(info.date, info.allDay)
+          }}
           datesSet={(info) => {
             setTitle(info.view.title)
           }}
@@ -280,12 +302,22 @@ export function PublishingCalendar({
             <XIcon className="size-5 text-muted-foreground group-hover:text-foreground" />
           )}
           scrollTime="08:00:00"
+          slotDuration="00:30:00"
+          slotHeaderFormat={{
+            hour: "2-digit",
+            hour12: false,
+            minute: "2-digit",
+          }}
+          slotHeaderInterval="01:00:00"
+          snapDuration="00:15:00"
         />
       </div>
 
       <FloatingActionButton
         label={t("create")}
-        onClick={() => onCreateAtDate(initialDate)}
+        onClick={() =>
+          onCreateAtDate(new Date(`${initialDate}T12:00:00`), true)
+        }
         withSpacer={false}
       />
     </div>

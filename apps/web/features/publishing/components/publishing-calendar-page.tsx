@@ -58,6 +58,7 @@ export type PublishingSection = "calendar" | "activity" | "bulk-posts"
 type ComposerMode = "draft" | "now" | "schedule"
 
 const defaultScheduleDate = "2026-08-03"
+const defaultScheduleTime = "10:00"
 
 const sectionRoutes: Record<PublishingSection, string> = {
   calendar: "/portal/publishing",
@@ -71,6 +72,36 @@ function RequiredMark() {
       *
     </span>
   )
+}
+
+function toDateKey(value: Date) {
+  return [
+    value.getFullYear(),
+    String(value.getMonth() + 1).padStart(2, "0"),
+    String(value.getDate()).padStart(2, "0"),
+  ].join("-")
+}
+
+function toTimeKey(value: Date) {
+  return [
+    String(value.getHours()).padStart(2, "0"),
+    String(value.getMinutes()).padStart(2, "0"),
+  ].join(":")
+}
+
+function isSameCalendarDay(left: Date, right: Date) {
+  return (
+    left.getFullYear() === right.getFullYear() &&
+    left.getMonth() === right.getMonth() &&
+    left.getDate() === right.getDate()
+  )
+}
+
+function nextQuarterHour(value: Date) {
+  const next = new Date(value)
+  next.setSeconds(0, 0)
+  next.setMinutes(next.getMinutes() + (15 - (next.getMinutes() % 15)))
+  return next
 }
 
 function ComposerActionIcon({ mode }: { mode: ComposerMode }) {
@@ -88,6 +119,7 @@ function ComposerDialog({
   accounts,
   editingPost,
   initialScheduledDate,
+  initialScheduledTime,
   onClose,
   onSave,
   onMediaImported,
@@ -97,6 +129,7 @@ function ComposerDialog({
   accounts: PublishingAccount[]
   editingPost: PublishingPost | null
   initialScheduledDate: string
+  initialScheduledTime: string
   onClose: () => void
   onSave: (input: {
     content: string
@@ -124,7 +157,9 @@ function ComposerDialog({
     () => editingPost?.date ?? initialScheduledDate
   )
   const [scheduledTime, setScheduledTime] = useState(() =>
-    editingPost?.time === "now" ? "10:00" : (editingPost?.time ?? "10:00")
+    editingPost?.time === "now"
+      ? defaultScheduleTime
+      : (editingPost?.time ?? initialScheduledTime)
   )
   const [activePreviewAccountId, setActivePreviewAccountId] = useState<
     string | null
@@ -427,6 +462,8 @@ export function PublishingCalendarPage({
   const [composerOpen, setComposerOpen] = useState(false)
   const [composerScheduledDate, setComposerScheduledDate] =
     useState(defaultScheduleDate)
+  const [composerScheduledTime, setComposerScheduledTime] =
+    useState(defaultScheduleTime)
   const [editingPost, setEditingPost] = useState<PublishingPost | null>(null)
   const createIdempotencyKey = useRef<string | null>(null)
   if (!calendar.canView) {
@@ -445,12 +482,37 @@ export function PublishingCalendarPage({
 
   function openComposer(
     post: PublishingPost | null = null,
-    scheduledDate = defaultScheduleDate
+    scheduledDate = defaultScheduleDate,
+    scheduledTime = defaultScheduleTime
   ) {
     createIdempotencyKey.current = post ? null : crypto.randomUUID()
     setEditingPost(post)
     setComposerScheduledDate(post?.date ?? scheduledDate)
+    setComposerScheduledTime(
+      post?.time === "now" ? defaultScheduleTime : (post?.time ?? scheduledTime)
+    )
     setComposerOpen(true)
+  }
+
+  function openComposerAtDate(date: Date, allDay: boolean) {
+    const now = new Date()
+    if (
+      allDay &&
+      !isSameCalendarDay(date, now) &&
+      date.getTime() < now.getTime()
+    ) {
+      return
+    }
+    if (!allDay && date.getTime() < now.getTime()) return
+
+    const scheduledTime =
+      allDay && isSameCalendarDay(date, now)
+        ? toTimeKey(nextQuarterHour(now))
+        : allDay
+          ? defaultScheduleTime
+          : toTimeKey(date)
+
+    openComposer(null, toDateKey(date), scheduledTime)
   }
 
   async function savePost({
@@ -570,7 +632,7 @@ export function PublishingCalendarPage({
         >
           <PublishingCalendar
             initialDate={calendar.focusDate}
-            onCreateAtDate={(date) => openComposer(null, date)}
+            onCreateAtDate={openComposerAtDate}
             onEditPost={openComposer}
             posts={posts}
           />
@@ -598,6 +660,7 @@ export function PublishingCalendarPage({
           accounts={calendar.accounts}
           editingPost={editingPost}
           initialScheduledDate={composerScheduledDate}
+          initialScheduledTime={composerScheduledTime}
           onClose={() => {
             createIdempotencyKey.current = null
             setComposerOpen(false)

@@ -46,6 +46,7 @@ import {
 } from './publishing.constants';
 import {
   formatPublishingDateTime,
+  isFuturePublishingSchedule,
   publishingDisplayInstant,
 } from './publishing-timezone';
 
@@ -353,6 +354,8 @@ export class PublishingService {
         : null;
     if (scheduledAt && Number.isNaN(scheduledAt.valueOf()))
       throw this.invalid();
+    if (scheduledAt && !isFuturePublishingSchedule(scheduledAt))
+      throw this.invalid();
     let created = await this.portalOperation(
       session.workspace.id,
       parsed.data.idempotencyKey,
@@ -484,6 +487,8 @@ export class PublishingService {
               : null;
     if (status === 'scheduled' && !scheduledAt) throw this.invalid();
     if (scheduledAt && Number.isNaN(scheduledAt.valueOf()))
+      throw this.invalid();
+    if (scheduledAt && !isFuturePublishingSchedule(scheduledAt))
       throw this.invalid();
     const mediaIds =
       parsed.data.mediaAssetIds === undefined

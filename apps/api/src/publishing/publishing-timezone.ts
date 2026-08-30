@@ -53,3 +53,10 @@ export function publishingDisplayInstant(input: {
   }
   return input.scheduledAt ?? input.createdAt;
 }
+
+export function isFuturePublishingSchedule(
+  scheduledAt: Date,
+  now = new Date(),
+) {
+  return scheduledAt.valueOf() > now.valueOf();
+}
