@@ -1,0 +1,12 @@
+Despliega otro boton al lado de filtros: 
+ , ese me abrirá una sheet que me mostrará las columnas en el orden que ya están, quiero que estén solo como una lista y con la opcion de moverlos, esto es para moviles, porque es dificil cambiar el orden así, entonces es una opción.
+.
+Quiero que borres el boton de volver a archivos en buscar imagenes online
+
+---
+
+En ajustes en movil no sale el segundo sidebar, en estos casos que se recomienda para movil? Porque ahora me manda directamente a canales.
+
+---
+
+Acá no debería estar este icono: Se supone que hay un icono global para mostrar que algo está vacío.

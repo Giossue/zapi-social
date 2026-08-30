@@ -3,8 +3,24 @@
   "checkpoint_id": "01M187NKWRCK1493BPHZYFJFVQ",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 4,
-  "files_touched": null,
+  "checkpoints_count": 7,
+  "files_touched": [
+    "apps/web/app/portal/publishing/activity/page.tsx",
+    "apps/web/app/portal/publishing/bulk-posts/page.tsx",
+    "apps/web/features/boards/components/board-page.tsx",
+    "apps/web/features/boards/components/column-order-sheet.tsx",
+    "apps/web/features/files/components/online-media-search-page.tsx",
+    "apps/web/features/publishing/components/publishing-calendar-page.tsx",
+    "apps/web/features/publishing/components/publishing-page-loader.tsx",
+    "apps/web/features/settings/components/portal-settings-layout.tsx",
+    "docs/planes/bulk-posts-v2.md",
+    "docs/planes/online-media-v2.md",
+    "docs/planes/publishing-v2.md",
+    "docs/planes/tableros-v2.md",
+    "packages/contracts/src/messages/en.json",
+    "packages/contracts/src/messages/es.d.json.ts",
+    "packages/contracts/src/messages/es.json"
+  ],
   "sessions": [
     {
       "metadata": "/0/metadata.json",
@@ -12,13 +28,27 @@
       "compact_transcript": "/0/transcript.jsonl",
       "content_hash": "/0/content_hash.txt",
       "prompt": ""
+    },
+    {
+      "metadata": "/1/metadata.json",
+      "transcript": "/1/full.jsonl",
+      "compact_transcript": "/1/transcript.jsonl",
+      "content_hash": "/1/content_hash.txt",
+      "prompt": "/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 83,
-    "cache_creation_tokens": 125176,
-    "cache_read_tokens": 2437004,
-    "output_tokens": 20409,
-    "api_call_count": 45
+    "input_tokens": 169,
+    "cache_creation_tokens": 173805,
+    "cache_read_tokens": 17146858,
+    "output_tokens": 46717,
+    "api_call_count": 88,
+    "subagent_tokens": {
+      "input_tokens": 0,
+      "cache_creation_tokens": 0,
+      "cache_read_tokens": 0,
+      "output_tokens": 0,
+      "api_call_count": 0
+    }
   }
 }
