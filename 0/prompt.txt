@@ -1,0 +1,6 @@
+o sea si, pero literalmente pusiste todo acá jaja, mira, la idea es que acá se pueda elegir el system prompt de cada agente,o no sé, porque se supone que son subagentes no? Como funciona esto? Primero explicame, teniendo en cuenta que por ahora usaremos open ai nomás. Solo el último modelo: 5.6 y sus variantes: terra, sol, luna. pero claro, si creo diferentes agentes sería un problema, porque debería haber un solo system prompt con un agente inteligente? o a su vez como pasa en n8n que creas un nodo agente, y le conectas más agentes para eso, entonces el agente principal como tool lo que hace esa saber que agente usar y le pasa la orden más clara? Dime porque no entiendo nada
+
+---
+
+me gusta esa manera tuya de pensar, ok rehace el mockup, pero no hagas que use todo, haz como n8n 
+ si es que se puede... de hecho dime si quieres que baje n8n el repo para que veas como es que hace internamente todo eso? o no es necesario?? SOlo dime
