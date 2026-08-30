@@ -23,18 +23,13 @@ import {
   SheetTitle,
 } from "@workspace/ui/components/sheet"
 import { EmptyState } from "@workspace/ui/components/empty-state"
-import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import {
   Field,
   FieldGroup,
   FieldLabel,
   FieldSet,
 } from "@workspace/ui/components/field"
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -589,7 +584,6 @@ export function PublishingCalendarPage({
         >
           <PublishingPostsTable
             onContinue={openComposer}
-            onCreate={() => openComposer()}
             onDelete={deletePost}
             onRetry={retryPost}
             posts={posts}
@@ -598,14 +592,6 @@ export function PublishingCalendarPage({
       ) : null}
 
       {section === "bulk-posts" ? <BulkPostsPage embedded /> : null}
-
-      {section === "activity" ? (
-        <FloatingActionButton
-          icon={<CalendarDays aria-hidden="true" className="size-6" />}
-          label={t("createTitle")}
-          onClick={() => openComposer()}
-        />
-      ) : null}
 
       {composerOpen ? (
         <ComposerDialog

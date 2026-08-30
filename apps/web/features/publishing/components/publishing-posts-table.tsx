@@ -1,7 +1,7 @@
 "use client"
 
 import { type MouseEvent, useMemo, useState } from "react"
-import { FilePenLine, ListFilter, Plus, RotateCcw, Trash2 } from "lucide-react"
+import { FilePenLine, ListFilter, RotateCcw, Trash2 } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -161,13 +161,11 @@ function PostActions({
 
 export function PublishingPostsTable({
   onContinue,
-  onCreate,
   onDelete,
   onRetry,
   posts,
 }: {
   onContinue?: (post: PublishingPost) => void
-  onCreate: () => void
   onDelete?: (post: PublishingPost) => boolean | void | Promise<boolean | void>
   onRetry?: (post: PublishingPost) => void
   posts: PublishingPost[]
@@ -225,16 +223,6 @@ export function PublishingPostsTable({
   return (
     <Card variant="subtle">
       <DataTableHeader
-        action={
-          <Button
-            className="hidden sm:inline-flex"
-            onClick={onCreate}
-            size="sm"
-          >
-            <Plus data-icon="inline-start" />
-            {t("create")}
-          </Button>
-        }
         search={{
           ariaLabel: t("searchLabel"),
           onChange: (value) => {
