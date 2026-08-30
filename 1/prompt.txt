@@ -1,0 +1,88 @@
+a ver, en mis casos ya no habrá cards, ni mucho menos una tabla, qué es lo normal en estos casos? SOlo responde
+
+---
+
+ok aplicalo
+
+---
+
+En todos los módulos hay titulo y descripcion, quiero que borres el punto final de las descripciones 
+  de todo el sistema
+
+---
+
+<task-notification>
+<task-id>a4a79ea9b9061b9c9</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-giossue-Documentos-ZapiV2/fcdddacb-5a5c-41e1-9773-e4bd765dea1b/tasks/a4a79ea9b9061b9c9.output</output-file>
+<status>completed</status>
+<summary>Agent "Mapear claves de descripciones de cabecera" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Mapeo completo. Recorrí los 32 archivos con `&lt;CollectionHeader`, resolví los namespaces de cada componente contenedor (incluidos alias como `tOps`), y rastreé los dos casos indirectos:
+
+- `features/admin-settings/components/settings-form-page.tsx:158` recibe `description` como prop; sus 4 llamadores están en `settings-pages.tsx` (namespace `adminSettings`): `general.description`, `auth.description`, `analytics.description`, `publicSite.description`.
+- `features/admin-content/components/admin-collection-page.tsx:599` usa `config.description`; las configs viven en `collections.tsx` (6 colecciones) y `blog-rss-collection.tsx` (1), todas con `useTranslations("adminContent")`.
+
+Casos particulares verificados:
+- `teams-page.tsx:749` es condicional: aporta dos claves (`teams.manageDescription` y `teams.viewDescription`).
+- `ai-studio-operations.tsx:346` y `ai-studio-page.tsx:588` comparten `aiStudio.operations.history.description` (en el segundo, vía alias `tOps`). Las líneas 342 y 964 de ese archivo son `OperationsHeader`, no `CollectionHeader`, así que `history.pageDescription` y `credits.pageDescription` quedan fuera.
+- `integrations-page.tsx` (3 usos) y `affiliate-page.tsx` (2 usos) repiten la misma clave; aparecen una vez en la lista.
+- ICU con argumentos: `adminLanguages.translationsDescription` (arg `name`), incluida.
+
+Lista JSON de claves (deduplicada):
+
+```json
+[
+  "adminContent.aiTemplateCategories.description",
+  "adminContent.aiTemplates.description",
+  "adminContent.blogCategories.description",
+  "adminContent.blogPosts.description",
+  "adminContent.blogTags.description",
+  "adminContent.faqs.description",
+  "adminContent.rss.description",
+  "adminEmailTemplates.pageDescription",
+  "adminLanguages.pageDescription",
+  "adminLanguages.translationsDescription",
+  "adminManualPayments.pageDescription",
+  "adminNotifications.pageDescription",
+  "adminPaymentReport.pageDescription",
+  "adminRoles.pageDescription",
+  "adminSettings.analytics.description",
+  "adminSettings.auth.description",
+  "adminSettings.general.description",
+  "adminSettings.publicSite.description",
+  "adminSupport.description",
+  "adminTeams.pageDescription",
+  "adminUserReport.pageDescription",
+  "affiliate.description",
+  "aiReport.description",
+  "aiStudio.operations.automation.pageDescription",
+  "aiStudio.operations.history.description",
+  "aiUsageLogs.description",
+  "automation.pageDescription",
+  "bulkPosts.pageDescription",
+  "captions.pageDescription",
+  "channels.pageDescription",
+  "infrastructure.cache.description",
+  "infrastructure.crons.description",
+  "integrations.description",
+  "linkBio.pageDescription",
+  "portalNotifications.description",
+  "publishing.page.pageDescription",
+  "rssSchedules.pageDescription",
+  "staticPages.description",
+  "support.pageDescription",
+  "systemInformation.description",
+  "teams.manageDescription",
+  "teams.viewDescription",
+  "watermarks.description"
+]
+```
+
+Casos no resueltos: ninguno. Todos los usos de `description=` en `&lt;CollectionHeader` vienen del catálogo i18n; no encontré ninguno con texto dinámico de datos. No se modificó ningún archivo.</result>
+<usage><subagent_tokens>35047</subagent_tokens><tool_uses>9</tool_uses><duration_ms>72259</duration_ms></usage>
+</task-notification>
+
+---
+
+espera, es que estoy haciendo modificaciones yo, solo haz build de lo que tu estabas haciendo
