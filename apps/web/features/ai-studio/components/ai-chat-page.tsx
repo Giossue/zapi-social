@@ -15,7 +15,6 @@ import {
   RefreshCw,
   Search,
   Settings2,
-  SlidersHorizontal,
   Sparkles,
   X,
 } from "lucide-react"
@@ -34,9 +33,16 @@ import {
 } from "@workspace/ui/components/attachment"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { Calendar } from "@workspace/ui/components/calendar"
 import { Card, CardContent } from "@workspace/ui/components/card"
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
 import { EmptyState } from "@workspace/ui/components/empty-state"
-import { Field, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
+import { Field, FieldLabel } from "@workspace/ui/components/field"
 import {
   InputGroup,
   InputGroupAddon,
@@ -46,25 +52,11 @@ import { Input } from "@workspace/ui/components/input"
 import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@workspace/ui/components/sheet"
-import { Switch } from "@workspace/ui/components/switch"
-import {
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@workspace/ui/components/toggle-group"
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@workspace/ui/components/popover"
+import { Toggle } from "@workspace/ui/components/toggle"
 import { toast } from "@workspace/ui/components/toast"
 import { useFormatter, useTranslations } from "next-intl"
 import { cn } from "@workspace/ui/lib/utils"
@@ -87,6 +79,7 @@ import {
   PromptInputBody,
   PromptInputButton,
   PromptInputFooter,
+  PromptInputHeader,
   type PromptInputMessage,
   PromptInputSelect,
   PromptInputSelectContent,
@@ -343,112 +336,198 @@ function useToolText() {
   return (key: string) => t(key as Parameters<typeof t>[0])
 }
 
-function ToolOptions({
+function toolDateValue(value: unknown) {
+  if (typeof value !== "string" || !value) return undefined
+  const parsed = new Date(`${value}T00:00:00`)
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed
+}
+
+function toolDateString(date: Date) {
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+  return `${date.getFullYear()}-${month}-${day}`
+}
+
+function InlineToolOptions({
+  disabled,
   onChange,
   tool,
   values,
 }: {
+  disabled: boolean
   onChange: (name: string, value: unknown) => void
   tool: ChatTool
   values: Record<string, unknown>
 }) {
+  const t = useTranslations("aiStudio.chat")
   const tt = useToolText()
+  const format = useFormatter()
 
   return (
-    <FieldGroup>
+    <>
       {chatTools[tool].fields.map((field) => {
         const controlId = `tool-${tool}-${field.name}`
         const value = values[field.name]
 
         if (field.kind === "switch") {
           return (
-            <Field key={field.name} orientation="horizontal">
-              <Switch
-                checked={Boolean(value)}
-                id={controlId}
-                onCheckedChange={(checked) => onChange(field.name, checked)}
-              />
-              <FieldLabel htmlFor={controlId}>{tt(field.labelKey)}</FieldLabel>
-            </Field>
+            <Toggle
+              disabled={disabled}
+              key={field.name}
+              onPressedChange={(pressed) => onChange(field.name, pressed)}
+              pressed={Boolean(value)}
+              size="sm"
+              variant="outline"
+            >
+              {tt(field.labelKey)}
+            </Toggle>
           )
         }
 
         if (field.kind === "toggles") {
           const selected = Array.isArray(value) ? (value as string[]) : []
           return (
-            <Field key={field.name}>
-              <FieldLabel>{tt(field.labelKey)}</FieldLabel>
-              <ToggleGroup
-                className="flex-wrap justify-start"
-                onValueChange={(next) => onChange(field.name, next)}
-                type="multiple"
-                value={selected}
-                variant="outline"
-              >
-                {field.options.map((option) => {
-                  return (
-                    <ToggleGroupItem key={option.value} value={option.value}>
-                      {tt(option.labelKey)}
-                    </ToggleGroupItem>
-                  )
-                })}
-              </ToggleGroup>
-            </Field>
+            <DropdownMenu key={field.name}>
+              <DropdownMenuTrigger asChild>
+                <PromptInputButton disabled={disabled}>
+                  {selected.length
+                    ? t("optionCount", {
+                        count: selected.length,
+                        label: tt(field.labelKey),
+                      })
+                    : tt(field.labelKey)}
+                </PromptInputButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                {field.options.map((option) => (
+                  <DropdownMenuCheckboxItem
+                    checked={selected.includes(option.value)}
+                    key={option.value}
+                    onCheckedChange={(checked) =>
+                      onChange(
+                        field.name,
+                        checked
+                          ? [...selected, option.value]
+                          : selected.filter((item) => item !== option.value)
+                      )
+                    }
+                    onSelect={(event) => event.preventDefault()}
+                  >
+                    {tt(option.labelKey)}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           )
         }
 
         if (field.kind === "select") {
           return (
-            <Field key={field.name}>
-              <FieldLabel htmlFor={controlId}>{tt(field.labelKey)}</FieldLabel>
-              <Select
-                onValueChange={(next) => onChange(field.name, next)}
-                value={String(value ?? "")}
-              >
-                <SelectTrigger className="w-full" id={controlId}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {field.options.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {tt(option.labelKey)}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </Field>
+            <PromptInputSelect
+              disabled={disabled}
+              key={field.name}
+              onValueChange={(next) => onChange(field.name, next)}
+              value={String(value ?? "")}
+            >
+              <PromptInputSelectTrigger aria-label={tt(field.labelKey)}>
+                <PromptInputSelectValue />
+              </PromptInputSelectTrigger>
+              <PromptInputSelectContent>
+                {field.options.map((option) => (
+                  <PromptInputSelectItem
+                    key={option.value}
+                    value={option.value}
+                  >
+                    {tt(option.labelKey)}
+                  </PromptInputSelectItem>
+                ))}
+              </PromptInputSelectContent>
+            </PromptInputSelect>
           )
         }
 
+        if (field.kind === "date") {
+          const selectedDate = toolDateValue(value)
+          return (
+            <Popover key={field.name}>
+              <PopoverTrigger asChild>
+                <PromptInputButton disabled={disabled}>
+                  {selectedDate
+                    ? t("optionValue", {
+                        label: tt(field.labelKey),
+                        value: format.dateTime(selectedDate, {
+                          dateStyle: "medium",
+                        }),
+                      })
+                    : tt(field.labelKey)}
+                </PromptInputButton>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  onSelect={(next) =>
+                    onChange(field.name, next ? toolDateString(next) : "")
+                  }
+                  selected={selectedDate}
+                />
+              </PopoverContent>
+            </Popover>
+          )
+        }
+
+        const filled =
+          field.kind === "number"
+            ? typeof value === "number"
+            : typeof value === "string" && value.trim() !== ""
+
         return (
-          <Field key={field.name}>
-            <FieldLabel htmlFor={controlId}>{tt(field.labelKey)}</FieldLabel>
-            <Input
-              id={controlId}
-              max={field.kind === "number" ? field.max : undefined}
-              min={field.kind === "number" ? field.min : undefined}
-              onChange={(event) =>
-                onChange(
-                  field.name,
-                  field.kind === "number"
-                    ? Number(event.target.value) || field.min
-                    : event.target.value
-                )
-              }
-              placeholder={
-                field.kind === "text" && field.placeholderKey
-                  ? tt(field.placeholderKey)
-                  : undefined
-              }
-              type={field.kind === "number" ? "number" : "text"}
-              value={String(value ?? "")}
-            />
-          </Field>
+          <Popover key={field.name}>
+            <PopoverTrigger asChild>
+              <PromptInputButton className="max-w-48" disabled={disabled}>
+                <span className="truncate">
+                  {filled
+                    ? t("optionValue", {
+                        label: tt(field.labelKey),
+                        value:
+                          field.kind === "number"
+                            ? format.number(value as number)
+                            : String(value),
+                      })
+                    : tt(field.labelKey)}
+                </span>
+              </PromptInputButton>
+            </PopoverTrigger>
+            <PopoverContent align="start" className="w-64">
+              <Field>
+                <FieldLabel htmlFor={controlId}>
+                  {tt(field.labelKey)}
+                </FieldLabel>
+                <Input
+                  id={controlId}
+                  max={field.kind === "number" ? field.max : undefined}
+                  min={field.kind === "number" ? field.min : undefined}
+                  onChange={(event) =>
+                    onChange(
+                      field.name,
+                      field.kind === "number"
+                        ? Number(event.target.value) || field.min
+                        : event.target.value
+                    )
+                  }
+                  placeholder={
+                    field.kind === "text" && field.placeholderKey
+                      ? tt(field.placeholderKey)
+                      : undefined
+                  }
+                  type={field.kind === "number" ? "number" : "text"}
+                  value={String(value ?? "")}
+                />
+              </Field>
+            </PopoverContent>
+          </Popover>
         )
       })}
-    </FieldGroup>
+    </>
   )
 }
 
@@ -481,7 +560,6 @@ export function AiChatPage() {
   const [loadError, setLoadError] = useState(false)
   const [settingsError, setSettingsError] = useState(false)
   const [pending, setPending] = useState(false)
-  const [optionsSheetOpen, setOptionsSheetOpen] = useState(false)
   const [showThread, setShowThread] = useState(false)
 
   const load = useCallback(async () => {
@@ -817,16 +895,6 @@ export function AiChatPage() {
             </span>
             <Badge variant="neutral">{tt(chatTools[tool].labelKey)}</Badge>
           </div>
-          <div className="flex items-center gap-1">
-            <Button asChild size="icon-sm" variant="brand-secondary">
-              <Link
-                aria-label={t("settings")}
-                href="/portal/settings/ai-studio"
-              >
-                <Settings2 />
-              </Link>
-            </Button>
-          </div>
         </div>
 
         <Conversation className="min-h-0">
@@ -955,6 +1023,14 @@ export function AiChatPage() {
             uploadLabel={t("uploadFiles")}
           >
             <ReferenceAttachments enabled={isMediaTool(tool)} />
+            <PromptInputHeader>
+              <InlineToolOptions
+                disabled={pending || !brandConfigured}
+                onChange={updateOption}
+                tool={tool}
+                values={options[tool]}
+              />
+            </PromptInputHeader>
             <PromptInputBody>
               <PromptInputTextarea
                 aria-label={tt(chatTools[tool].promptLabelKey)}
@@ -989,14 +1065,6 @@ export function AiChatPage() {
                     ))}
                   </PromptInputSelectContent>
                 </PromptInputSelect>
-                <PromptInputButton
-                  disabled={pending || !brandConfigured}
-                  onClick={() => setOptionsSheetOpen(true)}
-                  tooltip={t("showOptions")}
-                >
-                  <SlidersHorizontal data-icon="inline-start" />
-                  {t("options")}
-                </PromptInputButton>
               </PromptInputTools>
               <PromptInputSubmit
                 aria-label={t("send")}
@@ -1008,23 +1076,6 @@ export function AiChatPage() {
         </div>
       </div>
 
-      <Sheet onOpenChange={setOptionsSheetOpen} open={optionsSheetOpen}>
-        <SheetContent className="sm:max-w-md" side="right">
-          <SheetHeader className="pb-0">
-            <SheetTitle>
-              {t("toolOptions", { tool: tt(chatTools[tool].labelKey) })}
-            </SheetTitle>
-            <SheetDescription>{t("toolOptionsHint")}</SheetDescription>
-          </SheetHeader>
-          <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-            <ToolOptions
-              onChange={updateOption}
-              tool={tool}
-              values={options[tool]}
-            />
-          </div>
-        </SheetContent>
-      </Sheet>
     </div>
   )
 }
