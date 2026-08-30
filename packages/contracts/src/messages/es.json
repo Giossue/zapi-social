@@ -1697,10 +1697,13 @@
   },
   "aiAgents": {
     "canvas": {
-      "agent": "Agente",
+      "editAgent": "Editar {name}",
       "model": "Modelo",
-      "preview": "Vista previa con datos de ejemplo",
-      "trigger": "Disparador"
+      "preview": "Vista previa con datos de ejemplo"
+    },
+    "editor": {
+      "description": "Ajusta el nombre, el proveedor, los modelos y el enrutamiento de este agente.",
+      "name": "Nombre"
     }
   },
   "aiReport": {
