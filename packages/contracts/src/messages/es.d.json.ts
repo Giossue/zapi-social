@@ -5223,6 +5223,7 @@ declare const messages: {
     "noMatches": "No hay coincidencias",
     "pageDescription": "Encuentra respuestas rápidas o habla con el equipo de Zapi desde un único lugar.",
     "pageTitle": "Soporte",
+    "replyCount": "{count, plural, one {# respuesta} other {# respuestas}}",
     "replyFailed": "No pudimos enviar tu respuesta. Inténtalo de nuevo.",
     "replyPlaceholder": "Escribe tu respuesta...",
     "replySent": "Respuesta enviada.",

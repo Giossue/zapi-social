@@ -107,10 +107,24 @@ export function ChannelAccountCard({
           <AvatarFallback>{initials(account.displayName)}</AvatarFallback>
         </Avatar>
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <CardTitle className="truncate">{account.displayName}</CardTitle>
-          <CardDescription className="truncate">
-            {identity || "—"}
-          </CardDescription>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <CardTitle className="truncate">{account.displayName}</CardTitle>
+            </TooltipTrigger>
+            <TooltipContent side="top">{account.displayName}</TooltipContent>
+          </Tooltip>
+          {identity ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <CardDescription className="truncate">
+                  {identity}
+                </CardDescription>
+              </TooltipTrigger>
+              <TooltipContent side="top">{identity}</TooltipContent>
+            </Tooltip>
+          ) : (
+            <CardDescription>—</CardDescription>
+          )}
         </div>
         <div className="flex shrink-0 items-center gap-1">
           <Tooltip>

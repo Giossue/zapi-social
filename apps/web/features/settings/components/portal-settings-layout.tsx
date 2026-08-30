@@ -86,13 +86,11 @@ export function PortalSettingsSidebar() {
       className="hidden min-h-svh self-stretch border-r border-sidebar-border md:flex"
       style={
         {
-          "--sidebar-width": "calc(var(--spacing) * 56)",
+          "--sidebar-width": "calc(var(--spacing) * 60)",
         } as CSSProperties
       }
     >
-      <SidebarHeader>
-        <h1 className="px-2 py-2 text-lg font-semibold">{t("settings")}</h1>
-      </SidebarHeader>
+      <SidebarHeader className="min-h-14" />
       <SidebarContent>
         <SidebarGroup className="pt-0">
           <SidebarGroupContent>

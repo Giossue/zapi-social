@@ -40,7 +40,6 @@ export const portalNavigationGroups: readonly PortalNavigationGroup[] = [
   {
     labelKey: "workspace",
     items: [
-      { labelKey: "settings", href: "/portal/settings", icon: Settings2 },
       {
         labelKey: "publishing",
         href: "/portal/publishing",
@@ -78,6 +77,12 @@ export const portalNavigationGroups: readonly PortalNavigationGroup[] = [
         href: "/portal/files/search-online",
         icon: Image,
       },
+    ],
+  },
+  {
+    labelKey: "configuration",
+    items: [
+      { labelKey: "settings", href: "/portal/settings", icon: Settings2 },
     ],
   },
   {

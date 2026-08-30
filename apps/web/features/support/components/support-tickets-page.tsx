@@ -4,13 +4,11 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useState, type FormEvent } from "react"
 import {
-  CircleCheck,
-  CircleDot,
-  CircleX,
   LifeBuoy,
   LockKeyhole,
   MessageSquare,
   Plus,
+  Search,
   X,
 } from "lucide-react"
 
@@ -34,7 +32,6 @@ import {
 } from "@workspace/ui/components/sheet"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
-import { MetricCard } from "@workspace/ui/components/metric-card"
 import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import {
@@ -54,15 +51,6 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@workspace/ui/components/table"
-import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
-import {
   Tabs,
   TabsContent,
   TabsList,
@@ -81,12 +69,6 @@ import type {
   SupportTicketStatus,
 } from "@/features/support/types/support"
 
-const statusLabel: Record<SupportTicketStatus, string> = {
-  open: "Abierto",
-  resolved: "Resuelto",
-  closed: "Cerrado",
-}
-
 const statusVariant: Record<
   SupportTicketStatus,
   "info" | "success" | "secondary"
@@ -95,14 +77,6 @@ const statusVariant: Record<
   resolved: "success",
   closed: "secondary",
 }
-
-const metricIcons: Record<SupportTicketStatus, typeof CircleDot> = {
-  open: CircleDot,
-  resolved: CircleCheck,
-  closed: CircleX,
-}
-
-const metricStatuses = ["open", "resolved", "closed"] as const
 
 type NewTicketValues = {
   categoryId: string
@@ -294,10 +268,6 @@ export function SupportTicketsPage() {
   const [loadError, setLoadError] = useState(false)
   const [canView, setCanView] = useState(true)
   const [pending, setPending] = useState(false)
-  const [metrics, setMetrics] = useState<Record<
-    SupportTicketStatus,
-    number
-  > | null>(null)
 
   const handleError = useCallback(
     (error: unknown) => {
@@ -341,28 +311,6 @@ export function SupportTicketsPage() {
     return () => clearTimeout(timer)
   }, [load, query])
 
-  const loadMetrics = useCallback(async () => {
-    try {
-      const [open, resolved, closed] = await Promise.all([
-        supportApi.list({ limit: 1, page: 1, status: "open" }),
-        supportApi.list({ limit: 1, page: 1, status: "resolved" }),
-        supportApi.list({ limit: 1, page: 1, status: "closed" }),
-      ])
-      setMetrics({
-        open: open.total,
-        resolved: resolved.total,
-        closed: closed.total,
-      })
-    } catch (error) {
-      if (handleError(error)) return
-      console.error("Support metrics request failed", error)
-    }
-  }, [handleError])
-
-  useEffect(() => {
-    void loadMetrics()
-  }, [loadMetrics])
-
   useEffect(() => {
     let isCurrent = true
     void supportApi
@@ -397,7 +345,6 @@ export function SupportTicketsPage() {
       await supportApi.create(values)
       setPage(1)
       await load()
-      void loadMetrics()
       toast.success(t("created"))
       return true
     } catch (error) {
@@ -467,19 +414,6 @@ export function SupportTicketsPage() {
             <SupportFaqPanel />
           </TabsContent>
           <TabsContent className="flex flex-col gap-4" value="cases">
-            {metrics ? (
-              <div className="grid gap-4 md:grid-cols-3">
-                {metricStatuses.map((metricStatus) => (
-                  <MetricCard
-                    description={t(`metrics.${metricStatus}Description`)}
-                    icon={metricIcons[metricStatus]}
-                    key={metricStatus}
-                    label={t(`metrics.${metricStatus}`)}
-                    value={metrics[metricStatus]}
-                  />
-                ))}
-              </div>
-            ) : null}
             <Card variant="subtle">
               <DataTableHeader
                 action={
@@ -534,91 +468,63 @@ export function SupportTicketsPage() {
                     value={status}
                   />
                 </DataTableToolbar>
-                <div>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>{t("ticket")}</TableHead>
-                        <TableHead className="hidden md:table-cell">
-                          {t("categoryColumn")}
-                        </TableHead>
-                        <TableHead>{t("statusColumn")}</TableHead>
-                        <TableHead className="hidden lg:table-cell">
-                          {t("updated")}
-                        </TableHead>
-                        <TableHead className="text-right">
-                          {t("actionColumn")}
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {tickets.length ? (
-                        tickets.map((ticket) => (
-                          <TableRow key={ticket.id}>
-                            <TableCell>
-                              <div className="flex min-w-48 flex-col gap-1">
-                                <span className="font-medium">
-                                  {ticket.subject}
-                                </span>
-                                <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                                  <MessageSquare className="size-3.5" />
-                                  {ticket.commentCount}{" "}
-                                  {ticket.commentCount === 1
-                                    ? "respuesta"
-                                    : "respuestas"}
-                                </span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="hidden text-muted-foreground md:table-cell">
-                              {ticket.category.name}
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant={statusVariant[ticket.status]}>
-                                {statusLabel[ticket.status]}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="hidden text-muted-foreground lg:table-cell">
+                {tickets.length ? (
+                  <ul className="flex flex-col divide-y border-y">
+                    {tickets.map((ticket) => (
+                      <li key={ticket.id}>
+                        <Link
+                          className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50"
+                          href={`/portal/support/${ticket.id}`}
+                        >
+                          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                            <MessageSquare
+                              aria-hidden="true"
+                              className="size-4"
+                            />
+                          </span>
+                          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                            <span className="truncate font-medium">
+                              {ticket.subject}
+                            </span>
+                            <span className="truncate text-sm text-muted-foreground">
+                              {ticket.category.name} ·{" "}
+                              {t("replyCount", { count: ticket.commentCount })}
+                            </span>
+                          </span>
+                          <span className="flex shrink-0 flex-col items-end gap-1">
+                            <Badge variant={statusVariant[ticket.status]}>
+                              {t(`status.${ticket.status}`)}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
                               {format.dateTime(new Date(ticket.updatedAt), {
                                 day: "numeric",
                                 month: "short",
                                 year: "numeric",
                               })}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <Button
-                                asChild
-                                size="sm"
-                                variant="brand-secondary"
-                              >
-                                <Link href={`/portal/support/${ticket.id}`}>
-                                  <MessageSquare data-icon="inline-start" />{" "}
-                                  {t("viewTicket")}
-                                </Link>
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      ) : (
-                        <TableEmptyRow
-                          colSpan={5}
-                          action={
-                            hasFilters ? (
-                              <Button onClick={clearFilters} variant="outline">
-                                {t("resetFilters")}
-                              </Button>
-                            ) : null
-                          }
-                          description={
-                            hasFilters
-                              ? t("emptyFilteredDescription")
-                              : t("emptyDescription")
-                          }
-                          title={hasFilters ? t("noMatches") : t("emptyTitle")}
-                        />
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
+                            </span>
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <EmptyState
+                    action={
+                      hasFilters ? (
+                        <Button onClick={clearFilters} variant="outline">
+                          {t("resetFilters")}
+                        </Button>
+                      ) : null
+                    }
+                    description={
+                      hasFilters
+                        ? t("emptyFilteredDescription")
+                        : t("emptyDescription")
+                    }
+                    icon={hasFilters ? Search : LifeBuoy}
+                    title={hasFilters ? t("noMatches") : t("emptyTitle")}
+                  />
+                )}
                 <TablePagination
                   canGoNext={safePage < pageCount}
                   canGoPrevious={safePage > 1}

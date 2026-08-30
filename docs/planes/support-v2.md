@@ -7,10 +7,10 @@ aditiva `0018_gorgeous_doctor_faustus` está aplicada a `zapi_v2_local`.
 `/portal/support` consume `supportApi` y se organiza como centro de ayuda con
 la fuente canónica navegable
 `template-shadcn-superdashboard/src/app/(main)/dashboard/support`: tabs de
-preguntas frecuentes y casos propios, métricas, tabla, búsqueda, filtro
-adaptable, paginación compacta, creación y conversación.
-Las métricas de abiertos, resueltos y cerrados usan el `MetricCard` compartido
-en ambos repositorios, con icono y contexto propios para cada estado.
+preguntas frecuentes y casos propios, lista de conversaciones tipo inbox con
+búsqueda, filtro de estado y paginación compacta, creación y conversación.
+Las métricas y la tabla operativa quedan reservadas al backoffice
+`/admin/support`.
 
 ## Referencia Laravel
 
@@ -195,21 +195,22 @@ fuente canónica se amplió primero en
   creó un endpoint de portal nuevo. A diferencia de la página pública `/faqs`,
   Portal no consulta `sections.showFaqs`: ese interruptor gobierna el sitio de
   marketing, no la ayuda dentro del producto.
-- La pestaña «Mis casos» conserva íntegra la superficie existente: métricas,
-  tabla con búsqueda y filtro de estado, paginación, sheet de nuevo caso,
-  `FloatingActionButton` móvil y el detalle con conversación en su ruta.
-- Se cerró la brecha con la fuente canónica: la fila de `MetricCard` de
-  abiertos, resueltos y cerrados ahora también existe en Portal. Los totales
-  salen de tres consultas `supportApi.list` con `limit: 1` por estado, que ya
-  aplican ownership por workspace y solicitante; se refrescan al crear un caso
-  y la fila se omite mientras no hay totales. No se amplió el contrato REST.
+- La pestaña «Mis casos» abandona la tabla operativa y las métricas: para
+  quien abre los casos, el patrón estándar es una lista de conversaciones tipo
+  inbox. Cada fila muestra icono, asunto, categoría con conteo de respuestas
+  en plural ICU (`replyCount`), badge de estado y fecha, y toda la fila enlaza
+  al detalle. Se conservan búsqueda, filtro ligero de estado,
+  `TablePagination` como único footer, el sheet de nuevo caso y el
+  `FloatingActionButton` móvil. La tabla con columnas y las métricas quedan
+  como patrón exclusivo del backoffice `/admin/support`.
 - Divergencias frente al patrón de referencia: sin chips de categoría en FAQ
   (la tabla `faqs` no tiene categorías) y sin lista de canales de contacto
   externos (el canal real de contacto es el propio ticketing). Ambas quedan
   para una solicitud de producto explícita.
 - Los textos nuevos viven en el namespace `support` (`tab.*`, `tabsLabel`,
-  `faq.*`) en `es.json` y `en.json`; `pageDescription` se actualizó al alcance
-  del centro de ayuda.
+  `faq.*`, `replyCount`) en `es.json` y `en.json`; `pageDescription` se
+  actualizó al alcance del centro de ayuda y la fila de la lista reutiliza
+  `status.*` en lugar del rótulo local en español que tenía la tabla.
 
 Evidencia: fuente con Biome focal sin diagnósticos y sin errores `tsc` nuevos
 (los dos existentes son de charts legacy ajenos a soporte); ZapiV2 pasa
