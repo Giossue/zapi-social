@@ -372,6 +372,7 @@ function InlineToolOptions({
         if (field.kind === "switch") {
           return (
             <Toggle
+              className="shrink-0"
               disabled={disabled}
               key={field.name}
               onPressedChange={(pressed) => onChange(field.name, pressed)}
@@ -389,7 +390,7 @@ function InlineToolOptions({
           return (
             <DropdownMenu key={field.name}>
               <DropdownMenuTrigger asChild>
-                <PromptInputButton disabled={disabled}>
+                <PromptInputButton className="shrink-0" disabled={disabled}>
                   {selected.length
                     ? t("optionCount", {
                         count: selected.length,
@@ -422,6 +423,9 @@ function InlineToolOptions({
         }
 
         if (field.kind === "select") {
+          const selectedOption = field.options.find(
+            (option) => option.value === String(value ?? "")
+          )
           return (
             <PromptInputSelect
               disabled={disabled}
@@ -429,8 +433,16 @@ function InlineToolOptions({
               onValueChange={(next) => onChange(field.name, next)}
               value={String(value ?? "")}
             >
-              <PromptInputSelectTrigger aria-label={tt(field.labelKey)}>
-                <PromptInputSelectValue />
+              <PromptInputSelectTrigger
+                aria-label={tt(field.labelKey)}
+                className="shrink-0"
+              >
+                {selectedOption
+                  ? t("optionValue", {
+                      label: tt(field.labelKey),
+                      value: tt(selectedOption.labelKey),
+                    })
+                  : tt(field.labelKey)}
               </PromptInputSelectTrigger>
               <PromptInputSelectContent>
                 {field.options.map((option) => (
@@ -451,7 +463,7 @@ function InlineToolOptions({
           return (
             <Popover key={field.name}>
               <PopoverTrigger asChild>
-                <PromptInputButton disabled={disabled}>
+                <PromptInputButton className="shrink-0" disabled={disabled}>
                   {selectedDate
                     ? t("optionValue", {
                         label: tt(field.labelKey),
@@ -483,7 +495,10 @@ function InlineToolOptions({
         return (
           <Popover key={field.name}>
             <PopoverTrigger asChild>
-              <PromptInputButton className="max-w-48" disabled={disabled}>
+              <PromptInputButton
+                className="max-w-48 shrink-0"
+                disabled={disabled}
+              >
                 <span className="truncate">
                   {filled
                     ? t("optionValue", {
