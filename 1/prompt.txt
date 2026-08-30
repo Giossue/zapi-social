@@ -1,0 +1,132 @@
+Quiero cambiar el diseño de portal/support, algo más parecido a los diseños estandar en los sistemas, busqué en internet y salía algo como: 
+ , analizalo y ayudame. De hecho quería agregar acá el FAQ que ya está como tal en admin para configurarlo y que se vea en portal, y obviamente la idea como soporte como tal que ya está implementada.
+
+---
+
+<task-notification>
+<task-id>ad33f935a3139ef40</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/tmp/claude-1000/-home-giossue-Documentos-ZapiV2/fcdddacb-5a5c-41e1-9773-e4bd765dea1b/tasks/ad33f935a3139ef40.output</output-file>
+<status>completed</status>
+<summary>Agent "Explorar soporte y FAQ" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Mapa completo de las dos áreas.
+
+## 1. Portal Support (`/portal/support`)
+
+**Rutas Next (App Router)**
+- `/home/giossue/Documentos/ZapiV2/apps/web/app/portal/support/page.tsx` — 5 líneas, solo renderiza `&lt;SupportTicketsPage /&gt;`
+- `/home/giossue/Documentos/ZapiV2/apps/web/app/portal/support/loading.tsx`
+- `/home/giossue/Documentos/ZapiV2/apps/web/app/portal/support/error.tsx`
+- `/home/giossue/Documentos/ZapiV2/apps/web/app/portal/support/[ticketId]/page.tsx` — resuelve `params` y renderiza `&lt;SupportTicketDetailPage ticketId={...} /&gt;`
+
+**Feature**
+- `/home/giossue/Documentos/ZapiV2/apps/web/features/support/components/support-tickets-page.tsx` (578 líneas)
+- `/home/giossue/Documentos/ZapiV2/apps/web/features/support/components/support-ticket-detail-page.tsx` (364 líneas)
+- `/home/giossue/Documentos/ZapiV2/apps/web/features/support/components/support-states.tsx` (43 líneas — `SupportPermissionState`, `SupportErrorState`; ambos parecen **no usados**: la lista y el detalle renderizan `EmptyState` inline)
+- `/home/giossue/Documentos/ZapiV2/apps/web/features/support/types/support.ts` — tipos locales `SupportTicket`, `SupportTicketDetail`, `SupportCategory`, `SupportComment`, `SupportTicketStatus` (`open|resolved|closed`)
+- `/home/giossue/Documentos/ZapiV2/apps/web/features/support/fixtures/support.ts` (108 líneas — fixture heredado, ya no lo consume la página)
+- Navegación: `/home/giossue/Documentos/ZapiV2/apps/web/features/portal-shell/portal-navigation.ts:85` (`{ labelKey: "support", href: "/portal/support", icon: LifeBuoy }`)
+- Tarjeta lateral no relacionada al ticketing: `/home/giossue/Documentos/ZapiV2/apps/web/components/dashboard-shell/support-card.tsx`
+
+**Estructura JSX de alto nivel — lista (`support-tickets-page.tsx`)**
+
+```
+&lt;&gt;
+  &lt;div flex-col gap-4&gt;
+    &lt;CollectionHeader title/description /&gt;
+    &lt;Card variant="subtle"&gt;
+      &lt;DataTableHeader action={&lt;Button "Nuevo ticket"&gt;} search={query} /&gt;
+      &lt;CardContent&gt;
+        &lt;DataTableToolbar actions={&lt;Button "Limpiar"&gt;}&gt;
+          &lt;DataTableFilter estado: all|open|resolved|closed /&gt;
+        &lt;/DataTableToolbar&gt;
+        &lt;Table&gt;  columnas: Ticket (asunto + nº respuestas) | Categoría (md+) |
+                 Estado (Badge info/success/secondary) | Actualizado (lg+) |
+                 acción "Ver ticket" -&gt; /portal/support/{id}
+          &lt;TableEmptyRow colSpan=5 /&gt;
+        &lt;/Table&gt;
+        &lt;TablePagination pageSize=10 /&gt;
+      &lt;/CardContent&gt;
+    &lt;/Card&gt;
+    &lt;FloatingActionButton "Nuevo ticket" /&gt;   // móvil
+  &lt;/div&gt;
+  &lt;NewSupportTicketSheet /&gt;   // Sheet: Select categoría* + Input asunto* (250) +
+                              // Textarea descripción* (5000), SheetActions Cancelar/Crear
+&lt;/&gt;
+```
+Estados previos al return: `!canView` → `EmptyState` con `LockKeyhole`; `isLoading` → `&lt;PageLoading /&gt;`; `loadError` → `EmptyState` + `RetryButton`. `handleError` redirige a login en `AUTH_SESSION_EXPIRED` y marca `canView=false` en 403. Debounce de 300 ms en búsqueda. Nota: `statusLabel`/"respuesta(s)" están **hardcodeados en español**, el resto usa `useTranslations("support")`.
+
+**Estructura JSX — detalle (`support-ticket-detail-page.tsx`)**
+```
+&lt;&gt;
+  &lt;Button asChild "Todos los casos" -&gt; /portal/support&gt;
+  &lt;Card&gt;                       // cabecera del caso
+    &lt;CardHeader&gt; Badge estado + CardTitle asunto + CardDescription
+                 + Button "Marcar resuelto" (si open)
+    &lt;CardContent&gt;
+      &lt;MessageGroup&gt;           // chat: Message / MessageAvatar+Avatar(iniciales)
+                               // BubbleGroup &gt; Bubble &gt; BubbleContent (texto plano)
+                               // MessageFooter con fecha; align según rol
+  &lt;/Card&gt;
+  { open ? &lt;Card "Añadir información"&gt; form &gt; Field &gt; Textarea + Button Enviar &lt;/Card&gt;
+         : &lt;Card&gt; aviso de caso resuelto/cerrado &lt;/Card&gt; }
+&lt;/&gt;
+```
+Usa `authApi` además de `supportApi` para el nombre del solicitante.
+
+**Consumo de API (ya es REST real, no mock)**
+- Cliente: `/home/giossue/Documentos/ZapiV2/packages/api-client/src/index.ts:757` → `supportApi` con `categories()`, `list()`, `get()`, `create()`, `addComment()`, `resolve()`
+- Contratos: `/home/giossue/Documentos/ZapiV2/packages/contracts/src/portal-core-v2.ts` (tipos `PortalSupportTicket*`, `CreatePortalSupportTicket*`)
+- Nest: `/home/giossue/Documentos/ZapiV2/apps/api/src/support/support.controller.ts` (`@Controller('v1/portal/support')`): `GET categories`, `GET /`, `POST /`, `GET :id`, `POST :id/comments`, `POST :id/resolve`; lógica en `support.service.ts`, módulo en `support.module.ts`
+- Admin backoffice: `apps/api/src/support/admin-support.controller.ts` + `admin-support.service.ts`, contrato `/home/giossue/Documentos/ZapiV2/packages/contracts/src/admin-support.ts`, UI en `apps/web/app/admin/support/page.tsx`, `apps/web/app/admin/support/[ticketId]/page.tsx` y `apps/web/features/admin-support/` (`admin-support-page.tsx`, `admin-support-ticket-page.tsx`, `admin-support-new-case-sheet.tsx`, `support-catalog-panel.tsx` + `fixtures/support-catalog.ts`)
+- Schema Drizzle: `/home/giossue/Documentos/ZapiV2/packages/database/src/schema.ts:1283` `supportCategories`, `:1302` `supportTickets`, `:1355` `supportTicketComments`
+- Tests: `/home/giossue/Documentos/ZapiV2/apps/api/src/support-watermarks.integration.spec.ts`
+
+**No existe hoy en Portal Support**: fila de métricas (abiertos/resueltos/cerrados), FAQ/help center embebido, ni búsqueda de artículos.
+
+## 2. Módulo FAQ (admin)
+
+- Página admin: `/home/giossue/Documentos/ZapiV2/apps/web/app/admin/faqs/page.tsx` → `&lt;FaqsCollection /&gt;`
+- Config de colección: `/home/giossue/Documentos/ZapiV2/apps/web/features/admin-content/components/collections.tsx:330` (`FaqsCollection`) — columnas pregunta+extracto de respuesta, orden (lg+), estado; campos text/textarea/number/switch; CRUD vía `adminContentApi.faqs.*`
+- Motor genérico: `/home/giossue/Documentos/ZapiV2/apps/web/features/admin-content/components/admin-collection-page.tsx` (`AdminCollectionPage`, `AdminCollectionConfig` en línea 145)
+- Tabla Drizzle: `/home/giossue/Documentos/ZapiV2/packages/database/src/schema.ts:3215` — `faqs(id uuid, question varchar(250), answer text, isActive bool, sortOrder int, ...timestamps)`. No hay `workspaceId`: es catálogo global de plataforma.
+- Contratos admin: `/home/giossue/Documentos/ZapiV2/packages/contracts/src/admin-content.ts:87` `adminFaqSchema`, `:95` `upsertAdminFaqSchema` (question ≤250, answer ≤10000, isActive, sortOrder 0..9999), `:148` `adminFaqsResponseSchema` (`items` + page/limit/total)
+- Endpoints Nest admin: `/home/giossue/Documentos/ZapiV2/apps/api/src/content/content.controller.ts` (`@Controller('v1/admin/content')`) líneas 121/127/133/143 → `GET|POST faqs`, `PATCH|DELETE faqs/:id`; lógica en `apps/api/src/content/content.service.ts`
+- Cliente admin: `/home/giossue/Documentos/ZapiV2/packages/api-client/src/index.ts:1828` → `adminContentApi.faqs = adminContentResource("faqs")`
+
+**Lectura pública/portal de FAQs**
+- Sí existe endpoint público, no de portal autenticado: `/home/giossue/Documentos/ZapiV2/apps/api/src/public-site/public-site.controller.ts:15` → `GET /v1/public/site/faqs` (+ `GET /v1/public/site` incluye `faqs` destacadas y `sections.showFaqs` / `featuredFaqsLimit`)
+- Contratos: `/home/giossue/Documentos/ZapiV2/packages/contracts/src/public-site.ts:50` `publicSiteFaqSchema` (solo `id/question/answer`), `:109` `publicSiteFaqsQuerySchema` (`q`, `page`, `limit` máx 48, default 12), `:117` `publicSiteFaqsResponseSchema`
+- Cliente: `packages/api-client/src/index.ts:1497` `publicSiteApi.faqs()`
+- Consumo web (marketing, no portal): `/home/giossue/Documentos/ZapiV2/apps/web/app/(marketing)/faqs/page.tsx` (Accordion + buscador + paginación) y `/home/giossue/Documentos/ZapiV2/apps/web/features/marketing/components/faq.tsx`, con helpers en `apps/web/features/marketing/site.ts` (`getSiteFaqs`, `getSiteOverview`)
+
+**Conclusión clave**: no hay ningún endpoint `/v1/portal/...` de FAQs; si quieres FAQs dentro del portal habría que reutilizar `/v1/public/site/faqs` o crear una superficie de portal nueva.
+
+## 3. Plan en `docs/planes/`
+
+`/home/giossue/Documentos/ZapiV2/docs/planes/support-v2.md` es el único plan dedicado. Resumen:
+- **Estado**: contrato, Drizzle (migración aditiva `0018_gorgeous_doctor_faustus`), Nest, api-client y backoffice admin implementados. Pasos 1-4 y 6 marcados `[x]`.
+- **Pendientes declarados**: paso 5 "sustituir el fixture por `supportApi`" sigue `[ ]`, aunque el código de `support-tickets-page.tsx`/`support-ticket-detail-page.tsx` **ya consume `supportApi`** — el plan está desactualizado en ese punto (queda el fixture huérfano en `features/support/fixtures/support.ts`). Paso 7 (asignaciones, tipos, etiquetas, notas internas, notificaciones por correo) sigue abierto.
+- **Decisiones relevantes**: ownership por workspace + solicitante en Portal; cuerpo en texto plano (divergencia deliberada del editor HTML de Laravel, elimina XSS); categorías como catálogo global gestionado desde Admin, nunca desde Portal; `resolved` congela la conversación; `closed`/reabrir solo en Admin; sin adjuntos, sin email, sin Worker, sin SLA.
+- **Cola Admin (21 ago 2026)**: deliberadamente global sin filtro de workspace; "sin responder" derivado de `support_last_read_at` vs `last_activity_at`; toda escritura audita en `api_audit_logs`.
+- **Ampliación mock (22 ago 2026)**: `/admin/support` con tabs Casos/Categorías/Etiquetas/Tipos; nuevo caso y los tres catálogos son **mock sobre estado local**, sin persistencia. Divergencias: sin `icon`/`color` de la taxonomía Laravel, buscador de usuarios sustituido por select de fixtures.
+- **Fuente canónica declarada**: `template-shadcn-superdashboard/src/app/(main)/dashboard/support` y `.../support-admin`.
+- Sin plan de FAQ propio: FAQ aparece como recurso dentro de `docs/planes/admin-secondary-modules-v2.md:14` (colección genérica en `/admin/faqs`), `docs/planes/landing-en-web-v2.md:112,118` (`/faqs` público, 12 por página, `featuredFaqs`) e `docs/planes/i18n-v2.md:56,215` (traducción de FAQs pendiente).
+- No existe ninguna mención a "help center" / "centro de ayuda" en `docs/`, `apps/web/features` ni `apps/web/app`.
+
+## 4. Fuente visual en `template-shadcn-superdashboard`
+
+Existe superficie de soporte, **no** de help center ni FAQ:
+- `/home/giossue/Documentos/template-shadcn-superdashboard/src/app/(main)/dashboard/support/page.tsx`
+- `/home/giossue/Documentos/template-shadcn-superdashboard/src/app/(main)/dashboard/support/_components/support-preview.tsx` (461 líneas)
+- `/home/giossue/Documentos/template-shadcn-superdashboard/src/app/(main)/dashboard/support-admin/page.tsx`
+- `/home/giossue/Documentos/template-shadcn-superdashboard/src/app/(main)/dashboard/support-admin/_components/admin-support-preview.tsx` (1000 líneas)
+
+`support-preview.tsx` es prácticamente el mismo layout que el portal de ZapiV2 (`CollectionHeader` → `DataTableHeader` con búsqueda → `DataTableToolbar` + `DataTableFilter` → `Table` → `TablePagination`, `Sheet` "Nuevo caso de soporte", detalle con `Card` + burbujas + "Añadir información"), **con una diferencia importante: incluye una fila de `MetricCard` (línea ~345) que la versión de ZapiV2 no tiene**. El plan menciona esas métricas como parte del diseño canónico, así que es la brecha visual más clara si quieres alinear `/portal/support`. No hay ningún componente de FAQ, artículos de ayuda o base de conocimiento en el template.</result>
+<usage><subagent_tokens>41685</subagent_tokens><tool_uses>25</tool_uses><duration_ms>112897</duration_ms></usage>
+</task-notification>
+
+---
+
+ok haz la propuesta
