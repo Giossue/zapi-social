@@ -390,7 +390,11 @@ function InlineToolOptions({
           return (
             <DropdownMenu key={field.name}>
               <DropdownMenuTrigger asChild>
-                <PromptInputButton className="shrink-0" disabled={disabled}>
+                <PromptInputButton
+                  className="shrink-0"
+                  disabled={disabled}
+                  size="sm"
+                >
                   {selected.length
                     ? t("optionCount", {
                         count: selected.length,
@@ -463,7 +467,11 @@ function InlineToolOptions({
           return (
             <Popover key={field.name}>
               <PopoverTrigger asChild>
-                <PromptInputButton className="shrink-0" disabled={disabled}>
+                <PromptInputButton
+                  className="shrink-0"
+                  disabled={disabled}
+                  size="sm"
+                >
                   {selectedDate
                     ? t("optionValue", {
                         label: tt(field.labelKey),
@@ -498,6 +506,7 @@ function InlineToolOptions({
               <PromptInputButton
                 className="max-w-48 shrink-0"
                 disabled={disabled}
+                size="sm"
               >
                 <span className="truncate">
                   {filled
