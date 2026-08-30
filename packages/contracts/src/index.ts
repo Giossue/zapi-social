@@ -373,6 +373,7 @@ export const portalPublishingAccountSchema = z.object({
   id: z.uuid(),
   name: z.string(),
   assignedName: z.string().nullable(),
+  avatarUrl: z.url().nullable(),
   provider: publishingProviderSchema,
   detail: z.string(),
   connected: z.boolean(),

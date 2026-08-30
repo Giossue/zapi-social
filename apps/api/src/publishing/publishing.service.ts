@@ -915,6 +915,7 @@ export class PublishingService {
       id: account.id,
       name: account.displayName,
       assignedName: account.handle ?? null,
+      avatarUrl: account.avatarUrl,
       provider,
       detail:
         provider === 'facebook'

@@ -6,6 +6,13 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
+  Avatar,
+  AvatarFallback,
+  AvatarGroup,
+  AvatarGroupCount,
+  AvatarImage,
+} from "@workspace/ui/components/avatar"
+import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
@@ -44,6 +51,28 @@ type PublishingAccountPickerProps = {
   ariaRequired?: boolean
   onChange: (accountIds: string[]) => void
   selectedAccountIds: string[]
+}
+
+function accountInitials(account: PublishingAccount) {
+  return (account.assignedName ?? account.name).slice(0, 2).toUpperCase()
+}
+
+function AccountAvatar({
+  account,
+  size = "sm",
+}: {
+  account: PublishingAccount
+  size?: "default" | "sm"
+}) {
+  const name = account.assignedName ?? account.name
+  return (
+    <Avatar size={size}>
+      {account.avatarUrl ? (
+        <AvatarImage alt={name} src={account.avatarUrl} />
+      ) : null}
+      <AvatarFallback>{accountInitials(account)}</AvatarFallback>
+    </Avatar>
+  )
 }
 
 export function PublishingAccountPicker({
@@ -94,10 +123,24 @@ export function PublishingAccountPicker({
             type="button"
             variant="brand-secondary"
           >
-            <span className="truncate">
-              {selectedAccounts.length
-                ? t("selectedCount", { count: selectedAccounts.length })
-                : t("placeholder")}
+            <span className="flex min-w-0 items-center gap-2">
+              {selectedAccounts.length ? (
+                <AvatarGroup aria-hidden="true">
+                  {selectedAccounts.slice(0, 3).map((account) => (
+                    <AccountAvatar account={account} key={account.id} />
+                  ))}
+                  {selectedAccounts.length > 3 ? (
+                    <AvatarGroupCount>
+                      +{selectedAccounts.length - 3}
+                    </AvatarGroupCount>
+                  ) : null}
+                </AvatarGroup>
+              ) : null}
+              <span className="truncate">
+                {selectedAccounts.length
+                  ? t("selectedCount", { count: selectedAccounts.length })
+                  : t("placeholder")}
+              </span>
             </span>
             <ChevronDown data-icon="inline-end" />
           </Button>
@@ -151,6 +194,7 @@ export function PublishingAccountPicker({
                             toggleAccount(account.id, value === true)
                           }
                         />
+                        <AccountAvatar account={account} />
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-sm font-medium">
                             {account.assignedName ?? account.name}
@@ -179,6 +223,7 @@ export function PublishingAccountPicker({
         <div aria-label={t("selectedLabel")} className="flex flex-wrap gap-2">
           {selectedAccounts.map((account) => (
             <Badge key={account.id} variant="neutral">
+              <AccountAvatar account={account} />
               {account.assignedName ?? account.name} ·{" "}
               {providerLabels[account.provider]}
               <Button

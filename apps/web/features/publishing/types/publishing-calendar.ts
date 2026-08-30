@@ -7,6 +7,7 @@ export type PublishingAccount = {
   id: string
   name: string
   assignedName?: string | null
+  avatarUrl?: string | null
   provider: PublishingProvider
   detail: string
   connected: boolean
