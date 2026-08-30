@@ -171,13 +171,14 @@ const dashboardKpiChangeSchema = z
   .nullable()
 
 const portalDashboardKpiSchema = z.object({
-  key: z.enum(["publishedPosts", "activeChannels", "aiCredits", "newFiles"]),
+  key: z.enum(["publishedPosts", "scheduledSoon", "drafts", "activeChannels"]),
   value: z.string(),
   change: dashboardKpiChangeSchema,
   descriptionKey: z.enum([
     "previousWeeks",
-    "connectedRecently",
-    "noRecentConnections",
+    "next24Hours",
+    "needsCompletion",
+    "readyToPublish",
   ]),
 })
 
@@ -1064,17 +1065,29 @@ export const portalTeamActivityQuerySchema = z
   .strict()
 
 export const portalUpcomingPostStatusSchema = z.enum(["draft", "scheduled"])
+export const portalPublishingStatusSchema = z.enum([
+  "draft",
+  "scheduled",
+  "processing",
+  "published",
+  "failed",
+])
 
 export const portalDashboardSchema = z.object({
   metrics: z.array(portalDashboardKpiSchema),
   publishingActivity: z.array(dashboardComparisonPointSchema),
+  publishingStatuses: z.array(
+    z.object({
+      count: z.number().int().nonnegative(),
+      status: portalPublishingStatusSchema,
+    })
+  ),
+  publishingSources: z.array(dashboardBreakdownItemSchema),
   aiUsage: z.object({
     creditsUsed: z.number().int().nonnegative(),
     days: z.array(dashboardDayCountSchema),
     kinds: z.array(dashboardBreakdownItemSchema),
   }),
-  channels: z.array(dashboardBreakdownItemSchema),
-  aiTools: z.array(dashboardBreakdownItemSchema),
   upcoming: z.array(
     z.object({
       content: z.string(),

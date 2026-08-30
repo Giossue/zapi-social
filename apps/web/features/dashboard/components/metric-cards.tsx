@@ -1,7 +1,7 @@
 "use client"
 
 import type { LucideIcon } from "lucide-react"
-import { CalendarDays, FolderOpen, Share2, Sparkles } from "lucide-react"
+import { CalendarClock, CalendarDays, FilePenLine, Share2 } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { CardGrid } from "@workspace/ui/components/card-grid"
@@ -12,10 +12,10 @@ import type { PortalDashboard } from "@workspace/contracts"
 type DashboardKpi = PortalDashboard["metrics"][number]
 
 const metricIcons: Record<DashboardKpi["key"], LucideIcon> = {
-  aiCredits: Sparkles,
   publishedPosts: CalendarDays,
+  scheduledSoon: CalendarClock,
+  drafts: FilePenLine,
   activeChannels: Share2,
-  newFiles: FolderOpen,
 }
 
 export function MetricCards({ metrics }: { metrics: DashboardKpi[] }) {

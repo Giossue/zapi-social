@@ -3251,12 +3251,39 @@ declare const messages: {
       "loadFailedToast": "No pudimos cargar tu dashboard. Inténtalo de nuevo.",
       "metrics": {
         "activeChannels": "Canales activos",
-        "aiCredits": "Créditos AI usados",
-        "connectedRecently": "conectados en las últimas 4 semanas",
-        "newFiles": "Archivos listos",
-        "noRecentConnections": "sin conexiones nuevas en 4 semanas",
+        "drafts": "Borradores pendientes",
+        "needsCompletion": "pendientes de completar",
+        "next24Hours": "en las próximas 24 horas",
         "previousWeeks": "frente a las 4 semanas previas",
-        "publishedPosts": "Publicaciones publicadas"
+        "publishedPosts": "Publicaciones publicadas",
+        "readyToPublish": "listos para publicar",
+        "scheduledSoon": "Por publicar hoy"
+      },
+      "sources": {
+        "description": "Publicaciones completadas por origen en las últimas 4 semanas.",
+        "empty": "Sin publicaciones completadas en las últimas 4 semanas.",
+        "series": "Publicadas",
+        "source": {
+          "ai": "AI",
+          "automation": "Automatización",
+          "bulk": "Publicaciones masivas",
+          "portal": "Portal",
+          "rss": "RSS"
+        },
+        "title": "Origen del contenido"
+      },
+      "status": {
+        "description": "El estado actual de todas las publicaciones del espacio.",
+        "empty": "Todavía no hay publicaciones en este espacio.",
+        "status": {
+          "draft": "Borrador",
+          "failed": "Fallida",
+          "processing": "En proceso",
+          "published": "Publicada",
+          "scheduled": "Programada"
+        },
+        "title": "Estado de publicaciones",
+        "total": "Total"
       },
       "upcoming": {
         "channel": "Canal",

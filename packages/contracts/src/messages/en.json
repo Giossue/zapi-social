@@ -3248,12 +3248,39 @@
       "loadFailedToast": "We couldn't load your dashboard. Please try again.",
       "metrics": {
         "activeChannels": "Active channels",
-        "aiCredits": "AI credits used",
-        "connectedRecently": "connected in the last 4 weeks",
-        "newFiles": "Ready files",
-        "noRecentConnections": "no new connections in 4 weeks",
+        "drafts": "Pending drafts",
+        "needsCompletion": "need completion",
+        "next24Hours": "in the next 24 hours",
         "previousWeeks": "vs. the previous 4 weeks",
-        "publishedPosts": "Published posts"
+        "publishedPosts": "Published posts",
+        "readyToPublish": "ready to publish",
+        "scheduledSoon": "Publishing today"
+      },
+      "sources": {
+        "description": "Completed posts by origin in the last 4 weeks.",
+        "empty": "No completed posts in the last 4 weeks.",
+        "series": "Published",
+        "source": {
+          "ai": "AI",
+          "automation": "Automation",
+          "bulk": "Bulk posts",
+          "portal": "Portal",
+          "rss": "RSS"
+        },
+        "title": "Content origin"
+      },
+      "status": {
+        "description": "Current state of every post in this workspace.",
+        "empty": "There are no posts in this workspace yet.",
+        "status": {
+          "draft": "Draft",
+          "failed": "Failed",
+          "processing": "Processing",
+          "published": "Published",
+          "scheduled": "Scheduled"
+        },
+        "title": "Publishing status",
+        "total": "Total"
       },
       "upcoming": {
         "channel": "Channel",

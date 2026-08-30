@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
   aiRequests,
-  fileAssets,
   publishingPosts,
   socialAccounts,
 } from '@workspace/database';
@@ -13,6 +12,7 @@ import {
   eq,
   gte,
   isNull,
+  lte,
   sql,
 } from '@workspace/database/query';
 import { DatabaseService } from '../database/database.service';
@@ -25,6 +25,14 @@ import {
   windowStarts,
 } from './dashboard.shared';
 
+const publishingStatusKeys = [
+  'draft',
+  'scheduled',
+  'processing',
+  'published',
+  'failed',
+] as const;
+
 @Injectable()
 export class DashboardService {
   constructor(private readonly database: DatabaseService) {}
@@ -34,6 +42,7 @@ export class DashboardService {
     const workspaceId = session.workspace.id;
     const { currentStart, previousStart } = windowStarts();
     const now = new Date();
+    const nextDay = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
     const publishedDay = sql<string>`to_char(date_trunc('day', ${publishingPosts.publishedAt}), 'YYYY-MM-DD')`;
     const requestDay = sql<string>`to_char(date_trunc('day', ${aiRequests.createdAt}), 'YYYY-MM-DD')`;
@@ -47,12 +56,12 @@ export class DashboardService {
     const [
       publishedByDay,
       channelTotals,
-      recentChannels,
       creditRows,
       requestsByDay,
       requestKinds,
-      filesRows,
-      postsByProvider,
+      publishingStatusRows,
+      publishingSourceRows,
+      scheduledSoonRows,
       scheduledRows,
       draftRows,
     ] = await Promise.all([
@@ -75,17 +84,6 @@ export class DashboardService {
             eq(socialAccounts.workspaceId, workspaceId),
             eq(socialAccounts.status, 'active'),
             isNull(socialAccounts.disconnectedAt),
-          ),
-        ),
-      db
-        .select({ value: count() })
-        .from(socialAccounts)
-        .where(
-          and(
-            eq(socialAccounts.workspaceId, workspaceId),
-            eq(socialAccounts.status, 'active'),
-            isNull(socialAccounts.disconnectedAt),
-            gte(socialAccounts.connectedAt, currentStart),
           ),
         ),
       db
@@ -126,29 +124,13 @@ export class DashboardService {
         .groupBy(aiRequests.kind)
         .orderBy(desc(count())),
       db
-        .select({
-          period: sql<string>`case when ${fileAssets.createdAt} >= ${currentStart.toISOString()}::timestamptz then 'current' else 'previous' end`,
-          value: count(),
-        })
-        .from(fileAssets)
-        .where(
-          and(
-            eq(fileAssets.workspaceId, workspaceId),
-            eq(fileAssets.status, 'ready'),
-            gte(fileAssets.createdAt, previousStart),
-          ),
-        )
-        .groupBy(sql`1`),
-      db
-        .select({ provider: channelKey, value: count() })
+        .select({ status: publishingPosts.status, value: count() })
         .from(publishingPosts)
-        .innerJoin(
-          socialAccounts,
-          and(
-            eq(publishingPosts.socialAccountId, socialAccounts.id),
-            eq(socialAccounts.workspaceId, workspaceId),
-          ),
-        )
+        .where(eq(publishingPosts.workspaceId, workspaceId))
+        .groupBy(publishingPosts.status),
+      db
+        .select({ key: publishingPosts.source, value: count() })
+        .from(publishingPosts)
         .where(
           and(
             eq(publishingPosts.workspaceId, workspaceId),
@@ -156,8 +138,19 @@ export class DashboardService {
             gte(publishingPosts.publishedAt, currentStart),
           ),
         )
-        .groupBy(channelKey)
+        .groupBy(publishingPosts.source)
         .orderBy(desc(count())),
+      db
+        .select({ value: count() })
+        .from(publishingPosts)
+        .where(
+          and(
+            eq(publishingPosts.workspaceId, workspaceId),
+            eq(publishingPosts.status, 'scheduled'),
+            gte(publishingPosts.scheduledAt, now),
+            lte(publishingPosts.scheduledAt, nextDay),
+          ),
+        ),
       db
         .select({
           content: publishingPosts.content,
@@ -224,16 +217,12 @@ export class DashboardService {
 
     const creditsCurrent =
       creditRows.find((row) => row.period === 'current')?.value ?? 0;
-    const creditsPrevious =
-      creditRows.find((row) => row.period === 'previous')?.value ?? 0;
-
-    const filesCurrent =
-      filesRows.find((row) => row.period === 'current')?.value ?? 0;
-    const filesPrevious =
-      filesRows.find((row) => row.period === 'previous')?.value ?? 0;
-
     const activeChannels = channelTotals[0]?.value ?? 0;
-    const channelsConnected = recentChannels[0]?.value ?? 0;
+    const scheduledSoon = scheduledSoonRows[0]?.value ?? 0;
+    const publishingStatuses = new Map(
+      publishingStatusRows.map((row) => [row.status, row.value]),
+    );
+    const drafts = publishingStatuses.get('draft') ?? 0;
 
     const aiKinds = requestKinds.slice(0, 4).map((row) => ({
       key: row.kind,
@@ -264,31 +253,33 @@ export class DashboardService {
           descriptionKey: 'previousWeeks' as const,
         },
         {
+          key: 'scheduledSoon' as const,
+          value: String(scheduledSoon),
+          change: null,
+          descriptionKey: 'next24Hours' as const,
+        },
+        {
+          key: 'drafts' as const,
+          value: String(drafts),
+          change: null,
+          descriptionKey: 'needsCompletion' as const,
+        },
+        {
           key: 'activeChannels' as const,
           value: String(activeChannels),
-          change:
-            channelsConnected > 0
-              ? { direction: 'up' as const, label: `+${channelsConnected}` }
-              : null,
-          descriptionKey:
-            channelsConnected > 0
-              ? ('connectedRecently' as const)
-              : ('noRecentConnections' as const),
-        },
-        {
-          key: 'aiCredits' as const,
-          value: String(creditsCurrent),
-          change: buildKpiChange(creditsCurrent, creditsPrevious),
-          descriptionKey: 'previousWeeks' as const,
-        },
-        {
-          key: 'newFiles' as const,
-          value: String(filesCurrent),
-          change: buildKpiChange(filesCurrent, filesPrevious),
-          descriptionKey: 'previousWeeks' as const,
+          change: null,
+          descriptionKey: 'readyToPublish' as const,
         },
       ],
       publishingActivity,
+      publishingStatuses: publishingStatusKeys.map((status) => ({
+        count: publishingStatuses.get(status) ?? 0,
+        status,
+      })),
+      publishingSources: publishingSourceRows.map((row) => ({
+        key: row.key,
+        count: row.value,
+      })),
       aiUsage: {
         creditsUsed: creditsCurrent,
         days: buildDayCounts(
@@ -297,11 +288,6 @@ export class DashboardService {
         ),
         kinds: aiKinds,
       },
-      channels: postsByProvider.slice(0, 5).map((row) => ({
-        key: row.provider ?? 'none',
-        count: row.value,
-      })),
-      aiTools: aiKinds,
       upcoming,
     };
   }
