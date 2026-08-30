@@ -2739,6 +2739,7 @@ declare const messages: {
     "attachmentsLegend": "Adjuntos",
     "cancel": "Cancelar",
     "clearDueDate": "Quitar la fecha",
+    "closeSheet": "Cerrar",
     "color": {
       "amber": "Ámbar",
       "blue": "Azul",
@@ -2773,9 +2774,13 @@ declare const messages: {
     "labelsLegend": "Etiquetas",
     "loadFailed": "No pudimos cargar el tablero",
     "loadFailedDescription": "Vuelve a intentarlo en unos segundos.",
+    "moveColumnDown": "Bajar {name}",
+    "moveColumnUp": "Subir {name}",
     "noAttachments": "Sin adjuntos.",
     "noComments": "Sin comentarios todavía.",
     "noDueDate": "Sin fecha límite",
+    "orderColumnsDescription": "Mueve cada columna a la posición que quieras; el tablero se actualiza al instante.",
+    "orderColumnsTitle": "Ordenar columnas",
     "pageDescription": "Organiza el trabajo del equipo por columnas.",
     "pageTitle": "Tablero de tareas",
     "priority": {
@@ -3426,7 +3431,6 @@ declare const messages: {
     "noMatches": "No encontramos archivos",
     "online": {
       "available": "Disponible",
-      "backToFiles": "Volver a archivos",
       "byAuthor": "Por {author}",
       "emptyDescription": "Escribe qué necesitas y buscaremos en los proveedores conectados.",
       "emptyTitle": "Busca un medio para empezar",

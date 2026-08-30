@@ -280,6 +280,14 @@ pruebas de integración de tareas contra `zapi_v2_local`.
 - **`@dnd-kit` obliga a un `eslint-disable` justificado.** Entrega su `ref`
   como un valor que hay que leer durante el render, y el compilador de React lo
   cuenta como acceso a una referencia. Es la forma que documenta la librería.
+- **Ordenar columnas tiene una alternativa sin arrastre (29 de agosto de
+  2026).** En móvil el drag de columnas es impracticable, así que un botón
+  junto a «Filtros» (visible con permiso de columnas y más de una columna)
+  abre un sheet con la lista en su orden actual y controles de subir/bajar.
+  Cada movimiento reutiliza `boardsApi.reorderColumns` con actualización
+  optimista y rollback. Fuente canónica creada primero en
+  `template-shadcn-superdashboard/.../kanban/_components/column-order-sheet.tsx`
+  y copiada a `features/boards/components/column-order-sheet.tsx`.
 
 ## Riesgos
 

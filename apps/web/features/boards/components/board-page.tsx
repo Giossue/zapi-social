@@ -11,7 +11,13 @@ import {
   type DragOverEvent,
   type DragStartEvent,
 } from "@dnd-kit/react"
-import { CircleAlert, KanbanSquare, Plus, Search } from "lucide-react"
+import {
+  CircleAlert,
+  KanbanSquare,
+  ListOrdered,
+  Plus,
+  Search,
+} from "lucide-react"
 
 import { ApiError, boardsApi } from "@workspace/api-client"
 import type {
@@ -43,6 +49,7 @@ import { loginPath } from "@/features/identity/login-redirect"
 
 import { BoardColumnSection } from "./board-column"
 import { BoardTaskCard } from "./board-task-card"
+import { ColumnOrderSheet } from "./column-order-sheet"
 import { ColumnSheet } from "./column-sheet"
 import { TaskSheet, taskDraftToInput, type TaskDraft } from "./task-sheet"
 
@@ -87,6 +94,7 @@ export function BoardPage() {
   const [targetColumnId, setTargetColumnId] = useState<string | null>(null)
   const [columnSheetOpen, setColumnSheetOpen] = useState(false)
   const [editingColumn, setEditingColumn] = useState<BoardColumn | null>(null)
+  const [orderSheetOpen, setOrderSheetOpen] = useState(false)
 
   const boardBeforeDrag = useRef<BoardState>({})
 
@@ -188,6 +196,26 @@ export function BoardPage() {
       await boardsApi.moveTask(taskId, { columnId, position })
     } catch (error) {
       setBoard(boardBeforeDrag.current)
+      toast.error(apiErrorMessage(errorCode(error)))
+    }
+  }
+
+  async function moveColumn(columnId: string, direction: "up" | "down") {
+    const index = columnOrder.indexOf(columnId)
+    const target = direction === "up" ? index - 1 : index + 1
+    const moved = columnOrder[index]
+    const displaced = columnOrder[target]
+    if (moved === undefined || displaced === undefined) return
+
+    const previous = columnOrder
+    const next = [...previous]
+    next[index] = displaced
+    next[target] = moved
+    setColumnOrder(next)
+    try {
+      await boardsApi.reorderColumns({ columnIds: next })
+    } catch (error) {
+      setColumnOrder(previous)
       toast.error(apiErrorMessage(errorCode(error)))
     }
   }
@@ -332,7 +360,22 @@ export function BoardPage() {
               <Search />
             </InputGroupAddon>
           </InputGroup>
-          <DataTableToolbar className="w-full px-0 sm:w-auto">
+          <DataTableToolbar
+            actions={
+              canManageColumns && columns.length > 1 ? (
+                <Button
+                  onClick={() => setOrderSheetOpen(true)}
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                >
+                  <ListOrdered data-icon="inline-start" />
+                  {t("orderColumnsTitle")}
+                </Button>
+              ) : undefined
+            }
+            className="w-full px-0 sm:w-auto"
+          >
             <DataTableFilter
               ariaLabel={t("assigneeFilter")}
               onValueChange={setAssignee}
@@ -490,6 +533,13 @@ export function BoardPage() {
         onOpenChange={setColumnSheetOpen}
         onSaved={() => void load()}
         open={columnSheetOpen}
+      />
+
+      <ColumnOrderSheet
+        columns={columns}
+        onMove={(columnId, direction) => void moveColumn(columnId, direction)}
+        onOpenChange={setOrderSheetOpen}
+        open={orderSheetOpen}
       />
     </div>
   )

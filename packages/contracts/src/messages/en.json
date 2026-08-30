@@ -2736,6 +2736,7 @@
     "attachmentsLegend": "Attachments",
     "cancel": "Cancel",
     "clearDueDate": "Clear the date",
+    "closeSheet": "Close",
     "color": {
       "amber": "Amber",
       "blue": "Blue",
@@ -2770,9 +2771,13 @@
     "labelsLegend": "Labels",
     "loadFailed": "We could not load the board",
     "loadFailedDescription": "Try again in a few seconds.",
+    "moveColumnDown": "Move {name} down",
+    "moveColumnUp": "Move {name} up",
     "noAttachments": "No attachments.",
     "noComments": "No comments yet.",
     "noDueDate": "No due date",
+    "orderColumnsDescription": "Move each column to the position you want; the board updates instantly.",
+    "orderColumnsTitle": "Reorder columns",
     "pageDescription": "Organise your team's work in columns.",
     "pageTitle": "Task board",
     "priority": {
@@ -3423,7 +3428,6 @@
     "noMatches": "No files found",
     "online": {
       "available": "Available",
-      "backToFiles": "Back to files",
       "byAuthor": "By {author}",
       "emptyDescription": "Type what you need and we'll search the connected providers.",
       "emptyTitle": "Search for media to get started",

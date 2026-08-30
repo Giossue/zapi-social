@@ -83,7 +83,7 @@ La migración `0020_mushy_peter_parker` añade intentos, procedencia/resultados 
 
 ## Web
 
-- `/portal/publishing` concentra las pestañas Calendario, Actividad y Publicaciones masivas. Actividad reúne cola y borradores en una tabla filtrable sin métricas; Calendario y Actividad consumen `publishingApi` y el lote conserva `bulkPostsApi`.
+- `/portal/publishing` conserva Calendario como vista principal y ofrece accesos a `/portal/publishing/activity` y `/portal/publishing/bulk-posts`. Actividad reúne cola y borradores en una tabla filtrable sin métricas; Calendario y Actividad consumen `publishingApi` y el lote conserva `bulkPostsApi`.
 - Calendario fuente-canónica usa FullCalendar con vistas mes/semana/día y compositor contextual.
 - API conserva instantes en UTC y convierte `date`, `time` y `focusDate` a la zona IANA del usuario autenticado antes de responder. Una publicación completada muestra `publishedAt`; las pendientes conservan su fecha programada y los borradores su creación. Web trata `date` como fecha de calendario estable; los logs operativos permanecen en UTC.
 - Las mutaciones confirman con toast y preservan estados loading/empty/error.

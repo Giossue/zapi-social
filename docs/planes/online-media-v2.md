@@ -41,6 +41,9 @@ La vista previa que devuelve la búsqueda usa la variante grande de cada proveed
 - [x] Contratos, API, cliente y metadata Drizzle incluidos en `0020_mushy_peter_parker`.
 - [x] Migración local aplicada; existe `file_assets.metadata` y pasan typechecks de Database, Contracts, API Client y API.
 - [x] Web conectado a `onlineMediaApi`, sin fixtures y con enlaces visibles de atribución, autor y fuente.
+- [x] El botón «Volver a archivos» del buscador se retiró el 29 de agosto de
+      2026 a petición de producto: la navegación de Files ya cubre el regreso
+      y la cabecera queda solo con la búsqueda.
 - [x] Pexels configurable desde Admin, con prueba previa, secreto cifrado y respuesta redactada.
 - [x] Regresión de importación con proveedor simulado sobre un `FILES_STORAGE_PATH` vacío: `apps/api/src/online-media/online-media-import.spec.ts` comprueba que el binario se escribe y que la clave conserva la extensión.
 - [ ] Ampliar el proveedor simulado a redirecciones, límite de tamaño, firma MIME y limpieza ante fallo.

@@ -1,9 +1,16 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { type FormEvent, useEffect, useRef, useState } from "react"
-import { CalendarDays, CircleAlert, FileText, Send } from "lucide-react"
+import {
+  CalendarDays,
+  CircleAlert,
+  FileText,
+  History,
+  ListChecks,
+  Send,
+} from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
@@ -25,7 +32,6 @@ import {
 } from "@workspace/ui/components/field"
 import {
   Tabs,
-  TabsContent,
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs"
@@ -58,14 +64,11 @@ type ComposerMode = "draft" | "now" | "schedule"
 
 const defaultScheduleDate = "2026-08-03"
 
-const sectionLinks: Array<{ href: string; value: PublishingSection }> = [
-  { href: "/portal/publishing", value: "calendar" },
-  { href: "/portal/publishing?tab=activity", value: "activity" },
-  {
-    href: "/portal/publishing?tab=bulk-posts",
-    value: "bulk-posts",
-  },
-]
+const sectionRoutes: Record<PublishingSection, string> = {
+  calendar: "/portal/publishing",
+  activity: "/portal/publishing/activity",
+  "bulk-posts": "/portal/publishing/bulk-posts",
+}
 
 function RequiredMark() {
   return (
@@ -423,7 +426,6 @@ export function PublishingCalendarPage({
   initialSection?: PublishingSection
 }) {
   const t = useTranslations("publishing.page")
-  const router = useRouter()
   const [posts, setPosts] = useState(calendar.posts)
   const [media, setMedia] = useState(calendar.media ?? [])
   const section = initialSection
@@ -432,16 +434,6 @@ export function PublishingCalendarPage({
     useState(defaultScheduleDate)
   const [editingPost, setEditingPost] = useState<PublishingPost | null>(null)
   const createIdempotencyKey = useRef<string | null>(null)
-  const sectionLabels: Record<PublishingSection, string> = {
-    activity: t("section.activity"),
-    "bulk-posts": t("section.bulkPosts"),
-    calendar: t("section.calendar"),
-  }
-
-  useEffect(() => {
-    for (const link of sectionLinks) router.prefetch(link.href)
-  }, [router])
-
   if (!calendar.canView) {
     return (
       <Card variant="subtle">
@@ -559,62 +551,53 @@ export function PublishingCalendarPage({
         title={t("pageTitle")}
       />
 
-      <Tabs
-        className={cn("min-h-0", section === "calendar" && "flex-1")}
-        onValueChange={(value) => {
-          const nextSection = value as PublishingSection
-          const nextLink = sectionLinks.find(
-            (item) => item.value === nextSection
-          )
-          if (!nextLink) return
-
-          router.push(nextLink.href)
-        }}
-        value={section}
-      >
-        <nav aria-label={t("sectionsLabel")}>
-          <TabsList className="h-auto w-full flex-wrap justify-start sm:w-fit">
-            {sectionLinks.map((item) => (
-              <TabsTrigger key={item.value} value={item.value}>
-                {sectionLabels[item.value]}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+      {section === "calendar" ? (
+        <nav aria-label={t("sectionsLabel")} className="flex flex-wrap gap-2">
+          <Button asChild size="sm" variant="brand-secondary">
+            <Link href={sectionRoutes.activity}>
+              <History data-icon="inline-start" />
+              {t("section.activity")}
+            </Link>
+          </Button>
+          <Button asChild size="sm" variant="brand-secondary">
+            <Link href={sectionRoutes["bulk-posts"]}>
+              <ListChecks data-icon="inline-start" />
+              {t("section.bulkPosts")}
+            </Link>
+          </Button>
         </nav>
+      ) : null}
 
-        <TabsContent value="calendar" className="flex min-h-0 flex-1 flex-col">
-          <section
-            aria-label={t("calendarLabel")}
-            className="flex min-h-0 flex-1 flex-col"
-          >
-            <PublishingCalendar
-              initialDate={calendar.focusDate}
-              onCreateAtDate={(date) => openComposer(null, date)}
-              onEditPost={openComposer}
-              posts={posts}
-            />
-          </section>
-        </TabsContent>
+      {section === "calendar" ? (
+        <section
+          aria-label={t("calendarLabel")}
+          className="flex min-h-0 flex-1 flex-col"
+        >
+          <PublishingCalendar
+            initialDate={calendar.focusDate}
+            onCreateAtDate={(date) => openComposer(null, date)}
+            onEditPost={openComposer}
+            posts={posts}
+          />
+        </section>
+      ) : null}
 
-        <TabsContent value="activity" className="flex flex-col gap-4">
-          <section
-            aria-label={t("activityLabel")}
-            className="flex flex-col gap-4"
-          >
-            <PublishingPostsTable
-              onContinue={openComposer}
-              onCreate={() => openComposer()}
-              onDelete={deletePost}
-              onRetry={retryPost}
-              posts={posts}
-            />
-          </section>
-        </TabsContent>
+      {section === "activity" ? (
+        <section
+          aria-label={t("activityLabel")}
+          className="flex flex-col gap-4"
+        >
+          <PublishingPostsTable
+            onContinue={openComposer}
+            onCreate={() => openComposer()}
+            onDelete={deletePost}
+            onRetry={retryPost}
+            posts={posts}
+          />
+        </section>
+      ) : null}
 
-        <TabsContent value="bulk-posts">
-          <BulkPostsPage embedded />
-        </TabsContent>
-      </Tabs>
+      {section === "bulk-posts" ? <BulkPostsPage embedded /> : null}
 
       {section === "activity" ? (
         <FloatingActionButton

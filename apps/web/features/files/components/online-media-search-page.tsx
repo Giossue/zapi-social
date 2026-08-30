@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Check, Image, Play, Search } from "lucide-react"
+import { Check, Image, Play, Search } from "lucide-react"
 
 import { ApiError, onlineMediaApi } from "@workspace/api-client"
 import type { PortalOnlineMediaResult } from "@workspace/contracts"
@@ -165,25 +165,17 @@ export function OnlineMediaSearchPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <InputGroup className="max-w-2xl">
-          <InputGroupAddon>
-            <Search />
-          </InputGroupAddon>
-          <InputGroupInput
-            aria-label={t("searchLabel")}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder={t("searchPlaceholder")}
-            value={query}
-          />
-        </InputGroup>
-        <Button asChild variant="brand-secondary">
-          <Link href="/portal/files">
-            <ArrowLeft data-icon="inline-start" />
-            {t("backToFiles")}
-          </Link>
-        </Button>
-      </div>
+      <InputGroup className="max-w-2xl">
+        <InputGroupAddon>
+          <Search />
+        </InputGroupAddon>
+        <InputGroupInput
+          aria-label={t("searchLabel")}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder={t("searchPlaceholder")}
+          value={query}
+        />
+      </InputGroup>
 
       {hasSearched && results.length ? (
         <div className="flex flex-wrap items-center justify-between gap-2">

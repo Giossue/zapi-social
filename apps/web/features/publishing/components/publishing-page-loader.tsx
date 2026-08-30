@@ -23,7 +23,11 @@ const publishingSections = new Set<PublishingSection>([
   "bulk-posts",
 ])
 
-export function PublishingPageLoader() {
+export function PublishingPageLoader({
+  section: routeSection,
+}: {
+  section?: PublishingSection
+}) {
   const t = useTranslations("publishing.loader")
   const searchParams = useSearchParams()
   const [calendar, setCalendar] = useState<PortalPublishingResponse | null>(
@@ -81,9 +85,10 @@ export function PublishingPageLoader() {
   if (!calendar) return <PageLoading />
   const tab = searchParams.get("tab")
   const initialSection =
-    tab && publishingSections.has(tab as PublishingSection)
+    routeSection ??
+    (tab && publishingSections.has(tab as PublishingSection)
       ? (tab as PublishingSection)
-      : "calendar"
+      : "calendar")
 
   return (
     <PublishingCalendarPage

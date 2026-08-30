@@ -70,7 +70,11 @@ export function PortalSettingsSidebar() {
         } as CSSProperties
       }
     >
-      <SidebarHeader className="min-h-14" />
+      <SidebarHeader className="flex min-h-14 items-center px-3">
+        <span className="font-heading text-lg font-semibold tracking-tight">
+          {t("settings")}
+        </span>
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup className="pt-0">
           <SidebarGroupContent>

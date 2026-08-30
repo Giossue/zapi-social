@@ -2,7 +2,7 @@
 
 ## Estado
 
-El backend de lotes CSV está implementado con API, persistencia, Worker y creación durable de borradores/programaciones en Publishing. La pestaña Publicaciones masivas de `/portal/publishing?tab=bulk-posts` consume `bulkPostsApi` para el resumen, listado, filtros, estados y sheet de creación; queda pendiente publicar una plantilla CSV descargable.
+El backend de lotes CSV está implementado con API, persistencia, Worker y creación durable de borradores/programaciones en Publishing. La vista de Publicaciones masivas en `/portal/publishing/bulk-posts` consume `bulkPostsApi` para el resumen, listado, filtros, estados y sheet de creación; queda pendiente publicar una plantilla CSV descargable.
 
 ## REST
 
