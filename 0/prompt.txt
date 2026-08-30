@@ -1,0 +1,9 @@
+Mi sistema actualmente usa http post y get?
+
+---
+
+Cuáles se pueden usar por query?
+
+---
+
+me refiero al metodo nuevo http query

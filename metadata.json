@@ -1,0 +1,31 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "01M18PCDXMSDRBP3PC044TYSCV",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "apps/api/src/publishing/publishing-timezone.spec.ts",
+    "apps/api/src/publishing/publishing-timezone.ts",
+    "apps/api/src/publishing/publishing.service.ts",
+    "apps/web/features/publishing/components/publishing-calendar-page.tsx",
+    "apps/web/features/publishing/components/publishing-calendar.tsx",
+    "docs/planes/refactor-visual-design-ideal-v2.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 10,
+    "cache_creation_tokens": 14262,
+    "cache_read_tokens": 137097,
+    "output_tokens": 2560,
+    "api_call_count": 5
+  }
+}
