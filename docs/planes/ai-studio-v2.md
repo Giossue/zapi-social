@@ -970,12 +970,37 @@ ejecutan sus herramientas internas (`save_caption`, `generate_image`, …);
 responden con texto y sus tools son descriptivas hasta la siguiente fase.
 
 Validación del cierre: typecheck, build y lint del monorepo en verde; suites de
-API (103) y Worker (39) en verde; auditorías de paridad i18n (4711 claves),
-texto hardcoded y UI de Portal/Admin sin hallazgos; migración 0053 con dry-run
-transaccional en remota antes de aplicar y conteos verificados en ambas bases.
-La aprobación visual del canvas, el editor y la herramienta Asistente
-corresponde al usuario; el bucle real con proveedores exige credenciales
-`ready` en Admin.
+API (103) y Worker (39) en verde; auditorías de paridad i18n, texto hardcoded y
+UI de Portal/Admin sin hallazgos; migración 0053 con dry-run transaccional en
+remota antes de aplicar y conteos verificados en ambas bases. La aprobación
+visual del canvas, el editor y la herramienta Asistente corresponde al usuario;
+el bucle real con proveedores exige credenciales `ready` en Admin.
+
+### Retiro de la pestaña Rutas — 30 de agosto de 2026
+
+Decisión de producto: la edición de enrutamiento sale de Admin → Configuración
+AI para migrar hacia la superficie visual de Agentes. La página conserva solo
+Proveedor, Modelos y Uso; se eliminó la tabla de rutas, sus filtros y su sheet
+de edición, y la descripción de la ruta declara que el enrutamiento se
+administra en el canvas de Agentes.
+
+Alcance acotado: `ai_model_routes` sigue vigente en base, API y Worker porque
+los kinds `content`, `image`, `video` y `ai_publishing` resuelven su modelo por
+ruta; sin interfaz, esos valores quedan congelados como están y solo pueden
+cambiarse por datos. Pendiente de la siguiente iteración: representar las
+herramientas y su modelo como nodos conectables del canvas para reemplazar por
+completo el enrutamiento por tabla.
+
+Corrección técnica del mismo cierre: `tsconfig.json` de API y Worker declaraba
+`rootDir: ./src` incluyendo `test/`, un fallo latente enmascarado por caches
+incrementales; `rootDir` vive ahora en `tsconfig.build.json` (el que usa
+`nest build`), se limpiaron los `tsbuildinfo` obsoletos y se verificó que ambos
+servicios siguen emitiendo `dist/main.js` en la misma ruta, sin cambio de
+layout para las imágenes de despliegue.
+
+Validación: typecheck, lint y build del monorepo en verde; `nest build` real de
+API y Worker con `dist/main.js` verificado; paridad i18n (4710 claves) y
+auditoría de UI sin hallazgos.
 
 Validación: build y typecheck del monorepo correctos; auditorías de paridad
 i18n, texto hardcoded y UI de Portal/Admin sin hallazgos.
