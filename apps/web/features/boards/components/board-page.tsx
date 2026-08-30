@@ -311,7 +311,9 @@ export function BoardPage() {
     >
       <div className="flex shrink-0 flex-col gap-3 border-b px-4 py-3 lg:flex-row lg:items-center lg:justify-between lg:px-6">
         <div className="min-w-0">
-          <h1 className="truncate text-lg font-semibold">{t("pageTitle")}</h1>
+          <h1 className="truncate font-heading text-2xl font-semibold tracking-tight">
+            {t("pageTitle")}
+          </h1>
           <p className="truncate text-sm text-muted-foreground">
             {t("pageDescription")}
           </p>
