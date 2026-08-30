@@ -29,6 +29,7 @@ import { DatabaseService } from '../database/database.service';
 import { AppException } from '../platform/errors/app-exception';
 import { PlanAccessService } from '../plans/plan-access.service';
 import { CaptchaService } from '../captcha/captcha.service';
+import { ProfileAvatarService } from './profile-avatar.service';
 
 const rememberedSessionLifetimeSeconds = 60 * 60 * 24 * 30;
 const temporarySessionLifetimeSeconds = 60 * 60 * 24;
@@ -40,6 +41,7 @@ export class IdentityService {
     private readonly jwt: JwtService,
     private readonly captcha: CaptchaService,
     private readonly planAccess: PlanAccessService,
+    private readonly avatars: ProfileAvatarService,
   ) {}
 
   async register(input: unknown, remoteIp?: string) {
@@ -180,6 +182,7 @@ export class IdentityService {
         email: users.email,
         displayName: users.displayName,
         locale: users.locale,
+        avatarPath: users.avatarPath,
         passwordHash: users.passwordHash,
         status: users.status,
         isPlatformAdmin: users.isPlatformAdmin,
@@ -204,14 +207,19 @@ export class IdentityService {
       );
     }
 
+    const area =
+      user.isPlatformAdmin || user.adminRoleId
+        ? ('admin' as const)
+        : ('portal' as const);
     const userSession = {
       id: user.id,
       email: user.email,
       displayName: user.displayName,
       locale: this.localeCode(user.locale),
+      avatarUrl: this.avatars.urlFor(area, user.avatarPath),
     };
     const session: AuthSession =
-      user.isPlatformAdmin || user.adminRoleId
+      area === 'admin'
         ? { user: userSession, area: 'admin' }
         : await this.portalSessionForUser(user.id, userSession);
 
@@ -242,6 +250,7 @@ export class IdentityService {
         email: users.email,
         displayName: users.displayName,
         locale: users.locale,
+        avatarPath: users.avatarPath,
         isPlatformAdmin: users.isPlatformAdmin,
         adminRoleId: users.adminRoleId,
         activeWorkspaceId: authSessions.activeWorkspaceId,
@@ -261,13 +270,18 @@ export class IdentityService {
 
     if (!session) return null;
 
+    const sessionArea =
+      session.isPlatformAdmin || session.adminRoleId
+        ? ('admin' as const)
+        : ('portal' as const);
     const user = {
       id: session.userId,
       email: session.email,
       displayName: session.displayName,
       locale: this.localeCode(session.locale),
+      avatarUrl: this.avatars.urlFor(sessionArea, session.avatarPath),
     };
-    if (session.isPlatformAdmin || session.adminRoleId) {
+    if (sessionArea === 'admin') {
       return { user, area: 'admin' };
     }
     if (!session.activeWorkspaceId) return null;

@@ -28,6 +28,7 @@ import {
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import { DataTableFilter } from "@workspace/ui/components/data-table-controls"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { DataTableToolbar } from "@/components/data-table-toolbar"
 import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import {
@@ -139,30 +140,34 @@ export function AdminPaymentReportPage() {
         title={t("pageTitle")}
       />
       <div className="flex flex-wrap items-center gap-3">
-        <DataTableFilter
-          ariaLabel={t("selectRange")}
-          label={t("rangeColumn")}
-          onValueChange={(value) => setRange(value as AdminPaymentReportRange)}
-          options={[
-            { label: t("range.30d"), value: "30d" },
-            { label: t("range.90d"), value: "90d" },
-            { label: t("range.12m"), value: "12m" },
-          ]}
-          value={range}
-        />
-        <DataTableFilter
-          ariaLabel={t("filterProduct")}
-          label={t("product")}
-          onValueChange={(value) =>
-            setProductType(value as AdminPaymentReportProduct)
-          }
-          options={[
-            { label: t("all"), value: "all" },
-            { label: t("productType.plan"), value: "plan" },
-            { label: t("productType.credits"), value: "credits" },
-          ]}
-          value={productType}
-        />
+        <DataTableToolbar className="w-full px-0 sm:w-auto">
+          <DataTableFilter
+            ariaLabel={t("selectRange")}
+            label={t("rangeColumn")}
+            onValueChange={(value) =>
+              setRange(value as AdminPaymentReportRange)
+            }
+            options={[
+              { label: t("range.30d"), value: "30d" },
+              { label: t("range.90d"), value: "90d" },
+              { label: t("range.12m"), value: "12m" },
+            ]}
+            value={range}
+          />
+          <DataTableFilter
+            ariaLabel={t("filterProduct")}
+            label={t("product")}
+            onValueChange={(value) =>
+              setProductType(value as AdminPaymentReportProduct)
+            }
+            options={[
+              { label: t("all"), value: "all" },
+              { label: t("productType.plan"), value: "plan" },
+              { label: t("productType.credits"), value: "credits" },
+            ]}
+            value={productType}
+          />
+        </DataTableToolbar>
         <p className="text-sm text-muted-foreground">
           {t("currencyNote", { currency })}
           {report.currencies.length > 1

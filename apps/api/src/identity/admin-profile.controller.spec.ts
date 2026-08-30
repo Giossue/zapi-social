@@ -3,6 +3,7 @@ import type { PlatformAdminAuthSession } from '@workspace/contracts';
 import type { FastifyRequest } from 'fastify';
 import { AdminProfileController } from './admin-profile.controller';
 import { PortalProfileService } from './portal-profile.service';
+import { ProfileAvatarService } from './profile-avatar.service';
 import { SessionAccessService } from './session-access.service';
 
 describe('AdminProfileController', () => {
@@ -30,7 +31,8 @@ describe('AdminProfileController', () => {
       updateProfile,
       changePassword,
     } as unknown as PortalProfileService;
-    const controller = new AdminProfileController(profiles, access);
+    const avatars = {} as unknown as ProfileAvatarService;
+    const controller = new AdminProfileController(profiles, avatars, access);
     const update = {
       displayName: 'Admin User',
       locale: 'es',

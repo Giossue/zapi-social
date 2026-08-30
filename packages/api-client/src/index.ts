@@ -527,6 +527,22 @@ export const adminDashboardApi = {
   get: () => request<AdminDashboard>("/v1/admin/dashboard", { method: "GET" }),
 }
 
+export const avatarAbsoluteUrl = (avatarUrl: string | null | undefined) =>
+  avatarUrl ? `${apiBaseUrl}${avatarUrl}` : null
+
+async function uploadProfileAvatar(path: string, file: File | Blob) {
+  const response = await fetch(`${apiBaseUrl}${path}`, {
+    method: "POST",
+    credentials: "include",
+    headers: { "content-type": "application/octet-stream" },
+    body: file,
+  })
+  if (!response.ok) {
+    throw new ApiError("AVATAR_UPLOAD_FAILED", response.status)
+  }
+  return (await response.json()) as { avatarUrl: string | null }
+}
+
 export const profileApi = {
   get: () => request<PortalProfile>("/v1/portal/profile", { method: "GET" }),
   update: (input: UpdatePortalProfileInput) =>
@@ -539,6 +555,10 @@ export const profileApi = {
       method: "POST",
       body: JSON.stringify(input),
     }),
+  uploadAvatar: (file: File | Blob) =>
+    uploadProfileAvatar("/v1/portal/profile/avatar", file),
+  removeAvatar: () =>
+    request<void>("/v1/portal/profile/avatar", { method: "DELETE" }),
 }
 
 export const adminProfileApi = {
@@ -553,6 +573,10 @@ export const adminProfileApi = {
       method: "POST",
       body: JSON.stringify(input),
     }),
+  uploadAvatar: (file: File | Blob) =>
+    uploadProfileAvatar("/v1/admin/profile/avatar", file),
+  removeAvatar: () =>
+    request<void>("/v1/admin/profile/avatar", { method: "DELETE" }),
 }
 
 function portalCaptionsQueryString(query: Partial<PortalCaptionsQuery> = {}) {

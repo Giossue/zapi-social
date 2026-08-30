@@ -43,7 +43,9 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
+import { DataTableFilter } from "@workspace/ui/components/data-table-controls"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { DataTableToolbar } from "@/components/data-table-toolbar"
 import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import { toast } from "@workspace/ui/components/toast"
@@ -548,28 +550,33 @@ function WatermarkImagePicker({
               value={library.query}
             />
           </InputGroup>
-          <div className="flex flex-wrap items-center gap-2">
-            <Select
+          <DataTableToolbar
+            actions={
+              library.folderId !== "all" || library.starredOnly ? (
+                <Button
+                  onClick={clearFilters}
+                  size="sm"
+                  type="button"
+                  variant="brand-secondary"
+                >
+                  {t("clearFilters")}
+                </Button>
+              ) : undefined
+            }
+            className="px-0"
+          >
+            <DataTableFilter
+              ariaLabel={t("picker.folder")}
               onValueChange={library.setFolderId}
+              options={[
+                { label: t("picker.allFolders"), value: "all" },
+                ...library.folders.map((folder) => ({
+                  label: folder.name,
+                  value: folder.id,
+                })),
+              ]}
               value={library.folderId}
-            >
-              <SelectTrigger
-                aria-label={t("picker.folder")}
-                className="max-w-full"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem value="all">{t("picker.allFolders")}</SelectItem>
-                  {library.folders.map((folder) => (
-                    <SelectItem key={folder.id} value={folder.id}>
-                      {folder.name}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+            />
             <Toggle
               aria-label={t("picker.starredAria")}
               onPressedChange={library.setStarredOnly}
@@ -578,7 +585,7 @@ function WatermarkImagePicker({
               <Star aria-hidden="true" data-icon="inline-start" />
               {t("picker.starred")}
             </Toggle>
-          </div>
+          </DataTableToolbar>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
           {library.status === "loading" ? <PageLoading /> : null}

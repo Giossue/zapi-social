@@ -9,6 +9,7 @@ import {
   type Database,
 } from '@workspace/database';
 import { eq } from '@workspace/database/query';
+import { ProfileAvatarService } from './profile-avatar.service';
 import { DatabaseService } from '../database/database.service';
 import { AppException } from '../platform/errors/app-exception';
 import { PlanAccessService } from '../plans/plan-access.service';
@@ -30,6 +31,9 @@ const connection = isLocalTestDatabase ? createDatabase(databaseUrl!) : null;
 const captchaDisabled = {
   verifyAuthenticationToken: () => Promise.resolve(),
 } as unknown as CaptchaService;
+const avatarsStub = {
+  urlFor: () => null,
+} as unknown as ProfileAvatarService;
 
 async function inRollbackTransaction(
   callback: (database: Database) => Promise<void>,
@@ -67,6 +71,7 @@ describeDatabase('Identity workspace context', () => {
         new JwtService({ secret: 'identity-timezone-test-secret' }),
         captchaDisabled,
         new PlanAccessService({ db: database } as DatabaseService),
+        avatarsStub,
       );
       const email = `timezone-user-${randomUUID()}@example.test`;
 
@@ -190,6 +195,7 @@ describeDatabase('Identity workspace context', () => {
         new JwtService({ secret: 'identity-workspace-test-secret' }),
         captchaDisabled,
         new PlanAccessService({ db: database } as DatabaseService),
+        avatarsStub,
       );
       const initial = await service.getSession(sessionToken);
       expect(initial?.area).toBe('portal');

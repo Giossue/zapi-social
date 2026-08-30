@@ -1,6 +1,11 @@
 "use client"
 
-import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
+import { avatarAbsoluteUrl } from "@workspace/api-client"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@workspace/ui/components/avatar"
 import { useTranslations } from "next-intl"
 import {
   DropdownMenu,
@@ -51,6 +56,12 @@ export function DashboardNavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="size-8 grayscale">
+                {profile.avatarUrl ? (
+                  <AvatarImage
+                    alt={profile.displayName}
+                    src={avatarAbsoluteUrl(profile.avatarUrl) ?? undefined}
+                  />
+                ) : null}
                 <AvatarFallback>
                   {initials(profile.displayName) || "Z"}
                 </AvatarFallback>

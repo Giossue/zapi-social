@@ -43,7 +43,6 @@ Admin no se atribuyen a un workspace.
 
 | Tema                          | Razón                                                        | Módulo posterior            |
 | ----------------------------- | ------------------------------------------------------------ | --------------------------- |
-| Avatar                        | `users` no tiene campos de archivo y MinIO no está preparado | Files / avatar de usuario   |
 | 2FA, QR TOTP y recovery codes | flujo de seguridad, secretos cifrados y login con desafío    | Identity security           |
 | Cambio de correo              | falta política Admin y ciclo de re-verificación              | Identity / Admin auth rules |
 | Cambio de username            | falta política Admin y contrato público de handle            | Identity / Admin auth rules |
@@ -208,4 +207,50 @@ Client y auditorías de UI e i18n terminan sin hallazgos.
 - Usuario Portal puede cambiar contraseña tras validar la actual.
 - API no permite editar otra cuenta ni campos fuera de alcance.
 - La UI muestra resultados reales, loading/error y funciona en móvil/claro/oscuro.
-- Avatar, 2FA, correo y username quedan documentados fuera de este vertical; no son pendientes ocultos.
+- 2FA, correo y username quedan documentados fuera de este vertical; no son
+  pendientes ocultos. El avatar se incorporó el 29 de agosto de 2026 (ver la
+  sección siguiente).
+
+## Foto de perfil — 29 de agosto de 2026
+
+Equivalencia del avatar Laravel (`avatar_path`/`avatar_disk` en `AdminUser`,
+subida en `UserForm::storeAvatar` a `avatars/users/{userId}` con límite de
+2 MB). V2 lo implementa siguiendo el molde de branding, no el de Files:
+
+- **Columna** aditiva `users.avatar_path varchar(512)` (migración
+  `0050_blue_thor`, aplicada a `zapi_v2_local` y a la remota `zapi_v2`, ambas
+  con historial 51). Guarda la clave relativa dentro del volumen.
+- **Storage**: el binario vive en
+  `$FILES_STORAGE_PATH/avatars/users/<userId>/<version8>.<ext>`, una carpeta
+  dedicada por usuario dentro del mismo volumen compartido, fuera del árbol
+  `ws/` de Files. Reemplazar o quitar la foto borra **solo el archivo**
+  anterior (`rm` del binario); la carpeta del usuario permanece. Al no crear
+  filas en `file_assets`, el avatar **no consume la cuota de storage del plan**
+  ni aparece en la biblioteca de Files.
+- **Límite**: 1 MB (decisión de producto, más estricta que los 2 MB de
+  Laravel), formatos JPG/PNG/WebP verificados por magic bytes con
+  `detectFileMime`; el layout de claves vive en `packages/file-ingestion`
+  (`userAvatarStorageKey`, `MAX_AVATAR_BYTES`). Sin SVG por superficie XSS.
+  La UI recomienda imagen cuadrada de 512×512 px.
+- **Contrato y endpoints**: `portalProfileSchema.avatarUrl` y
+  `authUserSchema.avatarUrl` (la sesión alimenta el avatar del shell).
+  `POST|GET|DELETE /v1/portal/profile/avatar` y sus espejos
+  `/v1/admin/profile/avatar`; subida como `application/octet-stream` con
+  guardia de tamaño en stream, escritura temporal y `rename` atómico. La URL
+  servida es autenticada y privada
+  (`/v1/<área>/profile/avatar?v=<version>`, `cache-control: private,
+  immutable`), coherente con la regla de Files de no exponer URLs públicas.
+  Cada subida/borrado audita en `api_audit_logs`
+  (`profile.avatar_updated`/`profile.avatar_removed`).
+- **UI**: fuente canónica ampliada primero en
+  `template-shadcn-superdashboard/.../profile/_components/profile-settings.tsx`
+  y copiada a `AccountProfilePage` (Portal y Admin): botón «Cambiar foto» con
+  input de archivo oculto, «Quitar foto» cuando existe, texto de ayuda con
+  formato/tamaño, validación client-side por toast y `AvatarImage` con
+  fallback de iniciales. `AccountProfile` del shell acepta `avatarUrl`, así la
+  foto aparece en el sidebar y el menú de cuenta vía sesión.
+
+Evidencia: typecheck en file-ingestion, contracts, database, api-client, api y
+web; `bun run test` de API (25 suites, wiring incluido); build de contracts y
+web; auditores de UI e i18n sin hallazgos; migración verificada en local y
+remota antes y después. La aprobación visual corresponde al usuario.

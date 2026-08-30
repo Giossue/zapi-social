@@ -11,6 +11,7 @@ import { IdentityService } from './identity.service';
 import { PasswordResetService } from './password-reset.service';
 import { PortalProfileController } from './portal-profile.controller';
 import { PortalProfileService } from './portal-profile.service';
+import { ProfileAvatarService } from './profile-avatar.service';
 import { SessionAccessService } from './session-access.service';
 
 @Module({
@@ -37,6 +38,7 @@ import { SessionAccessService } from './session-access.service';
     PasswordResetService,
     SessionAccessService,
     PortalProfileService,
+    ProfileAvatarService,
   ],
   exports: [IdentityService, PasswordResetService, SessionAccessService],
 })

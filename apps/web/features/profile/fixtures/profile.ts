@@ -8,5 +8,6 @@ export const portalProfileFixture: PortalProfile = {
   emailVerifiedAt: "2026-07-14T16:20:00.000Z",
   locale: "es",
   timezone: "America/Guayaquil",
+  avatarUrl: null,
   createdAt: "2026-06-08T14:00:00.000Z",
 }

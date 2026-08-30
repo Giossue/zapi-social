@@ -214,8 +214,14 @@ $FILES_STORAGE_PATH/
 ├── ws/<shard>/<workspaceId>/
 │   ├── orig/<yyyy>/<mm>/<assetId>[.ext]
 │   └── drv/<assetId>/{thumb.webp, publish-<postId>[.ext]}
+├── avatars/users/<userId>/<version8>.<ext>
 └── tmp/<uploadId>
 ```
+
+El árbol `avatars/` no pertenece a Files: es la foto de perfil por usuario
+(29 de agosto de 2026), sin fila en `file_assets` y sin contar en la cuota del
+plan. Su diseño y endpoints viven en
+[`perfil-basico-v2.md`](./perfil-basico-v2.md).
 
 Sustituye a la disposición plana anterior (`<workspaceId>/<uuid>` con derivados
 como hermanos por sufijo). Cada nivel resuelve un límite concreto:

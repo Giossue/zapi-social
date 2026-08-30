@@ -82,6 +82,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { PageLoading } from "@/components/page-loading"
+import { DataTableToolbar } from "@/components/data-table-toolbar"
 import {
   TABLE_EMPTY_ICON,
   TableEmptyRow,
@@ -1320,7 +1321,7 @@ export function FilesLibraryPage() {
 
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap items-center gap-2">
+          <DataTableToolbar className="px-0">
             <DataTableFilter
               ariaLabel={t("filterType")}
               label={t("type")}
@@ -1334,6 +1335,8 @@ export function FilesLibraryPage() {
               ]}
               value={assetFilter}
             />
+          </DataTableToolbar>
+          <div className="flex flex-wrap items-center gap-2">
             {selection.length > 0 ? (
               <>
                 <Badge variant="info">

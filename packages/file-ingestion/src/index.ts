@@ -215,3 +215,24 @@ export function publishVariantStorageKey(input: {
 export function temporaryStorageKey(uploadId: string) {
   return `${TMP_STORAGE_PREFIX}/${uploadId}`
 }
+
+export const MAX_AVATAR_BYTES = 1024 * 1024
+
+export const avatarMimeExtensions: Record<string, string> = {
+  "image/jpeg": ".jpg",
+  "image/png": ".png",
+  "image/webp": ".webp",
+}
+
+export function userAvatarStoragePrefix(userId: string) {
+  return `avatars/users/${userId}`
+}
+
+export function userAvatarStorageKey(input: {
+  userId: string
+  version: string
+  extension: string
+}) {
+  const extension = storageExtension(input.extension)
+  return `${userAvatarStoragePrefix(input.userId)}/${input.version}${extension}`
+}

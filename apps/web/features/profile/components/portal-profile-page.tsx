@@ -3,6 +3,7 @@
 import {
   adminProfileApi,
   ApiError,
+  avatarAbsoluteUrl,
   i18nApi,
   profileApi,
 } from "@workspace/api-client"
@@ -11,7 +12,11 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@workspace/ui/components/alert"
-import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -47,10 +52,17 @@ import {
   TabsTrigger,
 } from "@workspace/ui/components/tabs"
 import { toast } from "@workspace/ui/components/toast"
-import { CircleAlert, KeyRound, Save } from "lucide-react"
+import { CircleAlert, ImageUp, KeyRound, Save, Trash2 } from "lucide-react"
 import { useFormatter, useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
-import { useEffect, useMemo, useState, type FormEvent } from "react"
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react"
 import { announceSessionLogout } from "@/features/identity/components/session-synchronizer"
 import { syncLocaleCookie } from "@/i18n/locale-cookie"
 import type { PortalProfile, PublicLanguage } from "@workspace/contracts"
@@ -59,6 +71,9 @@ const supportedTimeZones =
   typeof Intl.supportedValuesOf === "function"
     ? Intl.supportedValuesOf("timeZone")
     : []
+
+const maxAvatarBytes = 1024 * 1024
+const avatarMimeTypes = ["image/jpeg", "image/png", "image/webp"]
 
 const suggestedTimeZones = [
   "America/Guayaquil",
@@ -124,6 +139,8 @@ function AccountProfilePage({ area }: { area: AccountProfileArea }) {
   const [languages, setLanguages] = useState<PublicLanguage[]>([])
   const [displayName, setDisplayName] = useState("")
   const [timezone, setTimezone] = useState("")
+  const [savingAvatar, setSavingAvatar] = useState(false)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
   const [savingPassword, setSavingPassword] = useState(false)
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
@@ -198,6 +215,49 @@ function AccountProfilePage({ area }: { area: AccountProfileArea }) {
       toast.error(t(profileErrorKey(nextError)))
     } finally {
       setSavingPreferences(false)
+    }
+  }
+
+  async function selectAvatar(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = ""
+    if (!file || !profile) return
+    if (!avatarMimeTypes.includes(file.type)) {
+      toast.error(t("avatarType"))
+      return
+    }
+    if (file.size > maxAvatarBytes) {
+      toast.error(t("avatarTooLarge"))
+      return
+    }
+
+    setSavingAvatar(true)
+    try {
+      const { avatarUrl } = await accountProfileApi.uploadAvatar(file)
+      setProfile((current) => (current ? { ...current, avatarUrl } : current))
+      toast.success(t("avatarUpdated"))
+      router.refresh()
+    } catch {
+      toast.error(t("saveFailed"))
+    } finally {
+      setSavingAvatar(false)
+    }
+  }
+
+  async function removeAvatar() {
+    if (!profile?.avatarUrl) return
+    setSavingAvatar(true)
+    try {
+      await accountProfileApi.removeAvatar()
+      setProfile((current) =>
+        current ? { ...current, avatarUrl: null } : current
+      )
+      toast.success(t("avatarRemoved"))
+      router.refresh()
+    } catch {
+      toast.error(t("saveFailed"))
+    } finally {
+      setSavingAvatar(false)
     }
   }
 
@@ -285,6 +345,12 @@ function AccountProfilePage({ area }: { area: AccountProfileArea }) {
             <CardContent className="flex flex-col gap-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                 <Avatar size="lg">
+                  {profile.avatarUrl ? (
+                    <AvatarImage
+                      alt={t("avatarAlt")}
+                      src={avatarAbsoluteUrl(profile.avatarUrl) ?? undefined}
+                    />
+                  ) : null}
                   <AvatarFallback>
                     {initials(profile.displayName) || "Z"}
                   </AvatarFallback>
@@ -310,6 +376,45 @@ function AccountProfilePage({ area }: { area: AccountProfileArea }) {
                     })}
                   </p>
                 </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <input
+                  accept={avatarMimeTypes.join(",")}
+                  className="hidden"
+                  onChange={(event) => void selectAvatar(event)}
+                  ref={avatarInputRef}
+                  type="file"
+                />
+                <Button
+                  disabled={savingAvatar}
+                  onClick={() => avatarInputRef.current?.click()}
+                  size="sm"
+                  type="button"
+                  variant="brand-secondary"
+                >
+                  {savingAvatar ? (
+                    <Spinner data-icon="inline-start" />
+                  ) : (
+                    <ImageUp aria-hidden="true" data-icon="inline-start" />
+                  )}
+                  {t("avatarChange")}
+                </Button>
+                {profile.avatarUrl ? (
+                  <Button
+                    disabled={savingAvatar}
+                    onClick={() => void removeAvatar()}
+                    size="sm"
+                    type="button"
+                    variant="brand-secondary"
+                  >
+                    <Trash2 aria-hidden="true" data-icon="inline-start" />
+                    {t("avatarRemove")}
+                  </Button>
+                ) : null}
+                <p className="text-xs text-muted-foreground">
+                  {t("avatarHint")}
+                </p>
               </div>
 
               <Separator />

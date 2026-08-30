@@ -16,16 +16,20 @@ import { and, eq, isNull } from '@workspace/database/query';
 import argon2 from 'argon2';
 import { DatabaseService } from '../database/database.service';
 import { AppException } from '../platform/errors/app-exception';
+import { ProfileAvatarService } from './profile-avatar.service';
 
 @Injectable()
 export class PortalProfileService {
-  constructor(private readonly database: DatabaseService) {}
+  constructor(
+    private readonly database: DatabaseService,
+    private readonly avatars: ProfileAvatarService,
+  ) {}
 
   async getProfile(
     session: PlatformAdminAuthSession | PortalAuthSession,
   ): Promise<PortalProfile> {
     const user = await this.findUser(session.user.id);
-    return this.toProfile(user);
+    return this.toProfile(user, session.area);
   }
 
   async updateProfile(
@@ -76,7 +80,7 @@ export class PortalProfileService {
       },
     });
 
-    return this.toProfile(user);
+    return this.toProfile(user, session.area);
   }
 
   async changePassword(
@@ -163,6 +167,7 @@ export class PortalProfileService {
       emailVerifiedAt: users.emailVerifiedAt,
       locale: users.locale,
       timezone: users.timezone,
+      avatarPath: users.avatarPath,
       createdAt: users.createdAt,
       status: users.status,
     };
@@ -170,6 +175,7 @@ export class PortalProfileService {
 
   private toProfile(
     user: Awaited<ReturnType<PortalProfileService['findUser']>>,
+    area: 'admin' | 'portal',
   ): PortalProfile {
     return {
       id: user.id,
@@ -179,6 +185,7 @@ export class PortalProfileService {
       emailVerifiedAt: user.emailVerifiedAt?.toISOString() ?? null,
       locale: user.locale,
       timezone: user.timezone,
+      avatarUrl: this.avatars.urlFor(area, user.avatarPath),
       createdAt: user.createdAt.toISOString(),
     };
   }

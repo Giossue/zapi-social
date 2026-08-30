@@ -11,13 +11,7 @@ import {
   type DragOverEvent,
   type DragStartEvent,
 } from "@dnd-kit/react"
-import {
-  CircleAlert,
-  KanbanSquare,
-  Plus,
-  Search,
-  SlidersHorizontal,
-} from "lucide-react"
+import { CircleAlert, KanbanSquare, Plus, Search } from "lucide-react"
 
 import { ApiError, boardsApi } from "@workspace/api-client"
 import type {
@@ -27,6 +21,7 @@ import type {
   BoardTaskDetail,
 } from "@workspace/contracts"
 import { Button } from "@workspace/ui/components/button"
+import { DataTableFilter } from "@workspace/ui/components/data-table-controls"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import {
   InputGroup,
@@ -35,16 +30,9 @@ import {
 } from "@workspace/ui/components/input-group"
 import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@workspace/ui/components/select"
 import { toast } from "@workspace/ui/components/toast"
 
+import { DataTableToolbar } from "@/components/data-table-toolbar"
 import { useApiErrorMessage } from "@/lib/api-error-message"
 import { loginPath } from "@/features/identity/login-redirect"
 
@@ -337,46 +325,32 @@ export function BoardPage() {
               <Search />
             </InputGroupAddon>
           </InputGroup>
-          <Select onValueChange={setAssignee} value={assignee}>
-            <SelectTrigger
-              aria-label={t("assigneeFilter")}
-              className="w-full sm:w-44"
-            >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value={allAssignees}>
-                  {t("allAssignees")}
-                </SelectItem>
-                <SelectItem value="me">{t("assignedToMe")}</SelectItem>
-                {data?.members.map((member) => (
-                  <SelectItem key={member.id} value={member.id}>
-                    {member.name}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <Select onValueChange={setPriority} value={priority}>
-            <SelectTrigger
-              aria-label={t("priorityFilter")}
-              className="w-full sm:w-40"
-            >
-              <SlidersHorizontal data-icon="inline-start" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value={allPriorities}>
-                  {t("allPriorities")}
-                </SelectItem>
-                <SelectItem value="high">{t("priority.high")}</SelectItem>
-                <SelectItem value="medium">{t("priority.medium")}</SelectItem>
-                <SelectItem value="low">{t("priority.low")}</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+          <DataTableToolbar className="w-full px-0 sm:w-auto">
+            <DataTableFilter
+              ariaLabel={t("assigneeFilter")}
+              onValueChange={setAssignee}
+              options={[
+                { label: t("allAssignees"), value: allAssignees },
+                { label: t("assignedToMe"), value: "me" },
+                ...(data?.members.map((member) => ({
+                  label: member.name,
+                  value: member.id,
+                })) ?? []),
+              ]}
+              value={assignee}
+            />
+            <DataTableFilter
+              ariaLabel={t("priorityFilter")}
+              onValueChange={setPriority}
+              options={[
+                { label: t("allPriorities"), value: allPriorities },
+                { label: t("priority.high"), value: "high" },
+                { label: t("priority.medium"), value: "medium" },
+                { label: t("priority.low"), value: "low" },
+              ]}
+              value={priority}
+            />
+          </DataTableToolbar>
           {canManageColumns ? (
             <Button
               className="w-full sm:w-auto"

@@ -1,7 +1,11 @@
 "use client"
 
-import { ApiError, authApi } from "@workspace/api-client"
-import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
+import { ApiError, authApi, avatarAbsoluteUrl } from "@workspace/api-client"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@workspace/ui/components/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +28,7 @@ import { loginPath } from "@/features/identity/login-redirect"
 export type AccountProfile = {
   displayName: string
   email: string
+  avatarUrl?: string | null
 }
 
 type AccountMenuProps = {
@@ -71,6 +76,12 @@ export function AccountMenu({ profile }: AccountMenuProps) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Avatar className="size-8 rounded-lg">
+          {profile.avatarUrl ? (
+            <AvatarImage
+              alt={profile.displayName}
+              src={avatarAbsoluteUrl(profile.avatarUrl) ?? undefined}
+            />
+          ) : null}
           <AvatarFallback>
             {initials(profile.displayName) || "Z"}
           </AvatarFallback>
@@ -85,6 +96,12 @@ export function AccountMenu({ profile }: AccountMenuProps) {
         <DropdownMenuLabel className="p-0 font-normal">
           <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
             <Avatar className="size-9 rounded-lg">
+              {profile.avatarUrl ? (
+                <AvatarImage
+                  alt={profile.displayName}
+                  src={avatarAbsoluteUrl(profile.avatarUrl) ?? undefined}
+                />
+              ) : null}
               <AvatarFallback>
                 {initials(profile.displayName) || "Z"}
               </AvatarFallback>

@@ -18,6 +18,7 @@ import { CommerceService } from './commerce/commerce.service';
 import { DatabaseService } from './database/database.service';
 import { CaptchaService } from './captcha/captcha.service';
 import { IdentityService } from './identity/identity.service';
+import { ProfileAvatarService } from './identity/profile-avatar.service';
 import { AppException } from './platform/errors/app-exception';
 import { PlanAccessService } from './plans/plan-access.service';
 
@@ -269,6 +270,7 @@ describeDatabase('Commerce and affiliate data integrity', () => {
         new JwtService({ secret: 'identity-integrity-test-secret' }),
         captchaDisabled,
         new PlanAccessService({ db: connection.db } as DatabaseService),
+        { urlFor: () => null } as unknown as ProfileAvatarService,
       );
 
       const registrations = await Promise.all([
