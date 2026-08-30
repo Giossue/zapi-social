@@ -1,0 +1,43 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "01M19RV6MJ8R8H402MCSKD3T70",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "apps/web/app/admin/ai-agents/page.tsx",
+    "apps/web/components/ai-elements/canvas.tsx",
+    "apps/web/components/ai-elements/connection.tsx",
+    "apps/web/components/ai-elements/controls.tsx",
+    "apps/web/components/ai-elements/edge.tsx",
+    "apps/web/components/ai-elements/node.tsx",
+    "apps/web/components/ai-elements/panel.tsx",
+    "apps/web/components/ai-elements/toolbar.tsx",
+    "apps/web/features/ai-admin/components/ai-agent-icon.tsx",
+    "apps/web/features/ai-admin/components/ai-agents-canvas-page.tsx",
+    "apps/web/features/ai-admin/fixtures/ai-agents.ts",
+    "apps/web/features/platform-admin/admin-navigation.ts",
+    "apps/web/package.json",
+    "bun.lock",
+    "docs/planes/ai-studio-v2.md",
+    "packages/contracts/src/messages/en.json",
+    "packages/contracts/src/messages/es.d.json.ts",
+    "packages/contracts/src/messages/es.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 48,
+    "cache_creation_tokens": 149570,
+    "cache_read_tokens": 3817313,
+    "output_tokens": 22042,
+    "api_call_count": 26
+  }
+}
