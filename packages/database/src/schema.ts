@@ -2072,6 +2072,7 @@ export const aiModelRoutes = pgTable(
     id: uuid("id").defaultRandom().primaryKey(),
     kind: varchar("kind", { length: 32 })
       .$type<
+        | "agent"
         | "content"
         | "image"
         | "video"
@@ -2111,7 +2112,7 @@ export const aiModelRoutes = pgTable(
     uniqueIndex("ai_model_routes_kind_unique").on(table.kind),
     check(
       "ai_model_routes_kind_check",
-      sql`${table.kind} in ('content', 'image', 'video', 'repurpose', 'planner', 'review', 'timing', 'search', 'ai_publishing')`
+      sql`${table.kind} in ('agent', 'content', 'image', 'video', 'repurpose', 'planner', 'review', 'timing', 'search', 'ai_publishing')`
     ),
     check(
       "ai_model_routes_reasoning_check",
@@ -2232,6 +2233,7 @@ export const aiRequests = pgTable(
     title: varchar("title", { length: 160 }).notNull().default("Generación AI"),
     kind: varchar("kind", { length: 32 })
       .$type<
+        | "agent"
         | "content"
         | "image"
         | "video"
@@ -2300,7 +2302,7 @@ export const aiRequests = pgTable(
     index("ai_requests_job_id_index").on(table.jobId),
     check(
       "ai_requests_kind_check",
-      sql`${table.kind} in ('content', 'image', 'video', 'repurpose', 'planner', 'review', 'timing', 'search', 'ai_publishing')`
+      sql`${table.kind} in ('agent', 'content', 'image', 'video', 'repurpose', 'planner', 'review', 'timing', 'search', 'ai_publishing')`
     ),
     check(
       "ai_requests_status_check",

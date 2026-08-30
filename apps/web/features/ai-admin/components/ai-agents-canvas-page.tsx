@@ -1,28 +1,36 @@
 "use client"
 
-import { createContext, useCallback, useContext, useState } from "react"
-import type { Edge as FlowEdge, Node as FlowNode } from "@xyflow/react"
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react"
+import type {
+  Edge as FlowEdge,
+  Node as FlowNode,
+  OnNodeDrag,
+} from "@xyflow/react"
 import {
   applyEdgeChanges,
   applyNodeChanges,
   type EdgeChange,
   type NodeChange,
 } from "@xyflow/react"
-import {
-  ArrowRightFromLine,
-  ArrowRightToLine,
-  EllipsisVertical,
-  Play,
-  Plus,
-  Zap,
-} from "lucide-react"
+import { CircleAlert, EllipsisVertical, Save, Zap } from "lucide-react"
 import { useTranslations } from "next-intl"
 
+import { adminAiApi } from "@workspace/api-client"
+import type { AdminAiAgent, AdminAiModel } from "@workspace/contracts"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
+import { PageLoading } from "@/components/page-loading"
+import { RetryButton } from "@workspace/ui/components/retry-button"
 import {
   Select,
   SelectContent,
@@ -37,6 +45,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/components/sheet"
+import { Spinner } from "@workspace/ui/components/spinner"
+import { Switch } from "@workspace/ui/components/switch"
 import {
   Tabs,
   TabsContent,
@@ -44,6 +54,7 @@ import {
   TabsTrigger,
 } from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
+import { toast } from "@workspace/ui/components/toast"
 
 import { Canvas } from "@/components/ai-elements/canvas"
 import { Connection } from "@/components/ai-elements/connection"
@@ -60,23 +71,33 @@ import {
 import { Panel } from "@/components/ai-elements/panel"
 
 import { AiAgentIcon } from "./ai-agent-icon"
-import {
-  agentCanvasEdges,
-  agentCanvasNodes,
-  agentModelVariants,
-  type AgentCanvasNodeData,
-} from "../fixtures/ai-agents"
+
+const TRIGGER_NODE_ID = "trigger-chat"
+
+type AgentDraft = {
+  description: string
+  enabled: boolean
+  modelId: string | null
+  name: string
+  systemPrompt: string
+}
 
 const EditAgentContext = createContext<(id: string) => void>(() => {})
+
+function useAgentToolLabel() {
+  const t = useTranslations("aiAgents.tools")
+  return (key: string) => t(key as Parameters<typeof t>[0])
+}
 
 function AgentFlowNode({
   data,
   id,
 }: {
-  data: AgentCanvasNodeData
+  data: { agent: AdminAiAgent; modelLabel: string | null }
   id: string
 }) {
   const t = useTranslations("aiAgents.canvas")
+  const toolLabel = useAgentToolLabel()
   const onEdit = useContext(EditAgentContext)
 
   return (
@@ -84,12 +105,12 @@ function AgentFlowNode({
       <NodeHeader>
         <div className="flex items-center gap-2">
           <AiAgentIcon className="size-4 shrink-0" />
-          <NodeTitle>{data.name}</NodeTitle>
+          <NodeTitle>{data.agent.name}</NodeTitle>
         </div>
-        <NodeDescription>{data.description}</NodeDescription>
+        <NodeDescription>{data.agent.description}</NodeDescription>
         <NodeAction>
           <Button
-            aria-label={t("editAgent", { name: data.name })}
+            aria-label={t("editAgent", { name: data.agent.name })}
             onClick={() => onEdit(id)}
             size="icon-sm"
             variant="brand-secondary"
@@ -101,31 +122,40 @@ function AgentFlowNode({
       <NodeContent className="flex flex-col gap-2">
         <div className="flex items-center gap-2 text-sm">
           <span className="text-muted-foreground">{t("model")}</span>
-          <Badge variant="secondary">{data.model}</Badge>
+          {data.modelLabel ? (
+            <Badge variant="secondary">{data.modelLabel}</Badge>
+          ) : (
+            <Badge variant="warning">{t("modelMissing")}</Badge>
+          )}
         </div>
-        {data.tools?.length ? (
+        {data.agent.tools.length ? (
           <div className="flex flex-wrap gap-1">
-            {data.tools.map((tool) => (
+            {data.agent.tools.map((tool) => (
               <Badge key={tool} variant="outline">
-                {tool}
+                {toolLabel(tool)}
               </Badge>
             ))}
           </div>
+        ) : null}
+        {!data.agent.enabled ? (
+          <Badge variant="neutral">{t("disabled")}</Badge>
         ) : null}
       </NodeContent>
     </Node>
   )
 }
 
-function TriggerFlowNode({ data }: { data: AgentCanvasNodeData }) {
+function TriggerFlowNode() {
+  const t = useTranslations("aiAgents.canvas")
+
   return (
     <Node className="w-64" handles={{ source: true, target: false }}>
       <NodeHeader className="rounded-b-md border-b-0">
         <div className="flex items-center gap-2">
           <Zap className="size-4 shrink-0" />
-          <NodeTitle>{data.name}</NodeTitle>
+          <NodeTitle>{t("triggerName")}</NodeTitle>
         </div>
-        <NodeDescription>{data.description}</NodeDescription>
+        <NodeDescription>{t("triggerDescription")}</NodeDescription>
       </NodeHeader>
     </Node>
   )
@@ -141,34 +171,79 @@ const edgeTypes = {
   temporary: Edge.Temporary,
 }
 
-const initialNodes: FlowNode[] = agentCanvasNodes.map((node) => ({
-  data: node.data,
-  id: node.id,
-  position: node.position,
-  type: node.type,
-}))
-
-const initialEdges: FlowEdge[] = agentCanvasEdges.map((edge) => ({
-  id: edge.id,
-  source: edge.source,
-  target: edge.target,
-  type: edge.type,
-}))
-
-function EditorColumnLabel({ label }: { label: string }) {
-  return (
-    <div className="border-b border-border px-4 py-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
-      {label}
-    </div>
-  )
+function modelLabelFor(models: AdminAiModel[], modelId: string | null) {
+  const model = models.find((candidate) => candidate.id === modelId)
+  return model ? model.label : null
 }
 
 export function AiAgentsCanvasPage() {
   const t = useTranslations("aiAgents.canvas")
   const te = useTranslations("aiAgents.editor")
-  const [nodes, setNodes] = useState(initialNodes)
-  const [edges, setEdges] = useState(initialEdges)
+  const [nodes, setNodes] = useState<FlowNode[]>([])
+  const [edges, setEdges] = useState<FlowEdge[]>([])
+  const [models, setModels] = useState<AdminAiModel[]>([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [draft, setDraft] = useState<AgentDraft | null>(null)
+  const [saving, setSaving] = useState(false)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    setLoadError(false)
+    try {
+      const data = await adminAiApi.agents()
+      const orchestrator = data.agents.find(
+        (agent) => agent.kind === "orchestrator"
+      )
+      setModels(data.models)
+      setNodes([
+        {
+          data: {},
+          id: TRIGGER_NODE_ID,
+          position: { x: 0, y: 220 },
+          type: "trigger",
+        },
+        ...data.agents.map((agent) => ({
+          data: {
+            agent,
+            modelLabel: modelLabelFor(data.models, agent.modelId),
+          },
+          id: agent.id,
+          position: agent.canvasPosition,
+          type: "agent" as const,
+        })),
+      ])
+      setEdges([
+        ...(orchestrator
+          ? [
+              {
+                id: "edge-trigger-orchestrator",
+                source: TRIGGER_NODE_ID,
+                target: orchestrator.id,
+                type: "animated" as const,
+              },
+            ]
+          : []),
+        ...data.edges.map((edge) => ({
+          id: edge.id,
+          source: edge.sourceAgentId,
+          target: edge.targetAgentId,
+          type: "animated" as const,
+        })),
+      ])
+    } catch (error) {
+      console.error("AI agents request failed", error)
+      setLoadError(true)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    const timer = setTimeout(() => void load(), 0)
+    return () => clearTimeout(timer)
+  }, [load])
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) =>
@@ -181,33 +256,102 @@ export function AiAgentsCanvasPage() {
     []
   )
 
-  const updateAgentData = useCallback(
-    (id: string, patch: Partial<AgentCanvasNodeData>) => {
-      setNodes((current) =>
-        current.map((node) =>
-          node.id === id
-            ? { ...node, data: { ...node.data, ...patch } }
-            : node
-        )
-      )
+  const persistPosition = useCallback<OnNodeDrag>(
+    (_event, node) => {
+      if (node.id === TRIGGER_NODE_ID) return
+      void adminAiApi
+        .updateAgent(node.id, {
+          canvasPosition: {
+            x: Math.round(node.position.x),
+            y: Math.round(node.position.y),
+          },
+        })
+        .catch(() => toast.error(te("positionFailed")))
     },
-    []
+    [te]
+  )
+
+  const openEditor = useCallback(
+    (id: string) => {
+      const node = nodes.find((candidate) => candidate.id === id)
+      const agent = (node?.data as { agent?: AdminAiAgent } | undefined)?.agent
+      if (!agent) return
+      setDraft({
+        description: agent.description,
+        enabled: agent.enabled,
+        modelId: agent.modelId,
+        name: agent.name,
+        systemPrompt: agent.systemPrompt,
+      })
+      setEditingId(id)
+    },
+    [nodes]
   )
 
   const editingNode = nodes.find((node) => node.id === editingId)
-  const editingData = editingNode?.data as AgentCanvasNodeData | undefined
-  const inputNode = editingNode
-    ? nodes.find((node) =>
-        edges.some(
-          (edge) =>
-            edge.target === editingNode.id && edge.source === node.id
+  const editingAgent = (
+    editingNode?.data as { agent?: AdminAiAgent } | undefined
+  )?.agent
+
+  const saveDraft = useCallback(async () => {
+    if (!editingAgent || !draft) return
+    setSaving(true)
+    try {
+      const updated = await adminAiApi.updateAgent(editingAgent.id, {
+        description: draft.description,
+        enabled: draft.enabled,
+        modelId: draft.modelId,
+        name: draft.name,
+        systemPrompt: draft.systemPrompt,
+      })
+      setNodes((current) =>
+        current.map((node) =>
+          node.id === updated.id
+            ? {
+                ...node,
+                data: {
+                  agent: updated,
+                  modelLabel: modelLabelFor(models, updated.modelId),
+                },
+              }
+            : node
         )
       )
-    : undefined
-  const inputData = inputNode?.data as AgentCanvasNodeData | undefined
+      toast.success(te("saved"))
+      setEditingId(null)
+    } catch {
+      toast.error(te("saveFailed"))
+    } finally {
+      setSaving(false)
+    }
+  }, [draft, editingAgent, models, te])
+
+  const selectableModels = useMemo(
+    () => models.filter((model) => model.enabled && !model.deprecated),
+    [models]
+  )
+
+  if (loading) {
+    return <PageLoading className="h-[60svh]" />
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex h-[60svh] items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <EmptyState
+            description={t("loadFailedDescription")}
+            icon={CircleAlert}
+            title={t("loadFailedTitle")}
+          />
+          <RetryButton onClick={() => void load()}>{t("retry")}</RetryButton>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <EditAgentContext.Provider value={setEditingId}>
+    <EditAgentContext.Provider value={openEditor}>
       <div className="h-[calc(100svh-var(--dashboard-header-height)-3rem)] min-h-96 overflow-hidden rounded-lg border border-border">
         <Canvas
           connectionLineComponent={Connection}
@@ -216,12 +360,13 @@ export function AiAgentsCanvasPage() {
           nodes={nodes}
           nodeTypes={nodeTypes}
           onEdgesChange={onEdgesChange}
+          onNodeDragStop={persistPosition}
           onNodesChange={onNodesChange}
         >
           <Controls />
           <Panel position="top-left">
             <p className="px-2 py-1 text-xs text-muted-foreground">
-              {t("preview")}
+              {t("hint")}
             </p>
           </Panel>
         </Canvas>
@@ -231,7 +376,7 @@ export function AiAgentsCanvasPage() {
         onOpenChange={(open) => {
           if (!open) setEditingId(null)
         }}
-        open={Boolean(editingNode)}
+        open={Boolean(editingAgent)}
       >
         <SheetContent
           className="w-full gap-0 p-0 sm:max-w-none data-[side=right]:sm:w-full data-[side=right]:sm:border-l-0"
@@ -240,206 +385,162 @@ export function AiAgentsCanvasPage() {
           <SheetHeader className="border-b">
             <SheetTitle className="flex items-center gap-2">
               <AiAgentIcon className="size-5 shrink-0" />
-              {editingData?.name}
+              {editingAgent?.name}
             </SheetTitle>
             <SheetDescription>{te("description")}</SheetDescription>
           </SheetHeader>
-          <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto lg:grid-cols-[1fr_1.5fr_1fr] lg:overflow-hidden">
-            <div className="flex min-h-56 flex-col border-b border-border bg-sidebar lg:border-r lg:border-b-0">
-              <EditorColumnLabel label={te("input")} />
-              {inputData ? (
-                <div className="px-4 pt-3">
-                  <Badge variant="outline">
-                    <Zap aria-hidden="true" /> {inputData.name}
-                  </Badge>
-                </div>
-              ) : null}
-              <div className="flex flex-1 items-center justify-center p-4">
-                <EmptyState
-                  description={te("noInputDescription")}
-                  icon={ArrowRightToLine}
-                  title={te("noInputTitle")}
-                />
-              </div>
-            </div>
-
-            <div className="flex min-h-0 flex-col border-b border-border lg:border-r lg:border-b-0">
-              <Tabs
-                className="flex min-h-0 flex-1 flex-col"
-                defaultValue="parameters"
-              >
-                <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-2">
-                  <TabsList className="flex h-auto flex-wrap">
-                    <TabsTrigger value="parameters">
-                      {te("parameters")}
-                    </TabsTrigger>
-                    <TabsTrigger value="settings">{te("settings")}</TabsTrigger>
-                  </TabsList>
-                  <Button disabled size="sm">
-                    <Play data-icon="inline-start" />
-                    {te("executeStep")}
-                  </Button>
-                </div>
-                <div className="min-h-0 flex-1 overflow-y-auto p-4">
-                  <TabsContent
-                    className="flex flex-col gap-4"
-                    value="parameters"
-                  >
-                    <Field>
-                      <FieldLabel htmlFor="agent-name">
-                        {te("name")}{" "}
-                        <span aria-hidden="true" className="text-destructive">
-                          *
-                        </span>
-                      </FieldLabel>
-                      <Input
-                        aria-required="true"
-                        id="agent-name"
-                        onChange={(event) => {
-                          if (editingNode)
-                            updateAgentData(editingNode.id, {
-                              name: event.target.value,
-                            })
-                        }}
-                        value={editingData?.name ?? ""}
-                      />
-                    </Field>
-                    <Field>
-                      <FieldLabel htmlFor="agent-system-prompt">
-                        {te("systemPrompt")}{" "}
-                        <span aria-hidden="true" className="text-destructive">
-                          *
-                        </span>
-                      </FieldLabel>
-                      <Textarea
-                        aria-required="true"
-                        className="min-h-40"
-                        id="agent-system-prompt"
-                        onChange={(event) => {
-                          if (editingNode)
-                            updateAgentData(editingNode.id, {
-                              systemPrompt: event.target.value,
-                            })
-                        }}
-                        value={editingData?.systemPrompt ?? ""}
-                      />
-                    </Field>
-                    <Field>
-                      <FieldLabel htmlFor="agent-model">
-                        {te("model")}
-                      </FieldLabel>
-                      <Select
-                        onValueChange={(next) => {
-                          if (editingNode)
-                            updateAgentData(editingNode.id, { model: next })
-                        }}
-                        value={editingData?.model ?? ""}
-                      >
-                        <SelectTrigger className="w-full" id="agent-model">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {agentModelVariants.map((variant) => (
-                            <SelectItem key={variant} value={variant}>
-                              {variant}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </Field>
-                    <Field>
-                      <FieldLabel>{te("tools")}</FieldLabel>
-                      <div className="flex flex-wrap items-center gap-1">
-                        {editingData?.tools?.map((tool) => (
-                          <Badge key={tool} variant="outline">
-                            {tool}
-                          </Badge>
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4">
+            <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
+              <Tabs defaultValue="parameters">
+                <TabsList className="flex h-auto flex-wrap">
+                  <TabsTrigger value="parameters">
+                    {te("parameters")}
+                  </TabsTrigger>
+                  <TabsTrigger value="settings">{te("settings")}</TabsTrigger>
+                </TabsList>
+                <TabsContent
+                  className="flex flex-col gap-4 pt-3"
+                  value="parameters"
+                >
+                  <Field>
+                    <FieldLabel htmlFor="agent-name">
+                      {te("name")}{" "}
+                      <span aria-hidden="true" className="text-destructive">
+                        *
+                      </span>
+                    </FieldLabel>
+                    <Input
+                      aria-required="true"
+                      id="agent-name"
+                      onChange={(event) =>
+                        setDraft((current) =>
+                          current
+                            ? { ...current, name: event.target.value }
+                            : current
+                        )
+                      }
+                      value={draft?.name ?? ""}
+                    />
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="agent-system-prompt">
+                      {te("systemPrompt")}{" "}
+                      <span aria-hidden="true" className="text-destructive">
+                        *
+                      </span>
+                    </FieldLabel>
+                    <Textarea
+                      aria-required="true"
+                      className="min-h-40"
+                      id="agent-system-prompt"
+                      onChange={(event) =>
+                        setDraft((current) =>
+                          current
+                            ? { ...current, systemPrompt: event.target.value }
+                            : current
+                        )
+                      }
+                      value={draft?.systemPrompt ?? ""}
+                    />
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="agent-model">{te("model")}</FieldLabel>
+                    <Select
+                      onValueChange={(next) =>
+                        setDraft((current) =>
+                          current ? { ...current, modelId: next } : current
+                        )
+                      }
+                      value={draft?.modelId ?? ""}
+                    >
+                      <SelectTrigger className="w-full" id="agent-model">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {selectableModels.map((model) => (
+                          <SelectItem key={model.id} value={model.id}>
+                            {model.label}
+                          </SelectItem>
                         ))}
-                        <Button disabled size="sm" variant="brand-secondary">
-                          {te("addTool")}
-                        </Button>
-                      </div>
-                    </Field>
-                  </TabsContent>
-                  <TabsContent className="flex flex-col gap-4" value="settings">
-                    <Field>
-                      <FieldLabel htmlFor="agent-description">
-                        {te("descriptionLabel")}
-                      </FieldLabel>
-                      <Textarea
-                        className="min-h-24"
-                        id="agent-description"
-                        onChange={(event) => {
-                          if (editingNode)
-                            updateAgentData(editingNode.id, {
-                              description: event.target.value,
-                            })
-                        }}
-                        value={editingData?.description ?? ""}
-                      />
-                    </Field>
-                  </TabsContent>
-                </div>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field>
+                    <FieldLabel>{te("tools")}</FieldLabel>
+                    <AgentToolBadges tools={editingAgent?.tools ?? []} />
+                  </Field>
+                </TabsContent>
+                <TabsContent
+                  className="flex flex-col gap-4 pt-3"
+                  value="settings"
+                >
+                  <Field>
+                    <FieldLabel htmlFor="agent-description">
+                      {te("descriptionLabel")}
+                    </FieldLabel>
+                    <Textarea
+                      className="min-h-24"
+                      id="agent-description"
+                      onChange={(event) =>
+                        setDraft((current) =>
+                          current
+                            ? { ...current, description: event.target.value }
+                            : current
+                        )
+                      }
+                      value={draft?.description ?? ""}
+                    />
+                  </Field>
+                  <Field orientation="horizontal">
+                    <Switch
+                      checked={draft?.enabled ?? false}
+                      id="agent-enabled"
+                      onCheckedChange={(checked) =>
+                        setDraft((current) =>
+                          current ? { ...current, enabled: checked } : current
+                        )
+                      }
+                    />
+                    <FieldLabel htmlFor="agent-enabled">
+                      {te("enabled")}
+                    </FieldLabel>
+                  </Field>
+                </TabsContent>
               </Tabs>
-              <div className="grid grid-cols-3 gap-2 border-t border-border p-4">
-                <div className="flex flex-col items-center gap-2 text-center">
-                  <span className="text-xs text-muted-foreground">
-                    {te("chatModel")}{" "}
-                    <span aria-hidden="true" className="text-destructive">
-                      *
-                    </span>
-                  </span>
-                  <Button
-                    aria-label={te("chatModel")}
-                    disabled
-                    size="icon-sm"
-                    variant="brand-secondary"
-                  >
-                    <Plus />
-                  </Button>
-                </div>
-                <div className="flex flex-col items-center gap-2 text-center">
-                  <span className="text-xs text-muted-foreground">
-                    {te("memory")}
-                  </span>
-                  <Button
-                    aria-label={te("memory")}
-                    disabled
-                    size="icon-sm"
-                    variant="brand-secondary"
-                  >
-                    <Plus />
-                  </Button>
-                </div>
-                <div className="flex flex-col items-center gap-2 text-center">
-                  <span className="text-xs text-muted-foreground">
-                    {te("tools")}
-                  </span>
-                  <Button
-                    aria-label={te("tools")}
-                    disabled
-                    size="icon-sm"
-                    variant="brand-secondary"
-                  >
-                    <Plus />
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex min-h-56 flex-col bg-sidebar">
-              <EditorColumnLabel label={te("output")} />
-              <div className="flex flex-1 items-center justify-center p-4">
-                <EmptyState
-                  description={te("noOutputDescription")}
-                  icon={ArrowRightFromLine}
-                  title={te("noOutputTitle")}
-                />
+              <div className="flex justify-end border-t border-border pt-4">
+                <Button
+                  disabled={
+                    saving ||
+                    !draft?.name.trim() ||
+                    !draft?.systemPrompt.trim()
+                  }
+                  onClick={() => void saveDraft()}
+                >
+                  {saving ? (
+                    <Spinner data-icon="inline-start" />
+                  ) : (
+                    <Save data-icon="inline-start" />
+                  )}
+                  {te("save")}
+                </Button>
               </div>
             </div>
           </div>
         </SheetContent>
       </Sheet>
     </EditAgentContext.Provider>
+  )
+}
+
+function AgentToolBadges({ tools }: { tools: string[] }) {
+  const toolLabel = useAgentToolLabel()
+  return (
+    <div className="flex flex-wrap items-center gap-1">
+      {tools.map((tool) => (
+        <Badge key={tool} variant="outline">
+          {toolLabel(tool)}
+        </Badge>
+      ))}
+    </div>
   )
 }

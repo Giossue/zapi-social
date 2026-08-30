@@ -158,7 +158,10 @@ import type {
   WorkspacePermission,
   CreatePortalAiPublishingScheduleInput,
   CreatePortalAiRequestInput,
+  AdminAiAgent,
+  AdminAiAgents,
   AdminAiConfiguration,
+  UpdateAdminAiAgentInput,
   AdminAiModel,
   AdminAiProviderKey,
   AdminAiReport,
@@ -1026,6 +1029,15 @@ export const adminAiApi = {
   configuration: () =>
     request<AdminAiConfiguration>("/v1/admin/ai/configuration", {
       method: "GET",
+    }),
+  agents: () =>
+    request<AdminAiAgents>("/v1/admin/ai/agents", {
+      method: "GET",
+    }),
+  updateAgent: (id: string, input: UpdateAdminAiAgentInput) =>
+    request<AdminAiAgent>(`/v1/admin/ai/agents/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
     }),
   testProvider: (
     providerKey: AdminAiProviderKey,

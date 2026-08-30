@@ -119,7 +119,7 @@ const statusVariants: Record<
   cancelled: "neutral",
 }
 
-const suggestionTools = ["content", "image", "video", "planner"] as const
+const suggestionTools = ["content", "image", "video"] as const
 const REFERENCE_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"] as const
 const MAX_REFERENCE_SIZE_BYTES = 30 * 1024 * 1024
 
@@ -564,7 +564,7 @@ export function AiChatPage() {
   const requestedTool = params.get("tool")
 
   const [tool, setTool] = useState<ChatTool>(
-    isChatTool(requestedTool) ? requestedTool : "content"
+    isChatTool(requestedTool) ? requestedTool : "agent"
   )
   const [options, setOptions] = useState<
     Record<ChatTool, Record<string, unknown>>

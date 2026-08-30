@@ -1,6 +1,9 @@
 import type { AiRequestKind } from "@workspace/contracts"
 
-export type ChatTool = Exclude<AiRequestKind, "ai_publishing">
+export type ChatTool = Exclude<
+  AiRequestKind,
+  "ai_publishing" | "repurpose" | "review" | "planner"
+>
 
 type ToolOption = { labelKey: string; value: string }
 
@@ -56,6 +59,14 @@ const tones = [
 ] as const
 
 export const chatTools: Record<ChatTool, ToolDefinition> = {
+  agent: {
+    descriptionKey: "agent.description",
+    fields: [],
+    labelKey: "agent.label",
+    placeholderKey: "agent.placeholder",
+    promptLabelKey: "agent.promptLabel",
+    values: {},
+  },
   content: {
     descriptionKey: "content.description",
     fields: [
@@ -167,91 +178,6 @@ export const chatTools: Record<ChatTool, ToolDefinition> = {
       aspectRatio: "9:16",
       durationSeconds: 8,
       objective: "engagement",
-    },
-  },
-  repurpose: {
-    descriptionKey: "repurpose.description",
-    fields: [
-      { kind: "text", labelKey: "field.objective", name: "objective" },
-      { kind: "select", labelKey: "field.tone", name: "tone", options: tones },
-      {
-        kind: "select",
-        labelKey: "field.language",
-        name: "language",
-        options: languages,
-      },
-      {
-        kind: "toggles",
-        labelKey: "field.targetPlatforms",
-        name: "platforms",
-        options: platforms,
-      },
-    ],
-    labelKey: "repurpose.label",
-    placeholderKey: "repurpose.placeholder",
-    promptLabelKey: "repurpose.promptLabel",
-    values: {
-      language: "es",
-      objective: "adaptar",
-      platforms: ["instagram"],
-      tone: "cercano",
-    },
-  },
-  review: {
-    descriptionKey: "review.description",
-    fields: [
-      { kind: "text", labelKey: "field.objective", name: "objective" },
-      {
-        kind: "select",
-        labelKey: "field.language",
-        name: "language",
-        options: languages,
-      },
-      {
-        kind: "toggles",
-        labelKey: "field.platforms",
-        name: "platforms",
-        options: platforms,
-      },
-    ],
-    labelKey: "review.label",
-    placeholderKey: "review.placeholder",
-    promptLabelKey: "review.promptLabel",
-    values: { language: "es", objective: "calidad", platforms: [] },
-  },
-  planner: {
-    descriptionKey: "planner.description",
-    fields: [
-      {
-        kind: "number",
-        labelKey: "field.durationDays",
-        max: 31,
-        min: 3,
-        name: "durationDays",
-      },
-      {
-        kind: "number",
-        labelKey: "field.frequencyPerWeek",
-        max: 14,
-        min: 1,
-        name: "frequencyPerWeek",
-      },
-      {
-        kind: "toggles",
-        labelKey: "field.platforms",
-        name: "platforms",
-        options: platforms,
-      },
-      { kind: "date", labelKey: "field.startDate", name: "startDate" },
-    ],
-    labelKey: "planner.label",
-    placeholderKey: "planner.placeholder",
-    promptLabelKey: "planner.promptLabel",
-    values: {
-      durationDays: 7,
-      frequencyPerWeek: 4,
-      platforms: ["instagram"],
-      startDate: "",
     },
   },
   timing: {

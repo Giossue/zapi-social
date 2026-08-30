@@ -2,6 +2,8 @@ import { createHash } from 'node:crypto';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
+  aiAgentEdges,
+  aiAgents,
   aiModelRoutes,
   aiModels,
   aiRequests,
@@ -29,9 +31,12 @@ import {
   aiRequestKindSchema,
   createAdminAiModelSchema,
   testAdminAiProviderSchema,
+  updateAdminAiAgentSchema,
   updateAdminAiModelSchema,
   updateAdminAiProviderSchema,
   updateAdminAiRouteSchema,
+  type AdminAiAgent,
+  type AdminAiAgents,
   type AdminAiConfiguration,
   type AdminAiModel,
   type AdminAiReport,
@@ -87,6 +92,7 @@ const capabilityByKind: Record<
   AiRequestKind,
   'text' | 'image' | 'video' | null
 > = {
+  agent: null,
   content: 'text',
   image: 'image',
   video: 'video',
@@ -286,6 +292,90 @@ export class AdminAiService {
       });
     });
     return this.configuration();
+  }
+
+  async agents(): Promise<AdminAiAgents> {
+    const [agents, edges, models] = await Promise.all([
+      this.database.db.select().from(aiAgents).orderBy(aiAgents.createdAt),
+      this.database.db.select().from(aiAgentEdges),
+      this.database.db
+        .select()
+        .from(aiModels)
+        .where(eq(aiModels.capability, 'text')),
+    ]);
+    return {
+      agents: agents.map((agent) => this.serializeAgent(agent)),
+      edges: edges.map((edge) => ({
+        id: edge.id,
+        sourceAgentId: edge.sourceAgentId,
+        targetAgentId: edge.targetAgentId,
+      })),
+      models: models.map((model) => this.serializeModel(model)),
+    };
+  }
+
+  async updateAgent(
+    id: string,
+    input: unknown,
+    session: AuthSession,
+  ): Promise<AdminAiAgent> {
+    const agentId = z.uuid().safeParse(id);
+    const parsed = updateAdminAiAgentSchema.safeParse(input);
+    if (!agentId.success || !parsed.success) throw this.invalid();
+    if (parsed.data.modelId) {
+      const [model] = await this.database.db
+        .select()
+        .from(aiModels)
+        .where(eq(aiModels.id, parsed.data.modelId))
+        .limit(1);
+      if (
+        !model ||
+        model.capability !== 'text' ||
+        !model.enabled ||
+        model.deprecated
+      ) {
+        throw this.invalid();
+      }
+    }
+    try {
+      const [updated] = await this.database.db
+        .update(aiAgents)
+        .set({
+          ...parsed.data,
+          updatedByUserId: session.user.id,
+          updatedAt: new Date(),
+        })
+        .where(eq(aiAgents.id, agentId.data))
+        .returning();
+      if (!updated) {
+        throw new AppException('AI_AGENT_NOT_FOUND', HttpStatus.NOT_FOUND);
+      }
+      await this.database.db.insert(apiAuditLogs).values({
+        actorUserId: session.user.id,
+        event: 'admin.ai_agent_updated',
+        subjectType: 'ai_agent',
+        subjectId: updated.id,
+        metadata: { changedFields: Object.keys(parsed.data) },
+      });
+      return this.serializeAgent(updated);
+    } catch (error) {
+      if (this.isUniqueViolation(error)) throw this.invalid();
+      throw error;
+    }
+  }
+
+  private serializeAgent(agent: typeof aiAgents.$inferSelect): AdminAiAgent {
+    return {
+      id: agent.id,
+      name: agent.name,
+      description: agent.description,
+      systemPrompt: agent.systemPrompt,
+      kind: agent.kind,
+      modelId: agent.modelId,
+      tools: agent.tools,
+      enabled: agent.enabled,
+      canvasPosition: agent.canvasPosition,
+    };
   }
 
   async createModel(input: unknown, session: AuthSession) {

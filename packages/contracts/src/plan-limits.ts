@@ -22,6 +22,7 @@ const limitValue = z.number().int().min(-1).max(1_000_000)
 const actionCostValue = z.number().int().min(0).max(10_000)
 
 export const defaultAiActionCosts = {
+  agent: 3,
   content: 2,
   image: 4,
   video: 12,
@@ -35,6 +36,7 @@ export const defaultAiActionCosts = {
 
 export const aiActionCostsSchema = z
   .object({
+    agent: actionCostValue.default(3),
     content: actionCostValue,
     image: actionCostValue,
     video: actionCostValue,

@@ -938,9 +938,44 @@ de aplicar; conteos verificados en ambas bases (4 agentes, 3 aristas, 7 modelos
 nuevos); typecheck, build y lint del monorepo correctos; suites de API (103
 pruebas) y Worker (39) en verde; auditorías i18n sin hallazgos.
 
-Pendiente: aprobación visual del canvas y del editor; CRUD Nest de agentes y
-aristas con contratos Zod y canvas conectado a datos reales; fase 3 con bucle
-de function calling multi-proveedor en Worker y selector de agentes en Portal.
+Fase 2 y fase 3 completadas — 30 de agosto de 2026.
+
+CRUD de agentes: contratos `adminAiAgentSchema`/`adminAiAgentEdgeSchema` y
+`updateAdminAiAgentSchema` en `packages/contracts`; endpoints
+`GET /v1/admin/ai/agents` y `PATCH /v1/admin/ai/agents/:id` con
+`requirePlatformAdmin`, validación de modelo de texto habilitado y auditoría
+`admin.ai_agent_updated`. El canvas de Admin dejó los fixtures: carga agentes,
+aristas y modelos reales, arrastra nodos persistiendo la posición, y el editor
+guarda nombre, system prompt, modelo, descripción y estado activo por PATCH,
+con estados de carga, error y toasts. El nodo disparador del chat sigue siendo
+sintético.
+
+Retiro de herramientas: `repurpose`, `review` y `planner` salieron del selector
+del Portal y la API rechaza requests nuevos de esos kinds; el historial se
+conserva y los kinds persisten en contratos y schema.
+
+Orquestación (fase 3): kind nuevo `agent` en contratos (input vacío, resultado
+`{summary, trace[]}`), costo por defecto de 3 créditos, migración
+`0053_busy_morbius` (constraints de kind ampliadas y ruta `agent` sembrada)
+aplicada en local y remota con historial idéntico. La herramienta «Asistente»
+es ahora la opción por defecto del chat del Portal. El Worker ejecuta el bucle
+de function calling: carga el orquestador habilitado, expone las aristas
+orquestador→especialista como tools (slug del nombre, parámetro `order`),
+adapta el formato por familia de proveedor (chat/completions OpenAI-compatible
+para OpenAI/DeepSeek/Qwen y Messages API con `tool_use`/`tool_result` para
+Anthropic), ejecuta cada especialista con su propio system prompt, modelo y
+proveedor, acumula tokens y costo por modelo, y devuelve resumen más traza
+(máximo 6 iteraciones). Divergencia registrada: los especialistas aún no
+ejecutan sus herramientas internas (`save_caption`, `generate_image`, …);
+responden con texto y sus tools son descriptivas hasta la siguiente fase.
+
+Validación del cierre: typecheck, build y lint del monorepo en verde; suites de
+API (103) y Worker (39) en verde; auditorías de paridad i18n (4711 claves),
+texto hardcoded y UI de Portal/Admin sin hallazgos; migración 0053 con dry-run
+transaccional en remota antes de aplicar y conteos verificados en ambas bases.
+La aprobación visual del canvas, el editor y la herramienta Asistente
+corresponde al usuario; el bucle real con proveedores exige credenciales
+`ready` en Admin.
 
 Validación: build y typecheck del monorepo correctos; auditorías de paridad
 i18n, texto hardcoded y UI de Portal/Admin sin hallazgos.

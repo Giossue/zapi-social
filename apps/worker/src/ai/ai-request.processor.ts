@@ -11,6 +11,8 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
+  aiAgentEdges,
+  aiAgents,
   aiModelRoutes,
   aiModels,
   aiPublishingSchedules,
@@ -55,6 +57,7 @@ import {
 type AiRequestRow = typeof aiRequests.$inferSelect;
 type AiModelRow = typeof aiModels.$inferSelect;
 type ProviderIntegrationRow = typeof providerIntegrations.$inferSelect;
+type AiAgentRow = typeof aiAgents.$inferSelect;
 
 type TextProviderKey = 'openai' | 'deepseek' | 'qwen' | 'anthropic';
 
@@ -75,6 +78,37 @@ const chatCompletionsUrls: Record<'deepseek' | 'qwen', string> = {
 
 const anthropicMessagesUrl = 'https://api.anthropic.com/v1/messages';
 const anthropicVersion = '2023-06-01';
+
+type ResolvedAgent = {
+  agent: AiAgentRow;
+  model: AiModelRow;
+  provider: TextProviderKey;
+  apiKey: string;
+};
+
+function openAiCompatibleChatUrl(provider: TextProviderKey) {
+  return provider === 'deepseek' || provider === 'qwen'
+    ? chatCompletionsUrls[provider]
+    : 'https://api.openai.com/v1/chat/completions';
+}
+
+function agentSlug(name: string, taken: Map<string, unknown>) {
+  const base =
+    name
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 60) || 'agente';
+  let slug = base;
+  let suffix = 2;
+  while (taken.has(slug)) {
+    slug = `${base}_${suffix}`;
+    suffix += 1;
+  }
+  return slug;
+}
 
 type Usage = {
   inputTokens: number;
@@ -283,6 +317,9 @@ export class AiRequestProcessor extends WorkerHost {
         'internal-search',
       );
     }
+    if (request.kind === 'agent') {
+      return this.runAgentOrchestration(request);
+    }
     if (request.kind === 'image') return this.generateImage(request, execution);
     if (request.kind === 'video') return this.generateVideo(request, execution);
     const settings = await this.settings(request.workspaceId);
@@ -322,7 +359,11 @@ export class AiRequestProcessor extends WorkerHost {
   }
 
   private async resolveExecution(request: AiRequestRow): Promise<Execution> {
-    if (request.kind === 'timing' || request.kind === 'search') {
+    if (
+      request.kind === 'timing' ||
+      request.kind === 'search' ||
+      request.kind === 'agent'
+    ) {
       return {
         provider: 'internal',
         primaryModel: null,
@@ -479,6 +520,374 @@ export class AiRequestProcessor extends WorkerHost {
     }
     if (lastError instanceof Error) throw lastError;
     throw new AiProcessingError('AI_PROVIDER_REQUEST_FAILED', false);
+  }
+
+  private async runAgentOrchestration(
+    request: AiRequestRow,
+  ): Promise<GenerationOutcome> {
+    const [orchestratorRow] = await this.database.db
+      .select()
+      .from(aiAgents)
+      .where(and(eq(aiAgents.kind, 'orchestrator'), eq(aiAgents.enabled, true)))
+      .limit(1);
+    if (!orchestratorRow) {
+      throw new AiProcessingError('AI_PROVIDER_NOT_CONFIGURED', true);
+    }
+    const orchestrator = await this.resolveAgent(orchestratorRow);
+    const edges = await this.database.db
+      .select()
+      .from(aiAgentEdges)
+      .where(eq(aiAgentEdges.sourceAgentId, orchestratorRow.id));
+    const targetIds = edges.map((edge) => edge.targetAgentId);
+    const specialistRows = targetIds.length
+      ? await this.database.db
+          .select()
+          .from(aiAgents)
+          .where(
+            and(inArray(aiAgents.id, targetIds), eq(aiAgents.enabled, true)),
+          )
+      : [];
+    const specialists = new Map<string, ResolvedAgent>();
+    for (const row of specialistRows) {
+      try {
+        specialists.set(agentSlug(row.name, specialists), {
+          ...(await this.resolveAgent(row)),
+        });
+      } catch {
+        continue;
+      }
+    }
+    const settings = await this.settings(request.workspaceId);
+    const brand = buildSystemPrompt('agent', settings);
+    const usage: Usage = {
+      inputTokens: 0,
+      outputTokens: 0,
+      estimatedCostMicrousd: 0,
+    };
+    const trace: Array<{ agent: string; order: string; output: string }> = [];
+    const system = [
+      orchestrator.agent.systemPrompt,
+      brand,
+      specialists.size
+        ? 'Cada herramienta disponible es un agente especialista: delega llamándola con una orden clara y completa. Al terminar, responde al usuario con un resumen claro en texto plano.'
+        : 'Responde al usuario con un resumen claro en texto plano.',
+    ]
+      .filter(Boolean)
+      .join('\n\n');
+    const userInput = `${request.prompt}\n\nContexto estructurado:\n${JSON.stringify(request.input)}`;
+    const runSpecialist = async (slug: string, order: string) => {
+      const resolved = specialists.get(slug);
+      if (!resolved) return 'Agente no disponible.';
+      const output = await this.callAgentModel(
+        resolved,
+        usage,
+        [resolved.agent.systemPrompt, brand].filter(Boolean).join('\n\n'),
+        order,
+      );
+      trace.push({
+        agent: resolved.agent.name,
+        order: order.slice(0, 4000),
+        output: output.slice(0, 20000),
+      });
+      return output;
+    };
+    const summary =
+      orchestrator.provider === 'anthropic'
+        ? await this.orchestrateAnthropic(
+            orchestrator,
+            usage,
+            system,
+            userInput,
+            specialists,
+            runSpecialist,
+          )
+        : await this.orchestrateOpenAiCompatible(
+            orchestrator,
+            usage,
+            system,
+            userInput,
+            specialists,
+            runSpecialist,
+          );
+    if (!summary.trim()) {
+      throw new AiProcessingError('AI_PROVIDER_RESPONSE_INVALID', true);
+    }
+    return {
+      result: { summary: summary.trim(), trace: trace.slice(0, 24) },
+      provider: orchestrator.provider,
+      model: orchestrator.model.modelId,
+      providerRequestId: null,
+      inputTokens: usage.inputTokens,
+      outputTokens: usage.outputTokens,
+      estimatedCostMicrousd: usage.estimatedCostMicrousd,
+    };
+  }
+
+  private async resolveAgent(row: AiAgentRow): Promise<ResolvedAgent> {
+    if (!row.modelId) {
+      throw new AiProcessingError('AI_PROVIDER_NOT_CONFIGURED', true);
+    }
+    const [model] = await this.database.db
+      .select()
+      .from(aiModels)
+      .where(eq(aiModels.id, row.modelId))
+      .limit(1);
+    if (!model?.enabled || model.deprecated || model.capability !== 'text') {
+      throw new AiProcessingError('AI_PROVIDER_NOT_CONFIGURED', true);
+    }
+    const provider = await this.provider(model.providerKey);
+    if (
+      !provider?.enabled ||
+      provider.readiness !== 'ready' ||
+      !provider.configurationCiphertext
+    ) {
+      throw new AiProcessingError('AI_PROVIDER_NOT_CONFIGURED', true);
+    }
+    const providerKey = this.supportedProviderKey(model.providerKey);
+    if (providerKey === 'atlascloud') {
+      throw new AiProcessingError('AI_PROVIDER_NOT_CONFIGURED', true);
+    }
+    const apiKey = this.decryptApiKey(
+      provider.configurationCiphertext,
+      providerKey,
+    );
+    if (!apiKey) {
+      throw new AiProcessingError('AI_PROVIDER_NOT_CONFIGURED', true);
+    }
+    return { agent: row, model, provider: providerKey, apiKey };
+  }
+
+  private async postProviderJson(
+    url: string,
+    headers: Record<string, string>,
+    body: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method: 'POST',
+        headers: { ...headers, 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(120_000),
+      });
+    } catch {
+      throw new AiProcessingError('AI_PROVIDER_REQUEST_FAILED', false);
+    }
+    if (!response.ok) {
+      const transient = response.status === 429 || response.status >= 500;
+      throw new AiProcessingError(
+        response.status === 429
+          ? 'AI_PROVIDER_RATE_LIMITED'
+          : 'AI_PROVIDER_REQUEST_FAILED',
+        !transient,
+      );
+    }
+    return (await response.json()) as Record<string, unknown>;
+  }
+
+  private async callAgentModel(
+    resolved: ResolvedAgent,
+    usage: Usage,
+    system: string,
+    user: string,
+  ): Promise<string> {
+    if (resolved.provider === 'anthropic') {
+      const payload = await this.postProviderJson(
+        anthropicMessagesUrl,
+        {
+          'x-api-key': resolved.apiKey,
+          'anthropic-version': anthropicVersion,
+        },
+        {
+          model: resolved.model.modelId,
+          max_tokens: 4_000,
+          system,
+          messages: [{ role: 'user', content: user }],
+        },
+      );
+      const parsed = parseTextPayload('anthropic', payload);
+      accumulateUsage(usage, resolved.model, parsed);
+      return parsed.text;
+    }
+    const payload = await this.postProviderJson(
+      openAiCompatibleChatUrl(resolved.provider),
+      { authorization: `Bearer ${resolved.apiKey}` },
+      {
+        model: resolved.model.modelId,
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user', content: user },
+        ],
+        max_tokens: 4_000,
+      },
+    );
+    const parsed = parseTextPayload(resolved.provider, payload);
+    accumulateUsage(usage, resolved.model, parsed);
+    return parsed.text;
+  }
+
+  private async orchestrateOpenAiCompatible(
+    orchestrator: ResolvedAgent,
+    usage: Usage,
+    system: string,
+    userInput: string,
+    specialists: Map<string, ResolvedAgent>,
+    runSpecialist: (slug: string, order: string) => Promise<string>,
+  ): Promise<string> {
+    const messages: unknown[] = [
+      { role: 'system', content: system },
+      { role: 'user', content: userInput },
+    ];
+    const tools = [...specialists.entries()].map(([slug, resolved]) => ({
+      type: 'function',
+      function: {
+        name: slug,
+        description: resolved.agent.description.trim() || resolved.agent.name,
+        parameters: {
+          type: 'object',
+          properties: {
+            order: {
+              type: 'string',
+              description: 'Orden clara y completa para el especialista.',
+            },
+          },
+          required: ['order'],
+          additionalProperties: false,
+        },
+      },
+    }));
+    for (let iteration = 0; iteration < 6; iteration += 1) {
+      const payload = await this.postProviderJson(
+        openAiCompatibleChatUrl(orchestrator.provider),
+        { authorization: `Bearer ${orchestrator.apiKey}` },
+        {
+          model: orchestrator.model.modelId,
+          messages,
+          ...(tools.length ? { tools } : {}),
+          max_tokens: 4_000,
+        },
+      );
+      accumulateUsage(
+        usage,
+        orchestrator.model,
+        parseTextPayload(orchestrator.provider, payload),
+      );
+      const choices = Array.isArray(payload.choices) ? payload.choices : [];
+      const first =
+        choices[0] && typeof choices[0] === 'object'
+          ? (choices[0] as Record<string, unknown>)
+          : {};
+      const message =
+        first.message && typeof first.message === 'object'
+          ? (first.message as Record<string, unknown>)
+          : {};
+      messages.push(message);
+      const toolCalls = Array.isArray(message.tool_calls)
+        ? (message.tool_calls as Array<Record<string, unknown>>)
+        : [];
+      if (!toolCalls.length) {
+        return typeof message.content === 'string' ? message.content : '';
+      }
+      for (const call of toolCalls) {
+        const fn =
+          call.function && typeof call.function === 'object'
+            ? (call.function as Record<string, unknown>)
+            : {};
+        const name = typeof fn.name === 'string' ? fn.name : '';
+        const args =
+          typeof fn.arguments === 'string' ? parseJson(fn.arguments) : null;
+        const order = typeof args?.order === 'string' ? args.order : '';
+        const output = order
+          ? await runSpecialist(name, order)
+          : 'Orden inválida.';
+        messages.push({
+          role: 'tool',
+          tool_call_id: typeof call.id === 'string' ? call.id : '',
+          content: output,
+        });
+      }
+    }
+    throw new AiProcessingError('AI_PROVIDER_RESPONSE_INVALID', true);
+  }
+
+  private async orchestrateAnthropic(
+    orchestrator: ResolvedAgent,
+    usage: Usage,
+    system: string,
+    userInput: string,
+    specialists: Map<string, ResolvedAgent>,
+    runSpecialist: (slug: string, order: string) => Promise<string>,
+  ): Promise<string> {
+    const messages: unknown[] = [{ role: 'user', content: userInput }];
+    const tools = [...specialists.entries()].map(([slug, resolved]) => ({
+      name: slug,
+      description: resolved.agent.description.trim() || resolved.agent.name,
+      input_schema: {
+        type: 'object',
+        properties: {
+          order: {
+            type: 'string',
+            description: 'Orden clara y completa para el especialista.',
+          },
+        },
+        required: ['order'],
+      },
+    }));
+    for (let iteration = 0; iteration < 6; iteration += 1) {
+      const payload = await this.postProviderJson(
+        anthropicMessagesUrl,
+        {
+          'x-api-key': orchestrator.apiKey,
+          'anthropic-version': anthropicVersion,
+        },
+        {
+          model: orchestrator.model.modelId,
+          max_tokens: 4_000,
+          system,
+          messages,
+          ...(tools.length ? { tools } : {}),
+        },
+      );
+      accumulateUsage(
+        usage,
+        orchestrator.model,
+        parseTextPayload('anthropic', payload),
+      );
+      const blocks = Array.isArray(payload.content)
+        ? (payload.content as Array<Record<string, unknown>>)
+        : [];
+      messages.push({ role: 'assistant', content: blocks });
+      const toolUses = blocks.filter((block) => block.type === 'tool_use');
+      if (payload.stop_reason !== 'tool_use' || !toolUses.length) {
+        return blocks
+          .map((block) =>
+            block.type === 'text' && typeof block.text === 'string'
+              ? block.text
+              : '',
+          )
+          .join('')
+          .trim();
+      }
+      const results: Array<Record<string, unknown>> = [];
+      for (const block of toolUses) {
+        const name = typeof block.name === 'string' ? block.name : '';
+        const input =
+          block.input && typeof block.input === 'object'
+            ? (block.input as Record<string, unknown>)
+            : {};
+        const order = typeof input.order === 'string' ? input.order : '';
+        const output = order
+          ? await runSpecialist(name, order)
+          : 'Orden inválida.';
+        results.push({
+          type: 'tool_result',
+          tool_use_id: typeof block.id === 'string' ? block.id : '',
+          content: output,
+        });
+      }
+      messages.push({ role: 'user', content: results });
+    }
+    throw new AiProcessingError('AI_PROVIDER_RESPONSE_INVALID', true);
   }
 
   private textProviderRequest(
@@ -1383,6 +1792,7 @@ function buildSystemPrompt(kind: AiRequestKind, settings: BrandSettings) {
       'Devuelve solo JSON: {"summary":string,"items":[{"date":"YYYY-MM-DD","platform":"instagram|facebook|linkedin|tiktok|x|youtube|email","format":string,"idea":string,"objective":string,"callToAction":string}]}.',
     review:
       'Devuelve solo JSON: {"score":0,"verdict":string,"dimensions":{"clarity":0,"brandVoice":0,"callToAction":0,"safety":0},"strengths":string[],"risks":string[],"corrections":string[],"revisedContent":string}. Usa enteros 0-100.',
+    agent: '',
     timing: '',
     search: '',
     ai_publishing:
@@ -1757,6 +2167,20 @@ export function parseJson(value: string): Record<string, unknown> | null {
   } catch {
     return null;
   }
+}
+
+function accumulateUsage(
+  usage: Usage,
+  model: AiModelRow,
+  parsed: ParsedTextPayload,
+) {
+  usage.inputTokens += parsed.inputTokens;
+  usage.outputTokens += parsed.outputTokens;
+  usage.estimatedCostMicrousd += estimateTextCost(
+    model,
+    parsed.inputTokens,
+    parsed.outputTokens,
+  );
 }
 
 function safeInteger(value: unknown) {

@@ -76,7 +76,9 @@ Este inventario refleja los módulos reales de `packages/ui/src/components/`. No
 ### AI Elements en Web
 
 AI Studio compone `Conversation`, `Message`, `PromptInput`, `Reasoning`,
-`Suggestion` y `Shimmer` desde `@/components/ai-elements`. Son código del registry oficial de
+`Suggestion` y `Shimmer` desde `@/components/ai-elements`; el canvas de agentes
+de Admin añade `Canvas`, `Node`, `Edge`, `Connection`, `Controls`, `Panel` y
+`Toolbar` (familia Workflow sobre `@xyflow/react`). Son código del registry oficial de
 AI Elements adaptado únicamente a los aliases y primitives compartidos de este
 monorepo. No sustituyen los componentes genéricos `Message` y `MessageScroller`
 de `packages/ui`; su uso queda acotado a interfaces de agentes y generación AI.

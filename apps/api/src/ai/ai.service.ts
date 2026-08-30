@@ -4,6 +4,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import {
   aiPublishingSchedules,
   aiPublishingScheduleTargets,
+  aiAgents,
   aiModelRoutes,
   aiModels,
   aiRequests,
@@ -137,6 +138,13 @@ export class AiService {
   async createRequest(session: PortalAuthSession, input: unknown) {
     const parsed = createPortalAiRequestSchema.safeParse(input);
     if (!parsed.success) throw this.invalid();
+    if (
+      parsed.data.kind === 'repurpose' ||
+      parsed.data.kind === 'review' ||
+      parsed.data.kind === 'planner'
+    ) {
+      throw this.invalid();
+    }
     return this.createRequestFromValues(session, {
       ...parsed.data,
       input: aiRequestInputSchemas[parsed.data.kind].parse(parsed.data.input),
@@ -1191,6 +1199,50 @@ export class AiService {
         costUnits: route.costUnits,
         provider: 'internal',
         model: kind === 'timing' ? 'internal-analytics' : 'internal-search',
+      };
+    }
+    if (kind === 'agent') {
+      const [orchestrator] = await this.database.db
+        .select()
+        .from(aiAgents)
+        .where(
+          and(eq(aiAgents.kind, 'orchestrator'), eq(aiAgents.enabled, true)),
+        )
+        .limit(1);
+      const [orchestratorModel] = orchestrator?.modelId
+        ? await this.database.db
+            .select()
+            .from(aiModels)
+            .where(eq(aiModels.id, orchestrator.modelId))
+            .limit(1)
+        : [];
+      const [orchestratorProvider] = orchestratorModel
+        ? await this.database.db
+            .select()
+            .from(providerIntegrations)
+            .where(
+              eq(
+                providerIntegrations.providerKey,
+                orchestratorModel.providerKey,
+              ),
+            )
+            .limit(1)
+        : [];
+      if (
+        !orchestratorModel?.enabled ||
+        orchestratorModel.deprecated ||
+        !orchestratorProvider?.enabled ||
+        orchestratorProvider.readiness !== 'ready'
+      ) {
+        throw new AppException(
+          'AI_PROVIDER_NOT_READY',
+          HttpStatus.SERVICE_UNAVAILABLE,
+        );
+      }
+      return {
+        costUnits: route.costUnits,
+        provider: orchestratorModel.providerKey,
+        model: orchestratorModel.modelId,
       };
     }
     const usesReferences =

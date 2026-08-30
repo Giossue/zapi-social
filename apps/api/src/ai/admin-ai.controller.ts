@@ -27,6 +27,25 @@ export class AdminAiController {
     return this.ai.configuration();
   }
 
+  @Get('agents')
+  async agents(@Req() request: FastifyRequest) {
+    await this.access.requirePlatformAdmin(request);
+    return this.ai.agents();
+  }
+
+  @Patch('agents/:id')
+  async updateAgent(
+    @Req() request: FastifyRequest,
+    @Param('id') id: string,
+    @Body() input: unknown,
+  ) {
+    return this.ai.updateAgent(
+      id,
+      input,
+      await this.access.requirePlatformAdmin(request),
+    );
+  }
+
   @Post('providers/:providerKey/test')
   async testProvider(
     @Req() request: FastifyRequest,

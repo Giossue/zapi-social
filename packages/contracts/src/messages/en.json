@@ -1565,6 +1565,7 @@
     },
     "keyRequired": "Enter and test the key before saving.",
     "kind": {
+      "agent": "Assistant",
       "ai_publishing": "AI publishing",
       "content": "Create content",
       "image": "Create image",
@@ -1697,29 +1698,42 @@
   },
   "aiAgents": {
     "canvas": {
+      "disabled": "Inactive",
       "editAgent": "Edit {name}",
+      "hint": "Drag nodes to rearrange; changes save automatically.",
+      "loadFailedDescription": "We could not load the agents.",
+      "loadFailedTitle": "Agents unavailable",
       "model": "Model",
-      "preview": "Preview with sample data"
+      "modelMissing": "No model",
+      "retry": "Retry",
+      "triggerDescription": "User message in AI Studio",
+      "triggerName": "Portal chat"
     },
     "editor": {
-      "addTool": "Add tool",
-      "chatModel": "Chat model",
       "description": "Define this agent's name, system prompt, model and tools.",
       "descriptionLabel": "Description",
-      "executeStep": "Execute step",
-      "input": "Input",
-      "memory": "Memory",
+      "enabled": "Active",
       "model": "Model",
       "name": "Name",
-      "noInputDescription": "Run the previous nodes to see what this agent receives.",
-      "noInputTitle": "No input data",
-      "noOutputDescription": "Run this step to see its result here.",
-      "noOutputTitle": "No output data",
-      "output": "Output",
       "parameters": "Parameters",
+      "positionFailed": "We could not save the node position.",
+      "save": "Save",
+      "saveFailed": "We could not save the agent.",
+      "saved": "Agent saved.",
       "settings": "Settings",
       "systemPrompt": "System prompt",
       "tools": "Tools"
+    },
+    "tools": {
+      "best_times": "Best times",
+      "create_draft": "Create draft",
+      "generate_image": "Generate image",
+      "generate_video": "Generate video",
+      "save_caption": "Save caption",
+      "save_file": "Save to Files",
+      "schedule_post": "Schedule post",
+      "search_captions": "Search captions",
+      "search_content": "Search previous content"
     }
   },
   "aiReport": {
@@ -2079,6 +2093,7 @@
       "ideaColumn": "Idea",
       "ideasLabel": "ideas",
       "kind": {
+        "agent": "Assistant",
         "ai_publishing": "AI Publishing",
         "all": "All tools",
         "content": "Content",
@@ -2275,6 +2290,12 @@
       "usage": "Usage"
     },
     "tools": {
+      "agent": {
+        "description": "The orchestrator routes your request to the right agent.",
+        "label": "Assistant",
+        "placeholder": "Ask for anything; the assistant decides which agent does it…",
+        "promptLabel": "Request"
+      },
       "content": {
         "description": "Posts, ads and copy per channel.",
         "label": "Content",
@@ -2462,6 +2483,7 @@
     "internalProvider": "internal",
     "itemLabel": "generations",
     "kind": {
+      "agent": "Assistant",
       "ai_publishing": "AI publishing",
       "content": "Create content",
       "image": "Create image",
@@ -3231,6 +3253,7 @@
     },
     "labels": {
       "aiKind": {
+        "agent": "Assistant",
         "ai_publishing": "AI Publishing",
         "content": "Content",
         "image": "Image",
@@ -4492,6 +4515,7 @@
     "itemLabel": "plans",
     "limits": {
       "action": {
+        "agent": "Assistant",
         "ai_publishing": "AI Publishing",
         "content": "Content",
         "image": "Image",

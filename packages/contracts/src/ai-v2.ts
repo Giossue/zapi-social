@@ -1,6 +1,7 @@
 import { z } from "zod"
 
 export const aiRequestKindSchema = z.enum([
+  "agent",
   "content",
   "image",
   "video",
@@ -150,6 +151,7 @@ const aiPublishingInputSchema = z
   .strict()
 
 export const aiRequestInputSchemas = {
+  agent: z.object({}).strict(),
   content: contentInputSchema,
   image: imageInputSchema,
   video: videoInputSchema,
@@ -271,7 +273,21 @@ export const aiPublishingResultSchema = z.object({
   publishingPostIds: z.array(z.uuid()),
 })
 
+export const aiAgentResultSchema = z.object({
+  summary: z.string(),
+  trace: z
+    .array(
+      z.object({
+        agent: z.string().max(120),
+        order: z.string().max(4000),
+        output: z.string().max(20000),
+      })
+    )
+    .max(24),
+})
+
 export const aiRequestResultSchemas = {
+  agent: aiAgentResultSchema,
   content: aiContentResultSchema,
   image: aiImageResultSchema,
   video: aiVideoResultSchema,
@@ -586,6 +602,47 @@ export const updateAdminAiModelSchema = createAdminAiModelSchema
   .partial()
   .refine((input) => Object.keys(input).length > 0)
 
+export const adminAiAgentKindSchema = z.enum(["orchestrator", "specialist"])
+
+export const adminAiAgentSchema = z.object({
+  id: z.uuid(),
+  name: z.string().min(1).max(120),
+  description: z.string().max(500),
+  systemPrompt: z.string().max(20000),
+  kind: adminAiAgentKindSchema,
+  modelId: z.uuid().nullable(),
+  tools: z.array(z.string().min(1).max(80)).max(20),
+  enabled: z.boolean(),
+  canvasPosition: z.object({ x: z.number(), y: z.number() }),
+})
+
+export const adminAiAgentEdgeSchema = z.object({
+  id: z.uuid(),
+  sourceAgentId: z.uuid(),
+  targetAgentId: z.uuid(),
+})
+
+export const adminAiAgentsSchema = z.object({
+  agents: z.array(adminAiAgentSchema),
+  edges: z.array(adminAiAgentEdgeSchema),
+  models: z.array(adminAiModelSchema),
+})
+
+export const updateAdminAiAgentSchema = z
+  .object({
+    name: z.string().trim().min(1).max(120),
+    description: z.string().trim().max(500),
+    systemPrompt: z.string().trim().max(20000),
+    modelId: z.uuid().nullable(),
+    enabled: z.boolean(),
+    canvasPosition: z
+      .object({ x: z.number().finite(), y: z.number().finite() })
+      .strict(),
+  })
+  .partial()
+  .strict()
+  .refine((input) => Object.keys(input).length > 0)
+
 export const updateAdminAiRouteSchema = z
   .object({
     primaryModelId: z.uuid().nullable(),
@@ -823,6 +880,10 @@ export type UpdatePortalAiBudgetInput = z.infer<
   typeof updatePortalAiBudgetSchema
 >
 export type AdminAiConfiguration = z.infer<typeof adminAiConfigurationSchema>
+export type AdminAiAgent = z.infer<typeof adminAiAgentSchema>
+export type AdminAiAgentEdge = z.infer<typeof adminAiAgentEdgeSchema>
+export type AdminAiAgents = z.infer<typeof adminAiAgentsSchema>
+export type UpdateAdminAiAgentInput = z.infer<typeof updateAdminAiAgentSchema>
 export type AdminAiModel = z.infer<typeof adminAiModelSchema>
 export type AdminAiRoute = z.infer<typeof adminAiRouteSchema>
 export type TestAdminAiProviderInput = z.infer<typeof testAdminAiProviderSchema>

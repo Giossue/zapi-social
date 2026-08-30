@@ -1565,6 +1565,7 @@
     },
     "keyRequired": "Ingresa y prueba la clave antes de guardar.",
     "kind": {
+      "agent": "Asistente",
       "ai_publishing": "Publicación AI",
       "content": "Crear contenido",
       "image": "Crear imagen",
@@ -1697,29 +1698,42 @@
   },
   "aiAgents": {
     "canvas": {
+      "disabled": "Inactivo",
       "editAgent": "Editar {name}",
+      "hint": "Arrastra los nodos para reorganizar; los cambios se guardan solos.",
+      "loadFailedDescription": "No pudimos cargar los agentes.",
+      "loadFailedTitle": "Agentes no disponibles",
       "model": "Modelo",
-      "preview": "Vista previa con datos de ejemplo"
+      "modelMissing": "Sin modelo",
+      "retry": "Reintentar",
+      "triggerDescription": "Mensaje del usuario en AI Studio",
+      "triggerName": "Chat del Portal"
     },
     "editor": {
-      "addTool": "Añadir herramienta",
-      "chatModel": "Modelo de chat",
       "description": "Define el nombre, el system prompt, el modelo y las herramientas de este agente.",
       "descriptionLabel": "Descripción",
-      "executeStep": "Ejecutar paso",
-      "input": "Entrada",
-      "memory": "Memoria",
+      "enabled": "Activo",
       "model": "Modelo",
       "name": "Nombre",
-      "noInputDescription": "Ejecuta los nodos anteriores para ver aquí lo que recibe este agente.",
-      "noInputTitle": "Sin datos de entrada",
-      "noOutputDescription": "Ejecuta este paso para ver aquí su resultado.",
-      "noOutputTitle": "Sin datos de salida",
-      "output": "Salida",
       "parameters": "Parámetros",
+      "positionFailed": "No pudimos guardar la posición del nodo.",
+      "save": "Guardar",
+      "saveFailed": "No pudimos guardar el agente.",
+      "saved": "Agente guardado.",
       "settings": "Ajustes",
       "systemPrompt": "System prompt",
       "tools": "Herramientas"
+    },
+    "tools": {
+      "best_times": "Mejores horarios",
+      "create_draft": "Crear borrador",
+      "generate_image": "Generar imagen",
+      "generate_video": "Generar video",
+      "save_caption": "Guardar caption",
+      "save_file": "Guardar en Files",
+      "schedule_post": "Programar publicación",
+      "search_captions": "Buscar captions",
+      "search_content": "Buscar contenido previo"
     }
   },
   "aiReport": {
@@ -2079,6 +2093,7 @@
       "ideaColumn": "Idea",
       "ideasLabel": "ideas",
       "kind": {
+        "agent": "Asistente",
         "ai_publishing": "Publicación AI",
         "all": "Todas las herramientas",
         "content": "Contenido",
@@ -2275,6 +2290,12 @@
       "usage": "Consumo"
     },
     "tools": {
+      "agent": {
+        "description": "El orquestador delega tu petición al agente adecuado.",
+        "label": "Asistente",
+        "placeholder": "Pide lo que necesites; el asistente decide qué agente lo hace…",
+        "promptLabel": "Petición"
+      },
       "content": {
         "description": "Publicaciones, anuncios y textos por canal.",
         "label": "Contenido",
@@ -2462,6 +2483,7 @@
     "internalProvider": "interno",
     "itemLabel": "generaciones",
     "kind": {
+      "agent": "Asistente",
       "ai_publishing": "Publicación AI",
       "content": "Crear contenido",
       "image": "Crear imagen",
@@ -3231,6 +3253,7 @@
     },
     "labels": {
       "aiKind": {
+        "agent": "Asistente",
         "ai_publishing": "AI Publishing",
         "content": "Contenido",
         "image": "Imagen",
@@ -4492,6 +4515,7 @@
     "itemLabel": "planes",
     "limits": {
       "action": {
+        "agent": "Asistente",
         "ai_publishing": "AI Publishing",
         "content": "Contenido",
         "image": "Imagen",
