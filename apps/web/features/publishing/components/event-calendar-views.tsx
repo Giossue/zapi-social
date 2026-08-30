@@ -451,7 +451,7 @@ export function EventCalendarViews({
               info.isNarrow ? `-top-3.5 ${xxsTextClass}` : "-top-6 text-xs",
               info.isFirst && "hidden"
             ),
-          slotHeaderDividerClass: "border-e",
+          slotHeaderDividerClass: "border-e bg-muted/50",
 
           ...userViews?.timeGrid,
         },

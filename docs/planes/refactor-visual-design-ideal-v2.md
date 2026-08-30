@@ -237,6 +237,7 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - Las cabeceras de día, semana y mes, junto con la columna de horas, usan el plano semántico `muted` sobre el cuerpo `card`. Así el calendario separa navegación temporal y contenido sin introducir una paleta ni estilos locales.
 - Las celdas y franjas usan bordes semánticos de mayor contraste para que las divisiones de día, mes, semana y hora sean visibles en ambos temas.
 - Las divisiones secundarias de media hora son punteadas y se resaltan con `primary` al pasar sobre su franja, para identificar con precisión dónde hará snap el siguiente clic.
+- El divisor lateral del eje horario comparte el fondo `muted/50` de las cabeceras de fecha, evitando que una franja del lienzo corte el gris de «Todo el día» y de cada hora.
 - La modificación vive primero en el renderer canónico `template-shadcn-superdashboard/src/components/calendar/event-calendar-views.tsx` y se copia literalmente al renderer de Publishing.
 
 ## Publicación — filtro de canales disponibles — 30 de agosto de 2026
