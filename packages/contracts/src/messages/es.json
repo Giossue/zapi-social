@@ -1702,8 +1702,24 @@
       "preview": "Vista previa con datos de ejemplo"
     },
     "editor": {
-      "description": "Ajusta el nombre, el proveedor, los modelos y el enrutamiento de este agente.",
-      "name": "Nombre"
+      "addTool": "Añadir herramienta",
+      "chatModel": "Modelo de chat",
+      "description": "Define el nombre, el system prompt, el modelo y las herramientas de este agente.",
+      "descriptionLabel": "Descripción",
+      "executeStep": "Ejecutar paso",
+      "input": "Entrada",
+      "memory": "Memoria",
+      "model": "Modelo",
+      "name": "Nombre",
+      "noInputDescription": "Ejecuta los nodos anteriores para ver aquí lo que recibe este agente.",
+      "noInputTitle": "Sin datos de entrada",
+      "noOutputDescription": "Ejecuta este paso para ver aquí su resultado.",
+      "noOutputTitle": "Sin datos de salida",
+      "output": "Salida",
+      "parameters": "Parámetros",
+      "settings": "Ajustes",
+      "systemPrompt": "System prompt",
+      "tools": "Herramientas"
     }
   },
   "aiReport": {

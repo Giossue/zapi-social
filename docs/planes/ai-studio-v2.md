@@ -896,9 +896,24 @@ vendorizados en `apps/web/components/ai-elements/` (`canvas`, `node`, `edge`,
 y agentes de contenido, media y publicación). El icono de agente reproduce el
 de n8n como componente local `AiAgentIcon`. Sin contrato ni backend todavía.
 
-Pendiente: aprobación visual del canvas; fase 2 con tablas `ai_agents` y
-`ai_workflows`, contratos Zod y CRUD Nest; fase 3 con ejecución en Worker y
-selector de agentes en Portal.
+El editor de agente abre desde el menú del nodo en un `Sheet` a pantalla
+completa (patrón de Channels) con composición estilo n8n en tres columnas:
+Entrada con el nodo conectado y empty state, panel central con pestañas
+Parámetros (nombre, system prompt, variante de modelo 5.6 terra/sol/luna y
+herramientas) y Ajustes (descripción), ranuras inferiores de modelo de
+chat/memoria/herramientas, y Salida con empty state y acción Ejecutar paso
+deshabilitada en el mock. Editar nombre, prompt, modelo o descripción actualiza
+el nodo del canvas en vivo sobre el estado local.
+
+Arquitectura decidida para la ejecución: orquestación con function calling de
+OpenAI. Cada agente es system prompt + modelo + tools propios; los subagentes
+se exponen al orquestador como tools, y las aristas orquestador→subagente del
+grafo se compilan a esa lista de tools. Proveedor inicial: solo OpenAI, modelo
+5.6 con variantes terra, sol y luna.
+
+Pendiente: aprobación visual del canvas y del editor; fase 2 con tablas
+`ai_agents` y `ai_workflows`, contratos Zod y CRUD Nest; fase 3 con ejecución
+en Worker y selector de agentes en Portal.
 
 Validación: build y typecheck del monorepo correctos; auditorías de paridad
 i18n, texto hardcoded y UI de Portal/Admin sin hallazgos.

@@ -1702,8 +1702,24 @@
       "preview": "Preview with sample data"
     },
     "editor": {
-      "description": "Adjust this agent's name, provider, models and routing.",
-      "name": "Name"
+      "addTool": "Add tool",
+      "chatModel": "Chat model",
+      "description": "Define this agent's name, system prompt, model and tools.",
+      "descriptionLabel": "Description",
+      "executeStep": "Execute step",
+      "input": "Input",
+      "memory": "Memory",
+      "model": "Model",
+      "name": "Name",
+      "noInputDescription": "Run the previous nodes to see what this agent receives.",
+      "noInputTitle": "No input data",
+      "noOutputDescription": "Run this step to see its result here.",
+      "noOutputTitle": "No output data",
+      "output": "Output",
+      "parameters": "Parameters",
+      "settings": "Settings",
+      "systemPrompt": "System prompt",
+      "tools": "Tools"
     }
   },
   "aiReport": {

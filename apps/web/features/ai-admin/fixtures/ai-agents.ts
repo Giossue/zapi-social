@@ -3,8 +3,11 @@ export type AgentCanvasNodeData = {
   kind: "agent" | "trigger" | "tool"
   model?: string
   name: string
+  systemPrompt?: string
   tools?: string[]
 }
+
+export const agentModelVariants = ["5.6-terra", "5.6-sol", "5.6-luna"] as const
 
 export type AgentCanvasNode = {
   data: AgentCanvasNodeData
@@ -35,8 +38,10 @@ export const agentCanvasNodes: AgentCanvasNode[] = [
     data: {
       description: "Analiza la petición y decide qué agente responde",
       kind: "agent",
-      model: "gpt-4o",
+      model: "5.6-luna",
       name: "Orquestador",
+      systemPrompt:
+        "Eres el orquestador de la marca. Tu único trabajo es entender la petición del usuario, elegir el agente especialista adecuado y pasarle una orden clara y completa. Nunca ejecutas la tarea tú mismo.",
       tools: ["Buscar contenido previo", "Mejores horarios"],
     },
     id: "agent-orchestrator",
@@ -47,8 +52,10 @@ export const agentCanvasNodes: AgentCanvasNode[] = [
     data: {
       description: "Redacta captions por plataforma con la voz de la marca",
       kind: "agent",
-      model: "gpt-4o-mini",
+      model: "5.6-sol",
       name: "Agente de contenido",
+      systemPrompt:
+        "Eres un copywriter experto en redes sociales. Escribes captions con la voz de la marca, adaptados a las reglas y límites de cada plataforma.",
       tools: ["Guardar caption", "Buscar captions"],
     },
     id: "agent-content",
@@ -59,8 +66,10 @@ export const agentCanvasNodes: AgentCanvasNode[] = [
     data: {
       description: "Genera imágenes y videos promocionales",
       kind: "agent",
-      model: "atlascloud/seedream",
+      model: "5.6-sol",
       name: "Agente de media",
+      systemPrompt:
+        "Eres un director de arte. Conviertes peticiones en prompts visuales detallados y generas imágenes y videos consistentes con la identidad de la marca.",
       tools: ["Generar imagen", "Generar video", "Guardar en Files"],
     },
     id: "agent-media",
@@ -71,8 +80,10 @@ export const agentCanvasNodes: AgentCanvasNode[] = [
     data: {
       description: "Convierte el resultado en borrador de publicación",
       kind: "agent",
-      model: "gpt-4o-mini",
+      model: "5.6-luna",
       name: "Agente de publicación",
+      systemPrompt:
+        "Preparas borradores de publicación y los programas en los mejores horarios. Eres preciso con fechas, zonas horarias y límites de cada red.",
       tools: ["Crear borrador", "Programar publicación"],
     },
     id: "agent-publishing",

@@ -8,13 +8,28 @@ import {
   type EdgeChange,
   type NodeChange,
 } from "@xyflow/react"
-import { EllipsisVertical, Zap } from "lucide-react"
+import {
+  ArrowRightFromLine,
+  ArrowRightToLine,
+  EllipsisVertical,
+  Play,
+  Plus,
+  Zap,
+} from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { EmptyState } from "@workspace/ui/components/empty-state"
 import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
 import {
   Sheet,
   SheetContent,
@@ -22,6 +37,13 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@workspace/ui/components/sheet"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/tabs"
+import { Textarea } from "@workspace/ui/components/textarea"
 
 import { Canvas } from "@/components/ai-elements/canvas"
 import { Connection } from "@/components/ai-elements/connection"
@@ -38,10 +60,10 @@ import {
 import { Panel } from "@/components/ai-elements/panel"
 
 import { AiAgentIcon } from "./ai-agent-icon"
-import { AiConfigurationPage } from "./ai-configuration-page"
 import {
   agentCanvasEdges,
   agentCanvasNodes,
+  agentModelVariants,
   type AgentCanvasNodeData,
 } from "../fixtures/ai-agents"
 
@@ -133,6 +155,14 @@ const initialEdges: FlowEdge[] = agentCanvasEdges.map((edge) => ({
   type: edge.type,
 }))
 
+function EditorColumnLabel({ label }: { label: string }) {
+  return (
+    <div className="border-b border-border px-4 py-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+      {label}
+    </div>
+  )
+}
+
 export function AiAgentsCanvasPage() {
   const t = useTranslations("aiAgents.canvas")
   const te = useTranslations("aiAgents.editor")
@@ -151,16 +181,30 @@ export function AiAgentsCanvasPage() {
     []
   )
 
+  const updateAgentData = useCallback(
+    (id: string, patch: Partial<AgentCanvasNodeData>) => {
+      setNodes((current) =>
+        current.map((node) =>
+          node.id === id
+            ? { ...node, data: { ...node.data, ...patch } }
+            : node
+        )
+      )
+    },
+    []
+  )
+
   const editingNode = nodes.find((node) => node.id === editingId)
   const editingData = editingNode?.data as AgentCanvasNodeData | undefined
-
-  const renameAgent = useCallback((id: string, name: string) => {
-    setNodes((current) =>
-      current.map((node) =>
-        node.id === id ? { ...node, data: { ...node.data, name } } : node
+  const inputNode = editingNode
+    ? nodes.find((node) =>
+        edges.some(
+          (edge) =>
+            edge.target === editingNode.id && edge.source === node.id
+        )
       )
-    )
-  }, [])
+    : undefined
+  const inputData = inputNode?.data as AgentCanvasNodeData | undefined
 
   return (
     <EditAgentContext.Provider value={setEditingId}>
@@ -194,29 +238,204 @@ export function AiAgentsCanvasPage() {
           side="right"
         >
           <SheetHeader className="border-b">
-            <SheetTitle>{editingData?.name}</SheetTitle>
+            <SheetTitle className="flex items-center gap-2">
+              <AiAgentIcon className="size-5 shrink-0" />
+              {editingData?.name}
+            </SheetTitle>
             <SheetDescription>{te("description")}</SheetDescription>
           </SheetHeader>
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4">
-            <div className="mx-auto grid w-full max-w-5xl gap-4">
-              <Field>
-                <FieldLabel htmlFor="agent-name">
-                  {te("name")}{" "}
-                  <span aria-hidden="true" className="text-destructive">
-                    *
-                  </span>
-                </FieldLabel>
-                <Input
-                  aria-required="true"
-                  id="agent-name"
-                  onChange={(event) => {
-                    if (editingNode)
-                      renameAgent(editingNode.id, event.target.value)
-                  }}
-                  value={editingData?.name ?? ""}
+          <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto lg:grid-cols-[1fr_1.5fr_1fr] lg:overflow-hidden">
+            <div className="flex min-h-56 flex-col border-b border-border bg-sidebar lg:border-r lg:border-b-0">
+              <EditorColumnLabel label={te("input")} />
+              {inputData ? (
+                <div className="px-4 pt-3">
+                  <Badge variant="outline">
+                    <Zap aria-hidden="true" /> {inputData.name}
+                  </Badge>
+                </div>
+              ) : null}
+              <div className="flex flex-1 items-center justify-center p-4">
+                <EmptyState
+                  description={te("noInputDescription")}
+                  icon={ArrowRightToLine}
+                  title={te("noInputTitle")}
                 />
-              </Field>
-              <AiConfigurationPage />
+              </div>
+            </div>
+
+            <div className="flex min-h-0 flex-col border-b border-border lg:border-r lg:border-b-0">
+              <Tabs
+                className="flex min-h-0 flex-1 flex-col"
+                defaultValue="parameters"
+              >
+                <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-2">
+                  <TabsList className="flex h-auto flex-wrap">
+                    <TabsTrigger value="parameters">
+                      {te("parameters")}
+                    </TabsTrigger>
+                    <TabsTrigger value="settings">{te("settings")}</TabsTrigger>
+                  </TabsList>
+                  <Button disabled size="sm">
+                    <Play data-icon="inline-start" />
+                    {te("executeStep")}
+                  </Button>
+                </div>
+                <div className="min-h-0 flex-1 overflow-y-auto p-4">
+                  <TabsContent
+                    className="flex flex-col gap-4"
+                    value="parameters"
+                  >
+                    <Field>
+                      <FieldLabel htmlFor="agent-name">
+                        {te("name")}{" "}
+                        <span aria-hidden="true" className="text-destructive">
+                          *
+                        </span>
+                      </FieldLabel>
+                      <Input
+                        aria-required="true"
+                        id="agent-name"
+                        onChange={(event) => {
+                          if (editingNode)
+                            updateAgentData(editingNode.id, {
+                              name: event.target.value,
+                            })
+                        }}
+                        value={editingData?.name ?? ""}
+                      />
+                    </Field>
+                    <Field>
+                      <FieldLabel htmlFor="agent-system-prompt">
+                        {te("systemPrompt")}{" "}
+                        <span aria-hidden="true" className="text-destructive">
+                          *
+                        </span>
+                      </FieldLabel>
+                      <Textarea
+                        aria-required="true"
+                        className="min-h-40"
+                        id="agent-system-prompt"
+                        onChange={(event) => {
+                          if (editingNode)
+                            updateAgentData(editingNode.id, {
+                              systemPrompt: event.target.value,
+                            })
+                        }}
+                        value={editingData?.systemPrompt ?? ""}
+                      />
+                    </Field>
+                    <Field>
+                      <FieldLabel htmlFor="agent-model">
+                        {te("model")}
+                      </FieldLabel>
+                      <Select
+                        onValueChange={(next) => {
+                          if (editingNode)
+                            updateAgentData(editingNode.id, { model: next })
+                        }}
+                        value={editingData?.model ?? ""}
+                      >
+                        <SelectTrigger className="w-full" id="agent-model">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {agentModelVariants.map((variant) => (
+                            <SelectItem key={variant} value={variant}>
+                              {variant}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                    <Field>
+                      <FieldLabel>{te("tools")}</FieldLabel>
+                      <div className="flex flex-wrap items-center gap-1">
+                        {editingData?.tools?.map((tool) => (
+                          <Badge key={tool} variant="outline">
+                            {tool}
+                          </Badge>
+                        ))}
+                        <Button disabled size="sm" variant="brand-secondary">
+                          {te("addTool")}
+                        </Button>
+                      </div>
+                    </Field>
+                  </TabsContent>
+                  <TabsContent className="flex flex-col gap-4" value="settings">
+                    <Field>
+                      <FieldLabel htmlFor="agent-description">
+                        {te("descriptionLabel")}
+                      </FieldLabel>
+                      <Textarea
+                        className="min-h-24"
+                        id="agent-description"
+                        onChange={(event) => {
+                          if (editingNode)
+                            updateAgentData(editingNode.id, {
+                              description: event.target.value,
+                            })
+                        }}
+                        value={editingData?.description ?? ""}
+                      />
+                    </Field>
+                  </TabsContent>
+                </div>
+              </Tabs>
+              <div className="grid grid-cols-3 gap-2 border-t border-border p-4">
+                <div className="flex flex-col items-center gap-2 text-center">
+                  <span className="text-xs text-muted-foreground">
+                    {te("chatModel")}{" "}
+                    <span aria-hidden="true" className="text-destructive">
+                      *
+                    </span>
+                  </span>
+                  <Button
+                    aria-label={te("chatModel")}
+                    disabled
+                    size="icon-sm"
+                    variant="brand-secondary"
+                  >
+                    <Plus />
+                  </Button>
+                </div>
+                <div className="flex flex-col items-center gap-2 text-center">
+                  <span className="text-xs text-muted-foreground">
+                    {te("memory")}
+                  </span>
+                  <Button
+                    aria-label={te("memory")}
+                    disabled
+                    size="icon-sm"
+                    variant="brand-secondary"
+                  >
+                    <Plus />
+                  </Button>
+                </div>
+                <div className="flex flex-col items-center gap-2 text-center">
+                  <span className="text-xs text-muted-foreground">
+                    {te("tools")}
+                  </span>
+                  <Button
+                    aria-label={te("tools")}
+                    disabled
+                    size="icon-sm"
+                    variant="brand-secondary"
+                  >
+                    <Plus />
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex min-h-56 flex-col bg-sidebar">
+              <EditorColumnLabel label={te("output")} />
+              <div className="flex flex-1 items-center justify-center p-4">
+                <EmptyState
+                  description={te("noOutputDescription")}
+                  icon={ArrowRightFromLine}
+                  title={te("noOutputTitle")}
+                />
+              </div>
             </div>
           </div>
         </SheetContent>
