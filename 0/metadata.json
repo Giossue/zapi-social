@@ -1,0 +1,40 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "01M18297AH7K7RF5XV5TA3WRPE",
+  "session_id": "4ddaaecc-e2ca-490f-9fdc-dbb5f701cbc4",
+  "strategy": "manual-commit",
+  "created_at": "2026-08-30T00:49:32.463458145Z",
+  "branch": "main",
+  "checkpoints_count": 4,
+  "save_step_count": 1,
+  "files_touched": [
+    "apps/web/features/ai-studio/components/ai-studio-operations.tsx",
+    "apps/web/features/support/components/support-tickets-page.tsx"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-fable-5",
+  "turn_id": "417054b8f4db",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 83,
+    "cache_creation_tokens": 125176,
+    "cache_read_tokens": 2437004,
+    "output_tokens": 20409,
+    "api_call_count": 45
+  },
+  "session_metrics": {
+    "turn_count": 6
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-08-30T00:49:32.416937158Z",
+    "agent_lines": 394,
+    "agent_removed": 321,
+    "human_added": 216,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 610,
+    "total_lines_changed": 1048,
+    "agent_percentage": 68.22519083969466,
+    "metric_version": 2
+  }
+}
