@@ -66,17 +66,11 @@ describe('isFuturePublishingSchedule', () => {
 
   it('allows only scheduled times that are after the current instant', () => {
     expect(
-      isFuturePublishingSchedule(
-        new Date('2026-08-30T15:45:00.000Z'),
-        now,
-      ),
+      isFuturePublishingSchedule(new Date('2026-08-30T15:45:00.000Z'), now),
     ).toBe(true);
     expect(isFuturePublishingSchedule(now, now)).toBe(false);
     expect(
-      isFuturePublishingSchedule(
-        new Date('2026-08-30T15:15:00.000Z'),
-        now,
-      ),
+      isFuturePublishingSchedule(new Date('2026-08-30T15:15:00.000Z'), now),
     ).toBe(false);
   });
 });

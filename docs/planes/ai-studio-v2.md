@@ -911,9 +911,36 @@ se exponen al orquestador como tools, y las aristas orquestador→subagente del
 grafo se compilan a esa lista de tools. Proveedor inicial: solo OpenAI, modelo
 5.6 con variantes terra, sol y luna.
 
-Pendiente: aprobación visual del canvas y del editor; fase 2 con tablas
-`ai_agents` y `ai_workflows`, contratos Zod y CRUD Nest; fase 3 con ejecución
-en Worker y selector de agentes en Portal.
+Fase 2 iniciada — 30 de agosto de 2026. Migración `0052_yummy_shadow_king`
+aplicada en local y remota con historial Drizzle idéntico: tablas nuevas
+`ai_agents` (nombre único, prompt de sistema, kind orquestador/especialista con
+unicidad parcial del orquestador, FK opcional a `ai_models`, tools jsonb,
+posición de canvas) y `ai_agent_edges` (aristas del grafo, sin self-loops), con
+seed de los cuatro agentes por defecto y sus aristas. Proveedores nuevos
+sembrados en `provider_integrations`: `deepseek`, `qwen` y `anthropic`, solo
+capacidad de texto, deshabilitados hasta configurar credenciales. Catálogo
+`ai_models` ampliado con los modelos vigentes según documentación oficial:
+DeepSeek V4 Pro/Flash, Qwen3.8 Max/Flash y Claude Opus 5 / Sonnet 5 / Haiku
+4.5, todos con tool calling.
+
+Adaptación de llamadas: el contrato `adminAiProviderKeySchema` acepta las cinco
+claves; la verificación de credenciales en Admin usa el catálogo de modelos de
+cada proveedor (DeepSeek y Qwen por endpoint OpenAI-compatible, Anthropic por
+`/v1/models` con `x-api-key` y `anthropic-version`); las rutas de texto admiten
+cualquier proveedor de texto y las de media siguen exclusivas de AtlasCloud.
+El Worker enruta la generación de texto por proveedor: OpenAI conserva
+`/v1/responses`, DeepSeek y Qwen usan `chat/completions` OpenAI-compatible y
+Anthropic usa la Messages API, con parsing de uso y manejo de `refusal`
+propios. El cifrado de claves usa AAD `ai:<provider>` por proveedor.
+
+Validación fase 2: migración probada con dry-run transaccional en remota antes
+de aplicar; conteos verificados en ambas bases (4 agentes, 3 aristas, 7 modelos
+nuevos); typecheck, build y lint del monorepo correctos; suites de API (103
+pruebas) y Worker (39) en verde; auditorías i18n sin hallazgos.
+
+Pendiente: aprobación visual del canvas y del editor; CRUD Nest de agentes y
+aristas con contratos Zod y canvas conectado a datos reales; fase 3 con bucle
+de function calling multi-proveedor en Worker y selector de agentes en Portal.
 
 Validación: build y typecheck del monorepo correctos; auditorías de paridad
 i18n, texto hardcoded y UI de Portal/Admin sin hallazgos.

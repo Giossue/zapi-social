@@ -365,6 +365,13 @@
       "when": 1788073379010,
       "tag": "0051_uneven_dark_phoenix",
       "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1788112828139,
+      "tag": "0052_yummy_shadow_king",
+      "breakpoints": true
     }
   ]
 }

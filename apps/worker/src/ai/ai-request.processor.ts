@@ -56,13 +56,25 @@ type AiRequestRow = typeof aiRequests.$inferSelect;
 type AiModelRow = typeof aiModels.$inferSelect;
 type ProviderIntegrationRow = typeof providerIntegrations.$inferSelect;
 
+type TextProviderKey = 'openai' | 'deepseek' | 'qwen' | 'anthropic';
+
+type SupportedProviderKey = TextProviderKey | 'atlascloud';
+
 type Execution = {
-  provider: 'internal' | 'openai' | 'atlascloud';
+  provider: 'internal' | SupportedProviderKey;
   apiKey?: string;
   primaryModel: AiModelRow | null;
   fallbackModel: AiModelRow | null;
   reasoningEffort: AiReasoningEffort;
 };
+
+const chatCompletionsUrls: Record<'deepseek' | 'qwen', string> = {
+  deepseek: 'https://api.deepseek.com/chat/completions',
+  qwen: 'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/chat/completions',
+};
+
+const anthropicMessagesUrl = 'https://api.anthropic.com/v1/messages';
+const anthropicVersion = '2023-06-01';
 
 type Usage = {
   inputTokens: number;
@@ -409,8 +421,10 @@ export class AiRequestProcessor extends WorkerHost {
     execution: Execution,
     instructions: string,
   ): Promise<OpenAiTextOutcome> {
+    const provider = execution.provider;
     if (
-      execution.provider !== 'openai' ||
+      provider === 'internal' ||
+      provider === 'atlascloud' ||
       !execution.apiKey ||
       !execution.primaryModel
     ) {
@@ -423,27 +437,13 @@ export class AiRequestProcessor extends WorkerHost {
     for (const model of models) {
       let response: Response;
       try {
-        response = await fetch('https://api.openai.com/v1/responses', {
-          method: 'POST',
-          headers: {
-            authorization: `Bearer ${execution.apiKey}`,
-            'content-type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: model.modelId,
-            instructions,
-            input: `${request.prompt}\n\nContexto estructurado:\n${JSON.stringify(request.input)}`,
-            reasoning: { effort: execution.reasoningEffort },
-            text: { verbosity: 'low' },
-            max_output_tokens: 8_000,
-            store: false,
-            safety_identifier: safetyIdentifier(
-              request.workspaceId,
-              request.requestedByUserId,
-            ),
-          }),
-          signal: AbortSignal.timeout(120_000),
-        });
+        response = await this.textProviderRequest(
+          provider,
+          execution,
+          model,
+          request,
+          instructions,
+        );
       } catch {
         lastError = new AiProcessingError('AI_PROVIDER_REQUEST_FAILED', false);
         continue;
@@ -459,28 +459,93 @@ export class AiRequestProcessor extends WorkerHost {
         if (transient) continue;
         throw lastError;
       }
-      const payload = (await response.json()) as OpenAiResponsePayload;
-      const text = extractResponseText(payload);
-      if (!text) {
+      const payload = (await response.json()) as Record<string, unknown>;
+      const parsed = parseTextPayload(provider, payload);
+      if (!parsed.text) {
         throw new AiProcessingError('AI_PROVIDER_RESPONSE_INVALID', true);
       }
-      const inputTokens = safeInteger(payload.usage?.input_tokens);
-      const outputTokens = safeInteger(payload.usage?.output_tokens);
       return {
-        text,
+        text: parsed.text,
         model,
-        providerRequestId: typeof payload.id === 'string' ? payload.id : null,
-        inputTokens,
-        outputTokens,
+        providerRequestId: parsed.providerRequestId,
+        inputTokens: parsed.inputTokens,
+        outputTokens: parsed.outputTokens,
         estimatedCostMicrousd: estimateTextCost(
           model,
-          inputTokens,
-          outputTokens,
+          parsed.inputTokens,
+          parsed.outputTokens,
         ),
       };
     }
     if (lastError instanceof Error) throw lastError;
     throw new AiProcessingError('AI_PROVIDER_REQUEST_FAILED', false);
+  }
+
+  private textProviderRequest(
+    provider: TextProviderKey,
+    execution: Execution,
+    model: AiModelRow,
+    request: AiRequestRow,
+    instructions: string,
+  ): Promise<Response> {
+    const userInput = `${request.prompt}\n\nContexto estructurado:\n${JSON.stringify(request.input)}`;
+    const timeout = AbortSignal.timeout(120_000);
+    if (provider === 'anthropic') {
+      return fetch(anthropicMessagesUrl, {
+        method: 'POST',
+        headers: {
+          'x-api-key': execution.apiKey ?? '',
+          'anthropic-version': anthropicVersion,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: model.modelId,
+          max_tokens: 8_000,
+          system: instructions,
+          messages: [{ role: 'user', content: userInput }],
+        }),
+        signal: timeout,
+      });
+    }
+    if (provider === 'deepseek' || provider === 'qwen') {
+      return fetch(chatCompletionsUrls[provider], {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${execution.apiKey}`,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: model.modelId,
+          messages: [
+            { role: 'system', content: instructions },
+            { role: 'user', content: userInput },
+          ],
+          max_tokens: 8_000,
+        }),
+        signal: timeout,
+      });
+    }
+    return fetch('https://api.openai.com/v1/responses', {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${execution.apiKey}`,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: model.modelId,
+        instructions,
+        input: userInput,
+        reasoning: { effort: execution.reasoningEffort },
+        text: { verbosity: 'low' },
+        max_output_tokens: 8_000,
+        store: false,
+        safety_identifier: safetyIdentifier(
+          request.workspaceId,
+          request.requestedByUserId,
+        ),
+      }),
+      signal: timeout,
+    });
   }
 
   private async generateImage(
@@ -1235,10 +1300,7 @@ export class AiRequestProcessor extends WorkerHost {
     });
   }
 
-  private decryptApiKey(
-    ciphertext: string,
-    providerKey: 'openai' | 'atlascloud',
-  ) {
+  private decryptApiKey(ciphertext: string, providerKey: SupportedProviderKey) {
     try {
       const parsed = JSON.parse(
         this.encryption.decrypt(ciphertext, `ai:${providerKey}`),
@@ -1269,8 +1331,16 @@ export class AiRequestProcessor extends WorkerHost {
     return metadata?.balanceDebited === true ? requestCostUnits : 0;
   }
 
-  private supportedProviderKey(value: string): 'openai' | 'atlascloud' {
-    if (value === 'openai' || value === 'atlascloud') return value;
+  private supportedProviderKey(value: string): SupportedProviderKey {
+    if (
+      value === 'openai' ||
+      value === 'atlascloud' ||
+      value === 'deepseek' ||
+      value === 'qwen' ||
+      value === 'anthropic'
+    ) {
+      return value;
+    }
     throw new AiProcessingError('AI_PROVIDER_NOT_CONFIGURED', true);
   }
 
@@ -1607,6 +1677,71 @@ export function extractResponseText(payload: OpenAiResponsePayload) {
     }
   }
   return '';
+}
+
+type ParsedTextPayload = {
+  text: string;
+  providerRequestId: string | null;
+  inputTokens: number;
+  outputTokens: number;
+};
+
+function parseTextPayload(
+  provider: TextProviderKey,
+  payload: Record<string, unknown>,
+): ParsedTextPayload {
+  const providerRequestId = typeof payload.id === 'string' ? payload.id : null;
+  const usage =
+    payload.usage && typeof payload.usage === 'object'
+      ? (payload.usage as Record<string, unknown>)
+      : {};
+  if (provider === 'anthropic') {
+    const blocks = Array.isArray(payload.content) ? payload.content : [];
+    const text = blocks
+      .map((block) =>
+        block &&
+        typeof block === 'object' &&
+        (block as Record<string, unknown>).type === 'text' &&
+        typeof (block as Record<string, unknown>).text === 'string'
+          ? ((block as Record<string, unknown>).text as string)
+          : '',
+      )
+      .join('')
+      .trim();
+    return {
+      text: payload.stop_reason === 'refusal' ? '' : text,
+      providerRequestId,
+      inputTokens: safeInteger(usage.input_tokens),
+      outputTokens: safeInteger(usage.output_tokens),
+    };
+  }
+  if (provider === 'deepseek' || provider === 'qwen') {
+    const choices = Array.isArray(payload.choices) ? payload.choices : [];
+    const first =
+      choices[0] && typeof choices[0] === 'object'
+        ? (choices[0] as Record<string, unknown>)
+        : {};
+    const message =
+      first.message && typeof first.message === 'object'
+        ? (first.message as Record<string, unknown>)
+        : {};
+    return {
+      text: typeof message.content === 'string' ? message.content.trim() : '',
+      providerRequestId,
+      inputTokens: safeInteger(usage.prompt_tokens),
+      outputTokens: safeInteger(usage.completion_tokens),
+    };
+  }
+  return {
+    text: extractResponseText(payload),
+    providerRequestId,
+    inputTokens: safeInteger(
+      (usage as { input_tokens?: unknown }).input_tokens,
+    ),
+    outputTokens: safeInteger(
+      (usage as { output_tokens?: unknown }).output_tokens,
+    ),
+  };
 }
 
 export function parseJson(value: string): Record<string, unknown> | null {

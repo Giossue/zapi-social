@@ -2129,6 +2129,70 @@ export const aiModelRoutes = pgTable(
   ]
 )
 
+export const aiAgents = pgTable(
+  "ai_agents",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    name: varchar("name", { length: 120 }).notNull(),
+    description: varchar("description", { length: 500 }).notNull().default(""),
+    systemPrompt: text("system_prompt").notNull().default(""),
+    kind: varchar("kind", { length: 16 })
+      .$type<"orchestrator" | "specialist">()
+      .notNull()
+      .default("specialist"),
+    modelId: uuid("model_id").references(() => aiModels.id, {
+      onDelete: "restrict",
+    }),
+    tools: jsonb("tools")
+      .$type<string[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    enabled: boolean("enabled").notNull().default(true),
+    canvasPosition: jsonb("canvas_position")
+      .$type<{ x: number; y: number }>()
+      .notNull()
+      .default(sql`'{"x":0,"y":0}'::jsonb`),
+    updatedByUserId: uuid("updated_by_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("ai_agents_name_unique").on(table.name),
+    uniqueIndex("ai_agents_orchestrator_unique")
+      .on(table.kind)
+      .where(sql`${table.kind} = 'orchestrator'`),
+    check(
+      "ai_agents_kind_check",
+      sql`${table.kind} in ('orchestrator', 'specialist')`
+    ),
+  ]
+)
+
+export const aiAgentEdges = pgTable(
+  "ai_agent_edges",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    sourceAgentId: uuid("source_agent_id")
+      .notNull()
+      .references(() => aiAgents.id, { onDelete: "cascade" }),
+    targetAgentId: uuid("target_agent_id")
+      .notNull()
+      .references(() => aiAgents.id, { onDelete: "cascade" }),
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("ai_agent_edges_source_target_unique").on(
+      table.sourceAgentId,
+      table.targetAgentId
+    ),
+    check(
+      "ai_agent_edges_no_self_check",
+      sql`${table.sourceAgentId} <> ${table.targetAgentId}`
+    ),
+  ]
+)
+
 export const aiUserSettings = pgTable(
   "ai_user_settings",
   {

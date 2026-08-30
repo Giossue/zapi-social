@@ -31,7 +31,13 @@ export const aiReasoningEffortSchema = z.enum([
 
 export const aiModelCapabilitySchema = z.enum(["text", "image", "video"])
 
-export const adminAiProviderKeySchema = z.enum(["openai", "atlascloud"])
+export const adminAiProviderKeySchema = z.enum([
+  "openai",
+  "atlascloud",
+  "deepseek",
+  "qwen",
+  "anthropic",
+])
 
 export const aiModelModeSchema = z.enum([
   "text-to-image",

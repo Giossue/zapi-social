@@ -37,6 +37,7 @@ import {
   type AdminAiReport,
   type AdminAiRequestsResponse,
   type AdminAiProviderKey,
+  adminAiProviderKeySchema,
   type AdminAiRoute,
   type AdminAiUsage,
   type AiModelMode,
@@ -49,6 +50,13 @@ import { AppException } from '../platform/errors/app-exception';
 
 const openAiModelsUrl = 'https://api.openai.com/v1/models';
 const atlasCloudBalanceUrl = 'https://api.atlascloud.ai/public/v1/balance';
+const deepSeekModelsUrl = 'https://api.deepseek.com/models';
+const qwenModelsUrl =
+  'https://dashscope-intl.aliyuncs.com/compatible-mode/v1/models';
+const anthropicModelsUrl = 'https://api.anthropic.com/v1/models';
+const anthropicVersion = '2023-06-01';
+
+const textProviderKeys = new Set(['openai', 'deepseek', 'qwen', 'anthropic']);
 
 const providerSpecs: Record<
   AdminAiProviderKey,
@@ -63,6 +71,13 @@ const providerSpecs: Record<
     label: 'AtlasCloud',
     aad: 'ai:atlascloud',
     capabilities: ['image', 'video'],
+  },
+  deepseek: { label: 'DeepSeek', aad: 'ai:deepseek', capabilities: ['text'] },
+  qwen: { label: 'Qwen', aad: 'ai:qwen', capabilities: ['text'] },
+  anthropic: {
+    label: 'Anthropic',
+    aad: 'ai:anthropic',
+    capabilities: ['text'],
   },
 };
 
@@ -426,7 +441,7 @@ export class AdminAiService {
       );
     const invalidProviders = mediaModes
       ? models.some((model) => model.providerKey !== 'atlascloud')
-      : models.some((model) => model.providerKey !== 'openai');
+      : models.some((model) => !textProviderKeys.has(model.providerKey));
     const invalidFallback =
       Boolean(fallback && primary?.providerKey !== fallback.providerKey) ||
       Boolean(
@@ -608,14 +623,35 @@ export class AdminAiService {
     if (providerKey === 'atlascloud') {
       return this.verifyAtlasCloud(apiKey);
     }
-    return this.verifyOpenAi(apiKey);
+    if (providerKey === 'anthropic') {
+      return this.verifyModelCatalog(anthropicModelsUrl, {
+        'x-api-key': apiKey,
+        'anthropic-version': anthropicVersion,
+      });
+    }
+    if (providerKey === 'deepseek') {
+      return this.verifyModelCatalog(deepSeekModelsUrl, {
+        authorization: `Bearer ${apiKey}`,
+      });
+    }
+    if (providerKey === 'qwen') {
+      return this.verifyModelCatalog(qwenModelsUrl, {
+        authorization: `Bearer ${apiKey}`,
+      });
+    }
+    return this.verifyModelCatalog(openAiModelsUrl, {
+      authorization: `Bearer ${apiKey}`,
+    });
   }
 
-  private async verifyOpenAi(apiKey: string) {
+  private async verifyModelCatalog(
+    url: string,
+    headers: Record<string, string>,
+  ) {
     let response: Response;
     try {
-      response = await fetch(openAiModelsUrl, {
-        headers: { authorization: `Bearer ${apiKey}` },
+      response = await fetch(url, {
+        headers,
         signal: AbortSignal.timeout(20_000),
       });
     } catch {
@@ -712,7 +748,8 @@ export class AdminAiService {
   }
 
   private parseProviderKey(value: string): AdminAiProviderKey {
-    if (value === 'openai' || value === 'atlascloud') return value;
+    const parsed = adminAiProviderKeySchema.safeParse(value);
+    if (parsed.success) return parsed.data;
     throw this.invalid();
   }
 

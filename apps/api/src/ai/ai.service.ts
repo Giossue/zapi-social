@@ -169,7 +169,13 @@ export class AiService {
           })
           .from(providerIntegrations)
           .where(
-            inArray(providerIntegrations.providerKey, ['openai', 'atlascloud']),
+            inArray(providerIntegrations.providerKey, [
+              'openai',
+              'atlascloud',
+              'deepseek',
+              'qwen',
+              'anthropic',
+            ]),
           ),
         this.database.db
           .select({ total: count() })

@@ -123,6 +123,9 @@ type ProviderDraft = {
 const emptyProviderDrafts: Record<AdminAiProviderKey, ProviderDraft> = {
   openai: { apiKey: "", enabled: false, tested: false },
   atlascloud: { apiKey: "", enabled: false, tested: false },
+  deepseek: { apiKey: "", enabled: false, tested: false },
+  qwen: { apiKey: "", enabled: false, tested: false },
+  anthropic: { apiKey: "", enabled: false, tested: false },
 }
 
 type Formatter = ReturnType<typeof useFormatter>
@@ -270,22 +273,19 @@ export function AiConfigurationPage() {
     try {
       const nextConfiguration = await adminAiApi.configuration()
       setConfiguration(nextConfiguration)
-      setProviderDrafts((current) => ({
-        openai: {
-          ...current.openai,
-          enabled:
-            nextConfiguration.providers.find(
-              (provider) => provider.providerKey === "openai"
-            )?.enabled ?? false,
-        },
-        atlascloud: {
-          ...current.atlascloud,
-          enabled:
-            nextConfiguration.providers.find(
-              (provider) => provider.providerKey === "atlascloud"
-            )?.enabled ?? false,
-        },
-      }))
+      setProviderDrafts((current) => {
+        const next = { ...current }
+        for (const key of Object.keys(next) as AdminAiProviderKey[]) {
+          next[key] = {
+            ...next[key],
+            enabled:
+              nextConfiguration.providers.find(
+                (provider) => provider.providerKey === key
+              )?.enabled ?? false,
+          }
+        }
+        return next
+      })
     } catch (error) {
       setForbidden(error instanceof ApiError && error.status === 403)
       setLoadError(true)
