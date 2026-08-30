@@ -4,15 +4,24 @@ import { useTranslations } from "next-intl"
 import Link from "next/link"
 import { type FormEvent, useEffect, useRef, useState } from "react"
 import {
+  BookOpenText,
   CalendarDays,
   CircleAlert,
   FileText,
   History,
+  ImagePlus,
   ListChecks,
+  NotebookText,
   Send,
 } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
-import { Card, CardContent } from "@workspace/ui/components/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import {
   Sheet,
@@ -23,6 +32,7 @@ import {
   SheetTitle,
 } from "@workspace/ui/components/sheet"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { PageLoading } from "@workspace/ui/components/page-loading"
 import {
   Field,
   FieldGroup,
@@ -34,10 +44,17 @@ import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { cn } from "@workspace/ui/lib/utils"
-import { ApiError, filesApi, publishingApi } from "@workspace/api-client"
+import {
+  ApiError,
+  captionsApi,
+  filesApi,
+  publishingApi,
+} from "@workspace/api-client"
 import type {
   GoogleDriveImportBatch,
   PortalGoogleDriveConfiguration,
+  PortalCaption,
+  PortalPublishingNote,
 } from "@workspace/contracts"
 import { PublishingAccountPicker } from "@/features/publishing/components/publishing-account-picker"
 import { PublishingCalendar } from "@/features/publishing/components/publishing-calendar"
@@ -56,6 +73,7 @@ import { BulkPostsPage } from "@/features/bulk-posts/components/bulk-posts-page"
 
 export type PublishingSection = "calendar" | "activity" | "bulk-posts"
 type ComposerMode = "draft" | "now" | "schedule"
+type ComposerTool = "captions" | "media" | "notes" | null
 
 const defaultScheduleDate = "2026-08-03"
 const defaultScheduleTime = "10:00"
@@ -164,6 +182,14 @@ function ComposerDialog({
     null
   )
   const [openingDrive, setOpeningDrive] = useState(false)
+  const [activeTool, setActiveTool] = useState<ComposerTool>(null)
+  const [captions, setCaptions] = useState<PortalCaption[]>([])
+  const [captionsLoaded, setCaptionsLoaded] = useState(false)
+  const [notes, setNotes] = useState<PortalPublishingNote[]>([])
+  const [notesLoaded, setNotesLoaded] = useState(false)
+  const [toolLoading, setToolLoading] = useState(false)
+  const [noteDraft, setNoteDraft] = useState("")
+  const [savingNote, setSavingNote] = useState(false)
   const handledDriveBatch = useRef<string | null>(null)
   const hasMedia = selectedMediaAssetId !== null
   const selected = accounts.filter((account) =>
@@ -194,6 +220,31 @@ function ComposerDialog({
         })
       )
   }, [])
+
+  useEffect(() => {
+    if (activeTool === "captions" && !captionsLoaded) {
+      setToolLoading(true)
+      void captionsApi
+        .list({ status: "active" })
+        .then((response) => {
+          setCaptions(response.captions)
+          setCaptionsLoaded(true)
+        })
+        .catch(() => toast.error(t("toolLoadFailed")))
+        .finally(() => setToolLoading(false))
+    }
+    if (activeTool === "notes" && !notesLoaded) {
+      setToolLoading(true)
+      void publishingApi
+        .listNotes()
+        .then((response) => {
+          setNotes(response.notes)
+          setNotesLoaded(true)
+        })
+        .catch(() => toast.error(t("toolLoadFailed")))
+        .finally(() => setToolLoading(false))
+    }
+  }, [activeTool, captionsLoaded, notesLoaded, t])
 
   useEffect(() => {
     if (!driveBatch) return
@@ -279,6 +330,33 @@ function ComposerDialog({
     }
   }
 
+  function toggleTool(tool: Exclude<ComposerTool, null>) {
+    setActiveTool((current) => (current === tool ? null : tool))
+  }
+
+  function appendContent(value: string) {
+    setContent((current) =>
+      current.trim() ? `${current.trim()}\n\n${value}` : value
+    )
+  }
+
+  async function saveNote() {
+    const nextContent = noteDraft.trim()
+    if (!nextContent || savingNote) return
+    setSavingNote(true)
+    try {
+      const note = await publishingApi.createNote({ content: nextContent })
+      setNotes((current) => [note, ...current])
+      setNotesLoaded(true)
+      setNoteDraft("")
+      toast.success(t("noteSaved"))
+    } catch {
+      toast.error(t("noteSaveFailed"))
+    } finally {
+      setSavingNote(false)
+    }
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!canSubmit) return
@@ -322,7 +400,13 @@ function ComposerDialog({
           onSubmit={handleSubmit}
         >
           <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4">
-            <div className="mx-auto grid w-full max-w-7xl grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(24rem,0.9fr)]">
+            <div
+              className={cn(
+                "mx-auto grid w-full max-w-7xl grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(24rem,0.9fr)]",
+                activeTool === "notes" &&
+                  "xl:grid-cols-[minmax(0,1fr)_minmax(22rem,0.8fr)_minmax(18rem,0.7fr)]"
+              )}
+            >
               <FieldGroup className="min-w-0">
                 <FieldSet>
                   <FieldLabel asChild>
@@ -342,38 +426,111 @@ function ComposerDialog({
                   <FieldLabel htmlFor="publishing-content">
                     {t("content")} <RequiredMark />
                   </FieldLabel>
-                  <Textarea
-                    aria-required="true"
-                    id="publishing-content"
-                    onChange={(event) => setContent(event.target.value)}
-                    placeholder={t("contentPlaceholder")}
-                    value={content}
-                  />
+                  <Card variant="surface">
+                    <CardContent className="flex flex-col gap-3 p-3">
+                      <Textarea
+                        aria-required="true"
+                        className="min-h-56 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0"
+                        id="publishing-content"
+                        onChange={(event) => setContent(event.target.value)}
+                        placeholder={t("contentPlaceholder")}
+                        value={content}
+                      />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Button
+                          aria-pressed={activeTool === "media"}
+                          onClick={() => toggleTool("media")}
+                          size="sm"
+                          type="button"
+                          variant="brand-secondary"
+                        >
+                          <ImagePlus data-icon="inline-start" />
+                          {t("tool.media")}
+                        </Button>
+                        <Button
+                          aria-pressed={activeTool === "captions"}
+                          onClick={() => toggleTool("captions")}
+                          size="sm"
+                          type="button"
+                          variant="brand-secondary"
+                        >
+                          <BookOpenText data-icon="inline-start" />
+                          {t("tool.captions")}
+                        </Button>
+                        <Button
+                          aria-pressed={activeTool === "notes"}
+                          onClick={() => toggleTool("notes")}
+                          size="sm"
+                          type="button"
+                          variant="brand-secondary"
+                        >
+                          <NotebookText data-icon="inline-start" />
+                          {t("tool.notes")}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </Field>
 
-                <Field>
-                  <FieldLabel>
-                    {t("media")} {requiresMedia ? <RequiredMark /> : null}
-                  </FieldLabel>
-                  <PublishingMediaPicker
-                    ariaRequired={requiresMedia}
-                    assets={availableMedia ?? []}
-                    driveEnabled={driveProvider?.enabled ?? false}
-                    driveImportStatus={
-                      driveBatch
-                        ? driveBatch.status === "failed" ||
-                          driveBatch.status === "expired" ||
-                          driveBatch.status === "partial"
-                          ? "failed"
-                          : "processing"
-                        : undefined
-                    }
-                    driveOpening={openingDrive}
-                    onChange={setSelectedMediaAssetId}
-                    onImportFromDrive={() => void importFromGoogleDrive()}
-                    selectedAssetId={selectedMediaAssetId}
-                  />
-                </Field>
+                {activeTool === "media" ? (
+                  <Field>
+                    <FieldLabel>
+                      {t("media")} {requiresMedia ? <RequiredMark /> : null}
+                    </FieldLabel>
+                    <PublishingMediaPicker
+                      ariaRequired={requiresMedia}
+                      assets={availableMedia ?? []}
+                      driveEnabled={driveProvider?.enabled ?? false}
+                      driveImportStatus={
+                        driveBatch
+                          ? driveBatch.status === "failed" ||
+                            driveBatch.status === "expired" ||
+                            driveBatch.status === "partial"
+                            ? "failed"
+                            : "processing"
+                          : undefined
+                      }
+                      driveOpening={openingDrive}
+                      onChange={setSelectedMediaAssetId}
+                      onImportFromDrive={() => void importFromGoogleDrive()}
+                      selectedAssetId={selectedMediaAssetId}
+                    />
+                  </Field>
+                ) : null}
+
+                {activeTool === "captions" ? (
+                  <Card size="sm" variant="inset">
+                    <CardHeader>
+                      <CardTitle>{t("captionsTitle")}</CardTitle>
+                      <CardDescription>
+                        {t("captionsDescription")}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex flex-col gap-2 p-3">
+                      {toolLoading ? (
+                        <PageLoading className="min-h-28" />
+                      ) : captions.length ? (
+                        captions.map((caption) => (
+                          <Button
+                            className="h-auto justify-start text-left whitespace-normal"
+                            key={caption.id}
+                            onClick={() => appendContent(caption.content)}
+                            type="button"
+                            variant="brand-secondary"
+                          >
+                            <span className="line-clamp-2">
+                              {caption.content}
+                            </span>
+                          </Button>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground">
+                          {t("captionsEmpty")}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                ) : null}
 
                 <Field>
                   <FieldLabel>{t("when")}</FieldLabel>
@@ -413,6 +570,59 @@ function ComposerDialog({
                   selectedAccountIds={selectedAccounts}
                 />
               </div>
+
+              {activeTool === "notes" ? (
+                <Card
+                  className="min-w-0 xl:col-start-3 xl:row-start-1"
+                  variant="surface"
+                >
+                  <CardHeader>
+                    <CardTitle>{t("notesTitle")}</CardTitle>
+                    <CardDescription>{t("notesDescription")}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-col gap-3 p-3">
+                    <Textarea
+                      aria-label={t("notePlaceholder")}
+                      onChange={(event) => setNoteDraft(event.target.value)}
+                      placeholder={t("notePlaceholder")}
+                      value={noteDraft}
+                    />
+                    <Button
+                      disabled={!noteDraft.trim() || savingNote}
+                      onClick={() => void saveNote()}
+                      type="button"
+                    >
+                      {savingNote ? (
+                        <Spinner data-icon="inline-start" />
+                      ) : (
+                        <NotebookText data-icon="inline-start" />
+                      )}
+                      {t("saveNote")}
+                    </Button>
+                    {toolLoading ? (
+                      <PageLoading className="min-h-28" />
+                    ) : notes.length ? (
+                      <div className="flex flex-col gap-2">
+                        {notes.map((note) => (
+                          <Button
+                            className="h-auto justify-start text-left whitespace-normal"
+                            key={note.id}
+                            onClick={() => appendContent(note.content)}
+                            type="button"
+                            variant="brand-secondary"
+                          >
+                            <span className="line-clamp-3">{note.content}</span>
+                          </Button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        {t("notesEmpty")}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              ) : null}
             </div>
           </div>
 

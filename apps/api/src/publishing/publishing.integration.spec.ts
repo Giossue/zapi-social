@@ -6,6 +6,7 @@ import {
   automationWebhookDeliveries,
   automationWebhooks,
   createDatabase,
+  publishingNotes,
   publishingPosts,
   socialAccountMemberships,
   socialAccounts,
@@ -330,6 +331,42 @@ describeDatabase('Publishing reliability', () => {
       ).rejects.toMatchObject({
         code: 'PUBLISHING_RETRY_OUTCOME_UNKNOWN',
       } satisfies Partial<AppException>);
+    });
+  });
+
+  it('keeps internal notes in the workspace and requires publishing management to mutate them', async () => {
+    await inRollbackTransaction(async (database) => {
+      const scenario = await seedScenario(database, 'internal-notes');
+      const service = publishingService(database);
+      const created = await service.createNote(scenario.ownerSession, {
+        content: 'Confirmar el material creativo antes de programar.',
+      });
+
+      await expect(
+        service.createNote(scenario.memberSession, {
+          content: 'Una nota no autorizada.',
+        }),
+      ).rejects.toMatchObject({
+        code: 'AUTH_PORTAL_ACCESS_REQUIRED',
+      } satisfies Partial<AppException>);
+
+      const updated = await service.updateNote(
+        scenario.ownerSession,
+        created.id,
+        {
+          content:
+            'Confirmar el material creativo con el equipo antes de programar.',
+        },
+      );
+      const visible = await service.listNotes(scenario.memberSession);
+      expect(visible.notes).toEqual([updated]);
+
+      await service.removeNote(scenario.ownerSession, created.id);
+      const rows = await database
+        .select()
+        .from(publishingNotes)
+        .where(eq(publishingNotes.workspaceId, scenario.workspaceId));
+      expect(rows).toHaveLength(0);
     });
   });
 });

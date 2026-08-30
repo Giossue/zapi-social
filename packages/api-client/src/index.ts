@@ -78,6 +78,10 @@ import type {
   CreatePortalPublishingPostsInput,
   UpdatePortalPublishingPostInput,
   PortalPublishingPost,
+  CreatePortalPublishingNoteInput,
+  PortalPublishingNote,
+  PortalPublishingNotesResponse,
+  UpdatePortalPublishingNoteInput,
   AdminAiTemplatesResponse,
   AdminAnalyticsSettings,
   AdminAuditEventsResponse,
@@ -725,6 +729,22 @@ export const publishingApi = {
     request<PortalPublishingPost>(`/v1/portal/publishing/${id}/retry`, {
       method: "POST",
     }),
+  listNotes: () =>
+    request<PortalPublishingNotesResponse>("/v1/portal/publishing/notes", {
+      method: "GET",
+    }),
+  createNote: (input: CreatePortalPublishingNoteInput) =>
+    request<PortalPublishingNote>("/v1/portal/publishing/notes", {
+      method: "POST",
+      body: JSON.stringify(input),
+    }),
+  updateNote: (id: string, input: UpdatePortalPublishingNoteInput) =>
+    request<PortalPublishingNote>(`/v1/portal/publishing/notes/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    }),
+  removeNote: (id: string) =>
+    request<void>(`/v1/portal/publishing/notes/${id}`, { method: "DELETE" }),
 }
 
 export const rssSchedulesApi = {

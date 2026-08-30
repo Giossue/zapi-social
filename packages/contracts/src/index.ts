@@ -391,6 +391,24 @@ export const portalPublishingPostSchema = z.object({
   recoverable: z.boolean().optional(),
   mediaAssetIds: z.array(z.uuid()),
 })
+export const portalPublishingNoteSchema = z.object({
+  id: z.uuid(),
+  content: z.string(),
+  updatedAt: z.string().datetime(),
+})
+export const portalPublishingNotesResponseSchema = z.object({
+  notes: z.array(portalPublishingNoteSchema),
+})
+export const createPortalPublishingNoteSchema = z
+  .object({
+    content: z.string().trim().min(1).max(5000),
+  })
+  .strict()
+export const updatePortalPublishingNoteSchema = z
+  .object({
+    content: z.string().trim().min(1).max(5000),
+  })
+  .strict()
 export const portalPublishingQuerySchema = z
   .object({
     from: z.string().datetime().optional(),
@@ -1323,6 +1341,10 @@ export type PortalPublishingAccount = z.infer<
   typeof portalPublishingAccountSchema
 >
 export type PortalPublishingPost = z.infer<typeof portalPublishingPostSchema>
+export type PortalPublishingNote = z.infer<typeof portalPublishingNoteSchema>
+export type PortalPublishingNotesResponse = z.infer<
+  typeof portalPublishingNotesResponseSchema
+>
 export type PortalPublishingResponse = z.infer<
   typeof portalPublishingResponseSchema
 >
@@ -1332,6 +1354,12 @@ export type CreatePortalPublishingPostsInput = z.infer<
 >
 export type UpdatePortalPublishingPostInput = z.infer<
   typeof updatePortalPublishingPostSchema
+>
+export type CreatePortalPublishingNoteInput = z.infer<
+  typeof createPortalPublishingNoteSchema
+>
+export type UpdatePortalPublishingNoteInput = z.infer<
+  typeof updatePortalPublishingNoteSchema
 >
 export type RssSchedulePermissionId = z.infer<
   typeof rssSchedulePermissionIdSchema

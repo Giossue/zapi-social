@@ -25,6 +25,43 @@ export class PublishingController {
     private readonly access: SessionAccessService,
   ) {}
 
+  @Get('notes')
+  async listNotes(@Req() request: FastifyRequest) {
+    return this.publishing.listNotes(
+      await this.access.requirePortalSession(request),
+    );
+  }
+
+  @Post('notes')
+  async createNote(@Req() request: FastifyRequest, @Body() body: unknown) {
+    return this.publishing.createNote(
+      await this.access.requirePortalSession(request),
+      body,
+    );
+  }
+
+  @Patch('notes/:id')
+  async updateNote(
+    @Req() request: FastifyRequest,
+    @Param('id') id: string,
+    @Body() body: unknown,
+  ) {
+    return this.publishing.updateNote(
+      await this.access.requirePortalSession(request),
+      id,
+      body,
+    );
+  }
+
+  @Delete('notes/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeNote(@Req() request: FastifyRequest, @Param('id') id: string) {
+    await this.publishing.removeNote(
+      await this.access.requirePortalSession(request),
+      id,
+    );
+  }
+
   @Get() async list(@Req() request: FastifyRequest, @Query() query: unknown) {
     return this.publishing.list(
       await this.access.requirePortalSession(request),

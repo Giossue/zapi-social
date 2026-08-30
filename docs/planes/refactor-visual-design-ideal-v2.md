@@ -245,6 +245,13 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - Validación: typecheck de Web, auditoría Portal/UI y `git diff --check` correctos.
 - Validación: format y typecheck de Web, auditoría Portal/UI, build Web y `git diff --check` correctos. Biome de la fuente excluye ese renderer compartido por configuración.
 
+## Publicación — compositor orientado a texto — 30 de agosto de 2026
+
+- La fuente canónica `dashboard/publishing/publishing-interaction-demo.tsx` y el compositor Portal pasan a priorizar el bloque de texto: cuentas arriba, editor con cinta de herramientas y fecha/programación debajo. El preview conserva su propia columna y, al abrir Notas internas, el panel persistente se expande como tercera columna a la derecha en escritorio.
+- La cinta contiene únicamente Media, Captions y Notas internas. Media conserva el selector de Files/Google Drive; Captions carga los captions activos e inserta su texto; Notas internas guarda textos reutilizables de workspace y permite añadirlos al post. No se inventaron controles para emoji, ubicación o enlaces.
+- La persistencia de notas vive en `publishing_notes`, aislada por workspace y con mutaciones autorizadas por `publishing.manage`; la migración `0051_uneven_dark_phoenix` quedó aplicada en la base remota después de validar su SQL dentro de una transacción con rollback.
+- Validación: typecheck del monorepo, build API/Web, auditorías i18n y Portal/UI, prueba focal de Publishing y `git diff --check` correctos; Biome focal del compositor fuente correcto. El build completo de la fuente conserva dos fallos TypeScript preexistentes fuera de Publishing.
+
 ## Files — carpetas y archivos en una sola superficie — 15 de agosto de 2026
 
 - Producto pidió el modelo de Google Drive: una sola vista donde las carpetas encabezan el mismo listado que los archivos, en vez de una sección `Carpetas` con cards grandes y otra `Todos los archivos`. El cambio se hizo primero en `template-shadcn-superdashboard/src/app/(main)/dashboard/file-manager/` y luego se copió a V2.

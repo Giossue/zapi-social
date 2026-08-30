@@ -9,6 +9,7 @@ import type { Queue } from 'bullmq';
 import {
   apiAuditLogs,
   fileAssets,
+  publishingNotes,
   publishingPostMedia,
   publishingPosts,
   socialAccounts,
@@ -25,10 +26,14 @@ import {
 } from '@workspace/database/query';
 import {
   createPortalPublishingPostsSchema,
+  createPortalPublishingNoteSchema,
   portalPublishingQuerySchema,
+  updatePortalPublishingNoteSchema,
   updatePortalPublishingPostSchema,
   workspacePermissionMatches,
   type PortalAuthSession,
+  type PortalPublishingNote,
+  type PortalPublishingNotesResponse,
   type PortalPublishingPost,
   type PortalPublishingResponse,
   type PublishingProvider,
@@ -57,6 +62,7 @@ const publishCapabilities = new Set([
 ]);
 
 type Account = typeof socialAccounts.$inferSelect;
+type PublishingNote = typeof publishingNotes.$inferSelect;
 type Post = typeof publishingPosts.$inferSelect;
 type Transaction = Parameters<
   Parameters<DatabaseService['db']['transaction']>[0]
@@ -316,6 +322,108 @@ export class PublishingService {
         to: rangeTo.toISOString(),
       },
     };
+  }
+
+  async listNotes(
+    session: PortalAuthSession,
+  ): Promise<PortalPublishingNotesResponse> {
+    const notes = await this.database.db
+      .select()
+      .from(publishingNotes)
+      .where(eq(publishingNotes.workspaceId, session.workspace.id))
+      .orderBy(desc(publishingNotes.updatedAt), desc(publishingNotes.id));
+    return { notes: notes.map((note) => this.serializeNote(note)) };
+  }
+
+  async createNote(
+    session: PortalAuthSession,
+    input: unknown,
+  ): Promise<PortalPublishingNote> {
+    this.requireManage(session);
+    const parsed = createPortalPublishingNoteSchema.safeParse(input);
+    if (!parsed.success) throw this.invalid();
+    const [note] = await this.database.db.transaction(async (tx) => {
+      const [created] = await tx
+        .insert(publishingNotes)
+        .values({
+          workspaceId: session.workspace.id,
+          createdByUserId: session.user.id,
+          content: parsed.data.content,
+        })
+        .returning();
+      if (!created) throw this.failed();
+      await tx.insert(apiAuditLogs).values({
+        workspaceId: session.workspace.id,
+        actorUserId: session.user.id,
+        event: 'publishing.note_created',
+        subjectType: 'publishing_note',
+        subjectId: created.id,
+        metadata: {},
+      });
+      return [created];
+    });
+    if (!note) throw this.failed();
+    return this.serializeNote(note);
+  }
+
+  async updateNote(
+    session: PortalAuthSession,
+    id: string,
+    input: unknown,
+  ): Promise<PortalPublishingNote> {
+    this.requireManage(session);
+    const noteId = this.parseId(id);
+    const parsed = updatePortalPublishingNoteSchema.safeParse(input);
+    if (!parsed.success) throw this.invalid();
+    const [note] = await this.database.db.transaction(async (tx) => {
+      const [updated] = await tx
+        .update(publishingNotes)
+        .set({ content: parsed.data.content, updatedAt: new Date() })
+        .where(
+          and(
+            eq(publishingNotes.id, noteId),
+            eq(publishingNotes.workspaceId, session.workspace.id),
+          ),
+        )
+        .returning();
+      if (!updated) throw this.notFound();
+      await tx.insert(apiAuditLogs).values({
+        workspaceId: session.workspace.id,
+        actorUserId: session.user.id,
+        event: 'publishing.note_updated',
+        subjectType: 'publishing_note',
+        subjectId: updated.id,
+        metadata: {},
+      });
+      return [updated];
+    });
+    if (!note) throw this.notFound();
+    return this.serializeNote(note);
+  }
+
+  async removeNote(session: PortalAuthSession, id: string): Promise<void> {
+    this.requireManage(session);
+    const noteId = this.parseId(id);
+    await this.database.db.transaction(async (tx) => {
+      const [removed] = await tx
+        .delete(publishingNotes)
+        .where(
+          and(
+            eq(publishingNotes.id, noteId),
+            eq(publishingNotes.workspaceId, session.workspace.id),
+          ),
+        )
+        .returning({ id: publishingNotes.id });
+      if (!removed) throw this.notFound();
+      await tx.insert(apiAuditLogs).values({
+        workspaceId: session.workspace.id,
+        actorUserId: session.user.id,
+        event: 'publishing.note_deleted',
+        subjectType: 'publishing_note',
+        subjectId: removed.id,
+        metadata: {},
+      });
+    });
   }
 
   async create(
@@ -857,6 +965,13 @@ export class PublishingService {
       mediaAssetIds,
     };
   }
+  private serializeNote(note: PublishingNote): PortalPublishingNote {
+    return {
+      id: note.id,
+      content: note.content,
+      updatedAt: note.updatedAt.toISOString(),
+    };
+  }
 
   private provider(account: Account): PublishingProvider {
     if (account.capabilityKey === 'instagram_profile') return 'instagram';
@@ -893,6 +1008,15 @@ export class PublishingService {
         'AUTH_PORTAL_ACCESS_REQUIRED',
         HttpStatus.FORBIDDEN,
       );
+  }
+  private parseId(value: string) {
+    if (
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        value,
+      )
+    )
+      throw this.notFound();
+    return value;
   }
   private isUniqueViolation(error: unknown) {
     if (typeof error !== 'object' || error === null) return false;

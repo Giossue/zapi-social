@@ -1117,6 +1117,27 @@ export const publishingPosts = pgTable(
   ]
 )
 
+export const publishingNotes = pgTable(
+  "publishing_notes",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    createdByUserId: uuid("created_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    content: varchar("content", { length: 5000 }).notNull(),
+    ...timestamps,
+  },
+  (table) => [
+    index("publishing_notes_workspace_updated_index").on(
+      table.workspaceId,
+      table.updatedAt
+    ),
+  ]
+)
+
 export const publishingPostMedia = pgTable(
   "publishing_post_media",
   {
