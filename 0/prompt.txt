@@ -1,0 +1,41 @@
+En portal captions dime que sentido tiene poner esto de origen IA
+
+---
+
+/caveman explicamelo de nuevo
+
+---
+
+ok, dime en /portal/ai-studio es capaz de crear captions?
+
+---
+
+ok, dime, que nomás hace la IA hoy en dia em ai stidio acá
+
+---
+
+/caveman repiteme
+
+---
+
+Borra este botón
+
+---
+
+No me gusta este sidebar 
+ en imagens y video no puedes crearlo como esto? 
+ o al menos en el propio chat con unas opciones dentro del propio chat, no tiene algo parecido a 
+ de https://elements.ai-sdk.dev/components/prompt-input, no sé toca usar mucho https://elements.ai-sdk.dev/components/* y ver que nos sirve:
+https://elements.ai-sdk.dev/llms.txt
+
+---
+
+espera, primero dime, hay uno mejor que https://elements.ai-sdk.dev? que sea compatible con nuestro stack, porque entiendo que trabaja con shadcn o no?
+
+---
+
+ojo, componentes de ia chat, como el de https://elements.ai-sdk.dev/, no me refiero espeficamente a una funcionalidad, sino a algo más completo
+
+---
+
+ok retoma
