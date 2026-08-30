@@ -1,0 +1,46 @@
+{
+  "cli_version": "0.10.2",
+  "checkpoint_id": "01M19ZDY4EGAVZ67GH3QSM1R1T",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "apps/api/src/ai/admin-ai.controller.ts",
+    "apps/api/src/ai/admin-ai.service.ts",
+    "apps/api/src/ai/ai.service.ts",
+    "apps/api/src/platform/errors/app-exception.ts",
+    "apps/web/features/ai-admin/components/ai-agents-canvas-page.tsx",
+    "apps/web/features/ai-admin/fixtures/ai-agents.ts",
+    "apps/web/features/ai-studio/components/ai-chat-page.tsx",
+    "apps/web/features/ai-studio/components/ai-chat-tools.ts",
+    "apps/worker/src/ai/ai-request.processor.ts",
+    "docs/planes/ai-studio-v2.md",
+    "packages/api-client/src/index.ts",
+    "packages/contracts/src/ai-v2.ts",
+    "packages/contracts/src/messages/en.json",
+    "packages/contracts/src/messages/es.d.json.ts",
+    "packages/contracts/src/messages/es.json",
+    "packages/contracts/src/plan-limits.ts",
+    "packages/database/drizzle/0053_busy_morbius.sql",
+    "packages/database/drizzle/meta/0053_snapshot.json",
+    "packages/database/drizzle/meta/_journal.json",
+    "packages/database/src/schema.ts",
+    "packages/ui/COMPONENTS.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/0/metadata.json",
+      "transcript": "/0/full.jsonl",
+      "compact_transcript": "/0/transcript.jsonl",
+      "content_hash": "/0/content_hash.txt",
+      "prompt": "/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 180,
+    "cache_creation_tokens": 90262,
+    "cache_read_tokens": 52240759,
+    "output_tokens": 58716,
+    "api_call_count": 90
+  }
+}
