@@ -18,6 +18,7 @@ import {
   CommandList,
   CommandSeparator,
 } from "@workspace/ui/components/command"
+import { Kbd } from "@workspace/ui/components/kbd"
 
 import type {
   DashboardNavigationGroup,
@@ -106,6 +107,7 @@ export function DashboardSearchDialog({
   const t = useTranslations("shell.search")
   const [open, setOpen] = React.useState(false)
   const [query, setQuery] = React.useState("")
+  const [isApplePlatform, setIsApplePlatform] = React.useState(false)
   const router = useRouter()
   const searchItems = getSearchItems(items)
 
@@ -119,6 +121,10 @@ export function DashboardSearchDialog({
 
     document.addEventListener("keydown", down)
     return () => document.removeEventListener("keydown", down)
+  }, [])
+
+  React.useEffect(() => {
+    setIsApplePlatform(/Mac|iPhone|iPad|iPod/.test(navigator.userAgent))
   }, [])
 
   function handleOpenChange(nextOpen: boolean) {
@@ -140,9 +146,9 @@ export function DashboardSearchDialog({
       >
         <Search data-icon="inline-start" />
         {t("trigger")}
-        <kbd className="inline-flex h-5 items-center gap-1 rounded border bg-muted px-1.5 text-[10px] font-medium select-none">
-          <span className="text-xs">⌘</span>J
-        </kbd>
+        <Kbd className="hidden md:inline-flex">
+          {isApplePlatform ? "⌘ J" : "Ctrl J"}
+        </Kbd>
       </Button>
       <CommandDialog open={open} onOpenChange={handleOpenChange}>
         <Command>

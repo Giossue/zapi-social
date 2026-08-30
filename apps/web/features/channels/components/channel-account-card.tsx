@@ -95,9 +95,9 @@ export function ChannelAccountCard({
   const pending = pendingAccountId === account.id
 
   return (
-    <Card className="h-full" variant="subtle">
-      <CardHeader className="flex flex-row items-center gap-3">
-        <Avatar size="lg">
+    <Card className="h-full" size="sm" variant="subtle">
+      <CardHeader className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1 sm:grid-cols-[auto_minmax(0,1fr)_auto_auto] sm:gap-x-3">
+        <Avatar className="row-span-2 sm:row-span-1" size="lg">
           {account.avatarUrl ? (
             <AvatarImage
               alt={t("avatarAlt", { name: account.displayName })}
@@ -106,7 +106,7 @@ export function ChannelAccountCard({
           ) : null}
           <AvatarFallback>{initials(account.displayName)}</AvatarFallback>
         </Avatar>
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <div className="col-start-2 row-start-1 flex min-w-0 flex-col gap-0.5">
           <Tooltip>
             <TooltipTrigger asChild>
               <CardTitle className="truncate">{account.displayName}</CardTitle>
@@ -116,7 +116,7 @@ export function ChannelAccountCard({
           {identity ? (
             <Tooltip>
               <TooltipTrigger asChild>
-                <CardDescription className="truncate">
+                <CardDescription className="truncate text-xs sm:text-sm">
                   {identity}
                 </CardDescription>
               </TooltipTrigger>
@@ -126,7 +126,7 @@ export function ChannelAccountCard({
             <CardDescription>—</CardDescription>
           )}
         </div>
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="col-start-2 row-start-2 justify-self-start sm:col-start-3 sm:row-start-1">
           <Tooltip>
             <Badge asChild variant={disconnected ? "warning" : "success"}>
               <TooltipTrigger>
@@ -160,6 +160,8 @@ export function ChannelAccountCard({
               </div>
             </TooltipContent>
           </Tooltip>
+        </div>
+        <div className="col-start-3 row-start-1 self-center sm:col-start-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
