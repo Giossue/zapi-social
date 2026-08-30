@@ -5186,6 +5186,17 @@ declare const messages: {
     "emptyDescription": "Cuando necesites ayuda, abre un caso y tendrás toda la conversación aquí.",
     "emptyFilteredDescription": "Prueba con otro término o estado.",
     "emptyTitle": "Aún no tienes casos de soporte",
+    "faq": {
+      "clearSearch": "Limpiar búsqueda",
+      "emptyDescription": "Cuando el equipo publique respuestas frecuentes aparecerán aquí.",
+      "emptyTitle": "Aún no hay preguntas publicadas",
+      "loadFailedDescription": "Vuelve a intentarlo para recuperar las preguntas frecuentes.",
+      "loadFailedTitle": "No se pudieron cargar las preguntas frecuentes",
+      "loading": "Cargando preguntas frecuentes",
+      "noMatchesDescription": "Prueba con otras palabras o abre un caso en Mis casos.",
+      "searchLabel": "Buscar en preguntas frecuentes",
+      "searchPlaceholder": "Buscar una pregunta..."
+    },
     "filter": {
       "closed": "Cerrados",
       "open": "Abiertos",
@@ -5210,7 +5221,7 @@ declare const messages: {
     "missingFields": "Completa todos los campos obligatorios.",
     "newTicket": "Nuevo caso",
     "noMatches": "No hay coincidencias",
-    "pageDescription": "Revisa tus casos abiertos y habla con el equipo de Zapi desde un único lugar.",
+    "pageDescription": "Encuentra respuestas rápidas o habla con el equipo de Zapi desde un único lugar.",
     "pageTitle": "Soporte",
     "replyFailed": "No pudimos enviar tu respuesta. Inténtalo de nuevo.",
     "replyPlaceholder": "Escribe tu respuesta...",
@@ -5232,6 +5243,11 @@ declare const messages: {
     "statusColumn": "Estado",
     "subjectHint": "Usa una frase breve para reconocer el caso después.",
     "subjectPlaceholder": "Ej. No puedo publicar en Instagram",
+    "tab": {
+      "cases": "Mis casos",
+      "faqs": "Preguntas frecuentes"
+    },
+    "tabsLabel": "Secciones de soporte",
     "ticket": "Caso",
     "ticketClosedDescription": "Si el problema continúa, crea un caso nuevo para que podamos revisarlo.",
     "ticketClosedTitle": "Este caso está {status}",

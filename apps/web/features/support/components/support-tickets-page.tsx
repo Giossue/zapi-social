@@ -4,6 +4,9 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useState, type FormEvent } from "react"
 import {
+  CircleCheck,
+  CircleDot,
+  CircleX,
   LifeBuoy,
   LockKeyhole,
   MessageSquare,
@@ -31,6 +34,7 @@ import {
 } from "@workspace/ui/components/sheet"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
+import { MetricCard } from "@workspace/ui/components/metric-card"
 import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import {
@@ -58,11 +62,18 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { TableEmptyRow } from "@workspace/ui/components/table-empty-row"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/tabs"
 import { TablePagination } from "@/components/table-pagination"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { toast } from "@workspace/ui/components/toast"
 import { useFormatter, useTranslations } from "next-intl"
 import { loginPath } from "@/features/identity/login-redirect"
+import { SupportFaqPanel } from "@/features/support/components/support-faq-panel"
 
 import type {
   SupportCategory,
@@ -84,6 +95,14 @@ const statusVariant: Record<
   resolved: "success",
   closed: "secondary",
 }
+
+const metricIcons: Record<SupportTicketStatus, typeof CircleDot> = {
+  open: CircleDot,
+  resolved: CircleCheck,
+  closed: CircleX,
+}
+
+const metricStatuses = ["open", "resolved", "closed"] as const
 
 type NewTicketValues = {
   categoryId: string
@@ -275,6 +294,10 @@ export function SupportTicketsPage() {
   const [loadError, setLoadError] = useState(false)
   const [canView, setCanView] = useState(true)
   const [pending, setPending] = useState(false)
+  const [metrics, setMetrics] = useState<Record<
+    SupportTicketStatus,
+    number
+  > | null>(null)
 
   const handleError = useCallback(
     (error: unknown) => {
@@ -318,6 +341,28 @@ export function SupportTicketsPage() {
     return () => clearTimeout(timer)
   }, [load, query])
 
+  const loadMetrics = useCallback(async () => {
+    try {
+      const [open, resolved, closed] = await Promise.all([
+        supportApi.list({ limit: 1, page: 1, status: "open" }),
+        supportApi.list({ limit: 1, page: 1, status: "resolved" }),
+        supportApi.list({ limit: 1, page: 1, status: "closed" }),
+      ])
+      setMetrics({
+        open: open.total,
+        resolved: resolved.total,
+        closed: closed.total,
+      })
+    } catch (error) {
+      if (handleError(error)) return
+      console.error("Support metrics request failed", error)
+    }
+  }, [handleError])
+
+  useEffect(() => {
+    void loadMetrics()
+  }, [loadMetrics])
+
   useEffect(() => {
     let isCurrent = true
     void supportApi
@@ -352,6 +397,7 @@ export function SupportTicketsPage() {
       await supportApi.create(values)
       setPage(1)
       await load()
+      void loadMetrics()
       toast.success(t("created"))
       return true
     } catch (error) {
@@ -409,162 +455,193 @@ export function SupportTicketsPage() {
           description={t("pageDescription")}
           title={t("pageTitle")}
         />
-        <Card variant="subtle">
-          <DataTableHeader
-            action={
-              <Button
-                className="hidden sm:inline-flex"
-                onClick={() => setIsCreateOpen(true)}
-                size="sm"
-                type="button"
-              >
-                <Plus data-icon="inline-start" /> {t("newTicket")}
-              </Button>
-            }
-            search={{
-              ariaLabel: t("searchLabel"),
-              onChange: (value) => {
-                setQuery(value)
-                setPage(1)
-              },
-              placeholder: t("searchPlaceholder"),
-              value: query,
-            }}
-          />
-          <CardContent className="flex flex-col gap-4 px-0">
-            <DataTableToolbar
-              actions={
-                hasFilters ? (
+        <Tabs defaultValue="faqs">
+          <TabsList
+            aria-label={t("tabsLabel")}
+            className="flex h-auto flex-wrap"
+          >
+            <TabsTrigger value="faqs">{t("tab.faqs")}</TabsTrigger>
+            <TabsTrigger value="cases">{t("tab.cases")}</TabsTrigger>
+          </TabsList>
+          <TabsContent className="flex flex-col gap-4" value="faqs">
+            <SupportFaqPanel />
+          </TabsContent>
+          <TabsContent className="flex flex-col gap-4" value="cases">
+            {metrics ? (
+              <div className="grid gap-4 md:grid-cols-3">
+                {metricStatuses.map((metricStatus) => (
+                  <MetricCard
+                    description={t(`metrics.${metricStatus}Description`)}
+                    icon={metricIcons[metricStatus]}
+                    key={metricStatus}
+                    label={t(`metrics.${metricStatus}`)}
+                    value={metrics[metricStatus]}
+                  />
+                ))}
+              </div>
+            ) : null}
+            <Card variant="subtle">
+              <DataTableHeader
+                action={
                   <Button
-                    onClick={clearFilters}
+                    className="hidden sm:inline-flex"
+                    onClick={() => setIsCreateOpen(true)}
                     size="sm"
                     type="button"
-                    variant="outline"
                   >
-                    <X /> {t("clear")}
+                    <Plus data-icon="inline-start" /> {t("newTicket")}
                   </Button>
-                ) : undefined
-              }
-            >
-              <DataTableFilter
-                ariaLabel={t("filterStatus")}
-                label={t("statusColumn")}
-                onValueChange={(value) => {
-                  const next = value as SupportTicketStatus | "all"
-                  setStatus(next)
-                  setPage(1)
+                }
+                search={{
+                  ariaLabel: t("searchLabel"),
+                  onChange: (value) => {
+                    setQuery(value)
+                    setPage(1)
+                  },
+                  placeholder: t("searchPlaceholder"),
+                  value: query,
                 }}
-                options={[
-                  { label: t("all"), value: "all" },
-                  { label: t("filter.open"), value: "open" },
-                  { label: t("filter.resolved"), value: "resolved" },
-                  { label: t("filter.closed"), value: "closed" },
-                ]}
-                value={status}
               />
-            </DataTableToolbar>
-            <div>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("ticket")}</TableHead>
-                    <TableHead className="hidden md:table-cell">
-                      {t("categoryColumn")}
-                    </TableHead>
-                    <TableHead>{t("statusColumn")}</TableHead>
-                    <TableHead className="hidden lg:table-cell">
-                      {t("updated")}
-                    </TableHead>
-                    <TableHead className="text-right">
-                      {t("actionColumn")}
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {tickets.length ? (
-                    tickets.map((ticket) => (
-                      <TableRow key={ticket.id}>
-                        <TableCell>
-                          <div className="flex min-w-48 flex-col gap-1">
-                            <span className="font-medium">
-                              {ticket.subject}
-                            </span>
-                            <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                              <MessageSquare className="size-3.5" />
-                              {ticket.commentCount}{" "}
-                              {ticket.commentCount === 1
-                                ? "respuesta"
-                                : "respuestas"}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="hidden text-muted-foreground md:table-cell">
-                          {ticket.category.name}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={statusVariant[ticket.status]}>
-                            {statusLabel[ticket.status]}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="hidden text-muted-foreground lg:table-cell">
-                          {format.dateTime(new Date(ticket.updatedAt), {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button asChild size="sm" variant="brand-secondary">
-                            <Link href={`/portal/support/${ticket.id}`}>
-                              <MessageSquare data-icon="inline-start" />{" "}
-                              {t("viewTicket")}
-                            </Link>
-                          </Button>
-                        </TableCell>
+              <CardContent className="flex flex-col gap-4 px-0">
+                <DataTableToolbar
+                  actions={
+                    hasFilters ? (
+                      <Button
+                        onClick={clearFilters}
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                      >
+                        <X /> {t("clear")}
+                      </Button>
+                    ) : undefined
+                  }
+                >
+                  <DataTableFilter
+                    ariaLabel={t("filterStatus")}
+                    label={t("statusColumn")}
+                    onValueChange={(value) => {
+                      const next = value as SupportTicketStatus | "all"
+                      setStatus(next)
+                      setPage(1)
+                    }}
+                    options={[
+                      { label: t("all"), value: "all" },
+                      { label: t("filter.open"), value: "open" },
+                      { label: t("filter.resolved"), value: "resolved" },
+                      { label: t("filter.closed"), value: "closed" },
+                    ]}
+                    value={status}
+                  />
+                </DataTableToolbar>
+                <div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("ticket")}</TableHead>
+                        <TableHead className="hidden md:table-cell">
+                          {t("categoryColumn")}
+                        </TableHead>
+                        <TableHead>{t("statusColumn")}</TableHead>
+                        <TableHead className="hidden lg:table-cell">
+                          {t("updated")}
+                        </TableHead>
+                        <TableHead className="text-right">
+                          {t("actionColumn")}
+                        </TableHead>
                       </TableRow>
-                    ))
-                  ) : (
-                    <TableEmptyRow
-                      colSpan={5}
-                      action={
-                        hasFilters ? (
-                          <Button onClick={clearFilters} variant="outline">
-                            {t("resetFilters")}
-                          </Button>
-                        ) : null
-                      }
-                      description={
-                        hasFilters
-                          ? t("emptyFilteredDescription")
-                          : t("emptyDescription")
-                      }
-                      title={hasFilters ? t("noMatches") : t("emptyTitle")}
-                    />
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-            <TablePagination
-              canGoNext={safePage < pageCount}
-              canGoPrevious={safePage > 1}
-              itemLabel={t("cases")}
-              onNextPage={() =>
-                setPage((current) => Math.min(current + 1, pageCount))
-              }
-              onPreviousPage={() =>
-                setPage((current) => Math.max(current - 1, 1))
-              }
-              rangeEnd={rangeEnd}
-              rangeStart={rangeStart}
-              total={total}
-            />
-          </CardContent>
-        </Card>
+                    </TableHeader>
+                    <TableBody>
+                      {tickets.length ? (
+                        tickets.map((ticket) => (
+                          <TableRow key={ticket.id}>
+                            <TableCell>
+                              <div className="flex min-w-48 flex-col gap-1">
+                                <span className="font-medium">
+                                  {ticket.subject}
+                                </span>
+                                <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                                  <MessageSquare className="size-3.5" />
+                                  {ticket.commentCount}{" "}
+                                  {ticket.commentCount === 1
+                                    ? "respuesta"
+                                    : "respuestas"}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="hidden text-muted-foreground md:table-cell">
+                              {ticket.category.name}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={statusVariant[ticket.status]}>
+                                {statusLabel[ticket.status]}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="hidden text-muted-foreground lg:table-cell">
+                              {format.dateTime(new Date(ticket.updatedAt), {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              })}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                asChild
+                                size="sm"
+                                variant="brand-secondary"
+                              >
+                                <Link href={`/portal/support/${ticket.id}`}>
+                                  <MessageSquare data-icon="inline-start" />{" "}
+                                  {t("viewTicket")}
+                                </Link>
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableEmptyRow
+                          colSpan={5}
+                          action={
+                            hasFilters ? (
+                              <Button onClick={clearFilters} variant="outline">
+                                {t("resetFilters")}
+                              </Button>
+                            ) : null
+                          }
+                          description={
+                            hasFilters
+                              ? t("emptyFilteredDescription")
+                              : t("emptyDescription")
+                          }
+                          title={hasFilters ? t("noMatches") : t("emptyTitle")}
+                        />
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+                <TablePagination
+                  canGoNext={safePage < pageCount}
+                  canGoPrevious={safePage > 1}
+                  itemLabel={t("cases")}
+                  onNextPage={() =>
+                    setPage((current) => Math.min(current + 1, pageCount))
+                  }
+                  onPreviousPage={() =>
+                    setPage((current) => Math.max(current - 1, 1))
+                  }
+                  rangeEnd={rangeEnd}
+                  rangeStart={rangeStart}
+                  total={total}
+                />
+              </CardContent>
+            </Card>
 
-        <FloatingActionButton
-          label={t("newTicket")}
-          onClick={() => setIsCreateOpen(true)}
-        />
+            <FloatingActionButton
+              label={t("newTicket")}
+              onClick={() => setIsCreateOpen(true)}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
       <NewSupportTicketSheet
         categories={categories}

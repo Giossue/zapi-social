@@ -34,8 +34,7 @@ export function ThemeSwitcher() {
   )
 
   const active = THEMES.find((item) => item.value === theme) ?? THEMES[2]
-  const next =
-    THEMES[(THEMES.indexOf(active) + 1) % THEMES.length] ?? THEMES[0]
+  const next = THEMES[(THEMES.indexOf(active) + 1) % THEMES.length] ?? THEMES[0]
   const CurrentIcon = mounted ? active.icon : Monitor
 
   return (

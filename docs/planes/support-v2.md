@@ -4,10 +4,11 @@
 
 El backend está implementado en contrato, cliente REST y Nest. La migración
 aditiva `0018_gorgeous_doctor_faustus` está aplicada a `zapi_v2_local`.
-El fixture funcional de `/portal/support` usa la fuente canónica navegable
-`template-shadcn-superdashboard/src/app/(main)/dashboard/support`: métricas, tabla, búsqueda,
-filtro adaptable, paginación compacta, creación y conversación. V2 conserva
-el fixture local hasta conectar `supportApi`.
+`/portal/support` consume `supportApi` y se organiza como centro de ayuda con
+la fuente canónica navegable
+`template-shadcn-superdashboard/src/app/(main)/dashboard/support`: tabs de
+preguntas frecuentes y casos propios, métricas, tabla, búsqueda, filtro
+adaptable, paginación compacta, creación y conversación.
 Las métricas de abiertos, resueltos y cerrados usan el `MetricCard` compartido
 en ambos repositorios, con icono y contexto propios para cada estado.
 
@@ -77,8 +78,10 @@ ownership, conversaciones en cascada y listado por solicitante/actividad.
        local.
 4. [x] Crear primero la fuente canónica y copiar al Portal V2 la tabla,
        búsqueda, filtros, paginación, creación y detalle con conversación.
-5. [ ] Sustituir el fixture por `supportApi` y conservar los mismos estados de
-       carga, error, permisos y formulario.
+5. [x] Sustituir el fixture por `supportApi` y conservar los mismos estados de
+       carga, error, permisos y formulario. El fixture local
+       `features/support/fixtures/support.ts` quedó huérfano tras la conexión y
+       se eliminó en la iteración del 29 de agosto de 2026.
 6. [x] Implementar la cola de soporte de Platform Admin: listado global,
        detalle, respuesta y cambio de estado.
 7. [ ] Asignaciones, tipos, etiquetas, notas internas y notificaciones por
@@ -175,6 +178,44 @@ Evidencia: fuente con Biome focal sin diagnósticos y `tsc --noEmit`; ZapiV2
 con `tsc --noEmit` de Web, lint sin errores nuevos en los archivos tocados y
 `bun run audit:portal-admin-ui` sin hallazgos. La aprobación visual
 corresponde al usuario.
+
+## Centro de ayuda en Portal — 29 de agosto de 2026
+
+`/portal/support` pasa de una lista de casos a un centro de ayuda con dos
+pestañas, siguiendo el patrón estándar de help center (FAQ + contacto). La
+fuente canónica se amplió primero en
+`template-shadcn-superdashboard/src/app/(main)/dashboard/support` y se copió a
+`apps/web/features/support/` (`support-tickets-page.tsx`,
+`support-faq-panel.tsx`).
+
+- La pestaña «Preguntas frecuentes» es la inicial: buscador y acordeón con las
+  FAQs activas del catálogo global que se administra en `/admin/faqs`. Portal
+  las lee por `GET /v1/public/site/faqs` (`publicSiteApi.faqs`, límite 48 y
+  búsqueda `q` con debounce): el catálogo no tiene workspace, así que no se
+  creó un endpoint de portal nuevo. A diferencia de la página pública `/faqs`,
+  Portal no consulta `sections.showFaqs`: ese interruptor gobierna el sitio de
+  marketing, no la ayuda dentro del producto.
+- La pestaña «Mis casos» conserva íntegra la superficie existente: métricas,
+  tabla con búsqueda y filtro de estado, paginación, sheet de nuevo caso,
+  `FloatingActionButton` móvil y el detalle con conversación en su ruta.
+- Se cerró la brecha con la fuente canónica: la fila de `MetricCard` de
+  abiertos, resueltos y cerrados ahora también existe en Portal. Los totales
+  salen de tres consultas `supportApi.list` con `limit: 1` por estado, que ya
+  aplican ownership por workspace y solicitante; se refrescan al crear un caso
+  y la fila se omite mientras no hay totales. No se amplió el contrato REST.
+- Divergencias frente al patrón de referencia: sin chips de categoría en FAQ
+  (la tabla `faqs` no tiene categorías) y sin lista de canales de contacto
+  externos (el canal real de contacto es el propio ticketing). Ambas quedan
+  para una solicitud de producto explícita.
+- Los textos nuevos viven en el namespace `support` (`tab.*`, `tabsLabel`,
+  `faq.*`) en `es.json` y `en.json`; `pageDescription` se actualizó al alcance
+  del centro de ayuda.
+
+Evidencia: fuente con Biome focal sin diagnósticos y sin errores `tsc` nuevos
+(los dos existentes son de charts legacy ajenos a soporte); ZapiV2 pasa
+`bun run build`, `bun run typecheck`, `bun run lint`,
+`bun run audit:portal-admin-ui`, `bun run audit:i18n` y
+`bun run audit:i18n-hardcoded`. La aprobación visual corresponde al usuario.
 
 ### Evidencia — 21 de agosto de 2026
 

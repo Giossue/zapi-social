@@ -5183,6 +5183,17 @@
     "emptyDescription": "When you need help, open a case and you'll have the whole conversation here.",
     "emptyFilteredDescription": "Try another term or status.",
     "emptyTitle": "You don't have support cases yet",
+    "faq": {
+      "clearSearch": "Clear search",
+      "emptyDescription": "When the team publishes frequent answers, they will appear here.",
+      "emptyTitle": "No questions published yet",
+      "loadFailedDescription": "Try again to recover the frequently asked questions.",
+      "loadFailedTitle": "The frequently asked questions couldn't load",
+      "loading": "Loading frequently asked questions",
+      "noMatchesDescription": "Try other words or open a case in My cases.",
+      "searchLabel": "Search the frequently asked questions",
+      "searchPlaceholder": "Search a question..."
+    },
     "filter": {
       "closed": "Closed",
       "open": "Open",
@@ -5207,7 +5218,7 @@
     "missingFields": "Fill in every required field.",
     "newTicket": "New case",
     "noMatches": "No matches",
-    "pageDescription": "Review your open cases and talk to the Zapi team from a single place.",
+    "pageDescription": "Find quick answers or talk to the Zapi team from a single place.",
     "pageTitle": "Support",
     "replyFailed": "We couldn't send your reply. Please try again.",
     "replyPlaceholder": "Write your reply...",
@@ -5229,6 +5240,11 @@
     "statusColumn": "Status",
     "subjectHint": "Use a short sentence so you can recognize the case later.",
     "subjectPlaceholder": "E.g. I can't publish to Instagram",
+    "tab": {
+      "cases": "My cases",
+      "faqs": "Frequently asked questions"
+    },
+    "tabsLabel": "Support sections",
     "ticket": "Case",
     "ticketClosedDescription": "If the problem persists, create a new ticket so we can look into it.",
     "ticketClosedTitle": "This ticket is {status}",
