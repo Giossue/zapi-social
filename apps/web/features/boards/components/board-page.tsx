@@ -22,7 +22,12 @@ import type {
 } from "@workspace/contracts"
 import { Button } from "@workspace/ui/components/button"
 import { DataTableFilter } from "@workspace/ui/components/data-table-controls"
+import {
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@workspace/ui/components/dropdown-menu"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import {
   InputGroup,
   InputGroupAddon,
@@ -353,7 +358,7 @@ export function BoardPage() {
           </DataTableToolbar>
           {canManageColumns ? (
             <Button
-              className="w-full sm:w-auto"
+              className="hidden sm:inline-flex"
               onClick={() => {
                 setEditingColumn(null)
                 setColumnSheetOpen(true)
@@ -366,7 +371,7 @@ export function BoardPage() {
           ) : null}
           {canManageTasks && columns.length ? (
             <Button
-              className="w-full sm:w-auto"
+              className="hidden sm:inline-flex"
               onClick={() => openNewTask(columns[0]!.id)}
             >
               <Plus data-icon="inline-start" />
@@ -433,6 +438,35 @@ export function BoardPage() {
           />
         </div>
       )}
+
+      {canManageColumns || (canManageTasks && columns.length) ? (
+        <FloatingActionButton
+          label={
+            canManageTasks && columns.length ? t("addTask") : t("addColumn")
+          }
+          menu={
+            <DropdownMenuContent align="end" className="w-56" side="top">
+              {canManageColumns ? (
+                <DropdownMenuItem
+                  onSelect={() => {
+                    setEditingColumn(null)
+                    setColumnSheetOpen(true)
+                  }}
+                >
+                  <KanbanSquare aria-hidden="true" />
+                  {t("addColumn")}
+                </DropdownMenuItem>
+              ) : null}
+              {canManageTasks && columns.length ? (
+                <DropdownMenuItem onSelect={() => openNewTask(columns[0]!.id)}>
+                  <Plus aria-hidden="true" />
+                  {t("addTask")}
+                </DropdownMenuItem>
+              ) : null}
+            </DropdownMenuContent>
+          }
+        />
+      ) : null}
 
       <TaskSheet
         canDelete={Boolean(abilities?.deleteTasks)}
