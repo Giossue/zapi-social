@@ -596,7 +596,7 @@ export function AdminManualPaymentsPage() {
               <CardContent className="flex flex-col gap-4 px-0">
                 <DataTableToolbar
                   actions={
-                    hasFilters ? (
+                    status !== "all" ? (
                       <Button
                         onClick={() => {
                           setQuery("")

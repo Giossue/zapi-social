@@ -681,7 +681,9 @@ export function AiConfigurationPage() {
             <CardContent className="flex flex-col gap-4 px-0">
               <DataTableToolbar
                 actions={
-                  hasModelFilters ? (
+                  modelProviderFilter !== "all" ||
+                  modelCapabilityFilter !== "all" ||
+                  modelEnabledFilter !== "all" ? (
                     <Button
                       onClick={clearModelFilters}
                       size="sm"
@@ -860,7 +862,8 @@ export function AiConfigurationPage() {
             <CardContent className="flex flex-col gap-4 px-0">
               <DataTableToolbar
                 actions={
-                  hasRouteFilters ? (
+                  routeCapabilityFilter !== "all" ||
+                  routeStatusFilter !== "all" ? (
                     <Button
                       onClick={clearRouteFilters}
                       size="sm"

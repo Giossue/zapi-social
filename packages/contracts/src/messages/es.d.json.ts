@@ -2005,7 +2005,7 @@ declare const messages: {
         "forbiddenDescription": "Tu rol no permite consultar el consumo de IA de este espacio.",
         "movement": "Movimiento",
         "nextRenewal": "Próxima renovación",
-        "pageDescription": "Entiende el consumo de IA y controla el presupuesto de tu espacio de trabajo.",
+        "pageDescription": "Entiende el consumo de IA y controla el presupuesto de tu espacio de trabajo",
         "pageTitle": "Créditos y consumo",
         "saveBudget": "Guardar presupuesto",
         "savingBudget": "Guardando presupuesto",
@@ -2034,7 +2034,7 @@ declare const messages: {
         "filterStatusLabel": "Filtrar historial por estado",
         "forbiddenDescription": "Tu rol no permite consultar el historial de IA de este espacio.",
         "generation": "Generación",
-        "pageDescription": "Encuentra, reutiliza y descarga cualquier generación anterior.",
+        "pageDescription": "Encuentra, reutiliza y descarga cualquier generación anterior",
         "pageTitle": "Historial de IA",
         "searchLabel": "Buscar generaciones",
         "searchPlaceholder": "Buscar generaciones...",
@@ -3008,6 +3008,7 @@ declare const messages: {
     },
     "channelConnected": "Canal conectado.",
     "channelType": "Tipo de canal",
+    "clearFilters": "Limpiar filtros",
     "connect": "Conectar canal",
     "connectedAt": "Conectado el",
     "delete": "Eliminar",
@@ -3097,6 +3098,7 @@ declare const messages: {
     }
   },
   "common": {
+    "clear": "Limpiar",
     "filters": "Filtros",
     "hour": "Hora",
     "language": {

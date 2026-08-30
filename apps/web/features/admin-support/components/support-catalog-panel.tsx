@@ -269,7 +269,7 @@ export function SupportCatalogPanel({
         <CardContent className="flex flex-col gap-4 px-0">
           <DataTableToolbar
             actions={
-              hasFilters ? (
+              status !== "all" ? (
                 <Button
                   onClick={clearFilters}
                   size="sm"

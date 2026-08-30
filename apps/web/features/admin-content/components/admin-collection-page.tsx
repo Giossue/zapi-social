@@ -625,7 +625,7 @@ export function AdminCollectionPage<TRow, TResponse>({
             {config.filter ? (
               <DataTableToolbar
                 actions={
-                  hasFilters ? (
+                  status !== "all" ? (
                     <Button
                       onClick={clearFilters}
                       size="sm"

@@ -95,6 +95,7 @@ export const portalProfileSchema = z.object({
   emailVerifiedAt: z.string().datetime().nullable(),
   locale: localeCodeSchema.nullable(),
   timezone: profileTimeZoneSchema.nullable(),
+  avatarUrl: z.string().nullable(),
   createdAt: z.string().datetime(),
 })
 
@@ -123,6 +124,7 @@ export const authUserSchema = z.object({
   email: z.string().email(),
   displayName: z.string(),
   locale: localeCodeSchema.nullable(),
+  avatarUrl: z.string().nullable().optional(),
 })
 
 export const activeWorkspaceSchema = z.object({

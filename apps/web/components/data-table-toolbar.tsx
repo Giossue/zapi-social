@@ -12,5 +12,11 @@ export function DataTableToolbar(
 ) {
   const t = useTranslations("common")
 
-  return <DataTableToolbarPrimitive {...props} filtersLabel={t("filters")} />
+  return (
+    <DataTableToolbarPrimitive
+      {...props}
+      clearLabel={t("clear")}
+      filtersLabel={t("filters")}
+    />
+  )
 }

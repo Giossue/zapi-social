@@ -365,7 +365,7 @@ function JobsTable({
       <CardContent className="flex flex-col gap-4 px-0">
         <DataTableToolbar
           actions={
-            hasFilters ? (
+            kindFilter !== "all" || statusFilter !== "all" ? (
               <Button
                 onClick={clearFilters}
                 size="sm"

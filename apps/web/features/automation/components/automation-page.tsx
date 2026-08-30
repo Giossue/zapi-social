@@ -819,7 +819,7 @@ export function AutomationPage() {
               <CardContent className="flex flex-col gap-4 px-0">
                 <DataTableToolbar
                   actions={
-                    hasKeysFilters ? (
+                    keysStatus !== "all" ? (
                       <Button
                         onClick={clearKeysFilters}
                         size="sm"
@@ -1021,7 +1021,7 @@ export function AutomationPage() {
               <CardContent className="flex flex-col gap-4 px-0">
                 <DataTableToolbar
                   actions={
-                    hasWebhooksFilters ? (
+                    webhooksStatus !== "all" ? (
                       <Button
                         onClick={clearWebhooksFilters}
                         size="sm"
@@ -1225,7 +1225,7 @@ export function AutomationPage() {
               <CardContent className="flex flex-col gap-4 px-0">
                 <DataTableToolbar
                   actions={
-                    hasLogsFilters ? (
+                    logsStatus !== "all" ? (
                       <Button
                         onClick={clearLogsFilters}
                         size="sm"

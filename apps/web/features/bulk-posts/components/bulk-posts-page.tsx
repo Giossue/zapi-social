@@ -640,7 +640,7 @@ export function BulkPostsPage({ embedded = false }: { embedded?: boolean }) {
           <CardContent className="flex flex-col gap-4 px-0">
             <DataTableToolbar
               actions={
-                hasFilters ? (
+                status !== "all" ? (
                   <Button
                     onClick={clearFilters}
                     size="sm"

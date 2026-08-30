@@ -38,6 +38,7 @@ export const users = pgTable(
     timezone: varchar("timezone", { length: 64 }),
     displayName: varchar("display_name", { length: 160 }).notNull(),
     passwordHash: text("password_hash"),
+    avatarPath: varchar("avatar_path", { length: 512 }),
     emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
     status: varchar("status", { length: 24 }).notNull().default("active"),
     isPlatformAdmin: boolean("is_platform_admin").notNull().default(false),

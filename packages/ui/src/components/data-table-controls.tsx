@@ -1,8 +1,8 @@
 "use client"
 
 import { ChevronDown, ListFilter, Search } from "lucide-react"
-import { useId, useState } from "react"
-import type { ReactNode, Ref } from "react"
+import { Children, isValidElement, useId, useState } from "react"
+import type { ReactElement, ReactNode, Ref } from "react"
 
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -48,6 +48,7 @@ type DataTableToolbarProps = {
   actions?: ReactNode
   children?: ReactNode
   className?: string
+  clearLabel?: string
   filtersClassName?: string
 }
 
@@ -138,11 +139,29 @@ function DataTableToolbar({
   actions,
   children,
   className,
+  clearLabel,
   filtersClassName,
   filtersLabel,
 }: DataTableToolbarProps) {
   const [filtersOpen, setFiltersOpen] = useState(false)
   const filtersId = useId()
+  const filters = Children.toArray(children).filter(
+    (child): child is ReactElement<DataTableFilterProps> =>
+      isValidElement<DataTableFilterProps>(child) &&
+      Array.isArray(child.props.options)
+  )
+  const hasActiveFilters = filters.some(
+    (filter) => filter.props.value !== filter.props.options[0]?.value
+  )
+
+  function clearFilters() {
+    filters.forEach((filter) => {
+      const defaultValue = filter.props.options[0]?.value
+      if (defaultValue !== undefined && filter.props.value !== defaultValue) {
+        filter.props.onValueChange(defaultValue)
+      }
+    })
+  }
 
   return (
     <div
@@ -175,10 +194,22 @@ function DataTableToolbar({
         id={filtersId}
       >
         {children}
+        {actions ? (
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            {actions}
+          </div>
+        ) : hasActiveFilters && clearLabel ? (
+          <Button
+            onClick={clearFilters}
+            size="sm"
+            type="button"
+            variant="brand-secondary"
+          >
+            <ListFilter aria-hidden="true" data-icon="inline-start" />
+            {clearLabel}
+          </Button>
+        ) : null}
       </div>
-      {actions ? (
-        <div className="flex flex-wrap items-center gap-2">{actions}</div>
-      ) : null}
     </div>
   )
 }

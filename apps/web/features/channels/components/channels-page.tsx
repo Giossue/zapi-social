@@ -629,6 +629,11 @@ export function LiveChannelsPage() {
         onCapabilityFilterChange={(value) => {
           setCapabilityFilter(value)
         }}
+        onClearFilters={() => {
+          setProviderFilter("all")
+          setCapabilityFilter("all")
+          setStatusFilter("all")
+        }}
         onConnect={() => setIsConnectOpen(true)}
         onProviderFilterChange={(value) => {
           setProviderFilter(value)

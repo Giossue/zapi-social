@@ -491,7 +491,7 @@ export function AffiliatePage() {
               <CardContent className="flex flex-col gap-4 px-0">
                 <DataTableToolbar
                   actions={
-                    hasCommissionFilters ? (
+                    commissionStatus !== "all" ? (
                       <Button
                         onClick={clearCommissionFilters}
                         size="sm"
@@ -631,7 +631,7 @@ export function AffiliatePage() {
               <CardContent className="flex flex-col gap-4 px-0">
                 <DataTableToolbar
                   actions={
-                    hasWithdrawalFilters ? (
+                    withdrawalStatus !== "all" ? (
                       <Button
                         onClick={clearWithdrawalFilters}
                         size="sm"

@@ -330,7 +330,7 @@ export function BoardPage() {
               aria-label={t("searchLabel")}
               onChange={(event) => setQuery(event.target.value)}
               placeholder={t("searchPlaceholder")}
-              type="search"
+              type="text"
               value={query}
             />
             <InputGroupAddon>

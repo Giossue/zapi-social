@@ -3005,6 +3005,7 @@
     },
     "channelConnected": "Canal conectado.",
     "channelType": "Tipo de canal",
+    "clearFilters": "Limpiar filtros",
     "connect": "Conectar canal",
     "connectedAt": "Conectado el",
     "delete": "Eliminar",
@@ -3094,6 +3095,7 @@
     }
   },
   "common": {
+    "clear": "Limpiar",
     "filters": "Filtros",
     "hour": "Hora",
     "language": {

@@ -260,7 +260,9 @@ export function AdminSupportPage() {
               <CardContent className="flex flex-col gap-4 px-0">
                 <DataTableToolbar
                   actions={
-                    hasFilters ? (
+                    status !== "all" ||
+                    categoryId !== "all" ||
+                    queue !== "all" ? (
                       <Button
                         onClick={clearFilters}
                         size="sm"

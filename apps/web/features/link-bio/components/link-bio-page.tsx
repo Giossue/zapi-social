@@ -995,7 +995,7 @@ export function LinkBioPage() {
           <CardContent className="flex flex-col gap-4 px-0">
             <DataTableToolbar
               actions={
-                hasFilters ? (
+                statusFilter !== "all" ? (
                   <Button
                     onClick={clearFilters}
                     size="sm"
