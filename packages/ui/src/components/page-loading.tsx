@@ -15,10 +15,6 @@ function PageLoading({
       role="status"
       {...props}
     >
-      <div className="flex flex-col gap-2">
-        <Skeleton className="h-6 w-52" />
-        <Skeleton className="h-4 w-80 max-w-full" />
-      </div>
       <Skeleton className="h-10 w-full" />
       <Skeleton className="h-56 w-full" />
     </div>
