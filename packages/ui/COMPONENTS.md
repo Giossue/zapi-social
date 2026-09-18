@@ -88,8 +88,9 @@ de `packages/ui`; su uso queda acotado a interfaces de agentes y generación AI.
 `packages/ui` no depende de `next-intl` ni conoce el idioma activo: cualquier
 rótulo visible llega por props desde `apps/web`. Los primitives que muestran
 texto propio —`TablePagination`, `PageLoading` y el plegado de filtros de
-`DataTableToolbar`— lo reciben desde fuera. `TimePicker` usa la etiqueta externa
-del formulario y no contiene texto traducible.
+`DataTableToolbar`— lo reciben desde fuera. `Skeleton` no contiene texto ni
+estado propio. `TimePicker` usa la etiqueta externa del formulario y no contiene
+texto traducible.
 
 Los rótulos accesibles que shadcn/ui trae en su código (`Close`, `Toggle
 Sidebar`, `Go to next page`) se conservan literales por la regla source-first;
@@ -97,23 +98,24 @@ Sidebar`, `Go to next page`) se conservan literales por la regla source-first;
 
 ## Feedback, overlays y utilidades de interfaz
 
-| Componente               | Importación                             | Uso principal                                                                                                                                           |
-| ------------------------ | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Alert`                  | `@workspace/ui/components/alert`        | Avisos persistentes y mensajes de estado.                                                                                                               |
-| `AlertDialog`            | `@workspace/ui/components/alert-dialog` | Confirmación de acciones destructivas o de riesgo.                                                                                                      |
-| `Dialog`                 | `@workspace/ui/components/dialog`       | CRUD breve, confirmaciones y detalle puntual.                                                                                                           |
-| `Drawer`                 | `@workspace/ui/components/drawer`       | Flujo contextual compacto, especialmente en móvil.                                                                                                      |
-| `Empty`                  | `@workspace/ui/components/empty`        | Primitive compuesto para estados vacíos.                                                                                                                |
-| `EmptyState`             | `@workspace/ui/components/empty-state`  | Colecciones, rutas o permisos sin contenido útil.                                                                                                       |
-| `HoverCard`              | `@workspace/ui/components/hover-card`   | Información suplementaria al pasar el cursor.                                                                                                           |
-| `Popover`                | `@workspace/ui/components/popover`      | Contenido contextual anclado; contenedor de Calendar y controles compactos.                                                                             |
-| `PageLoading`            | `@workspace/ui/components/page-loading` | **Único** estado de carga de rutas, páginas, secciones y tarjetas. No existe alternativa: no hay skeletons ni loaders a medida.                         |
-| `RetryButton`            | `@workspace/ui/components/retry-button` | Acción compartida de reintento con icono izquierdo y estado pending opcional.                                                                           |
-| `Sheet` / `SheetActions` | `@workspace/ui/components/sheet`        | Panel lateral accesible. `SheetActions` es el único pie de acciones: permanece fuera del contenido desplazable y siempre incluye el separador superior. |
-| `Sonner`                 | `@workspace/ui/components/sonner`       | Adaptador de Sonner cuando se necesita su componente de host.                                                                                           |
-| `Spinner`                | `@workspace/ui/components/spinner`      | Indicador de carga embebido en un control concreto (botón pendiente, input asíncrono). Para cargar una región completa se usa `PageLoading`.            |
-| `Toaster` / `toast`      | `@workspace/ui/components/toast`        | Feedback transitorio y canal de error para formularios; la validación nativa del navegador no se muestra.                                               |
-| `Tooltip`                | `@workspace/ui/components/tooltip`      | Etiquetas contextuales para controles compactos.                                                                                                        |
+| Componente               | Importación                             | Uso principal                                                                                                                                                        |
+| ------------------------ | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Alert`                  | `@workspace/ui/components/alert`        | Avisos persistentes y mensajes de estado.                                                                                                                            |
+| `AlertDialog`            | `@workspace/ui/components/alert-dialog` | Confirmación de acciones destructivas o de riesgo.                                                                                                                   |
+| `Dialog`                 | `@workspace/ui/components/dialog`       | CRUD breve, confirmaciones y detalle puntual.                                                                                                                        |
+| `Drawer`                 | `@workspace/ui/components/drawer`       | Flujo contextual compacto, especialmente en móvil.                                                                                                                   |
+| `Empty`                  | `@workspace/ui/components/empty`        | Primitive compuesto para estados vacíos.                                                                                                                             |
+| `EmptyState`             | `@workspace/ui/components/empty-state`  | Colecciones, rutas o permisos sin contenido útil.                                                                                                                    |
+| `HoverCard`              | `@workspace/ui/components/hover-card`   | Información suplementaria al pasar el cursor.                                                                                                                        |
+| `Popover`                | `@workspace/ui/components/popover`      | Contenido contextual anclado; contenedor de Calendar y controles compactos.                                                                                          |
+| `PageLoading`            | `@workspace/ui/components/page-loading` | Estado global de carga para rutas, páginas, secciones y tarjetas; compone el skeleton compartido y conserva `aria-busy`/`role="status"`.                             |
+| `Skeleton`               | `@workspace/ui/components/skeleton`     | Placeholder animado compartido para componer estados de carga globales; usa tokens semánticos y no contiene texto.                                                   |
+| `RetryButton`            | `@workspace/ui/components/retry-button` | Acción compartida de reintento con icono izquierdo y estado pending opcional.                                                                                        |
+| `Sheet` / `SheetActions` | `@workspace/ui/components/sheet`        | Panel lateral accesible. `SheetActions` es el único pie de acciones: permanece fuera del contenido desplazable y siempre incluye el separador superior.              |
+| `Sonner`                 | `@workspace/ui/components/sonner`       | Adaptador de Sonner cuando se necesita su componente de host.                                                                                                        |
+| `Spinner`                | `@workspace/ui/components/spinner`      | Indicador de carga embebido en un control concreto (botón pendiente, input asíncrono). Para cargar una región completa se usa `PageLoading`, que compone `Skeleton`. |
+| `Toaster` / `toast`      | `@workspace/ui/components/toast`        | Feedback transitorio y canal de error para formularios; la validación nativa del navegador no se muestra.                                                            |
+| `Tooltip`                | `@workspace/ui/components/tooltip`      | Etiquetas contextuales para controles compactos.                                                                                                                     |
 
 ## Contexto y comportamiento compartido
 
