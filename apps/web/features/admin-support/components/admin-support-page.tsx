@@ -247,6 +247,70 @@ export function AdminSupportPage() {
                     <Plus data-icon="inline-start" /> {t("newCase")}
                   </Button>
                 }
+                filters={
+                  <DataTableToolbar
+                    actions={
+                      status !== "all" ||
+                      categoryId !== "all" ||
+                      queue !== "all" ? (
+                        <Button
+                          onClick={clearFilters}
+                          size="sm"
+                          type="button"
+                          variant="outline"
+                        >
+                          <X /> {t("clear")}
+                        </Button>
+                      ) : undefined
+                    }
+                    className="px-0"
+                  >
+                    <DataTableFilter
+                      ariaLabel={t("filterQueue")}
+                      label={t("queueColumn")}
+                      onValueChange={(value) => {
+                        setQueue(value as "all" | "awaiting")
+                        setPage(1)
+                      }}
+                      options={[
+                        { label: t("all"), value: "all" },
+                        { label: t("unanswered"), value: "awaiting" },
+                      ]}
+                      value={queue}
+                    />
+                    <DataTableFilter
+                      ariaLabel={t("filterStatus")}
+                      label={t("statusColumn")}
+                      onValueChange={(value) => {
+                        setStatus(value as AdminSupportTicketStatus | "all")
+                        setPage(1)
+                      }}
+                      options={[
+                        { label: t("all"), value: "all" },
+                        { label: t("status.open"), value: "open" },
+                        { label: t("status.resolved"), value: "resolved" },
+                        { label: t("status.closed"), value: "closed" },
+                      ]}
+                      value={status}
+                    />
+                    <DataTableFilter
+                      ariaLabel={t("filterCategory")}
+                      label={t("category")}
+                      onValueChange={(value) => {
+                        setCategoryId(value)
+                        setPage(1)
+                      }}
+                      options={[
+                        { label: t("allFeminine"), value: "all" },
+                        ...categories.map((category) => ({
+                          label: category.name,
+                          value: category.id,
+                        })),
+                      ]}
+                      value={categoryId}
+                    />
+                  </DataTableToolbar>
+                }
                 search={{
                   ariaLabel: t("searchAriaLabel"),
                   onChange: (value) => {
@@ -258,67 +322,6 @@ export function AdminSupportPage() {
                 }}
               />
               <CardContent className="flex flex-col gap-4 px-0">
-                <DataTableToolbar
-                  actions={
-                    status !== "all" ||
-                    categoryId !== "all" ||
-                    queue !== "all" ? (
-                      <Button
-                        onClick={clearFilters}
-                        size="sm"
-                        type="button"
-                        variant="outline"
-                      >
-                        <X /> {t("clear")}
-                      </Button>
-                    ) : undefined
-                  }
-                >
-                  <DataTableFilter
-                    ariaLabel={t("filterQueue")}
-                    label={t("queueColumn")}
-                    onValueChange={(value) => {
-                      setQueue(value as "all" | "awaiting")
-                      setPage(1)
-                    }}
-                    options={[
-                      { label: t("all"), value: "all" },
-                      { label: t("unanswered"), value: "awaiting" },
-                    ]}
-                    value={queue}
-                  />
-                  <DataTableFilter
-                    ariaLabel={t("filterStatus")}
-                    label={t("statusColumn")}
-                    onValueChange={(value) => {
-                      setStatus(value as AdminSupportTicketStatus | "all")
-                      setPage(1)
-                    }}
-                    options={[
-                      { label: t("all"), value: "all" },
-                      { label: t("status.open"), value: "open" },
-                      { label: t("status.resolved"), value: "resolved" },
-                      { label: t("status.closed"), value: "closed" },
-                    ]}
-                    value={status}
-                  />
-                  <DataTableFilter
-                    ariaLabel={t("filterCategory")}
-                    label={t("category")}
-                    onValueChange={(value) => {
-                      setCategoryId(value)
-                      setPage(1)
-                    }}
-                    options={[
-                      { label: t("allFeminine"), value: "all" },
-                      ...categories.map((category) => ({
-                        label: category.name,
-                        value: category.id,
-                      })),
-                    ]}
-                    value={categoryId}
-                  />
-                </DataTableToolbar>
                 <div>
                   <Table>
                     <TableHeader>

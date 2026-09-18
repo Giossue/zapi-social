@@ -319,6 +319,23 @@ export function AdminLanguageTranslationsPage({ code }: { code: string }) {
                 </Button>
               </div>
             }
+            filters={
+              <DataTableToolbar className="px-0">
+                <DataTableFilter
+                  ariaLabel={t("statusFilter")}
+                  label={t("statusFilter")}
+                  onValueChange={(value) => {
+                    setStatusFilter(value)
+                    setPage(1)
+                  }}
+                  options={[
+                    { label: t("filterAll"), value: "all" },
+                    { label: t("filterMissing"), value: "missing" },
+                  ]}
+                  value={statusFilter}
+                />
+              </DataTableToolbar>
+            }
             search={{
               ariaLabel: t("translationsSearchLabel"),
               onChange: (value) => {
@@ -330,21 +347,6 @@ export function AdminLanguageTranslationsPage({ code }: { code: string }) {
             }}
           />
           <CardContent className="flex flex-col gap-4 px-0">
-            <DataTableToolbar>
-              <DataTableFilter
-                ariaLabel={t("statusFilter")}
-                label={t("statusFilter")}
-                onValueChange={(value) => {
-                  setStatusFilter(value)
-                  setPage(1)
-                }}
-                options={[
-                  { label: t("filterAll"), value: "all" },
-                  { label: t("filterMissing"), value: "missing" },
-                ]}
-                value={statusFilter}
-              />
-            </DataTableToolbar>
             {rows.length ? (
               <Table>
                 <TableHeader>

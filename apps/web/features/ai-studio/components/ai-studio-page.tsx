@@ -352,6 +352,56 @@ function JobsTable({
     <>
       <DataTableHeader
         action={action}
+        filters={
+          <DataTableToolbar
+            className="px-0"
+            actions={
+              kindFilter !== "all" || statusFilter !== "all" ? (
+                <Button
+                  onClick={clearFilters}
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                >
+                  <X /> {t("clear")}
+                </Button>
+              ) : undefined
+            }
+          >
+            <DataTableFilter
+              ariaLabel={t("filterKind")}
+              label={tOps("type")}
+              onValueChange={(value) => {
+                setKindFilter(value)
+                setPage(1)
+              }}
+              options={[
+                { label: t("all"), value: "all" },
+                ...kindOptions.map((kind) => ({
+                  label: tOps(`kind.${kind}`),
+                  value: kind,
+                })),
+              ]}
+              value={kindFilter}
+            />
+            <DataTableFilter
+              ariaLabel={t("filterStatus")}
+              label={tOps("status")}
+              onValueChange={(value) => {
+                setStatusFilter(value)
+                setPage(1)
+              }}
+              options={[
+                { label: t("all"), value: "all" },
+                ...statusOptions.map((status) => ({
+                  label: tOps(`historyStatusBadge.${status}`),
+                  value: status,
+                })),
+              ]}
+              value={statusFilter}
+            />
+          </DataTableToolbar>
+        }
         search={{
           ariaLabel: tOps("history.searchLabel"),
           onChange: (value) => {
@@ -363,53 +413,6 @@ function JobsTable({
         }}
       />
       <CardContent className="flex flex-col gap-4 px-0">
-        <DataTableToolbar
-          actions={
-            kindFilter !== "all" || statusFilter !== "all" ? (
-              <Button
-                onClick={clearFilters}
-                size="sm"
-                type="button"
-                variant="outline"
-              >
-                <X /> {t("clear")}
-              </Button>
-            ) : undefined
-          }
-        >
-          <DataTableFilter
-            ariaLabel={t("filterKind")}
-            label={tOps("type")}
-            onValueChange={(value) => {
-              setKindFilter(value)
-              setPage(1)
-            }}
-            options={[
-              { label: t("all"), value: "all" },
-              ...kindOptions.map((kind) => ({
-                label: tOps(`kind.${kind}`),
-                value: kind,
-              })),
-            ]}
-            value={kindFilter}
-          />
-          <DataTableFilter
-            ariaLabel={t("filterStatus")}
-            label={tOps("status")}
-            onValueChange={(value) => {
-              setStatusFilter(value)
-              setPage(1)
-            }}
-            options={[
-              { label: t("all"), value: "all" },
-              ...statusOptions.map((status) => ({
-                label: tOps(`historyStatusBadge.${status}`),
-                value: status,
-              })),
-            ]}
-            value={statusFilter}
-          />
-        </DataTableToolbar>
         <Table>
           <TableHeader>
             <TableRow>

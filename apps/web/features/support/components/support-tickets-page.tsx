@@ -426,6 +426,40 @@ export function SupportTicketsPage() {
                     <Plus data-icon="inline-start" /> {t("newTicket")}
                   </Button>
                 }
+                filters={
+                  <DataTableToolbar
+                    actions={
+                      status !== "all" ? (
+                        <Button
+                          onClick={clearFilters}
+                          size="sm"
+                          type="button"
+                          variant="outline"
+                        >
+                          <X /> {t("clear")}
+                        </Button>
+                      ) : undefined
+                    }
+                    className="px-0"
+                  >
+                    <DataTableFilter
+                      ariaLabel={t("filterStatus")}
+                      label={t("statusColumn")}
+                      onValueChange={(value) => {
+                        const next = value as SupportTicketStatus | "all"
+                        setStatus(next)
+                        setPage(1)
+                      }}
+                      options={[
+                        { label: t("all"), value: "all" },
+                        { label: t("filter.open"), value: "open" },
+                        { label: t("filter.resolved"), value: "resolved" },
+                        { label: t("filter.closed"), value: "closed" },
+                      ]}
+                      value={status}
+                    />
+                  </DataTableToolbar>
+                }
                 search={{
                   ariaLabel: t("searchLabel"),
                   onChange: (value) => {
@@ -437,37 +471,6 @@ export function SupportTicketsPage() {
                 }}
               />
               <CardContent className="flex flex-col gap-4 px-0">
-                <DataTableToolbar
-                  actions={
-                    status !== "all" ? (
-                      <Button
-                        onClick={clearFilters}
-                        size="sm"
-                        type="button"
-                        variant="outline"
-                      >
-                        <X /> {t("clear")}
-                      </Button>
-                    ) : undefined
-                  }
-                >
-                  <DataTableFilter
-                    ariaLabel={t("filterStatus")}
-                    label={t("statusColumn")}
-                    onValueChange={(value) => {
-                      const next = value as SupportTicketStatus | "all"
-                      setStatus(next)
-                      setPage(1)
-                    }}
-                    options={[
-                      { label: t("all"), value: "all" },
-                      { label: t("filter.open"), value: "open" },
-                      { label: t("filter.resolved"), value: "resolved" },
-                      { label: t("filter.closed"), value: "closed" },
-                    ]}
-                    value={status}
-                  />
-                </DataTableToolbar>
                 {tickets.length ? (
                   <ul className="flex flex-col divide-y border-y">
                     {tickets.map((ticket) => (

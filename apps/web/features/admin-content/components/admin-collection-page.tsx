@@ -611,6 +611,36 @@ export function AdminCollectionPage<TRow, TResponse>({
                 <Plus data-icon="inline-start" /> {config.createLabel}
               </Button>
             }
+            filters={
+              config.filter ? (
+                <DataTableToolbar
+                  actions={
+                    status !== "all" ? (
+                      <Button
+                        onClick={clearFilters}
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                      >
+                        <X /> {t("clear")}
+                      </Button>
+                    ) : undefined
+                  }
+                  className="px-0"
+                >
+                  <DataTableFilter
+                    ariaLabel={t("filterBy", { field: config.filter.label })}
+                    label={config.filter.label}
+                    onValueChange={(value) => {
+                      setStatus(value)
+                      setPage(1)
+                    }}
+                    options={config.filter.options}
+                    value={status}
+                  />
+                </DataTableToolbar>
+              ) : null
+            }
             search={{
               ariaLabel: t("searchItems", { items: config.itemLabel }),
               onChange: (value) => {
@@ -622,33 +652,6 @@ export function AdminCollectionPage<TRow, TResponse>({
             }}
           />
           <CardContent className="flex flex-col gap-4 px-0">
-            {config.filter ? (
-              <DataTableToolbar
-                actions={
-                  status !== "all" ? (
-                    <Button
-                      onClick={clearFilters}
-                      size="sm"
-                      type="button"
-                      variant="outline"
-                    >
-                      <X /> {t("clear")}
-                    </Button>
-                  ) : undefined
-                }
-              >
-                <DataTableFilter
-                  ariaLabel={t("filterBy", { field: config.filter.label })}
-                  label={config.filter.label}
-                  onValueChange={(value) => {
-                    setStatus(value)
-                    setPage(1)
-                  }}
-                  options={config.filter.options}
-                  value={status}
-                />
-              </DataTableToolbar>
-            ) : null}
             <Table>
               <TableHeader>
                 <TableRow>

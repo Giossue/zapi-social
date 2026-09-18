@@ -152,6 +152,57 @@ export function AiUsageLogsPage() {
       <CollectionHeader description={t("description")} title={t("title")} />
       <Card variant="subtle">
         <DataTableHeader
+          filters={
+            <DataTableToolbar
+              className="px-0"
+              actions={
+                provider !== "all" || status !== "all" ? (
+                  <Button
+                    onClick={clearFilters}
+                    size="sm"
+                    type="button"
+                    variant="outline"
+                  >
+                    <X /> {t("clear")}
+                  </Button>
+                ) : undefined
+              }
+            >
+              <DataTableFilter
+                ariaLabel={t("filterProvider")}
+                label={t("provider")}
+                onValueChange={(value) => {
+                  setProvider(value)
+                  setPage(1)
+                }}
+                options={[
+                  { label: t("all"), value: "all" },
+                  ...data.providers.map((item) => ({
+                    label: item,
+                    value: item,
+                  })),
+                ]}
+                value={provider}
+              />
+              <DataTableFilter
+                ariaLabel={t("filterStatus")}
+                label={t("statusColumn")}
+                onValueChange={(value) => {
+                  setStatus(value)
+                  setPage(1)
+                }}
+                options={[
+                  { label: t("all"), value: "all" },
+                  { label: t("filter.succeeded"), value: "succeeded" },
+                  { label: t("filter.failed"), value: "failed" },
+                  { label: t("filter.queued"), value: "queued" },
+                  { label: t("filter.processing"), value: "processing" },
+                  { label: t("filter.cancelled"), value: "cancelled" },
+                ]}
+                value={status}
+              />
+            </DataTableToolbar>
+          }
           search={{
             ariaLabel: t("searchAriaLabel"),
             onChange: (value) => {
@@ -163,54 +214,6 @@ export function AiUsageLogsPage() {
           }}
         />
         <CardContent className="flex flex-col gap-4 px-0">
-          <DataTableToolbar
-            actions={
-              provider !== "all" || status !== "all" ? (
-                <Button
-                  onClick={clearFilters}
-                  size="sm"
-                  type="button"
-                  variant="outline"
-                >
-                  <X /> {t("clear")}
-                </Button>
-              ) : undefined
-            }
-          >
-            <DataTableFilter
-              ariaLabel={t("filterProvider")}
-              label={t("provider")}
-              onValueChange={(value) => {
-                setProvider(value)
-                setPage(1)
-              }}
-              options={[
-                { label: t("all"), value: "all" },
-                ...data.providers.map((item) => ({
-                  label: item,
-                  value: item,
-                })),
-              ]}
-              value={provider}
-            />
-            <DataTableFilter
-              ariaLabel={t("filterStatus")}
-              label={t("statusColumn")}
-              onValueChange={(value) => {
-                setStatus(value)
-                setPage(1)
-              }}
-              options={[
-                { label: t("all"), value: "all" },
-                { label: t("filter.succeeded"), value: "succeeded" },
-                { label: t("filter.failed"), value: "failed" },
-                { label: t("filter.queued"), value: "queued" },
-                { label: t("filter.processing"), value: "processing" },
-                { label: t("filter.cancelled"), value: "cancelled" },
-              ]}
-              value={status}
-            />
-          </DataTableToolbar>
           <Table>
             <TableHeader>
               <TableRow>

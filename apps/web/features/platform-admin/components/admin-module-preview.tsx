@@ -479,6 +479,26 @@ export function AdminModulePreview({
               </Button>
             ) : undefined
           }
+          filters={
+            <DataTableToolbar className="px-0">
+              <DataTableFilter
+                ariaLabel={t("filterStatus")}
+                label={t("statusColumn")}
+                onValueChange={(value) => {
+                  setStatus(value)
+                  setPageIndex(0)
+                }}
+                options={[
+                  { label: t("allStatuses"), value: "all" },
+                  ...statuses.map((item) => ({
+                    label: t(`status.${item}`),
+                    value: item,
+                  })),
+                ]}
+                value={status}
+              />
+            </DataTableToolbar>
+          }
           search={{
             ariaLabel: t("searchAriaLabel", {
               section: t(`tab.${active.value}`),
@@ -492,24 +512,6 @@ export function AdminModulePreview({
           }}
         />
         <CardContent className="flex flex-col gap-4 px-0">
-          <DataTableToolbar>
-            <DataTableFilter
-              ariaLabel={t("filterStatus")}
-              label={t("statusColumn")}
-              onValueChange={(value) => {
-                setStatus(value)
-                setPageIndex(0)
-              }}
-              options={[
-                { label: t("allStatuses"), value: "all" },
-                ...statuses.map((item) => ({
-                  label: t(`status.${item}`),
-                  value: item,
-                })),
-              ]}
-              value={status}
-            />
-          </DataTableToolbar>
           <Table>
             <TableHeader>
               <TableRow>

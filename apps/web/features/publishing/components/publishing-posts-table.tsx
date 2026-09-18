@@ -223,6 +223,56 @@ export function PublishingPostsTable({
   return (
     <Card variant="subtle">
       <DataTableHeader
+        filters={
+          <DataTableToolbar
+            actions={
+              provider !== "all" || status !== "all" ? (
+                <Button
+                  onClick={clearFilters}
+                  size="sm"
+                  variant="brand-secondary"
+                >
+                  <ListFilter data-icon="inline-start" />
+                  {t("clearFilters")}
+                </Button>
+              ) : undefined
+            }
+            className="px-0"
+          >
+            <DataTableFilter
+              ariaLabel={t("filterProviderLabel")}
+              label={t("provider")}
+              onValueChange={(value) => {
+                setProvider(value as PublishingProvider | "all")
+                setPage(1)
+              }}
+              options={[
+                { label: t("allProviders"), value: "all" },
+                { label: providerLabels.facebook, value: "facebook" },
+                { label: providerLabels.instagram, value: "instagram" },
+                { label: providerLabels.whatsapp, value: "whatsapp" },
+              ]}
+              value={provider}
+            />
+            <DataTableFilter
+              ariaLabel={t("filterStatusLabel")}
+              label={t("status")}
+              onValueChange={(value) => {
+                setStatus(value as PublishingStatus | "all")
+                setPage(1)
+              }}
+              options={[
+                { label: t("allStatuses"), value: "all" },
+                { label: t("statusLabel.draft"), value: "draft" },
+                { label: t("statusLabel.scheduled"), value: "scheduled" },
+                { label: t("statusLabel.processing"), value: "processing" },
+                { label: t("statusLabel.failed"), value: "failed" },
+                { label: t("statusLabel.published"), value: "published" },
+              ]}
+              value={status}
+            />
+          </DataTableToolbar>
+        }
         search={{
           ariaLabel: t("searchLabel"),
           onChange: (value) => {
@@ -234,54 +284,6 @@ export function PublishingPostsTable({
         }}
       />
       <CardContent className="flex flex-col gap-4 px-0">
-        <DataTableToolbar
-          actions={
-            provider !== "all" || status !== "all" ? (
-              <Button
-                onClick={clearFilters}
-                size="sm"
-                variant="brand-secondary"
-              >
-                <ListFilter data-icon="inline-start" />
-                {t("clearFilters")}
-              </Button>
-            ) : undefined
-          }
-        >
-          <DataTableFilter
-            ariaLabel={t("filterProviderLabel")}
-            label={t("provider")}
-            onValueChange={(value) => {
-              setProvider(value as PublishingProvider | "all")
-              setPage(1)
-            }}
-            options={[
-              { label: t("allProviders"), value: "all" },
-              { label: providerLabels.facebook, value: "facebook" },
-              { label: providerLabels.instagram, value: "instagram" },
-              { label: providerLabels.whatsapp, value: "whatsapp" },
-            ]}
-            value={provider}
-          />
-          <DataTableFilter
-            ariaLabel={t("filterStatusLabel")}
-            label={t("status")}
-            onValueChange={(value) => {
-              setStatus(value as PublishingStatus | "all")
-              setPage(1)
-            }}
-            options={[
-              { label: t("allStatuses"), value: "all" },
-              { label: t("statusLabel.draft"), value: "draft" },
-              { label: t("statusLabel.scheduled"), value: "scheduled" },
-              { label: t("statusLabel.processing"), value: "processing" },
-              { label: t("statusLabel.failed"), value: "failed" },
-              { label: t("statusLabel.published"), value: "published" },
-            ]}
-            value={status}
-          />
-        </DataTableToolbar>
-
         <Table>
           <TableHeader>
             <TableRow>

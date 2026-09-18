@@ -1211,17 +1211,34 @@ export function FilesLibraryPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-        <InputGroup className="max-w-xl">
-          <InputGroupAddon>
-            <Search />
-          </InputGroupAddon>
-          <InputGroupInput
-            aria-label={t("searchLabel")}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder={t("searchLabel")}
-            value={query}
-          />
-        </InputGroup>
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <InputGroup className="max-w-xl">
+            <InputGroupAddon>
+              <Search />
+            </InputGroupAddon>
+            <InputGroupInput
+              aria-label={t("searchLabel")}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={t("searchLabel")}
+              value={query}
+            />
+          </InputGroup>
+          <DataTableToolbar className="px-0">
+            <DataTableFilter
+              ariaLabel={t("filterType")}
+              label={t("type")}
+              onValueChange={(value) => setAssetFilter(value as AssetFilter)}
+              options={[
+                { label: t("all"), value: "all" },
+                { label: t("filter.image"), value: "image" },
+                { label: t("filter.video"), value: "video" },
+                { label: t("filter.document"), value: "document" },
+                { label: t("filter.folder"), value: "folder" },
+              ]}
+              value={assetFilter}
+            />
+          </DataTableToolbar>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button
             className="hidden sm:inline-flex"
@@ -1321,21 +1338,6 @@ export function FilesLibraryPage() {
 
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <DataTableToolbar className="px-0">
-            <DataTableFilter
-              ariaLabel={t("filterType")}
-              label={t("type")}
-              onValueChange={(value) => setAssetFilter(value as AssetFilter)}
-              options={[
-                { label: t("all"), value: "all" },
-                { label: t("filter.image"), value: "image" },
-                { label: t("filter.video"), value: "video" },
-                { label: t("filter.document"), value: "document" },
-                { label: t("filter.folder"), value: "folder" },
-              ]}
-              value={assetFilter}
-            />
-          </DataTableToolbar>
           <div className="flex flex-wrap items-center gap-2">
             {selection.length > 0 ? (
               <>

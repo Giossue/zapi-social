@@ -583,6 +583,43 @@ export function AdminManualPaymentsPage() {
                     <Plus data-icon="inline-start" /> {t("registerPayment")}
                   </Button>
                 }
+                filters={
+                  <DataTableToolbar
+                    actions={
+                      status !== "all" ? (
+                        <Button
+                          onClick={() => {
+                            setQuery("")
+                            setStatus("all")
+                            setPage(1)
+                          }}
+                          size="sm"
+                          type="button"
+                          variant="outline"
+                        >
+                          <X /> {t("clear")}
+                        </Button>
+                      ) : undefined
+                    }
+                    className="px-0"
+                  >
+                    <DataTableFilter
+                      ariaLabel={t("filterStatus")}
+                      label={t("statusColumn")}
+                      onValueChange={(value) => {
+                        setStatus(value as ManualPaymentStatus | "all")
+                        setPage(1)
+                      }}
+                      options={[
+                        { label: t("all"), value: "all" },
+                        { label: t("filter.pending"), value: "pending" },
+                        { label: t("filter.approved"), value: "approved" },
+                        { label: t("filter.rejected"), value: "rejected" },
+                      ]}
+                      value={status}
+                    />
+                  </DataTableToolbar>
+                }
                 search={{
                   ariaLabel: t("searchLabel"),
                   onChange: (value) => {
@@ -594,40 +631,6 @@ export function AdminManualPaymentsPage() {
                 }}
               />
               <CardContent className="flex flex-col gap-4 px-0">
-                <DataTableToolbar
-                  actions={
-                    status !== "all" ? (
-                      <Button
-                        onClick={() => {
-                          setQuery("")
-                          setStatus("all")
-                          setPage(1)
-                        }}
-                        size="sm"
-                        type="button"
-                        variant="outline"
-                      >
-                        <X /> {t("clear")}
-                      </Button>
-                    ) : undefined
-                  }
-                >
-                  <DataTableFilter
-                    ariaLabel={t("filterStatus")}
-                    label={t("statusColumn")}
-                    onValueChange={(value) => {
-                      setStatus(value as ManualPaymentStatus | "all")
-                      setPage(1)
-                    }}
-                    options={[
-                      { label: t("all"), value: "all" },
-                      { label: t("filter.pending"), value: "pending" },
-                      { label: t("filter.approved"), value: "approved" },
-                      { label: t("filter.rejected"), value: "rejected" },
-                    ]}
-                    value={status}
-                  />
-                </DataTableToolbar>
                 <div>
                   <Table>
                     <TableHeader>

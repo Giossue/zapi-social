@@ -806,6 +806,38 @@ export function AutomationPage() {
                     </Button>
                   ) : undefined
                 }
+                filters={
+                  <DataTableToolbar
+                    actions={
+                      keysStatus !== "all" ? (
+                        <Button
+                          onClick={clearKeysFilters}
+                          size="sm"
+                          type="button"
+                          variant="outline"
+                        >
+                          <X /> {t("clear")}
+                        </Button>
+                      ) : undefined
+                    }
+                    className="px-0"
+                  >
+                    <DataTableFilter
+                      ariaLabel={t("filterStatus")}
+                      label={t("status")}
+                      onValueChange={(value) => {
+                        setKeysStatus(value as "all" | "active" | "revoked")
+                        setKeysPage(1)
+                      }}
+                      options={[
+                        { label: t("all"), value: "all" },
+                        { label: t("keyFilter.active"), value: "active" },
+                        { label: t("keyFilter.revoked"), value: "revoked" },
+                      ]}
+                      value={keysStatus}
+                    />
+                  </DataTableToolbar>
+                }
                 search={{
                   ariaLabel: t("searchKeys"),
                   onChange: (value) => {
@@ -817,35 +849,6 @@ export function AutomationPage() {
                 }}
               />
               <CardContent className="flex flex-col gap-4 px-0">
-                <DataTableToolbar
-                  actions={
-                    keysStatus !== "all" ? (
-                      <Button
-                        onClick={clearKeysFilters}
-                        size="sm"
-                        type="button"
-                        variant="outline"
-                      >
-                        <X /> {t("clear")}
-                      </Button>
-                    ) : undefined
-                  }
-                >
-                  <DataTableFilter
-                    ariaLabel={t("filterStatus")}
-                    label={t("status")}
-                    onValueChange={(value) => {
-                      setKeysStatus(value as "all" | "active" | "revoked")
-                      setKeysPage(1)
-                    }}
-                    options={[
-                      { label: t("all"), value: "all" },
-                      { label: t("keyFilter.active"), value: "active" },
-                      { label: t("keyFilter.revoked"), value: "revoked" },
-                    ]}
-                    value={keysStatus}
-                  />
-                </DataTableToolbar>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -1008,6 +1011,43 @@ export function AutomationPage() {
                     </Button>
                   ) : undefined
                 }
+                filters={
+                  <DataTableToolbar
+                    actions={
+                      webhooksStatus !== "all" ? (
+                        <Button
+                          onClick={clearWebhooksFilters}
+                          size="sm"
+                          type="button"
+                          variant="outline"
+                        >
+                          <X /> {t("clear")}
+                        </Button>
+                      ) : undefined
+                    }
+                    className="px-0"
+                  >
+                    <DataTableFilter
+                      ariaLabel={t("filterStatus")}
+                      label={t("status")}
+                      onValueChange={(value) => {
+                        setWebhooksStatus(
+                          value as "all" | "enabled" | "disabled"
+                        )
+                        setWebhooksPage(1)
+                      }}
+                      options={[
+                        { label: t("all"), value: "all" },
+                        { label: t("webhookFilter.enabled"), value: "enabled" },
+                        {
+                          label: t("webhookFilter.disabled"),
+                          value: "disabled",
+                        },
+                      ]}
+                      value={webhooksStatus}
+                    />
+                  </DataTableToolbar>
+                }
                 search={{
                   ariaLabel: t("searchWebhooks"),
                   onChange: (value) => {
@@ -1019,35 +1059,6 @@ export function AutomationPage() {
                 }}
               />
               <CardContent className="flex flex-col gap-4 px-0">
-                <DataTableToolbar
-                  actions={
-                    webhooksStatus !== "all" ? (
-                      <Button
-                        onClick={clearWebhooksFilters}
-                        size="sm"
-                        type="button"
-                        variant="outline"
-                      >
-                        <X /> {t("clear")}
-                      </Button>
-                    ) : undefined
-                  }
-                >
-                  <DataTableFilter
-                    ariaLabel={t("filterStatus")}
-                    label={t("status")}
-                    onValueChange={(value) => {
-                      setWebhooksStatus(value as "all" | "enabled" | "disabled")
-                      setWebhooksPage(1)
-                    }}
-                    options={[
-                      { label: t("all"), value: "all" },
-                      { label: t("webhookFilter.enabled"), value: "enabled" },
-                      { label: t("webhookFilter.disabled"), value: "disabled" },
-                    ]}
-                    value={webhooksStatus}
-                  />
-                </DataTableToolbar>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -1212,6 +1223,41 @@ export function AutomationPage() {
           <TabsContent className="pt-3" value="logs">
             <Card variant="subtle">
               <DataTableHeader
+                filters={
+                  <DataTableToolbar
+                    actions={
+                      logsStatus !== "all" ? (
+                        <Button
+                          onClick={clearLogsFilters}
+                          size="sm"
+                          type="button"
+                          variant="outline"
+                        >
+                          <X /> {t("clear")}
+                        </Button>
+                      ) : undefined
+                    }
+                    className="px-0"
+                  >
+                    <DataTableFilter
+                      ariaLabel={t("filterResult")}
+                      label={t("result")}
+                      onValueChange={(value) => {
+                        setLogsStatus(
+                          value as "all" | "accepted" | "succeeded" | "failed"
+                        )
+                        setLogsPage(1)
+                      }}
+                      options={[
+                        { label: t("all"), value: "all" },
+                        { label: t("logFilter.accepted"), value: "accepted" },
+                        { label: t("logFilter.succeeded"), value: "succeeded" },
+                        { label: t("logFilter.failed"), value: "failed" },
+                      ]}
+                      value={logsStatus}
+                    />
+                  </DataTableToolbar>
+                }
                 search={{
                   ariaLabel: t("searchActivity"),
                   onChange: (value) => {
@@ -1223,38 +1269,6 @@ export function AutomationPage() {
                 }}
               />
               <CardContent className="flex flex-col gap-4 px-0">
-                <DataTableToolbar
-                  actions={
-                    logsStatus !== "all" ? (
-                      <Button
-                        onClick={clearLogsFilters}
-                        size="sm"
-                        type="button"
-                        variant="outline"
-                      >
-                        <X /> {t("clear")}
-                      </Button>
-                    ) : undefined
-                  }
-                >
-                  <DataTableFilter
-                    ariaLabel={t("filterResult")}
-                    label={t("result")}
-                    onValueChange={(value) => {
-                      setLogsStatus(
-                        value as "all" | "accepted" | "succeeded" | "failed"
-                      )
-                      setLogsPage(1)
-                    }}
-                    options={[
-                      { label: t("all"), value: "all" },
-                      { label: t("logFilter.accepted"), value: "accepted" },
-                      { label: t("logFilter.succeeded"), value: "succeeded" },
-                      { label: t("logFilter.failed"), value: "failed" },
-                    ]}
-                    value={logsStatus}
-                  />
-                </DataTableToolbar>
                 <Table>
                   <TableHeader>
                     <TableRow>

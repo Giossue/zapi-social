@@ -1010,6 +1010,54 @@ export function PlansPage() {
                   {t("create")}
                 </Button>
               }
+              filters={
+                <DataTableToolbar className="px-0">
+                  <DataTableFilter
+                    ariaLabel={t("filterStatus")}
+                    label={t("statusColumn")}
+                    onValueChange={(value) => {
+                      setStatusFilter(value as "all" | PlanStatus)
+                      setPageIndex(0)
+                    }}
+                    options={[
+                      { label: t("filter.allStatuses"), value: "all" },
+                      { label: t("filter.active"), value: "active" },
+                      { label: t("filter.inactive"), value: "inactive" },
+                    ]}
+                    value={statusFilter}
+                  />
+                  <DataTableFilter
+                    ariaLabel={t("filterBilling")}
+                    label={t("billingColumn")}
+                    onValueChange={(value) => {
+                      setBillingFilter(value as "all" | PlanBillingType)
+                      setPageIndex(0)
+                    }}
+                    options={[
+                      { label: t("filter.allBilling"), value: "all" },
+                      { label: t("billing.monthly"), value: "monthly" },
+                      { label: t("billing.yearly"), value: "yearly" },
+                    ]}
+                    value={billingFilter}
+                  />
+                  <DataTableFilter
+                    ariaLabel={t("filterFeatured")}
+                    label={t("visibility")}
+                    onValueChange={(value) => {
+                      setFeaturedFilter(
+                        value as "all" | "featured" | "standard"
+                      )
+                      setPageIndex(0)
+                    }}
+                    options={[
+                      { label: t("filter.allPlans"), value: "all" },
+                      { label: t("filter.featured"), value: "featured" },
+                      { label: t("filter.standard"), value: "standard" },
+                    ]}
+                    value={featuredFilter}
+                  />
+                </DataTableToolbar>
+              }
               search={{
                 ariaLabel: t("searchLabel"),
                 onChange: (value) => {
@@ -1021,50 +1069,6 @@ export function PlansPage() {
               }}
             />
             <CardContent className="flex flex-col gap-4 px-0">
-              <DataTableToolbar>
-                <DataTableFilter
-                  ariaLabel={t("filterStatus")}
-                  label={t("statusColumn")}
-                  onValueChange={(value) => {
-                    setStatusFilter(value as "all" | PlanStatus)
-                    setPageIndex(0)
-                  }}
-                  options={[
-                    { label: t("filter.allStatuses"), value: "all" },
-                    { label: t("filter.active"), value: "active" },
-                    { label: t("filter.inactive"), value: "inactive" },
-                  ]}
-                  value={statusFilter}
-                />
-                <DataTableFilter
-                  ariaLabel={t("filterBilling")}
-                  label={t("billingColumn")}
-                  onValueChange={(value) => {
-                    setBillingFilter(value as "all" | PlanBillingType)
-                    setPageIndex(0)
-                  }}
-                  options={[
-                    { label: t("filter.allBilling"), value: "all" },
-                    { label: t("billing.monthly"), value: "monthly" },
-                    { label: t("billing.yearly"), value: "yearly" },
-                  ]}
-                  value={billingFilter}
-                />
-                <DataTableFilter
-                  ariaLabel={t("filterFeatured")}
-                  label={t("visibility")}
-                  onValueChange={(value) => {
-                    setFeaturedFilter(value as "all" | "featured" | "standard")
-                    setPageIndex(0)
-                  }}
-                  options={[
-                    { label: t("filter.allPlans"), value: "all" },
-                    { label: t("filter.featured"), value: "featured" },
-                    { label: t("filter.standard"), value: "standard" },
-                  ]}
-                  value={featuredFilter}
-                />
-              </DataTableToolbar>
               <Table>
                 <TableHeader>
                   <TableRow>

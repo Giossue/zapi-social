@@ -39,6 +39,7 @@ type DataTableHeaderProps = {
   action?: ReactNode
   className?: string
   description?: ReactNode
+  filters?: ReactNode
   search?: DataTableSearchProps
   title?: ReactNode
 }
@@ -70,6 +71,7 @@ function DataTableHeader({
   action,
   className,
   description,
+  filters,
   search,
   title,
 }: DataTableHeaderProps) {
@@ -91,7 +93,7 @@ function DataTableHeader({
           {description}
         </CardDescription>
       ) : null}
-      {search || action ? (
+      {search || filters || action ? (
         <CardAction
           className={cn(
             "col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end",
@@ -99,7 +101,12 @@ function DataTableHeader({
               "row-span-1 row-start-1 md:col-start-1 md:row-span-1 md:w-full md:justify-between md:justify-self-stretch"
           )}
         >
-          {search ? <DataTableSearch {...search} /> : null}
+          {search || filters ? (
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              {search ? <DataTableSearch {...search} /> : null}
+              {filters}
+            </div>
+          ) : null}
           {action}
         </CardAction>
       ) : null}

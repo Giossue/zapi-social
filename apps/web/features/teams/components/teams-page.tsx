@@ -715,6 +715,24 @@ export function TeamsPage() {
           </Button>
         )
       }
+      filters={
+        activeView === "activity" ? (
+          <DataTableToolbar className="px-0">
+            <DataTableFilter
+              ariaLabel={t("filterActivity")}
+              onValueChange={(value) => {
+                setActivityCategory(value as PortalTeamActivityCategory)
+                setActivityPage(1)
+              }}
+              options={activityCategories.map((value) => ({
+                label: t(`activityCategory.${value}`),
+                value,
+              }))}
+              value={activityCategory}
+            />
+          </DataTableToolbar>
+        ) : undefined
+      }
       search={{
         ariaLabel: searchPlaceholder.replace("...", ""),
         inputRef: searchRef,
@@ -768,23 +786,6 @@ export function TeamsPage() {
           <Card variant="subtle">
             {tableHeader}
             <CardContent className="flex flex-col gap-4 px-0">
-              {activeView === "activity" ? (
-                <DataTableToolbar>
-                  <DataTableFilter
-                    ariaLabel={t("filterActivity")}
-                    onValueChange={(value) => {
-                      setActivityCategory(value as PortalTeamActivityCategory)
-                      setActivityPage(1)
-                    }}
-                    options={activityCategories.map((value) => ({
-                      label: t(`activityCategory.${value}`),
-                      value,
-                    }))}
-                    value={activityCategory}
-                  />
-                </DataTableToolbar>
-              ) : null}
-
               <TabsContent className="mt-0" value="members">
                 <MembersTable
                   emptyProps={visibleMembersEmptyProps}

@@ -290,6 +290,38 @@ export function StaticPagesSettingsPage() {
                 <Plus data-icon="inline-start" /> {t("create")}
               </Button>
             }
+            filters={
+              <DataTableToolbar
+                actions={
+                  statusFilter !== "all" ? (
+                    <Button
+                      onClick={clearFilters}
+                      size="sm"
+                      type="button"
+                      variant="outline"
+                    >
+                      <X /> {t("clear")}
+                    </Button>
+                  ) : undefined
+                }
+                className="px-0"
+              >
+                <DataTableFilter
+                  ariaLabel={t("filterStatus")}
+                  label={t("statusColumn")}
+                  onValueChange={(value) => {
+                    setStatusFilter(value as PublicationFilter)
+                    setCurrentPage(1)
+                  }}
+                  options={[
+                    { label: t("filter.all"), value: "all" },
+                    { label: t("filter.published"), value: "published" },
+                    { label: t("filter.draft"), value: "draft" },
+                  ]}
+                  value={statusFilter}
+                />
+              </DataTableToolbar>
+            }
             search={{
               ariaLabel: t("searchAria"),
               onChange: (value) => {
@@ -301,35 +333,6 @@ export function StaticPagesSettingsPage() {
             }}
           />
           <CardContent className="flex flex-col gap-4 px-0">
-            <DataTableToolbar
-              actions={
-                statusFilter !== "all" ? (
-                  <Button
-                    onClick={clearFilters}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    <X /> {t("clear")}
-                  </Button>
-                ) : undefined
-              }
-            >
-              <DataTableFilter
-                ariaLabel={t("filterStatus")}
-                label={t("statusColumn")}
-                onValueChange={(value) => {
-                  setStatusFilter(value as PublicationFilter)
-                  setCurrentPage(1)
-                }}
-                options={[
-                  { label: t("filter.all"), value: "all" },
-                  { label: t("filter.published"), value: "published" },
-                  { label: t("filter.draft"), value: "draft" },
-                ]}
-                value={statusFilter}
-              />
-            </DataTableToolbar>
             <Table>
               <TableHeader>
                 <TableRow>

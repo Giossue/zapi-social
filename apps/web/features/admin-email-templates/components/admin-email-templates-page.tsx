@@ -495,6 +495,38 @@ export function AdminEmailTemplatesPage() {
         />
         <Card variant="subtle">
           <DataTableHeader
+            filters={
+              <DataTableToolbar
+                actions={
+                  statusFilter !== "all" ? (
+                    <Button
+                      onClick={clearFilters}
+                      size="sm"
+                      type="button"
+                      variant="outline"
+                    >
+                      <X /> {t("clear")}
+                    </Button>
+                  ) : undefined
+                }
+                className="px-0"
+              >
+                <DataTableFilter
+                  ariaLabel={t("filterStatus")}
+                  label={t("statusColumn")}
+                  onValueChange={(value) => {
+                    setStatusFilter(value as "all" | "customized" | "default")
+                    setCurrentPage(1)
+                  }}
+                  options={[
+                    { label: t("all"), value: "all" },
+                    { label: t("status.customized"), value: "customized" },
+                    { label: t("status.default"), value: "default" },
+                  ]}
+                  value={statusFilter}
+                />
+              </DataTableToolbar>
+            }
             search={{
               ariaLabel: t("searchLabel"),
               onChange: (value) => {
@@ -506,35 +538,6 @@ export function AdminEmailTemplatesPage() {
             }}
           />
           <CardContent className="flex flex-col gap-4 px-0">
-            <DataTableToolbar
-              actions={
-                statusFilter !== "all" ? (
-                  <Button
-                    onClick={clearFilters}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    <X /> {t("clear")}
-                  </Button>
-                ) : undefined
-              }
-            >
-              <DataTableFilter
-                ariaLabel={t("filterStatus")}
-                label={t("statusColumn")}
-                onValueChange={(value) => {
-                  setStatusFilter(value as "all" | "customized" | "default")
-                  setCurrentPage(1)
-                }}
-                options={[
-                  { label: t("all"), value: "all" },
-                  { label: t("status.customized"), value: "customized" },
-                  { label: t("status.default"), value: "default" },
-                ]}
-                value={statusFilter}
-              />
-            </DataTableToolbar>
             <Table>
               <TableHeader>
                 <TableRow>

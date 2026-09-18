@@ -514,6 +514,71 @@ export function AiConfigurationPage() {
         <TabsContent value="models" className="pt-3">
           <Card variant="subtle">
             <DataTableHeader
+              filters={
+                <DataTableToolbar
+                  className="px-0"
+                  actions={
+                    modelProviderFilter !== "all" ||
+                    modelCapabilityFilter !== "all" ||
+                    modelEnabledFilter !== "all" ? (
+                      <Button
+                        onClick={clearModelFilters}
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                      >
+                        <X /> {t("clear")}
+                      </Button>
+                    ) : undefined
+                  }
+                >
+                  <DataTableFilter
+                    ariaLabel={t("filterProvider")}
+                    label={t("provider")}
+                    onValueChange={(value) => {
+                      setModelProviderFilter(value)
+                      setModelPage(1)
+                    }}
+                    options={[
+                      { label: t("all"), value: "all" },
+                      ...configuration.providers.map((provider) => ({
+                        label: provider.label,
+                        value: provider.providerKey,
+                      })),
+                    ]}
+                    value={modelProviderFilter}
+                  />
+                  <DataTableFilter
+                    ariaLabel={t("filterCapability")}
+                    label={t("capability")}
+                    onValueChange={(value) => {
+                      setModelCapabilityFilter(value)
+                      setModelPage(1)
+                    }}
+                    options={[
+                      { label: t("allFeminine"), value: "all" },
+                      { label: t("capabilityLabel.text"), value: "text" },
+                      { label: t("capabilityLabel.image"), value: "image" },
+                      { label: t("capabilityLabel.video"), value: "video" },
+                    ]}
+                    value={modelCapabilityFilter}
+                  />
+                  <DataTableFilter
+                    ariaLabel={t("filterEnabled")}
+                    label={t("enabledColumn")}
+                    onValueChange={(value) => {
+                      setModelEnabledFilter(value)
+                      setModelPage(1)
+                    }}
+                    options={[
+                      { label: t("all"), value: "all" },
+                      { label: t("filter.enabled"), value: "enabled" },
+                      { label: t("filter.disabled"), value: "disabled" },
+                    ]}
+                    value={modelEnabledFilter}
+                  />
+                </DataTableToolbar>
+              }
               search={{
                 ariaLabel: t("searchModelsAria"),
                 onChange: (value) => {
@@ -525,68 +590,6 @@ export function AiConfigurationPage() {
               }}
             />
             <CardContent className="flex flex-col gap-4 px-0">
-              <DataTableToolbar
-                actions={
-                  modelProviderFilter !== "all" ||
-                  modelCapabilityFilter !== "all" ||
-                  modelEnabledFilter !== "all" ? (
-                    <Button
-                      onClick={clearModelFilters}
-                      size="sm"
-                      type="button"
-                      variant="outline"
-                    >
-                      <X /> {t("clear")}
-                    </Button>
-                  ) : undefined
-                }
-              >
-                <DataTableFilter
-                  ariaLabel={t("filterProvider")}
-                  label={t("provider")}
-                  onValueChange={(value) => {
-                    setModelProviderFilter(value)
-                    setModelPage(1)
-                  }}
-                  options={[
-                    { label: t("all"), value: "all" },
-                    ...configuration.providers.map((provider) => ({
-                      label: provider.label,
-                      value: provider.providerKey,
-                    })),
-                  ]}
-                  value={modelProviderFilter}
-                />
-                <DataTableFilter
-                  ariaLabel={t("filterCapability")}
-                  label={t("capability")}
-                  onValueChange={(value) => {
-                    setModelCapabilityFilter(value)
-                    setModelPage(1)
-                  }}
-                  options={[
-                    { label: t("allFeminine"), value: "all" },
-                    { label: t("capabilityLabel.text"), value: "text" },
-                    { label: t("capabilityLabel.image"), value: "image" },
-                    { label: t("capabilityLabel.video"), value: "video" },
-                  ]}
-                  value={modelCapabilityFilter}
-                />
-                <DataTableFilter
-                  ariaLabel={t("filterEnabled")}
-                  label={t("enabledColumn")}
-                  onValueChange={(value) => {
-                    setModelEnabledFilter(value)
-                    setModelPage(1)
-                  }}
-                  options={[
-                    { label: t("all"), value: "all" },
-                    { label: t("filter.enabled"), value: "enabled" },
-                    { label: t("filter.disabled"), value: "disabled" },
-                  ]}
-                  value={modelEnabledFilter}
-                />
-              </DataTableToolbar>
               <Table>
                 <TableHeader>
                   <TableRow>

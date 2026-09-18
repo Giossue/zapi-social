@@ -982,6 +982,40 @@ export function LinkBioPage() {
                 </Button>
               ) : undefined
             }
+            filters={
+              <DataTableToolbar
+                actions={
+                  statusFilter !== "all" ? (
+                    <Button
+                      onClick={clearFilters}
+                      size="sm"
+                      type="button"
+                      variant="outline"
+                    >
+                      <X /> {t("clear")}
+                    </Button>
+                  ) : undefined
+                }
+                className="px-0"
+              >
+                <DataTableFilter
+                  ariaLabel={t("filterStatus")}
+                  label={t("status")}
+                  onValueChange={(value) => {
+                    setStatusFilter(
+                      value as PortalLinkBioPage["status"] | "all"
+                    )
+                    setCurrentPage(1)
+                  }}
+                  options={[
+                    { label: t("all"), value: "all" },
+                    { label: t("statusLabel.published"), value: "published" },
+                    { label: t("statusLabel.draft"), value: "draft" },
+                  ]}
+                  value={statusFilter}
+                />
+              </DataTableToolbar>
+            }
             search={{
               ariaLabel: t("searchLabel"),
               onChange: (value) => {
@@ -993,35 +1027,6 @@ export function LinkBioPage() {
             }}
           />
           <CardContent className="flex flex-col gap-4 px-0">
-            <DataTableToolbar
-              actions={
-                statusFilter !== "all" ? (
-                  <Button
-                    onClick={clearFilters}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    <X /> {t("clear")}
-                  </Button>
-                ) : undefined
-              }
-            >
-              <DataTableFilter
-                ariaLabel={t("filterStatus")}
-                label={t("status")}
-                onValueChange={(value) => {
-                  setStatusFilter(value as PortalLinkBioPage["status"] | "all")
-                  setCurrentPage(1)
-                }}
-                options={[
-                  { label: t("all"), value: "all" },
-                  { label: t("statusLabel.published"), value: "published" },
-                  { label: t("statusLabel.draft"), value: "draft" },
-                ]}
-                value={statusFilter}
-              />
-            </DataTableToolbar>
             <Table>
               <TableHeader>
                 <TableRow>

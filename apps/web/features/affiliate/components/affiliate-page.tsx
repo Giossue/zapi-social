@@ -478,6 +478,51 @@ export function AffiliatePage() {
           <TabsContent className="pt-3" value="commissions">
             <Card variant="subtle">
               <DataTableHeader
+                filters={
+                  <DataTableToolbar
+                    actions={
+                      commissionStatus !== "all" ? (
+                        <Button
+                          onClick={clearCommissionFilters}
+                          size="sm"
+                          type="button"
+                          variant="outline"
+                        >
+                          <X /> {t("clear")}
+                        </Button>
+                      ) : undefined
+                    }
+                    className="px-0"
+                  >
+                    <DataTableFilter
+                      ariaLabel={t("filterStatus")}
+                      label={t("statusColumn")}
+                      onValueChange={(value) => {
+                        setCommissionStatus(
+                          value as Commission["status"] | "all"
+                        )
+                        setCommissionPage(1)
+                      }}
+                      options={[
+                        { label: t("all"), value: "all" },
+                        {
+                          label: t("commissionFilter.pending"),
+                          value: "pending",
+                        },
+                        {
+                          label: t("commissionFilter.available"),
+                          value: "available",
+                        },
+                        { label: t("commissionFilter.paid"), value: "paid" },
+                        {
+                          label: t("commissionFilter.cancelled"),
+                          value: "cancelled",
+                        },
+                      ]}
+                      value={commissionStatus}
+                    />
+                  </DataTableToolbar>
+                }
                 search={{
                   ariaLabel: t("searchCommissions"),
                   onChange: (value) => {
@@ -489,46 +534,6 @@ export function AffiliatePage() {
                 }}
               />
               <CardContent className="flex flex-col gap-4 px-0">
-                <DataTableToolbar
-                  actions={
-                    commissionStatus !== "all" ? (
-                      <Button
-                        onClick={clearCommissionFilters}
-                        size="sm"
-                        type="button"
-                        variant="outline"
-                      >
-                        <X /> {t("clear")}
-                      </Button>
-                    ) : undefined
-                  }
-                >
-                  <DataTableFilter
-                    ariaLabel={t("filterStatus")}
-                    label={t("statusColumn")}
-                    onValueChange={(value) => {
-                      setCommissionStatus(value as Commission["status"] | "all")
-                      setCommissionPage(1)
-                    }}
-                    options={[
-                      { label: t("all"), value: "all" },
-                      {
-                        label: t("commissionFilter.pending"),
-                        value: "pending",
-                      },
-                      {
-                        label: t("commissionFilter.available"),
-                        value: "available",
-                      },
-                      { label: t("commissionFilter.paid"), value: "paid" },
-                      {
-                        label: t("commissionFilter.cancelled"),
-                        value: "cancelled",
-                      },
-                    ]}
-                    value={commissionStatus}
-                  />
-                </DataTableToolbar>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -618,6 +623,51 @@ export function AffiliatePage() {
                     <Wallet data-icon="inline-start" /> {t("requestWithdrawal")}
                   </Button>
                 }
+                filters={
+                  <DataTableToolbar
+                    actions={
+                      withdrawalStatus !== "all" ? (
+                        <Button
+                          onClick={clearWithdrawalFilters}
+                          size="sm"
+                          type="button"
+                          variant="outline"
+                        >
+                          <X /> {t("clear")}
+                        </Button>
+                      ) : undefined
+                    }
+                    className="px-0"
+                  >
+                    <DataTableFilter
+                      ariaLabel={t("filterStatus")}
+                      label={t("statusColumn")}
+                      onValueChange={(value) => {
+                        setWithdrawalStatus(
+                          value as Withdrawal["status"] | "all"
+                        )
+                        setWithdrawalPage(1)
+                      }}
+                      options={[
+                        { label: t("all"), value: "all" },
+                        {
+                          label: t("withdrawalFilter.requested"),
+                          value: "requested",
+                        },
+                        {
+                          label: t("withdrawalFilter.approved"),
+                          value: "approved",
+                        },
+                        { label: t("withdrawalFilter.paid"), value: "paid" },
+                        {
+                          label: t("withdrawalFilter.rejected"),
+                          value: "rejected",
+                        },
+                      ]}
+                      value={withdrawalStatus}
+                    />
+                  </DataTableToolbar>
+                }
                 search={{
                   ariaLabel: t("searchWithdrawals"),
                   onChange: (value) => {
@@ -629,46 +679,6 @@ export function AffiliatePage() {
                 }}
               />
               <CardContent className="flex flex-col gap-4 px-0">
-                <DataTableToolbar
-                  actions={
-                    withdrawalStatus !== "all" ? (
-                      <Button
-                        onClick={clearWithdrawalFilters}
-                        size="sm"
-                        type="button"
-                        variant="outline"
-                      >
-                        <X /> {t("clear")}
-                      </Button>
-                    ) : undefined
-                  }
-                >
-                  <DataTableFilter
-                    ariaLabel={t("filterStatus")}
-                    label={t("statusColumn")}
-                    onValueChange={(value) => {
-                      setWithdrawalStatus(value as Withdrawal["status"] | "all")
-                      setWithdrawalPage(1)
-                    }}
-                    options={[
-                      { label: t("all"), value: "all" },
-                      {
-                        label: t("withdrawalFilter.requested"),
-                        value: "requested",
-                      },
-                      {
-                        label: t("withdrawalFilter.approved"),
-                        value: "approved",
-                      },
-                      { label: t("withdrawalFilter.paid"), value: "paid" },
-                      {
-                        label: t("withdrawalFilter.rejected"),
-                        value: "rejected",
-                      },
-                    ]}
-                    value={withdrawalStatus}
-                  />
-                </DataTableToolbar>
                 <Table>
                   <TableHeader>
                     <TableRow>

@@ -671,61 +671,61 @@ export function CaptionsLibraryPage() {
         <Card variant="subtle">
           <DataTableHeader
             action={
-              <>
-                <DataTableToolbar
-                  actions={
-                    sourceFilter !== "all" || statusFilter !== "all" ? (
-                      <Button
-                        onClick={clearFilters}
-                        size="sm"
-                        type="button"
-                        variant="outline"
-                      >
-                        <X />
-                        {t("clear")}
-                      </Button>
-                    ) : undefined
+              <Button
+                className="hidden sm:inline-flex"
+                onClick={openCreateEditor}
+                size="sm"
+                type="button"
+              >
+                <Plus />
+                {t("createTitle")}
+              </Button>
+            }
+            filters={
+              <DataTableToolbar
+                actions={
+                  sourceFilter !== "all" || statusFilter !== "all" ? (
+                    <Button
+                      onClick={clearFilters}
+                      size="sm"
+                      type="button"
+                      variant="outline"
+                    >
+                      <X />
+                      {t("clear")}
+                    </Button>
+                  ) : undefined
+                }
+                className="px-0"
+              >
+                <DataTableFilter
+                  ariaLabel={t("filterSource")}
+                  label={t("source")}
+                  onValueChange={(value) =>
+                    setSourceFilter(value as CaptionSourceType | "all")
                   }
-                  className="px-0"
-                >
-                  <DataTableFilter
-                    ariaLabel={t("filterSource")}
-                    label={t("source")}
-                    onValueChange={(value) =>
-                      setSourceFilter(value as CaptionSourceType | "all")
-                    }
-                    options={[
-                      { label: t("all"), value: "all" },
-                      { label: t("sourceLabel.manual"), value: "manual" },
-                      { label: t("sourceLabel.ai"), value: "ai" },
-                    ]}
-                    value={sourceFilter}
-                  />
-                  <DataTableFilter
-                    ariaLabel={t("filterStatus")}
-                    label={t("status")}
-                    onValueChange={(value) =>
-                      setStatusFilter(value as CaptionStatus | "all")
-                    }
-                    options={[
-                      { label: t("all"), value: "all" },
-                      { label: t("statusLabel.active"), value: "active" },
-                      { label: t("statusLabel.draft"), value: "draft" },
-                      { label: t("statusLabel.archived"), value: "archived" },
-                    ]}
-                    value={statusFilter}
-                  />
-                </DataTableToolbar>
-                <Button
-                  className="hidden sm:inline-flex"
-                  onClick={openCreateEditor}
-                  size="sm"
-                  type="button"
-                >
-                  <Plus />
-                  {t("createTitle")}
-                </Button>
-              </>
+                  options={[
+                    { label: t("all"), value: "all" },
+                    { label: t("sourceLabel.manual"), value: "manual" },
+                    { label: t("sourceLabel.ai"), value: "ai" },
+                  ]}
+                  value={sourceFilter}
+                />
+                <DataTableFilter
+                  ariaLabel={t("filterStatus")}
+                  label={t("status")}
+                  onValueChange={(value) =>
+                    setStatusFilter(value as CaptionStatus | "all")
+                  }
+                  options={[
+                    { label: t("all"), value: "all" },
+                    { label: t("statusLabel.active"), value: "active" },
+                    { label: t("statusLabel.draft"), value: "draft" },
+                    { label: t("statusLabel.archived"), value: "archived" },
+                  ]}
+                  value={statusFilter}
+                />
+              </DataTableToolbar>
             }
             search={{
               ariaLabel: t("searchLabel"),

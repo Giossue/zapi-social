@@ -90,6 +90,65 @@ export function ChannelsUsers({
               </Button>
             ) : undefined
           }
+          filters={
+            <DataTableToolbar
+              actions={
+                hasActiveFilters ? (
+                  <Button
+                    onClick={onClearFilters}
+                    size="sm"
+                    type="button"
+                    variant="brand-secondary"
+                  >
+                    <ListFilter aria-hidden="true" data-icon="inline-start" />
+                    {t("clearFilters")}
+                  </Button>
+                ) : undefined
+              }
+              className="px-0"
+            >
+              <DataTableFilter
+                ariaLabel={t("filterProvider")}
+                label={t("provider")}
+                onValueChange={onProviderFilterChange}
+                options={[
+                  { label: t("all"), value: "all" },
+                  ...providerOptions.map(([value, label]) => ({
+                    label,
+                    value,
+                  })),
+                ]}
+                triggerClassName="bg-muted/50"
+                value={providerFilter}
+              />
+              <DataTableFilter
+                ariaLabel={t("filterType")}
+                label={t("type")}
+                onValueChange={onCapabilityFilterChange}
+                options={[
+                  { label: t("all"), value: "all" },
+                  ...capabilityOptions.map(([value, label]) => ({
+                    label,
+                    value,
+                  })),
+                ]}
+                triggerClassName="bg-muted/50"
+                value={capabilityFilter}
+              />
+              <DataTableFilter
+                ariaLabel={t("filterStatus")}
+                label={t("statusColumn")}
+                onValueChange={onStatusFilterChange}
+                options={[
+                  { label: t("all"), value: "all" },
+                  { label: t("filter.connected"), value: "connected" },
+                  { label: t("filter.disconnected"), value: "disconnected" },
+                ]}
+                triggerClassName="bg-muted/50"
+                value={statusFilter}
+              />
+            </DataTableToolbar>
+          }
           search={{
             ariaLabel: t("searchLabel"),
             onChange: onQueryChange,
@@ -97,60 +156,6 @@ export function ChannelsUsers({
             value: query,
           }}
         />
-        <DataTableToolbar
-          actions={
-            hasActiveFilters ? (
-              <Button
-                onClick={onClearFilters}
-                size="sm"
-                type="button"
-                variant="brand-secondary"
-              >
-                <ListFilter aria-hidden="true" data-icon="inline-start" />
-                {t("clearFilters")}
-              </Button>
-            ) : undefined
-          }
-          className="px-0"
-        >
-          <DataTableFilter
-            ariaLabel={t("filterProvider")}
-            label={t("provider")}
-            onValueChange={onProviderFilterChange}
-            options={[
-              { label: t("all"), value: "all" },
-              ...providerOptions.map(([value, label]) => ({ label, value })),
-            ]}
-            triggerClassName="bg-muted/50"
-            value={providerFilter}
-          />
-          <DataTableFilter
-            ariaLabel={t("filterType")}
-            label={t("type")}
-            onValueChange={onCapabilityFilterChange}
-            options={[
-              { label: t("all"), value: "all" },
-              ...capabilityOptions.map(([value, label]) => ({
-                label,
-                value,
-              })),
-            ]}
-            triggerClassName="bg-muted/50"
-            value={capabilityFilter}
-          />
-          <DataTableFilter
-            ariaLabel={t("filterStatus")}
-            label={t("statusColumn")}
-            onValueChange={onStatusFilterChange}
-            options={[
-              { label: t("all"), value: "all" },
-              { label: t("filter.connected"), value: "connected" },
-              { label: t("filter.disconnected"), value: "disconnected" },
-            ]}
-            triggerClassName="bg-muted/50"
-            value={statusFilter}
-          />
-        </DataTableToolbar>
       </div>
 
       {isFiltering ? (

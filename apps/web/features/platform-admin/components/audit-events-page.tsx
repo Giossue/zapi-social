@@ -129,6 +129,25 @@ export function AuditEventsPage() {
               </Button>
             }
             description={t("description")}
+            filters={
+              <DataTableToolbar className="px-0">
+                <DataTableFilter
+                  ariaLabel={t("filterSource")}
+                  label={t("sourceColumn")}
+                  onValueChange={(value) => {
+                    setSource(value)
+                    setPage(1)
+                  }}
+                  options={[
+                    { label: t("allSources"), value: "all" },
+                    { label: "Web", value: "web" },
+                    { label: "API", value: "api" },
+                    { label: "Worker", value: "worker" },
+                  ]}
+                  value={source}
+                />
+              </DataTableToolbar>
+            }
             search={{
               ariaLabel: t("searchAriaLabel"),
               onChange: (value) => {
@@ -141,23 +160,6 @@ export function AuditEventsPage() {
             title={t("title")}
           />
           <CardContent className="flex flex-col gap-4 px-0">
-            <DataTableToolbar>
-              <DataTableFilter
-                ariaLabel={t("filterSource")}
-                label={t("sourceColumn")}
-                onValueChange={(value) => {
-                  setSource(value)
-                  setPage(1)
-                }}
-                options={[
-                  { label: t("allSources"), value: "all" },
-                  { label: "Web", value: "web" },
-                  { label: "API", value: "api" },
-                  { label: "Worker", value: "worker" },
-                ]}
-                value={source}
-              />
-            </DataTableToolbar>
             <Table>
               <TableHeader>
                 <TableRow>

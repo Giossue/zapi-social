@@ -627,6 +627,41 @@ export function BulkPostsPage({ embedded = false }: { embedded?: boolean }) {
                 <Plus data-icon="inline-start" /> {t("createTitle")}
               </Button>
             }
+            filters={
+              <DataTableToolbar
+                actions={
+                  status !== "all" ? (
+                    <Button
+                      onClick={clearFilters}
+                      size="sm"
+                      type="button"
+                      variant="outline"
+                    >
+                      <X /> {t("clear")}
+                    </Button>
+                  ) : undefined
+                }
+                className="px-0"
+              >
+                <DataTableFilter
+                  ariaLabel={t("filterStatus")}
+                  label={t("status")}
+                  onValueChange={(value) => {
+                    setStatus(value as BatchStatus | "all")
+                    setPage(1)
+                  }}
+                  options={[
+                    { label: t("filter.all"), value: "all" },
+                    { label: t("filter.queued"), value: "queued" },
+                    { label: t("filter.processing"), value: "processing" },
+                    { label: t("filter.completed"), value: "completed" },
+                    { label: t("filter.failed"), value: "failed" },
+                    { label: t("filter.cancelled"), value: "cancelled" },
+                  ]}
+                  value={status}
+                />
+              </DataTableToolbar>
+            }
             search={{
               ariaLabel: t("searchLabel"),
               onChange: (value) => {
@@ -638,38 +673,6 @@ export function BulkPostsPage({ embedded = false }: { embedded?: boolean }) {
             }}
           />
           <CardContent className="flex flex-col gap-4 px-0">
-            <DataTableToolbar
-              actions={
-                status !== "all" ? (
-                  <Button
-                    onClick={clearFilters}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    <X /> {t("clear")}
-                  </Button>
-                ) : undefined
-              }
-            >
-              <DataTableFilter
-                ariaLabel={t("filterStatus")}
-                label={t("status")}
-                onValueChange={(value) => {
-                  setStatus(value as BatchStatus | "all")
-                  setPage(1)
-                }}
-                options={[
-                  { label: t("filter.all"), value: "all" },
-                  { label: t("filter.queued"), value: "queued" },
-                  { label: t("filter.processing"), value: "processing" },
-                  { label: t("filter.completed"), value: "completed" },
-                  { label: t("filter.failed"), value: "failed" },
-                  { label: t("filter.cancelled"), value: "cancelled" },
-                ]}
-                value={status}
-              />
-            </DataTableToolbar>
             <Table>
               <TableHeader>
                 <TableRow>

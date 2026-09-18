@@ -256,6 +256,38 @@ export function SupportCatalogPanel({
               <Plus data-icon="inline-start" /> {copy.createLabel}
             </Button>
           }
+          filters={
+            <DataTableToolbar
+              actions={
+                status !== "all" ? (
+                  <Button
+                    onClick={clearFilters}
+                    size="sm"
+                    type="button"
+                    variant="outline"
+                  >
+                    <X /> {t("clear")}
+                  </Button>
+                ) : undefined
+              }
+              className="px-0"
+            >
+              <DataTableFilter
+                ariaLabel={t("filterStatus")}
+                label={t("statusColumn")}
+                onValueChange={(value) => {
+                  setStatus(value)
+                  setPage(1)
+                }}
+                options={[
+                  { label: t("all"), value: "all" },
+                  { label: t("filter.active"), value: "active" },
+                  { label: t("filter.inactive"), value: "inactive" },
+                ]}
+                value={status}
+              />
+            </DataTableToolbar>
+          }
           search={{
             ariaLabel: t("searchCatalog", { items: copy.itemLabel }),
             onChange: (value) => {
@@ -267,35 +299,6 @@ export function SupportCatalogPanel({
           }}
         />
         <CardContent className="flex flex-col gap-4 px-0">
-          <DataTableToolbar
-            actions={
-              status !== "all" ? (
-                <Button
-                  onClick={clearFilters}
-                  size="sm"
-                  type="button"
-                  variant="outline"
-                >
-                  <X /> {t("clear")}
-                </Button>
-              ) : undefined
-            }
-          >
-            <DataTableFilter
-              ariaLabel={t("filterStatus")}
-              label={t("statusColumn")}
-              onValueChange={(value) => {
-                setStatus(value)
-                setPage(1)
-              }}
-              options={[
-                { label: t("all"), value: "all" },
-                { label: t("filter.active"), value: "active" },
-                { label: t("filter.inactive"), value: "inactive" },
-              ]}
-              value={status}
-            />
-          </DataTableToolbar>
           <Table>
             <TableHeader>
               <TableRow>

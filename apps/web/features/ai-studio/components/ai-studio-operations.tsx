@@ -345,6 +345,30 @@ function AiHistorySurface({
       <Card variant="subtle">
         <DataTableHeader
           action={action}
+          filters={
+            <DataTableToolbar className="px-0">
+              <DataTableFilter
+                ariaLabel={t("history.filterStatusLabel")}
+                label={t("status")}
+                onValueChange={onStatusFilterChange}
+                options={historyStatusOptions.map((value) => ({
+                  label: t(`historyStatus.${value}`),
+                  value,
+                }))}
+                value={statusFilter}
+              />
+              <DataTableFilter
+                ariaLabel={t("history.filterKindLabel")}
+                label={t("tool")}
+                onValueChange={onKindFilterChange}
+                options={historyKindOptions.map((value) => ({
+                  label: t(`kind.${value}`),
+                  value,
+                }))}
+                value={kindFilter}
+              />
+            </DataTableToolbar>
+          }
           search={{
             ariaLabel: t("history.searchLabel"),
             onChange: onQueryChange,
@@ -353,29 +377,6 @@ function AiHistorySurface({
           }}
         />
         <CardContent className="flex flex-col gap-4 px-0">
-          <DataTableToolbar>
-            <DataTableFilter
-              ariaLabel={t("history.filterStatusLabel")}
-              label={t("status")}
-              onValueChange={onStatusFilterChange}
-              options={historyStatusOptions.map((value) => ({
-                label: t(`historyStatus.${value}`),
-                value,
-              }))}
-              value={statusFilter}
-            />
-            <DataTableFilter
-              ariaLabel={t("history.filterKindLabel")}
-              label={t("tool")}
-              onValueChange={onKindFilterChange}
-              options={historyKindOptions.map((value) => ({
-                label: t(`kind.${value}`),
-                value,
-              }))}
-              value={kindFilter}
-            />
-          </DataTableToolbar>
-
           <CollectionState
             errorDescription={t("history.errorDescription")}
             forbiddenDescription={t("history.forbiddenDescription")}
@@ -692,6 +693,20 @@ function AiAutomationSurface({
               </Button>
             ) : undefined
           }
+          filters={
+            <DataTableToolbar className="px-0">
+              <DataTableFilter
+                ariaLabel={t("automation.filterStatusLabel")}
+                label={t("status")}
+                onValueChange={onStatusFilterChange}
+                options={automationStatusOptions.map((value) => ({
+                  label: t(`automationStatus.${value}`),
+                  value,
+                }))}
+                value={statusFilter}
+              />
+            </DataTableToolbar>
+          }
           search={{
             ariaLabel: t("automation.searchLabel"),
             onChange: onQueryChange,
@@ -700,19 +715,6 @@ function AiAutomationSurface({
           }}
         />
         <CardContent className="flex flex-col gap-4 px-0">
-          <DataTableToolbar>
-            <DataTableFilter
-              ariaLabel={t("automation.filterStatusLabel")}
-              label={t("status")}
-              onValueChange={onStatusFilterChange}
-              options={automationStatusOptions.map((value) => ({
-                label: t(`automationStatus.${value}`),
-                value,
-              }))}
-              value={statusFilter}
-            />
-          </DataTableToolbar>
-
           <CollectionState
             errorDescription={t("automation.errorDescription")}
             forbiddenDescription={t("automation.forbiddenDescription")}
@@ -1077,6 +1079,20 @@ function AiCreditsSurface({
                   ) : null}
                 </div>
               }
+              filters={
+                <DataTableToolbar className="px-0">
+                  <DataTableFilter
+                    ariaLabel={t("credits.filterTypeLabel")}
+                    label={t("type")}
+                    onValueChange={onMovementTypeChange}
+                    options={creditTypeOptions.map((value) => ({
+                      label: t(`creditType.${value}`),
+                      value,
+                    }))}
+                    value={movementType}
+                  />
+                </DataTableToolbar>
+              }
               search={{
                 ariaLabel: t("credits.searchLabel"),
                 onChange: onQueryChange,
@@ -1085,19 +1101,6 @@ function AiCreditsSurface({
               }}
             />
             <CardContent className="flex flex-col gap-4 px-0">
-              <DataTableToolbar>
-                <DataTableFilter
-                  ariaLabel={t("credits.filterTypeLabel")}
-                  label={t("type")}
-                  onValueChange={onMovementTypeChange}
-                  options={creditTypeOptions.map((value) => ({
-                    label: t(`creditType.${value}`),
-                    value,
-                  }))}
-                  value={movementType}
-                />
-              </DataTableToolbar>
-
               <Table>
                 <TableHeader>
                   <TableRow>

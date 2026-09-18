@@ -371,6 +371,23 @@ function RssSchedules({
                 </Button>
               ) : undefined
             }
+            filters={
+              <DataTableToolbar className="px-0">
+                <DataTableFilter
+                  ariaLabel={t("filterStatus")}
+                  label={t("status")}
+                  onValueChange={(value) =>
+                    onStatusChange(value as "all" | RssScheduleStatus)
+                  }
+                  options={[
+                    { label: t("filter.all"), value: "all" },
+                    { label: t("filter.active"), value: "active" },
+                    { label: t("filter.paused"), value: "paused" },
+                  ]}
+                  value={status}
+                />
+              </DataTableToolbar>
+            }
             search={{
               ariaLabel: t("searchLabel"),
               onChange: onQueryChange,
@@ -379,22 +396,6 @@ function RssSchedules({
             }}
           />
           <CardContent className="flex flex-col gap-4 px-0">
-            <DataTableToolbar>
-              <DataTableFilter
-                ariaLabel={t("filterStatus")}
-                label={t("status")}
-                onValueChange={(value) =>
-                  onStatusChange(value as "all" | RssScheduleStatus)
-                }
-                options={[
-                  { label: t("filter.all"), value: "all" },
-                  { label: t("filter.active"), value: "active" },
-                  { label: t("filter.paused"), value: "paused" },
-                ]}
-                value={status}
-              />
-            </DataTableToolbar>
-
             <div className="flex flex-1 flex-col gap-4">
               <div>
                 <Table>

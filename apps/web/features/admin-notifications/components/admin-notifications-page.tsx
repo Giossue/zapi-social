@@ -535,6 +535,42 @@ export function AdminNotificationsPage() {
                 <Plus data-icon="inline-start" /> {t("createTitle")}
               </Button>
             }
+            filters={
+              <DataTableToolbar
+                actions={
+                  status !== "all" ? (
+                    <Button
+                      onClick={() => {
+                        setQuery("")
+                        setStatus("all")
+                        setPage(1)
+                      }}
+                      size="sm"
+                      type="button"
+                      variant="outline"
+                    >
+                      <X /> {t("clear")}
+                    </Button>
+                  ) : undefined
+                }
+                className="px-0"
+              >
+                <DataTableFilter
+                  ariaLabel={t("filterStatus")}
+                  label={t("statusColumn")}
+                  onValueChange={(value) => {
+                    setStatus(value as "all" | "draft" | "published")
+                    setPage(1)
+                  }}
+                  options={[
+                    { label: t("all"), value: "all" },
+                    { label: t("filter.published"), value: "published" },
+                    { label: t("filter.draft"), value: "draft" },
+                  ]}
+                  value={status}
+                />
+              </DataTableToolbar>
+            }
             search={{
               ariaLabel: t("searchLabel"),
               onChange: (value) => {
@@ -546,39 +582,6 @@ export function AdminNotificationsPage() {
             }}
           />
           <CardContent className="flex flex-col gap-4 px-0">
-            <DataTableToolbar
-              actions={
-                status !== "all" ? (
-                  <Button
-                    onClick={() => {
-                      setQuery("")
-                      setStatus("all")
-                      setPage(1)
-                    }}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    <X /> {t("clear")}
-                  </Button>
-                ) : undefined
-              }
-            >
-              <DataTableFilter
-                ariaLabel={t("filterStatus")}
-                label={t("statusColumn")}
-                onValueChange={(value) => {
-                  setStatus(value as "all" | "draft" | "published")
-                  setPage(1)
-                }}
-                options={[
-                  { label: t("all"), value: "all" },
-                  { label: t("filter.published"), value: "published" },
-                  { label: t("filter.draft"), value: "draft" },
-                ]}
-                value={status}
-              />
-            </DataTableToolbar>
             <div>
               <Table>
                 <TableHeader>
