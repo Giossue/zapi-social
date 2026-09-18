@@ -620,6 +620,7 @@ export function AdminManualPaymentsPage() {
                     />
                   </DataTableToolbar>
                 }
+                loading={isLoading && payments.length > 0}
                 search={{
                   ariaLabel: t("searchLabel"),
                   onChange: (value) => {

@@ -51,7 +51,7 @@ export function SupportFaqPanel() {
   const hasQuery = Boolean(query.trim())
 
   let content
-  if (isLoading) {
+  if (isLoading && !faqs.length) {
     content = <PageLoading aria-label={t("faq.loading")} className="py-12" />
   } else if (loadError) {
     content = (
@@ -105,6 +105,7 @@ export function SupportFaqPanel() {
   return (
     <Card variant="subtle">
       <DataTableHeader
+        loading={isLoading && faqs.length > 0}
         search={{
           ariaLabel: t("faq.searchLabel"),
           onChange: setQuery,

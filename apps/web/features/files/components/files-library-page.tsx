@@ -652,6 +652,7 @@ export function FilesLibraryPage() {
     [format]
   )
   const [library, setLibrary] = useState<FileLibraryData | null>(null)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   const [reachedEnd, setReachedEnd] = useState(false)
   const [loadError, setLoadError] = useState(false)
@@ -720,6 +721,7 @@ export function FilesLibraryPage() {
   )
 
   const loadLibrary = useCallback(async () => {
+    setIsRefreshing(true)
     setLoadError(false)
     const limit = Math.min(
       FILES_MAX_LIMIT,
@@ -751,6 +753,8 @@ export function FilesLibraryPage() {
         page: 1,
         filesTotal: 0,
       })
+    } finally {
+      setIsRefreshing(false)
     }
   }, [fetchFiles, formatDate])
 
@@ -1223,7 +1227,7 @@ export function FilesLibraryPage() {
               value={query}
             />
           </InputGroup>
-          <DataTableToolbar className="px-0">
+          <DataTableToolbar className="px-0" loading={isRefreshing}>
             <DataTableFilter
               ariaLabel={t("filterType")}
               label={t("type")}

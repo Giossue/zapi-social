@@ -527,6 +527,7 @@ export function AdminEmailTemplatesPage() {
                 />
               </DataTableToolbar>
             }
+            loading={isLoading && templates.length > 0}
             search={{
               ariaLabel: t("searchLabel"),
               onChange: (value) => {

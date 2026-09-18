@@ -970,6 +970,7 @@ export function LinkBioPage() {
         />
         <Card variant="subtle">
           <DataTableHeader
+            loading={isLoading && Boolean(data)}
             action={
               data.canManage ? (
                 <Button

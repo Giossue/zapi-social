@@ -322,6 +322,7 @@ export function StaticPagesSettingsPage() {
                 />
               </DataTableToolbar>
             }
+            loading={isLoading && Boolean(pages)}
             search={{
               ariaLabel: t("searchAria"),
               onChange: (value) => {

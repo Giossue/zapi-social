@@ -311,6 +311,7 @@ export function AdminSupportPage() {
                     />
                   </DataTableToolbar>
                 }
+                loading={isLoading && tickets.length > 0}
                 search={{
                   ariaLabel: t("searchAriaLabel"),
                   onChange: (value) => {

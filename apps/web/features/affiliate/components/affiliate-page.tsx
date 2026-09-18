@@ -478,6 +478,7 @@ export function AffiliatePage() {
           <TabsContent className="pt-3" value="commissions">
             <Card variant="subtle">
               <DataTableHeader
+                loading={isLoading && Boolean(data)}
                 filters={
                   <DataTableToolbar
                     actions={
@@ -613,6 +614,7 @@ export function AffiliatePage() {
           <TabsContent className="pt-3" value="withdrawals">
             <Card variant="subtle">
               <DataTableHeader
+                loading={isLoading && Boolean(data)}
                 action={
                   <Button
                     disabled={totals.availableMinor <= 0}

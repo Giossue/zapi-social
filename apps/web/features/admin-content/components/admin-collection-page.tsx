@@ -641,6 +641,7 @@ export function AdminCollectionPage<TRow, TResponse>({
                 </DataTableToolbar>
               ) : null
             }
+            loading={isLoading && Boolean(response)}
             search={{
               ariaLabel: t("searchItems", { items: config.itemLabel }),
               onChange: (value) => {

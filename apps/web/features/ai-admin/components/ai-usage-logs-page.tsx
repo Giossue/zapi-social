@@ -203,6 +203,7 @@ export function AiUsageLogsPage() {
               />
             </DataTableToolbar>
           }
+          loading={isLoading && Boolean(data)}
           search={{
             ariaLabel: t("searchAriaLabel"),
             onChange: (value) => {

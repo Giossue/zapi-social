@@ -579,6 +579,7 @@ export function AiConfigurationPage() {
                   />
                 </DataTableToolbar>
               }
+
               search={{
                 ariaLabel: t("searchModelsAria"),
                 onChange: (value) => {

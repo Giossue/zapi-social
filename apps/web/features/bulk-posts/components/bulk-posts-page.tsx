@@ -617,6 +617,7 @@ export function BulkPostsPage({ embedded = false }: { embedded?: boolean }) {
         )}
         <Card variant="subtle">
           <DataTableHeader
+            loading={isLoading && batches.length > 0}
             action={
               <Button
                 className="hidden sm:inline-flex"

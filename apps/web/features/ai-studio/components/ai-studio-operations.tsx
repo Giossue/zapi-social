@@ -162,6 +162,7 @@ type PaginationProps = {
 }
 
 type CollectionStateProps = {
+  hasData?: boolean
   state: AiOperationalViewState
   children: ReactNode
   errorDescription: string
@@ -204,13 +205,14 @@ function OperationsHeader({
 function CollectionState({
   children,
   errorDescription,
+  hasData = false,
   forbiddenDescription,
   onRetry,
   state,
 }: CollectionStateProps) {
   const t = useTranslations("aiStudio.operations")
 
-  if (state === "loading") {
+  if (state === "loading" && !hasData) {
     return <PageLoading aria-label={t("loadingRecords")} />
   }
 
@@ -369,6 +371,7 @@ function AiHistorySurface({
               />
             </DataTableToolbar>
           }
+          loading={state === "loading"}
           search={{
             ariaLabel: t("history.searchLabel"),
             onChange: onQueryChange,
@@ -380,6 +383,7 @@ function AiHistorySurface({
           <CollectionState
             errorDescription={t("history.errorDescription")}
             forbiddenDescription={t("history.forbiddenDescription")}
+            hasData={rows.length > 0}
             onRetry={onRetry}
             state={state}
           >
@@ -707,6 +711,7 @@ function AiAutomationSurface({
               />
             </DataTableToolbar>
           }
+          loading={state === "loading"}
           search={{
             ariaLabel: t("automation.searchLabel"),
             onChange: onQueryChange,
@@ -718,6 +723,7 @@ function AiAutomationSurface({
           <CollectionState
             errorDescription={t("automation.errorDescription")}
             forbiddenDescription={t("automation.forbiddenDescription")}
+            hasData={rows.length > 0}
             onRetry={onRetry}
             state={state}
           >
@@ -962,7 +968,7 @@ function AiCreditsSurface({
         title={t("credits.pageTitle")}
       />
 
-      {state === "ready" ? (
+      {state === "ready" || movements.length > 0 ? (
         <>
           <Sheet
             onOpenChange={(open) => {
@@ -1093,6 +1099,7 @@ function AiCreditsSurface({
                   />
                 </DataTableToolbar>
               }
+              loading={state === "loading"}
               search={{
                 ariaLabel: t("credits.searchLabel"),
                 onChange: onQueryChange,

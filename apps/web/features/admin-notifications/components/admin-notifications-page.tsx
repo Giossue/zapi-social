@@ -571,6 +571,7 @@ export function AdminNotificationsPage() {
                 />
               </DataTableToolbar>
             }
+            loading={isLoading && announcements.length > 0}
             search={{
               ariaLabel: t("searchLabel"),
               onChange: (value) => {

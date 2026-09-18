@@ -110,6 +110,7 @@ export function AuditEventsPage() {
       ) : (
         <Card variant="subtle">
           <DataTableHeader
+            loading={refreshing}
             action={
               <Button
                 disabled={refreshing}

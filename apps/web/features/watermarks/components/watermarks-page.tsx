@@ -564,6 +564,7 @@ function WatermarkImagePicker({
               ) : undefined
             }
             className="px-0"
+            loading={library.status === "loading" && library.assets.length > 0}
           >
             <DataTableFilter
               ariaLabel={t("picker.folder")}
@@ -588,7 +589,9 @@ function WatermarkImagePicker({
           </DataTableToolbar>
         </div>
         <div className="min-h-0 flex-1 overflow-y-auto p-4">
-          {library.status === "loading" ? <PageLoading /> : null}
+          {library.status === "loading" && library.assets.length === 0 ? (
+            <PageLoading />
+          ) : null}
           {library.status === "error" ? (
             <EmptyState
               action={
@@ -622,7 +625,7 @@ function WatermarkImagePicker({
               }
             />
           ) : null}
-          {library.status === "ready" && library.assets.length > 0 ? (
+          {library.assets.length > 0 && library.status !== "error" ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               {library.assets.map((asset) => {
                 const selected = asset.id === selectedId

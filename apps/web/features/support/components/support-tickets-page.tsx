@@ -416,6 +416,7 @@ export function SupportTicketsPage() {
           <TabsContent className="flex flex-col gap-4" value="cases">
             <Card variant="subtle">
               <DataTableHeader
+                loading={isLoading && tickets.length > 0}
                 action={
                   <Button
                     className="hidden sm:inline-flex"

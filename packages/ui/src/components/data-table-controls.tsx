@@ -5,6 +5,7 @@ import { Children, isValidElement, useId, useState } from "react"
 import type { ReactElement, ReactNode, Ref } from "react"
 
 import { Button } from "@workspace/ui/components/button"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   CardAction,
   CardDescription,
@@ -40,6 +41,7 @@ type DataTableHeaderProps = {
   className?: string
   description?: ReactNode
   filters?: ReactNode
+  loading?: boolean
   search?: DataTableSearchProps
   title?: ReactNode
 }
@@ -51,6 +53,7 @@ type DataTableToolbarProps = {
   className?: string
   clearLabel?: string
   filtersClassName?: string
+  loading?: boolean
 }
 
 type DataTableFilterOption = {
@@ -72,6 +75,7 @@ function DataTableHeader({
   className,
   description,
   filters,
+  loading = false,
   search,
   title,
 }: DataTableHeaderProps) {
@@ -100,12 +104,16 @@ function DataTableHeader({
             !hasContext &&
               "row-span-1 row-start-1 md:col-start-1 md:row-span-1 md:w-full md:justify-between md:justify-self-stretch"
           )}
+          aria-busy={loading}
         >
           {search || filters ? (
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               {search ? <DataTableSearch {...search} /> : null}
               {filters}
             </div>
+          ) : null}
+          {loading ? (
+            <Skeleton aria-hidden className="h-7 w-16 shrink-0" />
           ) : null}
           {action}
         </CardAction>
@@ -149,6 +157,7 @@ function DataTableToolbar({
   clearLabel,
   filtersClassName,
   filtersLabel,
+  loading = false,
 }: DataTableToolbarProps) {
   const [filtersOpen, setFiltersOpen] = useState(false)
   const filtersId = useId()
@@ -172,6 +181,7 @@ function DataTableToolbar({
 
   return (
     <div
+      aria-busy={loading}
       className={cn(
         "flex flex-wrap items-center justify-between gap-3 px-4",
         className
@@ -217,6 +227,7 @@ function DataTableToolbar({
           </Button>
         ) : null}
       </div>
+      {loading ? <Skeleton aria-hidden className="h-7 w-16 shrink-0" /> : null}
     </div>
   )
 }

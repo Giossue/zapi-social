@@ -324,6 +324,7 @@ export function AdminRolesPage() {
                 {t("createRole")}
               </Button>
             }
+            loading={isLoading && Boolean(data)}
             search={{
               ariaLabel: t("searchLabel"),
               onChange: setQuery,

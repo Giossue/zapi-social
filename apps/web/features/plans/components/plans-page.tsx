@@ -956,6 +956,10 @@ export function PlansPage() {
   const rangeStart = plans.length === 0 ? 0 : currentPageIndex * pageSize + 1
   const rangeEnd = Math.min((currentPageIndex + 1) * pageSize, plans.length)
 
+  if (isLoading && plans.length === 0) {
+    return <PageLoading className="min-h-80" />
+  }
+
   if (!hasPermission) {
     return (
       <Card variant="subtle">
@@ -994,246 +998,227 @@ export function PlansPage() {
         </h1>
         <p className="text-sm text-muted-foreground">{t("pageDescription")}</p>
       </header>
-      {isLoading ? (
-        <PageLoading className="min-h-80" />
-      ) : (
-        <>
-          <Card variant="subtle">
-            <DataTableHeader
-              action={
-                <Button
-                  className="hidden sm:inline-flex"
-                  onClick={() => setEditor("create")}
-                  size="sm"
-                >
-                  <Plus data-icon="inline-start" />
-                  {t("create")}
-                </Button>
-              }
-              filters={
-                <DataTableToolbar className="px-0">
-                  <DataTableFilter
-                    ariaLabel={t("filterStatus")}
-                    label={t("statusColumn")}
-                    onValueChange={(value) => {
-                      setStatusFilter(value as "all" | PlanStatus)
-                      setPageIndex(0)
-                    }}
-                    options={[
-                      { label: t("filter.allStatuses"), value: "all" },
-                      { label: t("filter.active"), value: "active" },
-                      { label: t("filter.inactive"), value: "inactive" },
-                    ]}
-                    value={statusFilter}
-                  />
-                  <DataTableFilter
-                    ariaLabel={t("filterBilling")}
-                    label={t("billingColumn")}
-                    onValueChange={(value) => {
-                      setBillingFilter(value as "all" | PlanBillingType)
-                      setPageIndex(0)
-                    }}
-                    options={[
-                      { label: t("filter.allBilling"), value: "all" },
-                      { label: t("billing.monthly"), value: "monthly" },
-                      { label: t("billing.yearly"), value: "yearly" },
-                    ]}
-                    value={billingFilter}
-                  />
-                  <DataTableFilter
-                    ariaLabel={t("filterFeatured")}
-                    label={t("visibility")}
-                    onValueChange={(value) => {
-                      setFeaturedFilter(
-                        value as "all" | "featured" | "standard"
-                      )
-                      setPageIndex(0)
-                    }}
-                    options={[
-                      { label: t("filter.allPlans"), value: "all" },
-                      { label: t("filter.featured"), value: "featured" },
-                      { label: t("filter.standard"), value: "standard" },
-                    ]}
-                    value={featuredFilter}
-                  />
-                </DataTableToolbar>
-              }
-              search={{
-                ariaLabel: t("searchLabel"),
-                onChange: (value) => {
-                  setQuery(value)
+      <Card variant="subtle">
+        <DataTableHeader
+          action={
+            <Button
+              className="hidden sm:inline-flex"
+              onClick={() => setEditor("create")}
+              size="sm"
+            >
+              <Plus data-icon="inline-start" />
+              {t("create")}
+            </Button>
+          }
+          filters={
+            <DataTableToolbar className="px-0">
+              <DataTableFilter
+                ariaLabel={t("filterStatus")}
+                label={t("statusColumn")}
+                onValueChange={(value) => {
+                  setStatusFilter(value as "all" | PlanStatus)
                   setPageIndex(0)
-                },
-                placeholder: t("searchPlaceholder"),
-                value: query,
-              }}
-            />
-            <CardContent className="flex flex-col gap-4 px-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t("plan")}</TableHead>
-                    <TableHead>{t("price")}</TableHead>
-                    <TableHead className="hidden md:table-cell">
-                      {t("billingColumn")}
-                    </TableHead>
-                    <TableHead className="hidden lg:table-cell">
-                      {t("trialing")}
-                    </TableHead>
-                    <TableHead className="hidden md:table-cell">
-                      {t("subscribers")}
-                    </TableHead>
-                    <TableHead className="hidden lg:table-cell">
-                      {t("permissions")}
-                    </TableHead>
-                    <TableHead>{t("statusColumn")}</TableHead>
-                    <TableHead className="text-right">{t("actions")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedPlans.map((plan) => (
-                    <TableRow key={plan.id}>
-                      <TableCell>
-                        <div className="grid gap-1">
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            <span className="font-medium">{plan.name}</span>
-                            {plan.featured ? (
-                              <Badge variant="warning">
-                                <Sparkles aria-hidden="true" />
-                                {t("featured")}
-                              </Badge>
-                            ) : null}
-                            {plan.isDefaultSignup ? (
-                              <Badge variant="neutral">{t("default")}</Badge>
-                            ) : null}
-                          </div>
-                          <span className="text-xs text-muted-foreground">
-                            /{plan.slug}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {planPrice(plan, format, t("free"))}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        <div className="grid gap-0.5">
-                          <span>
-                            {plan.isFree
-                              ? "—"
-                              : t(`billing.${plan.billingType}`)}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {t("orderPosition", { position: plan.position })}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell">
-                        {plan.trialDays > 0
-                          ? t("trialDaysValue", { count: plan.trialDays })
-                          : t("noTrial")}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        {plan.subscriberCount.toLocaleString("es")}
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell">
-                        {plan.permissionIds.length}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            plan.status === "active" ? "success" : "neutral"
-                          }
-                        >
-                          {t(`status.${plan.status}`)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              aria-label={t("rowActions", { plan: plan.name })}
-                              size="icon-sm"
-                              variant="brand-secondary"
-                            >
-                              <Ellipsis />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" size="compact">
-                            <DropdownMenuGroup>
-                              <DropdownMenuItem
-                                onSelect={() => setEditor(plan)}
-                                size="compact"
-                              >
-                                <Pencil />
-                                {t("editPlan")}
-                              </DropdownMenuItem>
-                            </DropdownMenuGroup>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuGroup>
-                              <DropdownMenuItem
-                                onSelect={() => setPlanToDelete(plan)}
-                                size="compact"
-                                variant="destructive"
-                              >
-                                <Trash2 />
-                                {t("deleteAction")}
-                              </DropdownMenuItem>
-                            </DropdownMenuGroup>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {plans.length === 0 ? (
-                    <TableEmptyRow
-                      action={
-                        hasActiveFilters ? (
-                          <Button
-                            onClick={resetFilters}
-                            variant="brand-secondary"
-                          >
-                            {t("resetFilters")}
-                          </Button>
-                        ) : undefined
-                      }
-                      colSpan={8}
-                      description={
-                        hasActiveFilters
-                          ? t("emptyFilteredDescription")
-                          : t("emptyDescription")
-                      }
-                      title={
-                        hasActiveFilters ? t("noMatches") : t("emptyTitle")
-                      }
-                    />
-                  ) : null}
-                </TableBody>
-              </Table>
-              <TablePagination
-                canGoNext={currentPageIndex < pageCount - 1}
-                canGoPrevious={currentPageIndex > 0}
-                itemLabel={t("itemLabel")}
-                onNextPage={() =>
-                  setPageIndex((current) =>
-                    Math.min(current + 1, pageCount - 1)
-                  )
-                }
-                onPreviousPage={() =>
-                  setPageIndex((current) => Math.max(current - 1, 0))
-                }
-                rangeEnd={rangeEnd}
-                rangeStart={rangeStart}
-                total={plans.length}
+                }}
+                options={[
+                  { label: t("filter.allStatuses"), value: "all" },
+                  { label: t("filter.active"), value: "active" },
+                  { label: t("filter.inactive"), value: "inactive" },
+                ]}
+                value={statusFilter}
               />
-            </CardContent>
-          </Card>
-
-          <FloatingActionButton
-            label={t("create")}
-            onClick={() => setEditor("create")}
+              <DataTableFilter
+                ariaLabel={t("filterBilling")}
+                label={t("billingColumn")}
+                onValueChange={(value) => {
+                  setBillingFilter(value as "all" | PlanBillingType)
+                  setPageIndex(0)
+                }}
+                options={[
+                  { label: t("filter.allBilling"), value: "all" },
+                  { label: t("billing.monthly"), value: "monthly" },
+                  { label: t("billing.yearly"), value: "yearly" },
+                ]}
+                value={billingFilter}
+              />
+              <DataTableFilter
+                ariaLabel={t("filterFeatured")}
+                label={t("visibility")}
+                onValueChange={(value) => {
+                  setFeaturedFilter(value as "all" | "featured" | "standard")
+                  setPageIndex(0)
+                }}
+                options={[
+                  { label: t("filter.allPlans"), value: "all" },
+                  { label: t("filter.featured"), value: "featured" },
+                  { label: t("filter.standard"), value: "standard" },
+                ]}
+                value={featuredFilter}
+              />
+            </DataTableToolbar>
+          }
+          loading={isLoading && plans.length > 0}
+          search={{
+            ariaLabel: t("searchLabel"),
+            onChange: (value) => {
+              setQuery(value)
+              setPageIndex(0)
+            },
+            placeholder: t("searchPlaceholder"),
+            value: query,
+          }}
+        />
+        <CardContent className="flex flex-col gap-4 px-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t("plan")}</TableHead>
+                <TableHead>{t("price")}</TableHead>
+                <TableHead className="hidden md:table-cell">
+                  {t("billingColumn")}
+                </TableHead>
+                <TableHead className="hidden lg:table-cell">
+                  {t("trialing")}
+                </TableHead>
+                <TableHead className="hidden md:table-cell">
+                  {t("subscribers")}
+                </TableHead>
+                <TableHead className="hidden lg:table-cell">
+                  {t("permissions")}
+                </TableHead>
+                <TableHead>{t("statusColumn")}</TableHead>
+                <TableHead className="text-right">{t("actions")}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedPlans.map((plan) => (
+                <TableRow key={plan.id}>
+                  <TableCell>
+                    <div className="grid gap-1">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="font-medium">{plan.name}</span>
+                        {plan.featured ? (
+                          <Badge variant="warning">
+                            <Sparkles aria-hidden="true" />
+                            {t("featured")}
+                          </Badge>
+                        ) : null}
+                        {plan.isDefaultSignup ? (
+                          <Badge variant="neutral">{t("default")}</Badge>
+                        ) : null}
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        /{plan.slug}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {planPrice(plan, format, t("free"))}
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    <div className="grid gap-0.5">
+                      <span>
+                        {plan.isFree ? "—" : t(`billing.${plan.billingType}`)}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {t("orderPosition", { position: plan.position })}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell">
+                    {plan.trialDays > 0
+                      ? t("trialDaysValue", { count: plan.trialDays })
+                      : t("noTrial")}
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    {plan.subscriberCount.toLocaleString("es")}
+                  </TableCell>
+                  <TableCell className="hidden lg:table-cell">
+                    {plan.permissionIds.length}
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={plan.status === "active" ? "success" : "neutral"}
+                    >
+                      {t(`status.${plan.status}`)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          aria-label={t("rowActions", { plan: plan.name })}
+                          size="icon-sm"
+                          variant="brand-secondary"
+                        >
+                          <Ellipsis />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" size="compact">
+                        <DropdownMenuGroup>
+                          <DropdownMenuItem
+                            onSelect={() => setEditor(plan)}
+                            size="compact"
+                          >
+                            <Pencil />
+                            {t("editPlan")}
+                          </DropdownMenuItem>
+                        </DropdownMenuGroup>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuGroup>
+                          <DropdownMenuItem
+                            onSelect={() => setPlanToDelete(plan)}
+                            size="compact"
+                            variant="destructive"
+                          >
+                            <Trash2 />
+                            {t("deleteAction")}
+                          </DropdownMenuItem>
+                        </DropdownMenuGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {plans.length === 0 ? (
+                <TableEmptyRow
+                  action={
+                    hasActiveFilters ? (
+                      <Button onClick={resetFilters} variant="brand-secondary">
+                        {t("resetFilters")}
+                      </Button>
+                    ) : undefined
+                  }
+                  colSpan={8}
+                  description={
+                    hasActiveFilters
+                      ? t("emptyFilteredDescription")
+                      : t("emptyDescription")
+                  }
+                  title={hasActiveFilters ? t("noMatches") : t("emptyTitle")}
+                />
+              ) : null}
+            </TableBody>
+          </Table>
+          <TablePagination
+            canGoNext={currentPageIndex < pageCount - 1}
+            canGoPrevious={currentPageIndex > 0}
+            itemLabel={t("itemLabel")}
+            onNextPage={() =>
+              setPageIndex((current) => Math.min(current + 1, pageCount - 1))
+            }
+            onPreviousPage={() =>
+              setPageIndex((current) => Math.max(current - 1, 0))
+            }
+            rangeEnd={rangeEnd}
+            rangeStart={rangeStart}
+            total={plans.length}
           />
-        </>
-      )}
+        </CardContent>
+      </Card>
+      <FloatingActionButton
+        label={t("create")}
+        onClick={() => setEditor("create")}
+      />
       {planForEditor ? (
         <PlanEditorSheet
           existingSlugs={plans.map((plan) => plan.slug)}

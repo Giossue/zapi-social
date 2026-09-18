@@ -88,8 +88,8 @@ const weekdaysByFrequency: Record<
 }
 
 type ListLoadState =
-  | { status: "loading" }
-  | { status: "error" }
+  | { data?: PortalRssSchedulesResponse; status: "loading" }
+  | { data?: PortalRssSchedulesResponse; status: "error" }
   | { data: PortalRssSchedulesResponse; status: "ready" }
 
 type SetupLoadState =
@@ -182,7 +182,10 @@ export function RssSchedulesPage() {
     const trimmedQuery = deferredQuery.trim()
 
     const timer = setTimeout(() => {
-      setListState({ status: "loading" })
+      setListState((current) => ({
+        data: current.data,
+        status: "loading",
+      }))
     }, 0)
     void rssSchedulesApi
       .list({
@@ -195,7 +198,8 @@ export function RssSchedulesPage() {
         if (isCurrent) setListState({ data, status: "ready" })
       })
       .catch(() => {
-        if (isCurrent) setListState({ status: "error" })
+        if (isCurrent)
+          setListState((current) => ({ data: current.data, status: "error" }))
       })
 
     return () => {
@@ -223,10 +227,17 @@ export function RssSchedulesPage() {
     setStatus(value)
   }
 
-  if (listState.status === "loading" || setupState.status === "loading")
+  if (
+    (listState.status === "loading" && !listState.data) ||
+    setupState.status === "loading"
+  )
     return <PageLoading />
-  if (listState.status === "error" || setupState.status === "error")
+  if (
+    (listState.status === "error" && !listState.data) ||
+    setupState.status === "error"
+  )
     return <RssSchedulesErrorState onRetry={retry} />
+  if (!listState.data) return <PageLoading />
   if (!listState.data.canView) return <RssSchedulesPermissionState />
 
   return (
@@ -234,6 +245,7 @@ export function RssSchedulesPage() {
       accounts={setupState.accounts}
       canManage={listState.data.canManage}
       initialRows={listState.data.schedules.map(toRssScheduleRow)}
+      isRefreshing={listState.status === "loading"}
       onPageChange={setPage}
       onQueryChange={changeQuery}
       onRefresh={refresh}
@@ -251,6 +263,7 @@ function RssSchedules({
   accounts,
   canManage,
   initialRows,
+  isRefreshing,
   onPageChange,
   onQueryChange,
   onRefresh,
@@ -264,6 +277,7 @@ function RssSchedules({
   accounts: readonly RssScheduleTargetAccount[]
   canManage: boolean
   initialRows: readonly RssSchedule[]
+  isRefreshing: boolean
   onPageChange: (page: number) => void
   onQueryChange: (value: string) => void
   onRefresh: () => void
@@ -388,6 +402,7 @@ function RssSchedules({
                 />
               </DataTableToolbar>
             }
+            loading={isRefreshing}
             search={{
               ariaLabel: t("searchLabel"),
               onChange: onQueryChange,

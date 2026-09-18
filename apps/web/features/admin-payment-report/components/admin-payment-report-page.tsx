@@ -140,7 +140,7 @@ export function AdminPaymentReportPage() {
         title={t("pageTitle")}
       />
       <div className="flex flex-wrap items-center gap-3">
-        <DataTableToolbar className="w-full px-0 sm:w-auto">
+        <DataTableToolbar className="w-full px-0 sm:w-auto" loading={isLoading}>
           <DataTableFilter
             ariaLabel={t("selectRange")}
             label={t("rangeColumn")}

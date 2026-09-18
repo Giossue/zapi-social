@@ -172,6 +172,7 @@ export function AdminTeamsPage() {
       />
       <Card variant="subtle">
         <DataTableHeader
+          loading={isLoading && Boolean(data)}
           search={{
             ariaLabel: t("searchLabel"),
             onChange: (value) => {

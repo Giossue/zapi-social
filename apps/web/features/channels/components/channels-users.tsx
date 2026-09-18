@@ -106,6 +106,7 @@ export function ChannelsUsers({
                 ) : undefined
               }
               className="px-0"
+              loading={isFiltering}
             >
               <DataTableFilter
                 ariaLabel={t("filterProvider")}

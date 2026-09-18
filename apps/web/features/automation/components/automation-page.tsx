@@ -794,6 +794,7 @@ export function AutomationPage() {
           <TabsContent className="pt-3" value="keys">
             <Card variant="subtle">
               <DataTableHeader
+                loading={isLoading && Boolean(data)}
                 action={
                   data.canManage ? (
                     <Button
@@ -996,6 +997,7 @@ export function AutomationPage() {
           <TabsContent className="pt-3" value="webhooks">
             <Card variant="subtle">
               <DataTableHeader
+                loading={isLoading && Boolean(data)}
                 action={
                   data.canManage ? (
                     <Button
@@ -1223,6 +1225,7 @@ export function AutomationPage() {
           <TabsContent className="pt-3" value="logs">
             <Card variant="subtle">
               <DataTableHeader
+                loading={isLoading && Boolean(data)}
                 filters={
                   <DataTableToolbar
                     actions={

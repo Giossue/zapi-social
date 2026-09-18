@@ -499,6 +499,7 @@ export function AdminModulePreview({
               />
             </DataTableToolbar>
           }
+          loading={requestState === "loading"}
           search={{
             ariaLabel: t("searchAriaLabel", {
               section: t(`tab.${active.value}`),

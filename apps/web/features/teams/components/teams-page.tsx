@@ -690,6 +690,9 @@ export function TeamsPage() {
 
   const tableHeader = (
     <DataTableHeader
+      loading={
+        activeView === "activity" && activityLoading && Boolean(activityData)
+      }
       action={
         teams.canManage ? (
           <Button

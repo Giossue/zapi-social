@@ -336,6 +336,7 @@ export function AdminLanguageTranslationsPage({ code }: { code: string }) {
                 />
               </DataTableToolbar>
             }
+            loading={isLoading && Boolean(data)}
             search={{
               ariaLabel: t("translationsSearchLabel"),
               onChange: (value) => {

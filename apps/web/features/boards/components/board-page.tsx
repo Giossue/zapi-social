@@ -375,6 +375,7 @@ export function BoardPage() {
               ) : undefined
             }
             className="w-full px-0 sm:w-auto"
+            loading={isLoading && Boolean(data)}
           >
             <DataTableFilter
               ariaLabel={t("assigneeFilter")}
