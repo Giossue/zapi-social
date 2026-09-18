@@ -119,18 +119,21 @@ export function PublishingCalendar({
       ),
     [availableChannels, selectedChannels]
   )
-  const [title, setTitle] = React.useState(() =>
-    format(new Date(`${initialDate}T12:00:00`), "MMMM yyyy", {
-      locale: dateLocale.dateFns,
-    })
+  const initialTitle = React.useMemo(
+    () =>
+      format(new Date(`${initialDate}T12:00:00`), "MMMM yyyy", {
+        locale: dateLocale.dateFns,
+      }),
+    [dateLocale.dateFns, initialDate]
   )
-
+  const title = controller.view?.title ?? initialTitle
   const viewKey = controller.view?.type ?? initialCalendarView
   const currentView = views.find((view) => view.key === viewKey)
   const currentLabel = t(
     `current.${currentView?.messageKey ?? "day"}` as "current.day"
   )
 
+  const untitledLabel = t("untitled")
   const events = React.useMemo(() => {
     const term = query.trim().toLowerCase()
 
@@ -146,9 +149,9 @@ export function PublishingCalendar({
       .map((post) => ({
         id: post.id,
         start: toEventStart(post),
-        title: post.title || t("untitled"),
+        title: post.title || untitledLabel,
       }))
-  }, [posts, query, selectedAvailableChannels, t])
+  }, [posts, query, selectedAvailableChannels, untitledLabel])
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-md border bg-card text-card-foreground">
@@ -276,9 +279,6 @@ export function PublishingCalendar({
         <EventCalendarViews
           controller={controller}
           dateClick={(info) => onCreateAtDate(info.date, info.allDay)}
-          datesSet={(info) => {
-            setTitle(info.view.title)
-          }}
           dayMaxEvents
           eventClick={(info) => {
             const post = posts.find((item) => item.id === info.event.id)
@@ -294,7 +294,7 @@ export function PublishingCalendar({
           initialView={initialCalendarView}
           locale={dateLocale.fullCalendar}
           nowIndicator
-          plugins={[...plugins]}
+          plugins={plugins}
           popoverCloseContent={() => (
             <XIcon className="size-5 text-muted-foreground group-hover:text-foreground" />
           )}
