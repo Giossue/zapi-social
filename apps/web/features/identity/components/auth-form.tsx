@@ -139,7 +139,9 @@ export function AuthForm({
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [passwordConfirmation, setPasswordConfirmation] = useState("")
-  const [timezone, setTimezone] = useState("")
+  const [timezone, setTimezone] = useState(() =>
+    initialMode === "register" ? browserTimeZone() : ""
+  )
   const [showPassword, setShowPassword] = useState(false)
   const [showPasswordConfirmation, setShowPasswordConfirmation] =
     useState(false)
@@ -151,10 +153,6 @@ export function AuthForm({
   const [turnstileToken, setTurnstileToken] = useState("")
   const [turnstileResetKey, setTurnstileResetKey] = useState(0)
   const isLogin = initialMode === "login"
-
-  useEffect(() => {
-    if (!isLogin && !timezone) setTimezone(browserTimeZone())
-  }, [isLogin, timezone])
 
   useEffect(() => {
     let active = true
