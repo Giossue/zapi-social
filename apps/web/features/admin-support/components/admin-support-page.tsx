@@ -396,7 +396,7 @@ export function AdminSupportPage() {
                         <TableEmptyRow
                           action={
                             hasFilters ? (
-                              <TableResetFiltersButton onClick={clearFilters} />
+                              <TableResetFiltersButton onClickAction={clearFilters} />
                             ) : null
                           }
                           colSpan={6}

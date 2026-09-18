@@ -1184,7 +1184,7 @@ export function PlansPage() {
                 <TableEmptyRow
                   action={
                     hasActiveFilters ? (
-                      <TableResetFiltersButton onClick={resetFilters} />
+                      <TableResetFiltersButton onClickAction={resetFilters} />
                     ) : undefined
                   }
                   colSpan={8}

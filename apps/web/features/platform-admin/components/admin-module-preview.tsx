@@ -688,7 +688,7 @@ export function AdminModulePreview({
                 <TableEmptyRow
                   action={
                     search || status !== "all" ? (
-                      <TableResetFiltersButton onClick={clearFilters} />
+                      <TableResetFiltersButton onClickAction={clearFilters} />
                     ) : undefined
                   }
                   colSpan={active.columnKeys.length + 2}

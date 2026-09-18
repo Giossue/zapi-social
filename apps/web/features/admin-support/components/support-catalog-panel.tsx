@@ -347,7 +347,7 @@ export function SupportCatalogPanel({
                 <TableEmptyRow
                   action={
                     hasFilters ? (
-                      <TableResetFiltersButton onClick={clearFilters} />
+                      <TableResetFiltersButton onClickAction={clearFilters} />
                     ) : null
                   }
                   colSpan={3}

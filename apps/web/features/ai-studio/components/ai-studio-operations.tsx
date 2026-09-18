@@ -438,7 +438,7 @@ function AiHistorySurface({
                     colSpan={6}
                     action={
                       hasFilters ? (
-                        <TableResetFiltersButton onClick={onClearFilters} />
+                        <TableResetFiltersButton onClickAction={onClearFilters} />
                       ) : undefined
                     }
                     description={
@@ -818,7 +818,7 @@ function AiAutomationSurface({
                     colSpan={canManage ? 5 : 4}
                     action={
                       hasFilters ? (
-                        <TableResetFiltersButton onClick={onClearFilters} />
+                        <TableResetFiltersButton onClickAction={onClearFilters} />
                       ) : undefined
                     }
                     description={emptyDescription}
@@ -1132,7 +1132,7 @@ function AiCreditsSurface({
                       colSpan={4}
                       action={
                         hasFilters ? (
-                          <TableResetFiltersButton onClick={onClearFilters} />
+                          <TableResetFiltersButton onClickAction={onClearFilters} />
                         ) : undefined
                       }
                       description={

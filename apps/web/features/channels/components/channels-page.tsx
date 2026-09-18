@@ -632,7 +632,7 @@ export function LiveChannelsPage() {
             }
             action={
               hasActiveFilters ? (
-                <TableResetFiltersButton onClick={clearFilters} />
+                <TableResetFiltersButton onClickAction={clearFilters} />
               ) : undefined
             }
             icon={Share2}

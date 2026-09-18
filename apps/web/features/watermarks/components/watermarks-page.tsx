@@ -598,7 +598,7 @@ function WatermarkImagePicker({
             <EmptyState
               action={
                 isFiltering ? (
-                  <TableResetFiltersButton onClick={clearFilters} />
+                  <TableResetFiltersButton onClickAction={clearFilters} />
                 ) : null
               }
               description={

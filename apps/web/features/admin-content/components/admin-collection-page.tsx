@@ -720,7 +720,7 @@ export function AdminCollectionPage<TRow, TResponse>({
                   <TableEmptyRow
                     action={
                       hasFilters ? (
-                        <TableResetFiltersButton onClick={clearFilters} />
+                        <TableResetFiltersButton onClickAction={clearFilters} />
                       ) : null
                     }
                     colSpan={config.columns.length + 1}

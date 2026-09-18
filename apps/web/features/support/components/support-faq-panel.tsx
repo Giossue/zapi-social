@@ -82,7 +82,7 @@ export function SupportFaqPanel() {
   } else if (hasQuery) {
     content = (
       <EmptyState
-        action={<TableResetFiltersButton onClick={() => setQuery("")} />}
+        action={<TableResetFiltersButton onClickAction={() => setQuery("")} />}
         description={t("faq.noMatchesDescription")}
         icon={Search}
         title={t("noMatches")}

@@ -287,7 +287,7 @@ export function AiUsageLogsPage() {
                 <TableEmptyRow
                   action={
                     hasFilters ? (
-                      <TableResetFiltersButton onClick={clearFilters} />
+                      <TableResetFiltersButton onClickAction={clearFilters} />
                     ) : undefined
                   }
                   colSpan={5}

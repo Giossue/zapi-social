@@ -572,7 +572,7 @@ function RssSchedules({
                         colSpan={6}
                         action={
                           query || status !== "all" ? (
-                            <TableResetFiltersButton onClick={resetFilters} />
+                            <TableResetFiltersButton onClickAction={resetFilters} />
                           ) : null
                         }
                         description={

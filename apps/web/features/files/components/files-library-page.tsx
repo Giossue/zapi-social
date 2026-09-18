@@ -1173,7 +1173,7 @@ export function FilesLibraryPage() {
   const assetsEmptyProps = {
     action: hasFilters ? (
       <TableResetFiltersButton
-        onClick={() => {
+        onClickAction={() => {
           setAssetFilter("all")
           setQuery("")
           openFolder("all")

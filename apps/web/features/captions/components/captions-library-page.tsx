@@ -643,7 +643,7 @@ export function CaptionsLibraryPage() {
 
   const emptyState = hasActiveFilters ? (
     <EmptyState
-      action={<TableResetFiltersButton onClick={clearFilters} />}
+      action={<TableResetFiltersButton onClickAction={clearFilters} />}
       description={t("emptyFilteredDescription")}
       icon={TABLE_EMPTY_ICON}
       title={t("noMatches")}

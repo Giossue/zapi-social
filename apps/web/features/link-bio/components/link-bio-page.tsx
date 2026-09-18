@@ -1128,7 +1128,7 @@ export function LinkBioPage() {
                   <TableEmptyRow
                     action={
                       hasFilters ? (
-                        <TableResetFiltersButton onClick={clearFilters} />
+                        <TableResetFiltersButton onClickAction={clearFilters} />
                       ) : null
                     }
                     colSpan={data.canManage ? 4 : 3}

@@ -391,7 +391,7 @@ export function StaticPagesSettingsPage() {
                   <TableEmptyRow
                     action={
                       hasFilters ? (
-                        <TableResetFiltersButton onClick={clearFilters} />
+                        <TableResetFiltersButton onClickAction={clearFilters} />
                       ) : null
                     }
                     colSpan={3}

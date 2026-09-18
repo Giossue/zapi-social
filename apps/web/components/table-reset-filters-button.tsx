@@ -4,11 +4,15 @@ import { useTranslations } from "next-intl"
 
 import { Button } from "@workspace/ui/components/button"
 
-export function TableResetFiltersButton({ onClick }: { onClick: () => void }) {
+export function TableResetFiltersButton({
+  onClickAction,
+}: {
+  onClickAction: () => void
+}) {
   const t = useTranslations("common")
 
   return (
-    <Button onClick={onClick} type="button" variant="outline">
+    <Button onClick={onClickAction} type="button" variant="outline">
       {t("resetFilters")}
     </Button>
   )

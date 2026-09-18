@@ -14,7 +14,7 @@ import {
 } from "@workspace/ui/components/data-table-controls"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
-import { PageLoading } from "@workspace/ui/components/page-loading"
+
 import type { PortalChannelAccount } from "../types/channels"
 import { useTranslations } from "next-intl"
 
@@ -137,9 +137,7 @@ export function ChannelsUsers({
         />
       </div>
 
-      {isFiltering ? (
-        <PageLoading aria-label={t("filtering")} className="min-h-48" />
-      ) : accounts.length ? (
+      {accounts.length ? (
         <CardGrid layout="xl-4-fixed">
           {accounts.map((account) => (
             <ChannelAccountCard

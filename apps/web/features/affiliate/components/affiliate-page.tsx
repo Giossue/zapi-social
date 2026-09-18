@@ -556,7 +556,7 @@ export function AffiliatePage() {
                         action={
                           hasCommissionFilters ? (
                             <TableResetFiltersButton
-                              onClick={clearCommissionFilters}
+                              onClickAction={clearCommissionFilters}
                             />
                           ) : null
                         }
@@ -685,7 +685,7 @@ export function AffiliatePage() {
                         action={
                           hasWithdrawalFilters ? (
                             <TableResetFiltersButton
-                              onClick={clearWithdrawalFilters}
+                              onClickAction={clearWithdrawalFilters}
                             />
                           ) : null
                         }

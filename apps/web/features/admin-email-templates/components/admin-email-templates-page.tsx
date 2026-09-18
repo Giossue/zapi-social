@@ -609,7 +609,7 @@ export function AdminEmailTemplatesPage() {
                   <TableEmptyRow
                     action={
                       hasFilters ? (
-                        <TableResetFiltersButton onClick={clearFilters} />
+                        <TableResetFiltersButton onClickAction={clearFilters} />
                       ) : null
                     }
                     colSpan={4}

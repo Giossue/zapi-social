@@ -641,7 +641,7 @@ export function AiConfigurationPage() {
                       action={
                         hasModelFilters ? (
                           <TableResetFiltersButton
-                            onClick={clearModelFilters}
+                            onClickAction={clearModelFilters}
                           />
                         ) : null
                       }
@@ -798,7 +798,7 @@ function UsagePanel({
                 action={
                   query.trim() ? (
                     <TableResetFiltersButton
-                      onClick={() => {
+                      onClickAction={() => {
                         setQuery("")
                         setPage(1)
                       }}

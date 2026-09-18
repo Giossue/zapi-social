@@ -501,7 +501,7 @@ export function SupportTicketsPage() {
                   <EmptyState
                     action={
                       hasFilters ? (
-                        <TableResetFiltersButton onClick={clearFilters} />
+                        <TableResetFiltersButton onClickAction={clearFilters} />
                       ) : null
                     }
                     description={

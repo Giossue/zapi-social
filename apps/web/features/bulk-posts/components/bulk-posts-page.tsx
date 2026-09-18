@@ -772,7 +772,7 @@ export function BulkPostsPage({ embedded = false }: { embedded?: boolean }) {
                   <TableEmptyRow
                     action={
                       hasFilters ? (
-                        <TableResetFiltersButton onClick={clearFilters} />
+                        <TableResetFiltersButton onClickAction={clearFilters} />
                       ) : null
                     }
                     colSpan={5}

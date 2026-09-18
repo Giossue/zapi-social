@@ -332,7 +332,7 @@ export function PublishingPostsTable({
               <TableEmptyRow
                 action={
                   hasFilters ? (
-                    <TableResetFiltersButton onClick={clearFilters} />
+                    <TableResetFiltersButton onClickAction={clearFilters} />
                   ) : undefined
                 }
                 colSpan={5}

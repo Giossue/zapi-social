@@ -934,7 +934,7 @@ export function AutomationPage() {
                         action={
                           hasKeysFilters ? (
                             <TableResetFiltersButton
-                              onClick={clearKeysFilters}
+                              onClickAction={clearKeysFilters}
                             />
                           ) : null
                         }
@@ -1138,7 +1138,7 @@ export function AutomationPage() {
                         action={
                           hasWebhooksFilters ? (
                             <TableResetFiltersButton
-                              onClick={clearWebhooksFilters}
+                              onClickAction={clearWebhooksFilters}
                             />
                           ) : null
                         }
@@ -1283,7 +1283,7 @@ export function AutomationPage() {
                         action={
                           hasLogsFilters ? (
                             <TableResetFiltersButton
-                              onClick={clearLogsFilters}
+                              onClickAction={clearLogsFilters}
                             />
                           ) : null
                         }

@@ -651,7 +651,7 @@ export function TeamsPage() {
   const visibleMembersEmptyProps = {
     action: memberQuery ? (
       <TableResetFiltersButton
-        onClick={() => {
+        onClickAction={() => {
           setMemberPage(1)
           setMemberQuery("")
         }}
@@ -664,7 +664,7 @@ export function TeamsPage() {
   const visibleInvitationsEmptyProps = {
     action: invitationQuery ? (
       <TableResetFiltersButton
-        onClick={() => {
+        onClickAction={() => {
           setInvitationPage(1)
           setInvitationQuery("")
         }}
@@ -1268,7 +1268,7 @@ function ActivityTable({
                 colSpan={4}
                 action={
                   hasFilters ? (
-                    <TableResetFiltersButton onClick={onClearFilters} />
+                    <TableResetFiltersButton onClickAction={onClearFilters} />
                   ) : undefined
                 }
                 description={
@@ -1461,7 +1461,7 @@ function MemberAccessView({
                     colSpan={3}
                     action={
                       query ? (
-                        <TableResetFiltersButton onClick={onClearSearch} />
+                        <TableResetFiltersButton onClickAction={onClearSearch} />
                       ) : undefined
                     }
                     description={t("membersEmptyFilteredDescription")}
