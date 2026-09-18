@@ -43,7 +43,6 @@ import {
   Trash2,
   Upload,
   WandSparkles,
-  X,
 } from "lucide-react"
 import {
   Alert,

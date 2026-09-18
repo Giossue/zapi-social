@@ -382,7 +382,6 @@ function errorCode(error: unknown) {
 }
 
 export function TeamsPage() {
-  const common = useTranslations("common")
   const t = useTranslations("teams")
   const apiErrorMessage = useApiErrorMessage()
   const [teams, setTeams] = useState<PortalTeamsResponse | null>(null)

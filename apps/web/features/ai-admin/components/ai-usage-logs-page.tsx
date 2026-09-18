@@ -8,7 +8,7 @@ import { CircleAlert, ShieldCheck } from "lucide-react"
 import { ApiError, adminAiApi } from "@workspace/api-client"
 import type { AdminAiRequestsResponse } from "@workspace/contracts"
 import { Badge } from "@workspace/ui/components/badge"
-import { Button } from "@workspace/ui/components/button"
+
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import {
