@@ -35,7 +35,8 @@ type DashboardShellProps = {
   isItemActive: (item: DashboardNavigationLink, pathname: string) => boolean
   items: readonly DashboardNavigationGroup[]
   navigationLabel: string
-  profile: AccountProfile
+  profile?: AccountProfile
+  loading?: boolean
   secondaryNavigation?: React.ReactNode
   sidebarStorageKey: string
   workspaceContext?: {
@@ -69,6 +70,7 @@ export function DashboardShell({
   items,
   navigationLabel,
   profile,
+  loading = false,
   secondaryNavigation,
   sidebarStorageKey,
   workspaceContext,
@@ -105,6 +107,7 @@ export function DashboardShell({
       <DashboardSidebar
         activeIndicators={activeIndicators}
         aria-label={navigationLabel}
+        loading={loading}
         collapsible="icon"
         homeHref={homeHref}
         indicatorLabel={t("navigationIndicator")}

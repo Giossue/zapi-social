@@ -11,8 +11,11 @@ type AdminAreaLayoutProps = {
 
 export function AdminAreaLayout({ children }: AdminAreaLayoutProps) {
   return (
-    <AreaAccessGate area="admin">
-      {(session) => <AdminShell profile={session.user}>{children}</AdminShell>}
-    </AreaAccessGate>
+    <AreaAccessGate
+      area="admin"
+      childrenAction={(session) => (
+        <AdminShell profile={session?.user}>{children}</AdminShell>
+      )}
+    />
   )
 }

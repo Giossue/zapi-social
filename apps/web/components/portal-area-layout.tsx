@@ -12,10 +12,13 @@ type PortalAreaLayoutProps = {
 
 export function PortalAreaLayout({ children }: PortalAreaLayoutProps) {
   return (
-    <AreaAccessGate area="portal">
-      {(session) => (
-        <AppShell session={session as PortalAuthSession}>{children}</AppShell>
+    <AreaAccessGate
+      area="portal"
+      childrenAction={(session) => (
+        <AppShell session={session as PortalAuthSession | null}>
+          {children}
+        </AppShell>
       )}
-    </AreaAccessGate>
+    />
   )
 }

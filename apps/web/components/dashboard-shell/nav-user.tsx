@@ -21,6 +21,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@workspace/ui/components/sidebar"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import { CircleUser, CreditCard, EllipsisVertical, LogOut } from "lucide-react"
 import Link from "next/link"
 
@@ -31,12 +32,14 @@ import {
 } from "@/components/account-menu"
 
 type DashboardNavUserProps = {
+  loading?: boolean
   plansHref?: string
-  profile: AccountProfile
+  profile?: AccountProfile
   profileHref: string
 }
 
 export function DashboardNavUser({
+  loading = false,
   plansHref,
   profile,
   profileHref,
@@ -45,6 +48,24 @@ export function DashboardNavUser({
   const tPortal = useTranslations("navigation.portal")
   const { isMobile, setOpenMobile } = useSidebar()
   const logout = useSessionLogout()
+
+  if (loading) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton disabled size="lg">
+            <Skeleton className="size-8 rounded-full" />
+            <div className="grid flex-1 gap-2 text-left text-sm leading-tight">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-3 w-32" />
+            </div>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    )
+  }
+
+  if (!profile) return null
 
   return (
     <SidebarMenu>

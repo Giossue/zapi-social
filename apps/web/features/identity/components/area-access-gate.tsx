@@ -3,7 +3,7 @@
 import { ApiError, authApi } from "@workspace/api-client"
 import { Card } from "@workspace/ui/components/card"
 import { EmptyState } from "@workspace/ui/components/empty-state"
-import { PageLoading } from "@/components/page-loading"
+
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import { ShieldAlert } from "lucide-react"
 import { useTranslations } from "next-intl"
@@ -24,14 +24,10 @@ type AccessState =
 
 type AreaAccessGateProps = {
   area: ProductArea
-  children: (session: AreaAuthSession) => ReactNode
+  childrenAction: (session: AreaAuthSession | null) => ReactNode
 }
 
-function AccessLoading() {
-  return <PageLoading className="min-h-dvh bg-background" />
-}
-
-export function AreaAccessGate({ area, children }: AreaAccessGateProps) {
+export function AreaAccessGate({ area, childrenAction }: AreaAccessGateProps) {
   const t = useTranslations("auth.access")
   const router = useRouter()
   const [state, setState] = useState<AccessState>({ status: "loading" })
@@ -72,7 +68,7 @@ export function AreaAccessGate({ area, children }: AreaAccessGateProps) {
     return () => clearTimeout(timer)
   }, [validateSession])
 
-  if (state.status === "loading") return <AccessLoading />
+  if (state.status === "loading") return childrenAction(null)
   if (state.status === "error") {
     return (
       <main className="mx-auto flex min-h-dvh w-full max-w-7xl items-center p-4 sm:p-6 lg:p-8">
@@ -87,5 +83,5 @@ export function AreaAccessGate({ area, children }: AreaAccessGateProps) {
       </main>
     )
   }
-  return children(state.session)
+  return childrenAction(state.session)
 }

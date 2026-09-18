@@ -11,6 +11,7 @@ import { usePathname } from "next/navigation"
 import { useMemo } from "react"
 
 import { DashboardShell } from "@/components/dashboard-shell/dashboard-shell"
+import { PageLoading } from "@/components/page-loading"
 import type {
   DashboardNavigationGroup,
   DashboardNavigationItem,
@@ -27,7 +28,7 @@ import {
 
 type AppShellProps = {
   children: React.ReactNode
-  session: PortalAuthSession
+  session: PortalAuthSession | null
 }
 
 export function AppShell({ children, session }: AppShellProps) {
@@ -38,11 +39,13 @@ export function AppShell({ children, session }: AppShellProps) {
     portalNavigationGroups,
     "navigation.portal"
   )
-  const enabledModules = session.enabledModules
-  const planModules = session.planModules
-  const permissions = session.workspace.permissions
-  const unrestricted = session.workspace.role !== "member"
+  const enabledModules = session?.enabledModules
+  const planModules = session?.planModules
+  const unrestricted = session ? session.workspace.role !== "member" : true
   const items = useMemo(() => {
+    if (!session) return translated
+
+    const permissions = session.workspace.permissions
     return translated
       .map((group): DashboardNavigationGroup => {
         const items = group.items.flatMap((item): DashboardNavigationItem[] => {
@@ -98,13 +101,18 @@ export function AppShell({ children, session }: AppShellProps) {
         return { ...group, items }
       })
       .filter((group) => group.items.length)
-  }, [enabledModules, permissions, translated, unrestricted])
-  const workspaces = session.workspaces?.length
+  }, [enabledModules, session, translated, unrestricted])
+  const workspaces = session?.workspaces?.length
     ? session.workspaces
-    : [session.workspace]
+    : session
+      ? [session.workspace]
+      : []
   const activeModule = portalModuleForHref(pathname)
   const planLocked = Boolean(
-    activeModule && enabledModules && !enabledModules.includes(activeModule)
+    session &&
+    activeModule &&
+    enabledModules &&
+    !enabledModules.includes(activeModule)
   )
   const lockReason =
     activeModule && planModules && planModules.includes(activeModule)
@@ -134,42 +142,55 @@ export function AppShell({ children, session }: AppShellProps) {
       }
       items={items}
       navigationLabel={t("portalNavigationLabel")}
-      profile={session.user}
+      loading={!session}
+      profile={session?.user}
       secondaryNavigation={
-        pathname.startsWith("/portal/settings") ? (
+        session && pathname.startsWith("/portal/settings") ? (
           <PortalSettingsSidebar />
         ) : undefined
       }
       sidebarStorageKey="zapi:portal-sidebar:v1"
-      workspaceContext={{
-        activeWorkspace: session.workspace,
-        workspaces,
-      }}
+      workspaceContext={
+        session
+          ? {
+              activeWorkspace: session.workspace,
+              workspaces,
+            }
+          : undefined
+      }
     >
-      {session.impersonator ? (
-        <ImpersonationBanner userName={session.user.displayName} />
-      ) : null}
-      {planLocked ? (
-        <PlanLockedModule
-          canManagePlan={session.workspace.role === "owner"}
-          moduleLabel={moduleLabel}
-          reason={lockReason}
-          translations={{
-            description: t("planLocked.description", { module: moduleLabel }),
-            memberDescription: t("planLocked.memberDescription", {
-              module: moduleLabel,
-            }),
-            planAction: t("planLocked.planAction"),
-            previewDescription: t("planLocked.previewDescription"),
-            title: t("planLocked.title"),
-            workspaceAction: t("planLocked.workspaceAction"),
-            workspaceDescription: t("planLocked.workspaceDescription", {
-              module: moduleLabel,
-            }),
-          }}
-        />
+      {session ? (
+        <>
+          {session.impersonator ? (
+            <ImpersonationBanner userName={session.user.displayName} />
+          ) : null}
+          {planLocked ? (
+            <PlanLockedModule
+              canManagePlan={session.workspace.role === "owner"}
+              moduleLabel={moduleLabel}
+              reason={lockReason}
+              translations={{
+                description: t("planLocked.description", {
+                  module: moduleLabel,
+                }),
+                memberDescription: t("planLocked.memberDescription", {
+                  module: moduleLabel,
+                }),
+                planAction: t("planLocked.planAction"),
+                previewDescription: t("planLocked.previewDescription"),
+                title: t("planLocked.title"),
+                workspaceAction: t("planLocked.workspaceAction"),
+                workspaceDescription: t("planLocked.workspaceDescription", {
+                  module: moduleLabel,
+                }),
+              }}
+            />
+          ) : (
+            children
+          )}
+        </>
       ) : (
-        children
+        <PageLoading className="min-h-[calc(100dvh-3rem)]" />
       )}
     </DashboardShell>
   )

@@ -27,11 +27,12 @@ type DashboardSidebarProps = React.ComponentProps<typeof Sidebar> & {
   activeIndicators: ReadonlySet<string>
   homeHref: string
   indicatorLabel: string
+  loading?: boolean
   lockedLabel: string
   isItemActive: (item: DashboardNavigationLink, pathname: string) => boolean
   items: readonly DashboardNavigationGroup[]
   plansHref?: string
-  profile: AccountProfile
+  profile?: AccountProfile
   profileHref: string
 }
 
@@ -60,6 +61,7 @@ export function DashboardSidebar({
   activeIndicators,
   homeHref,
   indicatorLabel,
+  loading = false,
   lockedLabel,
   isItemActive,
   items,
@@ -82,6 +84,7 @@ export function DashboardSidebar({
       </SidebarContent>
       <SidebarFooter>
         <DashboardNavUser
+          loading={loading}
           plansHref={plansHref}
           profile={profile}
           profileHref={profileHref}

@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl"
 import { useMemo } from "react"
 
 import { DashboardShell } from "@/components/dashboard-shell/dashboard-shell"
+import { PageLoading } from "@/components/page-loading"
 import { useTranslatedNavigation } from "@/components/dashboard-shell/translate-navigation"
 import {
   adminNavigationGroups,
@@ -12,7 +13,7 @@ import {
 
 type AdminShellProps = {
   children: React.ReactNode
-  profile: { displayName: string; email: string }
+  profile?: { displayName: string; email: string }
 }
 
 export function AdminShell({ children, profile }: AdminShellProps) {
@@ -36,10 +37,15 @@ export function AdminShell({ children, profile }: AdminShellProps) {
       }
       items={items}
       navigationLabel={t("adminNavigationLabel")}
+      loading={!profile}
       profile={profile}
       sidebarStorageKey="zapi:admin-sidebar:v1"
     >
-      {children}
+      {profile ? (
+        children
+      ) : (
+        <PageLoading className="min-h-[calc(100dvh-3rem)]" />
+      )}
     </DashboardShell>
   )
 }
