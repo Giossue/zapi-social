@@ -7,7 +7,6 @@ import {
   useEffect,
   useRef,
   useState,
-  useSyncExternalStore,
 } from "react"
 import {
   BookOpenText,
@@ -144,14 +143,6 @@ function getDefaultSchedule() {
   }
 }
 
-function subscribeToClock(listener: () => void) {
-  const interval = window.setInterval(listener, 60_000)
-  return () => window.clearInterval(interval)
-}
-
-function getCurrentTime() {
-  return Date.now()
-}
 
 function ComposerActionIcon({ mode }: { mode: ComposerMode }) {
   if (mode === "draft") return <FileText data-icon="inline-start" />
@@ -237,11 +228,7 @@ function ComposerDialog({
   const requiresMedia = selected.some(
     (account) => account.provider !== "facebook"
   )
-  const currentTime = useSyncExternalStore(
-    subscribeToClock,
-    getCurrentTime,
-    () => 0
-  )
+  const [currentTime, setCurrentTime] = useState(() => Date.now())
   const isPastSchedule =
     mode === "schedule" &&
     Boolean(scheduledDate && scheduledTime) &&
@@ -258,6 +245,11 @@ function ComposerDialog({
     isPastSchedule ? t("validation.schedulePast") : null,
   ].filter((issue): issue is string => Boolean(issue))
   const canSubmit = validationIssues.length === 0 && !pending
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setCurrentTime(Date.now()), 60_000)
+    return () => window.clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     void filesApi
