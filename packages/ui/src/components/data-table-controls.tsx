@@ -5,7 +5,7 @@ import { Children, isValidElement, useId, useState } from "react"
 import type { ReactElement, ReactNode, Ref } from "react"
 
 import { Button } from "@workspace/ui/components/button"
-import { Skeleton } from "@workspace/ui/components/skeleton"
+
 import {
   CardAction,
   CardDescription,
@@ -82,45 +82,40 @@ function DataTableHeader({
   const hasContext = title !== undefined || description !== undefined
 
   return (
-    <>
-      <CardHeader
-        aria-busy={loading}
-        className={cn(
-          "border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]",
-          !hasContext && "md:has-data-[slot=card-action]:grid-cols-1",
-          className
-        )}
-      >
-        {title !== undefined ? (
-          <CardTitle className="text-xl leading-none">{title}</CardTitle>
-        ) : null}
-        {description !== undefined ? (
-          <CardDescription className="max-w-sm leading-snug">
-            {description}
-          </CardDescription>
-        ) : null}
-        {search || filters || action ? (
-          <CardAction
-            className={cn(
-              "col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end",
-              !hasContext &&
-                "row-span-1 row-start-1 md:col-start-1 md:row-span-1 md:w-full md:justify-between md:justify-self-stretch"
-            )}
-          >
-            {search || filters ? (
-              <div className="flex min-w-0 flex-wrap items-center gap-2">
-                {search ? <DataTableSearch {...search} /> : null}
-                {filters}
-              </div>
-            ) : null}
-            {action}
-          </CardAction>
-        ) : null}
-      </CardHeader>
-      {loading ? (
-        <Skeleton aria-hidden className="h-1 w-full rounded-none" />
+    <CardHeader
+      aria-busy={loading}
+      className={cn(
+        "border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]",
+        !hasContext && "md:has-data-[slot=card-action]:grid-cols-1",
+        className
+      )}
+    >
+      {title !== undefined ? (
+        <CardTitle className="text-xl leading-none">{title}</CardTitle>
       ) : null}
-    </>
+      {description !== undefined ? (
+        <CardDescription className="max-w-sm leading-snug">
+          {description}
+        </CardDescription>
+      ) : null}
+      {search || filters || action ? (
+        <CardAction
+          className={cn(
+            "col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end",
+            !hasContext &&
+              "row-span-1 row-start-1 md:col-start-1 md:row-span-1 md:w-full md:justify-between md:justify-self-stretch"
+          )}
+        >
+          {search || filters ? (
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
+              {search ? <DataTableSearch {...search} /> : null}
+              {filters}
+            </div>
+          ) : null}
+          {action}
+        </CardAction>
+      ) : null}
+    </CardHeader>
   )
 }
 
@@ -229,9 +224,6 @@ function DataTableToolbar({
           </Button>
         ) : null}
       </div>
-      {loading ? (
-        <Skeleton aria-hidden className="h-1 w-full basis-full rounded-none" />
-      ) : null}
     </div>
   )
 }
