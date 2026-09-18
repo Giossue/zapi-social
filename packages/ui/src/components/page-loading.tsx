@@ -1,6 +1,6 @@
 import { cn } from "@workspace/ui/lib/utils"
 
-import { Spinner } from "@workspace/ui/components/spinner"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 
 function PageLoading({
   "aria-label": ariaLabel,
@@ -11,11 +11,16 @@ function PageLoading({
     <div
       aria-busy="true"
       aria-label={ariaLabel}
-      className={cn("flex min-h-64 items-center justify-center", className)}
+      className={cn("flex min-h-64 flex-col gap-4 p-4", className)}
       role="status"
       {...props}
     >
-      <Spinner size={28} />
+      <div className="flex flex-col gap-2">
+        <Skeleton className="h-6 w-52" />
+        <Skeleton className="h-4 w-80 max-w-full" />
+      </div>
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-56 w-full" />
     </div>
   )
 }
