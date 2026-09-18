@@ -97,7 +97,7 @@ function DataTableHeader({
           {description}
         </CardDescription>
       ) : null}
-      {search || filters || action ? (
+      {search || filters || action || loading ? (
         <CardAction
           className={cn(
             "col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end",
@@ -106,14 +106,14 @@ function DataTableHeader({
           )}
           aria-busy={loading}
         >
-          {search || filters ? (
+          {search || filters || loading ? (
             <div className="flex min-w-0 flex-wrap items-center gap-2">
               {search ? <DataTableSearch {...search} /> : null}
               {filters}
+              {loading ? (
+                <Skeleton aria-hidden className="h-7 w-16 shrink-0" />
+              ) : null}
             </div>
-          ) : null}
-          {loading ? (
-            <Skeleton aria-hidden className="h-7 w-16 shrink-0" />
           ) : null}
           {action}
         </CardAction>
