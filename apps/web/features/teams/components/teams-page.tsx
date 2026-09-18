@@ -87,6 +87,7 @@ import {
   Send,
   Trash2,
   UserCog,
+  X,
 } from "lucide-react"
 
 import {
@@ -381,6 +382,7 @@ function errorCode(error: unknown) {
 }
 
 export function TeamsPage() {
+  const common = useTranslations("common")
   const t = useTranslations("teams")
   const apiErrorMessage = useApiErrorMessage()
   const [teams, setTeams] = useState<PortalTeamsResponse | null>(null)
@@ -717,7 +719,25 @@ export function TeamsPage() {
       }
       filters={
         activeView === "activity" ? (
-          <DataTableToolbar className="px-0">
+          <DataTableToolbar
+            actions={
+              activityCategory !== "all" ? (
+                <Button
+                  onClick={() => {
+                    setActivityCategory("all")
+                    setActivityPage(1)
+                  }}
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                >
+                  <X aria-hidden="true" data-icon="inline-start" />
+                  {common("clear")}
+                </Button>
+              ) : undefined
+            }
+            className="px-0"
+          >
             <DataTableFilter
               ariaLabel={t("filterActivity")}
               onValueChange={(value) => {

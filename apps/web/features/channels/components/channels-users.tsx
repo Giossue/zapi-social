@@ -2,7 +2,7 @@
 
 import * as React from "react"
 
-import { ListFilter, Plus } from "lucide-react"
+import { Plus, X } from "lucide-react"
 
 import { Button } from "@workspace/ui/components/button"
 import { CardGrid } from "@workspace/ui/components/card-grid"
@@ -98,9 +98,9 @@ export function ChannelsUsers({
                     onClick={onClearFilters}
                     size="sm"
                     type="button"
-                    variant="brand-secondary"
+                    variant="outline"
                   >
-                    <ListFilter aria-hidden="true" data-icon="inline-start" />
+                    <X aria-hidden="true" data-icon="inline-start" />
                     {t("clearFilters")}
                   </Button>
                 ) : undefined

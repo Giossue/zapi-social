@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronDown, ListFilter, Search } from "lucide-react"
+import { ChevronDown, ListFilter, Search, X } from "lucide-react"
 import { Children, isValidElement, useId, useState } from "react"
 import type { ReactElement, ReactNode, Ref } from "react"
 
@@ -210,9 +210,9 @@ function DataTableToolbar({
             onClick={clearFilters}
             size="sm"
             type="button"
-            variant="brand-secondary"
+            variant="outline"
           >
-            <ListFilter aria-hidden="true" data-icon="inline-start" />
+            <X aria-hidden="true" data-icon="inline-start" />
             {clearLabel}
           </Button>
         ) : null}
