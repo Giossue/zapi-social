@@ -1,7 +1,7 @@
 "use client"
 
 import { type MouseEvent, useMemo, useState } from "react"
-import { FilePenLine, ListFilter, RotateCcw, Trash2 } from "lucide-react"
+import { FilePenLine, RotateCcw, Trash2 } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +22,7 @@ import {
   DataTableHeader,
 } from "@workspace/ui/components/data-table-controls"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
+import { TableResetFiltersButton } from "@/components/table-reset-filters-button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import {
   Table,
@@ -197,7 +198,7 @@ export function PublishingPostsTable({
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE
   )
-  const hasFilters = query || provider !== "all" || status !== "all"
+  const hasFilters = Boolean(query || provider !== "all" || status !== "all")
   const emptyProps = hasFilters
     ? {
         description: t("empty.filtered.description"),
@@ -213,6 +214,7 @@ export function PublishingPostsTable({
     ? (currentPage - 1) * PAGE_SIZE + 1
     : 0
   const pageRangeEnd = Math.min(currentPage * PAGE_SIZE, filteredPosts.length)
+
   function clearFilters() {
     setQuery("")
     setProvider("all")
@@ -224,21 +226,7 @@ export function PublishingPostsTable({
     <Card variant="subtle">
       <DataTableHeader
         filters={
-          <DataTableToolbar
-            actions={
-              provider !== "all" || status !== "all" ? (
-                <Button
-                  onClick={clearFilters}
-                  size="sm"
-                  variant="brand-secondary"
-                >
-                  <ListFilter data-icon="inline-start" />
-                  {t("clearFilters")}
-                </Button>
-              ) : undefined
-            }
-            className="px-0"
-          >
+          <DataTableToolbar className="px-0">
             <DataTableFilter
               ariaLabel={t("filterProviderLabel")}
               label={t("provider")}
@@ -341,7 +329,15 @@ export function PublishingPostsTable({
               </TableRow>
             ))}
             {pagePosts.length === 0 ? (
-              <TableEmptyRow colSpan={5} {...emptyProps} />
+              <TableEmptyRow
+                action={
+                  hasFilters ? (
+                    <TableResetFiltersButton onClick={clearFilters} />
+                  ) : undefined
+                }
+                colSpan={5}
+                {...emptyProps}
+              />
             ) : null}
           </TableBody>
         </Table>

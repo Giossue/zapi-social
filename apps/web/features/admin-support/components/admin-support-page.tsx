@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
 import { useFormatter, useTranslations } from "next-intl"
-import { LifeBuoy, MessageSquare, Plus, ShieldX, X } from "lucide-react"
+import { LifeBuoy, MessageSquare, Plus, ShieldX } from "lucide-react"
 
 import { adminSupportApi, ApiError } from "@workspace/api-client"
 import type {
@@ -21,6 +21,7 @@ import {
   DataTableHeader,
 } from "@workspace/ui/components/data-table-controls"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
+import { TableResetFiltersButton } from "@/components/table-reset-filters-button"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
 import { PageLoading } from "@/components/page-loading"
@@ -248,23 +249,7 @@ export function AdminSupportPage() {
                   </Button>
                 }
                 filters={
-                  <DataTableToolbar
-                    actions={
-                      status !== "all" ||
-                      categoryId !== "all" ||
-                      queue !== "all" ? (
-                        <Button
-                          onClick={clearFilters}
-                          size="sm"
-                          type="button"
-                          variant="outline"
-                        >
-                          <X /> {t("clear")}
-                        </Button>
-                      ) : undefined
-                    }
-                    className="px-0"
-                  >
+                  <DataTableToolbar className="px-0">
                     <DataTableFilter
                       ariaLabel={t("filterQueue")}
                       label={t("queueColumn")}
@@ -411,9 +396,7 @@ export function AdminSupportPage() {
                         <TableEmptyRow
                           action={
                             hasFilters ? (
-                              <Button onClick={clearFilters} variant="outline">
-                                {t("resetFilters")}
-                              </Button>
+                              <TableResetFiltersButton onClick={clearFilters} />
                             ) : null
                           }
                           colSpan={6}

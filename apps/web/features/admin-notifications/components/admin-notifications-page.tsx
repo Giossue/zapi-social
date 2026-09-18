@@ -9,7 +9,6 @@ import {
   Send,
   ShieldX,
   Trash2,
-  X,
 } from "lucide-react"
 
 import { adminNotificationsApi, ApiError } from "@workspace/api-client"
@@ -37,6 +36,7 @@ import {
   DataTableHeader,
 } from "@workspace/ui/components/data-table-controls"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
+import { TableResetFiltersButton } from "@/components/table-reset-filters-button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -455,6 +455,12 @@ export function AdminNotificationsPage() {
   const rangeEnd = total ? rangeStart + announcements.length - 1 : 0
   const hasFilters = Boolean(query || status !== "all")
 
+  function clearFilters() {
+    setQuery("")
+    setStatus("all")
+    setPage(1)
+  }
+
   async function save(values: UpsertAdminAnnouncementInput) {
     setPending(true)
     try {
@@ -536,25 +542,7 @@ export function AdminNotificationsPage() {
               </Button>
             }
             filters={
-              <DataTableToolbar
-                actions={
-                  status !== "all" ? (
-                    <Button
-                      onClick={() => {
-                        setQuery("")
-                        setStatus("all")
-                        setPage(1)
-                      }}
-                      size="sm"
-                      type="button"
-                      variant="outline"
-                    >
-                      <X /> {t("clear")}
-                    </Button>
-                  ) : undefined
-                }
-                className="px-0"
-              >
+              <DataTableToolbar className="px-0">
                 <DataTableFilter
                   ariaLabel={t("filterStatus")}
                   label={t("statusColumn")}
@@ -679,6 +667,11 @@ export function AdminNotificationsPage() {
                     ))
                   ) : (
                     <TableEmptyRow
+                      action={
+                        hasFilters ? (
+                          <TableResetFiltersButton onClick={clearFilters} />
+                        ) : null
+                      }
                       colSpan={6}
                       description={
                         hasFilters

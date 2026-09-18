@@ -3159,7 +3159,8 @@
     "pagination": {
       "empty": "0 {items}",
       "range": "{from, number}-{to, number} of {total, number}"
-    }
+    },
+    "resetFilters": "Reset filters"
   },
   "dashboard": {
     "admin": {

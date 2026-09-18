@@ -36,6 +36,7 @@ import {
   DataTableHeader,
 } from "@workspace/ui/components/data-table-controls"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
+import { TableResetFiltersButton } from "@/components/table-reset-filters-button"
 import {
   Card,
   CardAction,
@@ -1183,9 +1184,7 @@ export function PlansPage() {
                 <TableEmptyRow
                   action={
                     hasActiveFilters ? (
-                      <Button onClick={resetFilters} variant="brand-secondary">
-                        {t("resetFilters")}
-                      </Button>
+                      <TableResetFiltersButton onClick={resetFilters} />
                     ) : undefined
                   }
                   colSpan={8}

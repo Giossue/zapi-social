@@ -42,6 +42,7 @@ import {
   DataTableHeader,
 } from "@workspace/ui/components/data-table-controls"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
+import { TableResetFiltersButton } from "@/components/table-reset-filters-button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -984,21 +985,7 @@ export function LinkBioPage() {
               ) : undefined
             }
             filters={
-              <DataTableToolbar
-                actions={
-                  statusFilter !== "all" ? (
-                    <Button
-                      onClick={clearFilters}
-                      size="sm"
-                      type="button"
-                      variant="outline"
-                    >
-                      <X /> {t("clear")}
-                    </Button>
-                  ) : undefined
-                }
-                className="px-0"
-              >
+              <DataTableToolbar className="px-0">
                 <DataTableFilter
                   ariaLabel={t("filterStatus")}
                   label={t("status")}
@@ -1141,9 +1128,7 @@ export function LinkBioPage() {
                   <TableEmptyRow
                     action={
                       hasFilters ? (
-                        <Button onClick={clearFilters} variant="outline">
-                          {t("clearFilters")}
-                        </Button>
+                        <TableResetFiltersButton onClick={clearFilters} />
                       ) : null
                     }
                     colSpan={data.canManage ? 4 : 3}

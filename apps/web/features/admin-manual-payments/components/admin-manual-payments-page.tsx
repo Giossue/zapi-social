@@ -38,6 +38,7 @@ import {
   DataTableHeader,
 } from "@workspace/ui/components/data-table-controls"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
+import { TableResetFiltersButton } from "@/components/table-reset-filters-button"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import {
   Field,
@@ -502,6 +503,13 @@ export function AdminManualPaymentsPage() {
   const rangeStart = total ? (safePage - 1) * pageSize + 1 : 0
   const rangeEnd = total ? rangeStart + payments.length - 1 : 0
   const hasFilters = Boolean(query || status !== "all")
+
+  function clearFilters() {
+    setQuery("")
+    setStatus("all")
+    setPage(1)
+  }
+
   const settingsChanged =
     settingsDraft.enabled !== settings.enabled ||
     settingsDraft.referencePrefix !== settings.referencePrefix ||
@@ -584,25 +592,7 @@ export function AdminManualPaymentsPage() {
                   </Button>
                 }
                 filters={
-                  <DataTableToolbar
-                    actions={
-                      status !== "all" ? (
-                        <Button
-                          onClick={() => {
-                            setQuery("")
-                            setStatus("all")
-                            setPage(1)
-                          }}
-                          size="sm"
-                          type="button"
-                          variant="outline"
-                        >
-                          <X /> {t("clear")}
-                        </Button>
-                      ) : undefined
-                    }
-                    className="px-0"
-                  >
+                  <DataTableToolbar className="px-0">
                     <DataTableFilter
                       ariaLabel={t("filterStatus")}
                       label={t("statusColumn")}
@@ -742,6 +732,11 @@ export function AdminManualPaymentsPage() {
                         ))
                       ) : (
                         <TableEmptyRow
+                          action={
+                            hasFilters ? (
+                              <TableResetFiltersButton onClick={clearFilters} />
+                            ) : null
+                          }
                           colSpan={6}
                           description={
                             hasFilters

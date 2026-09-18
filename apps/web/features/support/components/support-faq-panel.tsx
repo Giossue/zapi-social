@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { CircleHelp, Search, X } from "lucide-react"
+import { CircleHelp, Search } from "lucide-react"
 
 import { publicSiteApi } from "@workspace/api-client"
 import type { PublicSiteFaq } from "@workspace/contracts"
@@ -11,10 +11,10 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@workspace/ui/components/accordion"
-import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import { DataTableHeader } from "@workspace/ui/components/data-table-controls"
 import { EmptyState } from "@workspace/ui/components/empty-state"
+import { TableResetFiltersButton } from "@/components/table-reset-filters-button"
 import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import { useTranslations } from "next-intl"
@@ -82,11 +82,7 @@ export function SupportFaqPanel() {
   } else if (hasQuery) {
     content = (
       <EmptyState
-        action={
-          <Button onClick={() => setQuery("")} size="sm" variant="outline">
-            <X data-icon="inline-start" /> {t("faq.clearSearch")}
-          </Button>
-        }
+        action={<TableResetFiltersButton onClick={() => setQuery("")} />}
         description={t("faq.noMatchesDescription")}
         icon={Search}
         title={t("noMatches")}

@@ -83,6 +83,7 @@ import {
 } from "@workspace/ui/components/table"
 import { PageLoading } from "@/components/page-loading"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
+import { TableResetFiltersButton } from "@/components/table-reset-filters-button"
 import {
   TABLE_EMPTY_ICON,
   TableEmptyRow,
@@ -1171,16 +1172,13 @@ export function FilesLibraryPage() {
 
   const assetsEmptyProps = {
     action: hasFilters ? (
-      <Button
+      <TableResetFiltersButton
         onClick={() => {
           setAssetFilter("all")
           setQuery("")
           openFolder("all")
         }}
-        variant="brand-secondary"
-      >
-        {t("clearFilters")}
-      </Button>
+      />
     ) : undefined,
     description: hasFilters
       ? t("emptyFilteredDescription")

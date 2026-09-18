@@ -67,6 +67,7 @@ import {
   DataTableHeader,
 } from "@workspace/ui/components/data-table-controls"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
+import { TableResetFiltersButton } from "@/components/table-reset-filters-button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -353,21 +354,7 @@ function JobsTable({
       <DataTableHeader
         action={action}
         filters={
-          <DataTableToolbar
-            className="px-0"
-            actions={
-              kindFilter !== "all" || statusFilter !== "all" ? (
-                <Button
-                  onClick={clearFilters}
-                  size="sm"
-                  type="button"
-                  variant="outline"
-                >
-                  <X /> {t("clear")}
-                </Button>
-              ) : undefined
-            }
-          >
+          <DataTableToolbar className="px-0">
             <DataTableFilter
               ariaLabel={t("filterKind")}
               label={tOps("type")}
@@ -467,9 +454,7 @@ function JobsTable({
               <TableEmptyRow
                 action={
                   hasFilters ? (
-                    <Button onClick={clearFilters} variant="outline">
-                      {t("clearFilters")}
-                    </Button>
+                    <TableResetFiltersButton onClick={clearFilters} />
                   ) : null
                 }
                 colSpan={6}

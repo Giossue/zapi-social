@@ -43,6 +43,7 @@ import {
   DataTableHeader,
 } from "@workspace/ui/components/data-table-controls"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
+import { TableResetFiltersButton } from "@/components/table-reset-filters-button"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import {
   Sheet,
@@ -431,6 +432,12 @@ export function AdminModulePreview({
     setDialogOpen(true)
   }
 
+  function clearFilters() {
+    setSearch("")
+    setStatus("all")
+    setPageIndex(0)
+  }
+
   function changeTab(value: string) {
     setActiveTab(value)
     setSearch("")
@@ -679,6 +686,11 @@ export function AdminModulePreview({
               ))}
               {rows.length === 0 ? (
                 <TableEmptyRow
+                  action={
+                    search || status !== "all" ? (
+                      <TableResetFiltersButton onClick={clearFilters} />
+                    ) : undefined
+                  }
                   colSpan={active.columnKeys.length + 2}
                   description={
                     search || status !== "all"

@@ -2,7 +2,7 @@
 
 import * as React from "react"
 
-import { Plus, X } from "lucide-react"
+import { Plus } from "lucide-react"
 
 import { Button } from "@workspace/ui/components/button"
 import { CardGrid } from "@workspace/ui/components/card-grid"
@@ -33,7 +33,6 @@ type ChannelsUsersProps = {
   emptyState: React.ReactNode
   isFiltering: boolean
   onCapabilityFilterChange: (value: string) => void
-  onClearFilters: () => void
   onConnect: () => void
   onProviderFilterChange: (value: string) => void
   onQueryChange: (value: string) => void
@@ -53,7 +52,6 @@ export function ChannelsUsers({
   emptyState,
   isFiltering,
   onCapabilityFilterChange,
-  onClearFilters,
   onConnect,
   onProviderFilterChange,
   onQueryChange,
@@ -65,10 +63,6 @@ export function ChannelsUsers({
   cardActions,
 }: ChannelsUsersProps) {
   const t = useTranslations("channels")
-  const hasActiveFilters =
-    providerFilter !== "all" ||
-    capabilityFilter !== "all" ||
-    statusFilter !== "all"
 
   return (
     <div className="flex flex-col gap-4">
@@ -91,23 +85,7 @@ export function ChannelsUsers({
             ) : undefined
           }
           filters={
-            <DataTableToolbar
-              actions={
-                hasActiveFilters ? (
-                  <Button
-                    onClick={onClearFilters}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    <X aria-hidden="true" data-icon="inline-start" />
-                    {t("clearFilters")}
-                  </Button>
-                ) : undefined
-              }
-              className="px-0"
-              loading={isFiltering}
-            >
+            <DataTableToolbar className="px-0" loading={isFiltering}>
               <DataTableFilter
                 ariaLabel={t("filterProvider")}
                 label={t("provider")}

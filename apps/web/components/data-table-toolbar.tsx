@@ -15,7 +15,7 @@ export function DataTableToolbar(
   return (
     <DataTableToolbarPrimitive
       {...props}
-      clearLabel={t("clear")}
+
       filtersLabel={t("filters")}
     />
   )

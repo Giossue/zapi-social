@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState, type FormEvent } from "react"
-import { CircleAlert, Pencil, RotateCcw, Save, ShieldX, X } from "lucide-react"
+import { CircleAlert, Pencil, RotateCcw, Save, ShieldX } from "lucide-react"
 
 import {
   adminEmailTemplatesApi,
@@ -40,6 +40,7 @@ import {
   DataTableHeader,
 } from "@workspace/ui/components/data-table-controls"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
+import { TableResetFiltersButton } from "@/components/table-reset-filters-button"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import {
   Field,
@@ -496,21 +497,7 @@ export function AdminEmailTemplatesPage() {
         <Card variant="subtle">
           <DataTableHeader
             filters={
-              <DataTableToolbar
-                actions={
-                  statusFilter !== "all" ? (
-                    <Button
-                      onClick={clearFilters}
-                      size="sm"
-                      type="button"
-                      variant="outline"
-                    >
-                      <X /> {t("clear")}
-                    </Button>
-                  ) : undefined
-                }
-                className="px-0"
-              >
+              <DataTableToolbar className="px-0">
                 <DataTableFilter
                   ariaLabel={t("filterStatus")}
                   label={t("statusColumn")}
@@ -622,9 +609,7 @@ export function AdminEmailTemplatesPage() {
                   <TableEmptyRow
                     action={
                       hasFilters ? (
-                        <Button onClick={clearFilters} variant="outline">
-                          {t("clearFilters")}
-                        </Button>
+                        <TableResetFiltersButton onClick={clearFilters} />
                       ) : null
                     }
                     colSpan={4}

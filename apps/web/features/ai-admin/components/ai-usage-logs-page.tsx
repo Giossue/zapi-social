@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { useFormatter, useTranslations } from "next-intl"
 import { useRouter } from "next/navigation"
-import { CircleAlert, ShieldCheck, X } from "lucide-react"
+import { CircleAlert, ShieldCheck } from "lucide-react"
 
 import { ApiError, adminAiApi } from "@workspace/api-client"
 import type { AdminAiRequestsResponse } from "@workspace/contracts"
@@ -16,6 +16,7 @@ import {
   DataTableHeader,
 } from "@workspace/ui/components/data-table-controls"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
+import { TableResetFiltersButton } from "@/components/table-reset-filters-button"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
@@ -153,21 +154,7 @@ export function AiUsageLogsPage() {
       <Card variant="subtle">
         <DataTableHeader
           filters={
-            <DataTableToolbar
-              className="px-0"
-              actions={
-                provider !== "all" || status !== "all" ? (
-                  <Button
-                    onClick={clearFilters}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    <X /> {t("clear")}
-                  </Button>
-                ) : undefined
-              }
-            >
+            <DataTableToolbar className="px-0">
               <DataTableFilter
                 ariaLabel={t("filterProvider")}
                 label={t("provider")}
@@ -300,9 +287,7 @@ export function AiUsageLogsPage() {
                 <TableEmptyRow
                   action={
                     hasFilters ? (
-                      <Button onClick={clearFilters} variant="outline">
-                        {t("resetFilters")}
-                      </Button>
+                      <TableResetFiltersButton onClick={clearFilters} />
                     ) : undefined
                   }
                   colSpan={5}

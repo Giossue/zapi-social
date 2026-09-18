@@ -10,7 +10,6 @@ import {
   Plus,
   ShieldCheck,
   Trash2,
-  X,
 } from "lucide-react"
 
 import { ApiError, adminSettingsApi } from "@workspace/api-client"
@@ -34,6 +33,7 @@ import {
   DataTableHeader,
 } from "@workspace/ui/components/data-table-controls"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
+import { TableResetFiltersButton } from "@/components/table-reset-filters-button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -291,21 +291,7 @@ export function StaticPagesSettingsPage() {
               </Button>
             }
             filters={
-              <DataTableToolbar
-                actions={
-                  statusFilter !== "all" ? (
-                    <Button
-                      onClick={clearFilters}
-                      size="sm"
-                      type="button"
-                      variant="outline"
-                    >
-                      <X /> {t("clear")}
-                    </Button>
-                  ) : undefined
-                }
-                className="px-0"
-              >
+              <DataTableToolbar className="px-0">
                 <DataTableFilter
                   ariaLabel={t("filterStatus")}
                   label={t("statusColumn")}
@@ -405,9 +391,7 @@ export function StaticPagesSettingsPage() {
                   <TableEmptyRow
                     action={
                       hasFilters ? (
-                        <Button onClick={clearFilters} variant="outline">
-                          {t("resetFilters")}
-                        </Button>
+                        <TableResetFiltersButton onClick={clearFilters} />
                       ) : null
                     }
                     colSpan={3}

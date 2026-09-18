@@ -17,7 +17,6 @@ import {
   Plus,
   ShieldCheck,
   Trash2,
-  X,
 } from "lucide-react"
 
 import { ApiError } from "@workspace/api-client"
@@ -40,6 +39,7 @@ import {
   DataTableHeader,
 } from "@workspace/ui/components/data-table-controls"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
+import { TableResetFiltersButton } from "@/components/table-reset-filters-button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -613,21 +613,7 @@ export function AdminCollectionPage<TRow, TResponse>({
             }
             filters={
               config.filter ? (
-                <DataTableToolbar
-                  actions={
-                    status !== "all" ? (
-                      <Button
-                        onClick={clearFilters}
-                        size="sm"
-                        type="button"
-                        variant="outline"
-                      >
-                        <X /> {t("clear")}
-                      </Button>
-                    ) : undefined
-                  }
-                  className="px-0"
-                >
+                <DataTableToolbar className="px-0">
                   <DataTableFilter
                     ariaLabel={t("filterBy", { field: config.filter.label })}
                     label={config.filter.label}
@@ -734,9 +720,7 @@ export function AdminCollectionPage<TRow, TResponse>({
                   <TableEmptyRow
                     action={
                       hasFilters ? (
-                        <Button onClick={clearFilters} variant="outline">
-                          {t("resetFilters")}
-                        </Button>
+                        <TableResetFiltersButton onClick={clearFilters} />
                       ) : null
                     }
                     colSpan={config.columns.length + 1}

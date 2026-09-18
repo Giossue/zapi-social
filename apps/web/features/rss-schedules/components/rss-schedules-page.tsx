@@ -31,6 +31,7 @@ import {
   DataTableHeader,
 } from "@workspace/ui/components/data-table-controls"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
+import { TableResetFiltersButton } from "@/components/table-reset-filters-button"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import {
@@ -571,9 +572,7 @@ function RssSchedules({
                         colSpan={6}
                         action={
                           query || status !== "all" ? (
-                            <Button onClick={resetFilters} variant="outline">
-                              {t("resetFilters")}
-                            </Button>
+                            <TableResetFiltersButton onClick={resetFilters} />
                           ) : null
                         }
                         description={

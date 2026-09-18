@@ -234,14 +234,6 @@ export function PublishingCalendar({
                     </Label>
                   </div>
                 ))}
-                <Button
-                  disabled={selectedAvailableChannels.length === 0}
-                  onClick={() => setSelectedChannels([])}
-                  size="sm"
-                  variant="outline"
-                >
-                  {t("clearFilters")}
-                </Button>
               </div>
             </PopoverContent>
           </Popover>

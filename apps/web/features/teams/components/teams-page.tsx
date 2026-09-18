@@ -33,6 +33,7 @@ import {
   DataTableHeader,
 } from "@workspace/ui/components/data-table-controls"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
+import { TableResetFiltersButton } from "@/components/table-reset-filters-button"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import {
   Card,
@@ -87,7 +88,6 @@ import {
   Send,
   Trash2,
   UserCog,
-  X,
 } from "lucide-react"
 
 import {
@@ -651,15 +651,12 @@ export function TeamsPage() {
 
   const visibleMembersEmptyProps = {
     action: memberQuery ? (
-      <Button
+      <TableResetFiltersButton
         onClick={() => {
           setMemberPage(1)
           setMemberQuery("")
         }}
-        variant="brand-secondary"
-      >
-        {t("clearSearch")}
-      </Button>
+      />
     ) : undefined,
     description: t("membersEmptyFilteredDescription"),
     icon: TABLE_EMPTY_ICON,
@@ -667,15 +664,12 @@ export function TeamsPage() {
   }
   const visibleInvitationsEmptyProps = {
     action: invitationQuery ? (
-      <Button
+      <TableResetFiltersButton
         onClick={() => {
           setInvitationPage(1)
           setInvitationQuery("")
         }}
-        variant="brand-secondary"
-      >
-        {t("clearSearch")}
-      </Button>
+      />
     ) : undefined,
     description: invitationQuery
       ? t("invitationsEmptyFilteredDescription")
@@ -722,25 +716,7 @@ export function TeamsPage() {
       }
       filters={
         activeView === "activity" ? (
-          <DataTableToolbar
-            actions={
-              activityCategory !== "all" ? (
-                <Button
-                  onClick={() => {
-                    setActivityCategory("all")
-                    setActivityPage(1)
-                  }}
-                  size="sm"
-                  type="button"
-                  variant="outline"
-                >
-                  <X aria-hidden="true" data-icon="inline-start" />
-                  {common("clear")}
-                </Button>
-              ) : undefined
-            }
-            className="px-0"
-          >
+          <DataTableToolbar className="px-0">
             <DataTableFilter
               ariaLabel={t("filterActivity")}
               onValueChange={(value) => {
@@ -1293,9 +1269,7 @@ function ActivityTable({
                 colSpan={4}
                 action={
                   hasFilters ? (
-                    <Button onClick={onClearFilters} variant="brand-secondary">
-                      {t("clearFilters")}
-                    </Button>
+                    <TableResetFiltersButton onClick={onClearFilters} />
                   ) : undefined
                 }
                 description={
@@ -1488,12 +1462,7 @@ function MemberAccessView({
                     colSpan={3}
                     action={
                       query ? (
-                        <Button
-                          onClick={onClearSearch}
-                          variant="brand-secondary"
-                        >
-                          {t("clearSearch")}
-                        </Button>
+                        <TableResetFiltersButton onClick={onClearSearch} />
                       ) : undefined
                     }
                     description={t("membersEmptyFilteredDescription")}

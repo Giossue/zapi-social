@@ -17,6 +17,7 @@ import {
   DataTableHeader,
 } from "@workspace/ui/components/data-table-controls"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
+import { TableResetFiltersButton } from "@/components/table-reset-filters-button"
 import {
   Card,
   CardContent,
@@ -57,7 +58,6 @@ import {
   RefreshCw,
   Save,
   ShieldCheck,
-  X,
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
@@ -515,23 +515,7 @@ export function AiConfigurationPage() {
           <Card variant="subtle">
             <DataTableHeader
               filters={
-                <DataTableToolbar
-                  className="px-0"
-                  actions={
-                    modelProviderFilter !== "all" ||
-                    modelCapabilityFilter !== "all" ||
-                    modelEnabledFilter !== "all" ? (
-                      <Button
-                        onClick={clearModelFilters}
-                        size="sm"
-                        type="button"
-                        variant="outline"
-                      >
-                        <X /> {t("clear")}
-                      </Button>
-                    ) : undefined
-                  }
-                >
+                <DataTableToolbar className="px-0">
                   <DataTableFilter
                     ariaLabel={t("filterProvider")}
                     label={t("provider")}
@@ -656,9 +640,9 @@ export function AiConfigurationPage() {
                     <TableEmptyRow
                       action={
                         hasModelFilters ? (
-                          <Button onClick={clearModelFilters} variant="outline">
-                            {t("clearFilters")}
-                          </Button>
+                          <TableResetFiltersButton
+                            onClick={clearModelFilters}
+                          />
                         ) : null
                       }
                       colSpan={6}
@@ -813,15 +797,12 @@ function UsagePanel({
               <TableEmptyRow
                 action={
                   query.trim() ? (
-                    <Button
+                    <TableResetFiltersButton
                       onClick={() => {
                         setQuery("")
                         setPage(1)
                       }}
-                      variant="outline"
-                    >
-                      {t("clearFilters")}
-                    </Button>
+                    />
                   ) : null
                 }
                 colSpan={5}

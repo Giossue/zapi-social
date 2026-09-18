@@ -3162,7 +3162,8 @@ declare const messages: {
     "pagination": {
       "empty": "0 {items}",
       "range": "{from, number}-{to, number} de {total, number}"
-    }
+    },
+    "resetFilters": "Restablecer filtros"
   },
   "dashboard": {
     "admin": {

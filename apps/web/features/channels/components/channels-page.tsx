@@ -39,6 +39,8 @@ import { type FormEvent, useCallback, useEffect, useRef, useState } from "react"
 
 import { capabilityKeys, useChannelLabels } from "@/lib/channel-labels"
 
+import { TableResetFiltersButton } from "@/components/table-reset-filters-button"
+
 import { channelsFixture } from "../fixtures/channels"
 import type {
   ChannelCapabilityKey,
@@ -577,6 +579,13 @@ export function LiveChannelsPage() {
     capabilityFilter !== "all" ||
     statusFilter !== "all"
 
+  function clearFilters() {
+    setQuery("")
+    setProviderFilter("all")
+    setCapabilityFilter("all")
+    setStatusFilter("all")
+  }
+
   if (isLoading) return <ChannelsLoading />
   if (!hasPermission)
     return (
@@ -621,6 +630,11 @@ export function LiveChannelsPage() {
                 ? t("emptyFilteredDescription")
                 : t("emptyDescription")
             }
+            action={
+              hasActiveFilters ? (
+                <TableResetFiltersButton onClick={clearFilters} />
+              ) : undefined
+            }
             icon={Share2}
             title={hasActiveFilters ? t("noMatches") : t("emptyTitle")}
           />
@@ -629,11 +643,7 @@ export function LiveChannelsPage() {
         onCapabilityFilterChange={(value) => {
           setCapabilityFilter(value)
         }}
-        onClearFilters={() => {
-          setProviderFilter("all")
-          setCapabilityFilter("all")
-          setStatusFilter("all")
-        }}
+
         onConnect={() => setIsConnectOpen(true)}
         onProviderFilterChange={(value) => {
           setProviderFilter(value)

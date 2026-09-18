@@ -10,7 +10,6 @@ import {
   MoreHorizontal,
   Plus,
   Trash2,
-  X,
 } from "lucide-react"
 
 import {
@@ -52,6 +51,7 @@ import {
   DataTableHeader,
 } from "@workspace/ui/components/data-table-controls"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
+import { TableResetFiltersButton } from "@/components/table-reset-filters-button"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import {
   Field,
@@ -629,21 +629,7 @@ export function BulkPostsPage({ embedded = false }: { embedded?: boolean }) {
               </Button>
             }
             filters={
-              <DataTableToolbar
-                actions={
-                  status !== "all" ? (
-                    <Button
-                      onClick={clearFilters}
-                      size="sm"
-                      type="button"
-                      variant="outline"
-                    >
-                      <X /> {t("clear")}
-                    </Button>
-                  ) : undefined
-                }
-                className="px-0"
-              >
+              <DataTableToolbar className="px-0">
                 <DataTableFilter
                   ariaLabel={t("filterStatus")}
                   label={t("status")}
@@ -786,9 +772,7 @@ export function BulkPostsPage({ embedded = false }: { embedded?: boolean }) {
                   <TableEmptyRow
                     action={
                       hasFilters ? (
-                        <Button onClick={clearFilters} variant="outline">
-                          {t("resetFilters")}
-                        </Button>
+                        <TableResetFiltersButton onClick={clearFilters} />
                       ) : null
                     }
                     colSpan={5}

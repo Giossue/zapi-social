@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
-import { CircleAlert, Copy, HandCoins, Wallet, X } from "lucide-react"
+import { CircleAlert, Copy, HandCoins, Wallet } from "lucide-react"
 
 import { ApiError, affiliateApi } from "@workspace/api-client"
 import type { PortalAffiliateDashboard } from "@workspace/contracts"
@@ -15,6 +15,7 @@ import {
   DataTableHeader,
 } from "@workspace/ui/components/data-table-controls"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
+import { TableResetFiltersButton } from "@/components/table-reset-filters-button"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import {
   Field,
@@ -480,21 +481,7 @@ export function AffiliatePage() {
               <DataTableHeader
                 loading={isLoading && Boolean(data)}
                 filters={
-                  <DataTableToolbar
-                    actions={
-                      commissionStatus !== "all" ? (
-                        <Button
-                          onClick={clearCommissionFilters}
-                          size="sm"
-                          type="button"
-                          variant="outline"
-                        >
-                          <X /> {t("clear")}
-                        </Button>
-                      ) : undefined
-                    }
-                    className="px-0"
-                  >
+                  <DataTableToolbar className="px-0">
                     <DataTableFilter
                       ariaLabel={t("filterStatus")}
                       label={t("statusColumn")}
@@ -568,12 +555,9 @@ export function AffiliatePage() {
                       <TableEmptyRow
                         action={
                           hasCommissionFilters ? (
-                            <Button
+                            <TableResetFiltersButton
                               onClick={clearCommissionFilters}
-                              variant="outline"
-                            >
-                              {t("resetFilters")}
-                            </Button>
+                            />
                           ) : null
                         }
                         colSpan={3}
@@ -626,21 +610,7 @@ export function AffiliatePage() {
                   </Button>
                 }
                 filters={
-                  <DataTableToolbar
-                    actions={
-                      withdrawalStatus !== "all" ? (
-                        <Button
-                          onClick={clearWithdrawalFilters}
-                          size="sm"
-                          type="button"
-                          variant="outline"
-                        >
-                          <X /> {t("clear")}
-                        </Button>
-                      ) : undefined
-                    }
-                    className="px-0"
-                  >
+                  <DataTableToolbar className="px-0">
                     <DataTableFilter
                       ariaLabel={t("filterStatus")}
                       label={t("statusColumn")}
@@ -714,12 +684,9 @@ export function AffiliatePage() {
                       <TableEmptyRow
                         action={
                           hasWithdrawalFilters ? (
-                            <Button
+                            <TableResetFiltersButton
                               onClick={clearWithdrawalFilters}
-                              variant="outline"
-                            >
-                              {t("resetFilters")}
-                            </Button>
+                            />
                           ) : null
                         }
                         colSpan={3}

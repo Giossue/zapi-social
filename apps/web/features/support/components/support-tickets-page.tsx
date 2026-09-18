@@ -9,7 +9,6 @@ import {
   MessageSquare,
   Plus,
   Search,
-  X,
 } from "lucide-react"
 
 import { ApiError, supportApi } from "@workspace/api-client"
@@ -20,6 +19,7 @@ import {
   DataTableHeader,
 } from "@workspace/ui/components/data-table-controls"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
+import { TableResetFiltersButton } from "@/components/table-reset-filters-button"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import {
@@ -428,21 +428,7 @@ export function SupportTicketsPage() {
                   </Button>
                 }
                 filters={
-                  <DataTableToolbar
-                    actions={
-                      status !== "all" ? (
-                        <Button
-                          onClick={clearFilters}
-                          size="sm"
-                          type="button"
-                          variant="outline"
-                        >
-                          <X /> {t("clear")}
-                        </Button>
-                      ) : undefined
-                    }
-                    className="px-0"
-                  >
+                  <DataTableToolbar className="px-0">
                     <DataTableFilter
                       ariaLabel={t("filterStatus")}
                       label={t("statusColumn")}
@@ -515,9 +501,7 @@ export function SupportTicketsPage() {
                   <EmptyState
                     action={
                       hasFilters ? (
-                        <Button onClick={clearFilters} variant="outline">
-                          {t("resetFilters")}
-                        </Button>
+                        <TableResetFiltersButton onClick={clearFilters} />
                       ) : null
                     }
                     description={

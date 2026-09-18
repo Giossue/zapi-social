@@ -27,6 +27,7 @@ import {
   DataTableHeader,
 } from "@workspace/ui/components/data-table-controls"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
+import { TableResetFiltersButton } from "@/components/table-reset-filters-button"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import { Card, CardContent } from "@workspace/ui/components/card"
 import {
@@ -80,7 +81,6 @@ import {
   Save,
   Trash2,
   TriangleAlert,
-  X,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import {
@@ -643,12 +643,7 @@ export function CaptionsLibraryPage() {
 
   const emptyState = hasActiveFilters ? (
     <EmptyState
-      action={
-        <Button onClick={clearFilters} type="button" variant="outline">
-          <X data-icon="inline-start" />
-          {t("clearFilters")}
-        </Button>
-      }
+      action={<TableResetFiltersButton onClick={clearFilters} />}
       description={t("emptyFilteredDescription")}
       icon={TABLE_EMPTY_ICON}
       title={t("noMatches")}
@@ -682,22 +677,7 @@ export function CaptionsLibraryPage() {
               </Button>
             }
             filters={
-              <DataTableToolbar
-                actions={
-                  sourceFilter !== "all" || statusFilter !== "all" ? (
-                    <Button
-                      onClick={clearFilters}
-                      size="sm"
-                      type="button"
-                      variant="outline"
-                    >
-                      <X />
-                      {t("clear")}
-                    </Button>
-                  ) : undefined
-                }
-                className="px-0"
-              >
+              <DataTableToolbar className="px-0">
                 <DataTableFilter
                   ariaLabel={t("filterSource")}
                   label={t("source")}

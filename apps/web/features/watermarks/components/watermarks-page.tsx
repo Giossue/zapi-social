@@ -46,6 +46,7 @@ import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import { DataTableFilter } from "@workspace/ui/components/data-table-controls"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
+import { TableResetFiltersButton } from "@/components/table-reset-filters-button"
 import { PageLoading } from "@/components/page-loading"
 import { RetryButton } from "@workspace/ui/components/retry-button"
 import { toast } from "@workspace/ui/components/toast"
@@ -551,18 +552,6 @@ function WatermarkImagePicker({
             />
           </InputGroup>
           <DataTableToolbar
-            actions={
-              library.folderId !== "all" || library.starredOnly ? (
-                <Button
-                  onClick={clearFilters}
-                  size="sm"
-                  type="button"
-                  variant="brand-secondary"
-                >
-                  {t("clearFilters")}
-                </Button>
-              ) : undefined
-            }
             className="px-0"
             loading={library.status === "loading" && library.assets.length > 0}
           >
@@ -609,9 +598,7 @@ function WatermarkImagePicker({
             <EmptyState
               action={
                 isFiltering ? (
-                  <Button onClick={clearFilters} variant="brand-secondary">
-                    {t("clearFilters")}
-                  </Button>
+                  <TableResetFiltersButton onClick={clearFilters} />
                 ) : null
               }
               description={

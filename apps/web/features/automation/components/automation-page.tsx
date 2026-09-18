@@ -10,7 +10,6 @@ import {
   Pencil,
   Plus,
   Trash2,
-  X,
 } from "lucide-react"
 
 import { ApiError, automationApi } from "@workspace/api-client"
@@ -39,6 +38,7 @@ import {
   DataTableHeader,
 } from "@workspace/ui/components/data-table-controls"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
+import { TableResetFiltersButton } from "@/components/table-reset-filters-button"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -808,21 +808,7 @@ export function AutomationPage() {
                   ) : undefined
                 }
                 filters={
-                  <DataTableToolbar
-                    actions={
-                      keysStatus !== "all" ? (
-                        <Button
-                          onClick={clearKeysFilters}
-                          size="sm"
-                          type="button"
-                          variant="outline"
-                        >
-                          <X /> {t("clear")}
-                        </Button>
-                      ) : undefined
-                    }
-                    className="px-0"
-                  >
+                  <DataTableToolbar className="px-0">
                     <DataTableFilter
                       ariaLabel={t("filterStatus")}
                       label={t("status")}
@@ -947,12 +933,9 @@ export function AutomationPage() {
                       <TableEmptyRow
                         action={
                           hasKeysFilters ? (
-                            <Button
+                            <TableResetFiltersButton
                               onClick={clearKeysFilters}
-                              variant="outline"
-                            >
-                              {t("resetFilters")}
-                            </Button>
+                            />
                           ) : null
                         }
                         colSpan={data.canManage ? 5 : 4}
@@ -1014,21 +997,7 @@ export function AutomationPage() {
                   ) : undefined
                 }
                 filters={
-                  <DataTableToolbar
-                    actions={
-                      webhooksStatus !== "all" ? (
-                        <Button
-                          onClick={clearWebhooksFilters}
-                          size="sm"
-                          type="button"
-                          variant="outline"
-                        >
-                          <X /> {t("clear")}
-                        </Button>
-                      ) : undefined
-                    }
-                    className="px-0"
-                  >
+                  <DataTableToolbar className="px-0">
                     <DataTableFilter
                       ariaLabel={t("filterStatus")}
                       label={t("status")}
@@ -1168,12 +1137,9 @@ export function AutomationPage() {
                       <TableEmptyRow
                         action={
                           hasWebhooksFilters ? (
-                            <Button
+                            <TableResetFiltersButton
                               onClick={clearWebhooksFilters}
-                              variant="outline"
-                            >
-                              {t("resetFilters")}
-                            </Button>
+                            />
                           ) : null
                         }
                         colSpan={data.canManage ? 5 : 4}
@@ -1227,21 +1193,7 @@ export function AutomationPage() {
               <DataTableHeader
                 loading={isLoading && Boolean(data)}
                 filters={
-                  <DataTableToolbar
-                    actions={
-                      logsStatus !== "all" ? (
-                        <Button
-                          onClick={clearLogsFilters}
-                          size="sm"
-                          type="button"
-                          variant="outline"
-                        >
-                          <X /> {t("clear")}
-                        </Button>
-                      ) : undefined
-                    }
-                    className="px-0"
-                  >
+                  <DataTableToolbar className="px-0">
                     <DataTableFilter
                       ariaLabel={t("filterResult")}
                       label={t("result")}
@@ -1330,12 +1282,9 @@ export function AutomationPage() {
                       <TableEmptyRow
                         action={
                           hasLogsFilters ? (
-                            <Button
+                            <TableResetFiltersButton
                               onClick={clearLogsFilters}
-                              variant="outline"
-                            >
-                              {t("resetFilters")}
-                            </Button>
+                            />
                           ) : null
                         }
                         colSpan={4}

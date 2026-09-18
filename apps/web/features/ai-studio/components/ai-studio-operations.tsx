@@ -20,6 +20,7 @@ import {
   DataTableHeader,
 } from "@workspace/ui/components/data-table-controls"
 import { DataTableToolbar } from "@/components/data-table-toolbar"
+import { TableResetFiltersButton } from "@/components/table-reset-filters-button"
 import { CollectionHeader } from "@workspace/ui/components/collection-header"
 import { EmptyState } from "@workspace/ui/components/empty-state"
 import { FloatingActionButton } from "@workspace/ui/components/floating-action-button"
@@ -437,13 +438,7 @@ function AiHistorySurface({
                     colSpan={6}
                     action={
                       hasFilters ? (
-                        <Button
-                          onClick={onClearFilters}
-                          type="button"
-                          variant="brand-secondary"
-                        >
-                          {t("clearFilters")}
-                        </Button>
+                        <TableResetFiltersButton onClick={onClearFilters} />
                       ) : undefined
                     }
                     description={
@@ -823,13 +818,7 @@ function AiAutomationSurface({
                     colSpan={canManage ? 5 : 4}
                     action={
                       hasFilters ? (
-                        <Button
-                          onClick={onClearFilters}
-                          type="button"
-                          variant="brand-secondary"
-                        >
-                          {t("clearFilters")}
-                        </Button>
+                        <TableResetFiltersButton onClick={onClearFilters} />
                       ) : undefined
                     }
                     description={emptyDescription}
@@ -1143,13 +1132,7 @@ function AiCreditsSurface({
                       colSpan={4}
                       action={
                         hasFilters ? (
-                          <Button
-                            onClick={onClearFilters}
-                            type="button"
-                            variant="brand-secondary"
-                          >
-                            {t("clearFilters")}
-                          </Button>
+                          <TableResetFiltersButton onClick={onClearFilters} />
                         ) : undefined
                       }
                       description={
