@@ -1,8 +1,15 @@
-"use client";
+"use client"
 
-import { type ComponentType, type CSSProperties, type SVGProps } from "react";
+import { type ComponentType, type CSSProperties, type SVGProps } from "react"
 
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
 import {
   Sidebar,
   SidebarContent,
@@ -12,21 +19,21 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@workspace/ui/components/sidebar";
+} from "@workspace/ui/components/sidebar"
 
 export type IntegrationNavigationItem = {
-  value: string;
-  label: string;
-  icon: ComponentType<SVGProps<SVGSVGElement>>;
-};
+  value: string
+  label: string
+  icon: ComponentType<SVGProps<SVGSVGElement>>
+}
 
 type IntegrationNavigationProps = {
-  contentId?: string;
-  items: readonly IntegrationNavigationItem[];
-  navigationLabel: string;
-  onValueChange: (value: string) => void;
-  value: string;
-};
+  contentId?: string
+  items: readonly IntegrationNavigationItem[]
+  navigationLabel: string
+  onValueChange: (value: string) => void
+  value: string
+}
 
 export function IntegrationSidebar({
   contentId,
@@ -52,8 +59,8 @@ export function IntegrationSidebar({
             <nav aria-label={navigationLabel}>
               <SidebarMenu>
                 {items.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = item.value === value;
+                  const Icon = item.icon
+                  const isActive = item.value === value
 
                   return (
                     <SidebarMenuItem key={item.value}>
@@ -68,7 +75,7 @@ export function IntegrationSidebar({
                         <span>{item.label}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                  );
+                  )
                 })}
               </SidebarMenu>
             </nav>
@@ -76,7 +83,7 @@ export function IntegrationSidebar({
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
-  );
+  )
 }
 
 export function IntegrationProviderSelect({
@@ -94,18 +101,22 @@ export function IntegrationProviderSelect({
         <SelectContent>
           <SelectGroup>
             {items.map((item) => {
-              const Icon = item.icon;
+              const Icon = item.icon
 
               return (
-                <SelectItem key={item.value} textValue={item.label} value={item.value}>
+                <SelectItem
+                  key={item.value}
+                  textValue={item.label}
+                  value={item.value}
+                >
                   <Icon aria-hidden="true" />
                   {item.label}
                 </SelectItem>
-              );
+              )
             })}
           </SelectGroup>
         </SelectContent>
       </Select>
     </div>
-  );
+  )
 }

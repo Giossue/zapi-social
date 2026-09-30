@@ -1,17 +1,13 @@
 "use client"
 
 import { ApiError, integrationsApi } from "@workspace/api-client"
-import type { ChannelProviderIntegration } from "@workspace/contracts"
 
-import { useChannelLabels } from "@/lib/channel-labels"
 import { WhatsAppStatusIntegrationCard } from "./whatsapp-status-integration-card"
 import { EmailSmtpIntegrationCard } from "./email-smtp-integration-card"
 import { IntegrationAvailabilityCard } from "./integration-availability-card"
 import { IntegrationCardLoading } from "./integration-card-loading"
-import {
-  IntegrationNavigationLayout,
-  type IntegrationNavigationItem,
-} from "./integration-navigation-layout"
+import { IntegrationProviderSelect } from "./integration-navigation-layout"
+import { useIntegrationsNavigation } from "./integrations-navigation-context"
 import { IntegrationInsetCard } from "./integration-inset-card"
 import { PolarIntegrationPreview } from "./polar-integration-card"
 import { GoogleDriveIntegrationCard } from "./google-drive-integration-card"
@@ -58,11 +54,9 @@ import {
   Circle,
   CircleAlert,
   Copy,
-  Images,
   KeyRound,
   Link,
   LockKeyhole,
-  Mail,
   PlugZap,
   Save,
   Settings2,
@@ -79,15 +73,7 @@ import {
 
 import { useTranslations } from "next-intl"
 
-import {
-  BrandGoogleDrive,
-  BrandLinkedIn,
-  BrandMeta,
-  BrandPolar,
-  BrandTikTok,
-  BrandWhatsApp,
-  BrandX,
-} from "@/components/brand-icons"
+import { BrandMeta } from "@/components/brand-icons"
 
 type CapabilityKey = MetaIntegration["capabilities"][number]["key"]
 type MetaScope = MetaIntegration["capabilityScopes"][CapabilityKey][number]
@@ -120,26 +106,6 @@ type Draft = {
 }
 
 type TestState = "not-tested" | "testing" | "passed" | "failed"
-
-const builtInProviders = [
-  { value: "pexels", labelKey: "pexels", icon: Images },
-  { value: "meta", label: "Meta", icon: BrandMeta },
-  { value: "whatsapp", label: "WhatsApp Status", icon: BrandWhatsApp },
-  { value: "email", labelKey: "email", icon: Mail },
-  { value: "polar", label: "Polar.sh", icon: BrandPolar },
-  { value: "google-drive", label: "Google Drive", icon: BrandGoogleDrive },
-] as const
-
-const channelProviderIcons: Partial<
-  Record<
-    ChannelProviderIntegration["providerKey"],
-    IntegrationNavigationItem["icon"]
-  >
-> = {
-  linkedin: BrandLinkedIn,
-  x: BrandX,
-  tiktok: BrandTikTok,
-}
 
 const statusVariants = {
   ready: "success" as const,
@@ -220,31 +186,18 @@ export function IntegrationsPage() {
   const [loadError, setLoadError] = useState(false)
   const [forbidden, setForbidden] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [activeProvider, setActiveProvider] = useState("meta")
-  const [channelProviders, setChannelProviders] = useState<
-    ChannelProviderIntegration[]
-  >([])
-  const labels = useChannelLabels()
+  const {
+    activeProvider,
+    channelProviders,
+    contentId,
+    navigationItems,
+    navigationLabel,
+    setActiveProvider,
+    setChannelProviders,
+  } = useIntegrationsNavigation()
   const activeChannelProvider = channelProviders.find(
     (provider) => provider.providerKey === activeProvider
   )
-  const navigationItems: IntegrationNavigationItem[] = [
-    ...builtInProviders.map((provider) => {
-      const providerLabel =
-        "labelKey" in provider ? t(`tab.${provider.labelKey}`) : provider.label
-
-      return {
-        value: provider.value,
-        icon: provider.icon,
-        label: providerLabel,
-      }
-    }),
-    ...channelProviders.map((provider) => ({
-      value: provider.providerKey,
-      label: labels.provider(provider.providerKey),
-      icon: channelProviderIcons[provider.providerKey] ?? PlugZap,
-    })),
-  ]
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -266,16 +219,6 @@ export function IntegrationsPage() {
       setLoading(false)
     }
   }, [t])
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      void integrationsApi
-        .listChannelProviders()
-        .then((response) => setChannelProviders(response.providers))
-        .catch(() => setChannelProviders([]))
-    }, 0)
-    return () => clearTimeout(timer)
-  }, [])
 
   useEffect(() => {
     const timer = setTimeout(() => void load(), 0)
@@ -434,15 +377,14 @@ export function IntegrationsPage() {
   }
 
   return (
-    <IntegrationNavigationLayout
-      header={
-        <CollectionHeader description={t("description")} title={t("title")} />
-      }
-      items={navigationItems}
-      navigationLabel={t("providerTabs")}
-      onValueChange={setActiveProvider}
-      value={activeProvider}
-    >
+    <div className="flex min-w-0 flex-col gap-6" id={contentId}>
+      <CollectionHeader description={t("description")} title={t("title")} />
+      <IntegrationProviderSelect
+        items={navigationItems}
+        navigationLabel={navigationLabel}
+        onValueChange={setActiveProvider}
+        value={activeProvider}
+      />
       {activeProvider === "meta" && loading ? (
         <IntegrationCardLoading />
       ) : activeProvider === "meta" && (loadError || !integration) ? (
@@ -904,6 +846,6 @@ export function IntegrationsPage() {
           </SheetContent>
         </Sheet>
       ) : null}
-    </IntegrationNavigationLayout>
+    </div>
   )
 }

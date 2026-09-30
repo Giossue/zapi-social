@@ -1,6 +1,7 @@
 "use client"
 
 import { useTranslations } from "next-intl"
+import { usePathname } from "next/navigation"
 import { useMemo } from "react"
 
 import { DashboardShell } from "@/components/dashboard-shell/dashboard-shell"
@@ -10,6 +11,10 @@ import {
   adminNavigationGroups,
   isAdminNavigationItemActive,
 } from "@/features/platform-admin/admin-navigation"
+import {
+  IntegrationsNavigationProvider,
+  IntegrationsSidebar,
+} from "@/features/integrations/components/integrations-navigation-context"
 
 type AdminShellProps = {
   children: React.ReactNode
@@ -18,6 +23,10 @@ type AdminShellProps = {
 
 export function AdminShell({ children, profile }: AdminShellProps) {
   const t = useTranslations("shell")
+  const pathname = usePathname()
+  const integrationsActive = Boolean(
+    profile && pathname === "/admin/integrations"
+  )
   const items = useTranslatedNavigation(
     adminNavigationGroups,
     "navigation.admin"
@@ -28,24 +37,29 @@ export function AdminShell({ children, profile }: AdminShellProps) {
   )
 
   return (
-    <DashboardShell
-      areaName="Admin"
-      documentTitleOverrides={documentTitleOverrides}
-      homeHref="/admin/dashboard"
-      isItemActive={(item, pathname) =>
-        isAdminNavigationItemActive(item.href, pathname)
-      }
-      items={items}
-      navigationLabel={t("adminNavigationLabel")}
-      loading={!profile}
-      profile={profile}
-      sidebarStorageKey="zapi:admin-sidebar:v1"
-    >
-      {profile ? (
-        children
-      ) : (
-        <PageLoading className="min-h-[calc(100dvh-3rem)]" />
-      )}
-    </DashboardShell>
+    <IntegrationsNavigationProvider enabled={integrationsActive}>
+      <DashboardShell
+        areaName="Admin"
+        documentTitleOverrides={documentTitleOverrides}
+        homeHref="/admin/dashboard"
+        isItemActive={(item, pathname) =>
+          isAdminNavigationItemActive(item.href, pathname)
+        }
+        items={items}
+        navigationLabel={t("adminNavigationLabel")}
+        loading={!profile}
+        profile={profile}
+        secondaryNavigation={
+          integrationsActive ? <IntegrationsSidebar /> : undefined
+        }
+        sidebarStorageKey="zapi:admin-sidebar:v1"
+      >
+        {profile ? (
+          children
+        ) : (
+          <PageLoading className="min-h-[calc(100dvh-3rem)]" />
+        )}
+      </DashboardShell>
+    </IntegrationsNavigationProvider>
   )
 }
