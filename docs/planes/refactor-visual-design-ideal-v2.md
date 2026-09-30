@@ -389,7 +389,8 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 ## Integraciones Admin — menú secundario — 29 de septiembre de 2026
 
 - Las pestañas de proveedores se sustituyen por un menú secundario con iconos, selección activa y ancho de 224 px desde `lg`; en móvil y tablet se usa un `Select` con las mismas opciones.
-- La composición se creó primero en `template-shadcn-superdashboard/src/app/(main)/dashboard/platform/integrations/_components/integration-navigation-layout.tsx`, con demo navegable en `/dashboard/platform/integrations`, y se copió a la feature de Integraciones de V2 adaptando únicamente los imports.
+- La composición vive en `apps/web/features/integrations/components`: `IntegrationsNavigationProvider` comparte selección y proveedores; `IntegrationsSidebar` se inyecta junto al sidebar principal mediante `DashboardShell.secondaryNavigation`; `IntegrationProviderSelect` cubre móvil y tablet dentro de la página.
 - Los estados de carga, error y permiso de Meta comparten ahora la misma navegación. La lista dinámica se agrega una sola vez; se retiran las entradas duplicadas que aparecían durante carga y error.
 - La selección conserva los formularios y las acciones existentes de cada proveedor. El menú móvil y el de escritorio comparten estado; las etiquetas reutilizan las traducciones actuales y la composición consume los primitives `Sidebar` y `Select`.
-- Validación: typecheck de Web, lint focal, build Web, auditorías Portal/UI e i18n-hardcoded y `git diff --check` correctos. La fuente y la copia conservan las mismas clases de layout y responsive; ambas quedaron formateadas. La revisión visual corresponde al usuario, según las reglas de cambios visuales rutinarios del repositorio.
+- Corrección visual: el menú dejó de vivir dentro del contenido de la ruta. Ahora ocupa toda la altura del shell, queda pegado al sidebar principal y el header empieza después de ambos menús.
+- Validación: typecheck y build de Web, lint focal, auditorías Portal/UI e i18n-hardcoded y `git diff --check` correctos.
