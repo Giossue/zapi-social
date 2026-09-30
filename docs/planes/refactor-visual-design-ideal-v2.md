@@ -385,3 +385,11 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - El template nuevo usa TanStack Table v9: `caption-library` se portó a `useTable`/`FlexRender` con `columnClassName(meta)`; `users` conserva la versión v9 del template con el delta responsive reaplicado (`meta.className` en Team/Workspace). `FileManagerFile` recupera `previewUrl`, que el upstream retiró y las vistas Zapi consumen. La copia V2 de Captions sigue en TanStack v8: la adaptación de API queda documentada como divergencia de copia, igual que los imports.
 - Validación del template migrado: `npx tsc --noEmit`, `npx biome check src` (0 errores; 4 avisos preexistentes de previews) y build Next con las 57 rutas, incluidas todas las superficies Zapi.
 - Toda la documentación de ZapiV2 (índice, reglas, planes y catálogos) referencia ahora `template-shadcn-superdashboard`; no quedan menciones al repositorio anterior, que puede archivarse o borrarse.
+
+## Integraciones Admin — menú secundario — 29 de septiembre de 2026
+
+- Las pestañas de proveedores se sustituyen por un menú secundario con iconos, selección activa y ancho de 224 px desde `lg`; en móvil y tablet se usa un `Select` con las mismas opciones.
+- La composición se creó primero en `template-shadcn-superdashboard/src/app/(main)/dashboard/platform/integrations/_components/integration-navigation-layout.tsx`, con demo navegable en `/dashboard/platform/integrations`, y se copió a la feature de Integraciones de V2 adaptando únicamente los imports.
+- Los estados de carga, error y permiso de Meta comparten ahora la misma navegación. La lista dinámica se agrega una sola vez; se retiran las entradas duplicadas que aparecían durante carga y error.
+- La selección conserva los formularios y las acciones existentes de cada proveedor. El menú móvil y el de escritorio comparten estado; las etiquetas reutilizan las traducciones actuales y la composición consume los primitives `Sidebar` y `Select`.
+- Validación: typecheck de Web, lint focal, build Web, auditorías Portal/UI e i18n-hardcoded y `git diff --check` correctos. La fuente y la copia conservan las mismas clases de layout y responsive; ambas quedaron formateadas. La revisión visual corresponde al usuario, según las reglas de cambios visuales rutinarios del repositorio.

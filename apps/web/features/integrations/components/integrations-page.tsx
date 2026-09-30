@@ -8,6 +8,10 @@ import { WhatsAppStatusIntegrationCard } from "./whatsapp-status-integration-car
 import { EmailSmtpIntegrationCard } from "./email-smtp-integration-card"
 import { IntegrationAvailabilityCard } from "./integration-availability-card"
 import { IntegrationCardLoading } from "./integration-card-loading"
+import {
+  IntegrationNavigationLayout,
+  type IntegrationNavigationItem,
+} from "./integration-navigation-layout"
 import { IntegrationInsetCard } from "./integration-inset-card"
 import { PolarIntegrationPreview } from "./polar-integration-card"
 import { GoogleDriveIntegrationCard } from "./google-drive-integration-card"
@@ -47,7 +51,6 @@ import {
   SheetTitle,
 } from "@workspace/ui/components/sheet"
 import { Switch } from "@workspace/ui/components/switch"
-import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 import { toast } from "@workspace/ui/components/toast"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
@@ -55,9 +58,11 @@ import {
   Circle,
   CircleAlert,
   Copy,
+  Images,
   KeyRound,
   Link,
   LockKeyhole,
+  Mail,
   PlugZap,
   Save,
   Settings2,
@@ -74,7 +79,15 @@ import {
 
 import { useTranslations } from "next-intl"
 
-import { BrandMeta } from "@/components/brand-icons"
+import {
+  BrandGoogleDrive,
+  BrandLinkedIn,
+  BrandMeta,
+  BrandPolar,
+  BrandTikTok,
+  BrandWhatsApp,
+  BrandX,
+} from "@/components/brand-icons"
 
 type CapabilityKey = MetaIntegration["capabilities"][number]["key"]
 type MetaScope = MetaIntegration["capabilityScopes"][CapabilityKey][number]
@@ -107,7 +120,26 @@ type Draft = {
 }
 
 type TestState = "not-tested" | "testing" | "passed" | "failed"
-type ProviderTab = string
+
+const builtInProviders = [
+  { value: "pexels", labelKey: "pexels", icon: Images },
+  { value: "meta", label: "Meta", icon: BrandMeta },
+  { value: "whatsapp", label: "WhatsApp Status", icon: BrandWhatsApp },
+  { value: "email", labelKey: "email", icon: Mail },
+  { value: "polar", label: "Polar.sh", icon: BrandPolar },
+  { value: "google-drive", label: "Google Drive", icon: BrandGoogleDrive },
+] as const
+
+const channelProviderIcons: Partial<
+  Record<
+    ChannelProviderIntegration["providerKey"],
+    IntegrationNavigationItem["icon"]
+  >
+> = {
+  linkedin: BrandLinkedIn,
+  x: BrandX,
+  tiktok: BrandTikTok,
+}
 
 const statusVariants = {
   ready: "success" as const,
@@ -188,7 +220,7 @@ export function IntegrationsPage() {
   const [loadError, setLoadError] = useState(false)
   const [forbidden, setForbidden] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [activeProvider, setActiveProvider] = useState<ProviderTab>("meta")
+  const [activeProvider, setActiveProvider] = useState("meta")
   const [channelProviders, setChannelProviders] = useState<
     ChannelProviderIntegration[]
   >([])
@@ -196,6 +228,23 @@ export function IntegrationsPage() {
   const activeChannelProvider = channelProviders.find(
     (provider) => provider.providerKey === activeProvider
   )
+  const navigationItems: IntegrationNavigationItem[] = [
+    ...builtInProviders.map((provider) => {
+      const providerLabel =
+        "labelKey" in provider ? t(`tab.${provider.labelKey}`) : provider.label
+
+      return {
+        value: provider.value,
+        icon: provider.icon,
+        label: providerLabel,
+      }
+    }),
+    ...channelProviders.map((provider) => ({
+      value: provider.providerKey,
+      label: labels.provider(provider.providerKey),
+      icon: channelProviderIcons[provider.providerKey] ?? PlugZap,
+    })),
+  ]
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -384,83 +433,19 @@ export function IntegrationsPage() {
     }
   }
 
-  if (activeProvider === "meta" && loading) {
-    return (
-      <div className="flex flex-col gap-6">
+  return (
+    <IntegrationNavigationLayout
+      header={
         <CollectionHeader description={t("description")} title={t("title")} />
-        <Tabs
-          onValueChange={(value) => setActiveProvider(value as ProviderTab)}
-          value={activeProvider}
-        >
-          <TabsList
-            aria-label={t("providerTabs")}
-            className="flex h-auto flex-wrap"
-          >
-            <TabsTrigger value="pexels">{t("tab.pexels")}</TabsTrigger>
-            <TabsTrigger value="meta">Meta</TabsTrigger>
-            <TabsTrigger value="whatsapp">WhatsApp Status</TabsTrigger>
-            <TabsTrigger value="email">{t("tab.email")}</TabsTrigger>
-            <TabsTrigger value="polar">Polar.sh</TabsTrigger>
-            <TabsTrigger value="google-drive">Google Drive</TabsTrigger>
-            {channelProviders.map((provider) => (
-              <TabsTrigger
-                key={provider.providerKey}
-                value={provider.providerKey}
-              >
-                {labels.provider(provider.providerKey)}
-              </TabsTrigger>
-            ))}
-            {channelProviders.map((provider) => (
-              <TabsTrigger
-                key={provider.providerKey}
-                value={provider.providerKey}
-              >
-                {labels.provider(provider.providerKey)}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+      }
+      items={navigationItems}
+      navigationLabel={t("providerTabs")}
+      onValueChange={setActiveProvider}
+      value={activeProvider}
+    >
+      {activeProvider === "meta" && loading ? (
         <IntegrationCardLoading />
-      </div>
-    )
-  }
-
-  if (activeProvider === "meta" && (loadError || !integration)) {
-    return (
-      <div className="flex flex-col gap-6">
-        <CollectionHeader description={t("description")} title={t("title")} />
-        <Tabs
-          onValueChange={(value) => setActiveProvider(value as ProviderTab)}
-          value={activeProvider}
-        >
-          <TabsList
-            aria-label={t("providerTabs")}
-            className="flex h-auto flex-wrap"
-          >
-            <TabsTrigger value="pexels">{t("tab.pexels")}</TabsTrigger>
-            <TabsTrigger value="meta">Meta</TabsTrigger>
-            <TabsTrigger value="whatsapp">WhatsApp Status</TabsTrigger>
-            <TabsTrigger value="email">{t("tab.email")}</TabsTrigger>
-            <TabsTrigger value="polar">Polar.sh</TabsTrigger>
-            <TabsTrigger value="google-drive">Google Drive</TabsTrigger>
-            {channelProviders.map((provider) => (
-              <TabsTrigger
-                key={provider.providerKey}
-                value={provider.providerKey}
-              >
-                {labels.provider(provider.providerKey)}
-              </TabsTrigger>
-            ))}
-            {channelProviders.map((provider) => (
-              <TabsTrigger
-                key={provider.providerKey}
-                value={provider.providerKey}
-              >
-                {labels.provider(provider.providerKey)}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+      ) : activeProvider === "meta" && (loadError || !integration) ? (
         <Card variant="subtle">
           <CardContent>
             <EmptyState
@@ -486,39 +471,7 @@ export function IntegrationsPage() {
             />
           </CardContent>
         </Card>
-      </div>
-    )
-  }
-
-  return (
-    <div className="flex flex-col gap-6">
-      <CollectionHeader description={t("description")} title={t("title")} />
-      <Tabs
-        onValueChange={(value) => setActiveProvider(value as ProviderTab)}
-        value={activeProvider}
-      >
-        <TabsList
-          aria-label={t("providerTabs")}
-          className="flex h-auto flex-wrap"
-        >
-          <TabsTrigger value="pexels">{t("tab.pexels")}</TabsTrigger>
-          <TabsTrigger value="meta">Meta</TabsTrigger>
-          <TabsTrigger value="whatsapp">WhatsApp Status</TabsTrigger>
-          <TabsTrigger value="email">{t("tab.email")}</TabsTrigger>
-          <TabsTrigger value="polar">Polar.sh</TabsTrigger>
-          <TabsTrigger value="google-drive">Google Drive</TabsTrigger>
-          {channelProviders.map((provider) => (
-            <TabsTrigger
-              key={provider.providerKey}
-              value={provider.providerKey}
-            >
-              {labels.provider(provider.providerKey)}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
-
-      {activeProvider === "meta" && integration ? (
+      ) : activeProvider === "meta" && integration ? (
         <>
           <Card variant="subtle">
             <CardHeader className="gap-4 border-b border-border pb-5">
@@ -951,6 +904,6 @@ export function IntegrationsPage() {
           </SheetContent>
         </Sheet>
       ) : null}
-    </div>
+    </IntegrationNavigationLayout>
   )
 }
