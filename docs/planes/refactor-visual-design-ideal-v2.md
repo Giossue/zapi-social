@@ -394,3 +394,7 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 - La selección conserva los formularios y las acciones existentes de cada proveedor. El menú móvil y el de escritorio comparten estado; las etiquetas reutilizan las traducciones actuales y la composición consume los primitives `Sidebar` y `Select`.
 - Corrección visual: el menú dejó de vivir dentro del contenido de la ruta. Ahora ocupa toda la altura del shell, queda pegado al sidebar principal y el header empieza después de ambos menús.
 - Validación: typecheck y build de Web, lint focal, auditorías Portal/UI e i18n-hardcoded y `git diff --check` correctos.
+
+## Icono Google Drive — 1 de octubre de 2026
+
+- `BrandGoogleDrive` sustituye la silueta triangular rellena por el trazado completo de [Simple Icons](https://github.com/simple-icons/simple-icons/blob/develop/icons/googledrive.svg). La composición compartida del menú y la tarjeta se describe en [Portal y Admin — sidebar base](../conocimiento/ui/portal-sidebar.md).

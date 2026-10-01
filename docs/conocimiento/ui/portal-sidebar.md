@@ -23,6 +23,8 @@
 10. El plan no oculta capacidades: los módulos no disponibles siguen visibles con candado y abren una superficie bloqueada. Los permisos del miembro sí filtran la navegación; `member` solo ve entradas con permiso `view`. API repite ambos controles y no confía en el sidebar.
 11. Integraciones Admin inyecta `IntegrationsSidebar` mediante `DashboardShell.secondaryNavigation`: el menú secundario de 224 px queda inmediatamente después del sidebar principal, ocupa toda la altura del viewport y deja el header únicamente sobre el contenido. Bajo `lg` se sustituye por un `Select` accesible dentro de la página. Ambas presentaciones comparten selección y proveedores mediante `IntegrationsNavigationProvider`.
 
+Los iconos de marca se centralizan en `apps/web/components/brand-icons.tsx`. `BrandGoogleDrive` dibuja las tres bandas del símbolo con centro transparente y `currentColor`, tanto en el menú como en la cabecera de su tarjeta.
+
 ## Pendiente
 
 - [ ] Diseñar cada módulo con fixtures, mocks y estados UI.
