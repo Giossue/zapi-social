@@ -398,3 +398,4 @@ No se consideran terminadas las superficies pendientes solo porque una iteració
 ## Icono Google Drive — 1 de octubre de 2026
 
 - `BrandGoogleDrive` sustituye la silueta triangular rellena por el trazado completo de [Simple Icons](https://github.com/simple-icons/simple-icons/blob/develop/icons/googledrive.svg). La composición compartida del menú y la tarjeta se describe en [Portal y Admin — sidebar base](../conocimiento/ui/portal-sidebar.md).
+- Validación: typecheck, lint y build de Web, auditorías Portal/UI, i18n e i18n-hardcoded y `git diff --check` correctos. La aprobación visual corresponde al usuario.
